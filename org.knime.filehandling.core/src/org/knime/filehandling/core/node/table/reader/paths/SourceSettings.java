@@ -44,69 +44,75 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 15, 2020 (Tobias): created
+ *   Dec 4, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.paths;
+
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.GenericItemAccessor;
 
 /**
- * Default implementation of {@link MultiTableReadConfig}.</br>
- * Uses a {@link ConfigSerializer} for serialization which is provided by the user.
+ * Interface defining classes that can be validated, saved to, and loaded from {@link NodeSettings} and allow to access
+ * source items.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
- * @param <C> the type of {@link ReaderSpecificConfig} used by the node implementation
- * @param <TC> the type of {@link TableReadConfig} used by the node implementation
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @param <I> the type of source items the item accessor returns
  */
-public class GenericDefaultMultiTableReadConfig<I, C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
-    extends GenericAbstractMultiTableReadConfig<I, C, TC> implements GenericStorableMultiTableReadConfig<I, C> {
-
-    private final ConfigSerializer<GenericDefaultMultiTableReadConfig<I, C, TC>> m_serializer;
+public interface SourceSettings<I> {
 
     /**
-     * Constructor.
+     * Returns the stored source identifier, which can be {@code null}.
      *
-     * @param tableReadConfig holding settings for reading a single table
-     * @param serializer for loading/saving/validating the config
+     * @return the source identifier
      */
-    public GenericDefaultMultiTableReadConfig(final TC tableReadConfig,
-        final ConfigSerializer<GenericDefaultMultiTableReadConfig<I, C, TC>> serializer) {
-        super(tableReadConfig);
-        m_serializer = serializer;
-    }
+    String getSourceIdentifier();
 
-    @Override
-    public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_serializer.loadInModel(this, settings);
-    }
+    /**
+     * Validates the provided specs against the settings and either provides warnings via the
+     * <b>statusMessageConsumer</b> if the issues are non fatal or throws an InvalidSettingsException if the current
+     * configuration and the provided specs make a successful execution impossible.
+     *
+     * @param specs the input {@link PortObjectSpec specs} of the node
+     * @param statusMessageConsumer consumer for status messages e.g. warnings
+     * @throws InvalidSettingsException if the specs are not compatible with the settings
+     */
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException;
 
-    @Override
-    public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        m_serializer.loadInDialog(this, settings, specs);
-    }
+    /**
+     * Creates an {@link GenericItemAccessor} for accessing the individual source items.
+     *
+     * @return a {@link GenericItemAccessor}
+     */
+    public GenericItemAccessor<I> createItemAccessor();
 
-    @Override
-    public void saveInModel(final NodeSettingsWO settings) {
-        m_serializer.saveInModel(this, settings);
-    }
+    /**
+     * Serializes the class specific settings to the given <code>NodeSettingsWO</code>.
+     *
+     * @param settings to serialize the class settings to
+     */
+    public void saveSettingsTo(final NodeSettingsWO settings);
 
-    @Override
-    public void saveInDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_serializer.saveInDialog(this, settings);
-    }
+    /**
+     * Loads the class specific settings from the given <code>NodeSettingsRO</code>.
+     *
+     * @param settings to load the class settings from
+     * @throws InvalidSettingsException If the validation of the settings failed.
+     */
+    public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException;
 
-    @Override
-    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_serializer.validate(settings);
-    }
-
+    /**
+     * Read the expected values from the settings object, without assigning them to the internal variables!
+     *
+     * @param settings the object to read the value(s) from
+     * @throws InvalidSettingsException if the value(s) in the settings object are invalid.
+     */
+    public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException;
 }

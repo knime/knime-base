@@ -54,13 +54,15 @@ import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.a;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.checkTransformation;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +72,7 @@ import java.util.stream.IntStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.MappingFramework;
@@ -109,6 +112,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  *
  */
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("javadoc")
 public class DefaultTableSpecConfigTest {
 
     private static class DummySource implements Source<String> {
@@ -138,11 +142,11 @@ public class DefaultTableSpecConfigTest {
 
     private static final ProducerRegistry<String, DummySource> REGISTRY = createTestingRegistry();
 
-    private Map<Path, ReaderTableSpec<?>> m_individualSpecs;
+    private Map<String, ReaderTableSpec<?>> m_individualSpecs;
 
-    private Path m_path1;
+    private String m_path1 = "first";
 
-    private Path m_path2;
+    private String m_path2 = "second";
 
     @Mock
     private ColumnTransformation<String> m_trans1;
@@ -167,15 +171,13 @@ public class DefaultTableSpecConfigTest {
      */
     @Before
     public void init() {
-        m_path1 = TRFTestingUtils.mockPath("first");
-        m_path2 = TRFTestingUtils.mockPath("second");
         m_individualSpecs = new LinkedHashMap<>();
         m_individualSpecs.put(m_path1, SPEC1);
         m_individualSpecs.put(m_path2, SPEC2);
     }
 
     /**
-     * Tests {@link DefaultTableSpecConfig#createFromTransformationModel(String, Map, TableTransformation)}.
+     * Tests {@link DefaultTableSpecConfig#createFromTransformationModel(String, TableTransformation, Map)}.
      */
     @Test
     public void testCreateFromTransformationModel() {
@@ -214,9 +216,9 @@ public class DefaultTableSpecConfigTest {
         final boolean[] expectedKeep = {true, false, true};
         final DataTableSpec expectedOutputSpec = new DataTableSpec("default", new String[]{"A", "B", "G"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
-        final TableSpecConfig expected = new DefaultTableSpecConfig(ROOT_PATH, expectedOutputSpec, m_individualSpecs,
-            new ProductionPath[]{p1, p2, p3}, expectedOriginalNames, expectedPositionalMapping, expectedKeep,
-            expectedKeep.length, ColumnFilterMode.UNION, true, false);
+        final TableSpecConfig expected = new DefaultTableSpecConfig(ROOT_PATH, expectedOutputSpec,
+            m_individualSpecs, new ProductionPath[]{p1, p2, p3}, expectedOriginalNames, expectedPositionalMapping,
+            expectedKeep, expectedKeep.length, ColumnFilterMode.UNION, true, false);
         assertEquals(expected, config);
     }
 
@@ -276,7 +278,7 @@ public class DefaultTableSpecConfigTest {
         final int[] positionalMapping = {0, 1, 2};
         final boolean[] keep = {true, true, true};
 
-        LinkedHashMap<Path, ReaderTableSpec<?>> individualSpecsWithoutTypes = getIndividualSpecsWithoutTypes();
+        LinkedHashMap<String, ReaderTableSpec<?>> individualSpecsWithoutTypes = getIndividualSpecsWithoutTypes();
         final TableSpecConfig cfg =
             new DefaultTableSpecConfig(ROOT_PATH, outputSpec, individualSpecsWithoutTypes, prodPaths, originalNames,
                 positionalMapping, keep, originalNames.length, ColumnFilterMode.UNION, true, false);
@@ -284,36 +286,36 @@ public class DefaultTableSpecConfigTest {
         // tests save / load
         final NodeSettings s = new NodeSettings("origin");
         cfg.save(s);
-        //        GenericDefaultTableSpecConfig.validate(s, REGISTRY);
-        //        final TableSpecConfig load =
-        //            DefaultTableSpecConfig.load(s, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
-        //
-        //        assertEquals(cfg, load);
-        //
-        //        // test root path
-        //        assertTrue(load.isConfiguredWith(ROOT_PATH));
-        //        assertFalse(load.isConfiguredWith("foo"));
-        //
-        //        // test specs
-        //        DataTableSpec loadedDataTableSpec = load.getDataTableSpec();
-        //        assertEquals(outputSpec, loadedDataTableSpec);
-        //        assertNotEquals(new DataTableSpec(new DataColumnSpecCreator("Blub", IntCell.TYPE).createSpec()),
-        //            loadedDataTableSpec);
-        //
-        //        // test production paths
-        //        assertArrayEquals(prodPaths, load.getProductionPaths());
-        //        prodPaths[0] = prodPaths[1];
-        //        assertNotEquals(prodPaths, load.getProductionPaths());
-        //
-        //        // tests paths
-        //        assertTrue(load.isConfiguredWith(new ArrayList<>(m_individualSpecs.keySet())));
-        //        assertFalse(load.isConfiguredWith(Arrays.asList(m_path1)));
-        //        assertFalse(load.isConfiguredWith(Arrays.asList(m_path1, m_path2, m_path1)));
-        //
-        //        // test reader specs
-        //        for (final Entry<Path, ReaderTableSpec<?>> entry : individualSpecsWithoutTypes.entrySet()) {
-        //            assertEquals(entry.getValue(), load.getSpec(entry.getKey().toString()));
-        //    }
+        DefaultTableSpecConfig.validate(s, REGISTRY);
+        final TableSpecConfig load =
+            DefaultTableSpecConfig.load(s, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
+
+        assertEquals(cfg, load);
+
+        // test root path
+        assertTrue(load.isConfiguredWith(ROOT_PATH));
+        assertFalse(load.isConfiguredWith("foo"));
+
+        // test specs
+        DataTableSpec loadedDataTableSpec = load.getDataTableSpec();
+        assertEquals(outputSpec, loadedDataTableSpec);
+        assertNotEquals(new DataTableSpec(new DataColumnSpecCreator("Blub", IntCell.TYPE).createSpec()),
+            loadedDataTableSpec);
+
+        // test production paths
+        assertArrayEquals(prodPaths, load.getProductionPaths());
+        prodPaths[0] = prodPaths[1];
+        assertNotEquals(prodPaths, load.getProductionPaths());
+
+        // tests paths
+        assertTrue(load.isConfiguredWith(new ArrayList<>(m_individualSpecs.keySet())));
+        assertFalse(load.isConfiguredWith(Arrays.asList(m_path1)));
+        assertFalse(load.isConfiguredWith(Arrays.asList(m_path1, m_path2, m_path1)));
+
+        // test reader specs
+        for (final Entry<String, ReaderTableSpec<?>> entry : individualSpecsWithoutTypes.entrySet()) {
+            assertEquals(entry.getValue(), load.getSpec(entry.getKey().toString()));
+        }
 
     }
 
@@ -374,7 +376,7 @@ public class DefaultTableSpecConfigTest {
         final NodeSettings productionPathSettings = settings.getNodeSettings("production_paths_Internals");
         for (int i = 0; i < productionPaths.length; i++) {
             assertEquals(productionPaths[i],
-                SerializeUtil.loadProductionPath(productionPathSettings, REGISTRY, "production_path_" + i).get());
+                SerializeUtil.loadProductionPath(productionPathSettings, REGISTRY, "production_path_" + i).get());//NOSONAR
         }
 
         assertArrayEquals(ORIGINAL_NAMES, settings.getStringArray("original_names_Internals"));
@@ -397,14 +399,13 @@ public class DefaultTableSpecConfigTest {
         final String[] originalNames = {"A", "B", "C"};
         final int[] positions = {0, 1, 2};
         final boolean[] keep = {false, true, false};
-        // TODO extract method
-        final Map<Path, ReaderTableSpec<?>> individualSpecs = getIndividualSpecsWithoutTypes();
+        final Map<String, ReaderTableSpec<?>> individualSpecs = getIndividualSpecsWithoutTypes();
         final TableSpecConfig expected = new DefaultTableSpecConfig(ROOT_PATH, fullKnimeSpec, individualSpecs,
             prodPaths, originalNames, positions, keep, keep.length, ColumnFilterMode.UNION, true, false);
         assertEquals(expected, loaded);
     }
 
-    private LinkedHashMap<Path, ReaderTableSpec<?>> getIndividualSpecsWithoutTypes() {
+    private LinkedHashMap<String, ReaderTableSpec<?>> getIndividualSpecsWithoutTypes() {
         return m_individualSpecs.entrySet().stream()
             .collect(toMap(Entry::getKey, e -> ReaderTableSpec.createReaderTableSpec(e.getValue().stream()//
                 .map(s -> (ReaderColumnSpec)s)//
@@ -427,7 +428,7 @@ public class DefaultTableSpecConfigTest {
         settings.addInt("num_production_paths_Internals", i);
     }
 
-    private static void saveIndividualSpecs(final Map<Path, ReaderTableSpec<?>> individualSpecs,
+    private static void saveIndividualSpecs(final Map<String, ReaderTableSpec<?>> individualSpecs,
         final NodeSettingsWO settings) {
         int i = 0;
         for (final ReaderTableSpec<? extends ReaderColumnSpec> readerTableSpec : individualSpecs.values()) {
@@ -461,7 +462,7 @@ public class DefaultTableSpecConfigTest {
         final TableSpecConfig loaded = DefaultTableSpecConfig.load(settings, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE,
             SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
 
-        final Map<Path, ReaderTableSpec<?>> individualSpecs = getIndividualSpecsWithoutTypes();
+        final Map<String, ReaderTableSpec<?>> individualSpecs = getIndividualSpecsWithoutTypes();
         final TableSpecConfig expected = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, individualSpecs,
             productionPaths, originalNames, positions, keep, keep.length, ColumnFilterMode.UNION, true, false);
         assertEquals(expected, loaded);
@@ -484,13 +485,13 @@ public class DefaultTableSpecConfigTest {
 
         assertTrue(tsc.isConfiguredWith(asList(m_path1, m_path2)));
         assertFalse(tsc.isConfiguredWith(asList(m_path1)));
-        assertFalse(tsc.isConfiguredWith(asList(m_path1, m_path2, mock(Path.class))));
+        assertFalse(tsc.isConfiguredWith(asList(m_path1, m_path2, "foo")));
         assertFalse(tsc.isConfiguredWith(asList(m_path1, m_path2, m_path1)));
 
         assertTrue(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1, m_path2)));
         assertFalse(tsc.isConfiguredWith("foobar", asList(m_path1, m_path2)));
         assertFalse(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1)));
-        assertFalse(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1, m_path2, mock(Path.class))));
+        assertFalse(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1, m_path2, "foo")));
         assertFalse(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1, m_path2, m_path1)));
     }
 
@@ -559,17 +560,17 @@ public class DefaultTableSpecConfigTest {
         final NodeSettings settings =
             createSettings(tableSpec, productionPaths, m_individualSpecs, originalNames, positions, keep);
 
-        //        GenericDefaultTableSpecConfig.validate(settings, REGISTRY);
+        DefaultTableSpecConfig.validate(settings, REGISTRY);
     }
 
     private static NodeSettings createSettings(final DataTableSpec tableSpec, final ProductionPath[] productionPaths,
-        final Map<Path, ReaderTableSpec<?>> individualSpecs, final String[] originalNames, final int[] positions,
+        final Map<String, ReaderTableSpec<?>> individualSpecs, final String[] originalNames, final int[] positions,
         final boolean[] keep) {
         final NodeSettings settings = new NodeSettings("test");
         settings.addString("root_path_Internals", ROOT_PATH);
         tableSpec.save(settings.addNodeSettings("datatable_spec_Internals"));
         settings.addStringArray("file_paths_Internals",
-            individualSpecs.keySet().stream().map(Path::toString).toArray(String[]::new));
+            individualSpecs.keySet().stream().toArray(String[]::new));
         saveIndividualSpecs(individualSpecs, settings.addNodeSettings("individual_specs_Internals"));
         saveProductionPaths(settings.addNodeSettings("production_paths_Internals"), productionPaths);
         if (originalNames != null) {
@@ -592,7 +593,7 @@ public class DefaultTableSpecConfigTest {
     @Test
     public void testValidateOldSettings() throws InvalidSettingsException {
         final NodeSettings settings = create42Settings();
-        //        GenericDefaultTableSpecConfig.validate(settings, REGISTRY);
+        DefaultTableSpecConfig.validate(settings, REGISTRY);
     }
 
     /**
@@ -639,22 +640,22 @@ public class DefaultTableSpecConfigTest {
             originalNames, positions, keep, 3, ColumnFilterMode.UNION, true, false);
         assertFalse(tsc.equals(differentTypes));
 
-        Map<Path, ReaderTableSpec<?>> differentPathMap = new LinkedHashMap<>();
-        differentPathMap.put(mock(Path.class), SPEC1);
+        Map<String, ReaderTableSpec<?>> differentPathMap = new LinkedHashMap<>();
+        differentPathMap.put("foo", SPEC1);
         differentPathMap.put(m_path2, SPEC2);
 
-        final DefaultTableSpecConfig differentPaths = new DefaultTableSpecConfig(ROOT_PATH, tableSpec, differentPathMap,
-            productionPaths, originalNames, positions, keep, 3, ColumnFilterMode.UNION, true, false);
+        final DefaultTableSpecConfig differentPaths = new DefaultTableSpecConfig(ROOT_PATH, tableSpec,
+            differentPathMap, productionPaths, originalNames, positions, keep, 3, ColumnFilterMode.UNION, true, false);
         assertFalse(tsc.equals(differentPaths));
 
         final TypedReaderTableSpec<String> diffIndividualSpec =
             TRFTestingUtils.createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
-        Map<Path, ReaderTableSpec<?>> differentIndividualSpecMap = new LinkedHashMap<>();
+        Map<String, ReaderTableSpec<?>> differentIndividualSpecMap = new LinkedHashMap<>();
         differentIndividualSpecMap.put(m_path1, diffIndividualSpec);
         differentIndividualSpecMap.put(m_path2, SPEC2);
         final DefaultTableSpecConfig differentIndividualSpec =
-            new DefaultTableSpecConfig(ROOT_PATH, tableSpec, differentIndividualSpecMap, productionPaths, originalNames,
-                positions, keep, 3, ColumnFilterMode.UNION, true, false);
+            new DefaultTableSpecConfig(ROOT_PATH, tableSpec, differentIndividualSpecMap, productionPaths,
+                originalNames, positions, keep, 3, ColumnFilterMode.UNION, true, false);
 
         assertFalse(tsc.equals(differentIndividualSpec));
 

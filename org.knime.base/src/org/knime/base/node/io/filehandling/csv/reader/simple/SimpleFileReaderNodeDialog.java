@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader.simple;
 
+import java.nio.file.Path;
+
 import javax.swing.JPanel;
 
 import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeDialog;
@@ -78,7 +80,7 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
 
     SimpleFileReaderNodeDialog(final PathAwareFileHistoryPanel pathSettings,
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
-        final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
+        final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(pathSettings, config, multiReader, productionPathProvider, false);
     }

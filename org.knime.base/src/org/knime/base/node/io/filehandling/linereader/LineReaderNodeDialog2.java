@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.linereader;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -86,7 +87,7 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableRea
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -95,7 +96,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineReaderConfig2, Class<?>> {
+final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<LineReaderConfig2, Class<?>> {
 
     private final DialogComponentReaderFileChooser m_sourceFilePanel;
 
@@ -141,7 +142,7 @@ final class LineReaderNodeDialog2 extends AbstractTableReaderNodeDialog<LineRead
      */
     LineReaderNodeDialog2(final PathSettings pathSettings,
         final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>> config,
-        final MultiTableReadFactory<LineReaderConfig2, Class<?>> multiReader,
+        final MultiTableReadFactory<Path, LineReaderConfig2, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(multiReader, productionPathProvider, true);
 

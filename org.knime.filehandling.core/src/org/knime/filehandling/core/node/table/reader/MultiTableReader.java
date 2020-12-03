@@ -44,33 +44,173 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 24, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 13, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.nio.file.Path;
+import static java.util.stream.Collectors.toList;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.streamable.BufferedDataTableRowOutput;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
- * Uses a {@link TableReader} to read tables from multiple paths, combines them according to the user settings and
+ * Uses a {@link TableReader} to read tables from multiple items, combines them according to the user settings and
  * performs type mapping.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the type of the item to read from
  * @param <C> the type of the {@link ReaderSpecificConfig}
  * @noreference non-public API
  * @noinstantiate non-public API
+ * @noextend non-public API
  */
-final class MultiTableReader<C extends ReaderSpecificConfig<C>> extends GenericMultiTableReader<Path, C> {
+public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
+
+    private final MultiTableReadFactory<I, C, ?> m_multiTableReadFactory;
+
+    private StagedMultiTableRead<I, ?> m_currentMultiRead;
+
+    private static <I> void fillRowOutput(final MultiTableRead multiTableRead, final RowOutput output,
+        final ExecutionContext exec) throws Exception {
+        final FileStoreFactory fsFactory = FileStoreFactory.createFileStoreFactory(exec);
+        multiTableRead.fillRowOutput(output, exec, fsFactory);
+    }
 
     /**
      * Constructor.
      *
      * @param multiTableReadFactory for creating MultiTableRead objects
      */
-    MultiTableReader(final MultiTableReadFactory<C, ?> multiTableReadFactory) {
-        super(multiTableReadFactory);
+    public MultiTableReader(final MultiTableReadFactory<I, C, ?> multiTableReadFactory) {
+        m_multiTableReadFactory = multiTableReadFactory;
+    }
+
+    /**
+     * Resets the spec read by {@code createSpec}, {@code fillRowOutput} or {@code readTable} i.e. a subsequent call to
+     * {@code fillRowOutput} or {@code readTable} will read the spec again.
+     */
+    public void reset() {
+        m_currentMultiRead = null;
+    }
+
+    /**
+     * Creates the {@link DataTableSpec} corresponding to the tables stored in <b>items</b> combined according to the
+     * provided {@link MultiTableReadConfig config}.
+     *
+     * @param rootItem the root item
+     * @param items to read from
+     * @param config for reading
+     * @return the {@link DataTableSpec} of the merged table consisting of the tables stored in <b>items</b>
+     * @throws IOException if reading the specs from item fails
+     */
+    public DataTableSpec createTableSpec(final String rootItem, final List<I> items,
+        final MultiTableReadConfig<C> config) throws IOException {
+        final TableSpecConfig specConfig = createTableSpecConfig(rootItem, items, config);
+        return specConfig.getDataTableSpec();
+    }
+
+    private StagedMultiTableRead<I, ?> createMultiRead(final String rootItem, final List<I> items,
+        final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
+        if (isConfiguredWith(config, rootItem, items)) {
+            m_currentMultiRead = m_multiTableReadFactory.createFromConfig(rootItem, items, config);
+        } else {
+            m_currentMultiRead = m_multiTableReadFactory.create(rootItem, items, config, exec);
+        }
+        return m_currentMultiRead;
+    }
+
+    /**
+     * Creates the {@link DataTableSpec} corresponding to the tables stored in <b>items</b> combined according to the
+     * provided {@link MultiTableReadConfig config}.
+     *
+     * @param rootItem the root item
+     * @param items to read from
+     * @param config for reading
+     * @return the {@link DataTableSpec} of the merged table consisting of the tables stored in <b>items</b>
+     * @throws IOException if reading the specs from item fails
+     */
+    public TableSpecConfig createTableSpecConfig(final String rootItem, final List<I> items,
+        final MultiTableReadConfig<C> config) throws IOException {
+        final StagedMultiTableRead<I, ?> stagedMultiRead =
+                createMultiRead(rootItem, items, config, new ExecutionMonitor());
+        final MultiTableRead multiRead = stagedMultiRead.withoutTransformation(items);
+        return multiRead.getTableSpecConfig();
+    }
+
+    /**
+     * Reads a table from the provided items according to the provided {@link MultiTableReadConfig config}.
+     *
+     * @param rootItem the root item
+     * @param items to read from
+     * @param config for reading
+     * @param exec for table creation and reporting progress
+     * @return the read table
+     * @throws Exception
+     */
+    public BufferedDataTable readTable(final String rootItem, final List<I> items,
+        final MultiTableReadConfig<C> config, final ExecutionContext exec) throws Exception {
+        exec.setMessage("Creating table spec");
+        final boolean specConfigured = isConfiguredWith(config, rootItem, items);
+        ExecutionContext specExec = exec.createSubExecutionContext(specConfigured ? 0 : 0.5);
+        final StagedMultiTableRead<I, ?> runConfig =
+            getMultiRead(rootItem, items, config, specExec);
+        specExec.setProgress(1.0);
+        exec.setMessage("Reading table");
+        final MultiTableRead multiTableRead = runConfig.withoutTransformation(items);
+        final BufferedDataTableRowOutput output =
+            new BufferedDataTableRowOutput(exec.createDataContainer(multiTableRead.getOutputSpec()));
+        fillRowOutput(multiTableRead, output, exec.createSubExecutionContext(specConfigured ? 1 : 0.5));
+        return output.getDataTable();
+    }
+
+    private boolean isConfiguredWith(final MultiTableReadConfig<C> config, final String rootItem, final List<I> items) {
+        return config.isConfiguredWith(rootItem, items.stream().map(Object::toString).collect(toList()));
+    }
+
+    /**
+     * Fills the {@link RowOutput output} with the tables stored in <b>items</b> using the provided
+     * {@link MultiTableReadConfig config}. The {@link ExecutionContext} is required for type mapping and reporting
+     * progress. Note: The {@link RowOutput output} must have a {@link DataTableSpec} compatible with the
+     * {@link DataTableSpec} returned by createTableSpec(List, MultiTableReadConfig).
+     *
+     * @param rootItem the root item
+     * @param items to read from
+     * @param config for reading
+     * @param output the {@link RowOutput} to fill
+     * @param exec needed by the mapping framework
+     * @throws Exception
+     */
+    public void fillRowOutput(final String rootItem, final List<I> items,
+        final MultiTableReadConfig<C> config, final RowOutput output, final ExecutionContext exec)
+        throws Exception {
+        exec.setMessage("Creating table spec");
+        final StagedMultiTableRead<I, ?> multiRead = getMultiRead(rootItem, items, config, exec);
+        exec.setMessage("Reading table");
+        fillRowOutput(multiRead.withoutTransformation(items), output, exec);
+    }
+
+    private StagedMultiTableRead<I, ?> getMultiRead(final String rootItem, final List<I> items,
+        final MultiTableReadConfig<C> config, final ExecutionContext exec) throws IOException {
+        if (m_currentMultiRead == null || !m_currentMultiRead.isValidFor(items)) {
+            return createMultiRead(rootItem, items, config, exec);
+        } else {
+            return m_currentMultiRead;
+        }
     }
 
 }

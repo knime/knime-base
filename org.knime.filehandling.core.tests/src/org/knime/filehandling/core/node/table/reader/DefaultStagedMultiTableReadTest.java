@@ -57,6 +57,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,7 +157,7 @@ public class DefaultStagedMultiTableReadTest {
 
     private ProductionPath m_pp3;
 
-    private DefaultStagedMultiTableRead<DummyReaderSpecificConfig, String, String> m_testInstance;
+    private DefaultStagedMultiTableRead<Path, DummyReaderSpecificConfig, String, String> m_testInstance;
 
     /**
      * Initializes the test instance.
@@ -178,7 +179,7 @@ public class DefaultStagedMultiTableReadTest {
     }
 
     /**
-     * Tests the implementation of {@link StagedMultiTableRead#withoutTransformation()}.
+     * Tests the implementation of {@link StagedMultiTableRead#withoutTransformation(Collection)}.
      */
     @Test
     public void testWithoutTransformation() {
@@ -198,7 +199,7 @@ public class DefaultStagedMultiTableReadTest {
     }
 
     /**
-     * Tests the implementation of {@link StagedMultiTableRead#withTransformation(TableTransformation)}.
+     * Tests the implementation of {@link StagedMultiTableRead#withTransformation(Collection,TableTransformation)}.
      */
     @Test
     public void testWithTransformationTypeMapping() {
@@ -263,8 +264,7 @@ public class DefaultStagedMultiTableReadTest {
     }
 
     private static void stubTransformation(final ColumnTransformation<String> mock,
-        final TypedReaderColumnSpec<String> spec, final String name, final ProductionPath prodPath, final int position,
-        final boolean keep) {
+        final String name, final ProductionPath prodPath, final int position, final boolean keep) {
         when(mock.getName()).thenReturn(name);
         when(mock.getProductionPath()).thenReturn(prodPath);
         when(mock.getPosition()).thenReturn(position);
@@ -272,9 +272,9 @@ public class DefaultStagedMultiTableReadTest {
     }
 
     private void stubTransformationModel(final TableTransformation<String> transformationModel) {
-        stubTransformation(m_transformation1, COL1, "A", m_pp1, 0, true);
-        stubTransformation(m_transformation2, COL2, "B", m_pp2, 1, true);
-        stubTransformation(m_transformation3, COL3, "C", m_pp3, 2, true);
+        stubTransformation(m_transformation1, "A", m_pp1, 0, true);
+        stubTransformation(m_transformation2, "B", m_pp2, 1, true);
+        stubTransformation(m_transformation3, "C", m_pp3, 2, true);
 
         when(transformationModel.getTransformation(COL1)).thenReturn(m_transformation1);
         when(transformationModel.getTransformation(COL2)).thenReturn(m_transformation2);

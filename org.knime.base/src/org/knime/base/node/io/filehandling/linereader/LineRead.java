@@ -70,7 +70,7 @@ import org.knime.filehandling.core.util.BomEncodingUtils;
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-final class LineRead implements Read<String> {
+final class LineRead implements Read<Path, String> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LineRead.class);
 
@@ -203,7 +203,7 @@ final class LineRead implements Read<String> {
     }
 
     @Override
-    public Optional<Path> getPath() {
+    public Optional<Path> getItem() {
         return Optional.of(m_path);
     }
 

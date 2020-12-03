@@ -70,8 +70,8 @@ public final class ReadUtils {
      * @param limit the number of rows to read
      * @return a {@link Read} that is limited to <b>limit</b> rows
      */
-    public static <V> Read<V> limit(final Read<V> read, final long limit) {
-        return new IntervalRead<V>(read, 0, limit);
+    public static <I, V> Read<I, V> limit(final Read<I, V> read, final long limit) {
+        return new IntervalRead<>(read, 0, limit);
     }
 
     /**
@@ -81,7 +81,7 @@ public final class ReadUtils {
      * @param skip the number of rows to skip
      * @return a read that skips over the first <b>skip</b> rows
      */
-    public static <V> Read<V> skip(final Read<V> read, final long skip) {
+    public static <I, V> Read<I, V> skip(final Read<I, V> read, final long skip) {
         return new IntervalRead<>(read, skip, Long.MAX_VALUE);
     }
 
@@ -93,7 +93,7 @@ public final class ReadUtils {
      * @param to the last index to read
      * @return a read that returns only the rows of <b>read</b> starting from <b>from</b> upto <b>to</b>
      */
-    public static <V> Read<V> range(final Read<V> read, final long from, final long to) {
+    public static <I, V> Read<I, V> range(final Read<I, V> read, final long from, final long to) {
         return new IntervalRead<>(read, from, to);
     }
 
@@ -103,55 +103,11 @@ public final class ReadUtils {
      * @param read the read to decorate
      * @return a {@link Read} that skips empty rows in {@link Read read}
      */
-    public static <V> Read<V> skipEmptyRows(final Read<V> read) {
+    public static <I, V> Read<I, V> skipEmptyRows(final Read<I, V> read) {
         return new SkipEmptyRead<>(read);
     }
 
     /**
-     * Limits the number of rows readable from {@link Read read}.
-     *
-     * @param read to limit
-     * @param limit the number of rows to read
-     * @return a {@link Read} that is limited to <b>limit</b> rows
-     */
-    public static <I, V> GenericRead<I, V> limit(final GenericRead<I, V> read, final long limit) {
-        return new GenericIntervalRead<>(read, 0, limit);
-    }
-
-    /**
-     * Skips the first <b>skip</b> rows of the provided {@link Read read}.
-     *
-     * @param read of which the first rows should be skipped
-     * @param skip the number of rows to skip
-     * @return a read that skips over the first <b>skip</b> rows
-     */
-    public static <I, V> GenericRead<I, V> skip(final GenericRead<I, V> read, final long skip) {
-        return new GenericIntervalRead<>(read, skip, Long.MAX_VALUE);
-    }
-
-    /**
-     * Returns a {@link Read} that only returns the rows from the first index <b>from</b> to the last index <b>to</b>.
-     *
-     * @param read the input read
-     * @param from the first index to read
-     * @param to the last index to read
-     * @return a read that returns only the rows of <b>read</b> starting from <b>from</b> upto <b>to</b>
-     */
-    public static <I, V> GenericRead<I, V> range(final GenericRead<I, V> read, final long from, final long to) {
-        return new GenericIntervalRead<>(read, from, to);
-    }
-
-    /**
-     * Returns a {@link Read} that skips empty rows, i.e. rows where {@link RandomAccessible#size()} is 0.
-     *
-     * @param read the read to decorate
-     * @return a {@link Read} that skips empty rows in {@link Read read}
-     */
-    public static <I, V> GenericRead<I, V> skipEmptyRows(final GenericRead<I, V> read) {
-        return new GenericSkipEmptyRead<>(read);
-    }
-
-    /**
      * Decorates the provided {@link Read} for reading actual the spec according to the provided {@link TableReadConfig}.</br>
      * Following decorators are added if necessary:</br>
      * - Skipping empty rows.</br>
@@ -162,27 +118,8 @@ public final class ReadUtils {
      * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
      */
     @SuppressWarnings("resource") // that's the point
-    public static <V> Read<V> decorateForSpecGuessing(final Read<V> read, final TableReadConfig<?> config) {
-        Read<V> decorated = read;
-        decorated = decorateSkipEmpty(decorated, config);
-        decorated = decorateAllowShortRows(decorated, config);
-        return decorated;
-    }
-
-    /**
-     * Decorates the provided {@link Read} for reading actual the spec according to the provided {@link TableReadConfig}.</br>
-     * Following decorators are added if necessary:</br>
-     * - Skipping empty rows.</br>
-     * - Validate that all rows have the same size if short rows aren't allowed.</br>
-     *
-     * @param read to decorated
-     * @param config for reading
-     * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
-     */
-    @SuppressWarnings("resource") // that's the point
-    public static <I, V> GenericRead<I, V> decorateForSpecGuessing(final TableReadConfig<?> config,
-        final GenericRead<I, V> read) {
-        GenericRead<I, V> decorated = read;
+    public static <I, V> Read<I, V> decorateForSpecGuessing(final Read<I, V> read, final TableReadConfig<?> config) {
+        Read<I, V> decorated = read;
         decorated = decorateSkipEmpty(decorated, config);
         decorated = decorateAllowShortRows(decorated, config);
         return decorated;
@@ -200,8 +137,8 @@ public final class ReadUtils {
      * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
      */
     @SuppressWarnings("resource") // that's the point...
-    public static <V> Read<V> decorateForReading(final Read<V> read, final TableReadConfig<?> config) {
-        Read<V> decorated = read;
+    public static <I, V> Read<I, V> decorateForReading(final Read<I, V> read, final TableReadConfig<?> config) {
+        Read<I, V> decorated = read;
         decorated = decorateSkipEmpty(decorated, config);
         decorated = decorateAllowShortRows(decorated, config);
         decorated = decorateSkipHeader(decorated, config);
@@ -209,7 +146,7 @@ public final class ReadUtils {
     }
 
     /**
-     * Decorates the provided {@link GenericRead} for reading actual rows according to the provided {@link TableReadConfig}.</br>
+     * Decorates the provided {@link Read} for reading actual rows according to the provided {@link TableReadConfig}.</br>
      * Following decorators are added if necessary:</br>
      * - Skipping empty rows.</br>
      * - Validate that all rows have the same size if short rows aren't allowed.</br>
@@ -217,19 +154,19 @@ public final class ReadUtils {
      *
      * @param read to decorated
      * @param config for reading
-     * @return a decorated {@link GenericRead} conforming to {@link TableReadConfig config}
+     * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
      */
     @SuppressWarnings("resource") // that's the point...
-    public static <I, V> GenericRead<I, V> decorateForReading(final TableReadConfig<?> config,
-        final GenericRead<I, V> read) {
-        GenericRead<I, V> decorated = read;
+    public static <I, V> Read<I, V> decorateForReading(final TableReadConfig<?> config,
+        final Read<I, V> read) {
+        Read<I, V> decorated = read;
         decorated = decorateSkipEmpty(decorated, config);
         decorated = decorateAllowShortRows(decorated, config);
         decorated = decorateSkipHeader(decorated, config);
         return decorated;
     }
 
-    private static <V> Read<V> decorateSkipEmpty(final Read<V> read, final TableReadConfig<?> config) {
+    private static <I, V> Read<I, V> decorateSkipEmpty(final Read<I, V> read, final TableReadConfig<?> config) {
         if (config.skipEmptyRows()) {
             return new SkipEmptyRead<>(read);
         } else {
@@ -237,7 +174,7 @@ public final class ReadUtils {
         }
     }
 
-    private static <V> Read<V> decorateAllowShortRows(final Read<V> read, final TableReadConfig<?> config) {
+    private static <I, V> Read<I, V> decorateAllowShortRows(final Read<I, V> read, final TableReadConfig<?> config) {
         if (!config.allowShortRows()) {
             return new CheckSameSizeRead<>(read);
         } else {
@@ -252,44 +189,11 @@ public final class ReadUtils {
      * @param config {@link TableReadConfig} from which to figure out if the column read needs to be skipped
      * @return a {@link Read} without a column header (one way or the other)
      */
-    private static <V> Read<V> decorateSkipHeader(final Read<V> read, final TableReadConfig<?> config) {
+    private static <I, V> Read<I, V> decorateSkipHeader(final Read<I, V> read, final TableReadConfig<?> config) {
         if (needToSkipColumnHeader(config)) {
             // we only end up here if there is a column header index and it is in [readStartIdx, readEndIdx)
             final long offset = config.getColumnHeaderIdx() - getStartIdx(config);
             return new SkipIdxRead<>(read, offset);
-        } else {
-            return read;
-        }
-    }
-
-    private static <I, V> GenericRead<I, V> decorateSkipEmpty(final GenericRead<I, V> read, final TableReadConfig<?> config) {
-        if (config.skipEmptyRows()) {
-            return new GenericSkipEmptyRead<>(read);
-        } else {
-            return read;
-        }
-    }
-
-    private static <I, V> GenericRead<I, V> decorateAllowShortRows(final GenericRead<I, V> read, final TableReadConfig<?> config) {
-        if (!config.allowShortRows()) {
-            return new GenericCheckSameSizeRead<>(read);
-        } else {
-            return read;
-        }
-    }
-
-    /**
-     * Figures out if the column header needs to be skipped and decorates the read if necessary.
-     *
-     * @param read {@link Read} in which the column header potentially needs to be skipped
-     * @param config {@link TableReadConfig} from which to figure out if the column read needs to be skipped
-     * @return a {@link Read} without a column header (one way or the other)
-     */
-    private static <I, V> GenericRead<I, V> decorateSkipHeader(final GenericRead<I, V> read, final TableReadConfig<?> config) {
-        if (needToSkipColumnHeader(config)) {
-            // we only end up here if there is a column header index and it is in [readStartIdx, readEndIdx)
-            final long offset = config.getColumnHeaderIdx() - getStartIdx(config);
-            return new GenericSkipIdxRead<>(read, offset);
         } else {
             return read;
         }

@@ -232,9 +232,22 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
         return PRODUCER_REGISTRY;
     }
 
-    @Override
+    /**
+     * Returns the {@link Map} providing the default {@link DataType DataTypes}.
+     *
+     * @return {@link Map} containing the default {@link DataType DataTypes}
+     */
+    @SuppressWarnings("static-method")
     public Map<Class<?>, DataType> getDefaultTypeMap() {
         return DEFAULT_TYPES;
+    }
+
+    /**
+     * @since 4.3
+     */
+    @Override
+    public DataType getDefaultType(final Class<?> type) {
+        return DEFAULT_TYPES.get(type);
     }
 
 }

@@ -49,10 +49,8 @@
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import javax.swing.JComponent;
 import javax.swing.JSplitPane;
@@ -64,12 +62,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
@@ -86,12 +81,13 @@ import org.knime.filehandling.core.util.CheckNodeContextUtil;
  * once the TableSpecConfig has been loaded.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <I> the type of source items the reader reads from
  * @param <C> the type of {@link ReaderSpecificConfig} used by the reader node
  * @param <T> the type used to identify external types
  */
-public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConfig<C>, T> extends NodeDialogPane {
+public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificConfig<C>, T> extends NodeDialogPane {
 
-    private final TableReaderPreviewTransformationController<Path, C, T> m_coordinator;
+    private final TableReaderPreviewTransformationCoordinator<I, C, T> m_coordinator;
 
     private final List<TableReaderPreviewView> m_previews = new ArrayList<>();
 
@@ -111,14 +107,14 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      * @param allowsMultipleFiles whether the reader supports reading tables from multiple files at once
      */
     @SuppressWarnings("unchecked")
-    public AbstractTableReaderNodeDialog(final MultiTableReadFactory<C, T> readFactory,
+    public AbstractTableReaderNodeDialog(final MultiTableReadFactory<I, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
         m_previewModel = previewModel;
         final TableTransformationTableModel<T> transformationModel =
             new TableTransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
-        m_coordinator = new TableReaderPreviewTransformationController<>(readFactory, transformationModel,
+        m_coordinator = new TableReaderPreviewTransformationCoordinator<>(readFactory, transformationModel,
             analysisComponentModel, previewModel, this::getConfig, this::createItemAccessor);
         m_specTransformer = new TableTransformationPanel(transformationModel,
             t -> productionPathProvider.getAvailableProductionPaths((T)t), allowsMultipleFiles);
@@ -286,7 +282,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      *
      * @return the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available
      */
-    protected final GenericTableSpecConfig<Path> getTableSpecConfig() {
+    protected final TableSpecConfig getTableSpecConfig() {
         return m_coordinator.getTableSpecConfig();
     }
 
@@ -302,42 +298,13 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     protected abstract MultiTableReadConfig<C> getConfig() throws InvalidSettingsException;
 
     /**
-     * Creates and returns a {@link GenericItemAccessor}.
+     * Creates a <b>new</b> {@link GenericItemAccessor} that corresponds to the current file selection.</br>
+     * It is important to create a new {@link GenericItemAccessor} for every call, otherwise {@link IOException} can
+     * occur in the preview.
      *
-     * @return an item accessor
+     * @return the {@link GenericItemAccessor} corresponding to the current file selection
      */
-    @SuppressWarnings("resource")
-    protected GenericItemAccessor<Path> createItemAccessor() {
-        final ReadPathAccessor pathAccessor = createReadPathAccessor();
-        return new GenericItemAccessor<Path>() {
-
-            @Override
-            public List<Path> getItems(final Consumer<StatusMessage> statusMessageConsumer)
-                throws IOException, InvalidSettingsException {
-                return pathAccessor.getPaths(statusMessageConsumer);
-            }
-
-            @Override
-            public Path getRootItem(final Consumer<StatusMessage> statusMessageConsumer)
-                throws IOException, InvalidSettingsException {
-                return pathAccessor.getRootPath(statusMessageConsumer);
-            }
-
-            @Override
-            public void close() throws IOException {
-                pathAccessor.close();
-            }
-        };
-    }
-
-    /**
-     * Creates a <b>new</b> {@link ReadPathAccessor} that corresponds to the current file selection.</br>
-     * It is important to create a new {@link ReadPathAccessor} for every call, otherwise {@link IOException} can occur
-     * in the preview.
-     *
-     * @return the {@link ReadPathAccessor} corresponding to the current file selection
-     */
-    protected abstract ReadPathAccessor createReadPathAccessor();
+    protected abstract GenericItemAccessor<I> createItemAccessor();
 
     @Override
     public void onClose() {

@@ -53,6 +53,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Path;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
@@ -77,6 +78,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("resource")
 public class DefaultIndividualTableReaderTest {
 
     @Mock
@@ -89,7 +91,7 @@ public class DefaultIndividualTableReaderTest {
     private RowKeyGenerator<String> m_rowKeyGenerator = null;
 
     @Mock
-    private Read<String> m_read = null;
+    private Read<Path, String> m_read = null;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
@@ -106,7 +108,7 @@ public class DefaultIndividualTableReaderTest {
     @Mock
     private ExecutionMonitor m_monitor = null;
 
-    private DefaultIndividualTableReader<String> m_testInstance = null;
+    private DefaultIndividualTableReader<Path, String> m_testInstance = null;
 
     /**
      * Initializes the test instance.

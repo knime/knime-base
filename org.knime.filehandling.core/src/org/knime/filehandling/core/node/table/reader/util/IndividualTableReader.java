@@ -44,18 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 1, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 15, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader.util;
 
-import java.nio.file.Path;
+import org.knime.core.data.DataRow;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
  * Performs the actual reading of an individual table.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <V> the type representing values
  */
-public interface IndividualTableReader<V> extends GenericIndividualTableReader<Path, V> {
+public interface IndividualTableReader<I, V> {
+
+    /**
+     * Reads all {@link RandomAccessible randomAccessibles} in {@link Read read}, converts them to {@link DataRow
+     * DataRows} and pushes them to {@link RowOutput output}.
+     *
+     * @param read to read from
+     * @param output to push to (must be compatible i.e. have the same spec)
+     * @param progress used for cancellation and progress reporting (provided the size of the read is known)
+     * @throws Exception if something goes astray
+     */
+    void fillOutput(Read<I, V> read, RowOutput output, ExecutionMonitor progress) throws Exception;
+
+    /**
+     * Converts the random accessible to a data row.
+     *
+     * @param randomAccessible the random accessible to convert
+     * @return the converted data row
+     * @throws Exception if something goes astray
+     */
+    DataRow toRow(RandomAccessible<V> randomAccessible) throws Exception;
 
 }

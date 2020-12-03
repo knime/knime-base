@@ -55,7 +55,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.knime.base.node.preproc.manipulator.framework.MultiTableReadFactory;
+import org.knime.base.node.preproc.manipulator.framework.RowInputTableReader;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.base.node.preproc.manipulator.table.DataTableBackedBoundedTable;
 import org.knime.base.node.preproc.manipulator.table.EmptyTable;
@@ -84,15 +85,16 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.filehandling.core.node.table.reader.DefaultMultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.GenericDefaultMultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.GenericMultiTableReader;
+import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericDefaultMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericStorableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
 
 /**
  * Node model implementation of the table manipulation node.
@@ -105,13 +107,13 @@ public class TableManipulatorNodeModel extends NodeModel {
 
     private static final String ROOTPATH = "ROOTPATH";
 
-    private final GenericStorableMultiTableReadConfig<Table, TableManipulatorConfig> m_config;
+    private final StorableMultiTableReadConfig<TableManipulatorConfig> m_config;
 
     /**
      * A supplier is used to avoid any issues should this node model ever be used in parallel. However, this also means
      * that the specs are recalculated for each generated reader.
      */
-    private final GenericMultiTableReader<Table, TableManipulatorConfig> m_tableReader;
+    private final MultiTableReader<Table, TableManipulatorConfig> m_tableReader;
 
     private final InputPortRole[] m_inputPortRoles;
 
@@ -121,25 +123,29 @@ public class TableManipulatorNodeModel extends NodeModel {
         m_inputPortRoles = new InputPortRole[noOfInputPorts];
         Arrays.fill(m_inputPortRoles, InputPortRole.DISTRIBUTED_STREAMABLE);
         m_config = createConfig();
-        final GenericDefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> multiTableReadFactory = createReadFactory();
-        m_tableReader = new GenericMultiTableReader<>(multiTableReadFactory);
+        final DefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> multiTableReadFactory =
+            createReadFactory();
+        m_tableReader = new MultiTableReader<>(multiTableReadFactory);
     }
 
-    static GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> createConfig() {
-        DefaultTableReadConfig<TableManipulatorConfig> tc =
-                new DefaultTableReadConfig<>(new TableManipulatorConfig());
-        final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config =
-            new GenericDefaultMultiTableReadConfig<>(tc, TableManipulatorConfigSerializer.INSTANCE);
+    static
+        DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>>
+        createConfig() {
+        DefaultTableReadConfig<TableManipulatorConfig> tc = new DefaultTableReadConfig<>(new TableManipulatorConfig());
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config =
+            new DefaultMultiTableReadConfig<>(tc, TableManipulatorConfigSerializer.INSTANCE);
         config.setFailOnDifferingSpecs(false);
         config.getTableReadConfig().setRowIDIdx(0);
         return config;
     }
 
-    static GenericDefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> createReadFactory() {
+    static DefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> createReadFactory() {
         final ReadAdapterFactory<DataType, DataValue> readAdapterFactory = DataValueReadAdapterFactory.INSTANCE;
         final ProductionPathProvider<DataType> productionPathProvider = createProductionPathProvider();
-        return new MultiTableReadFactory(productionPathProvider,
-            readAdapterFactory::createReadAdapter);
+        // TODO why create a new hierarchy?
+        return new DefaultMultiTableReadFactory<>(new DataTypeTypeHierarchy(),
+            new DefaultRowKeyGeneratorContextFactory<>(DataValue::toString, "Table"), new RowInputTableReader(),
+            productionPathProvider, readAdapterFactory::createReadAdapter);
     }
 
     static ProductionPathProvider<DataType> createProductionPathProvider() {
@@ -155,13 +161,13 @@ public class TableManipulatorNodeModel extends NodeModel {
             rowInputs.add(new EmptyTable((DataTableSpec)spec));
         }
         try {
-            final GenericTableSpecConfig<Table> tableSpecConfig =
-                    m_tableReader.createTableSpecConfig(ROOTPATH, rowInputs, m_config);
+            final TableSpecConfig tableSpecConfig =
+                m_tableReader.createTableSpecConfig(ROOTPATH, rowInputs, m_config);
             if (!m_config.hasTableSpecConfig()) {
                 m_config.setTableSpecConfig(tableSpecConfig);
             }
             return new PortObjectSpec[]{tableSpecConfig.getDataTableSpec()};
-        } catch (IOException|IllegalStateException e) {
+        } catch (IOException | IllegalStateException e) {
             LOGGER.debug(e);
             throw new InvalidSettingsException(e.getMessage());
         }

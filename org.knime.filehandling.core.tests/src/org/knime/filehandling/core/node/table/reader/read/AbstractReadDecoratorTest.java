@@ -49,6 +49,8 @@
 package org.knime.filehandling.core.node.table.reader.read;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -59,7 +61,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -70,12 +71,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractReadDecoratorTest {
 
-    private static class TestReadDecorator extends AbstractReadDecorator<String> {
+    private static class TestReadDecorator extends AbstractReadDecorator<Object, String> {
 
-        TestReadDecorator(final Read<String> source) {
+        TestReadDecorator(final Read<Object, String> source) {
             super(source);
         }
 
+        @SuppressWarnings("resource")
         @Override
         public RandomAccessible<String> next() throws IOException {
             return getSource().next();
@@ -84,7 +86,7 @@ public class AbstractReadDecoratorTest {
     }
 
     @Mock
-    private Read<String> m_source = null;
+    private Read<Object, String> m_source = null;
 
     private TestReadDecorator m_testInstance = null;
 
@@ -99,6 +101,7 @@ public class AbstractReadDecoratorTest {
     /**
      * Tests the {@code getSource} method.
      */
+    @SuppressWarnings("resource")
     @Test
     public void testGetSource() {
         assertEquals(m_source, m_testInstance.getSource());
@@ -131,7 +134,7 @@ public class AbstractReadDecoratorTest {
     @Test
     public void testClose() throws IOException {
         m_testInstance.close();
-        Mockito.verify(m_source, Mockito.times(1)).close();
+        verify(m_source, times(1)).close();
     }
 
 }

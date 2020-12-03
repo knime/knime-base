@@ -49,17 +49,11 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import java.nio.file.Path;
-import java.util.Optional;
 
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
-import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
-import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContextFactory;
 
 /**
  * An abstract implementation of a node factory for table reader nodes based on the table reader framework.
@@ -74,18 +68,6 @@ import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGenerat
 public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificConfig<C>, T, V>
     extends GenericAbstractTableReaderNodeFactory<Path, C, T, V> {
 
-    @Override
-    public final TableReaderNodeModel<C> createNodeModel(final NodeCreationConfiguration creationConfig) {
-        final StorableMultiTableReadConfig<C> config = createConfig(creationConfig);
-        final PathSettings pathSettings = createPathSettings(creationConfig);
-        final MultiTableReader<C> reader = createMultiTableReader();
-        final Optional<? extends PortsConfiguration> portConfig = creationConfig.getPortConfig();
-        if (portConfig.isPresent()) {
-            return new TableReaderNodeModel<>(config, pathSettings, reader, portConfig.get());
-        } else {
-            return new TableReaderNodeModel<>(config, pathSettings, reader);
-        }
-    }
 
     /**
      * Creates the {@link TableReader} for this reader node.
@@ -96,43 +78,6 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
     protected abstract TableReader<C, T, V> createReader();
 
     /**
-     * Creates a new @link MultiTableReader and returns it.
-     *
-     * @return a new multi table reader
-     */
-    private MultiTableReader<C> createMultiTableReader() {
-        return new MultiTableReader<>(createMultiTableReadFactory(createReader()));
-    }
-
-    /**
-     * Creates a new @link MultiTableReader with the given {@link TableReader} and returns it.
-     *
-     * @param reader the table reader used to create the multi table reader
-     *
-     * @return a new multi table reader
-     */
-    @Override
-    protected final MultiTableReadFactory<C, T>
-        createMultiTableReadFactory(final GenericTableReader<Path, C, T, V> reader) {
-        final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
-        DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
-        final GenericRowKeyGeneratorContextFactory<Path, V> rowKeyGenFactory =
-            new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey, "File");
-        return new DefaultMultiTableReadFactory<>(getTypeHierarchy(), rowKeyGenFactory, (TableReader<C, T, V>)reader,
-            productionPathProvider, readAdapterFactory::createReadAdapter);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected AbstractTableReaderNodeDialog<C, T> createNodeDialogPane(final NodeCreationConfiguration creationConfig,
-        final GenericMultiTableReadFactory<Path, C, T> readFactory,
-        final ProductionPathProvider<T> defaultProductionPathFn) {
-        return createNodeDialogPane(creationConfig, (MultiTableReadFactory<C, T>)readFactory, defaultProductionPathFn);
-    }
-
-    /**
      * Creates the node dialog.
      *
      * @param creationConfig {@link NodeCreationConfiguration}
@@ -140,7 +85,8 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      * @param defaultProductionPathFn provides the default {@link ProductionPath} for all external types
      * @return the node dialog
      */
-    protected abstract AbstractTableReaderNodeDialog<C, T> createNodeDialogPane(
-        final NodeCreationConfiguration creationConfig, final MultiTableReadFactory<C, T> readFactory,
+    @Override
+    protected abstract AbstractTableReaderNodeDialog<Path, C, T> createNodeDialogPane(
+        final NodeCreationConfiguration creationConfig, final MultiTableReadFactory<Path, C, T> readFactory,
         final ProductionPathProvider<T> defaultProductionPathFn);
 }

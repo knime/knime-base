@@ -44,18 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 31, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 13, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader.util;
 
-import java.nio.file.Path;
+import java.util.Collection;
+
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 
 /**
  * Represents the raw state of a multi table read i.e. before type mapping, renaming, filtering or reordering.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <T> the type representing external types
  */
-public interface StagedMultiTableRead<T> extends GenericStagedMultiTableRead<Path, T> {
+public interface StagedMultiTableRead<I, T> {
+
+    /**
+     * Creates a {@link MultiTableRead} that uses the default settings i.e. the default type mapping, no filtering, no
+     * renaming and no reordering.<br>
+     * Note: the item collection is passed as argument because for paths the file system might have been closed in the
+     * meantime.
+     *
+     * @param items the collection of items, {@link #isValidFor(Collection)} must return {@code true} for it
+     * @return a {@link MultiTableRead} that uses the defaults
+     */
+    MultiTableRead withoutTransformation(Collection<I> items);
+
+    /**
+     * Creates a {@link MultiTableRead} using the given {@link TableTransformation}.<br>
+     * Note: the item collection is passed as argument because for paths the file system might have been closed in the
+     * meantime.
+     *
+     * @param items the collection of items, {@link #isValidFor(Collection)} must return {@code true} for it
+     * @param selectorModel specifies the type mapping, column renaming, filtering and reordering
+     * @return a {@link MultiTableRead} using the provided {@link TableTransformation}
+     */
+    MultiTableRead withTransformation(Collection<I> items, TableTransformation<T> selectorModel);
+
+    /**
+     * Returns the raw {@link ReaderTableSpec} consisting of {@link TypedReaderColumnSpec}. Raw means before any type
+     * mapping, column filtering or reordering. To be used to make the mentioned operations configurable.
+     *
+     * @return the raw {@link ReaderTableSpec} i.e. before type mapping, column filtering or reordering
+     */
+    RawSpec<T> getRawSpec();
+
+    /**
+     * Checks if the provided <b>items</b> match the items used to instantiate this MultiTableRead.
+     *
+     * @param items to read from
+     * @return {@code true} if the provided <b>items</b> are valid
+     */
+    boolean isValidFor(Collection<I> items);
 
 }

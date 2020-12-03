@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader;
 
+import java.nio.file.Path;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
@@ -61,7 +62,7 @@ import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 
 /**
  * Node factory for the prototype CSV reader based on the new table reader framework.
@@ -87,9 +88,9 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
     }
 
     @Override
-    protected AbstractTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> createNodeDialogPane(
+    protected AbstractPathTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> createNodeDialogPane(
         final NodeCreationConfiguration creationConfig,
-        final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> readFactory,
+        final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> readFactory,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),
             readFactory, productionPathProvider);
@@ -109,4 +110,5 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
         tc.setMaxRowsForSpec(1000);
         return cfg;
     }
+
 }

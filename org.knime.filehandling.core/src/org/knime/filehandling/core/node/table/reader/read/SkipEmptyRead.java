@@ -48,8 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader.read;
 
-import java.nio.file.Path;
-import java.util.Optional;
+import java.io.IOException;
 
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
@@ -58,19 +57,28 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class SkipEmptyRead<V> extends GenericSkipEmptyRead<Path, V> implements Read<V> {
+class SkipEmptyRead<I, V> extends AbstractReadDecorator<I, V> {
 
     /**
      * Constructor.
      *
      * @param source the {@link Read} to decorate
      */
-    SkipEmptyRead(final Read<V> source) {
+    SkipEmptyRead(final Read<I, V> source) {
         super(source);
     }
 
+    @SuppressWarnings("resource") // the source is closed in AbstractReadDecorator#close
     @Override
-    public Optional<Path> getPath() {
-        return getItem();
+    public RandomAccessible<V> next() throws IOException {
+        RandomAccessible<V> current;
+        while ((current = getSource().next()) != null) {
+            if (current.size() > 0) {
+                return current;
+            }
+        }
+        // reached if getSource().next() returned null
+        return current;
     }
+
 }

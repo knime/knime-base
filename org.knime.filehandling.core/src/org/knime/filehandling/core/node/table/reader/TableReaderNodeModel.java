@@ -50,7 +50,6 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -71,12 +70,12 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
+import org.knime.filehandling.core.node.table.reader.paths.SourceSettings;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.GenericItemAccessor;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
@@ -84,13 +83,13 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends NodeModel {
+final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>> extends NodeModel {
 
     static final int FS_INPUT_PORT = 0;
 
     private final StorableMultiTableReadConfig<C> m_config;
 
-    private final PathSettings m_pathSettings;
+    private final SourceSettings<I> m_sourceSettings;
 
     private final NodeModelStatusConsumer m_statusConsumer =
         new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
@@ -99,8 +98,7 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * A supplier is used to avoid any issues should this node model ever be used in parallel. However, this also means
      * that the specs are recalculated for each generated reader.
      */
-    private final MultiTableReader<C> m_tableReader;
-
+    private final MultiTableReader<I, C> m_tableReader;
 
     /**
      * Constructs a node model with no inputs and one output.
@@ -109,11 +107,11 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * @param pathSettingsModel storing the paths selected by the user
      * @param tableReader reader for reading tables
      */
-    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
-        final MultiTableReader<C> tableReader) {
+    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C> config,
+        final SourceSettings<I> pathSettingsModel, final MultiTableReader<I, C> tableReader) {
         super(0, 1);
         m_config = config;
-        m_pathSettings = pathSettingsModel;
+        m_sourceSettings = pathSettingsModel;
         m_tableReader = tableReader;
     }
 
@@ -125,21 +123,21 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
      * @param tableReader reader for reading tables
      * @param portsConfig determines the in and outports.
      */
-    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C> config, final PathSettings pathSettingsModel,
-        final MultiTableReader<C> tableReader,
+    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C> config,
+        final SourceSettings<I> pathSettingsModel, final MultiTableReader<I, C> tableReader,
         final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_config = config;
-        m_pathSettings = pathSettingsModel;
+        m_sourceSettings = pathSettingsModel;
         m_tableReader = tableReader;
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_pathSettings.configureInModel(inSpecs, m_statusConsumer);
+        m_sourceSettings.configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         if (m_config.hasTableSpecConfig()) {
-            if (m_config.getTableSpecConfig().isConfiguredWith(m_pathSettings.getPath())) {
+            if (m_config.getTableSpecConfig().isConfiguredWith(m_sourceSettings.getSourceIdentifier())) {
                 return new PortObjectSpec[]{m_config.getTableSpecConfig().getDataTableSpec()};
             }
             setWarningMessage("The stored spec has not been created with the given file/path.");
@@ -149,18 +147,20 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
-            final List<Path> paths = getPaths(accessor);
-            return new PortObject[]{m_tableReader.readTable(m_pathSettings.getPath(), paths, m_config, exec)};
+        try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
+            final List<I> paths = getPaths(accessor);
+            return new PortObject[]{
+                m_tableReader.readTable(m_sourceSettings.getSourceIdentifier(), paths, m_config, exec)};
         }
     }
 
     @Override
     public PortObjectSpec[] computeFinalOutputSpecs(final StreamableOperatorInternals internals,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
-            final List<Path> paths = getPaths(accessor);
-            return new PortObjectSpec[]{m_tableReader.createTableSpec(m_pathSettings.getPath(), paths, m_config)};
+        try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
+            final List<I> items = getPaths(accessor);
+            return new PortObjectSpec[]{
+                m_tableReader.createTableSpec(m_sourceSettings.getSourceIdentifier(), items, m_config)};
         } catch (IOException ex) {
             throw new InvalidSettingsException(ex);
         }
@@ -173,19 +173,19 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
-                try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
-                    final List<Path> paths = getPaths(accessor);
+                try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
+                    final List<I> paths = getPaths(accessor);
                     final RowOutput output = (RowOutput)outputs[0];
-                    m_tableReader.fillRowOutput(m_pathSettings.getPath(), paths, m_config, output, exec);
+                    m_tableReader.fillRowOutput(m_sourceSettings.getSourceIdentifier(), paths, m_config, output, exec);
                 }
             }
         };
     }
 
-    private List<Path> getPaths(final ReadPathAccessor accessor) throws IOException, InvalidSettingsException {
-        final List<Path> paths = accessor.getPaths(m_statusConsumer);
+    private List<I> getPaths(final GenericItemAccessor<I> accessor) throws IOException, InvalidSettingsException {
+        final List<I> items = accessor.getItems(m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
-        return paths;
+        return items;
     }
 
     @Override
@@ -208,22 +208,19 @@ final class TableReaderNodeModel<C extends ReaderSpecificConfig<C>> extends Node
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_config.saveInModel(settings);
-        // FIXME: the path settings should become part of the config (AP-14460)
-        m_pathSettings.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
+        m_sourceSettings.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_config.validate(settings);
-        // FIXME: the path settings should become part of the config (AP-14460)
-        m_pathSettings.validateSettings(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
+        m_sourceSettings.validateSettings(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_config.loadInModel(settings);
-        // FIXME: the path settings should become part of the config (AP-14460)
-        m_pathSettings.loadSettingsFrom(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
+        m_sourceSettings.loadSettingsFrom(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
     }
 
     @Override

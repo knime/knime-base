@@ -44,27 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 13, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.nio.file.Path;
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
  * Creates {@link MultiTableRead MultiTableReads} given a {@link Map} of {@link TypedReaderTableSpec} representing
  * tables that should be read together, or based on a stored {@link TableSpecConfig}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <C> the type of {@link ReaderSpecificConfig}
  * @param <T> the type representing external data types
+ * @noimplement non-public API
+ * @noreference non-public API
  */
-public interface MultiTableReadFactory<C extends ReaderSpecificConfig<C>, T>
-    extends GenericMultiTableReadFactory<Path, C, T> {
+public interface MultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T> {
+
+    /**
+     * Creates a {@link StagedMultiTableRead} for the provided parameters.</br>
+     * Note that a {@link TableSpecConfig} stored in {@link MultiTableReadConfig} will be ignored i.e. the table spec is
+     * always calculated.
+     *
+     * @param rootItem string representation of the root item
+     * @param items {@link List} of items to read
+     * @param config contains the user configuration
+     * @param exec used to monitor the spec creation
+     * @return a {@link StagedMultiTableRead} for the provided parameters
+     * @throws IOException if an {@link IOException} occurs while creating the table spec
+     */
+    StagedMultiTableRead<I, T> create(String rootItem, List<I> items, MultiTableReadConfig<C> config,
+        ExecutionMonitor exec) throws IOException;
+
+    /**
+     * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
+     * {@link MultiTableReadConfig config}.<br>
+     * <b>Note</b>: Only use this factory method if {@link MultiTableReadConfig#hasTableSpecConfig()} is {@code true}.
+     *
+     * @param rootItem the root item
+     * @param items the list of items to be read
+     * @param config user provided {@link MultiTableReadConfig}
+     * @return a {@link MultiTableRead} for reading the tables from the given items
+     */
+    StagedMultiTableRead<I, T> createFromConfig(String rootItem, List<I> items,
+        MultiTableReadConfig<C> config);
+
+    // TODO add createForPreview method that ignores any existing TableSpecConfig
 
 }

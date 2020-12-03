@@ -44,22 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 23, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 15, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
-import java.nio.file.Path;
+import java.io.IOException;
+import java.util.Optional;
 
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
  * A read that extracts the row containing the column headers from the provided {@link Read source}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <V> the type of tokens making up a row in the read
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface ExtractColumnHeaderRead<V> extends Read<V>, GenericExtractColumnHeaderRead<Path, V> {
+public interface ExtractColumnHeaderRead<I, V> extends Read<I, V> {
+
+    /**
+     * Returns the extracted column headers and if necessary keeps reading until the headers are read.
+     *
+     * @return the {@link RandomAccessible} containing the column headers, empty if no column header has been found
+     * @throws IOException if there I/O problems while reading the headers
+     */
+    Optional<RandomAccessible<V>> getColumnHeaders() throws IOException;
 
 }

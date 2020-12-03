@@ -137,7 +137,7 @@ public class DefaultMultiTableReadFactoryTest {
     @Mock
     private Path m_path2;
 
-    private DefaultMultiTableReadFactory<DummyReaderSpecificConfig, String, String> m_testInstance;
+    private DefaultMultiTableReadFactory<Path, DummyReaderSpecificConfig, String, String> m_testInstance;
 
     /**
      * Initializes the test instance.
@@ -165,7 +165,8 @@ public class DefaultMultiTableReadFactoryTest {
 
         ExecutionMonitor exec = mock(ExecutionMonitor.class);
 
-        StagedMultiTableRead<String> smtr = m_testInstance.create(ROOT_PATH, asList(m_path1, m_path2), m_config, exec);
+        StagedMultiTableRead<Path, String> smtr =
+            m_testInstance.create(ROOT_PATH, asList(m_path1, m_path2), m_config, exec);
 
         verify(exec, times(2)).createSubProgress(0.5);
 
@@ -192,7 +193,7 @@ public class DefaultMultiTableReadFactoryTest {
         when(m_path1.toString()).thenReturn("path1");
         when(m_path2.toString()).thenReturn("path2");
 
-        StagedMultiTableRead<String> smtr =
+        StagedMultiTableRead<Path, String> smtr =
             m_testInstance.createFromConfig(ROOT_PATH, asList(m_path1, m_path2), m_config);
 
         assertEquals(RAW_SPEC, smtr.getRawSpec());

@@ -44,36 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 14, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 14, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader.read;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.function.Supplier;
+
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
  * Represents a single read of a table stored on disk. The API is similar to {@link Supplier Suppliers} with the
  * distinction that a read is {@link AutoCloseable} and {@link Read#next()} can throw {@link IOException IOExceptions}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <V> the type of tokens making up a row in the read
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface Read<V> extends GenericRead<Path, V> {
-
-    @Override
-    default Optional<Path> getItem() {
-        return getPath();
-    }
+public interface Read<I, V> extends AutoCloseable {
 
     /**
-     * Returns the path of the underlying source.
+     * Returns the next row or null if the end is reached.</br>
      *
-     * @return the path of the underlying source
+     * <b>NOTE:</b> The returned object may be a proxy i.e. the same object may be returned whose state is altered.
+     * Therefore <code>read.next().equals(read.next())</code> may return true even though the actual values changed.
+     *
+     * @return the next row or null if the end is reached
+     * @throws IOException if an I/O related problem is encountered
      */
-    Optional<Path> getPath();
+    RandomAccessible<V> next() throws IOException;
+
+    /**
+     * Returns the max progress which could be, e.g., the maximum number of rows or an estimated number of bytes stored
+     * in the file that this {@code Read} reads from.
+     *
+     * @return the maximum progress this {@code Read} is going to make or {@link OptionalLong#empty()} if the maximum
+     *         progress can't be estimated
+     */
+    OptionalLong getMaxProgress();
+
+    /**
+     * Returns the current progress which could be, e.g., the current number of rows or the number of bytes this
+     * {@code Read} already read.
+     *
+     * @return the current progress this {@code Read} already made
+     */
+    long getProgress();
+
+    /**
+     * @return the item to read from
+     */
+    Optional<I> getItem();
+
+    @Override
+    void close() throws IOException;
 
 }

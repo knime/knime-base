@@ -51,7 +51,6 @@ package org.knime.base.node.preproc.manipulator;
 import static org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry.PATH_LOADER;
 import static org.knime.filehandling.core.util.SettingsUtils.getOrEmpty;
 
-import org.knime.base.node.preproc.manipulator.table.Table;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -59,9 +58,9 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
+import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericDefaultMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericDefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -71,7 +70,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 enum TableManipulatorConfigSerializer implements
-    ConfigSerializer<GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>>> {
+    ConfigSerializer<DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>>> {
 
         /**
          * Singleton instance.
@@ -92,19 +91,19 @@ enum TableManipulatorConfigSerializer implements
 
     @Override
     public void saveInDialog(
-        final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
         final NodeSettingsWO settings) throws InvalidSettingsException {
         saveInModel(config, settings);
     }
 
     @Override
     public void loadInDialog(
-        final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
         final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
         loadSettingsTabInDialog(config, getOrEmpty(settings, CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
-                config.setTableSpecConfig(GenericDefaultTableSpecConfig.load(MOST_GENERIC_EXTERNAL_TYPE,
+                config.setTableSpecConfig(DefaultTableSpecConfig.load(MOST_GENERIC_EXTERNAL_TYPE,
                     settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER, null));
             } catch (InvalidSettingsException ex) {
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
@@ -119,7 +118,7 @@ enum TableManipulatorConfigSerializer implements
 
     @Override
     public void saveInModel(
-        final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
         final NodeSettingsWO settings) {
         if (config.hasTableSpecConfig()) {
             config.getTableSpecConfig().save(settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
@@ -129,11 +128,11 @@ enum TableManipulatorConfigSerializer implements
 
     @Override
     public void loadInModel(
-        final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            config.setTableSpecConfig(GenericDefaultTableSpecConfig.load(MOST_GENERIC_EXTERNAL_TYPE,
+            config.setTableSpecConfig(DefaultTableSpecConfig.load(MOST_GENERIC_EXTERNAL_TYPE,
                 settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER, null));
         } else {
             config.setTableSpecConfig(null);
@@ -143,13 +142,13 @@ enum TableManipulatorConfigSerializer implements
     @Override
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            GenericDefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER);
+            DefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER);
         }
         validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
     }
 
     private static void loadSettingsTabInDialog(
-        final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
         final NodeSettingsRO settings) {
         final DefaultTableReadConfig<TableManipulatorConfig> tc = config.getTableReadConfig();
         tc.setUseRowIDIdx(settings.getBoolean(CFG_HAS_ROW_ID, true));
@@ -157,7 +156,7 @@ enum TableManipulatorConfigSerializer implements
     }
 
     private static void loadSettingsTabInModel(
-        final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
         final DefaultTableReadConfig<TableManipulatorConfig> tc = config.getTableReadConfig();
         tc.setUseRowIDIdx(settings.getBoolean(CFG_HAS_ROW_ID));
@@ -165,7 +164,7 @@ enum TableManipulatorConfigSerializer implements
     }
 
     private static void saveSettingsTab(
-        final GenericDefaultMultiTableReadConfig<Table, TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config,
         final NodeSettingsWO settings) {
         final TableReadConfig<?> tc = config.getTableReadConfig();
         settings.addBoolean(CFG_HAS_ROW_ID, tc.useRowIDIdx());

@@ -44,12 +44,16 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 13, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 15, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader.read;
 
-import java.nio.file.Path;
+import java.io.IOException;
 import java.util.Optional;
+import java.util.OptionalLong;
+
+import org.knime.core.node.util.CheckUtils;
+
 
 /**
  * An abstract implementation of a decorator for {@link Read} objects.</br>
@@ -57,26 +61,52 @@ import java.util.Optional;
  * delegating to the underlying read object.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <V> the type of values returned by this read
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractReadDecorator<V> extends GenericAbstractReadDecorator<Path, V> implements Read<V> {
+public abstract class AbstractReadDecorator<I, V> implements Read<I, V> {
+
+    private final Read<I, V> m_source;
 
     /**
      * Constructor.
      *
      * @param source the {@link Read} to decorate
      */
-    protected AbstractReadDecorator(final Read<V> source) {
-        super(source);
+    protected AbstractReadDecorator(final Read<I, V> source) {
+        m_source = CheckUtils.checkArgumentNotNull(source, "The source must not be null.");
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the decorated {@link Read}.
+     *
+     * @return the decorated {@link Read}
      */
-    @Override
-    public Optional<Path> getPath() {
-        return getItem();
+    protected final Read<I, V> getSource() {
+        return m_source;
     }
+
+    @Override
+    public OptionalLong getMaxProgress() {
+        return m_source.getMaxProgress();
+    }
+
+    @Override
+    public long getProgress() {
+        return m_source.getProgress();
+    }
+
+    @Override
+    public void close() throws IOException {
+        m_source.close();
+    }
+
+    @Override
+    public Optional<I> getItem() {
+        return m_source.getItem();
+    }
+
 }

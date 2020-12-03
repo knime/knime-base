@@ -66,12 +66,12 @@ import org.mockito.junit.MockitoJUnitRunner;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("resource")
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("resource")
 public class ColumnFilterReadTest {
 
     @Mock
-    private Read<String> m_source = null;
+    private Read<Object, String> m_source = null;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
@@ -80,6 +80,7 @@ public class ColumnFilterReadTest {
      * Tests if the constructor fails on a negative columnToFilter argument.
      * @throws IOException never thrown
      */
+    @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorFailsOnNegativeColumnToFilter() throws IOException {
         new ColumnFilterRead<>(m_source, -1);
@@ -94,7 +95,7 @@ public class ColumnFilterReadTest {
     @Test
     public void testNext() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible, (RandomAccessible<String>)null);
-        ColumnFilterRead<String> testInstance = new ColumnFilterRead<>(m_source, 3);
+        ColumnFilterRead<Object, String> testInstance = new ColumnFilterRead<>(m_source, 3);
         assertTrue(testInstance.next() instanceof ColumnFilterRandomAccessible);
         assertEquals(null, testInstance.next());
     }
@@ -107,7 +108,7 @@ public class ColumnFilterReadTest {
     @Test
     public void testSize() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        ColumnFilterRead<String> testInstance = new ColumnFilterRead<>(m_source, 1);
+        ColumnFilterRead<Object, String> testInstance = new ColumnFilterRead<>(m_source, 1);
         when(m_randomAccessible.size()).thenReturn(3);
         assertEquals(2, testInstance.next().size());
         when(m_randomAccessible.size()).thenReturn(1);
@@ -124,7 +125,7 @@ public class ColumnFilterReadTest {
     @Test
     public void testGet() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        ColumnFilterRead<String> testInstance = new ColumnFilterRead<>(m_source, 1);
+        ColumnFilterRead<Object, String> testInstance = new ColumnFilterRead<>(m_source, 1);
         RandomAccessible<String> randomAccessible = testInstance.next();
         when(m_randomAccessible.get(0)).thenReturn("foo");
         when(m_randomAccessible.get(2)).thenReturn("bar");

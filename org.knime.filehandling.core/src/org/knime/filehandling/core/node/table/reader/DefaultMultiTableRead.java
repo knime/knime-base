@@ -44,21 +44,21 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 13, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.node.table.reader.util.GenericIndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.util.CheckedExceptionFunction;
@@ -67,34 +67,80 @@ import org.knime.filehandling.core.util.CheckedExceptionFunction;
  * Default implementation of MultiTableRead.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <V> the type representing values
+ * @noreference non-public API
+ * @noextend non-public API
  */
-final class DefaultMultiTableRead<V> extends GenericDefaultMultiTableRead<Path, V> implements MultiTableRead {
+public final class DefaultMultiTableRead<I, V> implements MultiTableRead {
+
+    private final DataTableSpec m_outputSpec;
+
+    private final TableSpecConfig m_tableSpecConfig;
+
+    private final Collection<I> m_items;
+
+    private final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> m_readFn;
+
+    private final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>>> m_individualTableReaderFactorySupplier;
 
     /**
      * Constructor.
      *
-     * @param paths the collection of {@link Path Paths} to read from
-     * @param readFn produces a {@link Read} from a {@link Path}
-     * @param individualTableReaderFactory creates {@link IndividualTableReader IndividualTableReaders} from {@link Path
-     *            Paths}
+     * @param items the collection of items to read from
+     * @param readFn produces a {@link Read} from a item
+     * @param individualTableReaderFactorySupplier creates {@link IndividualTableReader IndividualTableReaders} from
+     *            item
      * @param tableSpecConfig corresponding to this instance
      * @param outputSpec {@link DataTableSpec} of the output table
      */
-    DefaultMultiTableRead(final Collection<Path> paths, final CheckedExceptionFunction<Path, Read<V>, IOException> readFn,
-        final Supplier<BiFunction<Path, FileStoreFactory, ? extends GenericIndividualTableReader<Path, V>>> individualTableReaderFactorySupplier,
-        final GenericTableSpecConfig<Path> tableSpecConfig, final DataTableSpec outputSpec) {
-        super(paths, readFn, individualTableReaderFactorySupplier, tableSpecConfig, outputSpec);
+    public DefaultMultiTableRead(final Collection<I> items,
+        final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> readFn,
+        final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>>> individualTableReaderFactorySupplier,
+        final TableSpecConfig tableSpecConfig, final DataTableSpec outputSpec) {
+        m_outputSpec = outputSpec;
+        m_tableSpecConfig = tableSpecConfig;
+        m_readFn = readFn;
+        m_items = items;
+        m_individualTableReaderFactorySupplier = individualTableReaderFactorySupplier;
+    }
+
+    @Override
+    public DataTableSpec getOutputSpec() {
+        return m_outputSpec;
+    }
+
+    @Override
+    public TableSpecConfig getTableSpecConfig() {
+        return m_tableSpecConfig;
+    }
+
+    @Override
+    public void fillRowOutput(final RowOutput output, final ExecutionMonitor exec, final FileStoreFactory fsFactory)
+        throws Exception {
+        final BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>> individualTableReaderFactory =
+            m_individualTableReaderFactorySupplier.get();
+        for (I item : m_items) {
+            exec.checkCanceled();
+            final ExecutionMonitor progress = exec.createSubProgress(1.0 / m_items.size());
+            final IndividualTableReader<I, V> reader = individualTableReaderFactory.apply(item, fsFactory);
+            try (final Read<I, V> read = m_readFn.apply(item)) {
+                reader.fillOutput(read, output, progress);
+            }
+            progress.setProgress(1.0);
+        }
+        output.close();
     }
 
     @SuppressWarnings("resource")
     @Override
-    public PreviewRowIterator createPreviewIterator() {
-        final BiFunction<Path, FileStoreFactory, ? extends GenericIndividualTableReader<Path, V>> individualTableReaderFactory =
-            getIndividualTableReaderFactory();
-        return new MultiTablePreviewRowIterator(getItems().iterator(), (p, f) -> {
-            final GenericIndividualTableReader<Path, V> reader = individualTableReaderFactory.apply(p, f);
-            return new GenericIndividualTablePreviewRowIterator<>(getReadFn().apply(p), reader::toRow);
+    public final PreviewRowIterator createPreviewIterator() {
+        final BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>> individualTableReaderFactory =
+            m_individualTableReaderFactorySupplier.get();
+        return new MultiTablePreviewRowIterator<>(m_items.iterator(), (p, f) -> {
+            final IndividualTableReader<I, V> reader = individualTableReaderFactory.apply(p, f);
+            return new IndividualTablePreviewRowIterator<>(m_readFn.apply(p), reader::toRow);
         });
     }
 }

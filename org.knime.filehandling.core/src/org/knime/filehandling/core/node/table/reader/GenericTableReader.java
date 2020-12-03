@@ -53,7 +53,6 @@ import java.io.IOException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.read.GenericRead;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
@@ -79,7 +78,7 @@ public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> 
      * @throws IOException if creating the read fails due to IO problems
      */
     // TODO add separate parameter for doing pushdown e.g. filtering
-    GenericRead<I, V> read(I item, TableReadConfig<C> config) throws IOException;
+    Read<I, V> read(I item, TableReadConfig<C> config) throws IOException;
 
     /**
      * Reads the spec of the table stored at the input item. Note that the spec should not be filtered i.e. any

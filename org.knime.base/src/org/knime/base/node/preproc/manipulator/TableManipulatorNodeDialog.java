@@ -78,18 +78,18 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.node.table.reader.GenericDefaultMultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.DefaultMultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericStorableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AnalysisComponentModel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.GenericItemAccessor;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreviewModel;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreviewTransformationController;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreviewTransformationCoordinator;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreviewView;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationPanel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
@@ -138,7 +138,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
         }
     }
 
-    private final TableReaderPreviewTransformationController<Table, TableManipulatorConfig, DataType> m_coordinator;
+    private final TableReaderPreviewTransformationCoordinator<Table, TableManipulatorConfig, DataType> m_coordinator;
 
     private final List<TableReaderPreviewView> m_previews = new ArrayList<>();
 
@@ -150,7 +150,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
 
     private boolean m_ignoreEvents = false;
 
-    private final GenericStorableMultiTableReadConfig<Table, TableManipulatorConfig> m_config;
+    private final StorableMultiTableReadConfig<TableManipulatorConfig> m_config;
 
     private final TableAccessor m_itemAccessor = new TableAccessor(Collections.<Table>emptyList());
 
@@ -160,7 +160,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
 
     TableManipulatorNodeDialog() {
         m_config = TableManipulatorNodeModel.createConfig();
-        final GenericDefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> readFactory =
+        final DefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> readFactory =
                 TableManipulatorNodeModel.createReadFactory();
         final ProductionPathProvider<DataType> productionPathProvider =
                 TableManipulatorNodeModel.createProductionPathProvider();
@@ -169,7 +169,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
         m_previewModel = previewModel;
         final TableTransformationTableModel<DataType> transformationModel =
             new TableTransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
-        m_coordinator = new TableReaderPreviewTransformationController<>(readFactory, transformationModel,
+        m_coordinator = new TableReaderPreviewTransformationCoordinator<>(readFactory, transformationModel,
             analysisComponentModel, previewModel, this::getConfig, this::getReadPathAccessor);
         m_specTransformer = new TableTransformationPanel(transformationModel,
             t -> productionPathProvider.getAvailableProductionPaths((DataType)t), true, true);
@@ -316,7 +316,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
      *
      * @param genericTableSpecConfig to load from
      */
-    private void loadFromTableSpecConfig(final GenericTableSpecConfig<Table> genericTableSpecConfig) {
+    private void loadFromTableSpecConfig(final TableSpecConfig genericTableSpecConfig) {
         final TableTransformation<DataType> transformationModel = genericTableSpecConfig.getTransformationModel();
         m_coordinator.load(transformationModel);
     }
@@ -426,12 +426,12 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
      *
      * @return the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available
      */
-    protected final GenericTableSpecConfig<Table> getTableSpecConfig() {
+    protected final TableSpecConfig getTableSpecConfig() {
         return m_coordinator.getTableSpecConfig();
     }
 
     /**
-     * This method must return the current {@link GenericMultiTableReadConfig}. It is used to load the preview, so please make
+     * This method must return the current {@link MultiTableReadConfig}. It is used to load the preview, so please make
      * sure that all settings are stored in the config, otherwise the preview will be incorrect.</br>
      * {@link RuntimeException} should be wrapped into {@link InvalidSettingsException} if they indicate an invalid
      * configuration.
@@ -439,12 +439,12 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
      * @return the current configuration
      * @throws InvalidSettingsException if the settings are invalid
      */
-    protected GenericMultiTableReadConfig<Table, TableManipulatorConfig> getConfig()
+    protected MultiTableReadConfig<TableManipulatorConfig> getConfig()
             throws InvalidSettingsException{
         return saveAndGetConfig();
     }
 
-    private GenericMultiTableReadConfig<Table, TableManipulatorConfig> saveAndGetConfig() throws InvalidSettingsException {
+    private MultiTableReadConfig<TableManipulatorConfig> saveAndGetConfig() throws InvalidSettingsException {
         try {
             saveConfig();
         } catch (RuntimeException e) {

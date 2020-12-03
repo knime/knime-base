@@ -57,6 +57,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Optional;
@@ -100,7 +101,7 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConf
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 import com.univocity.parsers.csv.CsvFormat;
@@ -112,7 +113,7 @@ import com.univocity.parsers.csv.CsvFormat;
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
 public abstract class AbstractCSVTableReaderNodeDialog
-    extends AbstractTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> {
+    extends AbstractPathTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> {
 
     private static final String START_AUTODETECT_LABEL = "Autodetect format";
 
@@ -202,7 +203,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings,
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
-        final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
+        final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles) {
         super(multiReader, productionPathProvider, allowsReadingMultipleFiles);
         init(pathSettings);
@@ -220,11 +221,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         if (allowsReadingMultipleFiles) {
             m_prependSourceIdxToRowId = new JCheckBox("Prepend file index to row ID");
-            m_hasRowIDChecker.addActionListener(e -> m_prependSourceIdxToRowId.setEnabled(m_hasRowIDChecker.isSelected()));
+            m_hasRowIDChecker
+                .addActionListener(e -> m_prependSourceIdxToRowId.setEnabled(m_hasRowIDChecker.isSelected()));
         } else {
             m_prependSourceIdxToRowId = null;
         }
-
 
         m_replaceQuotedEmptyStringChecker = new JCheckBox("Replace empty quoted strings with missing values", true);
         m_startAutodetection = new JButton(START_AUTODETECT_LABEL);

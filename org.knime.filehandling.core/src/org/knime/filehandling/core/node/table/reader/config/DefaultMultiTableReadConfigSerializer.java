@@ -129,6 +129,7 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
      * @return the {@link SpecMergeMode} for workflows stored with 4.2 or {@code null} for workflows stored with 4.3 or
      *         later
      */
+    @SuppressWarnings("deprecation")
     private static SpecMergeMode loadSpecMergeMode(final NodeSettingsRO settings) {
         try {
             // workflows stored with 4.2 save the SpecMergeMode with the MultiTableReadConfig

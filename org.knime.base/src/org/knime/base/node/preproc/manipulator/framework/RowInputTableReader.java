@@ -62,7 +62,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.read.GenericRead;
+import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
@@ -74,7 +74,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 public final class RowInputTableReader implements GenericTableReader<Table, TableManipulatorConfig, DataType, DataValue> {
 
     @Override
-    public GenericRead<Table, DataValue> read(final Table path, final TableReadConfig<TableManipulatorConfig> config)
+    public Read<Table, DataValue> read(final Table path, final TableReadConfig<TableManipulatorConfig> config)
             throws IOException {
         return new TableRead(path, config);
     }

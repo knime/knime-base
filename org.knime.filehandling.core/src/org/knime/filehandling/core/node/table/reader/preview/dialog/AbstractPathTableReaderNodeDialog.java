@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 7, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Dec 4, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.paths;
+package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -54,63 +54,77 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.GenericItemAccessor;
+import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 
 /**
- * Interface defining classes that can be validated, saved to, and loaded from {@link NodeSettings} and allow to access
- * paths.
+ * Convenience layer for reader nodes that read from {@link Path}.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
- * @noreference non-public API
- * @noimplement non-public API
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <C> the type of {@link ReaderSpecificConfig} used by the underlying reader
+ * @param <T> the type used to identify external types
  */
-public interface PathSettings extends SourceSettings<Path> {
+public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecificConfig<C>, T>
+    extends AbstractTableReaderNodeDialog<Path, C, T> {
 
     /**
-     * Returns the stored path, which can be {@code null}.
-     *
-     * @return the {@code String} representation of the stored path
+     * @param readFactory
+     * @param productionPathProvider
+     * @param allowsMultipleFiles
      */
-    String getPath();
+    protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<Path, C, T> readFactory,
+        final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
+        super(readFactory, productionPathProvider, allowsMultipleFiles);
+    }
 
+    @SuppressWarnings("resource") // the ReadPathAccessor is managed by the adapter
     @Override
-    default String getSourceIdentifier() {
-        return getPath();
+    protected final GenericItemAccessor<Path> createItemAccessor() {
+        return new ReadPathAccessorAdapter(createReadPathAccessor());
     }
 
     /**
-     * Creates a {@link ReadPathAccessor} to be used in reader nodes.
+     * Creates a <b>new</b> {@link ReadPathAccessor} that corresponds to the current file selection.</br>
+     * It is important to create a new {@link ReadPathAccessor} for every call, otherwise {@link IOException} can occur
+     * in the preview.
      *
-     * @return a {@link ReadPathAccessor}
+     * @return the {@link ReadPathAccessor} corresponding to the current file selection
      */
-    public ReadPathAccessor createReadPathAccessor();
+    protected abstract ReadPathAccessor createReadPathAccessor();
 
-    @SuppressWarnings("resource")
-    @Override
-    default GenericItemAccessor<Path> createItemAccessor() {
-        final ReadPathAccessor pathAccessor = createReadPathAccessor();
-        return new GenericItemAccessor<Path>() {
+    /**
+     * Adapter that maps a {@link ReadPathAccessor} to a {@code GenericItemAccessor<Path>}.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    private static class ReadPathAccessorAdapter implements GenericItemAccessor<Path> {
 
-            @Override
-            public void close() throws IOException {
-                pathAccessor.close();
-            }
+        private final ReadPathAccessor m_pathAccessor;
 
-            @Override
-            public List<Path> getItems(final Consumer<StatusMessage> statusMessageConsumer)
-                throws IOException, InvalidSettingsException {
-                return pathAccessor.getPaths(statusMessageConsumer);
-            }
+        ReadPathAccessorAdapter(final ReadPathAccessor pathAccessor) {
+            m_pathAccessor = pathAccessor;
+        }
 
-            @Override
-            public Path getRootItem(final Consumer<StatusMessage> statusMessageConsumer)
-                throws IOException, InvalidSettingsException {
-                return pathAccessor.getRootPath(statusMessageConsumer);
-            }
-        };
+        @Override
+        public void close() throws IOException {
+            m_pathAccessor.close();
+        }
+
+        @Override
+        public List<Path> getItems(final Consumer<StatusMessage> statusMessageConsumer)
+            throws IOException, InvalidSettingsException {
+            return m_pathAccessor.getPaths(statusMessageConsumer);
+        }
+
+        @Override
+        public Path getRootItem(final Consumer<StatusMessage> statusMessageConsumer)
+            throws IOException, InvalidSettingsException {
+            return m_pathAccessor.getRootPath(statusMessageConsumer);
+        }
+
     }
 
 }

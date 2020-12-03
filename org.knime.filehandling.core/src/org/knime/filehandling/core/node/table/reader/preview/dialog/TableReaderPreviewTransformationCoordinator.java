@@ -58,17 +58,16 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.node.table.reader.GenericMultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.config.GenericImmutableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.config.ImmutableMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ObservableTransformationModelProvider;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
-import org.knime.filehandling.core.node.table.reader.util.GenericMultiTableRead;
-import org.knime.filehandling.core.node.table.reader.util.GenericStagedMultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
+import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 import org.knime.filehandling.core.util.CheckedExceptionSupplier;
 
 /**
@@ -79,10 +78,12 @@ import org.knime.filehandling.core.util.CheckedExceptionSupplier;
  * @param <I> the item type to read from
  * @param <C> the type of {@link ReaderSpecificConfig}
  * @param <T> the type used to identify external types
+ * @noinstantiate non-public API
+ * @noreference non-public API
  */
-public final class TableReaderPreviewTransformationController<I, C extends ReaderSpecificConfig<C>, T> {
+public final class TableReaderPreviewTransformationCoordinator<I, C extends ReaderSpecificConfig<C>, T> {
 
-    private final GenericMultiTableReadFactory<I, C, T> m_readFactory;
+    private final MultiTableReadFactory<I, C, T> m_readFactory;
 
     private final AnalysisComponentModel m_analysisComponent;
 
@@ -90,7 +91,7 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
 
     private final ObservableTransformationModelProvider<T> m_transformationModel;
 
-    private final CheckedExceptionSupplier<GenericMultiTableReadConfig<I, C>, InvalidSettingsException> m_configSupplier;
+    private final CheckedExceptionSupplier<MultiTableReadConfig<C>, InvalidSettingsException> m_configSupplier;
 
     private final Supplier<GenericItemAccessor<I>> m_readPathAccessorSupplier;
 
@@ -104,10 +105,10 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
      * @param configSupplier {@link CheckedExceptionSupplier}
      * @param itemAccessorSupplier GenericItemAccessor supplier
      */
-    public TableReaderPreviewTransformationController(final GenericMultiTableReadFactory<I, C, T> readFactory,
+    public TableReaderPreviewTransformationCoordinator(final MultiTableReadFactory<I, C, T> readFactory,
         final ObservableTransformationModelProvider<T> transformationModel,
         final AnalysisComponentModel analysisComponentModel, final TableReaderPreviewModel tableReaderPreviewModel,
-        final CheckedExceptionSupplier<GenericMultiTableReadConfig<I, C>, InvalidSettingsException> configSupplier,
+        final CheckedExceptionSupplier<MultiTableReadConfig<C>, InvalidSettingsException> configSupplier,
         final Supplier<GenericItemAccessor<I>> itemAccessorSupplier) {
         m_readFactory = readFactory;
         m_transformationModel = transformationModel;
@@ -158,11 +159,11 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
     }
 
     /**
-     * Returns the {@link GenericTableSpecConfig} for the current settings
+     * Returns the {@link TableSpecConfig} for the current settings
      *
-     * @return the {@link GenericTableSpecConfig} for the current settings
+     * @return the {@link TableSpecConfig} for the current settings
      */
-    public GenericTableSpecConfig<I> getTableSpecConfig() {
+    public TableSpecConfig getTableSpecConfig() {
         return m_currentRun != null ? m_currentRun.getTableSpecConfig() : null;
     }
 
@@ -196,17 +197,17 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
      */
     private class PreviewRun implements AutoCloseable {
 
-        private GenericImmutableMultiTableReadConfig<I, C> m_config;
+        private ImmutableMultiTableReadConfig<C> m_config;
 
         private SpecGuessingSwingWorker<I, C, T> m_specGuessingWorker = null;
 
         private GenericItemAccessSwingWorker<I> m_pathAccessWorker = null;
 
-        private GenericStagedMultiTableRead<I, T> m_currentRead = null;
+        private StagedMultiTableRead<I, T> m_currentRead = null;
 
         private GenericItemAccessor<I> m_readPathAccessor = null;
 
-        private GenericTableSpecConfig<I> m_currentTableSpecConfig = null;
+        private TableSpecConfig m_currentTableSpecConfig = null;
 
         private final AtomicBoolean m_closed = new AtomicBoolean(false);
 
@@ -214,15 +215,15 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
 
         private List<I> m_items;
 
-        PreviewRun(final GenericMultiTableReadConfig<I, C> config) {
-            m_config = new GenericImmutableMultiTableReadConfig<>(config);
+        PreviewRun(final MultiTableReadConfig<C> config) {
+            m_config = new ImmutableMultiTableReadConfig<>(config);
             m_readPathAccessor = m_readPathAccessorSupplier.get();
             m_pathAccessWorker = new GenericItemAccessSwingWorker<>(m_readPathAccessor, this::startSpecGuessingWorker,
                 this::displayPathError);
             m_pathAccessWorker.execute();
         }
 
-        GenericTableSpecConfig<I> getTableSpecConfig() {
+        TableSpecConfig getTableSpecConfig() {
             return m_currentTableSpecConfig;
         }
 
@@ -279,7 +280,7 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
             m_transformationModel.updateRawSpec(null);
         }
 
-        private void consumeNewStagedMultiRead(final GenericStagedMultiTableRead<I, T> stagedMultiTableRead) {
+        private void consumeNewStagedMultiRead(final StagedMultiTableRead<I, T> stagedMultiTableRead) {
             if (m_closed.get()) {
                 // this method is called in the EDT so it might be the case that
                 // the run got cancelled between the completion of the StagedMultiTableRead
@@ -304,14 +305,14 @@ public final class TableReaderPreviewTransformationController<I, C extends Reade
                 return;
             }
             try {
-                final GenericMultiTableRead<I> mtr =
+                final MultiTableRead mtr =
                     m_currentRead.withTransformation(m_items, m_transformationModel.getTableTransformation());
                 m_currentTableSpecConfig = mtr.getTableSpecConfig();
                 @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
                 final PreviewDataTable pdt = new PreviewDataTable(mtr::createPreviewIterator, mtr.getOutputSpec());
                 m_previewModel.setDataTable(pdt);
             } catch (Exception ex) {// NOSONAR we need to handle all exceptions in the same way
-                NodeLogger.getLogger(TableReaderPreviewTransformationController.class).debug(ex);
+                NodeLogger.getLogger(TableReaderPreviewTransformationCoordinator.class).debug(ex);
                 m_analysisComponent.setError(ex.getMessage());
                 m_previewModel.setDataTable(null);
             }

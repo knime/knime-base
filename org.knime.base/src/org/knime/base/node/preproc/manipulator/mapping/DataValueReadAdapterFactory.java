@@ -48,8 +48,6 @@
  */
 package org.knime.base.node.preproc.manipulator.mapping;
 
-import java.util.Map;
-
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.convert.map.ProducerRegistry;
@@ -73,21 +71,10 @@ public enum DataValueReadAdapterFactory implements ReadAdapterFactory<DataType, 
     }
 
     @Override
-    public Map<DataType, DataType> getDefaultTypeMap() {
-        throw new UnsupportedOperationException("Type map not supported");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public ReadAdapter<DataType, DataValue> createReadAdapter() {
         return new DataValueReadAdapter();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ProducerRegistry<DataType, ? extends ReadAdapter<DataType, DataValue>> getProducerRegistry() {
         return DataTypeProducerRegistry.INSTANCE;

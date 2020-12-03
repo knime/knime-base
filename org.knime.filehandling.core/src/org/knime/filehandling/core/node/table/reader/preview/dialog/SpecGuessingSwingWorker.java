@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.awt.event.ActionListener;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
@@ -65,13 +64,12 @@ import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.workflow.NodeProgressEvent;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
-import org.knime.filehandling.core.node.table.reader.GenericMultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.config.GenericImmutableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.config.ImmutableMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
-import org.knime.filehandling.core.node.table.reader.util.GenericStagedMultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
@@ -84,7 +82,7 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  * @param <T> the type representing external data types
  */
 public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>, T>
-    extends SwingWorkerWithContext<GenericStagedMultiTableRead<I, T>, AnalysisUpdate> {
+    extends SwingWorkerWithContext<StagedMultiTableRead<I, T>, AnalysisUpdate> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(SpecGuessingSwingWorker.class);
 
@@ -92,15 +90,15 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
 
     private final List<I> m_paths;
 
-    private final GenericMultiTableReadFactory<I, C, T> m_reader;
+    private final MultiTableReadFactory<I, C, T> m_reader;
 
-    private final GenericMultiTableReadConfig<I, C> m_config;
+    private final MultiTableReadConfig<C> m_config;
 
     private final AnalysisComponentModel m_analysisComponent;
 
-    private final PreviewExecutionMonitor m_exec = new PreviewExecutionMonitor();
+    private final PreviewExecutionMonitor<I> m_exec = new PreviewExecutionMonitor<>();
 
-    private final Consumer<GenericStagedMultiTableRead<I, T>> m_resultConsumer;
+    private final Consumer<StagedMultiTableRead<I, T>> m_resultConsumer;
 
     private final Consumer<ExecutionException> m_exceptionConsumer;
 
@@ -115,10 +113,10 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
      * @param resultConsumer the result consumer
      * @param exceptionConsumer consumer for any exception thrown during execution
      */
-    public SpecGuessingSwingWorker(final GenericMultiTableReadFactory<I, C, T> reader, final String rootPath,
-        final List<I> paths, final GenericImmutableMultiTableReadConfig<I, C> config,
+    public SpecGuessingSwingWorker(final MultiTableReadFactory<I, C, T> reader, final String rootPath,
+        final List<I> paths, final ImmutableMultiTableReadConfig<C> config,
         final AnalysisComponentModel analysisComponent,
-        final Consumer<GenericStagedMultiTableRead<I, T>> resultConsumer, final Consumer<ExecutionException> exceptionConsumer) {
+        final Consumer<StagedMultiTableRead<I, T>> resultConsumer, final Consumer<ExecutionException> exceptionConsumer) {
         m_rootPath = rootPath;
         m_reader = reader;
         m_config = config;
@@ -130,7 +128,7 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
     }
 
     @Override
-    protected GenericStagedMultiTableRead<I, T> doInBackgroundWithContext() throws Exception {
+    protected StagedMultiTableRead<I, T> doInBackgroundWithContext() throws Exception {
         // Since we do the spec guessing in a background thread, we need to use the publish method
         // to forward any updates to the process method which is called in the UI thread
         final NodeProgressMonitor progressMonitor = m_exec.getProgressMonitor();
@@ -141,13 +139,13 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
             progressMonitor.setExecuteCanceled();
         };
         quickScanModel.addActionListener(listener);
-        final GenericStagedMultiTableRead<I, T> read = m_reader.create(m_rootPath, m_paths, m_config, m_exec);
+        final StagedMultiTableRead<I, T> read = m_reader.create(m_rootPath, m_paths, m_config, m_exec);
         quickScanModel.removeActionListener(listener);
         return read;
     }
 
     private AnalysisUpdate createAnalysisUpdate(final NodeProgressEvent progressEvent) {
-        final Optional<Path> currentPath = m_exec.getCurrenttem();
+        final Optional<I> currentPath = m_exec.getCurrenttem();
         final StringBuilder sb = new StringBuilder("Reading input data ")//
             .append(m_exec.getCurrentlyReadingItemIdx())//
             .append(" of ")//

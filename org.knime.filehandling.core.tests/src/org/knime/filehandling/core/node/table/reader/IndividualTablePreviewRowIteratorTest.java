@@ -78,7 +78,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class IndividualTablePreviewRowIteratorTest {
 
     @Mock
-    private Read<String> m_read;
+    private Read<Object, String> m_read;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible;
@@ -86,7 +86,7 @@ public class IndividualTablePreviewRowIteratorTest {
     @Mock
     private CheckedExceptionFunction<RandomAccessible<String>, DataRow, Exception> m_rowMapper;
 
-    private IndividualTablePreviewRowIterator<String> m_testInstance;
+    private IndividualTablePreviewRowIterator<Object, String> m_testInstance;
 
     /**
      * Initializes the test instance.

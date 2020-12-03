@@ -44,14 +44,16 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 15, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.nio.file.Path;
+import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 import org.knime.core.data.DataRow;
+import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -62,8 +64,22 @@ import org.knime.filehandling.core.util.CheckedExceptionFunction;
  * Errors are reported to a {@link PreviewExecutionMonitor}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
+ * @param <V> the type representing values
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
-public final class IndividualTablePreviewRowIterator<V> extends GenericIndividualTablePreviewRowIterator<Path, V> {
+public class IndividualTablePreviewRowIterator<I, V> extends PreviewRowIterator {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(IndividualTablePreviewRowIterator.class);
+
+    private final Read<I, V> m_read;
+
+    private final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> m_rowMapper;
+
+    private DataRow m_next;
 
     /**
      * Constructor.
@@ -71,8 +87,48 @@ public final class IndividualTablePreviewRowIterator<V> extends GenericIndividua
      * @param read the {@link Read} to use
      * @param rowMapper the row mapper
      */
-    public IndividualTablePreviewRowIterator(final Read<V> read,
+    public IndividualTablePreviewRowIterator(final Read<I, V> read,
         final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> rowMapper) {
-        super(read, rowMapper);
+        m_rowMapper = rowMapper;
+        m_read = read;
     }
+
+    @Override
+    public DataRow next() {
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+        final DataRow next = m_next;
+        m_next = null;
+        return next;
+    }
+
+    @Override
+    public boolean hasNext() {
+        if (m_next != null) {
+            return true;
+        }
+        return fetchNext();
+    }
+
+    private boolean fetchNext() {
+        try {
+            final RandomAccessible<V> next = m_read.next();
+            m_next = next == null ? null : m_rowMapper.apply(next);
+        } catch (Exception e) {
+            throw new PreviewIteratorException(e.getMessage(), e);
+        }
+        return m_next != null;
+    }
+
+    @Override
+    public void close() {
+        try {
+            m_read.close();
+        } catch (IOException ex) {
+            // then don't close it
+            LOGGER.debug("Failed to close read.", ex);
+        }
+    }
+
 }

@@ -61,16 +61,16 @@ import org.knime.core.data.v2.RowRead;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.GenericRead;
+import org.knime.filehandling.core.node.table.reader.read.Read;
 
 import com.google.common.collect.Tables;
 
 /**
- * {@link GenericRead} implementation that works with {@link Tables}.
+ * {@link Read} implementation that works with {@link Tables}.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public class TableRead implements GenericRead<Table, DataValue> {
+public class TableRead implements Read<Table, DataValue> {
 
     static class RandomAccessibleDataRow extends AbstractRandomAccessible<DataValue> {
 

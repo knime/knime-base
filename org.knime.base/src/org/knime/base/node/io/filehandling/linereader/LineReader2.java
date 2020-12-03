@@ -60,7 +60,6 @@ import java.util.stream.Stream;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
@@ -73,7 +72,7 @@ import org.knime.filehandling.core.util.FileCompressionUtils;
 final class LineReader2 implements TableReader<LineReaderConfig2, Class<?>, String> {
 
     @Override
-    public Read<String> read(final Path path, final TableReadConfig<LineReaderConfig2> config) throws IOException {
+    public LineRead read(final Path path, final TableReadConfig<LineReaderConfig2> config) throws IOException {
         return new LineRead(path, config);
     }
 

@@ -62,6 +62,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -71,8 +72,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.config.GenericTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 import org.mockito.ArgumentMatchers;
@@ -90,10 +91,10 @@ public class MultiTableReaderTest {
     private static final String ROOT_PATH = "path";
 
     @Mock
-    private MultiTableReadFactory<DummyReaderSpecificConfig, String> m_multiTableReadFactory = null;
+    private MultiTableReadFactory<Path, DummyReaderSpecificConfig, String> m_multiTableReadFactory = null;
 
     @Mock
-    private StagedMultiTableRead<String> m_stagedMultiTableRead = null;
+    private StagedMultiTableRead<Path, String> m_stagedMultiTableRead = null;
 
     @Mock
     private MultiTableRead m_multiTableRead = null;
@@ -102,7 +103,7 @@ public class MultiTableReaderTest {
     private MultiTableReadConfig<DummyReaderSpecificConfig> m_multiReadConfig = null;
 
     @Mock
-    private GenericTableSpecConfig<Path> m_tableSpecConfig = null;
+    private TableSpecConfig m_tableSpecConfig = null;
 
     @Mock
     private Path m_path1 = null;
@@ -116,11 +117,13 @@ public class MultiTableReaderTest {
     @Mock
     private RowOutput m_rowOutput = null;
 
+    private List<String> m_pathsAsStrings = Arrays.asList("path1", "path2");
+
     private List<Path> m_paths;
 
     private DataTableSpec m_knimeSpec = null;
 
-    private MultiTableReader<DummyReaderSpecificConfig> m_testInstance = null;
+    private MultiTableReader<Path, DummyReaderSpecificConfig> m_testInstance = null;
 
     /**
      * Sets up the test instance before each unit test.
@@ -129,11 +132,13 @@ public class MultiTableReaderTest {
     public void init() {
         m_testInstance = new MultiTableReader<>(m_multiTableReadFactory);
         m_knimeSpec = TRFTestingUtils.createDataTableSpec("Column0", "Column1");
+        m_path1 = TRFTestingUtils.mockPath("path1");
+        m_path2 = TRFTestingUtils.mockPath("path2");
         m_paths = asList(m_path1, m_path2);
     }
 
     private void stubMultiReads(final boolean isConfigured) throws IOException {
-        when(m_multiReadConfig.isConfiguredWith(ROOT_PATH, m_paths)).thenReturn(isConfigured);
+        when(m_multiReadConfig.isConfiguredWith(ROOT_PATH, m_pathsAsStrings)).thenReturn(isConfigured);
         if (isConfigured) {
             when(m_multiTableReadFactory.createFromConfig(ROOT_PATH, m_paths, m_multiReadConfig))
                 .thenReturn(m_stagedMultiTableRead);
@@ -156,7 +161,7 @@ public class MultiTableReaderTest {
     @Test
     public void testCreateTableSpec() throws IOException {
         stubMultiReads(false);
-        when(m_multiReadConfig.isConfiguredWith(ROOT_PATH, m_paths)).thenReturn(false);
+        when(m_multiReadConfig.isConfiguredWith(ROOT_PATH, m_pathsAsStrings)).thenReturn(false);
         assertEquals(m_knimeSpec, m_testInstance.createTableSpec(ROOT_PATH, m_paths, m_multiReadConfig));
         verify(m_multiTableReadFactory, never()).createFromConfig(any(), anyList(), any());
         verify(m_multiTableReadFactory).create(eq(ROOT_PATH), eq(m_paths), eq(m_multiReadConfig), any());
@@ -188,7 +193,7 @@ public class MultiTableReaderTest {
     public void testFillRowOutputWithoutCallingCreateSpecFirst() throws Exception {
         stubMultiReads(false);
         m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
-        verify(m_multiReadConfig).isConfiguredWith(ROOT_PATH, asList(m_path1, m_path2));
+        verify(m_multiReadConfig).isConfiguredWith(ROOT_PATH, m_pathsAsStrings);
         verify(m_multiTableReadFactory, never()).createFromConfig(any(), anyList(), any());
         verify(m_multiTableReadFactory, times(1)).create(eq(ROOT_PATH), anyList(), eq(m_multiReadConfig), any());
         verify(m_multiTableRead).fillRowOutput(eq(m_rowOutput), eq(m_exec), any());
@@ -237,7 +242,7 @@ public class MultiTableReaderTest {
         m_testInstance.createTableSpec(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig);
         verify(m_multiTableReadFactory).createFromConfig(ROOT_PATH, m_paths, m_multiReadConfig);
         when(m_stagedMultiTableRead.isValidFor(m_paths)).thenReturn(false);
-        when(m_multiReadConfig.isConfiguredWith(ROOT_PATH, m_paths)).thenReturn(true);
+        when(m_multiReadConfig.isConfiguredWith(ROOT_PATH, m_pathsAsStrings)).thenReturn(true);
         when(m_multiTableReadFactory.createFromConfig(ROOT_PATH, m_paths, m_multiReadConfig))
             .thenReturn(m_stagedMultiTableRead);
         m_testInstance.fillRowOutput(ROOT_PATH, asList(m_path1, m_path2), m_multiReadConfig, m_rowOutput, m_exec);
@@ -278,7 +283,7 @@ public class MultiTableReaderTest {
         // we can't check for equality because the mock BufferedDataContainer returns null
         // for getTable(). This call can't be mocked because BufferedDataTable is final
         m_testInstance.readTable(ROOT_PATH, m_paths, m_multiReadConfig, m_exec);
-        verify(m_multiReadConfig, times(2)).isConfiguredWith(ROOT_PATH, m_paths);
+        verify(m_multiReadConfig, times(2)).isConfiguredWith(ROOT_PATH, m_pathsAsStrings);
         verify(m_exec, times(2)).createSubExecutionContext(0.5);
         verify(m_multiTableReadFactory).create(ROOT_PATH, m_paths, m_multiReadConfig, subExec);
 
@@ -299,7 +304,7 @@ public class MultiTableReaderTest {
         // we can't check for equality because the mock BufferedDataContainer returns null
         // for getTable(). This call can't be mocked because BufferedDataTable is final
         m_testInstance.readTable(ROOT_PATH, m_paths, m_multiReadConfig, m_exec);
-        verify(m_multiReadConfig, times(2)).isConfiguredWith(ROOT_PATH, m_paths);
+        verify(m_multiReadConfig, times(2)).isConfiguredWith(ROOT_PATH, m_pathsAsStrings);
         verify(m_exec).createSubExecutionContext(0.0);
         verify(m_exec).createSubExecutionContext(1.0);
         verify(m_multiTableReadFactory).createFromConfig(ROOT_PATH, m_paths, m_multiReadConfig);

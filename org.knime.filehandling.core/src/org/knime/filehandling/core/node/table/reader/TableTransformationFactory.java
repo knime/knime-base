@@ -62,7 +62,6 @@ import java.util.function.Function;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.config.GenericMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
@@ -97,7 +96,7 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class TableTransformationFactory<I, T> {
+final class TableTransformationFactory<T> {
 
     private static final String ENFORCE_TYPES_ERROR =
         "The column '%s' can't be converted to the configured data type '%s'. "
@@ -109,7 +108,7 @@ final class TableTransformationFactory<I, T> {
         m_prodPathProvider = productionPathProvider;
     }
 
-    TableTransformation<T> create(final RawSpec<T> rawSpec, final GenericMultiTableReadConfig<I, ?> config) {
+    TableTransformation<T> create(final RawSpec<T> rawSpec, final MultiTableReadConfig<?> config) {
         if (config.hasTableSpecConfig()) {
             final TableTransformation<T> configuredTransformationModel =
                 config.getTableSpecConfig().getTransformationModel();
@@ -120,7 +119,7 @@ final class TableTransformationFactory<I, T> {
     }
 
     private TableTransformation<T> createDefaultTransformationModel(final RawSpec<T> rawSpec,
-        final GenericMultiTableReadConfig<I, ?> config) {
+        final MultiTableReadConfig<?> config) {
         // there is no TableSpecConfig (e.g. when the dialog was saved with a then invalid path)
         // so we need to fallback to the old SpecMergeMode if available or default to UNION
         @SuppressWarnings("deprecation")

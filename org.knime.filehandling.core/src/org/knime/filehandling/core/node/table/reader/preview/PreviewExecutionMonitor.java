@@ -44,12 +44,20 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 9, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 15, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader.preview;
 
-import java.nio.file.Path;
+import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeProgressMonitor;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.PreviewDataTable;
 
@@ -61,23 +69,236 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.PreviewDataT
  * Note that no real sub progress can be created at the moment (see TODO above).
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  */
-public final class PreviewExecutionMonitor extends GenericPreviewExecutionMonitor<Path> {
+public final class PreviewExecutionMonitor<I> extends ExecutionMonitor {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(PreviewExecutionMonitor.class);
+    private final CopyOnWriteArraySet<ChangeListener> m_listeners = new CopyOnWriteArraySet<>();
+    private long m_specGuessingErrorRow;
+    private String m_specGuessingErrorMsg;
+    private long m_iteratorErrorRow;
+    private String m_iteratorErrorMsg;
+    private boolean m_isSizeAssessable;
+    private Optional<I> m_currentItem = Optional.empty();
+    private int m_numItemsToRead;
+    private AtomicInteger m_currentlyReadingItemIdx = new AtomicInteger(0);
+    private AtomicLong m_numRowsIteratorTotalRead = new AtomicLong(0);
+    private AtomicLong m_numRowsSpecGuessingTotalRead = new AtomicLong(0);
+    private AtomicLong m_numRowsSpecGuessingCurrentRead = new AtomicLong(0);
+    private boolean m_startNextReadProgress = true;
 
     /**
-     * Creates a new execution monitor with an empty default progress monitor.
+     * Constructor.
      */
     public PreviewExecutionMonitor() {
         super();
     }
 
     /**
-     * Creates a new execution monitor with the given progress monitor which can be {@code null}.
+     * Constructor.
      *
-     * @param progress the progress monitor can be null
+     * @param progress {@link NodeProgressMonitor} used for progress reporting
      */
     public PreviewExecutionMonitor(final NodeProgressMonitor progress) {
         super(progress);
+    }
+
+    /**
+     * @return the row in which the error occurred
+     */
+    public long getSpecGuessingErrorRow() {
+        return m_specGuessingErrorRow;
+    }
+
+    /**
+     * @return the error message
+     */
+    public String getSpecGuessingErrorMsg() {
+        return m_specGuessingErrorMsg;
+    }
+
+    /**
+     * @param row the row in which the error occurred
+     * @param msg the error message
+     */
+    public void setSpecGuessingError(final long row, final String msg) {
+        m_specGuessingErrorRow = m_numRowsSpecGuessingTotalRead.get() + row;
+        m_specGuessingErrorMsg = msg;
+        fireErrorOccuredEvent();
+    }
+
+    /**
+     * @param msg the error message
+     */
+    public void setSpecGuessingError(final String msg) {
+        setSpecGuessingError(-1, msg);
+    }
+
+    /**
+     * Returns {@code true} if an error occurred during spec guessing.
+     *
+     * @return {@code true} if an error occurred during spec guessing
+     */
+    public boolean isSpecGuessingErrorOccurred() {
+        return m_specGuessingErrorMsg != null;
+    }
+
+    /**
+     * @return the row in which the error occurred
+     */
+    public long getIteratorErrorRow() {
+        return m_iteratorErrorRow;
+    }
+
+    /**
+     * @return the error message
+     */
+    public String getIteratorErrorMsg() {
+        return m_iteratorErrorMsg;
+    }
+
+    /**
+     * @param msg the error message
+     */
+    public void setIteratorErrorRow(final String msg) {
+        m_iteratorErrorRow = m_numRowsIteratorTotalRead.get();
+        m_iteratorErrorMsg = msg;
+        fireErrorOccuredEvent();
+    }
+
+    /**
+     * Returns {@code true} if an error occurred in a {@link PreviewDataTable} row iterator. Note that if {@code false}
+     * is returned it is not guaranteed that all data in the table is valid. It could be that no row iterator reached
+     * the invalid data yet.
+     *
+     * @return {@code true} if an error occurred in a {@link PreviewDataTable} row iterator
+     */
+    public boolean isIteratorErrorOccurred() {
+        return m_iteratorErrorMsg != null;
+    }
+
+    /**
+     * Register a listener to be notified when an error occurs.
+     *
+     * @param listener the {@link ChangeListener} being notified when an error occurs.
+     */
+    public void addChangeListener(final ChangeListener listener) {
+        m_listeners.add(listener);//NOSONAR a small price to pay for thread safety
+    }
+
+    /**
+     * Clears the list of change listeners.
+     *
+     * @see #addChangeListener(ChangeListener)
+     */
+    public void removeAllChangeListeners() {
+        m_listeners.clear();
+    }
+
+    private void fireErrorOccuredEvent() {
+        final ChangeEvent event = new ChangeEvent(this);
+        for (ChangeListener l : m_listeners) {
+            try {
+                l.stateChanged(event);
+            } catch (Exception t) {
+                LOGGER.error("Exception while notifying listeners", t);
+            }
+        }
+    }
+
+    /**
+     * @return {@code true} if the file size is assessable
+     */
+    public boolean isSizeAssessable() {
+        return m_isSizeAssessable;
+    }
+
+    /**
+     * @param isSizeAssessable if the file size is assessable
+     */
+    public void setSizeAssessable(final boolean isSizeAssessable) {
+        m_isSizeAssessable = isSizeAssessable;
+    }
+
+    /**
+     * @return the current item
+     */
+    public Optional<I> getCurrenttem() {
+        return m_currentItem;
+    }
+
+    /**
+     * @param currentItem the current item to set
+     */
+    public void setCurrentItem(final Optional<I> currentItem) {
+        m_currentItem = currentItem;
+    }
+
+    /**
+     * @return the numPathsToRead
+     */
+    public int getNumItemsToRead() {
+        return m_numItemsToRead;
+    }
+
+    /**
+     * @param numItemsToRead the number of items to read to set
+     */
+    public void setNumItemsToRead(final int numItemsToRead) {
+        m_numItemsToRead = numItemsToRead;
+    }
+
+    /**
+     * @return the currently reading item index
+     */
+    public int getCurrentlyReadingItemIdx() {
+        return m_currentlyReadingItemIdx.get();
+    }
+
+    /**
+     */
+    public void incrementCurrentlyReadingItemIdx() {
+        m_currentlyReadingItemIdx.incrementAndGet();
+        m_startNextReadProgress = true;
+    }
+
+    /**
+     * Sets the progress and automatically calculates the number of rows read across multiple files.
+     *
+     * @see NodeProgressMonitor#setProgress(double)
+     * @param progress the progress values to set in the monitor
+     * @param row the current row of the current file that is read
+     */
+    public void setProgress(final double progress, final long row) {
+        if (m_startNextReadProgress) {
+            m_numRowsSpecGuessingTotalRead.addAndGet(m_numRowsSpecGuessingCurrentRead.get());
+            m_numRowsSpecGuessingCurrentRead.set(0);
+            m_startNextReadProgress = false;
+        }
+        m_numRowsSpecGuessingCurrentRead.set(row);
+        setProgress(progress, () -> "Analyzed "
+            + (m_numRowsSpecGuessingTotalRead.get() + m_numRowsSpecGuessingCurrentRead.get()) + " rows");
+    }
+
+    /**
+     * Increment the total rows that have been read by row iterators.
+     *
+     * @return the total rows read after incrementing
+     */
+    public long incrementRowsIteratorTotalRead() {
+        return m_numRowsIteratorTotalRead.incrementAndGet();
+    }
+
+    /**
+     * This returns the same {@link ExecutionMonitor}, so no real sub progress will be created. </br>
+     * </br>
+     * {@inheritDoc}
+     */
+    @Override
+    public ExecutionMonitor createSubProgress(final double maxProg) {
+        return this;
     }
 
 }

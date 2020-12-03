@@ -85,6 +85,11 @@ public final class TableReaderPreviewView extends JPanel {
 
     private final ChangeEvent m_changeEvent = new ChangeEvent(this);
 
+    /**
+     * Constructor.
+     *
+     * @param model the model this view displays
+     */
     public TableReaderPreviewView(final TableReaderPreviewModel model) {
         m_analysisComponentView = new AnalysisComponentView(model.getAnalysisComponent());
         m_tableView = new TableView(model.getPreviewTableModel());
@@ -110,13 +115,24 @@ public final class TableReaderPreviewView extends JPanel {
         add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
     }
 
+    /**
+     * Updates the viewport of this preview so that the first displayed row is the same as in
+     * {@link TableReaderPreviewView other}.
+     *
+     * @param other {@link TableReaderPreviewView} whose viewport to match
+     */
     public void updateViewport(final TableReaderPreviewView other) {
         final Rectangle visibleRect = other.m_tableView.getViewport().getViewRect();
         m_tableView.getViewport().setViewPosition(visibleRect.getLocation());
     }
 
+    /**
+     * Registers the provided {@link ChangeListener}, which will be notified when this preview is scrolled.
+     *
+     * @param scrollListener to add
+     */
     public void addScrollListener(final ChangeListener scrollListener) {
-        m_scrollListeners.add(scrollListener);
+        m_scrollListeners.add(scrollListener); //NOSONAR
     }
 
     /**

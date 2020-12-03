@@ -77,11 +77,12 @@ import org.mockito.stubbing.Answer;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
+@SuppressWarnings("resource")
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultExtractColumnHeaderReadTest {
 
     @Mock
-    private Read<String> m_source;
+    private Read<Object, String> m_source;
 
     @Mock
     private RandomAccessible<String> m_dataRow;
@@ -100,8 +101,8 @@ public class DefaultExtractColumnHeaderReadTest {
     @Test
     public void testNextWithoutColumnHeaders() throws IOException {
         stubSource(TestPair.create(10, m_dataRow));
-        ExtractColumnHeaderRead<String> testInstance =
-            new DefaultExtractColumnHeaderRead<String>(m_source, setupConfig(-1));
+        ExtractColumnHeaderRead<Object, String> testInstance =
+            new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(-1));
         for (int i = 0; i < 10; i++) {
             assertEquals(m_dataRow, testInstance.next());
         }
@@ -119,7 +120,7 @@ public class DefaultExtractColumnHeaderReadTest {
     public void testNextWithColumnHeaders() throws IOException {
         stubSource(TestPair.create(3, m_dataRow), TestPair.create(1, m_headerRow), TestPair.create(7, m_dataRow));
         stubHeaderCol("foo", "bar", null);
-        ExtractColumnHeaderRead<String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3));
+        ExtractColumnHeaderRead<Object, String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3));
         for (int i = 0; i < 10; i++) {
             assertEquals(m_dataRow, testInstance.next());
         }
@@ -145,7 +146,7 @@ public class DefaultExtractColumnHeaderReadTest {
     public void testGetColumnHeadersIfTheyWereNotReadYet() throws IOException {
         stubSource(TestPair.create(3, m_dataRow), TestPair.create(1, m_headerRow), TestPair.create(5, m_dataRow));
         stubHeaderCol("foo", "bar");
-        ExtractColumnHeaderRead<String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3));
+        ExtractColumnHeaderRead<Object, String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3));
         testInstance.next();
         verify(m_source, times(1)).next();
         final String[] columnHeaders = getColHeaders(testInstance);
@@ -162,7 +163,7 @@ public class DefaultExtractColumnHeaderReadTest {
     public void testGetColumnHeadersReturnsOptionalEmptyIfTheRowContainingTheColumnHeadersIsNotContained()
         throws IOException {
         stubSource(TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2));
+        ExtractColumnHeaderRead<Object, String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2));
         assertEquals(m_dataRow, testInstance.next());
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(3)).next();
@@ -170,14 +171,14 @@ public class DefaultExtractColumnHeaderReadTest {
 
     /**
      * Tests if the getColumnHeaders returns an Optional.emty if column header is set, but preceding row is null.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
     public void testGetColumnHeadersReturnsOptionalEmptydHeaderColNotWithinRead() throws IOException {
         // test without read
         stubSource(TestPair.create(0, null));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(5, 0, -1));
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(2)).next();
@@ -205,7 +206,7 @@ public class DefaultExtractColumnHeaderReadTest {
         // test without read
         stubSource(TestPair.create(2, m_skipRow)//
             , TestPair.create(4, m_dataRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(-1, 2, -1));
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(0)).next();
@@ -225,7 +226,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned after skipping a certain number of rows. The column header itself is at
      * a position that is greather than the skipped value.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -235,7 +236,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubSource(TestPair.create(1, m_dataRow)//
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(1, 0, -1));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -259,7 +260,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned after skipping a certain number of rows. The column header itself is at
      * a position that is greather than the skipped value.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -270,7 +271,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_dataRow)//
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3, 2, -1));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -295,7 +296,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned after skipping a certain number of rows. The column header itself is at
      * a position that is less than the skipped value
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -306,7 +307,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(1, m_skipRow)//
             , TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 3, -1));
 
         String[] columnHeaders = getColHeaders(testInstance);
@@ -333,7 +334,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned after skipping a certain number of rows. The column header itself is the
      * first row.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -343,7 +344,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubSource(TestPair.create(1, m_headerRow)//
             , TestPair.create(3, m_skipRow)//
             , TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(0, 3, -1));
 
         String[] columnHeaders = getColHeaders(testInstance);
@@ -369,7 +370,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned after skipping a certain number of rows. The column header itself is at
      * a position that equals the skipped value.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -379,7 +380,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubSource(TestPair.create(2, m_skipRow)//
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(3, m_dataRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 2, -1));
 
         String[] columnHeaders = getColHeaders(testInstance);
@@ -413,7 +414,7 @@ public class DefaultExtractColumnHeaderReadTest {
         // test without read
         stubSource(TestPair.create(2, m_dataRow) //
             , TestPair.create(2, m_skipRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(-1, 0, 2));
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(0)).next();
@@ -432,14 +433,14 @@ public class DefaultExtractColumnHeaderReadTest {
 
     /**
      * Tests if the getColumnHeaders returns an Optional.emty if no column header is set, but reading is limited to 0.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
     public void testGetColumnHeadersReturnsOptionalEmptydWithLimitedReadEqualToZero() throws IOException {
         // test without read
         stubSource(TestPair.create(3, m_skipRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(-1, 0, 0));
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(0)).next();
@@ -475,7 +476,7 @@ public class DefaultExtractColumnHeaderReadTest {
 
     /**
      * Tests that the column header is returned when setting the number of rows to read to 0.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -484,7 +485,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubHeaderCol("foo", "bar");
         stubSource(TestPair.create(2, m_skipRow) //
             , TestPair.create(1, m_headerRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 0, 0));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -529,7 +530,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned when limiting the number of rows to read. The column header itself is at
      * a position that is greater than the limit value.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -540,7 +541,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(2, m_skipRow)//
             , TestPair.create(1, m_headerRow) //
             , TestPair.create(3, m_skipRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(4, 0, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -587,7 +588,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned when limiting the number of rows to read. The column header itself is at
      * a position that is less than the limit value.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -599,7 +600,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_dataRow)//
             , TestPair.create(5, m_skipRow));
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3, 0, 5));
 
         String[] columnHeaders = getColHeaders(testInstance);
@@ -650,7 +651,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned when limiting the number of rows to read. The column header itself is at
      * a position that equals the limit value.
-     * 
+     *
      * @throws IOException never thrown
      */
     @Test
@@ -660,7 +661,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubSource(TestPair.create(2, m_dataRow) //
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 0, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -707,7 +708,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned when skipping rows and limiting the number of rows to read. The column
      * header itself is at a position that is less than the skip value.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -719,7 +720,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(2, m_skipRow)//
             , TestPair.create(2, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 4, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -770,7 +771,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned when skipping rows and limiting the number of rows to read. The column
      * header position equals the skip value.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -781,7 +782,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(4, 4, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -830,7 +831,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned when skipping rows and limiting the number of rows to read. The column
      * header itself is at a position 0.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -841,7 +842,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(4, m_skipRow)//
             , TestPair.create(2, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(0, 4, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -890,7 +891,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned when skipping rows and limiting the number of rows to read. The column
      * header itself is at a position that is after the skipped rows and before the max number of rows to read.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -901,7 +902,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_dataRow), TestPair.create(1, m_headerRow)//
             , TestPair.create(1, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(5, 4, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -951,7 +952,7 @@ public class DefaultExtractColumnHeaderReadTest {
     /**
      * Tests that the column header is returned when skipping rows and limiting the number of rows to read. The column
      * header itself is at a position that is after skipped + limit.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -962,7 +963,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(3, m_dataRow) //
             , TestPair.create(2, m_skipRow)//
             , TestPair.create(1, m_headerRow));//
-        ExtractColumnHeaderRead<String> testInstance =
+        ExtractColumnHeaderRead<Object, String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(9, 4, 3));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -1008,7 +1009,7 @@ public class DefaultExtractColumnHeaderReadTest {
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
     }
 
-    private String[] getColHeaders(ExtractColumnHeaderRead<String> testInstance) throws IOException {
+    private String[] getColHeaders(final ExtractColumnHeaderRead<Object, String> testInstance) throws IOException {
         Optional<RandomAccessible<String>> columnHeaders = testInstance.getColumnHeaders();
         assertTrue(columnHeaders.isPresent());
         assertEquals(m_headerRow, columnHeaders.get());
@@ -1017,7 +1018,7 @@ public class DefaultExtractColumnHeaderReadTest {
         return colHeaders;
     }
 
-    private String[] convertToStringArray(final RandomAccessible<String> randomAccessible) {
+    private static String[] convertToStringArray(final RandomAccessible<String> randomAccessible) {
         return randomAccessible.stream()//
             .map(val -> val != null //
                 ? val //
@@ -1036,7 +1037,7 @@ public class DefaultExtractColumnHeaderReadTest {
             int idx = -1;
 
             @Override
-            public RandomAccessible<String> answer(InvocationOnMock invocation) throws Throwable {
+            public RandomAccessible<String> answer(final InvocationOnMock invocation) throws Throwable {
                 if (++idx < rowArray.length) {
                     return rowArray[idx];
                 }

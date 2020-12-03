@@ -48,16 +48,24 @@
  */
 package org.knime.filehandling.core.node.table.reader.read;
 
-import java.nio.file.Path;
-import java.util.Optional;
+import java.io.IOException;
+
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
  * A decorator for a {@link Read} that limits it to the provided interval.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <V> the type of value
+ * @param <I> the type of item the underlying Read reads from
+ * @param <V> the type of value the underlying Read reads
  */
-public final class IntervalRead<V> extends GenericIntervalRead<Path, V> implements Read<V> {
+public final class IntervalRead<I, V> extends AbstractReadDecorator<I, V> {
+
+    private final long m_startIdx;
+
+    private final long m_endIdx;
+
+    private long m_current = 0;
 
     /**
      * Constructor.
@@ -66,12 +74,30 @@ public final class IntervalRead<V> extends GenericIntervalRead<Path, V> implemen
      * @param startIdx the index to start reading at (zero based)
      * @param endIdx the index to stop reading at (zero based, exclusive)
      */
-    public IntervalRead(final Read<V> source, final long startIdx, final long endIdx) {
-        super(source, startIdx, endIdx);
+    public IntervalRead(final Read<I, V> source, final long startIdx, final long endIdx) {
+        super(source);
+        m_startIdx = startIdx;
+        m_endIdx = endIdx;
     }
 
+    @SuppressWarnings("resource")
     @Override
-    public Optional<Path> getPath() {
-        return getItem();
+    public RandomAccessible<V> next() throws IOException {
+        moveToStartIdx();
+        if (m_current < m_endIdx) {
+            m_current++;
+            // source will return null if we reached the end
+            return getSource().next();
+        } else {
+            return null;
+        }
     }
+
+    @SuppressWarnings("resource")
+    private void moveToStartIdx() throws IOException {
+        for (; m_current < m_startIdx && getSource().next() != null; m_current++) {
+            // all the action happens in the header
+        }
+    }
+
 }

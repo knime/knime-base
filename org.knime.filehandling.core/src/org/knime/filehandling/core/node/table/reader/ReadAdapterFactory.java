@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.util.Map;
-
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -82,19 +80,10 @@ public interface ReadAdapterFactory<T, V> {
     ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry();
 
     /**
-     * @param type
-     * @return
-     */
-    default DataType getDefaultType(final T type) {
-        return getDefaultTypeMap().get(type);
-    }
-
-    /**
-     * Returns the map of default {@link DataType DataTypes}.
+     * Returns the default {@link DataType} for the provided external type.
      *
-     * @return the map of default types
+     * @param type external type for which the default {@link DataType} is required
+     * @return the default {@link DataType} for <b>type</b>
      */
-    Map<T, DataType> getDefaultTypeMap();
-    //TODO: Remove once we have finished the generic implementation
-
+    DataType getDefaultType(final T type);
 }

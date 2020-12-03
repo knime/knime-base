@@ -71,7 +71,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class IntervalReadTest {
 
     @Mock
-    private Read<String> m_source;
+    private Read<Object, String> m_source;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible;
@@ -84,7 +84,7 @@ public class IntervalReadTest {
     @Test
     public void testSkipping() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        IntervalRead<String> read = new IntervalRead<>(m_source, 3, Long.MAX_VALUE);
+        IntervalRead<Object, String> read = new IntervalRead<>(m_source, 3, Long.MAX_VALUE);
         assertEquals(m_randomAccessible, read.next());
         verify(m_source, times(4)).next();
         assertEquals(m_randomAccessible, read.next());
@@ -100,7 +100,7 @@ public class IntervalReadTest {
     @Test
     public void testLimiting() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        IntervalRead<String> read = new IntervalRead<>(m_source, 0, 3);
+        IntervalRead<Object, String> read = new IntervalRead<>(m_source, 0, 3);
         assertEquals(m_randomAccessible, read.next());
         assertEquals(m_randomAccessible, read.next());
         assertEquals(m_randomAccessible, read.next());
@@ -113,7 +113,7 @@ public class IntervalReadTest {
     @Test
     public void testRange() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        IntervalRead<String> read = new IntervalRead<>(m_source, 1, 3);
+        IntervalRead<Object, String> read = new IntervalRead<>(m_source, 1, 3);
         assertEquals(m_randomAccessible, read.next());
         verify(m_source, times(2)).next();
         assertEquals(m_randomAccessible, read.next());

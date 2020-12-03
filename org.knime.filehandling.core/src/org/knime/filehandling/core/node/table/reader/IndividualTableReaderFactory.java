@@ -44,11 +44,12 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 14, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.nio.file.Path;
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -57,22 +58,74 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContext;
+import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
+import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
+import org.knime.filehandling.core.node.table.reader.util.IndexMapperFactory;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * Creates {@link IndividualTableReader IndividualTableReaders} for particular {@link Path Paths}.
+ * Creates {@link IndividualTableReader IndividualTableReaders} for particular items.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
+ * @param <T> the type representing external types
+ * @param <V> the type representing values
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
-final class IndividualTableReaderFactory<T, V> extends GenericIndividualTableReaderFactory<Path, T, V> {
+public final class IndividualTableReaderFactory<I, T, V> {
 
-    IndividualTableReaderFactory(final Map<Path, TypedReaderTableSpec<T>> specs, final TableReadConfig<?> config,
-        final List<ColumnTransformation<T>> outputTransformations,
+    private final IndexMapperFactory m_indexMapperFactory;
+
+    private final Map<I, TypedReaderTableSpec<T>> m_specs;
+
+    private final GenericRowKeyGeneratorContext<I, V> m_rowKeyGenContext;
+
+    private final ProductionPath[] m_prodPaths;
+
+    private final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> m_typeMapperFactory;
+
+    /**
+     * Constructor.
+     * @param specs the individual input specs
+     * @param config {@link TableReadConfig}
+     * @param outputTransformations list of {@link ColumnTransformation}s
+     * @param typeMapperFactory type mapper factory
+     * @param rowKeyGenContext GenericRowKeyGeneratorContextFactory
+     *
+     */
+    public IndividualTableReaderFactory(final Map<I, TypedReaderTableSpec<T>> specs,
+        final TableReadConfig<?> config, final List<ColumnTransformation<T>> outputTransformations,
         final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> typeMapperFactory,
-        final GenericRowKeyGeneratorContext<Path, V> rowKeyGenContext) {
-        super(specs, config, outputTransformations, typeMapperFactory, rowKeyGenContext);
+        final GenericRowKeyGeneratorContext<I, V> rowKeyGenContext) {
+        m_specs = specs;
+        m_indexMapperFactory = new IndexMapperFactory(outputTransformations.stream()//
+            .map(ColumnTransformation::getExternalSpec)//
+            .map(MultiTableUtils::getNameAfterInit)//
+            .collect(toList()), config);
+        m_rowKeyGenContext = rowKeyGenContext;
+        m_typeMapperFactory = typeMapperFactory;
+        m_prodPaths = outputTransformations.stream()//
+            .map(ColumnTransformation::getProductionPath)//
+            .toArray(ProductionPath[]::new);
     }
+
+    /**
+     * @param item item to read from
+     * @param fsFactory {@link FileStoreFactory}
+     * @return {@link IndividualTableReader}
+     */
+    public IndividualTableReader<I, V> create(final I item, final FileStoreFactory fsFactory) {
+        final IndexMapper idxMapper = m_indexMapperFactory.createIndexMapper(m_specs.get(item));
+        final RowKeyGenerator<V> rowKeyGen = m_rowKeyGenContext.createKeyGenerator(item);
+        final TypeMapper<V> typeMapper = m_typeMapperFactory.apply(m_prodPaths, fsFactory);
+        return new DefaultIndividualTableReader<>(typeMapper, idxMapper, rowKeyGen);
+    }
+
 }

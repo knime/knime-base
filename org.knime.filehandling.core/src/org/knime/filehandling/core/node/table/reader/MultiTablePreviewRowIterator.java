@@ -44,14 +44,15 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 14, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
+import org.knime.core.data.DataRow;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
 
@@ -64,13 +65,72 @@ import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
  * After such an exception is thrown, no more calls are allowed.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany <I> input items to iterate over
+ * @noreference non-public API
+ * @noextend non-public API
  */
 @SuppressWarnings("javadoc")
-final class MultiTablePreviewRowIterator extends GenericMultiTablePreviewRowIterator<Path> {
+public final class MultiTablePreviewRowIterator<I> extends PreviewRowIterator {
 
-    MultiTablePreviewRowIterator(final Iterator<Path> pathIterator,
-        final CheckedExceptionBiFunction<Path, FileStoreFactory, PreviewRowIterator, IOException> iteratorFn) {
-        super(pathIterator, iteratorFn);
+    private final Iterator<I> m_inputIterator;
+
+    private final FileStoreFactory m_fileStoreFactory;
+
+    private final CheckedExceptionBiFunction<I, FileStoreFactory, PreviewRowIterator, IOException> m_iteratorFn;
+
+    private PreviewRowIterator m_currentIterator;
+
+    /**
+     * Constructor.
+     *
+     * @param inputIterator the input iterator
+     * @param iteratorFn the input function
+     */
+    public MultiTablePreviewRowIterator(final Iterator<I> inputIterator,
+        final CheckedExceptionBiFunction<I, FileStoreFactory, PreviewRowIterator, IOException> iteratorFn) {
+        m_iteratorFn = iteratorFn;
+        m_inputIterator = inputIterator;
+        m_fileStoreFactory = FileStoreFactory.createNotInWorkflowFileStoreFactory();
+    }
+
+    @Override
+    public boolean hasNext() {
+        assignCurrentIterator();
+        return m_currentIterator != null && m_currentIterator.hasNext();
+    }
+
+    private void assignCurrentIterator() {
+        // if no iterator is yet assigned or the current iterator does not have further elements,
+        // take the next iterator if possible and check if it #hasNext
+        while ((m_currentIterator == null || !m_currentIterator.hasNext()) && m_inputIterator.hasNext()) {
+            if (m_currentIterator != null) {
+                m_currentIterator.close();
+                m_currentIterator = null;
+            }
+            final I input = m_inputIterator.next();
+            try {
+                m_currentIterator = m_iteratorFn.apply(input, m_fileStoreFactory);
+            } catch (IOException e) {
+                final String msg = "Error during reading of '" + input.toString() + "': " + e.getMessage();
+                throw new PreviewIteratorException(msg, e);
+            }
+        }
+    }
+
+    @Override
+    public DataRow next() {
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+        return m_currentIterator.next();
+    }
+
+    @Override
+    public void close() {
+        m_fileStoreFactory.close();
+        if (m_currentIterator != null) {
+            m_currentIterator.close();
+        }
     }
 
 }

@@ -115,7 +115,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     @Override
-    public Read<String> read(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
+    public Read<Path, String> read(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
         return decorateForReading(new CsvRead(path, config), config);
     }
 
@@ -129,7 +129,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      * @throws IOException if an I/O problem occurs
      */
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    public static Read<String> read(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config)
+    public static Read<Path, String> read(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config)
         throws IOException {
         final CsvRead read = new CsvRead(inputStream, config);
         return decorateForReading(read, config);
@@ -138,13 +138,13 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     @Override
     public TypedReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config,
         final ExecutionMonitor exec) throws IOException {
-        final TableSpecGuesser<Class<?>, String> guesser = createGuesser(config);
+        final TableSpecGuesser<Path, Class<?>, String> guesser = createGuesser(config);
         try (final CsvRead read = new CsvRead(path, config)) {
             return guesser.guessSpec(read, config, exec);
         }
     }
 
-    private static TableSpecGuesser<Class<?>, String>
+    private static TableSpecGuesser<Path, Class<?>, String>
         createGuesser(final TableReadConfig<CSVTableReaderConfig> config) {
         final CSVTableReaderConfig csvConfig = config.getReaderSpecificConfig();
         return new TableSpecGuesser<>(createHierarchy(csvConfig), Function.identity());
@@ -169,9 +169,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      * @throws IOException if a stream can not be created from the provided file.
      */
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    private static Read<String> decorateForReading(final CsvRead read,
+    private static Read<Path, String> decorateForReading(final CsvRead read,
         final TableReadConfig<CSVTableReaderConfig> config) {
-        Read<String> filtered = read;
+        Read<Path, String> filtered = read;
         final boolean hasColumnHeader = config.useColumnHeaderIdx();
         final boolean skipRows = config.skipRows();
         if (skipRows) {
@@ -192,7 +192,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      *
      * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
      */
-    private static final class CsvRead implements Read<String> {
+    private static final class CsvRead implements Read<Path, String> {
 
         /** */
         private static final NodeLogger LOGGER = NodeLogger.getLogger(CsvRead.class);
@@ -329,7 +329,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         }
 
         @Override
-        public Optional<Path> getPath() {
+        public Optional<Path> getItem() {
             return Optional.ofNullable(m_path);
         }
     }

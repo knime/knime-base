@@ -44,28 +44,87 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 12, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 15, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
-import java.nio.file.Path;
+import java.util.List;
+
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 
 /**
  * An immutable implementation of {@link MultiTableReadConfig} i.e. objects of this class guarantee that their state
  * doesn't change after initialization.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig}
  */
-public final class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends GenericImmutableMultiTableReadConfig<Path, C>
-implements MultiTableReadConfig<C> {
+public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>>
+    implements MultiTableReadConfig<C> {
+
+    private final ImmutableTableReadConfig<C> m_tableReadConfig;
+
+    private final TableSpecConfig m_tableSpecConfig;
+
+    private final boolean m_failOnDifferingSpecs;
+
+    @SuppressWarnings("deprecation")
+    private final SpecMergeMode m_specMergeMode;
 
     /**
      * Constructor.
-     *
-     * @param multiTableReadConfig the {@link MultiTableReadConfig} this should represent an immutable copy of
+     * @param multiTableReadConfig {@link MultiTableReadConfig}
      */
     public ImmutableMultiTableReadConfig(final MultiTableReadConfig<C> multiTableReadConfig) {
-        super(multiTableReadConfig);
+        CheckUtils.checkArgumentNotNull(multiTableReadConfig, "The multiTableReadConfig parameter must not be null");
+        m_tableReadConfig = new ImmutableTableReadConfig<>(multiTableReadConfig.getTableReadConfig());
+        m_tableSpecConfig =
+            multiTableReadConfig.hasTableSpecConfig() ? multiTableReadConfig.getTableSpecConfig() : null;
+        m_failOnDifferingSpecs = multiTableReadConfig.failOnDifferingSpecs();
+        @SuppressWarnings("deprecation") // yes but we still need it for backwards compatibility
+        SpecMergeMode specMergeMode = multiTableReadConfig.getSpecMergeMode();//NOSONAR
+        m_specMergeMode = specMergeMode;
     }
+
+    @Override
+    public TableReadConfig<C> getTableReadConfig() {
+        return m_tableReadConfig;
+    }
+
+    @Override
+    public boolean hasTableSpecConfig() {
+        return m_tableSpecConfig != null;
+    }
+
+    @Override
+    public TableSpecConfig getTableSpecConfig() {
+        return m_tableSpecConfig;
+    }
+
+    @Override
+    public void setTableSpecConfig(final TableSpecConfig config) {
+        throw new UnsupportedOperationException("ImmutableMultiTableReadConfigs can't be mutated.");
+    }
+
+    @Override
+    public boolean failOnDifferingSpecs() {
+        return m_failOnDifferingSpecs;
+    }
+
+    /**
+     * @deprecated only used as fallback for old nodes
+     */
+    @Deprecated
+    @Override
+    public SpecMergeMode getSpecMergeMode() {
+        return m_specMergeMode;
+    }
+
+    @Override
+    public boolean isConfiguredWith(final String rootItem, final List<String> items) {
+        return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(rootItem, items);
+    }
+
 }

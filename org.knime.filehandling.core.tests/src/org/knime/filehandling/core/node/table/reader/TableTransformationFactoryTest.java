@@ -53,7 +53,6 @@ import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.chec
 import static org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec.createWithName;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -129,7 +128,7 @@ public class TableTransformationFactoryTest {
     @Mock
     private TableTransformation m_configuredTransformationModel;//NOSONAR
 
-    private TableTransformationFactory<Path, String> m_testInstance;
+    private TableTransformationFactory<String> m_testInstance;
 
     @Before
     public void init() {
@@ -145,6 +144,7 @@ public class TableTransformationFactoryTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testDontEnforceTypes() {
         TypedReaderTableSpec<String> hansByHimself = createTableSpec(HANS);
@@ -180,6 +180,7 @@ public class TableTransformationFactoryTest {
         testEnforceTypes(false);
     }
 
+    @SuppressWarnings("unchecked")
     private void testEnforceTypes(final boolean alternativePathAvailable) {
         final TypedReaderTableSpec<String> configured = createTableSpec(HANS);
         TypedReaderColumnSpec<String> hansWithDifferentType = createColSpec("hans", SIEGFRIEDA);
@@ -226,6 +227,7 @@ public class TableTransformationFactoryTest {
         return prodPath;
     }
 
+    @SuppressWarnings("unchecked")
     private void testCreateFromConfigured(final ColumnFilterMode colFilterMode, final boolean keepUnknown,
         final int unknownPos) {
         setupConfig(true);

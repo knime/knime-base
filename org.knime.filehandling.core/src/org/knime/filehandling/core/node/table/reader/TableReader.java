@@ -70,7 +70,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> extends GenericTableReader<Path, C, T, V> {
 
     @Override
-    Read<V> read(Path path, TableReadConfig<C> config) throws IOException;
+    Read<Path, V> read(Path path, TableReadConfig<C> config) throws IOException;
 
     @Override
     TypedReaderTableSpec<T> readSpec(Path path, TableReadConfig<C> config, ExecutionMonitor exec) throws IOException;

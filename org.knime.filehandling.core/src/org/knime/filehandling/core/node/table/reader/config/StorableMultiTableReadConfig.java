@@ -48,19 +48,18 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
-import java.nio.file.Path;
-
 import org.knime.core.node.NodeSettings;
 
 /**
  * A {@link MultiTableReadConfig} that has method to load, save and validate the {@link NodeSettings}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <C> the concrete type of {@link ReaderSpecificConfig}
  * @noreference this interface is not part of the public API
  * @noimplement this interface is not part of the public API
  */
-public interface StorableMultiTableReadConfig<C extends ReaderSpecificConfig<C>> extends GenericStorableMultiTableReadConfig<Path, C>,
-MultiTableReadConfig<C> {
+public interface StorableMultiTableReadConfig<C extends ReaderSpecificConfig<C>>
+    extends MultiTableReadConfig<C>, StorableReaderConfig {
     // Marker interface
 }

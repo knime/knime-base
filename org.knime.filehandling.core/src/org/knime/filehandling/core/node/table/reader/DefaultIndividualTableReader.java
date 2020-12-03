@@ -44,28 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 29, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 15, 2020 (Tobias): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.nio.file.Path;
+import java.util.OptionalLong;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 
 /**
- * Default implementation of {@link IndividualTableReader}.
+ * Genric default implementation of {@link IndividualTableReader}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <I> the item type to read from
  * @param <V> the type representing values
+ * @noreference non-public API
+ * @noextend non-public API
+ * @noinstantiate non-public API
  */
-final class DefaultIndividualTableReader<V> extends GenericDefaultIndividualTableReader<Path, V>
-implements IndividualTableReader<V> {
+public final class DefaultIndividualTableReader<I, V> implements IndividualTableReader<I, V> {
+
+    private final RowKeyGenerator<V> m_rowKeyGenerator;
+
+    private final IndexMappingRandomAccessibleDecorator<V> m_mapper;
+
+    private final TypeMapper<V> m_typeMapper;
 
     /**
      * Constructor.
@@ -75,9 +88,53 @@ implements IndividualTableReader<V> {
      * @param idxMapper represents the mapping from the global columns to the columns in the individual table
      * @param rowKeyGenerator creates {@link RowKey RowKeys} from {@link RandomAccessible RandomAccessibles.}
      */
-    DefaultIndividualTableReader(final TypeMapper<V> typeMapper, final IndexMapper idxMapper,
+    public DefaultIndividualTableReader(final TypeMapper<V> typeMapper, final IndexMapper idxMapper,
         final RowKeyGenerator<V> rowKeyGenerator) {
-        super(typeMapper, idxMapper, rowKeyGenerator);
+        m_mapper = new IndexMappingRandomAccessibleDecorator<>(idxMapper);
+        m_rowKeyGenerator = rowKeyGenerator;
+        m_typeMapper = typeMapper;
+    }
+
+    @Override
+    public DataRow toRow(final RandomAccessible<V> randomAccessible) throws Exception {
+        m_mapper.set(randomAccessible);
+        final RowKey key = m_rowKeyGenerator.createKey(randomAccessible);
+        // reads the tokens from m_readAdapter and converts them into a DataRow
+        return m_typeMapper.map(key, m_mapper);
+    }
+
+    @Override
+    public void fillOutput(final Read<I, V> read, final RowOutput output, final ExecutionMonitor progress)
+        throws Exception {
+        final OptionalLong maxProgress = read.getMaxProgress();
+        if (maxProgress.isPresent()) {
+            fillOutputWithProgress(read, output, progress, maxProgress.getAsLong());
+        } else {
+            fillOutputWithoutProgress(read, output, progress);
+        }
+    }
+
+    private void fillOutputWithoutProgress(final Read<I, V> read, final RowOutput output,
+        final ExecutionMonitor progress) throws Exception {
+        RandomAccessible<V> next;
+        for (long i = 1; (next = read.next()) != null; i++) {
+            progress.checkCanceled();
+            final long finalI = i;
+            progress.setMessage(() -> String.format("Reading row %s", finalI));
+            output.push(toRow(next));
+        }
+    }
+
+    private void fillOutputWithProgress(final Read<I, V> read, final RowOutput output,
+        final ExecutionMonitor progress, final double size) throws Exception {
+        final double doubleSize = size;
+        RandomAccessible<V> next;
+        for (long i = 1; (next = read.next()) != null; i++) {
+            progress.checkCanceled();
+            final long finalI = i;
+            progress.setProgress(read.getProgress() / doubleSize, () -> String.format("Reading row %s", finalI));
+            output.push(toRow(next));
+        }
     }
 
 }
