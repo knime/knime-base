@@ -64,7 +64,7 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -158,6 +158,10 @@ enum CSVMultiTableReadConfigSerializer implements
     /** string key used to save the value of the character used as comment start */
     private static final String CFG_COMMENT_CHAR = "comment_char";
 
+    private static final DefaultTableSpecConfigSerializer TABLE_SPEC_CONFIG_SERIALIZER =
+        new DefaultTableSpecConfigSerializer(StringReadAdapterFactory.INSTANCE.getProducerRegistry(),
+            MOST_GENERIC_EXTERNAL_TYPE);
+
     @Override
     public void loadInDialog(
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
@@ -169,10 +173,10 @@ enum CSVMultiTableReadConfigSerializer implements
         loadEncodingTabInDialog(config, getOrEmpty(settings, CFG_ENCODING_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
-                config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                    StringReadAdapterFactory.INSTANCE.getProducerRegistry(), MOST_GENERIC_EXTERNAL_TYPE,
-                    loadSpecMergeModeForOldWorkflows(advancedSettings)));
-            } catch (InvalidSettingsException ex) {
+                config.setTableSpecConfig(
+                    TABLE_SPEC_CONFIG_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+                        loadSpecMergeModeForOldWorkflows(advancedSettings)));
+            } catch (InvalidSettingsException ex) {// NOSONAR, see below
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
                  * exception does not occur.
@@ -312,8 +316,7 @@ enum CSVMultiTableReadConfigSerializer implements
         loadLimitRowsTabInModel(config, settings.getNodeSettings(CFG_LIMIT_ROWS_TAB));
         loadEncodingTabInModel(config, settings.getNodeSettings(CFG_ENCODING_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                StringReadAdapterFactory.INSTANCE.getProducerRegistry(), MOST_GENERIC_EXTERNAL_TYPE,
+            config.setTableSpecConfig(TABLE_SPEC_CONFIG_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
                 loadSpecMergeModeForOldWorkflows(advancedSettings)));
         } else {
             config.setTableSpecConfig(null);
@@ -477,8 +480,7 @@ enum CSVMultiTableReadConfigSerializer implements
     @Override
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            DefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                StringReadAdapterFactory.INSTANCE.getProducerRegistry());
+            TABLE_SPEC_CONFIG_SERIALIZER.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
         validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
         validateAdvancedSettingsTab(settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB));

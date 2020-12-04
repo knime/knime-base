@@ -60,7 +60,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -87,7 +87,8 @@ enum TableManipulatorConfigSerializer implements
 
     private static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
-
+    private static final DefaultTableSpecConfigSerializer TABLE_SPEC_SERIALIZER =
+        new DefaultTableSpecConfigSerializer(PATH_LOADER, MOST_GENERIC_EXTERNAL_TYPE);
 
     @Override
     public void saveInDialog(
@@ -103,8 +104,8 @@ enum TableManipulatorConfigSerializer implements
         loadSettingsTabInDialog(config, getOrEmpty(settings, CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
-                config.setTableSpecConfig(DefaultTableSpecConfig.load(MOST_GENERIC_EXTERNAL_TYPE,
-                    settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER, null));
+                config.setTableSpecConfig(
+                    TABLE_SPEC_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), null));
             } catch (InvalidSettingsException ex) {
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -132,8 +133,8 @@ enum TableManipulatorConfigSerializer implements
         final NodeSettingsRO settings) throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            config.setTableSpecConfig(DefaultTableSpecConfig.load(MOST_GENERIC_EXTERNAL_TYPE,
-                settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER, null));
+            config
+                .setTableSpecConfig(TABLE_SPEC_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), null));
         } else {
             config.setTableSpecConfig(null);
         }
@@ -142,7 +143,7 @@ enum TableManipulatorConfigSerializer implements
     @Override
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            DefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), PATH_LOADER);
+            TABLE_SPEC_SERIALIZER.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
         validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
     }
