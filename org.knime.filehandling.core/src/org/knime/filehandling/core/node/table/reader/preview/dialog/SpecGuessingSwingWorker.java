@@ -65,6 +65,7 @@ import org.knime.core.node.workflow.NodeProgressEvent;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.config.ImmutableMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -86,9 +87,7 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(SpecGuessingSwingWorker.class);
 
-    private final String m_rootPath;
-
-    private final List<I> m_paths;
+    private final SourceGroup<I> m_sourceGroup;
 
     private final MultiTableReadFactory<I, C, T> m_reader;
 
@@ -106,24 +105,22 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
      * Constructor.
      *
      * @param reader the reader
-     * @param rootPath the root path
-     * @param paths the paths to read
+     * @param sourceGroup the {@link SourceGroup} to read from
      * @param config the config
      * @param analysisComponent the analysis component
      * @param resultConsumer the result consumer
      * @param exceptionConsumer consumer for any exception thrown during execution
      */
-    public SpecGuessingSwingWorker(final MultiTableReadFactory<I, C, T> reader, final String rootPath,
-        final List<I> paths, final ImmutableMultiTableReadConfig<C> config,
-        final AnalysisComponentModel analysisComponent,
-        final Consumer<StagedMultiTableRead<I, T>> resultConsumer, final Consumer<ExecutionException> exceptionConsumer) {
-        m_rootPath = rootPath;
+    public SpecGuessingSwingWorker(final MultiTableReadFactory<I, C, T> reader, final SourceGroup<I> sourceGroup,
+        final ImmutableMultiTableReadConfig<C> config, final AnalysisComponentModel analysisComponent,
+        final Consumer<StagedMultiTableRead<I, T>> resultConsumer,
+        final Consumer<ExecutionException> exceptionConsumer) {
+        m_sourceGroup = sourceGroup;
         m_reader = reader;
         m_config = config;
-        m_paths = paths;
         m_analysisComponent = analysisComponent;
         m_resultConsumer = resultConsumer;
-        m_exec.setNumItemsToRead(paths.size());
+        m_exec.setNumItemsToRead(sourceGroup.size());
         m_exceptionConsumer = exceptionConsumer;
     }
 
@@ -139,7 +136,7 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
             progressMonitor.setExecuteCanceled();
         };
         quickScanModel.addActionListener(listener);
-        final StagedMultiTableRead<I, T> read = m_reader.create(m_rootPath, m_paths, m_config, m_exec);
+        final StagedMultiTableRead<I, T> read = m_reader.create(m_sourceGroup, m_config, m_exec);
         quickScanModel.removeActionListener(listener);
         return read;
     }

@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -79,7 +78,7 @@ public final class DefaultMultiTableRead<I, V> implements MultiTableRead {
 
     private final TableSpecConfig m_tableSpecConfig;
 
-    private final Collection<I> m_items;
+    private final SourceGroup<I> m_sourceGroup;
 
     private final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> m_readFn;
 
@@ -88,21 +87,21 @@ public final class DefaultMultiTableRead<I, V> implements MultiTableRead {
     /**
      * Constructor.
      *
-     * @param items the collection of items to read from
+     * @param sourceGroup the {@link SourceGroup}
      * @param readFn produces a {@link Read} from a item
      * @param individualTableReaderFactorySupplier creates {@link IndividualTableReader IndividualTableReaders} from
      *            item
      * @param tableSpecConfig corresponding to this instance
      * @param outputSpec {@link DataTableSpec} of the output table
      */
-    public DefaultMultiTableRead(final Collection<I> items,
+    public DefaultMultiTableRead(final SourceGroup<I> sourceGroup,
         final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> readFn,
         final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>>> individualTableReaderFactorySupplier,
         final TableSpecConfig tableSpecConfig, final DataTableSpec outputSpec) {
         m_outputSpec = outputSpec;
         m_tableSpecConfig = tableSpecConfig;
         m_readFn = readFn;
-        m_items = items;
+        m_sourceGroup = sourceGroup;
         m_individualTableReaderFactorySupplier = individualTableReaderFactorySupplier;
     }
 
@@ -121,9 +120,9 @@ public final class DefaultMultiTableRead<I, V> implements MultiTableRead {
         throws Exception {
         final BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>> individualTableReaderFactory =
             m_individualTableReaderFactorySupplier.get();
-        for (I item : m_items) {
+        for (I item : m_sourceGroup) {
             exec.checkCanceled();
-            final ExecutionMonitor progress = exec.createSubProgress(1.0 / m_items.size());
+            final ExecutionMonitor progress = exec.createSubProgress(1.0 / m_sourceGroup.size());
             final IndividualTableReader<I, V> reader = individualTableReaderFactory.apply(item, fsFactory);
             try (final Read<I, V> read = m_readFn.apply(item)) {
                 reader.fillOutput(read, output, progress);
@@ -138,7 +137,7 @@ public final class DefaultMultiTableRead<I, V> implements MultiTableRead {
     public final PreviewRowIterator createPreviewIterator() {
         final BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>> individualTableReaderFactory =
             m_individualTableReaderFactorySupplier.get();
-        return new MultiTablePreviewRowIterator<>(m_items.iterator(), (p, f) -> {
+        return new MultiTablePreviewRowIterator<>(m_sourceGroup.iterator(), (p, f) -> {
             final IndividualTableReader<I, V> reader = individualTableReaderFactory.apply(p, f);
             return new IndividualTablePreviewRowIterator<>(m_readFn.apply(p), reader::toRow);
         });

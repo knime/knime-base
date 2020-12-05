@@ -125,24 +125,24 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
     }
 
     @Override
-    public StagedMultiTableRead<I, T> create(final String rootItem, final List<I> items,
+    public StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup,
         final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
-        final Map<I, TypedReaderTableSpec<T>> specs = readIndividualSpecs(items, config, exec);
-        return create(rootItem, specs, config);
+        final Map<I, TypedReaderTableSpec<T>> specs = readIndividualSpecs(sourceGroup, config, exec);
+        return create(sourceGroup, specs, config);
     }
 
-    private Map<I, TypedReaderTableSpec<T>> readIndividualSpecs(final List<I> items,
+    private Map<I, TypedReaderTableSpec<T>> readIndividualSpecs(final SourceGroup<I> sourceGroup,
         final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
-        final Map<I, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(items.size());
-        for (I item : items) {
+        final Map<I, TypedReaderTableSpec<T>> specs = new LinkedHashMap<>(sourceGroup.size());
+        for (I item : sourceGroup) {
             final TypedReaderTableSpec<T> spec =
-                m_reader.readSpec(item, config.getTableReadConfig(), exec.createSubProgress(1.0 / items.size()));
+                m_reader.readSpec(item, config.getTableReadConfig(), exec.createSubProgress(1.0 / sourceGroup.size()));
             specs.put(item, MultiTableUtils.assignNamesIfMissing(spec));
         }
         return specs;
     }
 
-    private StagedMultiTableRead<I, T> create(final String rootItem,
+    private StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup,
         final Map<I, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C> config) {
         final RawSpec<T> rawSpec = m_rawSpecFactory.create(individualSpecs.values());
 
@@ -151,13 +151,13 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         }
 
         final TableTransformation<T> defaultTransformation = m_transformationModelCreator.create(rawSpec, config);
-        return createStagedMultiTableReader(rootItem, individualSpecs, config, defaultTransformation);
+        return createStagedMultiTableReader(sourceGroup, individualSpecs, config, defaultTransformation);
     }
 
-    private DefaultStagedMultiTableRead<I, C, T, V> createStagedMultiTableReader(final String rootPath,
+    private DefaultStagedMultiTableRead<I, C, T, V> createStagedMultiTableReader(final SourceGroup<I> sourceGroup,
         final Map<I, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C> config,
         final TableTransformation<T> defaultTransformation) {
-        return new DefaultStagedMultiTableRead<>(m_reader, rootPath, individualSpecs, m_rowKeyGeneratorFactory,
+        return new DefaultStagedMultiTableRead<>(m_reader, sourceGroup, individualSpecs, m_rowKeyGeneratorFactory,
                 m_readAdapterSupplier, defaultTransformation, config.getTableReadConfig());
     }
 
@@ -170,21 +170,21 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
     }
 
     @Override
-    public StagedMultiTableRead<I, T> createFromConfig(final String rootItem, final List<I> items,
+    public StagedMultiTableRead<I, T> createFromConfig(final SourceGroup<I> sourceGroup,
         final MultiTableReadConfig<C> config) {
         final TableSpecConfig tableSpecConfig = config.getTableSpecConfig();
-        final Map<I, TypedReaderTableSpec<T>> individualSpecs = getIndividualSpecs(items, tableSpecConfig);
+        final Map<I, TypedReaderTableSpec<T>> individualSpecs = getIndividualSpecs(sourceGroup, tableSpecConfig);
         final TableTransformation<T> configuredTransformationModel = tableSpecConfig.getTransformationModel();
-        return createStagedMultiTableReader(rootItem, individualSpecs, config, configuredTransformationModel);
+        return createStagedMultiTableReader(sourceGroup, individualSpecs, config, configuredTransformationModel);
     }
 
-    private Map<I, TypedReaderTableSpec<T>> getIndividualSpecs(final List<I> items,
+    private Map<I, TypedReaderTableSpec<T>> getIndividualSpecs(final SourceGroup<I> sourceGroup,
         final TableSpecConfig tableSpecConfig) {
 
         final TableTransformation<T> transformationModel = tableSpecConfig.getTransformationModel();
         final Map<String, T> typeMap = extractNameToTypeMap(transformationModel);
 
-        return items.stream()//
+        return sourceGroup.stream()//
             .collect(Collectors.toMap(//
                 Function.identity() //
                 , p -> resolveType(tableSpecConfig.getSpec(p.toString()), typeMap)//

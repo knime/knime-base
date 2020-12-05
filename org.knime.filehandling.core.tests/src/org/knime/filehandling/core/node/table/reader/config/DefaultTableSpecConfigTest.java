@@ -61,7 +61,6 @@ import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.chec
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -89,6 +88,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.TRFTestingUtils;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
@@ -147,6 +147,9 @@ public class DefaultTableSpecConfigTest {
     private String m_path1 = "first";
 
     private String m_path2 = "second";
+
+    @Mock
+    private SourceGroup<String> m_sourceGroup;
 
     @Mock
     private ColumnTransformation<String> m_trans1;
@@ -259,6 +262,12 @@ public class DefaultTableSpecConfigTest {
         }
     }
 
+    private void stubSourceGroup(final String id, final String ... items) {
+        when(m_sourceGroup.getID()).thenReturn(id);
+        when(m_sourceGroup.size()).thenReturn(items.length);
+        when(m_sourceGroup.stream()).thenReturn(Arrays.stream(items));
+    }
+
     /**
      * Tests that a {@link DefaultTableSpecConfig} can be correctly loaded after it has been saved to
      * {@link NodeSettings}.
@@ -308,9 +317,12 @@ public class DefaultTableSpecConfigTest {
         assertNotEquals(prodPaths, load.getProductionPaths());
 
         // tests paths
-        assertTrue(load.isConfiguredWith(new ArrayList<>(m_individualSpecs.keySet())));
-        assertFalse(load.isConfiguredWith(Arrays.asList(m_path1)));
-        assertFalse(load.isConfiguredWith(Arrays.asList(m_path1, m_path2, m_path1)));
+        stubSourceGroup(ROOT_PATH, m_individualSpecs.keySet().toArray(new String[0]));
+        assertTrue(load.isConfiguredWith(m_sourceGroup));
+        stubSourceGroup(ROOT_PATH, m_path1);
+        assertFalse(load.isConfiguredWith(m_sourceGroup));
+        stubSourceGroup(ROOT_PATH, m_path1, m_path2, m_path1);
+        assertFalse(load.isConfiguredWith(m_sourceGroup));
 
         // test reader specs
         for (final Entry<String, ReaderTableSpec<?>> entry : individualSpecsWithoutTypes.entrySet()) {
@@ -483,16 +495,17 @@ public class DefaultTableSpecConfigTest {
         assertTrue(tsc.isConfiguredWith(ROOT_PATH));
         assertFalse(tsc.isConfiguredWith("foobar"));
 
-        assertTrue(tsc.isConfiguredWith(asList(m_path1, m_path2)));
-        assertFalse(tsc.isConfiguredWith(asList(m_path1)));
-        assertFalse(tsc.isConfiguredWith(asList(m_path1, m_path2, "foo")));
-        assertFalse(tsc.isConfiguredWith(asList(m_path1, m_path2, m_path1)));
+        stubSourceGroup(ROOT_PATH, m_path1, m_path2);
+        assertTrue(tsc.isConfiguredWith(m_sourceGroup));
+        stubSourceGroup(ROOT_PATH, m_path1);
+        assertFalse(tsc.isConfiguredWith(m_sourceGroup));
+        stubSourceGroup(ROOT_PATH, m_path1, m_path2, "foo");
+        assertFalse(tsc.isConfiguredWith(m_sourceGroup));
+        stubSourceGroup(ROOT_PATH, m_path1, m_path2, m_path1);
+        assertFalse(tsc.isConfiguredWith(m_sourceGroup));
 
-        assertTrue(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1, m_path2)));
-        assertFalse(tsc.isConfiguredWith("foobar", asList(m_path1, m_path2)));
-        assertFalse(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1)));
-        assertFalse(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1, m_path2, "foo")));
-        assertFalse(tsc.isConfiguredWith(ROOT_PATH, asList(m_path1, m_path2, m_path1)));
+        stubSourceGroup("foobar", m_path1, m_path2);
+        assertFalse(tsc.isConfiguredWith(m_sourceGroup));
     }
 
     @Test

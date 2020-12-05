@@ -49,17 +49,22 @@
 package org.knime.filehandling.core.node.table.reader.util;
 
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
@@ -149,6 +154,44 @@ public final class MultiTableUtils {
 
     private static String createDefaultColumnName(final int iFinal) {
         return "Column" + iFinal;
+    }
+
+
+    public static <I> SourceGroup<String> toString(final SourceGroup<I> sourceGroup) {
+        return new StringSourceGroup(sourceGroup);
+    }
+
+    private static class StringSourceGroup implements SourceGroup<String> {
+
+        private final String m_id;
+
+        private final List<String> m_items;
+
+        StringSourceGroup(final SourceGroup<?> sourceGroup) {
+            m_id = sourceGroup.getID();
+            m_items = sourceGroup.stream().map(Object::toString).collect(toList());
+        }
+
+        @Override
+        public Iterator<String> iterator() {
+            return m_items.iterator();
+        }
+
+        @Override
+        public String getID() {
+            return m_id;
+        }
+
+        @Override
+        public Stream<String> stream() {
+            return m_items.stream();
+        }
+
+        @Override
+        public int size() {
+            return m_items.size();
+        }
+
     }
 
 }

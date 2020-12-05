@@ -59,7 +59,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.function.Supplier;
 
 import org.junit.Before;
@@ -88,8 +87,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultMultiTableReadFactoryTest {
 
-    private static final String ROOT_PATH = "path";
-
     private static final TypedReaderTableSpec<String> SPEC1 = createTypedTableSpec(asList("A", "B"), asList("X", "Y"));
 
     private static final TypedReaderTableSpec<String> SPEC2 = createTypedTableSpec(asList("B", "C"), asList("Y", "Z"));
@@ -108,7 +105,7 @@ public class DefaultMultiTableReadFactoryTest {
     private TypeResolver<String, String> m_typeResolver;
 
     @Mock
-    private GenericRowKeyGeneratorContextFactory<Path, String> m_rowKeyGenFactory;
+    private GenericRowKeyGeneratorContextFactory<String, String> m_rowKeyGenFactory;
 
     @Mock
     private RowKeyGenerator<String> m_rowKeyGen;
@@ -120,7 +117,7 @@ public class DefaultMultiTableReadFactoryTest {
     private DummyReaderSpecificConfig m_readerSpecificConfig;
 
     @Mock
-    private TableReader<DummyReaderSpecificConfig, String, String> m_tableReader;
+    private GenericTableReader<String, DummyReaderSpecificConfig, String, String> m_tableReader;
 
     @Mock
     private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig;
@@ -131,13 +128,14 @@ public class DefaultMultiTableReadFactoryTest {
     @Mock
     private Supplier<ReadAdapter<String, String>> m_readAdapterSupplier;
 
-    @Mock
-    private Path m_path1;
+    private static final String PATH1 = "path1";
+
+    private static final String PATH2 = "path2";
 
     @Mock
-    private Path m_path2;
+    private SourceGroup<String> m_sourceGroup;
 
-    private DefaultMultiTableReadFactory<Path, DummyReaderSpecificConfig, String, String> m_testInstance;
+    private DefaultMultiTableReadFactory<String, DummyReaderSpecificConfig, String, String> m_testInstance;
 
     /**
      * Initializes the test instance.
@@ -151,22 +149,25 @@ public class DefaultMultiTableReadFactoryTest {
 
     /**
      * Tests the implementation of
-     * {@link MultiTableReadFactory#create(String, java.util.List, MultiTableReadConfig, ExecutionMonitor)}.
+     * {@link MultiTableReadFactory#create(SourceGroup, MultiTableReadConfig, ExecutionMonitor)}.
      *
      * @throws IOException
      */
     @Test
     public void testCreate() throws IOException {
-        when(m_tableReader.readSpec(eq(m_path1), any(), any())).thenReturn(SPEC1);
-        when(m_tableReader.readSpec(eq(m_path2), any(), any())).thenReturn(SPEC2);
+        when(m_tableReader.readSpec(eq(PATH1), any(), any())).thenReturn(SPEC1);
+        when(m_tableReader.readSpec(eq(PATH2), any(), any())).thenReturn(SPEC2);
 
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
         when(m_typeResolver.getMostSpecificType()).thenReturn("X", "Y", "Z");
 
         ExecutionMonitor exec = mock(ExecutionMonitor.class);
 
-        StagedMultiTableRead<Path, String> smtr =
-            m_testInstance.create(ROOT_PATH, asList(m_path1, m_path2), m_config, exec);
+        when(m_sourceGroup.iterator()).thenReturn(asList(PATH1, PATH2).iterator());
+        when(m_sourceGroup.size()).thenReturn(2);
+
+        StagedMultiTableRead<String, String> smtr =
+            m_testInstance.create(m_sourceGroup, m_config, exec);
 
         verify(exec, times(2)).createSubProgress(0.5);
 
@@ -175,7 +176,7 @@ public class DefaultMultiTableReadFactoryTest {
 
     /**
      * Tests the implementation of
-     * {@link MultiTableReadFactory#createFromConfig(String, java.util.List, MultiTableReadConfig)}.
+     * {@link MultiTableReadFactory#createFromConfig(SourceGroup, MultiTableReadConfig)}.
      */
     @SuppressWarnings({"rawtypes", "unchecked"}) // otherwise Mockito won't work
     @Test
@@ -184,17 +185,12 @@ public class DefaultMultiTableReadFactoryTest {
         when(transformationModel.getRawSpec()).thenReturn(RAW_SPEC);
 
         final TableSpecConfig tsc = mock(TableSpecConfig.class);
-        when(tsc.getSpec("path1")).thenReturn(SPEC1);
-        when(tsc.getSpec("path2")).thenReturn(SPEC2);
         when(tsc.getTransformationModel()).thenReturn(transformationModel);
 
         when(m_config.getTableSpecConfig()).thenReturn(tsc);
 
-        when(m_path1.toString()).thenReturn("path1");
-        when(m_path2.toString()).thenReturn("path2");
-
-        StagedMultiTableRead<Path, String> smtr =
-            m_testInstance.createFromConfig(ROOT_PATH, asList(m_path1, m_path2), m_config);
+        StagedMultiTableRead<String, String> smtr =
+            m_testInstance.createFromConfig(m_sourceGroup, m_config);
 
         assertEquals(RAW_SPEC, smtr.getRawSpec());
     }

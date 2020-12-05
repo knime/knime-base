@@ -75,6 +75,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
@@ -374,20 +375,15 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
     }
 
     @Override
-    public boolean isConfiguredWith(final String rootItem, final List<String> items) {
-        return isConfiguredWith(rootItem) && isConfiguredWith(items);
+    public boolean isConfiguredWith(final SourceGroup<String> sourceGroup) {
+        return isConfiguredWith(sourceGroup.getID()) && m_individualSpecs.size() == sourceGroup.size() //
+            && sourceGroup.stream()//
+                .allMatch(m_individualSpecs::containsKey);
     }
 
     @Override
     public boolean isConfiguredWith(final String rootItem) {
         return m_rootItem.equals(rootItem);
-    }
-
-    @Override
-    public boolean isConfiguredWith(final List<String> items) {
-        return m_individualSpecs.size() == items.size() //
-            && items.stream()//
-                .allMatch(m_individualSpecs::containsKey);
     }
 
     @Override

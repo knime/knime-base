@@ -61,7 +61,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -104,14 +103,9 @@ public class DefaultMultiTableReadTest {
         a("j", "k", "l")//
     );
 
-    @Mock
-    private Path m_path1;
+    private static final String PATH1 = "path1";
 
-    @Mock
-    private Path m_path2;
-
-    @Mock
-    private Path m_unknownPath;
+    private static final String PATH2 = "path2";
 
     @Mock
     private FileStoreFactory m_fsFactory;
@@ -120,13 +114,13 @@ public class DefaultMultiTableReadTest {
     private TableReadConfig<?> m_config;
 
     @Mock
-    private CheckedExceptionFunction<Path, Read<Path, String>, IOException> m_readFn;
+    private CheckedExceptionFunction<String, Read<String, String>, IOException> m_readFn;
 
     @Mock
-    private BiFunction<Path, FileStoreFactory, IndividualTableReader<Path, String>> m_individualTableReaderFactory;
+    private BiFunction<String, FileStoreFactory, IndividualTableReader<String, String>> m_individualTableReaderFactory;
 
     @Mock
-    private IndividualTableReader<Path, String> m_individualTableReader;
+    private IndividualTableReader<String, String> m_individualTableReader;
 
     @Mock
     private RowOutput m_rowOutput;
@@ -137,20 +131,23 @@ public class DefaultMultiTableReadTest {
     @Mock
     private TableSpecConfig m_tableSpecConfig;
 
+    @Mock
+    private SourceGroup<String> m_sourceGroup;
+
     private DataTableSpec m_outputSpec;
 
-    private DefaultMultiTableRead<Path, String> m_testInstance;
+    private DefaultMultiTableRead<String, String> m_testInstance;
 
     private void stubReadFn() throws IOException {
-        Read<Path, String> read1 = mockRead(TEST_TABLE[0], TEST_TABLE[1]);
-        when(m_readFn.apply(m_path1)).thenReturn(read1);
-        Read<Path, String> read2 = mockRead(TEST_TABLE[2], TEST_TABLE[3]);
-        when(m_readFn.apply(m_path2)).thenReturn(read2);
+        Read<String, String> read1 = mockRead(TEST_TABLE[0], TEST_TABLE[1]);
+        when(m_readFn.apply(PATH1)).thenReturn(read1);
+        Read<String, String> read2 = mockRead(TEST_TABLE[2], TEST_TABLE[3]);
+        when(m_readFn.apply(PATH2)).thenReturn(read2);
     }
 
-    private static Read<Path, String> mockRead(final String[]... rows) throws IOException {
+    private static Read<String, String> mockRead(final String[]... rows) throws IOException {
         @SuppressWarnings("unchecked")
-        final Read<Path, String> read = mock(Read.class);
+        final Read<String, String> read = mock(Read.class);
         RandomAccessible<String> first = mockRandomAccessible();
         @SuppressWarnings("unchecked")
         RandomAccessible<String>[] restList = Arrays.stream(rows)//
@@ -186,7 +183,7 @@ public class DefaultMultiTableReadTest {
     public void init() {
         m_outputSpec = new DataTableSpec(new String[]{"hans", "franz", "gunter"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE, StringCell.TYPE});
-        m_testInstance = new DefaultMultiTableRead<>(asList(m_path1, m_path2), m_readFn,
+        m_testInstance = new DefaultMultiTableRead<>(m_sourceGroup, m_readFn,
             () -> m_individualTableReaderFactory, m_tableSpecConfig, m_outputSpec);
     }
 
@@ -221,11 +218,12 @@ public class DefaultMultiTableReadTest {
         stubReadFn();
         stubIndividualTableReaderFactory();
         when(m_exec.createSubProgress(anyDouble())).thenReturn(mock(ExecutionMonitor.class));
+        when(m_sourceGroup.iterator()).thenReturn(asList(PATH1, PATH2).iterator());
 
         m_testInstance.fillRowOutput(m_rowOutput, m_exec, m_fsFactory);
 
-        verify(m_individualTableReaderFactory).apply(m_path1, m_fsFactory);
-        verify(m_individualTableReaderFactory).apply(m_path2, m_fsFactory);
+        verify(m_individualTableReaderFactory).apply(PATH1, m_fsFactory);
+        verify(m_individualTableReaderFactory).apply(PATH2, m_fsFactory);
         verify(m_individualTableReader, times(2)).fillOutput(any(), eq(m_rowOutput), any());
     }
 
@@ -237,6 +235,7 @@ public class DefaultMultiTableReadTest {
     public void testCreatePreviewIterator() throws Exception {
         stubReadFn();
         stubIndividualTableReaderFactory();
+        when(m_sourceGroup.iterator()).thenReturn(asList(PATH1, PATH2).iterator());
         when(m_individualTableReader.toRow(any())).thenReturn(toRow(0, TEST_TABLE[0]),
             IntStream.range(1, TEST_TABLE.length)
             .mapToObj(i -> toRow(i, TEST_TABLE[i]))

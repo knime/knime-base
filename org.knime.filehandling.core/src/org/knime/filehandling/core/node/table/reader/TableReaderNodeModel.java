@@ -149,8 +149,9 @@ final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>> extends N
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
             final List<I> paths = getPaths(accessor);
+            final SourceGroup<I> sourceGroup = new DefaultSourceGroup<>(m_sourceSettings.getSourceIdentifier(), paths);
             return new PortObject[]{
-                m_tableReader.readTable(m_sourceSettings.getSourceIdentifier(), paths, m_config, exec)};
+                m_tableReader.readTable(sourceGroup, m_config, exec)};
         }
     }
 
@@ -159,8 +160,9 @@ final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>> extends N
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
             final List<I> items = getPaths(accessor);
+            final SourceGroup<I> sourceGroup = new DefaultSourceGroup<>(m_sourceSettings.getSourceIdentifier(), items);
             return new PortObjectSpec[]{
-                m_tableReader.createTableSpec(m_sourceSettings.getSourceIdentifier(), items, m_config)};
+                m_tableReader.createTableSpec(sourceGroup, m_config)};
         } catch (IOException ex) {
             throw new InvalidSettingsException(ex);
         }
@@ -176,7 +178,8 @@ final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>> extends N
                 try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
                     final List<I> paths = getPaths(accessor);
                     final RowOutput output = (RowOutput)outputs[0];
-                    m_tableReader.fillRowOutput(m_sourceSettings.getSourceIdentifier(), paths, m_config, output, exec);
+                    final SourceGroup<I> sourceGroup = new DefaultSourceGroup<>(m_sourceSettings.getSourceIdentifier(), paths);
+                    m_tableReader.fillRowOutput(sourceGroup, m_config, output, exec);
                 }
             }
         };

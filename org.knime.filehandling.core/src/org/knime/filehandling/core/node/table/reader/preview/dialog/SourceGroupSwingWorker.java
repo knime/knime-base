@@ -48,27 +48,35 @@
  */
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
+import static org.knime.filehandling.core.node.table.reader.util.MultiTableUtils.extractString;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.core.util.Pair;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.node.table.reader.DefaultSourceGroup;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 
 /**
- * A {@link SwingWorkerWithContext} that retrieves the items of a {@link GenericItemAccessor} asynchronously.
+ * A {@link SwingWorkerWithContext} that retrieves the items of a {@link GenericItemAccessor} and builds a
+ * {@link SourceGroup} containing them.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <I> the item type to read from
  */
-public class GenericItemAccessSwingWorker<I> extends SwingWorkerWithContext<Pair<I, List<I>>, Void> {
+public final class SourceGroupSwingWorker<I> extends SwingWorkerWithContext<SourceGroup<I>, Void> {
 
     private static final int DELAY = 200;
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(GenericItemAccessSwingWorker.class);
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(SourceGroupSwingWorker.class);
+
     private final GenericItemAccessor<I> m_itemAccessor;
-    private final Consumer<Pair<I, List<I>>> m_itemConsumer;
+
+    private final Consumer<SourceGroup<I>> m_itemConsumer;
+
     private final Consumer<ExecutionException> m_exceptionConsumer;
 
     /**
@@ -78,26 +86,28 @@ public class GenericItemAccessSwingWorker<I> extends SwingWorkerWithContext<Pair
      * @param itemConsumer the item consumer
      * @param exceptionConsumer the exception consumer
      */
-    public GenericItemAccessSwingWorker(final GenericItemAccessor<I> itemAccessor,
-        final Consumer<Pair<I, List<I>>> itemConsumer, final Consumer<ExecutionException> exceptionConsumer) {
+    public SourceGroupSwingWorker(final GenericItemAccessor<I> itemAccessor,
+        final Consumer<SourceGroup<I>> itemConsumer, final Consumer<ExecutionException> exceptionConsumer) {
         m_itemAccessor = itemAccessor;
         m_itemConsumer = itemConsumer;
         m_exceptionConsumer = exceptionConsumer;
     }
 
     @Override
-    protected Pair<I, List<I>> doInBackgroundWithContext() throws Exception {
+    protected SourceGroup<I> doInBackgroundWithContext() throws Exception {
         Thread.sleep(DELAY);
-        final I rootItem = m_itemAccessor.getRootItem(s -> {});
-        final List<I> items = m_itemAccessor.getItems(s -> {});
-        return new Pair<>(rootItem, items);
+        final I rootItem = m_itemAccessor.getRootItem(s -> {
+        });
+        final List<I> items = m_itemAccessor.getItems(s -> {
+        });
+        return new DefaultSourceGroup<>(extractString(rootItem), items);
     }
 
     @Override
     protected void doneWithContext() {
         if (!isCancelled()) {
             try {
-                final Pair<I, List<I>> rootItemAndItems = get();
+                final SourceGroup<I> rootItemAndItems = get();
                 m_itemConsumer.accept(rootItemAndItems);
             } catch (InterruptedException ex) {// NOSONAR
                 // shouldn't happen because doneWithContext is only called when doInBackgroundWithContext is done

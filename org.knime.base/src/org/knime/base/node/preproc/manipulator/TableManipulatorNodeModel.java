@@ -101,11 +101,9 @@ import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGenerat
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public class TableManipulatorNodeModel extends NodeModel {
+final class TableManipulatorNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(TableManipulatorNodeModel.class);
-
-    private static final String ROOTPATH = "ROOTPATH";
 
     private final StorableMultiTableReadConfig<TableManipulatorConfig> m_config;
 
@@ -160,9 +158,10 @@ public class TableManipulatorNodeModel extends NodeModel {
         for (PortObjectSpec spec : inSpecs) {
             rowInputs.add(new EmptyTable((DataTableSpec)spec));
         }
+        final TableSourceGroup tableSourceGroup = new TableSourceGroup(rowInputs);
         try {
             final TableSpecConfig tableSpecConfig =
-                m_tableReader.createTableSpecConfig(ROOTPATH, rowInputs, m_config);
+                m_tableReader.createTableSpecConfig(tableSourceGroup, m_config);
             if (!m_config.hasTableSpecConfig()) {
                 m_config.setTableSpecConfig(tableSpecConfig);
             }
@@ -175,16 +174,16 @@ public class TableManipulatorNodeModel extends NodeModel {
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        final List<Table> rowInputs = getRowInputs(inObjects);
-        return new PortObject[]{m_tableReader.readTable(ROOTPATH, rowInputs, m_config, exec)};
+        final TableSourceGroup sourceGroup = createSourceGroup(inObjects);
+        return new PortObject[]{m_tableReader.readTable(sourceGroup, m_config, exec)};
     }
 
-    static List<Table> getRowInputs(final PortObject[] inObjects) {
+    static TableSourceGroup createSourceGroup(final PortObject[] inObjects) {
         final List<Table> rowInputs = new LinkedList<>();
         for (PortObject portObject : inObjects) {
             rowInputs.add(new DataTableBackedBoundedTable((BufferedDataTable)portObject));
         }
-        return rowInputs;
+        return new TableSourceGroup(rowInputs);
     }
 
     @Override
@@ -194,13 +193,19 @@ public class TableManipulatorNodeModel extends NodeModel {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
-                final List<Table> rowInputs = new LinkedList<>();
-                for (PortInput portObject : inputs) {
-                    rowInputs.add(new RowInputBackedTable((RowInput)portObject));
-                }
-                m_tableReader.fillRowOutput(ROOTPATH, rowInputs, m_config, (RowOutput)outputs[0], exec);
+                final TableSourceGroup sourceGroup = createSourceGroup(inputs);
+                m_tableReader.fillRowOutput(sourceGroup, m_config, (RowOutput)outputs[0], exec);
             }
+
         };
+    }
+
+    private static TableSourceGroup createSourceGroup(final PortInput[] inputs) {
+        final List<Table> rowInputs = new LinkedList<>();
+        for (PortInput portObject : inputs) {
+            rowInputs.add(new RowInputBackedTable((RowInput)portObject));
+        }
+        return new TableSourceGroup(rowInputs);
     }
 
     @Override

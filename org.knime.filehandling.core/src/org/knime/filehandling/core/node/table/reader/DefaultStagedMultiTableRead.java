@@ -49,8 +49,8 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.knime.core.data.convert.map.ProductionPath;
@@ -88,7 +88,7 @@ public final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig
 
     private final Map<I, TypedReaderTableSpec<T>> m_individualSpecs;
 
-    private final String m_rootItem;
+    private final SourceGroup<I> m_sourceGroup;
 
     private final RawSpec<T> m_rawSpec;
 
@@ -106,20 +106,20 @@ public final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig
      * Constructor.
      *
      * @param reader {@link GenericTableReader}
-     * @param rootItem root item
+     * @param sourceGroup the {@link SourceGroup} to read from
      * @param individualSpecs individuals specs
      * @param rowKeyGenFactory {@link GenericRowKeyGeneratorContextFactory}
      * @param readAdapterSupplier {@link ReadAdapter} supplier
      * @param defaultTransformation {@link TableTransformation}
      * @param tableReadConfig {@link TableReadConfig}
      */
-    protected DefaultStagedMultiTableRead(final GenericTableReader<I, C, T, V> reader, final String rootItem,
+    protected DefaultStagedMultiTableRead(final GenericTableReader<I, C, T, V> reader, final SourceGroup<I> sourceGroup,
         final Map<I, TypedReaderTableSpec<T>> individualSpecs,
         final GenericRowKeyGeneratorContextFactory<I, V> rowKeyGenFactory,
         final Supplier<ReadAdapter<T, V>> readAdapterSupplier, final TableTransformation<T> defaultTransformation,
         final TableReadConfig<C> tableReadConfig) {
         m_rawSpec = defaultTransformation.getRawSpec();
-        m_rootItem = rootItem;
+        m_sourceGroup = sourceGroup;
         m_individualSpecs = individualSpecs;
         m_rowKeyGenFactory = rowKeyGenFactory;
         m_tableReadConfig = tableReadConfig;
@@ -129,16 +129,16 @@ public final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig
     }
 
     @Override
-    public MultiTableRead withoutTransformation(final Collection<I> items) {
-        return withTransformation(items, m_defaultTransformation);
+    public MultiTableRead withoutTransformation(final SourceGroup<I> sourceGroup) {
+        return withTransformation(sourceGroup, m_defaultTransformation);
     }
 
     @Override
-    public MultiTableRead withTransformation(final Collection<I> items,
+    public MultiTableRead withTransformation(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel) {
         final TableSpecConfig tableSpecConfig = DefaultTableSpecConfig
-            .createFromTransformationModel(m_rootItem, m_individualSpecs, transformationModel);
-        return new DefaultMultiTableRead<>(items, p -> createRead(p, m_tableReadConfig), () -> {
+            .createFromTransformationModel(m_sourceGroup.getID(), m_individualSpecs, transformationModel);
+        return new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, m_tableReadConfig), () -> {
             IndividualTableReaderFactory<I, T, V> factory =
                 createIndividualTableReaderFactory(transformationModel);
             return factory::create;
@@ -171,8 +171,11 @@ public final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig
     }
 
     @Override
-    public boolean isValidFor(final Collection<I> items) {
-        return items.size() == m_individualSpecs.size() && m_individualSpecs.keySet().containsAll(items);
+    public boolean isValidFor(final SourceGroup<I> sourceGroup) {
+        return sourceGroup.size() == m_individualSpecs.size() && containsAll(m_individualSpecs.keySet(), sourceGroup);
     }
 
+    private static <I> boolean containsAll(final Set<I> keys, final SourceGroup<I> sourceGroup) {
+        return sourceGroup.stream().allMatch(keys::contains);
+    }
 }

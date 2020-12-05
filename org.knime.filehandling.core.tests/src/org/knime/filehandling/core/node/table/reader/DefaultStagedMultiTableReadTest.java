@@ -56,10 +56,9 @@ import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.mock
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -72,7 +71,7 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
@@ -110,6 +109,10 @@ public class DefaultStagedMultiTableReadTest {
 
     private static final String ROOT = "root";
 
+    private static final String PATH1 = "path1";
+
+    private static final String PATH2 = "path2";
+
     private static final TypedReaderTableSpec<String> UNION = new TypedReaderTableSpec<>(asList(COL1, COL2, COL3));
 
     private static final TypedReaderTableSpec<String> INTERSECTION = new TypedReaderTableSpec<>(asList(COL2));
@@ -117,25 +120,19 @@ public class DefaultStagedMultiTableReadTest {
     private static final RawSpec<String> RAW_SPEC = new RawSpec<>(UNION, INTERSECTION);
 
     @Mock
-    private TableReader<DummyReaderSpecificConfig, String, String> m_tableReader;
+    private GenericTableReader<String, DummyReaderSpecificConfig, String, String> m_tableReader;
 
     @Mock
-    private GenericRowKeyGeneratorContextFactory<Path, String> m_rowKeyGenContextFactory;
+    private GenericRowKeyGeneratorContextFactory<String, String> m_rowKeyGenContextFactory;
 
     @Mock
-    private GenericRowKeyGeneratorContext<Path, String> m_rowKeyGenContext;
+    private GenericRowKeyGeneratorContext<String, String> m_rowKeyGenContext;
 
     @Mock
-    private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig;
+    private MultiTableReadConfig<DummyReaderSpecificConfig> m_config;
 
     @Mock
     private TableTransformation<String> m_defaultTransformationModel;
-
-    @Mock
-    private Path m_path1;
-
-    @Mock
-    private Path m_path2;
 
     @Mock
     private Supplier<ReadAdapter<String, String>> m_readAdapterSupplier;
@@ -149,7 +146,8 @@ public class DefaultStagedMultiTableReadTest {
     @Mock
     private ColumnTransformation<String> m_transformation3;
 
-    private List<Path> m_paths;
+    @Mock
+    private SourceGroup<String> m_sourceGroup;
 
     private ProductionPath m_pp1;
 
@@ -157,7 +155,7 @@ public class DefaultStagedMultiTableReadTest {
 
     private ProductionPath m_pp3;
 
-    private DefaultStagedMultiTableRead<Path, DummyReaderSpecificConfig, String, String> m_testInstance;
+    private DefaultStagedMultiTableRead<String, DummyReaderSpecificConfig, String, String> m_testInstance;
 
     /**
      * Initializes the test instance.
@@ -165,15 +163,14 @@ public class DefaultStagedMultiTableReadTest {
     @Before
     public void init() {
         Mockito.when(m_defaultTransformationModel.getRawSpec()).thenReturn(RAW_SPEC);
-        final Map<Path, TypedReaderTableSpec<String>> individualSpecs = new LinkedHashMap<>();
+        final Map<String, TypedReaderTableSpec<String>> individualSpecs = new LinkedHashMap<>();
 
         m_pp1 = mockProductionPath();
         m_pp2 = mockProductionPath();
         m_pp3 = mockProductionPath();
 
-        m_paths = asList(m_path1, m_path2);
-        individualSpecs.put(m_path1, SPEC1);
-        individualSpecs.put(m_path2, SPEC2);
+        individualSpecs.put(PATH1, SPEC1);
+        individualSpecs.put(PATH2, SPEC2);
         m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, ROOT, individualSpecs,
             m_rowKeyGenContextFactory, m_readAdapterSupplier, m_defaultTransformationModel, m_tableReadConfig);
     }
@@ -189,7 +186,7 @@ public class DefaultStagedMultiTableReadTest {
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
 
-        final MultiTableRead mtr = m_testInstance.withoutTransformation(m_paths);
+        final MultiTableRead mtr = m_testInstance.withoutTransformation(m_sourceGroup);
         assertEquals(knimeSpec, mtr.getOutputSpec());
 
     }
@@ -207,7 +204,7 @@ public class DefaultStagedMultiTableReadTest {
         when(m_pp3.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, StringCell.TYPE});
-        MultiTableRead mtr = m_testInstance.withTransformation(m_paths, lastColumnToString);
+        MultiTableRead mtr = m_testInstance.withTransformation(m_sourceGroup, lastColumnToString);
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 
@@ -220,7 +217,7 @@ public class DefaultStagedMultiTableReadTest {
         when(m_transformation2.keep()).thenReturn(false);
         final DataTableSpec knimeSpec =
             new DataTableSpec(TABLE_NAME, new String[]{"A", "C"}, new DataType[]{StringCell.TYPE, DoubleCell.TYPE});
-        MultiTableRead mtr = m_testInstance.withTransformation(m_paths, filterSecondColumn);
+        MultiTableRead mtr = m_testInstance.withTransformation(m_sourceGroup, filterSecondColumn);
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 
@@ -234,7 +231,7 @@ public class DefaultStagedMultiTableReadTest {
         when(m_transformation2.getName()).thenReturn("M");
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "M", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
-        MultiTableRead mtr = m_testInstance.withTransformation(m_paths, renameSecondColumn);
+        MultiTableRead mtr = m_testInstance.withTransformation(m_sourceGroup, renameSecondColumn);
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 
@@ -252,7 +249,7 @@ public class DefaultStagedMultiTableReadTest {
 
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "C", "B"},
             new DataType[]{StringCell.TYPE, DoubleCell.TYPE, IntCell.TYPE});
-        MultiTableRead mtr = m_testInstance.withTransformation(m_paths, reorderColumns);
+        MultiTableRead mtr = m_testInstance.withTransformation(m_sourceGroup, reorderColumns);
         assertEquals(knimeSpec, mtr.getOutputSpec());
     }
 
@@ -296,15 +293,20 @@ public class DefaultStagedMultiTableReadTest {
         assertEquals(RAW_SPEC, m_testInstance.getRawSpec());
     }
 
+    private SourceGroup<String> stubSourceGroup(final String ... items) {
+        when(m_sourceGroup.size()).thenReturn(items.length);
+        when(m_sourceGroup.stream()).thenReturn(Arrays.stream(items));
+        return m_sourceGroup;
+    }
+
     /**
-     * Tests the implementation of {@link StagedMultiTableRead#isValidFor(java.util.Collection)}.
+     * Tests the implementation of {@link StagedMultiTableRead#isValidFor(SourceGroup)}.
      */
     @Test
     public void testIsValidFor() {
-        assertTrue(m_testInstance.isValidFor(asList(m_path1, m_path2)));
-        assertFalse(m_testInstance.isValidFor(asList(m_path1)));
-        final Path unknown = mock(Path.class);
-        assertFalse(m_testInstance.isValidFor(asList(m_path1, unknown)));
+        assertTrue(m_testInstance.isValidFor(stubSourceGroup(PATH1, PATH2)));
+        assertFalse(m_testInstance.isValidFor(stubSourceGroup(PATH1)));
+        assertFalse(m_testInstance.isValidFor(stubSourceGroup(PATH1, "unknown")));
     }
 
 }

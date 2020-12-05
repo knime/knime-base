@@ -44,64 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 13, 2020 (Tobias): created
+ *   Dec 5, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
-import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
+import java.util.stream.Stream;
 
 /**
- * Creates {@link MultiTableRead MultiTableReads} given a {@link Map} of {@link TypedReaderTableSpec} representing
- * tables that should be read together, or based on a stored {@link TableSpecConfig}.
+ * Default implementation of a {@link SourceGroup}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
- * @param <C> the type of {@link ReaderSpecificConfig}
- * @param <T> the type representing external data types
- * @noimplement non-public API
+ * @param <I> the type of source items
+ * @noinstantiate non-public API
  * @noreference non-public API
  */
-public interface MultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T> {
+public final class DefaultSourceGroup<I> implements SourceGroup<I> {
+
+    private final List<I> m_items;
+
+    private final String m_id;
 
     /**
-     * Creates a {@link StagedMultiTableRead} for the provided parameters.</br>
-     * Note that a {@link TableSpecConfig} stored in {@link MultiTableReadConfig} will be ignored i.e. the table spec is
-     * always calculated.
+     * Constructor.
      *
-     * @param rootItem string representation of the root item
-     * @param items {@link List} of items to read
-     * @param config contains the user configuration
-     * @param exec used to monitor the spec creation
-     * @return a {@link StagedMultiTableRead} for the provided parameters
-     * @throws IOException if an {@link IOException} occurs while creating the table spec
+     * @param id used to identify this source group
+     * @param items the source items
      */
-    StagedMultiTableRead<I, T> create(SourceGroup<I> sourceGroup, MultiTableReadConfig<C> config,
-        ExecutionMonitor exec) throws IOException;
+    public DefaultSourceGroup(final String id, final Collection<I> items) {
+        m_items = new ArrayList<>(items);
+        m_id = id;
+    }
 
-    /**
-     * Creates a {@link MultiTableRead} from the provided {@link TypedReaderTableSpec individualSpecs} and
-     * {@link MultiTableReadConfig config}.<br>
-     * <b>Note</b>: Only use this factory method if {@link MultiTableReadConfig#hasTableSpecConfig()} is {@code true}.
-     *
-     * @param rootItem the root item
-     * @param items the list of items to be read
-     * @param config user provided {@link MultiTableReadConfig}
-     * @return a {@link MultiTableRead} for reading the tables from the given items
-     */
-    StagedMultiTableRead<I, T> createFromConfig(SourceGroup<I> sourceGroup,
-        MultiTableReadConfig<C> config);
+    @Override
+    public Iterator<I> iterator() {
+        return m_items.iterator();
+    }
 
-    // TODO add createForPreview method that ignores any existing TableSpecConfig
+    @Override
+    public String getID() {
+        return m_id;
+    }
+
+    @Override
+    public Stream<I> stream() {
+        return m_items.stream();
+    }
+
+    @Override
+    public int size() {
+        return m_items.size();
+    }
 
 }
