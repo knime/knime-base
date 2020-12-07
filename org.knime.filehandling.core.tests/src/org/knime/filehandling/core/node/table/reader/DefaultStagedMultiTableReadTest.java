@@ -53,11 +53,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.mockProductionPath;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -82,6 +82,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.TableTransformationFactory;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -149,6 +150,9 @@ public class DefaultStagedMultiTableReadTest {
     @Mock
     private SourceGroup<String> m_sourceGroup;
 
+    @Mock
+    private TableTransformationFactory<String> m_transformationFactory;
+
     private ProductionPath m_pp1;
 
     private ProductionPath m_pp2;
@@ -171,17 +175,19 @@ public class DefaultStagedMultiTableReadTest {
 
         individualSpecs.put(PATH1, SPEC1);
         individualSpecs.put(PATH2, SPEC2);
-        m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, ROOT, individualSpecs,
-            m_rowKeyGenContextFactory, m_readAdapterSupplier, m_defaultTransformationModel, m_tableReadConfig);
+        when(m_sourceGroup.getID()).thenReturn(ROOT);
+        m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, m_sourceGroup, individualSpecs,
+            m_rowKeyGenContextFactory, RAW_SPEC, m_readAdapterSupplier, m_transformationFactory, m_config);
     }
 
     /**
-     * Tests the implementation of {@link StagedMultiTableRead#withoutTransformation(Collection)}.
+     * Tests the implementation of {@link StagedMultiTableRead#withoutTransformation(SourceGroup)}.
      */
     @Test
     public void testWithoutTransformation() {
 
         stubTransformationModel(m_defaultTransformationModel);
+        when(m_transformationFactory.createNew(any(), any())).thenReturn(m_defaultTransformationModel);
 
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
@@ -196,7 +202,7 @@ public class DefaultStagedMultiTableReadTest {
     }
 
     /**
-     * Tests the implementation of {@link StagedMultiTableRead#withTransformation(Collection,TableTransformation)}.
+     * Tests the implementation of {@link StagedMultiTableRead#withTransformation(SourceGroup,TableTransformation)}.
      */
     @Test
     public void testWithTransformationTypeMapping() {
@@ -260,8 +266,8 @@ public class DefaultStagedMultiTableReadTest {
         return transformationModel;
     }
 
-    private static void stubTransformation(final ColumnTransformation<String> mock,
-        final String name, final ProductionPath prodPath, final int position, final boolean keep) {
+    private static void stubTransformation(final ColumnTransformation<String> mock, final String name,
+        final ProductionPath prodPath, final int position, final boolean keep) {
         when(mock.getName()).thenReturn(name);
         when(mock.getProductionPath()).thenReturn(prodPath);
         when(mock.getPosition()).thenReturn(position);
@@ -293,7 +299,7 @@ public class DefaultStagedMultiTableReadTest {
         assertEquals(RAW_SPEC, m_testInstance.getRawSpec());
     }
 
-    private SourceGroup<String> stubSourceGroup(final String ... items) {
+    private SourceGroup<String> stubSourceGroup(final String... items) {
         when(m_sourceGroup.size()).thenReturn(items.length);
         when(m_sourceGroup.stream()).thenReturn(Arrays.stream(items));
         return m_sourceGroup;

@@ -89,7 +89,7 @@ import com.google.common.collect.Sets;
  * @param <T> the type representing external data types
  * @param <V> the type representing values
  * @noreference non-public API
- * @noextend non-public API
+ * @noinstantiate non-public API
  */
 public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T, V>
     implements MultiTableReadFactory<I, C, T> {
@@ -102,7 +102,7 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
 
     private final GenericTableReader<I, C, T, V> m_reader;
 
-    private final TableTransformationFactory<T> m_transformationModelCreator;
+    private final DefaultTableTransformationFactory<T> m_transformationModelCreator;
 
     /**
      * Constructor.
@@ -120,13 +120,13 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         m_rawSpecFactory = new RawSpecFactory<>(typeHierarchy);
         m_rowKeyGeneratorFactory = rowKeyGeneratorFactory;
         m_reader = reader;
-        m_transformationModelCreator = new TableTransformationFactory<>(productionPathProvider);
+        m_transformationModelCreator = new DefaultTableTransformationFactory<>(productionPathProvider);
         m_readAdapterSupplier = readAdpaterSupplier;
     }
 
     @Override
-    public StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup,
-        final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
+    public StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup, final MultiTableReadConfig<C> config,
+        final ExecutionMonitor exec) throws IOException {
         final Map<I, TypedReaderTableSpec<T>> specs = readIndividualSpecs(sourceGroup, config, exec);
         return create(sourceGroup, specs, config);
     }
@@ -144,21 +144,25 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
 
     private StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup,
         final Map<I, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C> config) {
+        final RawSpec<T> rawSpec = createAndValidateRawSpec(individualSpecs, config);
+        return createStagedMultiTableRead(sourceGroup, rawSpec, individualSpecs, config);
+    }
+
+    private RawSpec<T> createAndValidateRawSpec(final Map<I, TypedReaderTableSpec<T>> individualSpecs,
+        final MultiTableReadConfig<C> config) {
         final RawSpec<T> rawSpec = m_rawSpecFactory.create(individualSpecs.values());
 
         if (config.failOnDifferingSpecs()) {
             verifySpecEquality(rawSpec);
         }
-
-        final TableTransformation<T> defaultTransformation = m_transformationModelCreator.create(rawSpec, config);
-        return createStagedMultiTableReader(sourceGroup, individualSpecs, config, defaultTransformation);
+        return rawSpec;
     }
 
-    private DefaultStagedMultiTableRead<I, C, T, V> createStagedMultiTableReader(final SourceGroup<I> sourceGroup,
-        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C> config,
-        final TableTransformation<T> defaultTransformation) {
+    private DefaultStagedMultiTableRead<I, C, T, V> createStagedMultiTableRead(final SourceGroup<I> sourceGroup,
+        final RawSpec<T> rawSpec, final Map<I, TypedReaderTableSpec<T>> individualSpecs,
+        final MultiTableReadConfig<C> config) {
         return new DefaultStagedMultiTableRead<>(m_reader, sourceGroup, individualSpecs, m_rowKeyGeneratorFactory,
-                m_readAdapterSupplier, defaultTransformation, config.getTableReadConfig());
+            rawSpec, m_readAdapterSupplier, m_transformationModelCreator, config);
     }
 
     private void verifySpecEquality(final RawSpec<T> rawSpec) {
@@ -175,7 +179,9 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         final TableSpecConfig tableSpecConfig = config.getTableSpecConfig();
         final Map<I, TypedReaderTableSpec<T>> individualSpecs = getIndividualSpecs(sourceGroup, tableSpecConfig);
         final TableTransformation<T> configuredTransformationModel = tableSpecConfig.getTransformationModel();
-        return createStagedMultiTableReader(sourceGroup, individualSpecs, config, configuredTransformationModel);
+        // TODO TableSpecConfig#getRawSpec()?
+        return createStagedMultiTableRead(sourceGroup, configuredTransformationModel.getRawSpec(), individualSpecs,
+            config);
     }
 
     private Map<I, TypedReaderTableSpec<T>> getIndividualSpecs(final SourceGroup<I> sourceGroup,

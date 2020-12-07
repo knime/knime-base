@@ -174,7 +174,7 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
     }
 
     private boolean isConfiguredWith(final MultiTableReadConfig<C> config, final SourceGroup<I> sourceGroup) {
-        return config.isConfiguredWith(MultiTableUtils.toString(sourceGroup));
+        return config.isConfiguredWith(MultiTableUtils.transformToString(sourceGroup));
     }
 
     /**

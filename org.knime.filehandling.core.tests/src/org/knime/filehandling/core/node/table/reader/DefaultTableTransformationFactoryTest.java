@@ -78,13 +78,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Contains unit tests for the {@link TableTransformationFactory}.
+ * Contains unit tests for the {@link DefaultTableTransformationFactory}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("javadoc") // keeping the link is more useful
 @RunWith(MockitoJUnitRunner.class)
-public class TableTransformationFactoryTest {
+public class DefaultTableTransformationFactoryTest {
 
     private static final String SIEGFRIEDA = "siegfrieda";
 
@@ -128,11 +128,11 @@ public class TableTransformationFactoryTest {
     @Mock
     private TableTransformation m_configuredTransformationModel;//NOSONAR
 
-    private TableTransformationFactory<String> m_testInstance;
+    private DefaultTableTransformationFactory<String> m_testInstance;
 
     @Before
     public void init() {
-        m_testInstance = new TableTransformationFactory<>(m_prodPathProvider);
+        m_testInstance = new DefaultTableTransformationFactory<>(m_prodPathProvider);
     }
 
     @SuppressWarnings("unchecked") // unfortunately that's necessary to satisfy the compiler
@@ -160,11 +160,8 @@ public class TableTransformationFactoryTest {
         final ProductionPath siegfriedaProdPath = mockProductionPath(IntCell.TYPE);
         when(m_prodPathProvider.getDefaultProductionPath(SIEGFRIEDA)).thenReturn(siegfriedaProdPath);
 
-        when(m_config.hasTableSpecConfig()).thenReturn(true);
-        when(m_config.getTableSpecConfig()).thenReturn(m_tableSpecConfig);
-        when(m_tableSpecConfig.getTransformationModel()).thenReturn(m_configuredTransformationModel);
-
-        TableTransformation<String> result = m_testInstance.create(newRawSpec, m_config);
+        TableTransformation<String> result =
+            m_testInstance.createFromExisting(newRawSpec, m_configuredTransformationModel);
 
         checkTransformation(result.getTransformation(hansWithDifferentType), hansWithDifferentType, "hans",
             siegfriedaProdPath, 0, true);
@@ -175,7 +172,7 @@ public class TableTransformationFactoryTest {
         testEnforceTypes(true);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testEnforceTypesFailsBecauseNoAlternativePathIsAvailable() {
         testEnforceTypes(false);
     }
@@ -199,14 +196,10 @@ public class TableTransformationFactoryTest {
         if (alternativePathAvailable) {
             availablePaths.add(elsaProdPath);
         }
-        when(m_prodPathProvider.getAvailableProductionPaths(SIEGFRIEDA))
-            .thenReturn(availablePaths);
+        when(m_prodPathProvider.getAvailableProductionPaths(SIEGFRIEDA)).thenReturn(availablePaths);
 
-        when(m_config.hasTableSpecConfig()).thenReturn(true);
-        when(m_config.getTableSpecConfig()).thenReturn(m_tableSpecConfig);
-        when(m_tableSpecConfig.getTransformationModel()).thenReturn(m_configuredTransformationModel);
-
-        TableTransformation<String> result = m_testInstance.create(newRawSpec, m_config);
+        TableTransformation<String> result =
+            m_testInstance.createFromExisting(newRawSpec, m_configuredTransformationModel);
         checkTransformation(result.getTransformation(hansWithDifferentType), hansWithDifferentType, "hans",
             elsaProdPath, 0, true);
     }
@@ -257,7 +250,8 @@ public class TableTransformationFactoryTest {
         when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(ulfProdPath);
         when(m_prodPathProvider.getAvailableProductionPaths(BERTA)).thenReturn(asList(ulfProdPath));
 
-        final TableTransformation<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
+        final TableTransformation<String> transformationModel =
+            m_testInstance.createFromExisting(RAW_SPEC, m_configuredTransformationModel);
 
         final boolean union = colFilterMode == ColumnFilterMode.UNION;
 
@@ -328,7 +322,7 @@ public class TableTransformationFactoryTest {
         when(m_prodPathProvider.getDefaultProductionPath(FRIEDA)).thenReturn(rudigerProdPath);
         when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(ulfProdPath);
 
-        final TableTransformation<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
+        final TableTransformation<String> transformationModel = m_testInstance.createNew(RAW_SPEC, m_config);
 
         checkTransformation(transformationModel.getTransformation(HANS), HANS, "hans", hansProdPath, 0, true);
         checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "rudiger", rudigerProdPath, 1,
@@ -348,7 +342,7 @@ public class TableTransformationFactoryTest {
         when(m_prodPathProvider.getDefaultProductionPath(FRIEDA)).thenReturn(rudigerProdPath);
         when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(ulfProdPath);
 
-        final TableTransformation<String> transformationModel = m_testInstance.create(RAW_SPEC, m_config);
+        final TableTransformation<String> transformationModel = m_testInstance.createNew(RAW_SPEC, m_config);
 
         checkTransformation(transformationModel.getTransformation(HANS), HANS, "hans", hansProdPath, 0, true);
         checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "rudiger", rudigerProdPath, 1,

@@ -44,60 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 13, 2020 (Tobias): created
+ *   Dec 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.filehandling.core.node.table.reader.util;
 
-import java.io.IOException;
-import java.util.Map;
-
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
-import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
- * Creates {@link MultiTableRead MultiTableReads} given a {@link Map} of {@link TypedReaderTableSpec} representing
- * tables that should be read together, or based on a stored {@link TableSpecConfig}.
+ * Creates {@link TableTransformation} objects either by adapting an existing transformation to a new {@link RawSpec} or
+ * by creating a new one from scratch.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
- * @param <C> the type of {@link ReaderSpecificConfig}
- * @param <T> the type representing external data types
+ * @param <T> the type used to identify external data types
  * @noimplement non-public API
  * @noreference non-public API
  */
-public interface MultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T> {
+public interface TableTransformationFactory<T> {
 
     /**
-     * Creates a {@link StagedMultiTableRead} for the provided parameters.</br>
-     * Note that a {@link TableSpecConfig} stored in {@link MultiTableReadConfig} will be ignored i.e. the table spec is
-     * always calculated.
+     * Creates a {@link TableTransformation} by adapting {@link TableTransformation existingModel} to the new
+     * {@link RawSpec}.
      *
-     * @param sourceGroup the {@link SourceGroup} to read from
-     * @param config contains the user configuration
-     * @param exec used to monitor the spec creation
-     * @return a {@link StagedMultiTableRead} for the provided parameters
-     * @throws IOException if an {@link IOException} occurs while creating the table spec
+     * @param newRawSpec the new {@link RawSpec}
+     * @param existingTransformation to adapt
+     * @return anversion of {@link TableTransformation existingModel} that is adapted to {@link RawSpec newRawSpec}
      */
-    StagedMultiTableRead<I, T> create(SourceGroup<I> sourceGroup, MultiTableReadConfig<C> config, ExecutionMonitor exec)
-        throws IOException;
+    TableTransformation<T> createFromExisting(final RawSpec<T> newRawSpec,
+        final TableTransformation<T> existingTransformation);
 
     /**
-     * Creates a {@link StagedMultiTableRead} for the given {@link SourceGroup} with the {@link TableSpecConfig} stored
-     * in the provided {@link MultiTableReadConfig}. This means that {@link MultiTableReadConfig config} MUST have been
-     * configured for {@link SourceGroup sourceGroup}! The specs aren't recalculated and the configured
-     * {@link TableTransformation} is used by default.
+     * Creates a new {@link TableTransformation} based on the provided {@link RawSpec} and {@link MultiTableReadConfig
+     * config}.
      *
-     * @param sourceGroup the {@link SourceGroup} to read from
-     * @param config user provided {@link MultiTableReadConfig}
-     * @return a {@link MultiTableRead} for reading the tables from the given items
+     * @param rawSpec the {@link RawSpec} for which to create the transformation
+     * @param config for creation
+     * @return a new {@link TableTransformation}
      */
-    StagedMultiTableRead<I, T> createFromConfig(SourceGroup<I> sourceGroup, MultiTableReadConfig<C> config);
+    TableTransformation<T> createNew(final RawSpec<T> rawSpec, final MultiTableReadConfig<?> config);
 
 }

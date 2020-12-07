@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
+import static org.knime.filehandling.core.node.table.reader.util.MultiTableUtils.transformToString;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +58,7 @@ import java.util.function.Supplier;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
@@ -70,6 +73,7 @@ import org.knime.filehandling.core.node.table.reader.type.mapping.DefaultTypeMap
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.TableTransformationFactory;
 
 /**
  * Default implementation of a {@link StagedMultiTableRead}.
@@ -83,7 +87,7 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  * @noreference non-public API
  * @noextend non-public API
  */
-public final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T, V>
+final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T, V>
     implements StagedMultiTableRead<I, T> {
 
     private final Map<I, TypedReaderTableSpec<T>> m_individualSpecs;
@@ -96,9 +100,9 @@ public final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig
 
     private final Supplier<ReadAdapter<T, V>> m_readAdapterSupplier;
 
-    private final TableReadConfig<C> m_tableReadConfig;
+    private final MultiTableReadConfig<C> m_config;
 
-    private final TableTransformation<T> m_defaultTransformation;
+    private final TableTransformationFactory<T> m_tableTransformationFactory;
 
     private final GenericTableReader<I, C, T, V> m_reader;
 
@@ -109,47 +113,71 @@ public final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig
      * @param sourceGroup the {@link SourceGroup} to read from
      * @param individualSpecs individuals specs
      * @param rowKeyGenFactory {@link GenericRowKeyGeneratorContextFactory}
+     * @param rawSpec the {@link RawSpec}
      * @param readAdapterSupplier {@link ReadAdapter} supplier
-     * @param defaultTransformation {@link TableTransformation}
-     * @param tableReadConfig {@link TableReadConfig}
+     * @param tableTransformationFactory for creating a default {@link TableTransformation} if necessary
+     * @param config the {@link MultiTableReadConfig} for this read process
      */
-    protected DefaultStagedMultiTableRead(final GenericTableReader<I, C, T, V> reader, final SourceGroup<I> sourceGroup,
+    DefaultStagedMultiTableRead(final GenericTableReader<I, C, T, V> reader, final SourceGroup<I> sourceGroup,
         final Map<I, TypedReaderTableSpec<T>> individualSpecs,
-        final GenericRowKeyGeneratorContextFactory<I, V> rowKeyGenFactory,
-        final Supplier<ReadAdapter<T, V>> readAdapterSupplier, final TableTransformation<T> defaultTransformation,
-        final TableReadConfig<C> tableReadConfig) {
-        m_rawSpec = defaultTransformation.getRawSpec();
+        final GenericRowKeyGeneratorContextFactory<I, V> rowKeyGenFactory, final RawSpec<T> rawSpec,
+        final Supplier<ReadAdapter<T, V>> readAdapterSupplier,
+        final TableTransformationFactory<T> tableTransformationFactory, final MultiTableReadConfig<C> config) {
+        m_rawSpec = rawSpec;
         m_sourceGroup = sourceGroup;
         m_individualSpecs = individualSpecs;
         m_rowKeyGenFactory = rowKeyGenFactory;
-        m_tableReadConfig = tableReadConfig;
-        m_defaultTransformation = defaultTransformation;
+        m_config = config;
+        m_tableTransformationFactory = tableTransformationFactory;
         m_reader = reader;
         m_readAdapterSupplier = readAdapterSupplier;
     }
 
     @Override
     public MultiTableRead withoutTransformation(final SourceGroup<I> sourceGroup) {
-        return withTransformation(sourceGroup, m_defaultTransformation);
+        if (m_config.hasTableSpecConfig()) {
+            final TableSpecConfig tableSpecConfig = m_config.getTableSpecConfig();
+            final TableTransformation<T> configuredTransformation = tableSpecConfig.getTransformationModel();
+            if (tableSpecConfig.isConfiguredWith(transformToString(sourceGroup))) {
+                return createMultiTableRead(sourceGroup, configuredTransformation, m_config.getTableReadConfig(),
+                    tableSpecConfig);
+            } else {
+                final TableTransformation<T> adaptedTransformation =
+                    m_tableTransformationFactory.createFromExisting(m_rawSpec, configuredTransformation);
+                return withTransformation(sourceGroup, adaptedTransformation);
+            }
+        } else {
+            final TableTransformation<T> newTransformation =
+                m_tableTransformationFactory.createNew(m_rawSpec, m_config);
+            return withTransformation(sourceGroup, newTransformation);
+        }
     }
+
 
     @Override
     public MultiTableRead withTransformation(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel) {
+        final TableReadConfig<C> tableReadConfig = m_config.getTableReadConfig();
         final TableSpecConfig tableSpecConfig = DefaultTableSpecConfig
             .createFromTransformationModel(m_sourceGroup.getID(), m_individualSpecs, transformationModel);
-        return new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, m_tableReadConfig), () -> {
-            IndividualTableReaderFactory<I, T, V> factory =
-                createIndividualTableReaderFactory(transformationModel);
+        return createMultiTableRead(sourceGroup, transformationModel, tableReadConfig, tableSpecConfig);
+    }
+
+    private DefaultMultiTableRead<I, V> createMultiTableRead(final SourceGroup<I> sourceGroup,
+        final TableTransformation<T> transformationModel, final TableReadConfig<C> tableReadConfig,
+        final TableSpecConfig tableSpecConfig) {
+        return new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, tableReadConfig), () -> {
+            IndividualTableReaderFactory<I, T, V> factory = createIndividualTableReaderFactory(transformationModel);
             return factory::create;
         }, tableSpecConfig, TableTransformationUtils.toDataTableSpec(transformationModel));
     }
 
     private IndividualTableReaderFactory<I, T, V>
         createIndividualTableReaderFactory(final TableTransformation<T> transformationModel) {
-        return new IndividualTableReaderFactory<>(m_individualSpecs, m_tableReadConfig,
+        final TableReadConfig<C> tableReadConfig = m_config.getTableReadConfig();
+        return new IndividualTableReaderFactory<>(m_individualSpecs, tableReadConfig,
             TableTransformationUtils.getOutputTransformations(transformationModel), this::createTypeMapper,
-            m_rowKeyGenFactory.createContext(m_tableReadConfig));
+            m_rowKeyGenFactory.createContext(tableReadConfig));
     }
 
     private Read<I, V> createRead(final I path, final TableReadConfig<C> config) throws IOException {
@@ -162,7 +190,7 @@ public final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig
 
     private TypeMapper<V> createTypeMapper(final ProductionPath[] prodPaths, final FileStoreFactory fsFactory) {
         return new DefaultTypeMapper<>(m_readAdapterSupplier.get(), prodPaths, fsFactory,
-            m_tableReadConfig.getReaderSpecificConfig());
+            m_config.getTableReadConfig().getReaderSpecificConfig());
     }
 
     @Override

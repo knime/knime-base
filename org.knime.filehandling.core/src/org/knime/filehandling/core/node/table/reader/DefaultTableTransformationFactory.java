@@ -70,6 +70,7 @@ import org.knime.filehandling.core.node.table.reader.selector.TableTransformatio
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
+import org.knime.filehandling.core.node.table.reader.util.TableTransformationFactory;
 
 /**
  * Takes a {@link RawSpec} and a {@link MultiTableReadConfig} and creates a {@link TableTransformation} compatible with
@@ -96,7 +97,7 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class TableTransformationFactory<T> {
+final class DefaultTableTransformationFactory<T> implements TableTransformationFactory<T> {
 
     private static final String ENFORCE_TYPES_ERROR =
         "The column '%s' can't be converted to the configured data type '%s'. "
@@ -104,58 +105,12 @@ final class TableTransformationFactory<T> {
 
     private final ProductionPathProvider<T> m_prodPathProvider;
 
-    TableTransformationFactory(final ProductionPathProvider<T> productionPathProvider) {
+    DefaultTableTransformationFactory(final ProductionPathProvider<T> productionPathProvider) {
         m_prodPathProvider = productionPathProvider;
     }
 
-    TableTransformation<T> create(final RawSpec<T> rawSpec, final MultiTableReadConfig<?> config) {
-        if (config.hasTableSpecConfig()) {
-            final TableTransformation<T> configuredTransformationModel =
-                config.getTableSpecConfig().getTransformationModel();
-            return createFromExisting(rawSpec, configuredTransformationModel);
-        } else {
-            return createDefaultTransformationModel(rawSpec, config);
-        }
-    }
-
-    private TableTransformation<T> createDefaultTransformationModel(final RawSpec<T> rawSpec,
-        final MultiTableReadConfig<?> config) {
-        // there is no TableSpecConfig (e.g. when the dialog was saved with a then invalid path)
-        // so we need to fallback to the old SpecMergeMode if available or default to UNION
-        @SuppressWarnings("deprecation")
-        final ColumnFilterMode columnFilterMode = config.getSpecMergeMode() == SpecMergeMode.INTERSECTION
-            ? ColumnFilterMode.INTERSECTION : ColumnFilterMode.UNION;
-        if (columnFilterMode == ColumnFilterMode.INTERSECTION) {
-            CheckUtils.checkArgument(rawSpec.getIntersection().size() > 0, "The intersection of all specs is empty.");
-        }
-        final TypedReaderTableSpec<T> union = rawSpec.getUnion();
-        final List<ColumnTransformation<T>> transformations = new ArrayList<>(union.size());
-        int idx = 0;
-        final ColumnTransformationFactory transformationFactory = new ColumnTransformationFactory(true, true);
-        for (TypedReaderColumnSpec<T> column : union) {
-            transformations.add(transformationFactory.createNew(column, idx));
-            idx++;
-        }
-        // defaulting enforceTypes to true is save because this transformation is only stored for the Table Manipulator
-        // which is a new node in 4.3. Reader nodes don't store the transformation created here.
-        return new DefaultTableTransformation<>(rawSpec, transformations, columnFilterMode, true,
-            transformations.size(), true);
-    }
-
-    private int calculateNewPosForUnknown(final Collection<ColumnTransformation<T>> relevantTransformations,
-        final int storedPositionForUnknown) {
-        // relevantTransformations are sorted by position so we can iterate over them to find the new insert position
-        int idx = 0;
-        for (ColumnTransformation<T> transformation : relevantTransformations) {
-            if (transformation.getPosition() >= storedPositionForUnknown) {
-                return idx;
-            }
-            idx++;
-        }
-        return idx;
-    }
-
-    private TableTransformation<T> createFromExisting(final RawSpec<T> newRawSpec,
+    @Override
+    public TableTransformation<T> createFromExisting(final RawSpec<T> newRawSpec,
         final TableTransformation<T> existingModel) {
         final ColumnFilterMode colFilterMode = existingModel.getColumnFilterMode();
         // The columns that are potentially in the output i.e. the union or intersection of all columns
@@ -195,6 +150,19 @@ final class TableTransformationFactory<T> {
             insertUnknownsAt + unknowns.size(), enforceTypes);
     }
 
+    private int calculateNewPosForUnknown(final Collection<ColumnTransformation<T>> relevantTransformations,
+        final int storedPositionForUnknown) {
+        // relevantTransformations are sorted by position so we can iterate over them to find the new insert position
+        int idx = 0;
+        for (ColumnTransformation<T> transformation : relevantTransformations) {
+            if (transformation.getPosition() >= storedPositionForUnknown) {
+                return idx;
+            }
+            idx++;
+        }
+        return idx;
+    }
+
     private List<ColumnTransformation<T>> createColumnTransformations(
         final LinkedHashMap<String, TypedReaderColumnSpec<T>> relevantColumns,
         final LinkedHashMap<String, ColumnTransformation<T>> relevantTransformations, final int insertUnknownsAt,
@@ -222,6 +190,31 @@ final class TableTransformationFactory<T> {
             newTransformations.add(transformationFactory.adaptExisting(newSpec, existingTransformation, idx));
         }
         return newTransformations;
+    }
+
+    @Override
+    public TableTransformation<T> createNew(final RawSpec<T> rawSpec,
+        final MultiTableReadConfig<?> config) {
+        // there is no TableSpecConfig (e.g. when the dialog was saved with a then invalid path)
+        // so we need to fallback to the old SpecMergeMode if available or default to UNION
+        @SuppressWarnings("deprecation")
+        final ColumnFilterMode columnFilterMode = config.getSpecMergeMode() == SpecMergeMode.INTERSECTION
+            ? ColumnFilterMode.INTERSECTION : ColumnFilterMode.UNION;
+        if (columnFilterMode == ColumnFilterMode.INTERSECTION) {
+            CheckUtils.checkArgument(rawSpec.getIntersection().size() > 0, "The intersection of all specs is empty.");
+        }
+        final TypedReaderTableSpec<T> union = rawSpec.getUnion();
+        final List<ColumnTransformation<T>> transformations = new ArrayList<>(union.size());
+        int idx = 0;
+        final ColumnTransformationFactory transformationFactory = new ColumnTransformationFactory(true, true);
+        for (TypedReaderColumnSpec<T> column : union) {
+            transformations.add(transformationFactory.createNew(column, idx));
+            idx++;
+        }
+        // defaulting enforceTypes to true is save because this transformation is only stored for the Table Manipulator
+        // which is a new node in 4.3. Reader nodes don't store the transformation created here.
+        return new DefaultTableTransformation<>(rawSpec, transformations, columnFilterMode, true,
+            transformations.size(), true);
     }
 
     private class ColumnTransformationFactory {
