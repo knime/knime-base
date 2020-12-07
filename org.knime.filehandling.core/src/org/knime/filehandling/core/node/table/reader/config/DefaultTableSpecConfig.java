@@ -298,7 +298,8 @@ public final class DefaultTableSpecConfig implements TableSpecConfig {
      * @param <T> the type used to identify external types
      * @return the raw spec
      */
-    private <T> RawSpec<T> getRawSpec() {
+    @Override
+    public <T> RawSpec<T> getRawSpec() {
         final DataTableSpec rawKnimeSpec = m_dataTableSpec;
         final ProductionPath[] productionPaths = m_prodPaths;
         assert rawKnimeSpec

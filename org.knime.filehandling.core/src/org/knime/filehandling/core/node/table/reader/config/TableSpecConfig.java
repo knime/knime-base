@@ -56,6 +56,7 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
 
@@ -74,6 +75,12 @@ public interface TableSpecConfig {
      * @return the {@link TableTransformation}
      */
     <T> TableTransformation<T> getTransformationModel();
+
+    /**
+     * @param <T> the type used to identify external types
+     * @return the {@link RawSpec} this config has been created with
+     */
+    <T> RawSpec<T> getRawSpec();
 
     /**
      * Returns {@code true} if this config has been created with the provided <b>rootItem</b> and {@link List} of

@@ -181,11 +181,13 @@ public class DefaultMultiTableReadFactoryTest {
     @SuppressWarnings({"rawtypes", "unchecked"}) // otherwise Mockito won't work
     @Test
     public void testCreateFromConfig() {
-        TableTransformation transformationModel = mock(TableTransformation.class);
+        TableTransformation transformationModel = mock(TableTransformation.class);// NOSONAR
         when(transformationModel.getRawSpec()).thenReturn(RAW_SPEC);
 
         final TableSpecConfig tsc = mock(TableSpecConfig.class);
         when(tsc.getTransformationModel()).thenReturn(transformationModel);
+        final RawSpec rawRawSpec = RAW_SPEC;// NOSONAR, necessary to make Mockito work its magic
+        when(tsc.getRawSpec()).thenReturn(rawRawSpec);
 
         when(m_config.getTableSpecConfig()).thenReturn(tsc);
 

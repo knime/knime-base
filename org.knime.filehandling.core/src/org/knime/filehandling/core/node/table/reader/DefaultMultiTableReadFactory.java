@@ -178,9 +178,7 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         final MultiTableReadConfig<C> config) {
         final TableSpecConfig tableSpecConfig = config.getTableSpecConfig();
         final Map<I, TypedReaderTableSpec<T>> individualSpecs = getIndividualSpecs(sourceGroup, tableSpecConfig);
-        final TableTransformation<T> configuredTransformationModel = tableSpecConfig.getTransformationModel();
-        // TODO TableSpecConfig#getRawSpec()?
-        return createStagedMultiTableRead(sourceGroup, configuredTransformationModel.getRawSpec(), individualSpecs,
+        return createStagedMultiTableRead(sourceGroup, tableSpecConfig.getRawSpec(), individualSpecs,
             config);
     }
 
