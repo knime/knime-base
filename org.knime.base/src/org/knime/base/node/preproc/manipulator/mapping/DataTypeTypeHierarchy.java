@@ -52,10 +52,16 @@ import org.knime.core.data.DataType;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
+ * {@link TypeHierarchy} used by the Table Manipulator node.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public class DataTypeTypeHierarchy implements TypeHierarchy<DataType, DataType> {
+public enum DataTypeTypeHierarchy implements TypeHierarchy<DataType, DataType> {
+
+    /**
+     * The singleton instance.
+     */
+    INSTANCE;
 
     static class DataTypeResolver implements TypeResolver<DataType, DataType> {
 

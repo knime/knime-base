@@ -140,8 +140,7 @@ final class TableManipulatorNodeModel extends NodeModel {
     static DefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> createReadFactory() {
         final ReadAdapterFactory<DataType, DataValue> readAdapterFactory = DataValueReadAdapterFactory.INSTANCE;
         final ProductionPathProvider<DataType> productionPathProvider = createProductionPathProvider();
-        // TODO why create a new hierarchy?
-        return new DefaultMultiTableReadFactory<>(new DataTypeTypeHierarchy(),
+        return new DefaultMultiTableReadFactory<>(DataTypeTypeHierarchy.INSTANCE,
             new DefaultRowKeyGeneratorContextFactory<>(DataValue::toString, "Table"), new RowInputTableReader(),
             productionPathProvider, readAdapterFactory::createReadAdapter);
     }

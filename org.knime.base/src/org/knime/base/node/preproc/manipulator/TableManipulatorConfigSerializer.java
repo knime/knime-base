@@ -106,7 +106,7 @@ enum TableManipulatorConfigSerializer implements
             try {
                 config.setTableSpecConfig(
                     TABLE_SPEC_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), null));
-            } catch (InvalidSettingsException ex) {
+            } catch (InvalidSettingsException ex) { // NOSONAR, see below
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
                  * exception does not occur.
