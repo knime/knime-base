@@ -60,8 +60,9 @@ import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type used to identify external data types
  */
-public interface MultiTableRead {
+public interface MultiTableRead<T> {
 
     /**
      * Returns the {@link DataTableSpec} of the currently read table.
@@ -75,7 +76,7 @@ public interface MultiTableRead {
      *
      * @return the {@link TableSpecConfig}
      */
-    TableSpecConfig getTableSpecConfig();
+    TableSpecConfig<T> getTableSpecConfig();
 
     /**
      * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.

@@ -83,11 +83,11 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>> extends NodeModel {
+final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> extends NodeModel {
 
     static final int FS_INPUT_PORT = 0;
 
-    private final StorableMultiTableReadConfig<C> m_config;
+    private final StorableMultiTableReadConfig<C, T> m_config;
 
     private final SourceSettings<I> m_sourceSettings;
 
@@ -98,7 +98,7 @@ final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>> extends N
      * A supplier is used to avoid any issues should this node model ever be used in parallel. However, this also means
      * that the specs are recalculated for each generated reader.
      */
-    private final MultiTableReader<I, C> m_tableReader;
+    private final MultiTableReader<I, C, T> m_tableReader;
 
     /**
      * Constructs a node model with no inputs and one output.
@@ -107,8 +107,8 @@ final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>> extends N
      * @param pathSettingsModel storing the paths selected by the user
      * @param tableReader reader for reading tables
      */
-    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C> config,
-        final SourceSettings<I> pathSettingsModel, final MultiTableReader<I, C> tableReader) {
+    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C, T> config,
+        final SourceSettings<I> pathSettingsModel, final MultiTableReader<I, C, T> tableReader) {
         super(0, 1);
         m_config = config;
         m_sourceSettings = pathSettingsModel;
@@ -123,8 +123,8 @@ final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>> extends N
      * @param tableReader reader for reading tables
      * @param portsConfig determines the in and outports.
      */
-    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C> config,
-        final SourceSettings<I> pathSettingsModel, final MultiTableReader<I, C> tableReader,
+    protected TableReaderNodeModel(final StorableMultiTableReadConfig<C, T> config,
+        final SourceSettings<I> pathSettingsModel, final MultiTableReader<I, C, T> tableReader,
         final PortsConfiguration portsConfig) {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_config = config;

@@ -119,7 +119,7 @@ public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory
     }
 
     @Override
-    protected DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>>
+    protected DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>>
         createConfig(final NodeCreationConfiguration nodeCreationConfig) {
         final DefaultTableReadConfig<LineReaderConfig2> tc = new DefaultTableReadConfig<>(new LineReaderConfig2());
         return new DefaultMultiTableReadConfig<>(tc, LineReaderMultiTableReadConfigSerializer.INSTANCE);

@@ -111,7 +111,7 @@ public class DefaultMultiTableReadFactoryTest {
     private RowKeyGenerator<String> m_rowKeyGen;
 
     @Mock
-    private MultiTableReadConfig<DummyReaderSpecificConfig> m_config;
+    private MultiTableReadConfig<DummyReaderSpecificConfig, String> m_config;
 
     @Mock
     private DummyReaderSpecificConfig m_readerSpecificConfig;

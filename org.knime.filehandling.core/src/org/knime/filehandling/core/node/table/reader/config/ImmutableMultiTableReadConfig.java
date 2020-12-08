@@ -59,13 +59,14 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig}
+ * @param <T> the type used to identify external data types
  */
-public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>>
-    implements MultiTableReadConfig<C> {
+public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
+    implements MultiTableReadConfig<C, T> {
 
     private final ImmutableTableReadConfig<C> m_tableReadConfig;
 
-    private final TableSpecConfig m_tableSpecConfig;
+    private final TableSpecConfig<T> m_tableSpecConfig;
 
     private final boolean m_failOnDifferingSpecs;
 
@@ -76,7 +77,7 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>>
      * Constructor.
      * @param multiTableReadConfig {@link MultiTableReadConfig}
      */
-    public ImmutableMultiTableReadConfig(final MultiTableReadConfig<C> multiTableReadConfig) {
+    public ImmutableMultiTableReadConfig(final MultiTableReadConfig<C, T> multiTableReadConfig) {
         CheckUtils.checkArgumentNotNull(multiTableReadConfig, "The multiTableReadConfig parameter must not be null");
         m_tableReadConfig = new ImmutableTableReadConfig<>(multiTableReadConfig.getTableReadConfig());
         m_tableSpecConfig =
@@ -98,12 +99,12 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>>
     }
 
     @Override
-    public TableSpecConfig getTableSpecConfig() {
+    public TableSpecConfig<T> getTableSpecConfig() {
         return m_tableSpecConfig;
     }
 
     @Override
-    public void setTableSpecConfig(final TableSpecConfig config) {
+    public void setTableSpecConfig(final TableSpecConfig<T> config) {
         throw new UnsupportedOperationException("ImmutableMultiTableReadConfigs can't be mutated.");
     }
 

@@ -59,28 +59,28 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
  * Configuration storing all the information needed to create a {@link DataTableSpec}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type used to identify external data types
  */
-public interface TableSpecConfig {
+public interface TableSpecConfig<T> {
 
     /**
      * Returns the {@link TableTransformation} that allows to map the raw spec to the final KNIME spec.
      *
-     * @param <T> the type used to identify external types
      * @return the {@link TableTransformation}
      */
-    <T> TableTransformation<T> getTransformationModel();
+    TableTransformation<T> getTransformationModel();
 
     /**
-     * @param <T> the type used to identify external types
      * @return the {@link RawSpec} this config has been created with
      */
-    <T> RawSpec<T> getRawSpec();
+    RawSpec<T> getRawSpec();
 
     /**
      * Returns {@code true} if this config has been created with the provided <b>rootItem</b> and {@link List} of
@@ -121,7 +121,7 @@ public interface TableSpecConfig {
      * @param item the item identifying the {@link ReaderTableSpec}
      * @return the associated {@link ReaderTableSpec}
      */
-    ReaderTableSpec<?> getSpec(String item);//NOSONAR
+    TypedReaderTableSpec<T> getSpec(String item);//NOSONAR
 
     /**
      * Returns the {@link ProductionPath ProductionPaths} used to map the individual columns to their corresponding

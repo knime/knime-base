@@ -129,14 +129,14 @@ public class DefaultMultiTableReadTest {
     private ExecutionMonitor m_exec;
 
     @Mock
-    private TableSpecConfig m_tableSpecConfig;
+    private TableSpecConfig<String> m_tableSpecConfig;
 
     @Mock
     private SourceGroup<String> m_sourceGroup;
 
     private DataTableSpec m_outputSpec;
 
-    private DefaultMultiTableRead<String, String> m_testInstance;
+    private DefaultMultiTableRead<String, String, String> m_testInstance;
 
     private void stubReadFn() throws IOException {
         Read<String, String> read1 = mockRead(TEST_TABLE[0], TEST_TABLE[1]);

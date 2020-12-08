@@ -91,7 +91,7 @@ public abstract class AbstractCSVTableReaderNodeFactory
     }
 
     @Override
-    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>>
+    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>>
         createConfig(final NodeCreationConfiguration nodeCreationConfig) {
         final DefaultTableReadConfig<CSVTableReaderConfig> tc =
             new DefaultTableReadConfig<>(new CSVTableReaderConfig());

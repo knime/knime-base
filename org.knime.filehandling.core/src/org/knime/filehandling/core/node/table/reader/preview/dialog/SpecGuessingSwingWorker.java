@@ -91,7 +91,7 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
 
     private final MultiTableReadFactory<I, C, T> m_reader;
 
-    private final MultiTableReadConfig<C> m_config;
+    private final MultiTableReadConfig<C, T> m_config;
 
     private final AnalysisComponentModel m_analysisComponent;
 
@@ -112,7 +112,7 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
      * @param exceptionConsumer consumer for any exception thrown during execution
      */
     public SpecGuessingSwingWorker(final MultiTableReadFactory<I, C, T> reader, final SourceGroup<I> sourceGroup,
-        final ImmutableMultiTableReadConfig<C> config, final AnalysisComponentModel analysisComponent,
+        final ImmutableMultiTableReadConfig<C, T> config, final AnalysisComponentModel analysisComponent,
         final Consumer<StagedMultiTableRead<I, T>> resultConsumer,
         final Consumer<ExecutionException> exceptionConsumer) {
         m_sourceGroup = sourceGroup;

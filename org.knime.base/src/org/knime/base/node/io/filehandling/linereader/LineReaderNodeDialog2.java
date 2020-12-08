@@ -128,7 +128,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
 
     private final CharsetNamePanel m_encodingPanel;
 
-    private final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>> m_config;
+    private final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>> m_config;
 
     private final PathSettings m_pathSettings;
 
@@ -141,7 +141,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
      * @param productionPathProvider the {@link ProductionPathProvider}
      */
     LineReaderNodeDialog2(final PathSettings pathSettings,
-        final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>> config,
+        final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>> config,
         final MultiTableReadFactory<Path, LineReaderConfig2, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(multiReader, productionPathProvider, true);
@@ -149,8 +149,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         final SettingsModelReaderFileChooser fileChooserModel = (SettingsModelReaderFileChooser)pathSettings;
         final FlowVariableModel sourceFvm = createFlowVariableModel(
             Stream.concat(Stream.of(SettingsUtils.CFG_SETTINGS_TAB),
-                Arrays.stream(fileChooserModel.getKeysForFSLocation()))
-                .toArray(String[]::new),
+                Arrays.stream(fileChooserModel.getKeysForFSLocation())).toArray(String[]::new),
             FSLocationSpecVariableType.INSTANCE);
 
         m_config = config;
@@ -445,7 +444,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
     }
 
     @Override
-    protected MultiTableReadConfig<LineReaderConfig2> getConfig() throws InvalidSettingsException {
+    protected MultiTableReadConfig<LineReaderConfig2, Class<?>> getConfig() throws InvalidSettingsException {
         m_config.setFailOnDifferingSpecs(m_failOnDiffSpecs.isSelected());
         saveTableReadSettings(m_config.getTableReadConfig());
         saveLineReaderSettings(m_config.getTableReadConfig().getReaderSpecificConfig());

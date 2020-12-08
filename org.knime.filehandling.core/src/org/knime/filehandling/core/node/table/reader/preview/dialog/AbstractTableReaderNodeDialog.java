@@ -243,7 +243,7 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      *
      * @param tableSpecConfig to load from
      */
-    protected final void loadFromTableSpecConfig(final TableSpecConfig tableSpecConfig) {
+    protected final void loadFromTableSpecConfig(final TableSpecConfig<T> tableSpecConfig) {
         final TableTransformation<T> transformationModel = tableSpecConfig.getTransformationModel();
         m_coordinator.load(transformationModel);
     }
@@ -282,7 +282,7 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      *
      * @return the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available
      */
-    protected final TableSpecConfig getTableSpecConfig() {
+    protected final TableSpecConfig<T> getTableSpecConfig() {
         return m_coordinator.getTableSpecConfig();
     }
 
@@ -295,7 +295,7 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      * @return the current configuration
      * @throws InvalidSettingsException if the settings are invalid
      */
-    protected abstract MultiTableReadConfig<C> getConfig() throws InvalidSettingsException;
+    protected abstract MultiTableReadConfig<C, T> getConfig() throws InvalidSettingsException;
 
     /**
      * Creates a <b>new</b> {@link GenericItemAccessor} that corresponds to the current file selection.</br>

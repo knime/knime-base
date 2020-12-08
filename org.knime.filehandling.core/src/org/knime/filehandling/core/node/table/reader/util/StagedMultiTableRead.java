@@ -73,7 +73,7 @@ public interface StagedMultiTableRead<I, T> {
      * @param sourceGroup the {@link SourceGroup} to read from
      * @return a {@link MultiTableRead} that uses the defaults
      */
-    MultiTableRead withoutTransformation(final SourceGroup<I> sourceGroup);
+    MultiTableRead<T> withoutTransformation(final SourceGroup<I> sourceGroup);
 
     /**
      * Creates a {@link MultiTableRead} using the given {@link TableTransformation}.<br>
@@ -84,7 +84,7 @@ public interface StagedMultiTableRead<I, T> {
      * @param selectorModel specifies the type mapping, column renaming, filtering and reordering
      * @return a {@link MultiTableRead} using the provided {@link TableTransformation}
      */
-    MultiTableRead withTransformation(final SourceGroup<I> sourceGroup, TableTransformation<T> selectorModel);
+    MultiTableRead<T> withTransformation(final SourceGroup<I> sourceGroup, TableTransformation<T> selectorModel);
 
     /**
      * Returns the raw {@link ReaderTableSpec} consisting of {@link TypedReaderColumnSpec}. Raw means before any type

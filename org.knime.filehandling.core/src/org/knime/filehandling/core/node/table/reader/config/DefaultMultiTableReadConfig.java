@@ -62,13 +62,14 @@ import org.knime.core.node.port.PortObjectSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig} used by the node implementation
  * @param <TC> the type of {@link TableReadConfig} used by the node implementation
+ * @param <T> the type used to identify external data types
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
-    extends AbstractMultiTableReadConfig<C, TC> implements StorableMultiTableReadConfig<C> {
+public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T>
+    extends AbstractMultiTableReadConfig<C, TC, T> implements StorableMultiTableReadConfig<C, T> {
 
-    private final ConfigSerializer<DefaultMultiTableReadConfig<C, TC>> m_serializer;
+    private final ConfigSerializer<DefaultMultiTableReadConfig<C, TC, T>> m_serializer;
 
     /**
      * Constructor.
@@ -77,7 +78,7 @@ public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>
      * @param serializer for loading/saving/validating the config
      */
     public DefaultMultiTableReadConfig(final TC tableReadConfig,
-        final ConfigSerializer<DefaultMultiTableReadConfig<C, TC>> serializer) {
+        final ConfigSerializer<DefaultMultiTableReadConfig<C, TC, T>> serializer) {
         super(tableReadConfig);
         m_serializer = serializer;
     }
@@ -94,13 +95,13 @@ public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>
      * @param mostGenericExternalType the identifier for the most generic external type
      * @return a {@link DefaultMultiTableReadConfig} with default serialization
      */
-    public static <C extends ReaderSpecificConfig<C>> DefaultMultiTableReadConfig<C, DefaultTableReadConfig<C>>
+    public static <C extends ReaderSpecificConfig<C>, T> DefaultMultiTableReadConfig<C, DefaultTableReadConfig<C>, T>
         create(final C readerSpecificConfig, final ConfigSerializer<C> specificConfigSerializer,
-            final ProducerRegistry<?, ?> producerRegistry, final Object mostGenericExternalType) {
+            final ProducerRegistry<?, ?> producerRegistry, final T mostGenericExternalType) {
         final DefaultTableReadConfig<C> tc = new DefaultTableReadConfig<>(readerSpecificConfig);
         final DefaultTableReadConfigSerializer<C> tcSerializer =
             new DefaultTableReadConfigSerializer<>(specificConfigSerializer);
-        final DefaultMultiTableReadConfigSerializer<C, DefaultTableReadConfig<C>> serializer =
+        final DefaultMultiTableReadConfigSerializer<C, DefaultTableReadConfig<C>, T> serializer =
             new DefaultMultiTableReadConfigSerializer<>(tcSerializer, producerRegistry, mostGenericExternalType);
         return new DefaultMultiTableReadConfig<>(tc, serializer);
     }

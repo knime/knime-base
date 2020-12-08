@@ -89,7 +89,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
 
     private final ObservableTransformationModelProvider<T> m_transformationModel;
 
-    private final CheckedExceptionSupplier<MultiTableReadConfig<C>, InvalidSettingsException> m_configSupplier;
+    private final CheckedExceptionSupplier<MultiTableReadConfig<C, T>, InvalidSettingsException> m_configSupplier;
 
     private final Supplier<GenericItemAccessor<I>> m_readPathAccessorSupplier;
 
@@ -106,7 +106,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
     public TableReaderPreviewTransformationCoordinator(final MultiTableReadFactory<I, C, T> readFactory,
         final ObservableTransformationModelProvider<T> transformationModel,
         final AnalysisComponentModel analysisComponentModel, final TableReaderPreviewModel tableReaderPreviewModel,
-        final CheckedExceptionSupplier<MultiTableReadConfig<C>, InvalidSettingsException> configSupplier,
+        final CheckedExceptionSupplier<MultiTableReadConfig<C, T>, InvalidSettingsException> configSupplier,
         final Supplier<GenericItemAccessor<I>> itemAccessorSupplier) {
         m_readFactory = readFactory;
         m_transformationModel = transformationModel;
@@ -161,7 +161,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
      *
      * @return the {@link TableSpecConfig} for the current settings
      */
-    public TableSpecConfig getTableSpecConfig() {
+    public TableSpecConfig<T> getTableSpecConfig() {
         return m_currentRun != null ? m_currentRun.getTableSpecConfig() : null;
     }
 
@@ -195,7 +195,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
      */
     private class PreviewRun implements AutoCloseable {
 
-        private ImmutableMultiTableReadConfig<C> m_config;
+        private ImmutableMultiTableReadConfig<C, T> m_config;
 
         private SpecGuessingSwingWorker<I, C, T> m_specGuessingWorker = null;
 
@@ -205,7 +205,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
 
         private GenericItemAccessor<I> m_readPathAccessor = null;
 
-        private TableSpecConfig m_currentTableSpecConfig = null;
+        private TableSpecConfig<T> m_currentTableSpecConfig = null;
 
         private final AtomicBoolean m_closed = new AtomicBoolean(false);
 
@@ -213,7 +213,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
 
         private SourceGroup<I> m_sourceGroup;
 
-        PreviewRun(final MultiTableReadConfig<C> config) {
+        PreviewRun(final MultiTableReadConfig<C, T> config) {
             m_config = new ImmutableMultiTableReadConfig<>(config);
             m_readPathAccessor = m_readPathAccessorSupplier.get();
             m_pathAccessWorker = new SourceGroupSwingWorker<>(m_readPathAccessor, this::startSpecGuessingWorker,
@@ -221,7 +221,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
             m_pathAccessWorker.execute();
         }
 
-        TableSpecConfig getTableSpecConfig() {
+        TableSpecConfig<T> getTableSpecConfig() {
             return m_currentTableSpecConfig;
         }
 
@@ -302,7 +302,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
                 return;
             }
             try {
-                final MultiTableRead mtr =
+                final MultiTableRead<T> mtr =
                     m_currentRead.withTransformation(m_sourceGroup, m_transformationModel.getTableTransformation());
                 m_currentTableSpecConfig = mtr.getTableSpecConfig();
                 @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed

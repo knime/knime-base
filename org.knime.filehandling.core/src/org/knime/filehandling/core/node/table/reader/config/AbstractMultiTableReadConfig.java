@@ -58,15 +58,16 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig} used in the node implementation
  * @param <TC> the type of {@link TableReadConfig} used in the node implementation
+ * @param <T> the type used to identify external data types
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
-    implements MultiTableReadConfig<C> {
+public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T>
+    implements MultiTableReadConfig<C, T> {
 
     private final TC m_tableReadConfig;
 
-    private TableSpecConfig m_tableSpecConfig = null;
+    private TableSpecConfig<T> m_tableSpecConfig = null;
 
     private boolean m_failOnDifferingSpecs = true;
 
@@ -107,7 +108,7 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
     }
 
     @Override
-    public TableSpecConfig getTableSpecConfig() {
+    public TableSpecConfig<T> getTableSpecConfig() {
         return m_tableSpecConfig;
     }
 
@@ -117,7 +118,7 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
     }
 
     @Override
-    public void setTableSpecConfig(final TableSpecConfig config) {
+    public void setTableSpecConfig(final TableSpecConfig<T> config) {
         m_tableSpecConfig = config;
     }
 

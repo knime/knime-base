@@ -84,7 +84,7 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * @noextend non-public API
  */
 public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderSpecificConfig<C>, T, V>
-    extends ConfigurableNodeFactory<TableReaderNodeModel<I, C>> {
+    extends ConfigurableNodeFactory<TableReaderNodeModel<I, C, T>> {
 
     /** The file system ports group id. */
     protected static final String FS_CONNECT_GRP_ID = "File System Connection";
@@ -128,10 +128,10 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
     protected abstract TypeHierarchy<T, T> getTypeHierarchy();
 
     @Override
-    public final TableReaderNodeModel<I, C> createNodeModel(final NodeCreationConfiguration creationConfig) {
-        final StorableMultiTableReadConfig<C> config = createConfig(creationConfig);
+    public final TableReaderNodeModel<I, C, T> createNodeModel(final NodeCreationConfiguration creationConfig) {
+        final StorableMultiTableReadConfig<C, T> config = createConfig(creationConfig);
         final SourceSettings<I> pathSettings = createPathSettings(creationConfig);
-        final MultiTableReader<I, C> reader = createMultiTableReader();
+        final MultiTableReader<I, C, T> reader = createMultiTableReader();
         final Optional<? extends PortsConfiguration> portConfig = creationConfig.getPortConfig();
         if (portConfig.isPresent()) {
             return new TableReaderNodeModel<>(config, pathSettings, reader, portConfig.get());
@@ -145,7 +145,7 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
      *
      * @return a new multi table reader
      */
-    private MultiTableReader<I, C> createMultiTableReader() {
+    private MultiTableReader<I, C, T> createMultiTableReader() {
         return new MultiTableReader<>(createMultiTableReadFactory(createReader()));
     }
 
@@ -215,7 +215,7 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
      * @param nodeCreationConfig the {@link NodeCreationConfiguration}
      * @return {@link MultiTableReadConfig} for a node model
      */
-    protected abstract StorableMultiTableReadConfig<C>
+    protected abstract StorableMultiTableReadConfig<C, T>
         createConfig(final NodeCreationConfiguration nodeCreationConfig);
 
     @Override
@@ -224,8 +224,8 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
     }
 
     @Override
-    public final NodeView<TableReaderNodeModel<I, C>> createNodeView(final int viewIndex,
-        final TableReaderNodeModel<I, C> nodeModel) {
+    public final NodeView<TableReaderNodeModel<I, C, T>> createNodeView(final int viewIndex,
+        final TableReaderNodeModel<I, C, T> nodeModel) {
         return null;
     }
 

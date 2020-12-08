@@ -89,13 +89,13 @@ public class MultiTableReaderTest {
     private StagedMultiTableRead<String, String> m_stagedMultiTableRead = null;
 
     @Mock
-    private MultiTableRead m_multiTableRead = null;
+    private MultiTableRead<String> m_multiTableRead = null;
 
     @Mock
-    private MultiTableReadConfig<DummyReaderSpecificConfig> m_multiReadConfig = null;
+    private MultiTableReadConfig<DummyReaderSpecificConfig, String> m_multiReadConfig = null;
 
     @Mock
-    private TableSpecConfig m_tableSpecConfig = null;
+    private TableSpecConfig<String> m_tableSpecConfig = null;
 
     @Mock
     private SourceGroup<String> m_sourceGroup;
@@ -108,7 +108,7 @@ public class MultiTableReaderTest {
 
     private DataTableSpec m_knimeSpec = null;
 
-    private MultiTableReader<String, DummyReaderSpecificConfig> m_testInstance = null;
+    private MultiTableReader<String, DummyReaderSpecificConfig, String> m_testInstance = null;
 
     /**
      * Sets up the test instance before each unit test.

@@ -68,15 +68,16 @@ import org.knime.filehandling.core.util.CheckedExceptionFunction;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <I> the item type to read from
+ * @param <T> the type used to identify external types
  * @param <V> the type representing values
  * @noreference non-public API
  * @noextend non-public API
  */
-public final class DefaultMultiTableRead<I, V> implements MultiTableRead {
+public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
 
     private final DataTableSpec m_outputSpec;
 
-    private final TableSpecConfig m_tableSpecConfig;
+    private final TableSpecConfig<T> m_tableSpecConfig;
 
     private final SourceGroup<I> m_sourceGroup;
 
@@ -97,7 +98,7 @@ public final class DefaultMultiTableRead<I, V> implements MultiTableRead {
     public DefaultMultiTableRead(final SourceGroup<I> sourceGroup,
         final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> readFn,
         final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>>> individualTableReaderFactorySupplier,
-        final TableSpecConfig tableSpecConfig, final DataTableSpec outputSpec) {
+        final TableSpecConfig<T> tableSpecConfig, final DataTableSpec outputSpec) {
         m_outputSpec = outputSpec;
         m_tableSpecConfig = tableSpecConfig;
         m_readFn = readFn;
@@ -111,7 +112,7 @@ public final class DefaultMultiTableRead<I, V> implements MultiTableRead {
     }
 
     @Override
-    public TableSpecConfig getTableSpecConfig() {
+    public TableSpecConfig<T> getTableSpecConfig() {
         return m_tableSpecConfig;
     }
 

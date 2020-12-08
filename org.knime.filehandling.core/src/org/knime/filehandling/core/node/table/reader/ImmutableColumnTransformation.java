@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
@@ -88,6 +89,25 @@ public final class ImmutableColumnTransformation<T> implements ColumnTransformat
         m_name = name;
     }
 
+    private ImmutableColumnTransformation(final ColumnTransformation<T> columnTransformation) {
+        m_externalSpec = columnTransformation.getExternalSpec();
+        m_productionPath = columnTransformation.getProductionPath();
+        m_keep = columnTransformation.keep();
+        m_position = columnTransformation.getPosition();
+        m_name = columnTransformation.getName();
+    }
+
+    /**
+     * Creates an immutable copy of the provided {@link ColumnTransformation}.
+     *
+     * @param <T> the type used to identify external data types
+     * @param columnTransformation to copy i.e. make immutable
+     * @return an {@link ImmutableColumnTransformation} copy of {@link ColumnTransformation columnTransformation}
+     */
+    public static <T> ImmutableColumnTransformation<T> copy(final ColumnTransformation<T> columnTransformation) {
+        return new ImmutableColumnTransformation<T>(columnTransformation);
+    }
+
     @Override
     public String getName() {
         return m_name;
@@ -115,7 +135,38 @@ public final class ImmutableColumnTransformation<T> implements ColumnTransformat
 
     @Override
     public String toString() {
-        return String.format("{ExternalSpec: %s, name: %s, position: %s, ProductionPath: %s, keep: %s}", m_externalSpec,
-            m_name, m_position, m_productionPath, m_keep);
+        return String.format("{ExternalSpec: %s, name: %s, position: %s, keep: %s}", m_externalSpec,
+            m_name, m_position, m_keep);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (getClass() == obj.getClass()) {
+            @SuppressWarnings("unchecked")
+            final ImmutableColumnTransformation<T> other = (ImmutableColumnTransformation<T>)obj;
+            return m_keep == other.m_keep//
+                && m_position == other.m_position//
+                && m_name.equals(other.m_name)//
+                && m_externalSpec.equals(other.m_externalSpec)//
+                && m_productionPath.equals(other.m_productionPath);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()//
+            .append(m_keep)//
+            .append(m_position)//
+            .append(m_name)//
+            .append(m_externalSpec)//
+            .append(m_productionPath)//
+            .toHashCode();
     }
 }

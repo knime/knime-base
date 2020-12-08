@@ -94,7 +94,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     private JCheckBox m_failOnDifferingSpecs;
 
     CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(fileChooserModel, config, multiReader, productionPathProvider, true);
@@ -113,8 +113,8 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     private JPanel createSpecMergePanel() {
         final JPanel specMergePanel = new JPanel(new GridBagLayout());
-        specMergePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
-            "Options for multiple files"));
+        specMergePanel.setBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options for multiple files"));
         final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridx = 0;

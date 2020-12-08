@@ -64,11 +64,12 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig} used by the reader implementation
  * @param <TC> the type of {@link TableReadConfig} used by the reader implementation
+ * @param <T> the type used to identify external data types
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>>
-    implements ConfigSerializer<DefaultMultiTableReadConfig<C, TC>> {
+public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T>
+    implements ConfigSerializer<DefaultMultiTableReadConfig<C, TC, T>> {
 
     /**
      * Only kept for backwards compatibility with 4.2.</br>
@@ -81,9 +82,9 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
 
     private final ProducerRegistry<?, ?> m_producerRegistry;
 
-    private final Object m_mostGenericExternalType;
-
     private final ConfigSerializer<TC> m_tableReadConfigSerializer;
+
+    private final DefaultTableSpecConfigSerializer<T> m_tableSpecConfigSerializer;
 
     /**
      * Constructor.
@@ -94,22 +95,21 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
      * @param mostGenericExternalType the identifier for the most generic external type
      */
     public DefaultMultiTableReadConfigSerializer(final ConfigSerializer<TC> tableReadConfigSerializer,
-        final ProducerRegistry<?, ?> producerRegistry, final Object mostGenericExternalType) {
+        final ProducerRegistry<?, ?> producerRegistry, final T mostGenericExternalType) {
         m_tableReadConfigSerializer = tableReadConfigSerializer;
         m_producerRegistry = producerRegistry;
-        m_mostGenericExternalType = mostGenericExternalType;
+        m_tableSpecConfigSerializer = new DefaultTableSpecConfigSerializer<>(producerRegistry, mostGenericExternalType);
     }
 
     @Override
-    public void loadInDialog(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsRO settings,
+    public void loadInDialog(final DefaultMultiTableReadConfig<C, TC, T> config, final NodeSettingsRO settings,
         final PortObjectSpec[] specs) throws NotConfigurableException {
         m_tableReadConfigSerializer.loadInDialog(config.getTableReadConfig(),
             SettingsUtils.getOrEmpty(settings, CFG_TABLE_READ_CONFIG), specs);
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
-                config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                    m_producerRegistry, m_mostGenericExternalType, loadSpecMergeMode(settings)));
+                config.setTableSpecConfig(loadTableSpecConfig(settings));
             } catch (InvalidSettingsException ex) {
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -142,20 +142,24 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
     }
 
     @Override
-    public void loadInModel(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsRO settings)
+    public void loadInModel(final DefaultMultiTableReadConfig<C, TC, T> config, final NodeSettingsRO settings)
         throws InvalidSettingsException {
         m_tableReadConfigSerializer.loadInModel(config.getTableReadConfig(), settings);
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            config.setTableSpecConfig(DefaultTableSpecConfig.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                m_producerRegistry, m_mostGenericExternalType, loadSpecMergeMode(settings)));
+            config.setTableSpecConfig(loadTableSpecConfig(settings));
         } else {
             config.setTableSpecConfig(null);
         }
 
     }
 
+    private TableSpecConfig<T> loadTableSpecConfig(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return m_tableSpecConfigSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+            loadSpecMergeMode(settings));
+    }
+
     @Override
-    public void saveInModel(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsWO settings) {
+    public void saveInModel(final DefaultMultiTableReadConfig<C, TC, T> config, final NodeSettingsWO settings) {
         m_tableReadConfigSerializer.saveInModel(config.getTableReadConfig(),
             settings.addNodeSettings(CFG_TABLE_READ_CONFIG));
 
@@ -176,7 +180,7 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
     }
 
     @Override
-    public void saveInDialog(final DefaultMultiTableReadConfig<C, TC> config, final NodeSettingsWO settings)
+    public void saveInDialog(final DefaultMultiTableReadConfig<C, TC, T> config, final NodeSettingsWO settings)
         throws InvalidSettingsException {
         saveInModel(config, settings);
     }

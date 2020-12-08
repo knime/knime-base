@@ -79,7 +79,7 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
     private static final String HISTORY_ID = "simple_file_reader";
 
     SimpleFileReaderNodeDialog(final PathAwareFileHistoryPanel pathSettings,
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(pathSettings, config, multiReader, productionPathProvider, false);

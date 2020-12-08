@@ -82,6 +82,6 @@ public interface TableTransformationFactory<T> {
      * @param config for creation
      * @return a new {@link TableTransformation}
      */
-    TableTransformation<T> createNew(final RawSpec<T> rawSpec, final MultiTableReadConfig<?> config);
+    TableTransformation<T> createNew(final RawSpec<T> rawSpec, final MultiTableReadConfig<?, ?> config);
 
 }

@@ -194,7 +194,7 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
 
     @Override
     public TableTransformation<T> createNew(final RawSpec<T> rawSpec,
-        final MultiTableReadConfig<?> config) {
+        final MultiTableReadConfig<?, ?> config) {
         // there is no TableSpecConfig (e.g. when the dialog was saved with a then invalid path)
         // so we need to fallback to the old SpecMergeMode if available or default to UNION
         @SuppressWarnings("deprecation")

@@ -85,7 +85,7 @@ public interface MultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T> 
      * @return a {@link StagedMultiTableRead} for the provided parameters
      * @throws IOException if an {@link IOException} occurs while creating the table spec
      */
-    StagedMultiTableRead<I, T> create(SourceGroup<I> sourceGroup, MultiTableReadConfig<C> config, ExecutionMonitor exec)
+    StagedMultiTableRead<I, T> create(SourceGroup<I> sourceGroup, MultiTableReadConfig<C, T> config, ExecutionMonitor exec)
         throws IOException;
 
     /**
@@ -98,6 +98,6 @@ public interface MultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T> 
      * @param config user provided {@link MultiTableReadConfig}
      * @return a {@link MultiTableRead} for reading the tables from the given items
      */
-    StagedMultiTableRead<I, T> createFromConfig(SourceGroup<I> sourceGroup, MultiTableReadConfig<C> config);
+    StagedMultiTableRead<I, T> createFromConfig(SourceGroup<I> sourceGroup, MultiTableReadConfig<C, T> config);
 
 }

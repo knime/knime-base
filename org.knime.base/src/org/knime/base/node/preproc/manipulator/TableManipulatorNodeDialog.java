@@ -150,7 +150,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
 
     private boolean m_ignoreEvents = false;
 
-    private final StorableMultiTableReadConfig<TableManipulatorConfig> m_config;
+    private final StorableMultiTableReadConfig<TableManipulatorConfig, DataType> m_config;
 
     private final TableAccessor m_itemAccessor = new TableAccessor(Collections.<Table>emptyList());
 
@@ -426,7 +426,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
      *
      * @return the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available
      */
-    protected final TableSpecConfig getTableSpecConfig() {
+    protected final TableSpecConfig<DataType> getTableSpecConfig() {
         return m_coordinator.getTableSpecConfig();
     }
 
@@ -439,12 +439,12 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
      * @return the current configuration
      * @throws InvalidSettingsException if the settings are invalid
      */
-    protected MultiTableReadConfig<TableManipulatorConfig> getConfig()
+    protected MultiTableReadConfig<TableManipulatorConfig, DataType> getConfig()
             throws InvalidSettingsException{
         return saveAndGetConfig();
     }
 
-    private MultiTableReadConfig<TableManipulatorConfig> saveAndGetConfig() throws InvalidSettingsException {
+    private MultiTableReadConfig<TableManipulatorConfig, DataType> saveAndGetConfig() throws InvalidSettingsException {
         try {
             saveConfig();
         } catch (RuntimeException e) {

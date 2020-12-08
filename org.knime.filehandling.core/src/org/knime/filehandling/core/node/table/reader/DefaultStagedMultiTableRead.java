@@ -100,7 +100,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
 
     private final Supplier<ReadAdapter<T, V>> m_readAdapterSupplier;
 
-    private final MultiTableReadConfig<C> m_config;
+    private final MultiTableReadConfig<C, T> m_config;
 
     private final TableTransformationFactory<T> m_tableTransformationFactory;
 
@@ -122,7 +122,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
         final Map<I, TypedReaderTableSpec<T>> individualSpecs,
         final GenericRowKeyGeneratorContextFactory<I, V> rowKeyGenFactory, final RawSpec<T> rawSpec,
         final Supplier<ReadAdapter<T, V>> readAdapterSupplier,
-        final TableTransformationFactory<T> tableTransformationFactory, final MultiTableReadConfig<C> config) {
+        final TableTransformationFactory<T> tableTransformationFactory, final MultiTableReadConfig<C, T> config) {
         m_rawSpec = rawSpec;
         m_sourceGroup = sourceGroup;
         m_individualSpecs = individualSpecs;
@@ -134,9 +134,9 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
     }
 
     @Override
-    public MultiTableRead withoutTransformation(final SourceGroup<I> sourceGroup) {
+    public MultiTableRead<T> withoutTransformation(final SourceGroup<I> sourceGroup) {
         if (m_config.hasTableSpecConfig()) {
-            final TableSpecConfig tableSpecConfig = m_config.getTableSpecConfig();
+            final TableSpecConfig<T> tableSpecConfig = m_config.getTableSpecConfig();
             final TableTransformation<T> configuredTransformation = tableSpecConfig.getTransformationModel();
             if (tableSpecConfig.isConfiguredWith(transformToString(sourceGroup))) {
                 return createMultiTableRead(sourceGroup, configuredTransformation, m_config.getTableReadConfig(),
@@ -155,17 +155,17 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
 
 
     @Override
-    public MultiTableRead withTransformation(final SourceGroup<I> sourceGroup,
+    public MultiTableRead<T> withTransformation(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel) {
         final TableReadConfig<C> tableReadConfig = m_config.getTableReadConfig();
-        final TableSpecConfig tableSpecConfig = DefaultTableSpecConfig
+        final TableSpecConfig<T> tableSpecConfig = DefaultTableSpecConfig
             .createFromTransformationModel(m_sourceGroup.getID(), m_individualSpecs, transformationModel);
         return createMultiTableRead(sourceGroup, transformationModel, tableReadConfig, tableSpecConfig);
     }
 
-    private DefaultMultiTableRead<I, V> createMultiTableRead(final SourceGroup<I> sourceGroup,
+    private DefaultMultiTableRead<I, T, V> createMultiTableRead(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel, final TableReadConfig<C> tableReadConfig,
-        final TableSpecConfig tableSpecConfig) {
+        final TableSpecConfig<T> tableSpecConfig) {
         return new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, tableReadConfig), () -> {
             IndividualTableReaderFactory<I, T, V> factory = createIndividualTableReaderFactory(transformationModel);
             return factory::create;

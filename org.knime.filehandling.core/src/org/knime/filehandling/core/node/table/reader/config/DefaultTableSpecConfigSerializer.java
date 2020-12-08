@@ -48,20 +48,28 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.convert.util.SerializeUtil;
@@ -72,10 +80,17 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.ImmutableTableTransformation;
+import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 import com.google.common.collect.Iterators;
@@ -84,8 +99,9 @@ import com.google.common.collect.Iterators;
  * Handles loading, saving and validation of {@link DefaultTableSpecConfig}
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type used to identify external types
  */
-public final class DefaultTableSpecConfigSerializer {
+public final class DefaultTableSpecConfigSerializer<T> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultTableSpecConfigSerializer.class);
 
@@ -128,7 +144,7 @@ public final class DefaultTableSpecConfigSerializer {
 
     private final ProductionPathLoader m_productionPathLoader;
 
-    private final Object m_mostGenericType;
+    private final T m_mostGenericType;
 
     /**
      * Constructor.
@@ -137,8 +153,7 @@ public final class DefaultTableSpecConfigSerializer {
      *            ProductionPaths}
      * @param mostGenericType the most generic type in the hierarchy (used only for workflows created in 4.2)
      */
-    public DefaultTableSpecConfigSerializer(final ProductionPathLoader productionPathLoader,
-        final Object mostGenericType) {
+    public DefaultTableSpecConfigSerializer(final ProductionPathLoader productionPathLoader, final T mostGenericType) {
         m_productionPathLoader = productionPathLoader;
         m_mostGenericType = mostGenericType;
     }
@@ -146,12 +161,10 @@ public final class DefaultTableSpecConfigSerializer {
     /**
      * Constructor.
      *
-     * @param producerRegistry the {@link ProducerRegistry} to use for loading {@link ProductionPath
-     *            ProductionPaths}
+     * @param producerRegistry the {@link ProducerRegistry} to use for loading {@link ProductionPath ProductionPaths}
      * @param mostGenericType the most generic type in the hierarchy (used only for workflows created in 4.2)
      */
-    public DefaultTableSpecConfigSerializer(final ProducerRegistry<?, ?> producerRegistry,
-        final Object mostGenericType) {
+    public DefaultTableSpecConfigSerializer(final ProducerRegistry<?, ?> producerRegistry, final T mostGenericType) {
         this(new DefaultProductionPathLoader(producerRegistry), mostGenericType);
     }
 
@@ -164,17 +177,52 @@ public final class DefaultTableSpecConfigSerializer {
      * @return the de-serialized {@link DefaultTableSpecConfig}
      * @throws InvalidSettingsException - if the settings do not exists / cannot be loaded
      */
-    public DefaultTableSpecConfig load(final NodeSettingsRO settings,
+    public DefaultTableSpecConfig<T> load(final NodeSettingsRO settings,
         @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
         final String rootItem = settings.getString(CFG_ROOT_PATH);
         final String[] items = settings.getStringArray(CFG_FILE_PATHS);
-        final ReaderTableSpec<?>[] individualSpecs =
+        final List<ReaderTableSpec<?>> individualSpecs =
             loadIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS), items.length);
         final Set<String> allColumns = union(individualSpecs);
+        final ImmutableTableTransformation<T> tableTransformation =
+            loadTableTransformation(settings, allColumns, specMergeModeOld, individualSpecs);
+        final Collection<TypedReaderTableSpec<T>> typedIndividualSpecs =
+            assignTypes(individualSpecs, tableTransformation);
+        return new DefaultTableSpecConfig<>(rootItem, items, typedIndividualSpecs, tableTransformation);
+
+    }
+
+    private Collection<TypedReaderTableSpec<T>> assignTypes(final Collection<ReaderTableSpec<?>> individualSpecs,
+        final TableTransformation<T> transformation) {
+        final TypeAssigner<T> typeAssigner = new TypeAssigner<>(transformation);
+        return individualSpecs.stream()//
+            .map(typeAssigner::assignType)//
+            .collect(toList());
+    }
+
+    private static class TypeAssigner<T> {
+        private final Map<String, TypedReaderColumnSpec<T>> m_nameToSpec;
+
+        TypeAssigner(final TableTransformation<T> transformation) {
+            m_nameToSpec = transformation.stream().map(ColumnTransformation::getExternalSpec)
+                .collect(toMap(MultiTableUtils::getNameAfterInit, Function.identity()));
+        }
+
+        TypedReaderTableSpec<T> assignType(final ReaderTableSpec<? extends ReaderColumnSpec> untyped) {
+            return new TypedReaderTableSpec<>(untyped.stream()//
+                .map(MultiTableUtils::getNameAfterInit)//
+                .map(m_nameToSpec::get)//
+                .collect(toList()));
+        }
+    }
+
+    private ImmutableTableTransformation<T> loadTableTransformation(final NodeSettingsRO settings,
+        final Set<String> allColumns, @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld,
+        final Collection<ReaderTableSpec<?>> individualSpecs) throws InvalidSettingsException {
 
         final boolean includeUnknownColumns = settings.getBoolean(CFG_INCLUDE_UNKNOWN, true);
-
         final boolean enforceTypes = settings.getBoolean(CFG_ENFORCE_TYPES, false);
+        final ColumnFilterMode columnFilterMode = loadColumnFilterMode(settings, specMergeModeOld);
 
         // For old workflows (created with 4.2), the spec might not contain all columns contained in union if
         // SpecMergeMode#INTERSECTION was used to create the final spec
@@ -182,15 +230,62 @@ public final class DefaultTableSpecConfigSerializer {
         final DataTableSpec fullKnimeSpec = constructFullKnimeSpec(allColumns, loadedKnimeSpec);
 
         ProductionPath[] allProdPaths = loadProductionPaths(settings, allColumns, loadedKnimeSpec);
+        final int newColPosition = settings.getInt(CFG_NEW_COLUMN_POSITION, allProdPaths.length);
 
         final String[] originalNames = loadOriginalNames(fullKnimeSpec, settings);
-        final int[] positionalMapping = loadPositionalMapping(fullKnimeSpec.getNumColumns(), settings);
-        final boolean[] keep = loadKeep(loadedKnimeSpec, allColumns, settings);
-        final int newColPosition = settings.getInt(CFG_NEW_COLUMN_POSITION, allProdPaths.length);
-        final ColumnFilterMode columnFilterMode = loadColumnFilterMode(settings, specMergeModeOld);
+        final int[] positions = loadPositionalMapping(fullKnimeSpec.getNumColumns(), settings);
+        final boolean[] keeps = loadKeep(loadedKnimeSpec, allColumns, settings);
 
-        return new DefaultTableSpecConfig(rootItem, fullKnimeSpec, items, individualSpecs, allProdPaths, originalNames,
-            positionalMapping, keep, newColPosition, columnFilterMode, includeUnknownColumns, enforceTypes);
+        final List<ImmutableColumnTransformation<T>> transformations = new ArrayList<>(allProdPaths.length);
+        for (int i = 0; i < allProdPaths.length; i++) {
+            final ProductionPath productionPath = allProdPaths[i];
+            @SuppressWarnings("unchecked")
+            final T externalType = (T)productionPath.getProducerFactory().getSourceType();
+            final TypedReaderColumnSpec<T> externalSpec =
+                TypedReaderColumnSpec.createWithName(originalNames[i], externalType, true);
+            final int position = positions[i];
+            final String outputName = fullKnimeSpec.getColumnSpec(i).getName();
+            final boolean keep = keeps[i];
+            final ImmutableColumnTransformation<T> trans =
+                new ImmutableColumnTransformation<>(externalSpec, productionPath, keep, position, outputName);
+            transformations.add(trans);
+        }
+        final RawSpec<T> rawSpec = createRawSpec(fullKnimeSpec, allProdPaths, originalNames, individualSpecs);
+
+        return new ImmutableTableTransformation<>(transformations, rawSpec, columnFilterMode, newColPosition,
+            includeUnknownColumns, enforceTypes);
+    }
+
+    private static <T> RawSpec<T> createRawSpec(final DataTableSpec rawKnimeSpec,
+        final ProductionPath[] productionPaths, final String[] originalNames,
+        final Collection<ReaderTableSpec<?>> individualSpecs) {
+        assert rawKnimeSpec
+            .getNumColumns() == productionPaths.length : "Number of production paths doesn't match the number of columns.";
+        final List<TypedReaderColumnSpec<T>> specs = new ArrayList<>(rawKnimeSpec.getNumColumns());
+        for (int i = 0; i < rawKnimeSpec.getNumColumns(); i++) {
+            final ProductionPath productionPath = productionPaths[i];
+            @SuppressWarnings("unchecked") // the production path stores the source type of type T
+            final T type = (T)productionPath.getProducerFactory().getSourceType();
+            specs.add(TypedReaderColumnSpec.createWithName(originalNames[i], type, true));
+        }
+        final TypedReaderTableSpec<T> union = new TypedReaderTableSpec<>(specs);
+        final TypedReaderTableSpec<T> intersection = findIntersection(union, individualSpecs);
+        return new RawSpec<>(union, intersection);
+    }
+
+    private static <T> TypedReaderTableSpec<T> findIntersection(final TypedReaderTableSpec<T> union,
+        final Collection<ReaderTableSpec<?>> individualSpecs) {
+        final Set<String> commonNames = union(individualSpecs);
+        for (ReaderTableSpec<?> individualSpec : individualSpecs) {
+            final Set<String> currentCommonNames = new HashSet<>(commonNames);
+            for (ReaderColumnSpec column : individualSpec) {
+                currentCommonNames.remove(MultiTableUtils.getNameAfterInit(column));
+            }
+            currentCommonNames.forEach(commonNames::remove);
+        }
+        return new TypedReaderTableSpec<>(union.stream()//
+            .filter(c -> commonNames.contains(MultiTableUtils.getNameAfterInit(c)))//
+            .collect(Collectors.toList()));
     }
 
     /**
@@ -286,7 +381,7 @@ public final class DefaultTableSpecConfigSerializer {
      * @param individualSpecs individual {@link ReaderTableSpec}s
      * @return the union of the column names
      */
-    private static Set<String> union(final ReaderTableSpec<?>[] individualSpecs) {
+    private static Set<String> union(final Collection<ReaderTableSpec<?>> individualSpecs) {
         final Set<String> allColumns = new LinkedHashSet<>();
         for (ReaderTableSpec<?> ts : individualSpecs) {
             for (ReaderColumnSpec col : ts) {
@@ -332,12 +427,12 @@ public final class DefaultTableSpecConfigSerializer {
      * @return {@link ReaderTableSpec}
      * @throws InvalidSettingsException
      */
-    private static ReaderTableSpec<?>[] loadIndividualSpecs(final NodeSettingsRO nodeSettings,
+    private static List<ReaderTableSpec<?>> loadIndividualSpecs(final NodeSettingsRO nodeSettings,
         final int numIndividualPaths) throws InvalidSettingsException {
-        final ReaderTableSpec<?>[] individualSpecs = new ReaderTableSpec[numIndividualPaths];
+        final List<ReaderTableSpec<?>> individualSpecs = new ArrayList<>();
         for (int i = 0; i < numIndividualPaths; i++) {
-            individualSpecs[i] = ReaderTableSpec
-                .createReaderTableSpec(Arrays.asList(nodeSettings.getStringArray(CFG_INDIVIDUAL_SPEC + i)));
+            individualSpecs.add(ReaderTableSpec
+                .createReaderTableSpec(Arrays.asList(nodeSettings.getStringArray(CFG_INDIVIDUAL_SPEC + i))));
         }
         return individualSpecs;
     }
@@ -418,22 +513,50 @@ public final class DefaultTableSpecConfigSerializer {
                     + mostGenericExternalType));
     }
 
-    static void save(final DefaultTableSpecConfig config, final NodeSettingsWO settings) {
+    static <T> void save(final DefaultTableSpecConfig<T> config, final NodeSettingsWO settings) {
+
+        final TableTransformation<T> tableTransformation = config.getTransformationModel();
+
+        final TypedReaderTableSpec<T> rawSpec = tableTransformation.getRawSpec().getUnion();
+        final int unionSize = rawSpec.size();
+        final List<DataColumnSpec> columns = new ArrayList<>(unionSize);
+        final List<ProductionPath> productionPaths = new ArrayList<>(unionSize);
+        final List<String> originalNames = new ArrayList<>(unionSize);
+        final int[] positions = new int[unionSize];
+        final boolean[] keep = new boolean[unionSize];
+        int idx = 0;
+        for (TypedReaderColumnSpec<T> column : rawSpec) {
+            final ColumnTransformation<T> transformation = tableTransformation.getTransformation(column);
+            final ProductionPath productionPath = transformation.getProductionPath();
+            productionPaths.add(productionPath);
+            originalNames.add(MultiTableUtils.getNameAfterInit(column));
+            keep[idx] = transformation.keep();
+            final int idxInOutput = transformation.getPosition();
+            positions[idx] = idxInOutput;
+            final DataType knimeType = productionPath.getConverterFactory().getDestinationType();
+            final String name = transformation.getName();
+            CheckUtils.checkArgument(!name.isEmpty(), "Empty column names are not permitted.");
+            columns.add(new DataColumnSpecCreator(name, knimeType).createSpec());
+            idx++;
+        }
+
+        final DataTableSpec fullDataSpec = new DataTableSpec(columns.toArray(new DataColumnSpec[0]));
+
         settings.addString(CFG_ROOT_PATH, config.getRootItem());
-        config.getFullDataSpec().save(settings.addNodeSettings(CFG_DATATABLE_SPEC));
+        fullDataSpec.save(settings.addNodeSettings(CFG_DATATABLE_SPEC));
         settings.addStringArray(CFG_FILE_PATHS, config.getItems().toArray(new String[0]));
         saveIndividualSpecs(config.getIndividualSpecs(), settings.addNodeSettings(CFG_INDIVIDUAL_SPECS));
-        saveProductionPaths(config.getAllProductionPaths(), settings.addNodeSettings(CFG_PRODUCTION_PATHS));
-        settings.addStringArray(CFG_ORIGINAL_NAMES, config.getOriginalNames());
-        settings.addIntArray(CFG_POSITIONAL_MAPPING, config.getPositions());
-        settings.addBooleanArray(CFG_KEEP, config.getKeep());
-        settings.addInt(CFG_NEW_COLUMN_POSITION, config.getUnknownColumnPosition());
-        settings.addBoolean(CFG_INCLUDE_UNKNOWN, config.includeUnknownColumns());
-        settings.addBoolean(CFG_ENFORCE_TYPES, config.enforceTypes());
+        saveProductionPaths(productionPaths, settings.addNodeSettings(CFG_PRODUCTION_PATHS));
+        settings.addStringArray(CFG_ORIGINAL_NAMES, originalNames.toArray(new String[0]));
+        settings.addIntArray(CFG_POSITIONAL_MAPPING, positions);
+        settings.addBooleanArray(CFG_KEEP, keep);
+        settings.addInt(CFG_NEW_COLUMN_POSITION, tableTransformation.getPositionForUnknownColumns());
+        settings.addBoolean(CFG_INCLUDE_UNKNOWN, tableTransformation.keepUnknownColumns());
+        settings.addBoolean(CFG_ENFORCE_TYPES, tableTransformation.enforceTypes());
         settings.addString(CFG_COLUMN_FILTER_MODE, config.getColumnFilterMode().name());
     }
 
-    private static void saveProductionPaths(final ProductionPath[] prodPaths, final NodeSettingsWO settings) {
+    private static void saveProductionPaths(final List<ProductionPath> prodPaths, final NodeSettingsWO settings) {
         int i = 0;
         for (final ProductionPath pP : prodPaths) {
             SerializeUtil.storeProductionPath(pP, settings, CFG_PRODUCTION_PATH + i);
@@ -442,7 +565,7 @@ public final class DefaultTableSpecConfigSerializer {
         settings.addInt(CFG_NUM_PRODUCTION_PATHS, i);
     }
 
-    private static void saveIndividualSpecs(final Collection<ReaderTableSpec<?>> individualSpecs,
+    private static <T> void saveIndividualSpecs(final Collection<TypedReaderTableSpec<T>> individualSpecs,
         final NodeSettingsWO settings) {
         int i = 0;
         for (final ReaderTableSpec<? extends ReaderColumnSpec> readerTableSpec : individualSpecs) {

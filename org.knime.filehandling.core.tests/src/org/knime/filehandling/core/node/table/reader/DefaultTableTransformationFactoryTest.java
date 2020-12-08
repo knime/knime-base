@@ -119,10 +119,10 @@ public class DefaultTableTransformationFactoryTest {
     private ProductionPathProvider<String> m_prodPathProvider;
 
     @Mock
-    private MultiTableReadConfig<?> m_config;
+    private MultiTableReadConfig<?, String> m_config;
 
     @Mock
-    private TableSpecConfig m_tableSpecConfig;
+    private TableSpecConfig<String> m_tableSpecConfig;
 
     @SuppressWarnings("rawtypes") // unfortunately that's necessary to satisfy the compiler
     @Mock
@@ -305,7 +305,7 @@ public class DefaultTableTransformationFactoryTest {
         final ColumnTransformation<String> trans = Mockito.mock(ColumnTransformation.class);
         when(trans.getExternalSpec()).thenReturn(externalSpec);
         when(trans.getName()).thenReturn(name);
-        when(trans.getOriginalName()).thenReturn(externalSpec.getName().get());
+        when(trans.getOriginalName()).thenReturn(externalSpec.getName().get());//NOSONAR
         when(trans.getProductionPath()).thenReturn(prodPath);
         when(trans.getPosition()).thenReturn(position);
         when(trans.keep()).thenReturn(keep);

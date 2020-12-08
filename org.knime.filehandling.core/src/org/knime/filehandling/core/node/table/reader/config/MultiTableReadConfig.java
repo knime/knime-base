@@ -59,10 +59,11 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of the {@link ReaderSpecificConfig}
+ * @param <T> the type used to identify external data types
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
+public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
 
     /**
      * Returns the configuration for reading an individual table.
@@ -100,14 +101,14 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>> {
      *
      * @return the {@link DefaultTableSpecConfig}
      */
-    TableSpecConfig getTableSpecConfig();
+    TableSpecConfig<T> getTableSpecConfig();
 
     /**
      * Sets the {@link DefaultTableSpecConfig}
      *
      * @param config the {@link DefaultTableSpecConfig} to set
      */
-    void setTableSpecConfig(TableSpecConfig config);
+    void setTableSpecConfig(TableSpecConfig<T> config);
 
     /**
      * Returns {@code true} if the {@link DefaultTableSpecConfig} has been created with the provided <b>rootItem</b> and

@@ -105,13 +105,13 @@ final class TableManipulatorNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(TableManipulatorNodeModel.class);
 
-    private final StorableMultiTableReadConfig<TableManipulatorConfig> m_config;
+    private final StorableMultiTableReadConfig<TableManipulatorConfig, DataType> m_config;
 
     /**
      * A supplier is used to avoid any issues should this node model ever be used in parallel. However, this also means
      * that the specs are recalculated for each generated reader.
      */
-    private final MultiTableReader<Table, TableManipulatorConfig> m_tableReader;
+    private final MultiTableReader<Table, TableManipulatorConfig, DataType> m_tableReader;
 
     private final InputPortRole[] m_inputPortRoles;
 
@@ -127,10 +127,10 @@ final class TableManipulatorNodeModel extends NodeModel {
     }
 
     static
-        DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>>
+        DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>, DataType>
         createConfig() {
         DefaultTableReadConfig<TableManipulatorConfig> tc = new DefaultTableReadConfig<>(new TableManipulatorConfig());
-        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>> config =
+        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>, DataType> config =
             new DefaultMultiTableReadConfig<>(tc, TableManipulatorConfigSerializer.INSTANCE);
         config.setFailOnDifferingSpecs(false);
         config.getTableReadConfig().setRowIDIdx(0);
@@ -159,7 +159,7 @@ final class TableManipulatorNodeModel extends NodeModel {
         }
         final TableSourceGroup tableSourceGroup = new TableSourceGroup(rowInputs);
         try {
-            final TableSpecConfig tableSpecConfig =
+            final TableSpecConfig<DataType> tableSpecConfig =
                 m_tableReader.createTableSpecConfig(tableSourceGroup, m_config);
             if (!m_config.hasTableSpecConfig()) {
                 m_config.setTableSpecConfig(tableSpecConfig);

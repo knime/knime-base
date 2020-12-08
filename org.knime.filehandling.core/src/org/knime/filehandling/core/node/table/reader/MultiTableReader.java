@@ -73,17 +73,18 @@ import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <I> the type of the item to read from
  * @param <C> the type of the {@link ReaderSpecificConfig}
+ * @param <T> the type used to identify external data types
  * @noreference non-public API
  * @noinstantiate non-public API
  * @noextend non-public API
  */
-public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
+public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>, T> {
 
-    private final MultiTableReadFactory<I, C, ?> m_multiTableReadFactory;
+    private final MultiTableReadFactory<I, C, T> m_multiTableReadFactory;
 
-    private StagedMultiTableRead<I, ?> m_currentMultiRead;
+    private StagedMultiTableRead<I, T> m_currentMultiRead;
 
-    private static void fillRowOutput(final MultiTableRead multiTableRead, final RowOutput output,
+    private static <T> void fillRowOutput(final MultiTableRead<T> multiTableRead, final RowOutput output,
         final ExecutionContext exec) throws Exception {
         final FileStoreFactory fsFactory = FileStoreFactory.createFileStoreFactory(exec);
         multiTableRead.fillRowOutput(output, exec, fsFactory);
@@ -94,7 +95,7 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
      *
      * @param multiTableReadFactory for creating MultiTableRead objects
      */
-    public MultiTableReader(final MultiTableReadFactory<I, C, ?> multiTableReadFactory) {
+    public MultiTableReader(final MultiTableReadFactory<I, C, T> multiTableReadFactory) {
         m_multiTableReadFactory = multiTableReadFactory;
     }
 
@@ -116,13 +117,13 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
      * @throws IOException if reading the specs from item fails
      */
     public DataTableSpec createTableSpec(final SourceGroup<I> sourceGroup,
-        final MultiTableReadConfig<C> config) throws IOException {
-        final TableSpecConfig specConfig = createTableSpecConfig(sourceGroup, config);
+        final MultiTableReadConfig<C, T> config) throws IOException {
+        final TableSpecConfig<T> specConfig = createTableSpecConfig(sourceGroup, config);
         return specConfig.getDataTableSpec();
     }
 
-    private StagedMultiTableRead<I, ?> createMultiRead(final SourceGroup<I> sourceGroup,
-        final MultiTableReadConfig<C> config, final ExecutionMonitor exec) throws IOException {
+    private StagedMultiTableRead<I, T> createMultiRead(final SourceGroup<I> sourceGroup,
+        final MultiTableReadConfig<C, T> config, final ExecutionMonitor exec) throws IOException {
         if (isConfiguredWith(config, sourceGroup)) {
             m_currentMultiRead = m_multiTableReadFactory.createFromConfig(sourceGroup, config);
         } else {
@@ -140,11 +141,11 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
      * @return the {@link DataTableSpec} of the merged table consisting of the tables stored in <b>items</b>
      * @throws IOException if reading the specs from item fails
      */
-    public TableSpecConfig createTableSpecConfig(final SourceGroup<I> sourceGroup,
-        final MultiTableReadConfig<C> config) throws IOException {
-        final StagedMultiTableRead<I, ?> stagedMultiRead =
+    public TableSpecConfig<T> createTableSpecConfig(final SourceGroup<I> sourceGroup,
+        final MultiTableReadConfig<C, T> config) throws IOException {
+        final StagedMultiTableRead<I, T> stagedMultiRead =
                 createMultiRead(sourceGroup, config, new ExecutionMonitor());
-        final MultiTableRead multiRead = stagedMultiRead.withoutTransformation(sourceGroup);
+        final MultiTableRead<T> multiRead = stagedMultiRead.withoutTransformation(sourceGroup);
         return multiRead.getTableSpecConfig();
     }
 
@@ -158,22 +159,22 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
      * @throws Exception
      */
     public BufferedDataTable readTable(final SourceGroup<I> sourceGroup,
-        final MultiTableReadConfig<C> config, final ExecutionContext exec) throws Exception {
+        final MultiTableReadConfig<C, T> config, final ExecutionContext exec) throws Exception {
         exec.setMessage("Creating table spec");
         final boolean specConfigured = isConfiguredWith(config, sourceGroup);
         ExecutionContext specExec = exec.createSubExecutionContext(specConfigured ? 0 : 0.5);
-        final StagedMultiTableRead<I, ?> runConfig =
+        final StagedMultiTableRead<I, T> runConfig =
             getMultiRead(sourceGroup, config, specExec);
         specExec.setProgress(1.0);
         exec.setMessage("Reading table");
-        final MultiTableRead multiTableRead = runConfig.withoutTransformation(sourceGroup);
+        final MultiTableRead<T> multiTableRead = runConfig.withoutTransformation(sourceGroup);
         final BufferedDataTableRowOutput output =
             new BufferedDataTableRowOutput(exec.createDataContainer(multiTableRead.getOutputSpec()));
         fillRowOutput(multiTableRead, output, exec.createSubExecutionContext(specConfigured ? 1 : 0.5));
         return output.getDataTable();
     }
 
-    private boolean isConfiguredWith(final MultiTableReadConfig<C> config, final SourceGroup<I> sourceGroup) {
+    private boolean isConfiguredWith(final MultiTableReadConfig<C, T> config, final SourceGroup<I> sourceGroup) {
         return config.isConfiguredWith(MultiTableUtils.transformToString(sourceGroup));
     }
 
@@ -190,7 +191,7 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
      * @throws Exception
      */
     public void fillRowOutput(final SourceGroup<I> sourceGroup,
-        final MultiTableReadConfig<C> config, final RowOutput output, final ExecutionContext exec)
+        final MultiTableReadConfig<C, T> config, final RowOutput output, final ExecutionContext exec)
         throws Exception {
         exec.setMessage("Creating table spec");
         final StagedMultiTableRead<I, ?> multiRead = getMultiRead(sourceGroup, config, exec);
@@ -198,8 +199,8 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>> {
         fillRowOutput(multiRead.withoutTransformation(sourceGroup), output, exec);
     }
 
-    private StagedMultiTableRead<I, ?> getMultiRead(final SourceGroup<I> sourceGroup,
-        final MultiTableReadConfig<C> config, final ExecutionContext exec) throws IOException {
+    private StagedMultiTableRead<I, T> getMultiRead(final SourceGroup<I> sourceGroup,
+        final MultiTableReadConfig<C, T> config, final ExecutionContext exec) throws IOException {
         if (m_currentMultiRead == null || !m_currentMultiRead.isValidFor(sourceGroup)) {
             return createMultiRead(sourceGroup, config, exec);
         } else {

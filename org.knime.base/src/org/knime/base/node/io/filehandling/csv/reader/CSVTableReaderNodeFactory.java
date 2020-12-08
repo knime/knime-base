@@ -97,9 +97,9 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
     }
 
     @Override
-    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>>
+    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>>
         createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> cfg =
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> cfg =
             super.createConfig(nodeCreationConfig);
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         cfg.getTableReadConfig().setColumnHeaderIdx(0);

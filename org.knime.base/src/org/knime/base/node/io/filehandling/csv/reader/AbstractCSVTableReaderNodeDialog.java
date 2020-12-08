@@ -190,7 +190,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
     private final PathSettings m_pathSettings;
 
     /** The multi table reader config. */
-    protected final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> m_config;
+    protected final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> m_config;
 
     /**
      * Create new CsvTableReader dialog.
@@ -202,7 +202,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
      * @param allowsReadingMultipleFiles {@code true} if the reader allows reading multiple files at once
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings,
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles) {
         super(multiReader, productionPathProvider, allowsReadingMultipleFiles);
@@ -302,7 +302,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
     }
 
     @Override
-    protected final MultiTableReadConfig<CSVTableReaderConfig> getConfig() throws InvalidSettingsException {
+    protected final MultiTableReadConfig<CSVTableReaderConfig, Class<?>> getConfig() throws InvalidSettingsException {
         return saveAndGetConfig();
     }
 
@@ -420,7 +420,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         });
     }
 
-    private MultiTableReadConfig<CSVTableReaderConfig> saveAndGetConfig() throws InvalidSettingsException {
+    private MultiTableReadConfig<CSVTableReaderConfig, Class<?>> saveAndGetConfig() throws InvalidSettingsException {
         try {
             saveConfig();
         } catch (RuntimeException e) {
