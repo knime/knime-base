@@ -128,7 +128,7 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
     protected abstract TypeHierarchy<T, T> getTypeHierarchy();
 
     @Override
-    public final TableReaderNodeModel<I, C, T> createNodeModel(final NodeCreationConfiguration creationConfig) {
+    public TableReaderNodeModel<I, C, T> createNodeModel(final NodeCreationConfiguration creationConfig) {
         final StorableMultiTableReadConfig<C, T> config = createConfig(creationConfig);
         final SourceSettings<I> pathSettings = createPathSettings(creationConfig);
         final MultiTableReader<I, C, T> reader = createMultiTableReader();
@@ -145,7 +145,7 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
      *
      * @return a new multi table reader
      */
-    private MultiTableReader<I, C, T> createMultiTableReader() {
+    protected final MultiTableReader<I, C, T> createMultiTableReader() {
         return new MultiTableReader<>(createMultiTableReadFactory(createReader()));
     }
 

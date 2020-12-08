@@ -82,8 +82,13 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * Generic implementation of a Reader node that reads tables.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <I> the type of the item to read from
+ * @param <C> the type of {@link ReaderSpecificConfig}
+ * @param <T> the type used to identify external data types
+ * @noreference non-public API
+ * @noimplement non-public API
  */
-final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> extends NodeModel {
+public class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> extends NodeModel {
 
     static final int FS_INPUT_PORT = 0;
 
@@ -116,7 +121,7 @@ final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> extend
     }
 
     /**
-     * Constructs a node model with no inputs and one output.
+     * Constructs a node model with the inputs and outputs specified in the passed {@link PortsConfiguration}.
      *
      * @param config storing the user settings
      * @param pathSettingsModel storing the paths selected by the user
@@ -229,6 +234,15 @@ final class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> extend
     @Override
     protected void reset() {
         m_tableReader.reset();
+    }
+
+    /**
+     * Returns the config.
+     *
+     * @return the config
+     */
+    protected final StorableMultiTableReadConfig<C, T> getConfig() {
+        return m_config;
     }
 
 }

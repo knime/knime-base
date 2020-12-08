@@ -68,7 +68,6 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTabl
 public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificConfig<C>, T, V>
     extends GenericAbstractTableReaderNodeFactory<Path, C, T, V> {
 
-
     /**
      * Creates the {@link TableReader} for this reader node.
      *
