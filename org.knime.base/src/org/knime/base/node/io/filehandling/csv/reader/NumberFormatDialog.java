@@ -86,7 +86,7 @@ final class NumberFormatDialog {
 
     private String m_columnDelimiter = ",";
 
-    private final StatusView m_status = new StatusView(700);
+    private final StatusView m_status = new StatusView();
 
     NumberFormatDialog() {
         final DocumentListener listener = new DocumentListener() {

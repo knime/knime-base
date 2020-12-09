@@ -74,10 +74,9 @@ public final class StatusView {
     /**
      * Constructor.
      *
-     * @param widthInPixel status label width in pixels
      */
-    public StatusView(final int widthInPixel) {
-        m_statusLabel = new WordWrapJLabel(" ", widthInPixel);
+    public StatusView() {
+        m_statusLabel = new WordWrapJLabel(" ");
     }
 
     /**

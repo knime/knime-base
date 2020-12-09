@@ -131,7 +131,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     private final JLabel m_fileSelectionLabel = new JLabel("File");
 
-    private final StatusView m_statusView = new StatusView(700);
+    private final StatusView m_statusView = new StatusView();
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 

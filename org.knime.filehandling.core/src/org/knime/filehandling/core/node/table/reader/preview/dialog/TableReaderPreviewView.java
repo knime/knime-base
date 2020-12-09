@@ -110,9 +110,9 @@ public final class TableReaderPreviewView extends JPanel {
         setLayout(new GridBagLayout());
         setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Preview"));
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorFirstLineStart();
-        add(m_analysisComponentView, gbc.build());
+        add(m_analysisComponentView, gbc.setWeightX(1).fillHorizontal().build());
         m_tableView.setPreferredSize(new Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
-        add(m_tableView, gbc.fillBoth().incY().setWeightX(1).setWeightY(1).build());
+        add(m_tableView, gbc.fillBoth().incY().setWeightY(1).build());
     }
 
     /**

@@ -74,7 +74,7 @@ public final class DialogComponentFileSystem extends DialogComponent {
 
     private final FileSystemChooser m_fileSystemChooser;
 
-    private final StatusView m_statusView = new StatusView(300);
+    private final StatusView m_statusView = new StatusView();
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 

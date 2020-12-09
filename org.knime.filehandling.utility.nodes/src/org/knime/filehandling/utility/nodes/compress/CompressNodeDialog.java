@@ -93,8 +93,6 @@ final class CompressNodeDialog extends NodeDialogPane {
             .collect(Collectors.joining("|", "(", ")\\s*$")),
         Pattern.CASE_INSENSITIVE);
 
-    private static final int STATUS_VIEW_WIDTH = 400;
-
     private static final String FILE_HISTORY_ID = "compress_files_history";
 
     private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
@@ -131,10 +129,10 @@ final class CompressNodeDialog extends NodeDialogPane {
             readFvm, FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDER, FilterMode.FILE);
 
         m_includeSourceFolder = new JCheckBox("Include selected source folder");
-        m_includeSourceFolderStatusView = new StatusView(STATUS_VIEW_WIDTH);
+        m_includeSourceFolderStatusView = new StatusView();
 
         m_flattenHierarchyPanel = new JCheckBox("Flatten hierarchy");
-        m_flattenHierarchyStatusView = new StatusView(STATUS_VIEW_WIDTH);
+        m_flattenHierarchyStatusView = new StatusView();
 
         m_config.getInputLocationChooserModel().addChangeListener(c -> m_flattenHierarchyPanel
             .setEnabled((m_config.getInputLocationChooserModel().getFilterMode()) != FilterMode.FILE));

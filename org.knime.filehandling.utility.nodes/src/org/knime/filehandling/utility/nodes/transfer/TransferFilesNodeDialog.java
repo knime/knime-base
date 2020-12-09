@@ -81,8 +81,6 @@ import org.knime.filehandling.utility.nodes.dialog.swingworker.SwingWorkerManage
  */
 final class TransferFilesNodeDialog extends NodeDialogPane {
 
-    private static final int STATUS_VIEW_WIDTH = 400;
-
     private final DialogComponentReaderFileChooser m_sourceFilePanel;
 
     private final DialogComponentWriterFileChooser m_destinationFilePanel;
@@ -125,7 +123,7 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
                 sourceFileChooserConfig.createClone(), config.getSettingsModelIncludeSourceFolder().getBooleanValue()),
             FilterMode.FOLDER);
 
-        m_includeSourceFolderStatusView = new StatusView(STATUS_VIEW_WIDTH);
+        m_includeSourceFolderStatusView = new StatusView();
 
         m_deleteSourceFilesCheckbox =
             new DialogComponentBoolean(m_config.getDeleteSourceFilesModel(), "Delete source files / folders");

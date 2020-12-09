@@ -107,11 +107,13 @@ final class AnalysisComponentView extends JPanel {
 
     private void layoutPanel() {
         setLayout(new GridBagLayout());
-        final GBCBuilder gbc = new GBCBuilder(new Insets(5, 5, 1, 1)).anchorFirstLineStart().ipadX(50).resetX().resetY();
+        final GBCBuilder gbc =
+            new GBCBuilder(new Insets(5, 5, 1, 1)).anchorFirstLineStart().ipadX(50).resetX().resetY();
         add(m_analysisProgressBar, gbc.build());
         add(m_quickScanButton, gbc.incX().ipadX(0).insets(0, 5, 1, 5).build());
-        add(m_analysisProgressLabel, gbc.incX().setWeightX(1).insets(5,  5, 1, 1).build());
-        add(m_errorLabel, gbc.resetX().incY().setWidth(4).insets(5, 5, 5, 5).build());
+        add(m_analysisProgressLabel, gbc.incX().setWeightX(1).insets(5, 5, 1, 1).build());
+        add(m_errorLabel,
+            gbc.resetX().incY().widthRemainder().setWeightX(1).fillHorizontal().insets(5, 5, 5, 5).build());
         add(m_analysisProgressPathLabel, gbc.build());
     }
 
