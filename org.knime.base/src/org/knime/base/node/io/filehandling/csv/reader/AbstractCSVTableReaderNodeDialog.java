@@ -96,7 +96,6 @@ import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
@@ -190,7 +189,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
     private final PathSettings m_pathSettings;
 
     /** The multi table reader config. */
-    protected final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> m_config;
+    protected final CSVMultiTableReadConfig m_config;
 
     /**
      * Create new CsvTableReader dialog.
@@ -201,8 +200,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
      * @param productionPathProvider provides the default {@link ProductionPath} for a specific column type
      * @param allowsReadingMultipleFiles {@code true} if the reader allows reading multiple files at once
      */
-    protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings,
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
+    protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings, final CSVMultiTableReadConfig config,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles) {
         super(multiReader, productionPathProvider, allowsReadingMultipleFiles);

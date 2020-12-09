@@ -53,6 +53,7 @@ import java.nio.file.Path;
 import javax.swing.JPanel;
 
 import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeDialog;
+import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -62,8 +63,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -78,8 +77,7 @@ final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog 
 
     private static final String HISTORY_ID = "simple_file_reader";
 
-    SimpleFileReaderNodeDialog(final PathAwareFileHistoryPanel pathSettings,
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
+    SimpleFileReaderNodeDialog(final PathAwareFileHistoryPanel pathSettings, final CSVMultiTableReadConfig config,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(pathSettings, config, multiReader, productionPathProvider, false);

@@ -50,6 +50,7 @@ package org.knime.filehandling.core.node.table.reader.config;
 
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -68,8 +69,10 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T>
+public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T>//NOSONAR
     implements ConfigSerializer<DefaultMultiTableReadConfig<C, TC, T>> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultMultiTableReadConfigSerializer.class);
 
     /**
      * Only kept for backwards compatibility with 4.2.</br>
@@ -115,6 +118,8 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
                  * before. The framework takes care that #validate is called before load so we can assume that this
                  * exception does not occur.
                  */
+                LOGGER.error("Loading the settings failed.",
+                    ex);
             }
         } else {
             config.setTableSpecConfig(null);
@@ -134,7 +139,7 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
         try {
             // workflows stored with 4.2 save the SpecMergeMode with the MultiTableReadConfig
             return SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE));
-        } catch (InvalidSettingsException ise) {
+        } catch (InvalidSettingsException ise) {// NOSONAR
             // workflows stored with 4.3 and later no longer use SpecMergeMode but instead rely
             // on ColumnFilterMode which is stored as part of the TableSpecConfig
             return null;

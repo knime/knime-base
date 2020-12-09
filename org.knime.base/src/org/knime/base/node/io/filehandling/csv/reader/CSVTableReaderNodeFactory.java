@@ -60,8 +60,6 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 
 /**
@@ -97,17 +95,12 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
     }
 
     @Override
-    protected DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>>
-        createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> cfg =
-            super.createConfig(nodeCreationConfig);
+    protected CSVMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+        final CSVMultiTableReadConfig cfg = super.createConfig(nodeCreationConfig);
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        cfg.getTableReadConfig().setColumnHeaderIdx(0);
         if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) {
             cfg.getReaderSpecificConfig().setDelimiter("\t");
         }
-        final DefaultTableReadConfig<CSVTableReaderConfig> tc = cfg.getTableReadConfig();
-        tc.setMaxRowsForSpec(1000);
         return cfg;
     }
 

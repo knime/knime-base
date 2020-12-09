@@ -44,50 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 9, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.reader.simple;
+package org.knime.base.node.preproc.manipulator;
 
-import java.nio.file.Path;
-import java.util.Optional;
-
-import org.knime.base.node.io.filehandling.csv.reader.AbstractCSVTableReaderNodeFactory;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
+import org.knime.core.data.DataType;
+import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 
 /**
- * Node factory for the simple file reader node.
+ * {@link MultiTableReadConfig} for the Table Manipulator.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {//NOSONAR
+final class TableManipulatorMultiTableReadConfig extends
+    AbstractMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>, DataType, TableManipulatorMultiTableReadConfig> {
 
-    @Override
-    protected final Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        return Optional.empty();
+    public TableManipulatorMultiTableReadConfig() {
+        super(new DefaultTableReadConfig<>(new TableManipulatorConfig()), TableManipulatorConfigSerializer.INSTANCE);
+        setFailOnDifferingSpecs(false);
+        getTableReadConfig().setRowIDIdx(0);
     }
 
     @Override
-    protected PathAwareFileHistoryPanel createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final PathAwareFileHistoryPanel settings = new PathAwareFileHistoryPanel();
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settings.setPath(urlConfig.get().getUrl().toString());
-        }
-        return settings;
-    }
-
-    @Override
-    protected AbstractPathTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> createNodeDialogPane(
-        final NodeCreationConfiguration creationConfig,
-        final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> readFactory,
-        final ProductionPathProvider<Class<?>> productionPathProvider) {
-        return new SimpleFileReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),
-            readFactory, productionPathProvider);
+    protected TableManipulatorMultiTableReadConfig getThis() {
+        return this;
     }
 
 }

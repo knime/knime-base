@@ -62,7 +62,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
@@ -73,8 +72,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-enum CSVMultiTableReadConfigSerializer implements
-    ConfigSerializer<DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>>> {
+enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTableReadConfig> {
 
         /**
          * Singleton instance.
@@ -163,9 +161,8 @@ enum CSVMultiTableReadConfigSerializer implements
             MOST_GENERIC_EXTERNAL_TYPE);
 
     @Override
-    public void loadInDialog(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
+    public void loadInDialog(final CSVMultiTableReadConfig config, final NodeSettingsRO settings,
+        final PortObjectSpec[] specs) throws NotConfigurableException {
         loadSettingsTabInDialog(config, getOrEmpty(settings, CFG_SETTINGS_TAB));
         NodeSettingsRO advancedSettings = getOrEmpty(settings, CFG_ADVANCED_SETTINGS_TAB);
         loadAdvancedSettingsTabInDialog(config, advancedSettings);
@@ -208,9 +205,7 @@ enum CSVMultiTableReadConfigSerializer implements
         }
     }
 
-    private static void loadSettingsTabInDialog(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsRO settings) {
+    private static void loadSettingsTabInDialog(final CSVMultiTableReadConfig config, final NodeSettingsRO settings) {
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = config.getTableReadConfig();
         tc.setAllowShortRows(settings.getBoolean(CFG_SUPPORT_SHORT_DATA_ROWS, true));
         tc.setPrependSourceIdxToRowId(settings.getBoolean(CFG_PREPEND_FILE_IDX_TO_ROWID, false));
@@ -259,8 +254,7 @@ enum CSVMultiTableReadConfigSerializer implements
     }
 
     @SuppressWarnings("deprecation")
-    private static void loadAdvancedSettingsTabInDialog(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
+    private static void loadAdvancedSettingsTabInDialog(final CSVMultiTableReadConfig config,
         final NodeSettingsRO settings) {
 
         config.setFailOnDifferingSpecs(loadFailOnDifferingSpecsInDialog(settings));
@@ -289,9 +283,7 @@ enum CSVMultiTableReadConfigSerializer implements
         cc.setDecimalSeparator(settings.getString(CFG_DECIMAL_SEPARATOR, "."));
     }
 
-    private static void loadLimitRowsTabInDialog(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsRO settings) {
+    private static void loadLimitRowsTabInDialog(final CSVMultiTableReadConfig config, final NodeSettingsRO settings) {
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = config.getTableReadConfig();
         tc.setSkipRows(settings.getBoolean(CFG_SKIP_DATA_ROWS, false));
         tc.setNumRowsToSkip(settings.getLong(CFG_NUMBER_OF_ROWS_TO_SKIP, 1L));
@@ -303,16 +295,13 @@ enum CSVMultiTableReadConfigSerializer implements
         cc.setNumLinesToSkip(settings.getLong(CFG_NUMBER_OF_LINES_TO_SKIP, 1));
     }
 
-    private static void loadEncodingTabInDialog(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsRO settings) {
+    private static void loadEncodingTabInDialog(final CSVMultiTableReadConfig config, final NodeSettingsRO settings) {
         config.getReaderSpecificConfig().setCharSetName(settings.getString(CFG_CHARSET, null));
     }
 
     @Override
-    public void loadInModel(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsRO settings) throws InvalidSettingsException {
+    public void loadInModel(final CSVMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(CFG_SETTINGS_TAB));
         final NodeSettingsRO advancedSettings = settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB);
         loadAdvancedSettingsTabInModel(config, advancedSettings);
@@ -326,9 +315,8 @@ enum CSVMultiTableReadConfigSerializer implements
         }
     }
 
-    private static void loadSettingsTabInModel(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void loadSettingsTabInModel(final CSVMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = config.getTableReadConfig();
         tc.setAllowShortRows(settings.getBoolean(CFG_SUPPORT_SHORT_DATA_ROWS));
         tc.setColumnHeaderIdx(0);
@@ -349,8 +337,7 @@ enum CSVMultiTableReadConfigSerializer implements
     }
 
     @SuppressWarnings("deprecation")
-    private static void loadAdvancedSettingsTabInModel(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
+    private static void loadAdvancedSettingsTabInModel(final CSVMultiTableReadConfig config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
         config.setFailOnDifferingSpecs(loadFailOnDifferingSpecsInModel(settings));
         config.setSpecMergeMode(loadSpecMergeModeForOldWorkflows(settings));
@@ -377,9 +364,8 @@ enum CSVMultiTableReadConfigSerializer implements
         cc.setDecimalSeparator(settings.getString(CFG_DECIMAL_SEPARATOR, "."));
     }
 
-    private static void loadLimitRowsTabInModel(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void loadLimitRowsTabInModel(final CSVMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = config.getTableReadConfig();
         tc.setSkipRows(settings.getBoolean(CFG_SKIP_DATA_ROWS));
         tc.setNumRowsToSkip(settings.getLong(CFG_NUMBER_OF_ROWS_TO_SKIP));
@@ -391,16 +377,13 @@ enum CSVMultiTableReadConfigSerializer implements
         cc.setNumLinesToSkip(settings.getLong(CFG_NUMBER_OF_LINES_TO_SKIP));
     }
 
-    private static void loadEncodingTabInModel(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void loadEncodingTabInModel(final CSVMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         config.getReaderSpecificConfig().setCharSetName(settings.getString(CFG_CHARSET));
     }
 
     @Override
-    public void saveInModel(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsWO settings) {
+    public void saveInModel(final CSVMultiTableReadConfig config, final NodeSettingsWO settings) {
         if (config.hasTableSpecConfig()) {
             config.getTableSpecConfig().save(settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
@@ -410,9 +393,7 @@ enum CSVMultiTableReadConfigSerializer implements
         saveEncodingTab(config, settings.addNodeSettings(CFG_ENCODING_TAB));
     }
 
-    private static void saveSettingsTab(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsWO settings) {
+    private static void saveSettingsTab(final CSVMultiTableReadConfig config, final NodeSettingsWO settings) {
         final TableReadConfig<?> tc = config.getTableReadConfig();
         settings.addBoolean(CFG_HAS_COLUMN_HEADER, tc.useColumnHeaderIdx());
         settings.addBoolean(CFG_HAS_ROW_ID, tc.useRowIDIdx());
@@ -430,9 +411,7 @@ enum CSVMultiTableReadConfigSerializer implements
     }
 
     @SuppressWarnings("deprecation")
-    private static void saveAdvancedSettingsTab(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsWO settings) {
+    private static void saveAdvancedSettingsTab(final CSVMultiTableReadConfig config, final NodeSettingsWO settings) {
 
         if (config.getSpecMergeMode() != null) {
             // We have an old SpecMergeMode stored, so we need to carry it along
@@ -460,9 +439,7 @@ enum CSVMultiTableReadConfigSerializer implements
         settings.addString(CFG_DECIMAL_SEPARATOR, cc.getDecimalSeparator());
     }
 
-    private static void saveLimitRowsTab(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsWO settings) {
+    private static void saveLimitRowsTab(final CSVMultiTableReadConfig config, final NodeSettingsWO settings) {
 
         final CSVTableReaderConfig cc = config.getReaderSpecificConfig();
         settings.addBoolean(CFG_SKIP_LINES, cc.skipLines());
@@ -475,9 +452,7 @@ enum CSVMultiTableReadConfigSerializer implements
         settings.addLong(CFG_MAX_ROWS, tc.getMaxRows());
     }
 
-    private static void saveEncodingTab(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsWO settings) {
+    private static void saveEncodingTab(final CSVMultiTableReadConfig config, final NodeSettingsWO settings) {
         settings.addString(CFG_CHARSET, config.getReaderSpecificConfig().getCharSetName());
     }
 
@@ -544,9 +519,8 @@ enum CSVMultiTableReadConfigSerializer implements
     }
 
     @Override
-    public void saveInDialog(
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
-        final NodeSettingsWO settings) throws InvalidSettingsException {
+    public void saveInDialog(final CSVMultiTableReadConfig config, final NodeSettingsWO settings)
+        throws InvalidSettingsException {
         saveInModel(config, settings);
     }
 

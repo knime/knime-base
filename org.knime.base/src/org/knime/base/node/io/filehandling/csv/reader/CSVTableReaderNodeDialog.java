@@ -77,8 +77,6 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -94,7 +92,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     private JCheckBox m_failOnDifferingSpecs;
 
     CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
-        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>, Class<?>> config,
+        final CSVMultiTableReadConfig config,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(fileChooserModel, config, multiReader, productionPathProvider, true);

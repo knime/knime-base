@@ -49,11 +49,6 @@
 package org.knime.filehandling.core.node.table.reader.config;
 
 import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * Default implementation of {@link MultiTableReadConfig}.</br>
@@ -67,20 +62,22 @@ import org.knime.core.node.port.PortObjectSpec;
  * @noinstantiate non-public API
  */
 public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T>
-    extends AbstractMultiTableReadConfig<C, TC, T> implements StorableMultiTableReadConfig<C, T> {
-
-    private final ConfigSerializer<DefaultMultiTableReadConfig<C, TC, T>> m_serializer;
+    extends AbstractMultiTableReadConfig<C, TC, T, DefaultMultiTableReadConfig<C, TC, T>> {
 
     /**
      * Constructor.
      *
      * @param tableReadConfig holding settings for reading a single table
-     * @param serializer for loading/saving/validating the config
+     * @param serializer the {@link ConfigSerializer} to use
      */
     public DefaultMultiTableReadConfig(final TC tableReadConfig,
         final ConfigSerializer<DefaultMultiTableReadConfig<C, TC, T>> serializer) {
-        super(tableReadConfig);
-        m_serializer = serializer;
+        super(tableReadConfig, serializer);
+    }
+
+    @Override
+    protected DefaultMultiTableReadConfig<C, TC, T> getThis() {
+        return this;
     }
 
     /**
@@ -104,32 +101,6 @@ public final class DefaultMultiTableReadConfig<C extends ReaderSpecificConfig<C>
         final DefaultMultiTableReadConfigSerializer<C, DefaultTableReadConfig<C>, T> serializer =
             new DefaultMultiTableReadConfigSerializer<>(tcSerializer, producerRegistry, mostGenericExternalType);
         return new DefaultMultiTableReadConfig<>(tc, serializer);
-    }
-
-    @Override
-    public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_serializer.loadInModel(this, settings);
-    }
-
-    @Override
-    public void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        m_serializer.loadInDialog(this, settings, specs);
-    }
-
-    @Override
-    public void saveInModel(final NodeSettingsWO settings) {
-        m_serializer.saveInModel(this, settings);
-    }
-
-    @Override
-    public void saveInDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_serializer.saveInDialog(this, settings);
-    }
-
-    @Override
-    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_serializer.validate(settings);
     }
 
 }

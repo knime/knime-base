@@ -85,7 +85,6 @@ import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -128,7 +127,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
 
     private final CharsetNamePanel m_encodingPanel;
 
-    private final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>> m_config;
+    private final LineMultiTableReadConfig m_config;
 
     private final PathSettings m_pathSettings;
 
@@ -141,7 +140,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
      * @param productionPathProvider the {@link ProductionPathProvider}
      */
     LineReaderNodeDialog2(final PathSettings pathSettings,
-        final DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>> config,
+        final LineMultiTableReadConfig config,
         final MultiTableReadFactory<Path, LineReaderConfig2, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(multiReader, productionPathProvider, true);
@@ -444,7 +443,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
     }
 
     @Override
-    protected MultiTableReadConfig<LineReaderConfig2, Class<?>> getConfig() throws InvalidSettingsException {
+    protected LineMultiTableReadConfig getConfig() throws InvalidSettingsException {
         m_config.setFailOnDifferingSpecs(m_failOnDiffSpecs.isSelected());
         saveTableReadSettings(m_config.getTableReadConfig());
         saveLineReaderSettings(m_config.getTableReadConfig().getReaderSpecificConfig());

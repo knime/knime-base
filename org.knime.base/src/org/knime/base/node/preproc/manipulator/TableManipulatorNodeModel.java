@@ -90,8 +90,6 @@ import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvid
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
@@ -126,15 +124,8 @@ final class TableManipulatorNodeModel extends NodeModel {
         m_tableReader = new MultiTableReader<>(multiTableReadFactory);
     }
 
-    static
-        DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>, DataType>
-        createConfig() {
-        DefaultTableReadConfig<TableManipulatorConfig> tc = new DefaultTableReadConfig<>(new TableManipulatorConfig());
-        final DefaultMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>, DataType> config =
-            new DefaultMultiTableReadConfig<>(tc, TableManipulatorConfigSerializer.INSTANCE);
-        config.setFailOnDifferingSpecs(false);
-        config.getTableReadConfig().setRowIDIdx(0);
-        return config;
+    static TableManipulatorMultiTableReadConfig createConfig() {
+        return new TableManipulatorMultiTableReadConfig();
     }
 
     static DefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> createReadFactory() {

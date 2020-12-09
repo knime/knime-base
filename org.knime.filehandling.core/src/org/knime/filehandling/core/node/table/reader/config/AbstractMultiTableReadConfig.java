@@ -48,22 +48,31 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 
 /**
- * Abstract implementation of a {@link MultiTableReadConfig} that provides getters and setters but doesn't implement
- * serialization.
+ * Abstract implementation of a {@link MultiTableReadConfig} that provides getters and getters.<br>
+ * It also handles serialization via a {@link ConfigSerializer}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @param <C> the type of {@link ReaderSpecificConfig} used in the node implementation
  * @param <TC> the type of {@link TableReadConfig} used in the node implementation
  * @param <T> the type used to identify external data types
+ * @param <S> The concrete implementation type (S for self)
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T>
-    implements MultiTableReadConfig<C, T> {
+public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>,
+TC extends TableReadConfig<C>, T, S extends AbstractMultiTableReadConfig<C, TC, T, S>>
+    implements StorableMultiTableReadConfig<C, T> {
+
+    private final ConfigSerializer<S> m_serializer;
 
     private final TC m_tableReadConfig;
 
@@ -80,20 +89,55 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
     /**
      * Constructor.
      *
-     * @param tableReadConfig TableReadConfig to use
+     * @param tableReadConfig {@link TableReadConfig} to use
+     * @param serializer the {@link ConfigSerializer} typed on the concrete implementation
      *
      */
-    public AbstractMultiTableReadConfig(final TC tableReadConfig) {
+    public AbstractMultiTableReadConfig(final TC tableReadConfig, final ConfigSerializer<S> serializer) {
         m_tableReadConfig = tableReadConfig;
+        m_serializer = serializer;
+    }
+
+    /**
+     * The code for this in the subclass should read {@code return this;}
+     *
+     * @return the object instance
+     */
+    protected abstract S getThis();
+
+    @Override
+    public final void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_serializer.loadInModel(getThis(), settings);
     }
 
     @Override
-    public TC getTableReadConfig() {
+    public final void loadInDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_serializer.loadInDialog(getThis(), settings, specs);
+    }
+
+    @Override
+    public final void saveInModel(final NodeSettingsWO settings) {
+        m_serializer.saveInModel(getThis(), settings);
+    }
+
+    @Override
+    public final void saveInDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_serializer.saveInDialog(getThis(), settings);
+    }
+
+    @Override
+    public final void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_serializer.validate(settings);
+    }
+
+    @Override
+    public final TC getTableReadConfig() {
         return m_tableReadConfig;
     }
 
     @Override
-    public boolean failOnDifferingSpecs() {
+    public final boolean failOnDifferingSpecs() {
         return m_failOnDifferingSpecs;
     }
 
@@ -103,22 +147,22 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
      * @param failOnDifferingSpecs {@code true} if the node should fail if multiple files are read and they have
      *            differing specs
      */
-    public void setFailOnDifferingSpecs(final boolean failOnDifferingSpecs) {
+    public final void setFailOnDifferingSpecs(final boolean failOnDifferingSpecs) {
         m_failOnDifferingSpecs = failOnDifferingSpecs;
     }
 
     @Override
-    public TableSpecConfig<T> getTableSpecConfig() {
+    public final TableSpecConfig<T> getTableSpecConfig() {
         return m_tableSpecConfig;
     }
 
     @Override
-    public boolean hasTableSpecConfig() {
+    public final boolean hasTableSpecConfig() {
         return m_tableSpecConfig != null;
     }
 
     @Override
-    public void setTableSpecConfig(final TableSpecConfig<T> config) {
+    public final void setTableSpecConfig(final TableSpecConfig<T> config) {
         m_tableSpecConfig = config;
     }
 
@@ -128,7 +172,7 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
      */
     @Override
     @Deprecated
-    public SpecMergeMode getSpecMergeMode() {
+    public final SpecMergeMode getSpecMergeMode() {
         return m_specMergeMode;
     }
 
@@ -139,7 +183,7 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
      * @deprecated only used as fallback if there is no TableSpecConfig
      */
     @Deprecated
-    public void setSpecMergeMode(final SpecMergeMode specMergeMode) {
+    public final void setSpecMergeMode(final SpecMergeMode specMergeMode) {
         m_specMergeMode = specMergeMode;
     }
 
@@ -148,7 +192,7 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
      *
      * @return the {@link ReaderSpecificConfig}
      */
-    public C getReaderSpecificConfig() {
+    public final C getReaderSpecificConfig() {
         return m_tableReadConfig.getReaderSpecificConfig();
     }
 

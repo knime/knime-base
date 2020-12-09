@@ -59,8 +59,6 @@ import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
@@ -119,10 +117,8 @@ public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory
     }
 
     @Override
-    protected DefaultMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>>
-        createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-        final DefaultTableReadConfig<LineReaderConfig2> tc = new DefaultTableReadConfig<>(new LineReaderConfig2());
-        return new DefaultMultiTableReadConfig<>(tc, LineReaderMultiTableReadConfigSerializer.INSTANCE);
+    protected LineMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+        return new LineMultiTableReadConfig();
     }
 
     @Override
