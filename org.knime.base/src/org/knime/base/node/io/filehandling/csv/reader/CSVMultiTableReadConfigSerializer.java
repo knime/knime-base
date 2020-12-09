@@ -457,7 +457,9 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
     }
 
     @Override
-    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public void validate(
+        final CSVMultiTableReadConfig config,
+        final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             TABLE_SPEC_CONFIG_SERIALIZER.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }

@@ -173,10 +173,12 @@ public final class DefaultTableReadConfigSerializer<C extends ReaderSpecificConf
     }
 
     @Override
-    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public void validate(final DefaultTableReadConfig<C> config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         settings.getInt(CFG_ROW_ID_IDX);
         settings.getLong(CFG_COLUMN_HEADER_IDX);
-        m_readerSpecificConfigSerializer.validate(settings.getNodeSettings(CFG_READER_SPECIFIC_CONFIG));
+        m_readerSpecificConfigSerializer.validate(config.getReaderSpecificConfig(),
+            settings.getNodeSettings(CFG_READER_SPECIFIC_CONFIG));
         settings.getBoolean(CFG_USE_ROW_ID_IDX);
         settings.getBoolean(CFG_USE_COLUMN_HEADER_IDX);
         settings.getBoolean(CFG_ALLOW_SHORT_ROWS);

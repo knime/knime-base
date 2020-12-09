@@ -175,8 +175,10 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
     }
 
     @Override
-    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_tableReadConfigSerializer.validate(settings.getNodeSettings(CFG_TABLE_READ_CONFIG));
+    public void validate(final DefaultMultiTableReadConfig<C, TC, T> config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
+        m_tableReadConfigSerializer.validate(config.getTableReadConfig(),
+            settings.getNodeSettings(CFG_TABLE_READ_CONFIG));
 
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             DefaultTableSpecConfig.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), m_producerRegistry);

@@ -82,7 +82,8 @@ public interface ConfigSerializer<C> {
      *
      * @param config to laod the {@link NodeSettingsRO} into
      * @param settings to load from
-     * @throws InvalidSettingsException shouldn't be thrown since the framework ensures that {@link #validate(NodeSettingsRO)} is called first
+     * @throws InvalidSettingsException shouldn't be thrown since the framework ensures that
+     *             {@link #validate(Object, NodeSettingsRO)} is called first
      */
     void loadInModel(final C config, final NodeSettingsRO settings) throws InvalidSettingsException;
 
@@ -106,9 +107,11 @@ public interface ConfigSerializer<C> {
     /**
      * Validates the provided {@link NodeSettingsRO}.
      *
-     * @param settings to validate
+     * @param config to validate
+     * @param settings {@link NodeSettingsRO} to validate
+     *
      * @throws InvalidSettingsException if the settings are invalid
      */
-    void validate(final NodeSettingsRO settings) throws InvalidSettingsException;
+    void validate(final C config, final NodeSettingsRO settings) throws InvalidSettingsException;
 
 }

@@ -128,7 +128,7 @@ TC extends TableReadConfig<C>, T, S extends AbstractMultiTableReadConfig<C, TC, 
 
     @Override
     public final void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_serializer.validate(settings);
+        m_serializer.validate(getThis(), settings);
     }
 
     @Override

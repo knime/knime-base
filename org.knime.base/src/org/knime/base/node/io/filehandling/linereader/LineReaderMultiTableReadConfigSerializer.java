@@ -267,7 +267,8 @@ enum LineReaderMultiTableReadConfigSerializer implements
     }
 
     @Override
-    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public void validate(final LineMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         validateSettingsTab(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
         validateAdvancedSettingsTab(settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
         validateEncodingTab(settings.getNodeSettings(CFG_ENCODING_TAB));
