@@ -121,6 +121,8 @@ public final class DefaultTableSpecConfigSerializer<T> {
 
     private static final String CFG_INDIVIDUAL_SPEC = "individual_spec_";
 
+    private static final String CFG_HAS_TYPE = "has_type" + SettingsModel.CFGKEY_INTERNAL;
+
     /** Root path/item config key. */
     private static final String CFG_ROOT_PATH = "root_path" + SettingsModel.CFGKEY_INTERNAL;
 
@@ -172,20 +174,19 @@ public final class DefaultTableSpecConfigSerializer<T> {
      * De-serializes the {@link DefaultTableSpecConfig} previously written to the given settings.
      *
      * @param settings containing the serialized {@link DefaultTableSpecConfig}
-     * @param specMergeModeOld for workflows stored with 4.2, should be {@code null} for workflows stored with 4.3 and
-     *            later
+     * @param externalConfig the external config
      * @return the de-serialized {@link DefaultTableSpecConfig}
      * @throws InvalidSettingsException - if the settings do not exists / cannot be loaded
      */
-    public DefaultTableSpecConfig<T> load(final NodeSettingsRO settings,
-        @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
+    public DefaultTableSpecConfig<T> load(final NodeSettingsRO settings, final ExternalConfig externalConfig)
+        throws InvalidSettingsException {
         final String rootItem = settings.getString(CFG_ROOT_PATH);
         final String[] items = settings.getStringArray(CFG_FILE_PATHS);
         final List<ReaderTableSpec<?>> individualSpecs =
             loadIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS), items.length);
         final Set<String> allColumns = union(individualSpecs);
         final ImmutableTableTransformation<T> tableTransformation =
-            loadTableTransformation(settings, allColumns, specMergeModeOld, individualSpecs);
+            loadTableTransformation(settings, allColumns, externalConfig, individualSpecs);
         final Collection<TypedReaderTableSpec<T>> typedIndividualSpecs =
             assignTypes(individualSpecs, tableTransformation);
         return new DefaultTableSpecConfig<>(rootItem, items, typedIndividualSpecs, tableTransformation);
@@ -217,12 +218,12 @@ public final class DefaultTableSpecConfigSerializer<T> {
     }
 
     private ImmutableTableTransformation<T> loadTableTransformation(final NodeSettingsRO settings,
-        final Set<String> allColumns, @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld,
+        final Set<String> allColumns, final ExternalConfig externalConfig,
         final Collection<ReaderTableSpec<?>> individualSpecs) throws InvalidSettingsException {
 
         final boolean includeUnknownColumns = settings.getBoolean(CFG_INCLUDE_UNKNOWN, true);
         final boolean enforceTypes = settings.getBoolean(CFG_ENFORCE_TYPES, false);
-        final ColumnFilterMode columnFilterMode = loadColumnFilterMode(settings, specMergeModeOld);
+        final ColumnFilterMode columnFilterMode = loadColumnFilterMode(settings, externalConfig.getSpecMergeMode());
 
         // For old workflows (created with 4.2), the spec might not contain all columns contained in union if
         // SpecMergeMode#INTERSECTION was used to create the final spec
@@ -235,6 +236,7 @@ public final class DefaultTableSpecConfigSerializer<T> {
         final String[] originalNames = loadOriginalNames(fullKnimeSpec, settings);
         final int[] positions = loadPositionalMapping(fullKnimeSpec.getNumColumns(), settings);
         final boolean[] keeps = loadKeep(loadedKnimeSpec, allColumns, settings);
+        final boolean[] hasType = loadHasType(allColumns, settings);
 
         final List<ImmutableColumnTransformation<T>> transformations = new ArrayList<>(allProdPaths.length);
         for (int i = 0; i < allProdPaths.length; i++) {
@@ -242,7 +244,7 @@ public final class DefaultTableSpecConfigSerializer<T> {
             @SuppressWarnings("unchecked")
             final T externalType = (T)productionPath.getProducerFactory().getSourceType();
             final TypedReaderColumnSpec<T> externalSpec =
-                TypedReaderColumnSpec.createWithName(originalNames[i], externalType, true);
+                TypedReaderColumnSpec.createWithName(originalNames[i], externalType, hasType[i]);
             final int position = positions[i];
             final String outputName = fullKnimeSpec.getColumnSpec(i).getName();
             final boolean keep = keeps[i];
@@ -250,15 +252,15 @@ public final class DefaultTableSpecConfigSerializer<T> {
                 new ImmutableColumnTransformation<>(externalSpec, productionPath, keep, position, outputName);
             transformations.add(trans);
         }
-        final RawSpec<T> rawSpec = createRawSpec(fullKnimeSpec, allProdPaths, originalNames, individualSpecs);
+        final RawSpec<T> rawSpec = createRawSpec(fullKnimeSpec, allProdPaths, originalNames, individualSpecs, hasType);
 
         return new ImmutableTableTransformation<>(transformations, rawSpec, columnFilterMode, newColPosition,
-            includeUnknownColumns, enforceTypes);
+            includeUnknownColumns, enforceTypes, externalConfig.skipEmptyColumns());
     }
 
     private static <T> RawSpec<T> createRawSpec(final DataTableSpec rawKnimeSpec,
         final ProductionPath[] productionPaths, final String[] originalNames,
-        final Collection<ReaderTableSpec<?>> individualSpecs) {
+        final Collection<ReaderTableSpec<?>> individualSpecs, final boolean[] hasType) {
         assert rawKnimeSpec
             .getNumColumns() == productionPaths.length : "Number of production paths doesn't match the number of columns.";
         final List<TypedReaderColumnSpec<T>> specs = new ArrayList<>(rawKnimeSpec.getNumColumns());
@@ -266,7 +268,7 @@ public final class DefaultTableSpecConfigSerializer<T> {
             final ProductionPath productionPath = productionPaths[i];
             @SuppressWarnings("unchecked") // the production path stores the source type of type T
             final T type = (T)productionPath.getProducerFactory().getSourceType();
-            specs.add(TypedReaderColumnSpec.createWithName(originalNames[i], type, true));
+            specs.add(TypedReaderColumnSpec.createWithName(originalNames[i], type, hasType[i]));
         }
         final TypedReaderTableSpec<T> union = new TypedReaderTableSpec<>(specs);
         final TypedReaderTableSpec<T> intersection = findIntersection(union, individualSpecs);
@@ -328,6 +330,13 @@ public final class DefaultTableSpecConfigSerializer<T> {
         } else {
             return keep;
         }
+    }
+
+    private static boolean[] loadHasType(final Set<String> allColumns, final NodeSettingsRO settings) {
+        final boolean[] defaultVal = new boolean[allColumns.size()];
+        // we did not store this information with 4.3 (and earlier) and always assumed true
+        Arrays.fill(defaultVal, true);
+        return settings.getBooleanArray(CFG_HAS_TYPE, defaultVal);
     }
 
     /**
@@ -524,8 +533,10 @@ public final class DefaultTableSpecConfigSerializer<T> {
         final List<String> originalNames = new ArrayList<>(unionSize);
         final int[] positions = new int[unionSize];
         final boolean[] keep = new boolean[unionSize];
+        final boolean[] hasType = new boolean[unionSize];
         int idx = 0;
         for (TypedReaderColumnSpec<T> column : rawSpec) {
+            hasType[idx] = column.hasType();
             final ColumnTransformation<T> transformation = tableTransformation.getTransformation(column);
             final ProductionPath productionPath = transformation.getProductionPath();
             productionPaths.add(productionPath);
@@ -550,6 +561,7 @@ public final class DefaultTableSpecConfigSerializer<T> {
         settings.addStringArray(CFG_ORIGINAL_NAMES, originalNames.toArray(new String[0]));
         settings.addIntArray(CFG_POSITIONAL_MAPPING, positions);
         settings.addBooleanArray(CFG_KEEP, keep);
+        settings.addBooleanArray(CFG_HAS_TYPE, hasType);
         settings.addInt(CFG_NEW_COLUMN_POSITION, tableTransformation.getPositionForUnknownColumns());
         settings.addBoolean(CFG_INCLUDE_UNKNOWN, tableTransformation.keepUnknownColumns());
         settings.addBoolean(CFG_ENFORCE_TYPES, tableTransformation.enforceTypes());
@@ -617,6 +629,46 @@ public final class DefaultTableSpecConfigSerializer<T> {
         @Override
         public ProducerRegistry<?, ?> getProducerRegistry() {
             return m_registry;
+        }
+    }
+
+    /**
+     * A class holding external configurations for the table spec that are saved by nodes directly and can be controlled
+     * via flow variables.
+     *
+     * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+     */
+    public static final class ExternalConfig {
+
+        @SuppressWarnings("deprecation")
+        private final SpecMergeMode m_specMergeMode;
+
+        private final boolean m_skipEmptyColumns;
+
+        /**
+         * @param specMergeMode for workflows stored with 4.2, should be {@code null} for workflows stored with 4.3 and
+         *            later
+         * @param skipEmptyColumns whether empty columns should be skipped, most likely defaults to {@code false}
+         */
+        public ExternalConfig(@SuppressWarnings("deprecation") final SpecMergeMode specMergeMode,
+            final boolean skipEmptyColumns) {
+            m_specMergeMode = specMergeMode;
+            m_skipEmptyColumns = skipEmptyColumns;
+        }
+
+        /**
+         * @return the specMergeMode, can be {@code null}
+         */
+        @SuppressWarnings("deprecation")
+        public SpecMergeMode getSpecMergeMode() {
+            return m_specMergeMode;
+        }
+
+        /**
+         * @return the skipEmptyColumns
+         */
+        public boolean skipEmptyColumns() {
+            return m_skipEmptyColumns;
         }
     }
 }

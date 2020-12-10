@@ -77,9 +77,11 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ObservableTransformationModelProvider;
@@ -142,6 +144,8 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     private final transient SetMultimap<String, MutableColumnTransformation<T>> m_byName =
         MultimapBuilder.hashKeys().hashSetValues().build();
 
+    private final transient List<MutableColumnTransformation<T>> m_unionIncludingFiltered = new ArrayList<>();
+
     private final transient List<MutableColumnTransformation<T>> m_union = new ArrayList<>();
 
     private final transient List<MutableColumnTransformation<T>> m_intersection = new ArrayList<>();
@@ -156,6 +160,8 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     private final transient ButtonModel m_enforceTypesModel = new JToggleButton.ToggleButtonModel();
 
     private transient RawSpec<T> m_rawSpec = null;
+
+    private boolean m_skipEmptyColumns = false;
 
     private boolean m_enabled = true;
 
@@ -216,6 +222,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     }
 
     private void sortByOutputIdx() {
+        m_unionIncludingFiltered.sort(Comparator.naturalOrder());
         m_union.sort(Comparator.naturalOrder());
         m_intersection.sort(Comparator.naturalOrder());
     }
@@ -291,14 +298,21 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     }
 
     @Override
-    public void updateRawSpec(final RawSpec<T> rawSpec) {
-        if (rawSpec == null) {
-            if (m_rawSpec != null) {
-                m_rawSpec = null;
-                fireTableDataChanged();
-            }
-        } else if (!rawSpec.equals(m_rawSpec)) {
+    public void clearRawSpec() {
+        if (m_rawSpec != null) {
+            m_rawSpec = null;
+            fireTableDataChanged();
+        }
+    }
+
+    @Override
+    public void updateRawSpec(final RawSpec<T> rawSpec, final MultiTableReadConfig<?, T> config) {
+        CheckUtils.checkNotNull(rawSpec, "The raw spec must not be null.");
+        CheckUtils.checkNotNull(config, "The config must not be null.");
+        final boolean skipEmptyColumns = config.skipEmptyColumns();
+        if (!rawSpec.equals(m_rawSpec) || skipEmptyColumns != m_skipEmptyColumns) {
             m_rawSpec = rawSpec;
+            m_skipEmptyColumns = skipEmptyColumns;
             updateTransformations();
         } else {
             // nothing changes
@@ -315,6 +329,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         int idx = 0;
         m_union.clear();
         m_intersection.clear();
+        m_unionIncludingFiltered.clear();
         m_union.add(m_newColTransformationPlaceholder);
         m_intersection.add(m_newColTransformationPlaceholder);
         m_newColTransformationPlaceholder.setPosition(-1);
@@ -333,11 +348,14 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                 newColumns.put(column, transformation);
                 m_byName.put(transformation.getName(), transformation);
             }
-            if (isInIntersection) {
-                m_intersection.add(transformation);
+            if (!m_skipEmptyColumns || column.hasType()) {
+                if (isInIntersection) {
+                    m_intersection.add(transformation);
+                }
+                m_union.add(transformation);
+                idx++;
             }
-            m_union.add(transformation);
-            idx++;
+            m_unionIncludingFiltered.add(transformation);
         }
         tableChanged |= !newColumns.isEmpty();
         final int oldNumberOfTransformations = m_bySpec.size();
@@ -372,8 +390,10 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     @Override
     public void load(final TableTransformation<T> transformationModel) {
         m_rawSpec = transformationModel.getRawSpec();
+        m_skipEmptyColumns = transformationModel.skipEmptyColumns();
         m_union.clear();
         m_intersection.clear();
+        m_unionIncludingFiltered.clear();
         final int newColPosition = transformationModel.getPositionForUnknownColumns();
         m_newColTransformationPlaceholder.setPosition(newColPosition);
         m_union.add(m_newColTransformationPlaceholder);
@@ -385,6 +405,8 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         m_enforceTypesModel.setSelected(transformationModel.enforceTypes());
         final Set<TypedReaderColumnSpec<T>> intersection = m_rawSpec.getIntersection().stream().collect(toSet());
         int idx = 0;
+        final List<MutableColumnTransformation<T>> rawTransformations = new ArrayList<>();
+        // collect all (unsorted) transformations without adjusting their indices
         for (TypedReaderColumnSpec<T> column : m_rawSpec.getUnion()) {
             final MutableColumnTransformation<T> transformation;
             // in case we are in intersection mode, the TranformationModel might not have a
@@ -396,19 +418,36 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                     getNameAfterInit(column), m_defaultProductionPathFn.apply(column.getType()),
                     getPositionForUnknownColumns(), keepUnknownColumns());
             }
-            int pos = transformation.getPosition();
-            if (pos >= newColPosition) {
-                // increment position to make space for the placeholder row
-                transformation.setPosition(pos + 1);
-            }
             m_bySpec.put(column, transformation);
             m_byName.put(transformation.getName(), transformation);
-            m_union.add(transformation);
-            if (intersection.contains(column)) {
-                m_intersection.add(transformation);
-            }
+            rawTransformations.add(transformation);
             idx++;
         }
+
+        // count filtered columns to adjust indices of the non-filtered ones; the transformations must first be sorted
+        // to ensure the numSkippedColumns is correct
+        int numSkippedColumns = 0;
+        rawTransformations.sort(Comparator.naturalOrder());
+        for (MutableColumnTransformation<T> transformation : rawTransformations) {
+            TypedReaderColumnSpec<T> columnSpec = transformation.getExternalSpec();
+            if (!m_skipEmptyColumns || columnSpec.hasType()) {
+                int pos = transformation.getPosition();
+                pos -= numSkippedColumns;
+                if (pos >= newColPosition) {
+                    pos++;
+                }
+                transformation.setPosition(pos);
+                if (intersection.contains(columnSpec)) {
+                    m_intersection.add(transformation);
+                }
+                m_union.add(transformation);
+            } else {
+                numSkippedColumns++;
+            }
+            m_unionIncludingFiltered.add(transformation);
+        }
+
+        // one more sorting to sort in the placeholder for unknown columns correctly
         sortByOutputIdx();
         fireTableDataChanged();
     }
@@ -657,17 +696,13 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     public TableTransformation<T> getTableTransformation() {
         int idx = 0;
         List<ColumnTransformation<T>> transformations = new ArrayList<>();
-        for (ColumnTransformation<T> t : m_union) {
-            if (t == m_newColTransformationPlaceholder) {
-                // the placeholder is not added as transformation
-                continue;
-            }
+        for (ColumnTransformation<T> t : m_unionIncludingFiltered) {
             transformations.add(new ImmutableColumnTransformation<>(t.getExternalSpec(), t.getProductionPath(),
                 t.keep(), idx, t.getName()));
             idx++;
         }
         return new DefaultTableTransformation<>(m_rawSpec, transformations, getColumnFilterMode(), keepUnknownColumns(),
-            getPositionForUnknownColumns(), m_enforceTypesModel.isSelected());
+            getPositionForUnknownColumns(), m_enforceTypesModel.isSelected(), m_skipEmptyColumns);
     }
 
 }

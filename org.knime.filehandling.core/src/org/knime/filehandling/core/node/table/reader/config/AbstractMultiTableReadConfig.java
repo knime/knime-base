@@ -80,6 +80,8 @@ TC extends TableReadConfig<C>, T, S extends AbstractMultiTableReadConfig<C, TC, 
 
     private boolean m_failOnDifferingSpecs = true;
 
+    private boolean m_skipEmptyColumns = false;
+
     /**
      * @deprecated Only used as fallback if no TableSpecConfig is available
      */
@@ -149,6 +151,20 @@ TC extends TableReadConfig<C>, T, S extends AbstractMultiTableReadConfig<C, TC, 
      */
     public final void setFailOnDifferingSpecs(final boolean failOnDifferingSpecs) {
         m_failOnDifferingSpecs = failOnDifferingSpecs;
+    }
+
+    @Override
+    public boolean skipEmptyColumns() {
+        return m_skipEmptyColumns;
+    }
+
+    /**
+     * Allows to set whether empty columns should be filtered out.
+     *
+     * @param skipEmptyColumns {@code true} if empty columns should be skipped
+     */
+    public void setSkipEmptyColumns(final boolean skipEmptyColumns) {
+        m_skipEmptyColumns = skipEmptyColumns;
     }
 
     @Override

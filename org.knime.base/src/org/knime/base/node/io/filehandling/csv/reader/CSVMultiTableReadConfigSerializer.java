@@ -64,6 +64,7 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer.ExternalConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -172,7 +173,7 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
             try {
                 config.setTableSpecConfig(
                     TABLE_SPEC_CONFIG_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                        loadSpecMergeModeForOldWorkflows(advancedSettings)));
+                        new ExternalConfig(loadSpecMergeModeForOldWorkflows(advancedSettings), false)));
             } catch (InvalidSettingsException ex) {// NOSONAR, see below
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -309,7 +310,7 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
         loadEncodingTabInModel(config, settings.getNodeSettings(CFG_ENCODING_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             config.setTableSpecConfig(TABLE_SPEC_CONFIG_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-                loadSpecMergeModeForOldWorkflows(advancedSettings)));
+                new ExternalConfig(loadSpecMergeModeForOldWorkflows(advancedSettings), false)));
         } else {
             config.setTableSpecConfig(null);
         }

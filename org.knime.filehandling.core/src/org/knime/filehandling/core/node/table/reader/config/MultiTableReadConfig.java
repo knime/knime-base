@@ -111,6 +111,13 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
     void setTableSpecConfig(TableSpecConfig<T> config);
 
     /**
+     * Indicates whether the empty columns should be skipped, i.e., filtered out.
+     *
+     * @return {@code true} if empty columns should be skipped
+     */
+    boolean skipEmptyColumns();
+
+    /**
      * Returns {@code true} if the {@link DefaultTableSpecConfig} has been created with the provided <b>rootItem</b> and
      * {@link List} of items.
      *

@@ -846,7 +846,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
      * {@inheritDoc}
      */
     @Override
-    protected final void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    protected final CSVMultiTableReadConfig loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_config.loadInDialog(settings, specs);
         loadTableReadSettings();
@@ -860,9 +860,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
         controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner);
 
-        if (m_config.hasTableSpecConfig()) {
-            loadFromTableSpecConfig(m_config.getTableSpecConfig());
-        }
+        return m_config;
     }
 
     /**

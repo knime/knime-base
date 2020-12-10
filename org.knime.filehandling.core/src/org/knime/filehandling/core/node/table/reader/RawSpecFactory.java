@@ -103,9 +103,9 @@ final class RawSpecFactory<T> {
             // and therefore aren't part of the intersection of all columns
             commonNames.removeAll(currentIntersection);
         }
-        final Collection<TypedReaderColumnSpec<T>> cols = typeResolvers.entrySet().stream()
-            .map(e -> TypedReaderColumnSpec.createWithName(e.getKey(), e.getValue().getMostSpecificType(), true))
-            .collect(toList());
+        final Collection<TypedReaderColumnSpec<T>> cols =
+            typeResolvers.entrySet().stream().map(e -> TypedReaderColumnSpec.createWithName(e.getKey(),
+                e.getValue().getMostSpecificType(), e.getValue().hasType())).collect(toList());
         final TypedReaderTableSpec<T> union = new TypedReaderTableSpec<>(cols);
         final TypedReaderTableSpec<T> intersection = new TypedReaderTableSpec<>(//
                 cols.stream()//

@@ -147,7 +147,7 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
         final List<ColumnTransformation<T>> newTransformations = createColumnTransformations(relevantColumns,
             relevantTransformations, insertUnknownsAt, unknowns, transformationFactory);
         return new DefaultTableTransformation<>(newRawSpec, newTransformations, colFilterMode, keepUnknownColumns,
-            insertUnknownsAt + unknowns.size(), enforceTypes);
+            insertUnknownsAt + unknowns.size(), enforceTypes, existingModel.skipEmptyColumns());
     }
 
     private int calculateNewPosForUnknown(final Collection<ColumnTransformation<T>> relevantTransformations,
@@ -214,7 +214,7 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
         // defaulting enforceTypes to true is save because this transformation is only stored for the Table Manipulator
         // which is a new node in 4.3. Reader nodes don't store the transformation created here.
         return new DefaultTableTransformation<>(rawSpec, transformations, columnFilterMode, true,
-            transformations.size(), true);
+            transformations.size(), true, config.skipEmptyColumns());
     }
 
     private class ColumnTransformationFactory {

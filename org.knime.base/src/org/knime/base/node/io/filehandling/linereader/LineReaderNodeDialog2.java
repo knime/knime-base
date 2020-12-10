@@ -457,7 +457,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
     }
 
     @Override
-    protected void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    protected LineMultiTableReadConfig loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_sourceFilePanel.loadSettingsFrom(SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB), specs);
 
@@ -489,6 +489,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         final FileReaderSettings fReadSettings = new FileReaderSettings();
         fReadSettings.setCharsetName(lineReaderConfig.getCharSetName());
         m_encodingPanel.loadSettings(fReadSettings);
+        return m_config;
 
     }
 

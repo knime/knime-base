@@ -93,7 +93,6 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderP
 import org.knime.filehandling.core.node.table.reader.preview.dialog.TableReaderPreviewView;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationPanel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
-import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.GBCBuilder;
 
@@ -311,16 +310,6 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
         return m_disableIOComponents;
     }
 
-    /**
-     * Method to load the preview from the stored {@link DefaultTableSpecConfig}.
-     *
-     * @param genericTableSpecConfig to load from
-     */
-    private void loadFromTableSpecConfig(final TableSpecConfig genericTableSpecConfig) {
-        final TableTransformation<DataType> transformationModel = genericTableSpecConfig.getTransformationModel();
-        m_coordinator.load(transformationModel);
-    }
-
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_specTransformer.commitChanges();
@@ -398,7 +387,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
 
         m_config.loadInDialog(settings, specs);
         if (m_config.hasTableSpecConfig()) {
-            loadFromTableSpecConfig(m_config.getTableSpecConfig());
+            m_coordinator.load(m_config.getTableSpecConfig().getTransformationModel());
         }
         final boolean useRowIDIdx = m_config.getTableReadConfig().useRowIDIdx();
         m_useRowID.setSelected(useRowIDIdx);

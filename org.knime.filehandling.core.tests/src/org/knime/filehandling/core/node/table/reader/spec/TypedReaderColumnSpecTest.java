@@ -119,9 +119,11 @@ public class TypedReaderColumnSpecTest {
     @Test
     public void testToString() {
         TypedReaderColumnSpec<String> different = TypedReaderColumnSpec.createWithName("hans", "franz", true);
-        assertEquals("[hans, franz]", different.toString());
+        assertEquals("[hans, franz], hasType: true", different.toString());
+        TypedReaderColumnSpec<String> noType = TypedReaderColumnSpec.createWithName("hans", "franz", false);
+        assertEquals("[hans, franz], hasType: false", noType.toString());
         TypedReaderColumnSpec<String> spec = TypedReaderColumnSpec.create("frieda", true);
-        assertEquals("[<no name>, frieda]", spec.toString());
+        assertEquals("[<no name>, frieda], hasType: true", spec.toString());
     }
 
 }

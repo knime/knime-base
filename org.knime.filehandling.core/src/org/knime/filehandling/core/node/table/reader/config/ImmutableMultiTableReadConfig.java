@@ -70,6 +70,8 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
 
     private final boolean m_failOnDifferingSpecs;
 
+    private final boolean m_skipEmptyColumns;
+
     @SuppressWarnings("deprecation")
     private final SpecMergeMode m_specMergeMode;
 
@@ -86,6 +88,7 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
         @SuppressWarnings("deprecation") // yes but we still need it for backwards compatibility
         SpecMergeMode specMergeMode = multiTableReadConfig.getSpecMergeMode();//NOSONAR
         m_specMergeMode = specMergeMode;
+        m_skipEmptyColumns = multiTableReadConfig.skipEmptyColumns();
     }
 
     @Override
@@ -111,6 +114,11 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
     @Override
     public boolean failOnDifferingSpecs() {
         return m_failOnDifferingSpecs;
+    }
+
+    @Override
+    public boolean skipEmptyColumns() {
+        return m_skipEmptyColumns;
     }
 
     /**

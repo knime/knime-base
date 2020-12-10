@@ -93,8 +93,8 @@ public final class TypedReaderColumnSpec<T> extends DefaultReaderColumnSpec {
     private TypedReaderColumnSpec(final String name, final T type, final boolean hasType) {
         super(name);
         m_type = type;
-        m_hashCode = super.hashCode() * Objects.hash(m_type);
         m_hasType = hasType;
+        m_hashCode = super.hashCode() * Objects.hash(m_type) * Objects.hash(m_hasType);
     }
 
     /**
@@ -138,7 +138,7 @@ public final class TypedReaderColumnSpec<T> extends DefaultReaderColumnSpec {
             // if the T doesn't match, m_type.equals(other.m_type) will return false anyway
             @SuppressWarnings("rawtypes")
             final TypedReaderColumnSpec<?> other = (TypedReaderColumnSpec)obj;
-            return m_type.equals(other.m_type);
+            return m_type.equals(other.m_type) && m_hasType == other.m_hasType;
         }
         return false;
     }
@@ -149,6 +149,8 @@ public final class TypedReaderColumnSpec<T> extends DefaultReaderColumnSpec {
             .append(super.toString())//
             .append(", ")//
             .append(m_type).append("]")//
+            .append(", hasType: ")//
+            .append(m_hasType)//
             .toString();
     }
 

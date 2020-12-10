@@ -128,7 +128,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
         } catch (InvalidSettingsException ex) {// NOSONAR, the exception is displayed in the dialog
             m_analysisComponent.setError(ex.getMessage());
             m_previewModel.setDataTable(null);
-            m_transformationModel.updateRawSpec(null);
+            m_transformationModel.clearRawSpec();
         }
     }
 
@@ -245,7 +245,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
         private void displayPathError(final ExecutionException exception) {
             m_analysisComponent.setError(exception.getCause().getMessage());
             m_previewModel.setDataTable(null);
-            m_transformationModel.updateRawSpec(null);
+            m_transformationModel.clearRawSpec();
         }
 
         boolean isUpdatingPreview() {
@@ -274,7 +274,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
         private void calculatingRawSpecFailed() {
             // the raw spec could not be calculated because of some configuration problem
             // (not the path though because in that case retrieving the path would have already failed)
-            m_transformationModel.updateRawSpec(null);
+            m_transformationModel.clearRawSpec();
         }
 
         private void consumeNewStagedMultiRead(final StagedMultiTableRead<I, T> stagedMultiTableRead) {
@@ -287,7 +287,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
             m_currentRead = stagedMultiTableRead;
             // we disable the transformation view during this update to avoid concurrent manipulation
             m_transformationModel.setEnabled(false);
-            m_transformationModel.updateRawSpec(m_currentRead.getRawSpec());
+            m_transformationModel.updateRawSpec(m_currentRead.getRawSpec(), m_config);
             // the table spec might not change but the read accessor will be closed therefore we need to
             // update the preview table otherwise we risk IOExceptions because the paths are no longer valid
             // In addition to this issue, it might also be the case that a config change might not result in

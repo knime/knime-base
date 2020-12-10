@@ -66,7 +66,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
-import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -212,41 +211,6 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     @Override
     public void save(final NodeSettingsWO settings) {
         DefaultTableSpecConfigSerializer.save(this, settings);
-    }
-
-    /**
-     * De-serializes the {@link DefaultTableSpecConfig} previously written to the given settings.
-     *
-     * @param settings containing the serialized {@link DefaultTableSpecConfig}
-     * @param pathLoader the {@link ProductionPathLoader}
-     * @param mostGenericExternalType used as default type for columns that were previously (4.2) filtered out
-     * @param specMergeModeOld for workflows stored with 4.2, should be {@code null} for workflows stored with 4.3 and
-     *            later
-     * @return the de-serialized {@link DefaultTableSpecConfig}
-     * @throws InvalidSettingsException - if the settings do not exists / cannot be loaded
-     */
-    public static <T> DefaultTableSpecConfig<T> load(final T mostGenericExternalType,
-        final NodeSettingsRO settings, final ProductionPathLoader pathLoader,
-        @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
-        return new DefaultTableSpecConfigSerializer<T>(pathLoader, mostGenericExternalType).load(settings,
-            specMergeModeOld);
-    }
-
-    /**
-     * De-serializes the {@link DefaultTableSpecConfig} previously written to the given settings.
-     *
-     * @param settings containing the serialized {@link DefaultTableSpecConfig}
-     * @param registry the {@link ProducerRegistry} for restoring {@link ProductionPath ProductionPaths}
-     * @param mostGenericExternalType used as default type for columns that were previously (4.2) filtered out
-     * @param specMergeModeOld for workflows stored with 4.2, should be {@code null} for workflows stored with 4.3 and
-     *            later
-     * @return the de-serialized {@link DefaultTableSpecConfig}
-     * @throws InvalidSettingsException - if the settings do not exists / cannot be loaded
-     */
-    public static <T> DefaultTableSpecConfig<T> load(final NodeSettingsRO settings,
-        final ProducerRegistry<?, ?> registry, final T mostGenericExternalType,
-        @SuppressWarnings("deprecation") final SpecMergeMode specMergeModeOld) throws InvalidSettingsException {
-        return new DefaultTableSpecConfigSerializer<T>(registry, mostGenericExternalType).load(settings, specMergeModeOld);
     }
 
     @Override

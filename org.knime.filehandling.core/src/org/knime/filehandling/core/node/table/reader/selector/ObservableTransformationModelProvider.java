@@ -50,6 +50,7 @@ package org.knime.filehandling.core.node.table.reader.selector;
 
 import javax.swing.event.ChangeListener;
 
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -86,8 +87,14 @@ public interface ObservableTransformationModelProvider<T> {
      * Updates the raw {@link TypedReaderTableSpec} i.e. before type mapping, renaming, filtering or reordering.
      *
      * @param rawSpec the raw {@link TypedReaderTableSpec}
+     * @param config the config
      */
-    void updateRawSpec(final RawSpec<T> rawSpec);
+    void updateRawSpec(final RawSpec<T> rawSpec, final MultiTableReadConfig<?, T> config);
+
+    /**
+     * Clears the raw {@link TypedReaderTableSpec}.
+     */
+    void clearRawSpec();
 
     /**
      * Adapts this instance so that behaves exactly the same as the provided {@link TableTransformation}.

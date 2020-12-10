@@ -160,6 +160,7 @@ public class DefaultMultiTableReadFactoryTest {
 
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
         when(m_typeResolver.getMostSpecificType()).thenReturn("X", "Y", "Z");
+        when(m_typeResolver.hasType()).thenReturn(true);
 
         ExecutionMonitor exec = mock(ExecutionMonitor.class);
 

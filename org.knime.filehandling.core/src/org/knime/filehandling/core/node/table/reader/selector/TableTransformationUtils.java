@@ -58,6 +58,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -113,6 +114,10 @@ public final class TableTransformationUtils {
             default:
                 throw new IllegalArgumentException(
                     "Unsupported ColumnFilterMode: " + transformationModel.getColumnFilterMode());
+        }
+        if (transformationModel.skipEmptyColumns()) {
+            return new TypedReaderTableSpec<>(
+                candidates.stream().filter(TypedReaderColumnSpec::hasType).collect(toList()));
         }
         return candidates;
     }

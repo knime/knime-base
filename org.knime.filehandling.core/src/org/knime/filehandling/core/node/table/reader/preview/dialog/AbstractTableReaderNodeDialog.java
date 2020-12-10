@@ -70,15 +70,11 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationPanel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.transformer.TableTransformationTableModel;
-import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 /**
  * Abstract implementation of a {@link NodeDialogPane} for table reader nodes.</br>
  * It takes care of creating and managing the table preview.
- *
- * NOTE: Extending classes should call {@link #loadFromTableSpecConfig(TableSpecConfig)} when loading there settings
- * once the TableSpecConfig has been loaded.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <I> the type of source items the reader reads from
@@ -238,16 +234,6 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
         return m_disableIOComponents;
     }
 
-    /**
-     * Method to load the preview from the stored {@link DefaultTableSpecConfig}.
-     *
-     * @param tableSpecConfig to load from
-     */
-    protected final void loadFromTableSpecConfig(final TableSpecConfig<T> tableSpecConfig) {
-        final TableTransformation<T> transformationModel = tableSpecConfig.getTransformationModel();
-        m_coordinator.load(transformationModel);
-    }
-
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_specTransformer.commitChanges();
@@ -258,23 +244,25 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
         throws NotConfigurableException {
         ignoreEvents(true);
         setPreviewEnabled(false);
-        loadSettings(settings, specs);
+        final MultiTableReadConfig<C, T> config = loadSettings(settings, specs);
+        if (config.hasTableSpecConfig()) {
+            m_coordinator.load(config.getTableSpecConfig().getTransformationModel());
+        }
         ignoreEvents(false);
         refreshPreview(true);
     }
 
     /**
-     * See {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}.<br>
-     * NOTE: Extending classes should call {@link #loadFromTableSpecConfig(TableSpecConfig)} once the TableSpecConfig
-     * has been loaded.
+     * See {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}. Returns the loaded {@link MultiTableReadConfig}.
      *
      * @param settings the settings
      * @param specs the specs
+     * @return the loaded {@link MultiTableReadConfig}
      * @throws NotConfigurableException if a component cannot be configured
      * @see #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])
      */
-    protected abstract void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException;
+    protected abstract MultiTableReadConfig<C, T> loadSettings(final NodeSettingsRO settings,
+        final PortObjectSpec[] specs) throws NotConfigurableException;
 
     /**
      * Retrieves the currently configured {@link DefaultTableSpecConfig} or {@code null} if none is available e.g. if

@@ -146,6 +146,7 @@ public class TableSpecGuesserTest {
     private void setupTypeHierarchy(final TypedReaderTableSpec<String> spec, final boolean stopEarly) {
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
         when(m_typeResolver.reachedTop()).thenReturn(stopEarly);
+        when(m_typeResolver.hasType()).thenReturn(true);
         if (spec.size() == 1) {
             when(m_typeResolver.getMostSpecificType()).thenReturn(spec.getColumnSpec(0).getType());
         } else {

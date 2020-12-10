@@ -95,6 +95,7 @@ import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformati
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.TRFTestingUtils;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer.ExternalConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -145,6 +146,9 @@ public class DefaultTableSpecConfigTest {
     private static final String ROOT_PATH = "root";
 
     private static final ProducerRegistry<String, DummySource> REGISTRY = createTestingRegistry();
+
+    private static final DefaultTableSpecConfigSerializer<String> TABLE_SPEC_CONFIG_SERIALIZER =
+        new DefaultTableSpecConfigSerializer<>(REGISTRY, MOST_GENERIC_EXTERNAL_TYPE);
 
     private Map<String, TypedReaderTableSpec<String>> m_individualSpecs;
 
@@ -298,7 +302,7 @@ public class DefaultTableSpecConfigTest {
         cfg.save(s);
         DefaultTableSpecConfig.validate(s, REGISTRY);
         final TableSpecConfig<String> load =
-            DefaultTableSpecConfig.load(s, REGISTRY, MOST_GENERIC_EXTERNAL_TYPE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
+            TABLE_SPEC_CONFIG_SERIALIZER.load(s, new ExternalConfig(SpecMergeMode.FAIL_ON_DIFFERING_SPECS, false));
 
         assertEquals(cfg, load);
 
@@ -403,8 +407,8 @@ public class DefaultTableSpecConfigTest {
     public void testLoadPre43() throws InvalidSettingsException {
         final NodeSettings settings = create42Settings();
 
-        final TableSpecConfig<String> loaded = DefaultTableSpecConfig.load(settings, REGISTRY,
-            MOST_GENERIC_EXTERNAL_TYPE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
+        final TableSpecConfig<String> loaded = TABLE_SPEC_CONFIG_SERIALIZER.load(settings,
+            new ExternalConfig(SpecMergeMode.FAIL_ON_DIFFERING_SPECS, false));
 
         final ProductionPath[] prodPaths =
             getProductionPaths(a(MOST_GENERIC_EXTERNAL_TYPE, "Y", MOST_GENERIC_EXTERNAL_TYPE),
@@ -478,8 +482,8 @@ public class DefaultTableSpecConfigTest {
         final NodeSettings settings =
             createSettings(tableSpec, productionPaths, m_individualSpecs, originalNames, positions, keep);
 
-        final TableSpecConfig<String> loaded = DefaultTableSpecConfig.load(settings, REGISTRY,
-            MOST_GENERIC_EXTERNAL_TYPE, SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
+        final TableSpecConfig<String> loaded = TABLE_SPEC_CONFIG_SERIALIZER.load(settings,
+            new ExternalConfig(SpecMergeMode.FAIL_ON_DIFFERING_SPECS, false));
 
         getIndividualSpecsWithoutTypes();
         final TableSpecConfig<String> expected =
@@ -661,6 +665,8 @@ public class DefaultTableSpecConfigTest {
 
         private boolean m_enforceTypes = false;
 
+        private boolean m_skipEmptyColumns = false;
+
         private int m_unknownColPosition = 3;
 
         private List<TypedReaderColumnSpec<String>> m_cols = asList(COL1, COL2, COL3);
@@ -680,7 +686,7 @@ public class DefaultTableSpecConfigTest {
             final List<ImmutableColumnTransformation<String>> colTrans =
                 createColTrans(m_cols, asList(m_prodPaths), asList(m_names), asList(m_positions), asList(m_keeps));
             final ImmutableTableTransformation<String> tableTrans = new ImmutableTableTransformation<>(colTrans,
-                m_rawSpec, m_columnFilterMode, m_unknownColPosition, m_keepUnknown, m_enforceTypes);
+                m_rawSpec, m_columnFilterMode, m_unknownColPosition, m_keepUnknown, m_enforceTypes, m_skipEmptyColumns);
             return new DefaultTableSpecConfig<>(m_root, m_items, m_individualSpecs, tableTrans);
         }
 

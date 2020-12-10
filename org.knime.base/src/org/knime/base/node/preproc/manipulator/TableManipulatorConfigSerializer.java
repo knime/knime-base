@@ -62,6 +62,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer.ExternalConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -102,8 +103,8 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
         loadSettingsTabInDialog(config, getOrEmpty(settings, CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
-                config.setTableSpecConfig(
-                    TABLE_SPEC_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), null));
+                config.setTableSpecConfig(TABLE_SPEC_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+                    new ExternalConfig(null, false)));
             } catch (InvalidSettingsException ex) { // NOSONAR, see below
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -128,8 +129,8 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
         throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            config
-                .setTableSpecConfig(TABLE_SPEC_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), null));
+            config.setTableSpecConfig(TABLE_SPEC_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+                new ExternalConfig(null, false)));
         } else {
             config.setTableSpecConfig(null);
         }

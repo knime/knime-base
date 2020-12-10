@@ -130,6 +130,13 @@ public interface TableTransformation<T> {
     ColumnFilterMode getColumnFilterMode();
 
     /**
+     * Indicates whether the empty columns should be skipped, i.e., filtered out.
+     *
+     * @return {@code true} if empty columns should be skipped
+     */
+    boolean skipEmptyColumns();
+
+    /**
      * Retrieves the {@link TypedReaderTableSpec} this {@link TableTransformation} operates on.
      *
      * @return the {@link TypedReaderTableSpec} underlying this {@link TableTransformation}

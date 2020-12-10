@@ -98,6 +98,7 @@ public class RawSpecFactoryTest {
         TypedReaderTableSpec<String> spec2 = new TypedReaderTableSpec<>(asList(rudiger, ulf));
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
         when(m_typeResolver.getMostSpecificType()).thenReturn("georgina", "siegfrieda", "bella");
+        when(m_typeResolver.hasType()).thenReturn(true);
         TypedReaderColumnSpec<String> resolvedHans = createWithName("hans", "georgina", true);
         TypedReaderColumnSpec<String> resolvedRudiger = createWithName("rudiger", "siegfrieda", true);
         TypedReaderColumnSpec<String> resolvedUlf = createWithName("ulf", "bella", true);
@@ -126,6 +127,7 @@ public class RawSpecFactoryTest {
 
         when(m_typeHierarchy.createResolver()).thenReturn(m_typeResolver);
         when(m_typeResolver.getMostSpecificType()).thenReturn("georgina", "siegfrieda", "bella");
+        when(m_typeResolver.hasType()).thenReturn(true);
 
         assertEquals(expected, m_testInstance.create(asList(spec1, spec2)));
         // Both specs have 2 columns and hansWithoutType has no type, so the type resolver shouldn't be invoked for it

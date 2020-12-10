@@ -84,6 +84,8 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
 
     private final boolean m_enforceTypes;
 
+    private final boolean m_skipEmptyColumns;
+
     /**
      * Constructor.
      *
@@ -93,10 +95,11 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
      * @param unknownColumnPosition the position at which to insert unknown columns
      * @param keepUnknownColumns whether unknown columns should be kept
      * @param enforceTypes whether types should be enforced during execution
+     * @param skipEmptyColumns whether empty columns should be skipped
      */
     public ImmutableTableTransformation(final Collection<ImmutableColumnTransformation<T>> transformations,
         final RawSpec<T> rawSpec, final ColumnFilterMode columnFilterMode, final int unknownColumnPosition,
-        final boolean keepUnknownColumns, final boolean enforceTypes) {
+        final boolean keepUnknownColumns, final boolean enforceTypes, final boolean skipEmptyColumns) {
         m_transformations = transformations.stream().collect(//
             toMap(//
                 ImmutableColumnTransformation::getExternalSpec, //
@@ -108,6 +111,7 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
         m_unknownColumnPosition = unknownColumnPosition;
         m_keepUnknownColumns = keepUnknownColumns;
         m_enforceTypes = enforceTypes;
+        m_skipEmptyColumns = skipEmptyColumns;
     }
 
     private ImmutableTableTransformation(final TableTransformation<T> toWrap) {
@@ -120,6 +124,7 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
         m_unknownColumnPosition = toWrap.getPositionForUnknownColumns();
         m_keepUnknownColumns = toWrap.keepUnknownColumns();
         m_enforceTypes = toWrap.enforceTypes();
+        m_skipEmptyColumns = toWrap.skipEmptyColumns();
     }
 
     /**
@@ -166,6 +171,11 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
     @Override
     public ColumnFilterMode getColumnFilterMode() {
         return m_columnFilterMode;
+    }
+
+    @Override
+    public boolean skipEmptyColumns() {
+        return m_skipEmptyColumns;
     }
 
     @Override

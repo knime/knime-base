@@ -57,6 +57,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer.ExternalConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
@@ -160,7 +161,7 @@ public final class DefaultMultiTableReadConfigSerializer<C extends ReaderSpecifi
 
     private TableSpecConfig<T> loadTableSpecConfig(final NodeSettingsRO settings) throws InvalidSettingsException {
         return m_tableSpecConfigSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
-            loadSpecMergeMode(settings));
+            new ExternalConfig(loadSpecMergeMode(settings), false));
     }
 
     @Override

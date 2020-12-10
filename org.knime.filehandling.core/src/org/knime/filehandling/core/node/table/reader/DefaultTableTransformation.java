@@ -81,6 +81,8 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
 
     private final boolean m_enforceTypes;
 
+    private final boolean m_skipEmptyColumns;
+
     /**
      * Constructor.
      *
@@ -90,10 +92,12 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
      * @param includeUnknownColumns flag indicating if new columns should be included or not
      * @param unknownColumnPosition the positions at which new columns should be inserted
      * @param enforceTypes indicates whether configured types should be enforced
+     * @param skipEmptyColumns whether empty columns should be skipped
      */
     public DefaultTableTransformation(final RawSpec<T> rawSpec,
         final Collection<ColumnTransformation<T>> transformations, final ColumnFilterMode columnFilterMode,
-        final boolean includeUnknownColumns, final int unknownColumnPosition, final boolean enforceTypes) {
+        final boolean includeUnknownColumns, final int unknownColumnPosition, final boolean enforceTypes,
+        final boolean skipEmptyColumns) {
         m_rawSpec = rawSpec;
         m_transformations = transformations.stream()
             .collect(Collectors.toMap(ColumnTransformation::getExternalSpec, Function.identity()));
@@ -101,6 +105,7 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
         m_includeUnknownColumns = includeUnknownColumns;
         m_unknownColumnPosition = unknownColumnPosition;
         m_enforceTypes = enforceTypes;
+        m_skipEmptyColumns = skipEmptyColumns;
     }
 
     @Override
@@ -145,6 +150,9 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
         return m_enforceTypes;
     }
 
-
+    @Override
+    public boolean skipEmptyColumns() {
+        return m_skipEmptyColumns;
+    }
 
 }
