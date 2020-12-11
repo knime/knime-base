@@ -49,12 +49,16 @@
 package org.knime.base.node.io.filehandling.linereader;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.node.table.reader.config.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.ConfigIDFactory;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -63,8 +67,8 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-enum LineReaderMultiTableReadConfigSerializer implements
-    ConfigSerializer<LineMultiTableReadConfig> {
+enum LineReaderMultiTableReadConfigSerializer
+    implements ConfigSerializer<LineMultiTableReadConfig>, ConfigIDFactory<LineMultiTableReadConfig> {
 
         /**
          * Singleton instance.
@@ -98,18 +102,15 @@ enum LineReaderMultiTableReadConfigSerializer implements
     private static final String CFG_ENCODING_TAB = "encoding";
 
     @Override
-    public void loadInDialog(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsRO settings, final PortObjectSpec[] specs) throws NotConfigurableException {
+    public void loadInDialog(final LineMultiTableReadConfig config, final NodeSettingsRO settings,
+        final PortObjectSpec[] specs) throws NotConfigurableException {
 
         loadSettingsTabInDialog(config, SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB));
         loadAdvancedSettingsTabInDialog(config, SettingsUtils.getOrEmpty(settings, CFG_ADVANCED_SETTINGS_TAB));
         loadEncodingTabInDialog(config, SettingsUtils.getOrEmpty(settings, CFG_ENCODING_TAB));
     }
 
-    private static void loadSettingsTabInDialog(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsRO settings) {
+    private static void loadSettingsTabInDialog(final LineMultiTableReadConfig config, final NodeSettingsRO settings) {
 
         config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_DIFFERING_SPECS, true));
 
@@ -123,8 +124,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
         lineReaderCfg.setColumnHeaderName(settings.getString(CFG_CUSTOM_COL_HEADER, "Column"));
     }
 
-    private static void loadAdvancedSettingsTabInDialog(
-        final LineMultiTableReadConfig config,
+    private static void loadAdvancedSettingsTabInDialog(final LineMultiTableReadConfig config,
         final NodeSettingsRO settings) {
 
         final DefaultTableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
@@ -140,17 +140,15 @@ enum LineReaderMultiTableReadConfigSerializer implements
     }
 
     @Override
-    public void loadInModel(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsRO settings) throws InvalidSettingsException {
+    public void loadInModel(final LineMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
         loadAdvancedSettingsTabInModel(config, settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
         loadEncodingTabInModel(config, settings.getNodeSettings(CFG_ENCODING_TAB));
     }
 
-    private static void loadSettingsTabInModel(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void loadSettingsTabInModel(final LineMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
 
         config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_DIFFERING_SPECS));
 
@@ -166,8 +164,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
         lineReaderCfg.setColumnHeaderName(settings.getString(CFG_CUSTOM_COL_HEADER));
     }
 
-    private static void loadAdvancedSettingsTabInModel(
-        final LineMultiTableReadConfig config,
+    private static void loadAdvancedSettingsTabInModel(final LineMultiTableReadConfig config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
 
         final DefaultTableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
@@ -186,17 +183,13 @@ enum LineReaderMultiTableReadConfigSerializer implements
     }
 
     @Override
-    public void saveInModel(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsWO settings) {
+    public void saveInModel(final LineMultiTableReadConfig config, final NodeSettingsWO settings) {
         saveSettingsTab(config, SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
         saveAdvancedSettingsTab(config, settings.addNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
         saveEncodingTab(config, settings.addNodeSettings(CFG_ENCODING_TAB));
     }
 
-    private static void saveSettingsTab(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsWO settings) {
+    private static void saveSettingsTab(final LineMultiTableReadConfig config, final NodeSettingsWO settings) {
         final TableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
 
@@ -206,9 +199,7 @@ enum LineReaderMultiTableReadConfigSerializer implements
         settings.addString(CFG_CUSTOM_COL_HEADER, lineReaderCfg.getColumnHeaderName());
     }
 
-    private static void saveAdvancedSettingsTab(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsWO settings) {
+    private static void saveAdvancedSettingsTab(final LineMultiTableReadConfig config, final NodeSettingsWO settings) {
 
         final TableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
@@ -222,27 +213,21 @@ enum LineReaderMultiTableReadConfigSerializer implements
     }
 
     @Override
-    public void saveInDialog(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsWO settings) throws InvalidSettingsException {
+    public void saveInDialog(final LineMultiTableReadConfig config, final NodeSettingsWO settings)
+        throws InvalidSettingsException {
         saveInModel(config, settings);
     }
 
-    private static void loadEncodingTabInDialog(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsRO settings) {
+    private static void loadEncodingTabInDialog(final LineMultiTableReadConfig config, final NodeSettingsRO settings) {
         config.getReaderSpecificConfig().setCharSetName(settings.getString(CFG_CHARSET, null));
     }
 
-    private static void loadEncodingTabInModel(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void loadEncodingTabInModel(final LineMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         config.getReaderSpecificConfig().setCharSetName(settings.getString(CFG_CHARSET));
     }
 
-    private static void saveEncodingTab(
-        final LineMultiTableReadConfig config,
-        final NodeSettingsWO settings) {
+    private static void saveEncodingTab(final LineMultiTableReadConfig config, final NodeSettingsWO settings) {
         settings.addString(CFG_CHARSET, config.getReaderSpecificConfig().getCharSetName());
     }
 
@@ -272,5 +257,22 @@ enum LineReaderMultiTableReadConfigSerializer implements
         validateSettingsTab(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
         validateAdvancedSettingsTab(settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
         validateEncodingTab(settings.getNodeSettings(CFG_ENCODING_TAB));
+    }
+
+    @Override
+    public ConfigID createFromConfig(final LineMultiTableReadConfig config) {
+        final NodeSettings settings = new NodeSettings("line_reader");
+        saveConfigIDSettingsTab(config, settings.addNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
+        return new NodeSettingsConfigID(settings);
+    }
+
+    private static void saveConfigIDSettingsTab(final LineMultiTableReadConfig config, final NodeSettingsWO settings) {
+        settings.addBoolean(CFG_HAS_COL_HEADER, config.getTableReadConfig().useColumnHeaderIdx());
+        settings.addString(CFG_CUSTOM_COL_HEADER, config.getReaderSpecificConfig().getColumnHeaderName());
+    }
+
+    @Override
+    public ConfigID createFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return new NodeSettingsConfigID(settings.getNodeSettings("line_reader"));
     }
 }

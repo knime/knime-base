@@ -80,8 +80,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
@@ -104,6 +104,8 @@ import com.google.common.collect.Iterators;
 public final class DefaultTableSpecConfigSerializer<T> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultTableSpecConfigSerializer.class);
+
+    private static final String CFG_CONFIG_ID = "config_id";
 
     /** Enforce types key. */
     private static final String CFG_ENFORCE_TYPES = "enforce_types";
@@ -148,16 +150,21 @@ public final class DefaultTableSpecConfigSerializer<T> {
 
     private final T m_mostGenericType;
 
+    private final ConfigIDLoader m_configIDLoader;
+
     /**
      * Constructor.
      *
      * @param productionPathLoader the {@link ProductionPathLoader} to use for loading {@link ProductionPath
      *            ProductionPaths}
      * @param mostGenericType the most generic type in the hierarchy (used only for workflows created in 4.2)
+     * @param configIDLoader loads the {@link ConfigID}
      */
-    public DefaultTableSpecConfigSerializer(final ProductionPathLoader productionPathLoader, final T mostGenericType) {
+    public DefaultTableSpecConfigSerializer(final ProductionPathLoader productionPathLoader, final T mostGenericType,
+        final ConfigIDLoader configIDLoader) {
         m_productionPathLoader = productionPathLoader;
         m_mostGenericType = mostGenericType;
+        m_configIDLoader = configIDLoader;
     }
 
     /**
@@ -165,9 +172,11 @@ public final class DefaultTableSpecConfigSerializer<T> {
      *
      * @param producerRegistry the {@link ProducerRegistry} to use for loading {@link ProductionPath ProductionPaths}
      * @param mostGenericType the most generic type in the hierarchy (used only for workflows created in 4.2)
+     * @param configIDLoader loads the {@link ConfigID}
      */
-    public DefaultTableSpecConfigSerializer(final ProducerRegistry<?, ?> producerRegistry, final T mostGenericType) {
-        this(new DefaultProductionPathLoader(producerRegistry), mostGenericType);
+    public DefaultTableSpecConfigSerializer(final ProducerRegistry<?, ?> producerRegistry, final T mostGenericType,
+        final ConfigIDLoader configIDLoader) {
+        this(new DefaultProductionPathLoader(producerRegistry), mostGenericType, configIDLoader);
     }
 
     /**
@@ -180,7 +189,8 @@ public final class DefaultTableSpecConfigSerializer<T> {
      */
     public DefaultTableSpecConfig<T> load(final NodeSettingsRO settings, final ExternalConfig externalConfig)
         throws InvalidSettingsException {
-        final String rootItem = settings.getString(CFG_ROOT_PATH);
+        final ConfigID configID = loadID(settings);
+        final String sourceGroupID = settings.getString(CFG_ROOT_PATH);
         final String[] items = settings.getStringArray(CFG_FILE_PATHS);
         final List<ReaderTableSpec<?>> individualSpecs =
             loadIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS), items.length);
@@ -189,8 +199,16 @@ public final class DefaultTableSpecConfigSerializer<T> {
             loadTableTransformation(settings, allColumns, externalConfig, individualSpecs);
         final Collection<TypedReaderTableSpec<T>> typedIndividualSpecs =
             assignTypes(individualSpecs, tableTransformation);
-        return new DefaultTableSpecConfig<>(rootItem, items, typedIndividualSpecs, tableTransformation);
+        return new DefaultTableSpecConfig<>(sourceGroupID, configID, items, typedIndividualSpecs, tableTransformation);
+    }
 
+    private ConfigID loadID(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(CFG_CONFIG_ID)) {
+            return m_configIDLoader.createFromSettings(settings.getNodeSettings(CFG_CONFIG_ID));
+        } else {
+            // the node was created in 4.3 -> no config id is available therefore we return the empty config id
+            return EmptyConfigID.INSTANCE;
+        }
     }
 
     private Collection<TypedReaderTableSpec<T>> assignTypes(final Collection<ReaderTableSpec<?>> individualSpecs,
@@ -553,7 +571,9 @@ public final class DefaultTableSpecConfigSerializer<T> {
 
         final DataTableSpec fullDataSpec = new DataTableSpec(columns.toArray(new DataColumnSpec[0]));
 
-        settings.addString(CFG_ROOT_PATH, config.getRootItem());
+        settings.addString(CFG_ROOT_PATH, config.getSourceGroupID());
+        saveID(config.getConfigID(), settings);
+
         fullDataSpec.save(settings.addNodeSettings(CFG_DATATABLE_SPEC));
         settings.addStringArray(CFG_FILE_PATHS, config.getItems().toArray(new String[0]));
         saveIndividualSpecs(config.getIndividualSpecs(), settings.addNodeSettings(CFG_INDIVIDUAL_SPECS));
@@ -566,6 +586,15 @@ public final class DefaultTableSpecConfigSerializer<T> {
         settings.addBoolean(CFG_INCLUDE_UNKNOWN, tableTransformation.keepUnknownColumns());
         settings.addBoolean(CFG_ENFORCE_TYPES, tableTransformation.enforceTypes());
         settings.addString(CFG_COLUMN_FILTER_MODE, config.getColumnFilterMode().name());
+    }
+
+    private static void saveID(final ConfigID id, final NodeSettingsWO topLevelSettings) {
+        if (id == EmptyConfigID.INSTANCE) {
+            // the TableSpecConfig being serialized was loaded from an old workflow and therefore has no ConfigID
+            // this is done for backwards compatibility
+        } else {
+            id.save(topLevelSettings.addNodeSettings(CFG_CONFIG_ID));
+        }
     }
 
     private static void saveProductionPaths(final List<ProductionPath> prodPaths, final NodeSettingsWO settings) {
@@ -598,11 +627,18 @@ public final class DefaultTableSpecConfigSerializer<T> {
      */
     public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getString(CFG_ROOT_PATH);
+        validateConfigconfigID(settings);
         DataTableSpec.load(settings.getNodeSettings(CFG_DATATABLE_SPEC));
         final int numIndividualPaths = settings.getStringArray(CFG_FILE_PATHS).length;
         validateIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS), numIndividualPaths);
         //try to load the production paths
         loadProductionPathsFromSettings(settings.getNodeSettings(CFG_PRODUCTION_PATHS));
+    }
+
+    private void validateConfigconfigID(final NodeSettingsRO topLevelSettings) throws InvalidSettingsException {
+        if (topLevelSettings.containsKey(CFG_CONFIG_ID)) {
+            m_configIDLoader.createFromSettings(topLevelSettings.getNodeSettings(CFG_CONFIG_ID));
+        }
     }
 
     private static void validateIndividualSpecs(final NodeSettingsRO settings, final int numIndividualPaths)
@@ -670,5 +706,23 @@ public final class DefaultTableSpecConfigSerializer<T> {
         public boolean skipEmptyColumns() {
             return m_skipEmptyColumns;
         }
+    }
+
+    /**
+     * Special configID for loading old (pre 4.4) settings.<br>
+     * Package private for testing purposes, DON'T USE this class FOR ANYTHING ELSE.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    enum EmptyConfigID implements ConfigID {
+
+            INSTANCE;
+
+        @Override
+        public void save(final NodeSettingsWO settings) {
+            throw new IllegalStateException(
+                "EmptyConfigID only exist for backwards compatibility and should be handled differently.");
+        }
+
     }
 }

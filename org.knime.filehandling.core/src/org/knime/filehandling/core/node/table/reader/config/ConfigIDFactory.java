@@ -44,30 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 9, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 21, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.linereader;
-
-import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+package org.knime.filehandling.core.node.table.reader.config;
 
 /**
- * {@link MultiTableReadConfig} for the line reader.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <C> The type of config this factory can extract a {@link ConfigID} from
  */
-final class LineMultiTableReadConfig extends
-    AbstractMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>, LineMultiTableReadConfig> {
+public interface ConfigIDFactory<C> extends ConfigIDLoader {
 
-    LineMultiTableReadConfig() {
-        super(new DefaultTableReadConfig<>(new LineReaderConfig2()), LineReaderMultiTableReadConfigSerializer.INSTANCE,
-            LineReaderMultiTableReadConfigSerializer.INSTANCE);
-    }
-
-    @Override
-    protected LineMultiTableReadConfig getThis() {
-        return this;
-    }
+    /**
+     * Creates a {@link ConfigID} from the provided <b>config</b>.
+     *
+     * @param config to create the {@link ConfigID} from
+     * @return the {@link ConfigID} identifying <b>config</b>
+     */
+    ConfigID createFromConfig(final C config);
 
 }

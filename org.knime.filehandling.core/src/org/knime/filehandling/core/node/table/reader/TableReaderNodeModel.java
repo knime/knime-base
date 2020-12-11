@@ -72,6 +72,7 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.node.table.reader.config.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.SourceSettings;
@@ -142,7 +143,7 @@ public class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> exten
         m_sourceSettings.configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         if (m_config.hasTableSpecConfig()) {
-            if (m_config.getTableSpecConfig().isConfiguredWith(m_sourceSettings.getSourceIdentifier())) {
+            if (m_config.getTableSpecConfig().isConfiguredWith(m_config.getConfigID(), m_sourceSettings.getSourceIdentifier())) {
                 return new PortObjectSpec[]{m_config.getTableSpecConfig().getDataTableSpec()};
             }
             setWarningMessage("The stored spec has not been created with the given file/path.");

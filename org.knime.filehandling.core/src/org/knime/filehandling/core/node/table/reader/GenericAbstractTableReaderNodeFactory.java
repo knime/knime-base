@@ -58,8 +58,6 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
@@ -208,9 +206,6 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
 
     /**
      * Creates a {@link MultiTableReadConfig} for use in a reader node model.</br>
-     * An easy way to create an initial config for prototyping is
-     * {@link DefaultMultiTableReadConfig#create(ReaderSpecificConfig, ConfigSerializer, ProducerRegistry, Object)} but
-     * it is highly recommended to adjust the settings structure to fit the dialog of your reader node.
      *
      * @param nodeCreationConfig the {@link NodeCreationConfiguration}
      * @return {@link MultiTableReadConfig} for a node model

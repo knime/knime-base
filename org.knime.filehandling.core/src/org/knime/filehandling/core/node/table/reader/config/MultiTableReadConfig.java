@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.reader.config;
 
-import java.util.List;
-
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 
@@ -64,6 +62,14 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
  * @noimplement non-public API
  */
 public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
+
+    /**
+     * Returns the {@link ConfigID} of this config.
+     * I.e. a key that is based on all settings that might affect the {@link TableSpecConfig}.
+     *
+     * @return the {@link ConfigID} corresponding to the current state of this config
+     */
+    ConfigID getConfigID();
 
     /**
      * Returns the configuration for reading an individual table.
@@ -118,15 +124,17 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
     boolean skipEmptyColumns();
 
     /**
-     * Returns {@code true} if the {@link DefaultTableSpecConfig} has been created with the provided <b>rootItem</b> and
-     * {@link List} of items.
+     * Indicates whether this config has been created with the provided {@link SourceGroup} AND hasn't been altered
+     * using flow variables.<br>
+     * If this method returns {@code true}, it's save to call {@link #getTableSpecConfig()} and use the table spec
+     * contained in it.
      *
      * @param sourceGroup to check
      * @return {@code true} if the {@link DefaultTableSpecConfig} is present and has been created with the provided
      *         parameters
      */
     default boolean isConfiguredWith(final SourceGroup<String> sourceGroup) {
-        return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(sourceGroup);
+        return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(getConfigID(), sourceGroup.getID());
     }
 
 }

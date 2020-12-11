@@ -59,6 +59,7 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
@@ -92,8 +93,6 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
 
     private final Map<I, TypedReaderTableSpec<T>> m_individualSpecs;
 
-    private final SourceGroup<I> m_sourceGroup;
-
     private final RawSpec<T> m_rawSpec;
 
     private final GenericRowKeyGeneratorContextFactory<I, V> m_rowKeyGenFactory;
@@ -110,7 +109,6 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
      * Constructor.
      *
      * @param reader {@link GenericTableReader}
-     * @param sourceGroup the {@link SourceGroup} to read from
      * @param individualSpecs individuals specs
      * @param rowKeyGenFactory {@link GenericRowKeyGeneratorContextFactory}
      * @param rawSpec the {@link RawSpec}
@@ -118,13 +116,12 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
      * @param tableTransformationFactory for creating a default {@link TableTransformation} if necessary
      * @param config the {@link MultiTableReadConfig} for this read process
      */
-    DefaultStagedMultiTableRead(final GenericTableReader<I, C, T, V> reader, final SourceGroup<I> sourceGroup,
+    DefaultStagedMultiTableRead(final GenericTableReader<I, C, T, V> reader,
         final Map<I, TypedReaderTableSpec<T>> individualSpecs,
         final GenericRowKeyGeneratorContextFactory<I, V> rowKeyGenFactory, final RawSpec<T> rawSpec,
         final Supplier<ReadAdapter<T, V>> readAdapterSupplier,
         final TableTransformationFactory<T> tableTransformationFactory, final MultiTableReadConfig<C, T> config) {
         m_rawSpec = rawSpec;
-        m_sourceGroup = sourceGroup;
         m_individualSpecs = individualSpecs;
         m_rowKeyGenFactory = rowKeyGenFactory;
         m_config = config;
@@ -138,7 +135,8 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
         if (m_config.hasTableSpecConfig()) {
             final TableSpecConfig<T> tableSpecConfig = m_config.getTableSpecConfig();
             final TableTransformation<T> configuredTransformation = tableSpecConfig.getTransformationModel();
-            if (tableSpecConfig.isConfiguredWith(transformToString(sourceGroup))) {
+            if (tableSpecConfig.isConfiguredWith(m_config.getConfigID(),
+                transformToString(sourceGroup))) {
                 return createMultiTableRead(sourceGroup, configuredTransformation, m_config.getTableReadConfig(),
                     tableSpecConfig);
             } else {
@@ -157,8 +155,9 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
     public MultiTableRead<T> withTransformation(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel) {
         final TableReadConfig<C> tableReadConfig = m_config.getTableReadConfig();
+        final ConfigID id = m_config.getConfigID();
         final TableSpecConfig<T> tableSpecConfig = DefaultTableSpecConfig
-            .createFromTransformationModel(m_sourceGroup.getID(), m_individualSpecs, transformationModel);
+            .createFromTransformationModel(sourceGroup.getID(), id, m_individualSpecs, transformationModel);
         return createMultiTableRead(sourceGroup, transformationModel, tableReadConfig, tableSpecConfig);
     }
 

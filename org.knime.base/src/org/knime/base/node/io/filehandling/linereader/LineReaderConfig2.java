@@ -142,4 +142,5 @@ final class LineReaderConfig2 implements ReaderSpecificConfig<LineReaderConfig2>
     public void setEmptyLineMode(final EmptyLineMode emptyLineMode) {
         m_emptyLineMode = emptyLineMode;
     }
+
 }

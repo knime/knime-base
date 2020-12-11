@@ -69,7 +69,6 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  * @param <C> the type of {@link ReaderSpecificConfig}
  * @noinstantiate non-public API subject to change
  * @noreference non-public API subject to change
- * TODO move to different package?
  */
 public final class DefaultTypeMapper<V, C extends ReaderSpecificConfig<C>> implements TypeMapper<V> {
 

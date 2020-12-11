@@ -83,23 +83,25 @@ public interface TableSpecConfig<T> {
     RawSpec<T> getRawSpec();
 
     /**
-     * Returns {@code true} if this config has been created with the provided <b>rootItem</b> and {@link List} of
-     * items.
+     * Checks if this {@link TableSpecConfig} has been created using the config identified by {@link ConfigID}
+     * and the given {@link SourceGroup}.
      *
+     * @param configID identifying a reader configuration
      * @param sourceGroup to check
      * @return {@code true} if this config has been created with the provided parameters
      */
-    boolean isConfiguredWith(SourceGroup<String> sourceGroup);
+    boolean isConfiguredWith(ConfigID configID, SourceGroup<String> sourceGroup);
 
     /**
-     * Returns {@code true} if this {@link DefaultTableSpecConfig} has been created using the provided <b>rootItem</b>,
-     * {@code false} otherwise.
+     * Checks if this {@link TableSpecConfig} has been created with the config identified by the provided
+     * {@link ConfigID} and the given <b>sourceGroupID</b>
      *
-     * @param rootItem the item to test if it has been used to create this {@link DefaultTableSpecConfig}
-     * @return {@code true} if the {@link DefaultTableSpecConfig} has been created using the provded <b>rootItem</b>,
+     * @param configID the {@link ConfigID} of the currently used config
+     * @param sourceGroupID e.g. the root path for reader nodes
+     * @return {@code true} if the {@link DefaultTableSpecConfig} has been created using the provided <b>rootItem</b>,
      *         {@code false} otherwise
      */
-    boolean isConfiguredWith(String rootItem);
+    boolean isConfiguredWith(ConfigID configID, String sourceGroupID);
 
     /**
      * Returns the {@link DataTableSpec}.

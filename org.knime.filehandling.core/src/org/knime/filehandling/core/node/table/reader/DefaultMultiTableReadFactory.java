@@ -128,7 +128,7 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
     public StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup, final MultiTableReadConfig<C, T> config,
         final ExecutionMonitor exec) throws IOException {
         final Map<I, TypedReaderTableSpec<T>> specs = readIndividualSpecs(sourceGroup, config, exec);
-        return create(sourceGroup, specs, config);
+        return create(specs, config);
     }
 
     private Map<I, TypedReaderTableSpec<T>> readIndividualSpecs(final SourceGroup<I> sourceGroup,
@@ -142,10 +142,10 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         return specs;
     }
 
-    private StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup,
-        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C, T> config) {
+    private StagedMultiTableRead<I, T> create(final Map<I, TypedReaderTableSpec<T>> individualSpecs,
+        final MultiTableReadConfig<C, T> config) {
         final RawSpec<T> rawSpec = createAndValidateRawSpec(individualSpecs, config);
-        return createStagedMultiTableRead(sourceGroup, rawSpec, individualSpecs, config);
+        return createStagedMultiTableRead(rawSpec, individualSpecs, config);
     }
 
     private RawSpec<T> createAndValidateRawSpec(final Map<I, TypedReaderTableSpec<T>> individualSpecs,
@@ -158,10 +158,9 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         return rawSpec;
     }
 
-    private DefaultStagedMultiTableRead<I, C, T, V> createStagedMultiTableRead(final SourceGroup<I> sourceGroup,
-        final RawSpec<T> rawSpec, final Map<I, TypedReaderTableSpec<T>> individualSpecs,
-        final MultiTableReadConfig<C, T> config) {
-        return new DefaultStagedMultiTableRead<>(m_reader, sourceGroup, individualSpecs, m_rowKeyGeneratorFactory,
+    private DefaultStagedMultiTableRead<I, C, T, V> createStagedMultiTableRead(final RawSpec<T> rawSpec,
+        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C, T> config) {
+        return new DefaultStagedMultiTableRead<>(m_reader, individualSpecs, m_rowKeyGeneratorFactory,
             rawSpec, m_readAdapterSupplier, m_transformationModelCreator, config);
     }
 
@@ -178,8 +177,7 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         final MultiTableReadConfig<C, T> config) {
         final TableSpecConfig<T> tableSpecConfig = config.getTableSpecConfig();
         final Map<I, TypedReaderTableSpec<T>> individualSpecs = getIndividualSpecs(sourceGroup, tableSpecConfig);
-        return createStagedMultiTableRead(sourceGroup, tableSpecConfig.getRawSpec(), individualSpecs,
-            config);
+        return createStagedMultiTableRead(tableSpecConfig.getRawSpec(), individualSpecs, config);
     }
 
     private Map<I, TypedReaderTableSpec<T>> getIndividualSpecs(final SourceGroup<I> sourceGroup,

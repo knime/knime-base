@@ -44,30 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 9, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 15, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.linereader;
+package org.knime.filehandling.core.node.table.reader.config;
 
-import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 
 /**
- * {@link MultiTableReadConfig} for the line reader.
+ * Loads a {@link ConfigID} from a {@link NodeSettingsConfigID} object.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class LineMultiTableReadConfig extends
-    AbstractMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>, LineMultiTableReadConfig> {
+public interface ConfigIDLoader {
 
-    LineMultiTableReadConfig() {
-        super(new DefaultTableReadConfig<>(new LineReaderConfig2()), LineReaderMultiTableReadConfigSerializer.INSTANCE,
-            LineReaderMultiTableReadConfigSerializer.INSTANCE);
-    }
-
-    @Override
-    protected LineMultiTableReadConfig getThis() {
-        return this;
-    }
-
+    /**
+     * Loads a {@link ConfigID} from the provided {@link NodeSettingsRO}.
+     *
+     * @param settings to load from
+     * @return the loaded {@link ConfigID}
+     * @throws InvalidSettingsException if the settings are invalid e.g. if the loader and the stored ConfigID are
+     *             incompatible
+     */
+    ConfigID createFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException;
 }

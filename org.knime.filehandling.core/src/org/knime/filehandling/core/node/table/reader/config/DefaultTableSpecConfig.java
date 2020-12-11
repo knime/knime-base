@@ -59,12 +59,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.filehandling.core.node.ImmutableTableTransformation;
+import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
@@ -86,15 +83,18 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  */
 public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
 
-    private final String m_rootItem;
+    private final ConfigID m_configID;
+
+    private final String m_sourceGroupID;
 
     private final Map<String, TypedReaderTableSpec<T>> m_individualSpecs;
 
     private final TableTransformation<T> m_tableTransformation;
 
-    <I> DefaultTableSpecConfig(final String sourceGroupID, final Map<I, TypedReaderTableSpec<T>> individualSpecs,
-        final TableTransformation<T> tableTransformation) {
-        m_rootItem = sourceGroupID;
+    <I> DefaultTableSpecConfig(final String sourceGroupID, final ConfigID configID,
+        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final TableTransformation<T> tableTransformation) {
+        m_sourceGroupID = sourceGroupID;
+        m_configID = configID;
         m_individualSpecs = individualSpecs.entrySet().stream()//
             .collect(Collectors.toMap(//
                 e -> e.getKey().toString()//
@@ -104,10 +104,11 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
         m_tableTransformation = ImmutableTableTransformation.copy(tableTransformation);
     }
 
-    DefaultTableSpecConfig(final String sourceGroupID, final String[] items,
+    DefaultTableSpecConfig(final String sourceGroupID, final ConfigID configID, final String[] items,
         final Collection<TypedReaderTableSpec<T>> individualSpecs,
         final ImmutableTableTransformation<T> tableTransformation) {
-        m_rootItem = sourceGroupID;
+        m_configID = configID;
+        m_sourceGroupID = sourceGroupID;
         m_individualSpecs = createIndividualSpecsMap(items, individualSpecs);
         m_tableTransformation = tableTransformation;
     }
@@ -126,16 +127,19 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     /**
      * Creates a {@link DefaultTableSpecConfig} that corresponds to the provided parameters.
      *
-     * @param <T> the type used to identify external types
-     * @param rootItem the root item
+     * @param sourceGroupID the ID of the {@link SourceGroup} that the individualSpecs are based on
+     * @param configID the root item
      * @param individualSpecs a map from the path/file to its individual {@link ReaderTableSpec}
      * @param tableTransformation defines the transformation (type-mapping, filtering, renaming and reordering) of the
      *            output spec
+     *
+     * @param <T> the type used to identify external types
      * @return a {@link DefaultTableSpecConfig} for the provided parameters
      */
-    public static <I, T> TableSpecConfig<T> createFromTransformationModel(final String rootItem,
-        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final TableTransformation<T> tableTransformation) {
-        return new DefaultTableSpecConfig<>(rootItem, individualSpecs, tableTransformation);
+    public static <I, T> TableSpecConfig<T> createFromTransformationModel(final String sourceGroupID,
+        final ConfigID configID, final Map<I, TypedReaderTableSpec<T>> individualSpecs,
+        final TableTransformation<T> tableTransformation) {
+        return new DefaultTableSpecConfig<>(sourceGroupID, configID, individualSpecs, tableTransformation);
     }
 
     /**
@@ -148,38 +152,22 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
         return m_tableTransformation.getRawSpec();
     }
 
-    /**
-     * Checks that this configuration can be loaded from the provided settings.
-     *
-     * @param settings to validate
-     * @param pathLoader the {@link ProductionPathLoader}
-     * @throws InvalidSettingsException if the settings are invalid
-     */
-    public static <T> void validate(final NodeSettingsRO settings, final ProductionPathLoader pathLoader)
-        throws InvalidSettingsException {
-        new DefaultTableSpecConfigSerializer<T>(pathLoader, null).validate(settings);
-    }
-
-    /**
-     * Checks that this configuration can be loaded from the provided settings.
-     *
-     * @param settings to validate
-     * @param registry the {@link ProducerRegistry} used to restore the {@link ProductionPath ProductionPaths}
-     * @throws InvalidSettingsException if the settings are invalid
-     */
-    public static <T> void validate(final NodeSettingsRO settings, final ProducerRegistry<?, ?> registry)
-        throws InvalidSettingsException {
-        new DefaultTableSpecConfigSerializer<T>(registry, null).validate(settings);
-    }
-
     @Override
     public TableTransformation<T> getTransformationModel() {
         return m_tableTransformation;
     }
 
     @Override
-    public boolean isConfiguredWith(final String rootItem) {
-        return m_rootItem.equals(rootItem);
+    public boolean isConfiguredWith(final ConfigID configID, final String sourceGroupID) {
+        return m_sourceGroupID.equals(sourceGroupID) && m_configID.equals(configID);
+    }
+
+    @Override
+    public boolean isConfiguredWith(final ConfigID id, final SourceGroup<String> sourceGroup) {
+        return isConfiguredWith(id, sourceGroup.getID()) //
+            && m_individualSpecs.size() == sourceGroup.size() //
+            && sourceGroup.stream()//
+                .allMatch(m_individualSpecs::containsKey);
     }
 
     @Override
@@ -218,7 +206,8 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((m_individualSpecs == null) ? 0 : m_individualSpecs.hashCode());
-        result = prime * result + ((m_rootItem == null) ? 0 : m_rootItem.hashCode());
+        result = prime * result + ((m_configID == null) ? 0 : m_configID.hashCode());
+        result = prime * result + ((m_sourceGroupID == null) ? 0 : m_sourceGroupID.hashCode());
         result = prime * result + ((m_tableTransformation == null) ? 0 : m_tableTransformation.hashCode());
         return result;
     }
@@ -231,7 +220,8 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
         if (obj != null && getClass() == obj.getClass()) {
             @SuppressWarnings("unchecked")
             DefaultTableSpecConfig<T> other = (DefaultTableSpecConfig<T>)obj;
-            return m_rootItem.equals(other.m_rootItem)//
+            return m_sourceGroupID.equals(other.m_sourceGroupID) //
+                && m_configID.equals(other.m_configID)//
                 && m_tableTransformation.equals(other.m_tableTransformation)
                 && m_individualSpecs.equals(other.m_individualSpecs);
         }
@@ -242,7 +232,7 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     public String toString() {
         return new StringBuilder("[")//
             .append("Root item: ")//
-            .append(m_rootItem)//
+            .append(m_configID)//
             .append("\nIndividual specs: ")//
             .append(m_individualSpecs.entrySet().stream()//
                 .map(e -> e.getKey() + ": " + e.getValue())//
@@ -252,19 +242,16 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
 
     // Getters for DefaultTableSpecConfigSerializer
 
-    String getRootItem() {
-        return m_rootItem;
+    ConfigID getConfigID() {
+        return m_configID;
+    }
+
+    String getSourceGroupID() {
+        return m_sourceGroupID;
     }
 
     Collection<TypedReaderTableSpec<T>> getIndividualSpecs() {
         return m_individualSpecs.values();
-    }
-
-    @Override
-    public boolean isConfiguredWith(final SourceGroup<String> sourceGroup) {
-        return isConfiguredWith(sourceGroup.getID()) && m_individualSpecs.size() == sourceGroup.size() //
-            && sourceGroup.stream()//
-                .allMatch(m_individualSpecs::containsKey);
     }
 
 }

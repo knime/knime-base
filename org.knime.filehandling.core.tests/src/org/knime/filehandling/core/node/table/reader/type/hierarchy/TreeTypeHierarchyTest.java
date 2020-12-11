@@ -200,7 +200,7 @@ public class TreeTypeHierarchyTest {
             new TreeTypeHierarchy.TreeNode<>(null, new TestingTypeTester(ELFRIEDE, 0));
         assertTrue(elfriede.equals(elfriede));
         assertFalse(elfriede.equals(null));
-        assertFalse(elfriede.equals("some object of a different type"));
+        assertFalse(elfriede.equals("some object of a different type"));//NOSONAR
         TreeTypeHierarchy.TreeNode<String, Integer> emma =
             new TreeTypeHierarchy.TreeNode<>(elfriede, new TestingTypeTester(EMMA, 1));
         TreeTypeHierarchy.TreeNode<String, Integer> hans =

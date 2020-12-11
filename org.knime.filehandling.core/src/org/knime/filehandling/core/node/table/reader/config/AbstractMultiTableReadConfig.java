@@ -68,11 +68,12 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>,
-TC extends TableReadConfig<C>, T, S extends AbstractMultiTableReadConfig<C, TC, T, S>>
+public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T, S extends AbstractMultiTableReadConfig<C, TC, T, S>>
     implements StorableMultiTableReadConfig<C, T> {
 
     private final ConfigSerializer<S> m_serializer;
+
+    private final ConfigIDFactory<S> m_configIDFactory;
 
     private final TC m_tableReadConfig;
 
@@ -93,11 +94,14 @@ TC extends TableReadConfig<C>, T, S extends AbstractMultiTableReadConfig<C, TC, 
      *
      * @param tableReadConfig {@link TableReadConfig} to use
      * @param serializer the {@link ConfigSerializer} typed on the concrete implementation
+     * @param configIDFactory used to create the {@link ConfigID}
      *
      */
-    public AbstractMultiTableReadConfig(final TC tableReadConfig, final ConfigSerializer<S> serializer) {
+    public AbstractMultiTableReadConfig(final TC tableReadConfig, final ConfigSerializer<S> serializer,
+        final ConfigIDFactory<S> configIDFactory) {
         m_tableReadConfig = tableReadConfig;
         m_serializer = serializer;
+        m_configIDFactory = configIDFactory;
     }
 
     /**
@@ -210,6 +214,11 @@ TC extends TableReadConfig<C>, T, S extends AbstractMultiTableReadConfig<C, TC, 
      */
     public final C getReaderSpecificConfig() {
         return m_tableReadConfig.getReaderSpecificConfig();
+    }
+
+    @Override
+    public ConfigID getConfigID() {
+        return m_configIDFactory.createFromConfig(getThis());
     }
 
 }

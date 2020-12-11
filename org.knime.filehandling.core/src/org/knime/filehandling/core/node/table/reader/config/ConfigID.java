@@ -44,30 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 9, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.linereader;
+package org.knime.filehandling.core.node.table.reader.config;
 
-import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 
 /**
- * {@link MultiTableReadConfig} for the line reader.
+ * A {@link ConfigID} is an immutable identifier of a configuration used to create a {@link TableSpecConfig}.<br>
+ * It is stored as part of the TableSpecConfig and then used in
+ * {@link TableSpecConfig#isConfiguredWith(ConfigID, SourceGroup)} and
+ * {@link TableSpecConfig#isConfiguredWith(ConfigID, String)} to decide if the spec was created with the same config.
+ *
+ * <b>NOTE</b>: Implementing classes MUST override {@link Object#equals(Object)}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class LineMultiTableReadConfig extends
-    AbstractMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>, LineMultiTableReadConfig> {
+public interface ConfigID {
 
-    LineMultiTableReadConfig() {
-        super(new DefaultTableReadConfig<>(new LineReaderConfig2()), LineReaderMultiTableReadConfigSerializer.INSTANCE,
-            LineReaderMultiTableReadConfigSerializer.INSTANCE);
-    }
-
-    @Override
-    protected LineMultiTableReadConfig getThis() {
-        return this;
-    }
-
+    /**
+     * Saves the ConfigID into the provided {@link NodeSettingsWO}.
+     *
+     * @param settings to save to
+     */
+    void save(NodeSettingsWO settings);
 }

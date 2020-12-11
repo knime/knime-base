@@ -46,7 +46,7 @@
  * History
  *   Dec 8, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node;
+package org.knime.filehandling.core.node.table.reader;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -57,7 +57,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -121,9 +120,9 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
         }
         m_rawSpec = toWrap.getRawSpec();
         m_columnFilterMode = toWrap.getColumnFilterMode();
+        m_enforceTypes = toWrap.enforceTypes();
         m_unknownColumnPosition = toWrap.getPositionForUnknownColumns();
         m_keepUnknownColumns = toWrap.keepUnknownColumns();
-        m_enforceTypes = toWrap.enforceTypes();
         m_skipEmptyColumns = toWrap.skipEmptyColumns();
     }
 

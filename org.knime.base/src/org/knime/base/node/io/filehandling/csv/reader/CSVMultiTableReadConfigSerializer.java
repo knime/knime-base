@@ -55,16 +55,20 @@ import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.config.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.ConfigIDFactory;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer.ExternalConfig;
+import org.knime.filehandling.core.node.table.reader.config.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -73,18 +77,17 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTableReadConfig> {
+enum CSVMultiTableReadConfigSerializer
+    implements ConfigSerializer<CSVMultiTableReadConfig>, ConfigIDFactory<CSVMultiTableReadConfig> {
 
         /**
          * Singleton instance.
          */
-        INSTANCE;
+        INSTANCE();
 
     private static final boolean DEFAULT_FAIL_ON_DIFFERING_SPECS = true;
 
     private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
-
-    private static final Class<String> MOST_GENERIC_EXTERNAL_TYPE = String.class;
 
     private static final String CFG_DECIMAL_SEPARATOR = "decimal_separator";
 
@@ -142,27 +145,30 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
 
     private static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
-    /** string key used to save the value of column delimiter used to read csv files */
+    /** string key used to save the value of column delimiter used to read CSV files */
     private static final String CFG_DELIMITER = "column_delimiter";
 
-    /** string key used to save the value of the line break row delimiter to read csv files. */
+    /** string key used to save the value of the line break row delimiter to read CSV files. */
     private static final String CFG_USE_LINE_BREAK_ROW_DELIMITER = "use_line_break_row_delimiter";
 
-    /** string key used to save the value of line separator used to read csv files */
+    /** string key used to save the value of line separator used to read CSV files */
     private static final String CFG_ROW_DELIMITER = "row_delimiter";
 
-    /** string key used to save the value of the character used as qoute */
+    /** string key used to save the value of the character used as quote */
     private static final String CFG_QUOTE_CHAR = "quote_char";
 
-    /** string key used to save the value of the character used as qoute escape */
+    /** string key used to save the value of the character used as quote escape */
     private static final String CFG_QUOTE_ESCAPE_CHAR = "quote_escape_char";
 
     /** string key used to save the value of the character used as comment start */
     private static final String CFG_COMMENT_CHAR = "comment_char";
 
-    private static final DefaultTableSpecConfigSerializer<Class<?>> TABLE_SPEC_CONFIG_SERIALIZER =
-        new DefaultTableSpecConfigSerializer<>(StringReadAdapterFactory.INSTANCE.getProducerRegistry(),
-            MOST_GENERIC_EXTERNAL_TYPE);
+    private final DefaultTableSpecConfigSerializer<Class<?>> m_tableSpecConfigSerializer;
+
+    private CSVMultiTableReadConfigSerializer() {
+        m_tableSpecConfigSerializer = new DefaultTableSpecConfigSerializer<>(
+            StringReadAdapterFactory.INSTANCE.getProducerRegistry(), String.class, this);
+    }
 
     @Override
     public void loadInDialog(final CSVMultiTableReadConfig config, final NodeSettingsRO settings,
@@ -175,7 +181,7 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
                 config.setTableSpecConfig(
-                    TABLE_SPEC_CONFIG_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+                    m_tableSpecConfigSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
                         new ExternalConfig(loadSpecMergeModeForOldWorkflows(advancedSettings), false)));
             } catch (InvalidSettingsException ex) {// NOSONAR, see below
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
@@ -313,7 +319,7 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
         loadLimitRowsTabInModel(config, settings.getNodeSettings(CFG_LIMIT_ROWS_TAB));
         loadEncodingTabInModel(config, settings.getNodeSettings(CFG_ENCODING_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            config.setTableSpecConfig(TABLE_SPEC_CONFIG_SERIALIZER.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
+            config.setTableSpecConfig(m_tableSpecConfigSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG),
                 new ExternalConfig(loadSpecMergeModeForOldWorkflows(advancedSettings), false)));
         } else {
             config.setTableSpecConfig(null);
@@ -473,7 +479,7 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
     public void validate(final CSVMultiTableReadConfig config, final NodeSettingsRO settings)
         throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            TABLE_SPEC_CONFIG_SERIALIZER.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
+            m_tableSpecConfigSerializer.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
         validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
         validateAdvancedSettingsTab(settings.getNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
@@ -540,6 +546,60 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
     public void saveInDialog(final CSVMultiTableReadConfig config, final NodeSettingsWO settings)
         throws InvalidSettingsException {
         saveInModel(config, settings);
+    }
+
+    @Override
+    public ConfigID createFromConfig(final CSVMultiTableReadConfig config) {
+        final NodeSettings settings = new NodeSettings("multi_table_read");
+        saveConfigIDSettingsTab(config, settings.addNodeSettings(CFG_SETTINGS_TAB));
+        saveConfigIDAdvancedSettingsTab(config, settings.addNodeSettings(CFG_ADVANCED_SETTINGS_TAB));
+        saveConfigIDEncodingTab(config, settings.addNodeSettings(CFG_ENCODING_TAB));
+        saveConfigIDLimitRowsTab(config, settings.addNodeSettings(CFG_LIMIT_ROWS_TAB));
+        return new NodeSettingsConfigID(settings);
+    }
+
+    private static void saveConfigIDSettingsTab(final CSVMultiTableReadConfig config, final NodeSettingsWO settings) {
+        final TableReadConfig<?> tc = config.getTableReadConfig();
+        settings.addBoolean(CFG_HAS_COLUMN_HEADER, tc.useColumnHeaderIdx());
+        settings.addBoolean(CFG_HAS_ROW_ID, tc.useRowIDIdx());
+
+        final CSVTableReaderConfig cc = config.getReaderSpecificConfig();
+        settings.addString(CFG_COMMENT_CHAR, cc.getComment());
+        settings.addString(CFG_DELIMITER, cc.getDelimiter());
+        settings.addString(CFG_QUOTE_CHAR, cc.getQuote());
+        settings.addString(CFG_QUOTE_ESCAPE_CHAR, cc.getQuoteEscape());
+        settings.addString(CFG_ROW_DELIMITER, cc.getLineSeparator());
+        settings.addBoolean(CFG_USE_LINE_BREAK_ROW_DELIMITER, cc.useLineBreakRowDelimiter());
+    }
+
+    private static void saveConfigIDAdvancedSettingsTab(final CSVMultiTableReadConfig config,
+        final NodeSettingsWO settings) {
+        final CSVTableReaderConfig cc = config.getReaderSpecificConfig();
+        settings.addString(CFG_QUOTE_OPTION, cc.getQuoteOption().name());
+        settings.addBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING, cc.replaceEmptyWithMissing());
+
+        settings.addBoolean(CFG_LIMIT_DATA_ROWS_SCANNED, config.getTableReadConfig().limitRowsForSpec());
+        settings.addLong(CFG_MAX_DATA_ROWS_SCANNED, config.getTableReadConfig().getMaxRowsForSpec());
+
+        settings.addString(CFG_THOUSANDS_SEPARATOR, cc.getThousandsSeparator());
+        settings.addString(CFG_DECIMAL_SEPARATOR, cc.getDecimalSeparator());
+    }
+
+    private static void saveConfigIDLimitRowsTab(final CSVMultiTableReadConfig config,
+        final NodeSettingsWO limitRowsSettings) {
+        limitRowsSettings.addBoolean(CFG_SKIP_LINES, config.getReaderSpecificConfig().skipLines());
+        limitRowsSettings.addLong(CFG_NUMBER_OF_LINES_TO_SKIP, config.getReaderSpecificConfig().getNumLinesToSkip());
+        limitRowsSettings.addBoolean(CFG_SKIP_DATA_ROWS, config.getTableReadConfig().skipRows());
+        limitRowsSettings.addLong(CFG_NUMBER_OF_ROWS_TO_SKIP, config.getTableReadConfig().getNumRowsToSkip());
+    }
+
+    private static void saveConfigIDEncodingTab(final CSVMultiTableReadConfig config, final NodeSettingsWO settings) {
+        settings.addString(CFG_CHARSET, config.getReaderSpecificConfig().getCharSetName());
+    }
+
+    @Override
+    public ConfigID createFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return new NodeSettingsConfigID(settings.getNodeSettings("multi_table_read"));
     }
 
 }

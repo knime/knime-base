@@ -83,7 +83,6 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.config.DefaultMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;

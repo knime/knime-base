@@ -65,7 +65,8 @@ public final class CSVMultiTableReadConfig extends
      * Constructor.
      */
     public CSVMultiTableReadConfig() {
-        super(new DefaultTableReadConfig<>(new CSVTableReaderConfig()), CSVMultiTableReadConfigSerializer.INSTANCE);
+        super(new DefaultTableReadConfig<>(new CSVTableReaderConfig()), CSVMultiTableReadConfigSerializer.INSTANCE,
+            CSVMultiTableReadConfigSerializer.INSTANCE);
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = getTableReadConfig();
         tc.setColumnHeaderIdx(0);
         tc.setMaxRowsForSpec(1000);

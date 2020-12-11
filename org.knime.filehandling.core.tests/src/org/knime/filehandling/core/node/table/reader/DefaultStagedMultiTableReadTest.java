@@ -175,7 +175,7 @@ public class DefaultStagedMultiTableReadTest {
         individualSpecs.put(PATH1, SPEC1);
         individualSpecs.put(PATH2, SPEC2);
         when(m_sourceGroup.getID()).thenReturn(ROOT);
-        m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, m_sourceGroup, individualSpecs,
+        m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, individualSpecs,
             m_rowKeyGenContextFactory, RAW_SPEC, m_readAdapterSupplier, m_transformationFactory, m_config);
     }
 

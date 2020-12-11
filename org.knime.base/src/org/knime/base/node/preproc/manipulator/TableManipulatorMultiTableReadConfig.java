@@ -62,7 +62,8 @@ final class TableManipulatorMultiTableReadConfig extends
     AbstractMultiTableReadConfig<TableManipulatorConfig, DefaultTableReadConfig<TableManipulatorConfig>, DataType, TableManipulatorMultiTableReadConfig> {
 
     public TableManipulatorMultiTableReadConfig() {
-        super(new DefaultTableReadConfig<>(new TableManipulatorConfig()), TableManipulatorConfigSerializer.INSTANCE);
+        super(new DefaultTableReadConfig<>(new TableManipulatorConfig()), TableManipulatorConfigSerializer.INSTANCE,
+            TableManipulatorConfigSerializer.INSTANCE);
         setFailOnDifferingSpecs(false);
         getTableReadConfig().setRowIDIdx(0);
     }

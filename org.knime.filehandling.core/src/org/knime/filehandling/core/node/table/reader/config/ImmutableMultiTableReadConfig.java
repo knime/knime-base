@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.node.table.reader.config;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 
 /**
@@ -67,6 +66,8 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
     private final ImmutableTableReadConfig<C> m_tableReadConfig;
 
     private final TableSpecConfig<T> m_tableSpecConfig;
+
+    private final ConfigID m_configID;
 
     private final boolean m_failOnDifferingSpecs;
 
@@ -89,6 +90,8 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
         SpecMergeMode specMergeMode = multiTableReadConfig.getSpecMergeMode();//NOSONAR
         m_specMergeMode = specMergeMode;
         m_skipEmptyColumns = multiTableReadConfig.skipEmptyColumns();
+        m_configID = multiTableReadConfig.getConfigID();
+
     }
 
     @Override
@@ -131,8 +134,8 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
     }
 
     @Override
-    public boolean isConfiguredWith(final SourceGroup<String> sourceGroup) {
-        return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(sourceGroup);
+    public ConfigID getConfigID() {
+        return m_configID;
     }
 
 }

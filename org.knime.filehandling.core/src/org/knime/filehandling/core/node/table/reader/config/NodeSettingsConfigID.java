@@ -44,30 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 9, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.io.filehandling.linereader;
+package org.knime.filehandling.core.node.table.reader.config;
 
-import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
- * {@link MultiTableReadConfig} for the line reader.
+ * A {@link ConfigID} that is backed by a {@link NodeSettings} object.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class LineMultiTableReadConfig extends
-    AbstractMultiTableReadConfig<LineReaderConfig2, DefaultTableReadConfig<LineReaderConfig2>, Class<?>, LineMultiTableReadConfig> {
+public final class NodeSettingsConfigID implements ConfigID {
 
-    LineMultiTableReadConfig() {
-        super(new DefaultTableReadConfig<>(new LineReaderConfig2()), LineReaderMultiTableReadConfigSerializer.INSTANCE,
-            LineReaderMultiTableReadConfigSerializer.INSTANCE);
+    private final NodeSettings m_settings;
+
+    /**
+     * Constructor.
+     *
+     * @param settings containing the to store
+     */
+    public NodeSettingsConfigID(final NodeSettingsRO settings) {
+        m_settings = new NodeSettings(settings.getKey());
+        settings.copyTo(m_settings);
     }
 
     @Override
-    protected LineMultiTableReadConfig getThis() {
-        return this;
+    public void save(final NodeSettingsWO settings) {
+        settings.addNodeSettings(m_settings);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof NodeSettingsConfigID) {
+            NodeSettingsConfigID other = (NodeSettingsConfigID)obj;
+            return m_settings.equals(other.m_settings);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return m_settings.hashCode();
     }
 
 }
