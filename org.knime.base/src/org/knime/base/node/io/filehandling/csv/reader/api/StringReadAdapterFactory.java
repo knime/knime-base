@@ -80,7 +80,7 @@ import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
  * Factory for StringReadAdapter objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @since 4.2
+ * @noreference non-public API
  */
 public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, String> {
         /**
@@ -243,7 +243,8 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
     }
 
     /**
-     * @since 4.3
+     * {@inheritDoc}
+     * @noreference This enum method is not intended to be referenced by clients.
      */
     @Override
     public DataType getDefaultType(final Class<?> type) {
