@@ -46,7 +46,7 @@
 package org.knime.base.node.preproc.manipulator.table;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.v2.RowCursor;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataTable;
 
 /**
@@ -74,8 +74,8 @@ public class DataTableBackedBoundedTable implements BoundedTable {
      * {@inheritDoc}
      */
     @Override
-    public RowCursor cursor() {
-        return m_table.cursor();
+    public CloseableRowIterator cursor() {
+        return m_table.iterator();
     }
 
     @Override

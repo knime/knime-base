@@ -54,10 +54,11 @@ import java.util.OptionalLong;
 
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.table.Table;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.v2.RowCursor;
-import org.knime.core.data.v2.RowRead;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
@@ -75,11 +76,11 @@ public class TableRead implements Read<Table, DataValue> {
     static class RandomAccessibleDataRow extends AbstractRandomAccessible<DataValue> {
 
 
-        private final RowRead m_row;
+        private final DataRow m_row;
         private TableReadConfig<TableManipulatorConfig> m_config;
 
-        RandomAccessibleDataRow(final RowRead rowRead, final TableReadConfig<TableManipulatorConfig> config) {
-            m_row = rowRead;
+        RandomAccessibleDataRow(final DataRow dataRow, final TableReadConfig<TableManipulatorConfig> config) {
+            m_row = dataRow;
             m_config = config;
         }
 
@@ -89,9 +90,9 @@ public class TableRead implements Read<Table, DataValue> {
         @Override
         public int size() {
             if (m_config.useRowIDIdx()) {
-                return m_row.getNumColumns() + 1;
+                return m_row.getNumCells() + 1;
             }
-            return m_row.getNumColumns();
+            return m_row.getNumCells();
         }
 
         /**
@@ -102,19 +103,20 @@ public class TableRead implements Read<Table, DataValue> {
             final int offsetIdx;
             if (m_config.useRowIDIdx()) {
                 if (idx == 0) {
-                    return new StringCell(m_row.getRowKey().getString());
+                    return new StringCell(m_row.getKey().getString());
                 }
                 offsetIdx = idx - 1;
             } else {
                 offsetIdx = idx;
             }
-            return m_row.isMissing(offsetIdx) ? null : m_row.getValue(offsetIdx);
+            final DataCell cell = m_row.getCell(offsetIdx);
+            return cell.isMissing() ? null : cell;
         }
 
     }
     private Table m_input;
     private TableReadConfig<TableManipulatorConfig> m_config;
-    private RowCursor m_rowCursor;
+    private CloseableRowIterator m_rowCursor;
 
     TableRead(final Table input, final TableReadConfig<TableManipulatorConfig> config) {
         m_input = input;
@@ -124,10 +126,10 @@ public class TableRead implements Read<Table, DataValue> {
 
     @Override
     public RandomAccessible<DataValue> next() throws IOException {
-        if (!m_rowCursor.canForward()) {
+        if (!m_rowCursor.hasNext()) {
             return null;
         }
-        return new RandomAccessibleDataRow(m_rowCursor.forward(), m_config);
+        return new RandomAccessibleDataRow(m_rowCursor.next(), m_config);
     }
 
     @Override

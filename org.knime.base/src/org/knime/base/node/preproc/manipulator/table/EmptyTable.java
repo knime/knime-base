@@ -48,9 +48,9 @@
  */
 package org.knime.base.node.preproc.manipulator.table;
 
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.v2.RowCursor;
-import org.knime.core.data.v2.RowRead;
+import org.knime.core.data.container.CloseableRowIterator;
 
 /**
  *
@@ -60,23 +60,13 @@ public class EmptyTable implements BoundedTable {
 
     private DataTableSpec m_spec;
 
-    private static final class EmptyCursor implements RowCursor {
+    private static final class EmptyCursor extends CloseableRowIterator {
 
-        private final int m_noOfColumns;
 
-        private EmptyCursor(final int noOfColumns) {
-            m_noOfColumns = noOfColumns;
-
-        }
 
         @Override
-        public RowRead forward() {
+        public DataRow next() {
             return null;
-        }
-
-        @Override
-        public boolean canForward() {
-            return false;
         }
 
         @Override
@@ -84,9 +74,12 @@ public class EmptyTable implements BoundedTable {
             // nothing to close
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
-        public int getNumColumns() {
-            return m_noOfColumns;
+        public boolean hasNext() {
+            return false;
         }
 
     }
@@ -104,8 +97,8 @@ public class EmptyTable implements BoundedTable {
     }
 
     @Override
-    public RowCursor cursor() {
-        return new EmptyCursor(m_spec.getNumColumns());
+    public CloseableRowIterator cursor() {
+        return new EmptyCursor();
     }
 
     @Override
