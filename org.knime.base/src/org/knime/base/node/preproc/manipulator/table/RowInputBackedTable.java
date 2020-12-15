@@ -48,13 +48,9 @@
  */
 package org.knime.base.node.preproc.manipulator.table;
 
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.RowKeyValue;
-import org.knime.core.data.v2.RowCursor;
-import org.knime.core.data.v2.RowRead;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.streamable.RowInput;
 
 /**
@@ -63,15 +59,12 @@ import org.knime.core.node.streamable.RowInput;
  */
 public class RowInputBackedTable implements Table {
 
-    private static final class RowInputRowCursor implements RowCursor, RowRead {
+    private static final class RowInputRowCursor extends CloseableRowIterator {
 
         private RowInput m_delegate;
 
-        private DataRow m_currentRow;
-
         private DataRow m_nextRow;
 
-        private int m_numValues;
         /**
          * @param rowInput
          */
@@ -83,22 +76,6 @@ public class RowInputBackedTable implements Table {
                 Thread.currentThread().interrupt();
                 throw new IllegalStateException("Data streaming was canceled", e);
             }
-            m_numValues = delegate.getDataTableSpec().getNumColumns();
-        }
-
-        @Override
-        public RowRead forward() {
-            m_currentRow = m_nextRow;
-            try {
-                m_nextRow = m_delegate.poll();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException("Data streaming was canceled", e);
-            }
-            if (m_currentRow != null) {
-                return this;
-            }
-            return null;
         }
 
         @Override
@@ -107,30 +84,20 @@ public class RowInputBackedTable implements Table {
         }
 
         @Override
-        public RowKeyValue getRowKey() {
-            return m_currentRow.getKey();
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <D extends DataValue> D getValue(final int index) {
-            final DataCell cell = m_currentRow.getCell(index);
-            return cell.isMissing() ? null : (D) cell;
-        }
-
-        @Override
-        public boolean isMissing(final int index) {
-            return m_currentRow.getCell(index).isMissing();
-        }
-
-        @Override
-        public int getNumColumns() {
-            return m_numValues;
-        }
-
-        @Override
-        public boolean canForward() {
+        public boolean hasNext() {
             return m_nextRow != null;
+        }
+
+        @Override
+        public DataRow next() {
+            final DataRow currentRow = m_nextRow;
+            try {
+                m_nextRow = m_delegate.poll();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Data streaming was canceled", e);
+            }
+            return currentRow;
         }
 
     }
@@ -149,7 +116,7 @@ public class RowInputBackedTable implements Table {
         return m_rowInput.getDataTableSpec();
     }
     @Override
-    public RowCursor cursor() {
+    public CloseableRowIterator cursor() {
         return new RowInputRowCursor(m_rowInput);
     }
 

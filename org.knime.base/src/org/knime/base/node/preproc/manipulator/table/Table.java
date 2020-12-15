@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.manipulator.table;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.v2.RowCursor;
 
 /**
@@ -65,6 +66,6 @@ public interface Table {
     /**
      * @return the {@link RowCursor}
      */
-    RowCursor cursor();
+    CloseableRowIterator cursor();
 
 }
