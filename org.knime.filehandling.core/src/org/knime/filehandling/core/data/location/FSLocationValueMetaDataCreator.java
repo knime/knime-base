@@ -48,16 +48,16 @@
  */
 package org.knime.filehandling.core.data.location;
 
-import java.util.Objects;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.meta.DataColumnMetaDataCreator;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 
 /**
- * {@link DataColumnMetaDataCreator} for {@link FSLocationValueMetaData}. The {@link #update(DataCell)},
- * {@link #merge(DataColumnMetaDataCreator)} and {@link #merge(FSLocationValueMetaData)} throw exceptions if the file
- * system type and specifier, respectively, do not match.
+ * {@link DataColumnMetaDataCreator} for {@link FSLocationValueMetaData}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
@@ -66,17 +66,14 @@ import org.knime.core.node.util.CheckUtils;
  */
 public final class FSLocationValueMetaDataCreator implements DataColumnMetaDataCreator<FSLocationValueMetaData> {
 
-    private String m_fileSystemType;
-
-    private String m_fileSystemSpecifier;
+    private final Set<DefaultFSLocationSpec> m_specs;
 
     FSLocationValueMetaDataCreator() {
-        this(null, null);
+        this(new HashSet<>());
     }
 
-    private FSLocationValueMetaDataCreator(final String fileSystemType, final String fileSystemSpecifier) {
-        m_fileSystemType = fileSystemType;
-        m_fileSystemSpecifier = fileSystemSpecifier;
+    private FSLocationValueMetaDataCreator(final Set<DefaultFSLocationSpec> fsLocationSpecs) {
+        m_specs = new HashSet<>(fsLocationSpecs);
     }
 
     @Override
@@ -85,32 +82,20 @@ public final class FSLocationValueMetaDataCreator implements DataColumnMetaDataC
             return;
         }
         final FSLocationValue value = (FSLocationValue)cell;
-        checkCompatibilityAndSet(value.getFSLocation().getFileSystemCategory(),
-            value.getFSLocation().getFileSystemSpecifier().orElse(null));
-    }
-
-    private void checkCompatibilityAndSet(final String fileSystemType, final String fileSystemSpecifier) {
-        if (fileSystemType != null && m_fileSystemType != null) {
-            CheckUtils.checkArgument(Objects.equals(m_fileSystemType, fileSystemType),
-                "Locations with incompatible file system types cannot be in the same data column: %s vs. %s.",
-                m_fileSystemType, fileSystemType);
-            CheckUtils.checkArgument(Objects.equals(m_fileSystemSpecifier, fileSystemSpecifier),
-                "Locations with incompatible file system specifiers cannot be in the same data column: %s vs. %s.",
-                m_fileSystemSpecifier, fileSystemSpecifier);
-        } else {
-            m_fileSystemType = fileSystemType;
-            m_fileSystemSpecifier = fileSystemSpecifier;
-        }
+        final Set<DefaultFSLocationSpec> set = new HashSet<>();
+        set.add(new DefaultFSLocationSpec(value.getFSLocation().getFileSystemCategory(),
+            value.getFSLocation().getFileSystemSpecifier().orElse(null)));
+        m_specs.addAll(set);
     }
 
     @Override
     public FSLocationValueMetaData create() {
-        return new FSLocationValueMetaData(m_fileSystemType, m_fileSystemSpecifier);
+        return new FSLocationValueMetaData(m_specs);
     }
 
     @Override
     public FSLocationValueMetaDataCreator copy() {
-        return new FSLocationValueMetaDataCreator(m_fileSystemType, m_fileSystemSpecifier);
+        return new FSLocationValueMetaDataCreator(m_specs);
     }
 
     @Override
@@ -119,13 +104,13 @@ public final class FSLocationValueMetaDataCreator implements DataColumnMetaDataC
             "Can only merge with FSLocationValueMetaDataCreator but received object of type %s.",
             other.getClass().getName());
         final FSLocationValueMetaDataCreator otherCreator = (FSLocationValueMetaDataCreator)other;
-        checkCompatibilityAndSet(otherCreator.m_fileSystemType, otherCreator.m_fileSystemSpecifier);
+        m_specs.addAll(otherCreator.m_specs);
         return this;
     }
 
     @Override
     public FSLocationValueMetaDataCreator merge(final FSLocationValueMetaData other) {
-        checkCompatibilityAndSet(other.getFileSystemCategory(), other.getFileSystemSpecifier().orElse(null));
+        m_specs.addAll(other.getFSLocationSpecs());
         return this;
     }
 

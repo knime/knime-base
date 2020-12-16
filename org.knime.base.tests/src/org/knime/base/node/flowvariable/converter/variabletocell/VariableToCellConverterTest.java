@@ -53,6 +53,7 @@ import static org.junit.Assert.assertTrue;
 import static org.knime.core.data.collection.ListCell.getCollectionType;
 
 import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -76,6 +77,7 @@ import org.knime.core.node.workflow.VariableType.IntArrayType;
 import org.knime.core.node.workflow.VariableType.LongArrayType;
 import org.knime.core.node.workflow.VariableType.LongType;
 import org.knime.core.node.workflow.VariableType.StringArrayType;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
@@ -184,7 +186,9 @@ public class VariableToCellConverterTest {
             assertEquals(FSLocationCellFactory.TYPE, createSpec.getType());
             final FSLocationValueMetaData metaData = createSpec.getMetaDataOfType(FSLocationValueMetaData.class)
                 .orElseThrow(() -> new IllegalStateException("No meta data available"));
-            assertTrue(FSLocationSpec.areEqual(metaData, val));
+            final Set<DefaultFSLocationSpec> fsLocationSpecs = metaData.getFSLocationSpecs();
+            assertTrue(fsLocationSpecs.size() == 1);
+            assertTrue(FSLocationSpec.areEqual(fsLocationSpecs.iterator().next(), val));
 
             final FSLocationCell cell = (FSLocationCell)converter.getDataCell(null, var);
             assertEquals(val, cell.getFSLocation());

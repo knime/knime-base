@@ -51,7 +51,6 @@ package org.knime.filehandling.utility.nodes.pathtostring;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -68,7 +67,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -89,11 +87,10 @@ import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
+import org.knime.filehandling.core.connections.location.MultiFSPathProviderFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.data.location.FSLocationValue;
-import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 
 /**
@@ -105,8 +102,6 @@ import org.knime.filehandling.core.data.location.cell.FSLocationCell;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 final class PathToStringNodeModel extends NodeModel {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(PathToStringNodeModel.class);
 
     private static final String CFG_SELECTED_COLUMN_NAME = "selected_column_name";
 
@@ -228,7 +223,7 @@ final class PathToStringNodeModel extends NodeModel {
     private PathToStringCellFactory createPathToStringCellFactory(final DataTableSpec inSpec) {
         final int colIdx = inSpec.findColumnIndex(m_selectedColumn.getStringValue());
         final DataColumnSpec colSpec = createNewSpec(inSpec);
-        return new PathToStringCellFactory(colSpec, colIdx, inSpec.getColumnSpec(colIdx));
+        return new PathToStringCellFactory(colSpec, colIdx);
     }
 
     private DataColumnSpec createNewSpec(final DataTableSpec inSpec) {
@@ -303,48 +298,39 @@ final class PathToStringNodeModel extends NodeModel {
 
         private final int m_colIdx;
 
-        private final FSPathProviderFactory m_fsPathProviderFactory;
+        private final MultiFSPathProviderFactory m_multiFSPathProviderFactory;
 
-        public PathToStringCellFactory(final DataColumnSpec newColSpec, final int colIdx,
-            final DataColumnSpec fsLocationColSpec) {
+        public PathToStringCellFactory(final DataColumnSpec newColSpec, final int colIdx) {
             super(newColSpec);
             m_colIdx = colIdx;
-            m_fsPathProviderFactory = getFSPathProviderFactory(fsLocationColSpec);
-        }
-
-        private FSPathProviderFactory getFSPathProviderFactory(final DataColumnSpec colSpec) {
-            if (m_createKNIMEUrl.getBooleanValue()) {
-                final FSLocationValueMetaData fsLocationValueMetaData = colSpec
-                    .getMetaDataOfType(FSLocationValueMetaData.class).orElseThrow(() -> new IllegalStateException(
-                        String.format("Path column '%s' does not contain meta data.", colSpec.getName())));
-                final FSCategory fsCategory = fsLocationValueMetaData.getFSCategory();
-                if (fsCategory == FSCategory.RELATIVE || fsCategory == FSCategory.MOUNTPOINT) {
-                    return FSPathProviderFactory.newFactory(Optional.empty(), fsLocationValueMetaData);
-                }
-            }
-            return null;
+            m_multiFSPathProviderFactory = new MultiFSPathProviderFactory();
         }
 
         @Override
+        @SuppressWarnings("resource") // the FSPathProviderFactorys are closed by the MultiFSPathProviderCellFactory
         public DataCell getCell(final DataRow row) {
             final DataCell c = row.getCell(m_colIdx);
             if (c.isMissing()) {
                 return DataType.getMissingCell();
             }
             final FSLocation fsLocation = ((FSLocationValue)c).getFSLocation();
-            return StringCellFactory.create(m_fsPathProviderFactory == null ? fsLocation.getPath()
-                : PathToStringUtils.fsLocationToString(fsLocation, m_fsPathProviderFactory));
+            if (createKNIMEUrl(fsLocation)) {
+                return StringCellFactory.create(PathToStringUtils.fsLocationToString(fsLocation,
+                    m_multiFSPathProviderFactory.getOrCreateFSPathProviderFactory(fsLocation)));
+            }
+            return StringCellFactory.create(fsLocation.getPath());
         }
 
         @Override
         public void close() {
-            if (m_fsPathProviderFactory != null) {
-                try {
-                    m_fsPathProviderFactory.close();
-                } catch (final IOException e) {
-                    LOGGER.debug("Unable to close fs path provider factory.", e);
-                }
+            if (m_multiFSPathProviderFactory != null) {
+                m_multiFSPathProviderFactory.close();
             }
+        }
+
+        private boolean createKNIMEUrl(final FSLocation fsLocation) {
+            return m_createKNIMEUrl.getBooleanValue() && (fsLocation.getFSCategory() == FSCategory.RELATIVE
+                || fsLocation.getFSCategory() == FSCategory.MOUNTPOINT);
         }
 
     }

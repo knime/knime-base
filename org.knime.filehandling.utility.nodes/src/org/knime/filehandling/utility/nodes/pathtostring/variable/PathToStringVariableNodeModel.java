@@ -80,10 +80,12 @@ import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.location.MultiFSPathProviderFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
 
 /**
  * This node allows you to convert a flow variable of type {@link FSLocationVariableType} to a flow variable of type
@@ -129,6 +131,7 @@ final class PathToStringVariableNodeModel extends NodeModel {
     }
 
     @Override
+    @SuppressWarnings("resource") // the FSPathProviderFactorys are closed by the MultiFSPathProviderCellFactory
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final Map<String, FlowVariable> filteredVariables = getFilteredVariables();
         if (filteredVariables.isEmpty()) {
@@ -136,13 +139,14 @@ final class PathToStringVariableNodeModel extends NodeModel {
         }
         final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(
             getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()).keySet());
-        try (final MultiFSPathProviderCellFactory multiFSPathProviderCellFactory =
-            new MultiFSPathProviderCellFactory()) {
+        try (final MultiFSPathProviderFactory multiFSPathProviderCellFactory =
+            new MultiFSPathProviderFactory()) {
             for (final Entry<String, FlowVariable> e : filteredVariables.entrySet()) {
                 final FSLocation fsLocation = e.getValue().getValue(FSLocationVariableType.INSTANCE);
                 final String result;
                 if (createKNIMEUrl(fsLocation)) {
-                    result = multiFSPathProviderCellFactory.createString(fsLocation);
+                    result = PathToStringUtils.fsLocationToString(fsLocation,
+                        multiFSPathProviderCellFactory.getOrCreateFSPathProviderFactory(fsLocation));
                 } else {
                     result = fsLocation.getPath();
                 }

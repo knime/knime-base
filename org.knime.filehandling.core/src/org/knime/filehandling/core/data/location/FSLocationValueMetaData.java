@@ -48,20 +48,30 @@
  */
 package org.knime.filehandling.core.data.location;
 
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.knime.core.data.meta.DataColumnMetaData;
 import org.knime.core.data.meta.DataColumnMetaDataSerializer;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.config.Config;
 import org.knime.core.node.config.ConfigRO;
+import org.knime.core.node.config.ConfigWO;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 
 /**
- * Holds the information about the file system type and specifier in form of Strings.
+ * Holds the information about the file system types and specifiers by holding a set of {@link DefaultFSLocationSpec}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class FSLocationValueMetaData extends DefaultFSLocationSpec implements DataColumnMetaData {
+public final class FSLocationValueMetaData implements DataColumnMetaData {
+
+    private final Set<DefaultFSLocationSpec> m_specs;
 
     /**
      * Creates a {@link FSLocationValueMetaData} instance.
@@ -70,7 +80,26 @@ public final class FSLocationValueMetaData extends DefaultFSLocationSpec impleme
      * @param fileSystemSpecifier the file system specifier, can be {@code null}
      */
     public FSLocationValueMetaData(final String fileSystemType, final String fileSystemSpecifier) {
-        super(fileSystemType, fileSystemSpecifier);
+        m_specs = new HashSet<>();
+        m_specs.add(new DefaultFSLocationSpec(fileSystemType, fileSystemSpecifier));
+    }
+
+    /**
+     * Creates a {@link FSLocationValueMetaData} instance.
+     *
+     * @param fsLocationSpecs the set of {@link DefaultFSLocationSpec}s
+     */
+    public FSLocationValueMetaData(final Set<DefaultFSLocationSpec> fsLocationSpecs) {
+        m_specs = new HashSet<>(fsLocationSpecs);
+    }
+
+    /**
+     * Returns the set of {@link DefaultFSLocationSpec}s hold by this meta data instance.
+     *
+     * @return the set of {@link DefaultFSLocationSpec}s
+     */
+    public Set<DefaultFSLocationSpec> getFSLocationSpecs() {
+        return m_specs;
     }
 
     /**
@@ -78,7 +107,7 @@ public final class FSLocationValueMetaData extends DefaultFSLocationSpec impleme
      *
      * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
      */
-    public static final class PathValueMetaDataSerializer extends FSLocationSpecSerializer<FSLocationValueMetaData>
+    public static final class PathValueMetaDataSerializer
         implements DataColumnMetaDataSerializer<FSLocationValueMetaData> {
 
         @Override
@@ -86,10 +115,63 @@ public final class FSLocationValueMetaData extends DefaultFSLocationSpec impleme
             return FSLocationValueMetaData.class;
         }
 
+        private static final String CFG_ENTRY = "fs_location_spec_";
+
+        private static final String CFG_FS_CATEGORY = "fs_category";
+
+        private static final String CFG_FS_SPECIFIER = "fs_specifier";
+
+        /**
+         * Serializes the given {@link FSLocationValueMetaData} to the given {@link ConfigWO}.
+         *
+         * @param fsLocationValueMetaData The {@link FSLocationValueMetaData} to serialize
+         * @param config the {@link ConfigWO} to serialize to
+         */
         @Override
-        protected FSLocationValueMetaData createFSLocationSpec(final String fileSystemType,
-            final String fileSystemSpecifier, final ConfigRO config) {
-            return new FSLocationValueMetaData(fileSystemType, fileSystemSpecifier);
+        public void save(final FSLocationValueMetaData fsLocationValueMetaData, final ConfigWO config) {
+            CheckUtils.checkNotNull(fsLocationValueMetaData,
+                "The FSLocationValueMetaData provided to the serializer must not be null.");
+            int idx = 0;
+            for (final DefaultFSLocationSpec spec : fsLocationValueMetaData.getFSLocationSpecs()) {
+                final Config subConfig = config.addConfig(CFG_ENTRY + idx);
+                subConfig.addString(CFG_FS_CATEGORY, spec.getFileSystemCategory());
+                subConfig.addString(CFG_FS_SPECIFIER, spec.getFileSystemSpecifier().orElse(null));
+                idx++;
+            }
         }
+
+        /**
+         * Deserializes and returns a new {@link FSLocationValueMetaData} to the given {@link ConfigRO}.
+         *
+         * @param config the {@link ConfigRO} to deserialize from
+         * @return the deserialized {@link FSLocationValueMetaData}
+         * @throws InvalidSettingsException if something went wrong during deserialization (e.g. missing entries in the
+         *             {@link ConfigRO}).
+         */
+        @Override
+        public FSLocationValueMetaData load(final ConfigRO config) throws InvalidSettingsException {
+            final Set<DefaultFSLocationSpec> set = new HashSet<>();
+            // with v4.3 and earlier, we only saved one FSLocation spec by saving its category and specifier; for sake
+            // of backwards compatibility, we check if that's the case here
+            if (config.containsKey(CFG_FS_CATEGORY)) {
+                set.add(loadDefaultFSLocationSpec(config));
+            } else {
+                @SuppressWarnings("unchecked")
+                final Enumeration<ConfigRO> children = config.children();
+                while (children.hasMoreElements()) {
+                    final ConfigRO subConfig = children.nextElement();
+                    set.add(loadDefaultFSLocationSpec(subConfig));
+                }
+            }
+            return new FSLocationValueMetaData(set);
+        }
+
+        private static DefaultFSLocationSpec loadDefaultFSLocationSpec(final ConfigRO config)
+            throws InvalidSettingsException {
+            final String fileSystemCategory = config.getString(CFG_FS_CATEGORY);
+            final String fileSystemSpecifier = config.getString(CFG_FS_SPECIFIER);
+            return new DefaultFSLocationSpec(fileSystemCategory, fileSystemSpecifier);
+        }
+
     }
 }

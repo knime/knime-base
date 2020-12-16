@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 30, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 17, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.utility.nodes.pathtostring.variable;
+package org.knime.filehandling.core.connections.location;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -56,30 +56,47 @@ import java.util.Optional;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
-import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
 
 /**
- * A factory class allowing to easily convert {@link FSLocation}s to {@link String}s with KNIME URLs. This class is
- * especially useful when multiple {@link FSLocation}s use the same {@link FileSystem} as the
- * {@link FSPathProviderFactory}s are created only once.
+ * A factory class allowing to easily create {@link FSPathProviderFactory}s. This class is especially useful when
+ * multiple {@link FSLocation}s use the same {@link FileSystem} as the {@link FSPathProviderFactory}s are created only
+ * once. If a {@link FSConnection} is available and set during construction, all incoming {@link FSLocation}s will be
+ * resolved against the connected file system, no matter which file systems are referenced by them.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-final class MultiFSPathProviderCellFactory implements AutoCloseable {
+public final class MultiFSPathProviderFactory implements AutoCloseable {
 
-    // we use the node model class of the node for logging so that the user knows which node caused the log
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(PathToStringVariableNodeModel.class); // NOSONAR
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(MultiFSPathProviderFactory.class);
 
     private final Map<DefaultFSLocationSpec, FSPathProviderFactory> m_factories;
+
+    private final FSPathProviderFactory m_connectedFactory;
+
+    /**
+     * Constructor.
+     *
+     * @param fsConnection the {@link FSConnection}, can be {@code null}
+     */
+    public MultiFSPathProviderFactory(final FSConnection fsConnection) {
+        m_factories = new HashMap<>();
+        if (fsConnection != null) {
+            m_connectedFactory = FSPathProviderFactory.newFactory(Optional.of(fsConnection),
+                new DefaultFSLocationSpec(FSCategory.CONNECTED));
+        } else {
+            m_connectedFactory = null;
+        }
+    }
 
     /**
      * Constructor.
      */
-    MultiFSPathProviderCellFactory() {
-        m_factories = new HashMap<>();
+    public MultiFSPathProviderFactory() {
+        this(null);
     }
 
     /**
@@ -88,12 +105,21 @@ final class MultiFSPathProviderCellFactory implements AutoCloseable {
      * @param fsLocation the file system location
      * @return a {@link String} containing a path that starts with a KNIME URL
      */
-    @SuppressWarnings("resource") // the FSPathProviderFactory will be closed in #close
-    String createString(final FSLocation fsLocation) {
+    public FSPathProviderFactory getOrCreateFSPathProviderFactory(final FSLocation fsLocation) {
+        if (m_connectedFactory != null) {
+            return m_connectedFactory;
+        }
+        // check and fail if the fsLocation requires a connection
+        if (fsLocation.getFSCategory() == FSCategory.CONNECTED) {
+            throw new IllegalArgumentException(String.format(
+                "The path '%s' references a connected file system (%s). Please add the missing file system connection "
+                    + "port.",
+                fsLocation.getPath(), fsLocation.getFileSystemSpecifier().orElse("")));
+        }
+        // check if the proper path provider factory has already been created and return if so or create a new one
         final DefaultFSLocationSpec defaultFSLocationSpec = new DefaultFSLocationSpec(fsLocation.getFSCategory(),
             fsLocation.getFileSystemSpecifier().orElseGet(() -> null));
-        m_factories.computeIfAbsent(defaultFSLocationSpec, MultiFSPathProviderCellFactory::createFactory);
-        return PathToStringUtils.fsLocationToString(fsLocation, m_factories.get(defaultFSLocationSpec));
+        return m_factories.computeIfAbsent(defaultFSLocationSpec, MultiFSPathProviderFactory::createFactory);
     }
 
     private static FSPathProviderFactory createFactory(final FSLocationSpec fsLocationSpec) {
@@ -102,12 +128,15 @@ final class MultiFSPathProviderCellFactory implements AutoCloseable {
 
     @Override
     public void close() {
-        for (final FSPathProviderFactory f : m_factories.values()) {
-            try {
-                f.close();
-            } catch (IOException e) {
-                LOGGER.debug("Unable to close fs path provider factory.", e);
+        try {
+            if (m_connectedFactory != null) {
+                m_connectedFactory.close();
             }
+            for (final FSPathProviderFactory f : m_factories.values()) {
+                f.close();
+            }
+        } catch (IOException e) {
+            LOGGER.debug("Unable to close fs path provider factory.", e);
         }
     }
 

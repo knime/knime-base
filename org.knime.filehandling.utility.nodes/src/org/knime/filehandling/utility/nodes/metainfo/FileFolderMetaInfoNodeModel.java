@@ -74,7 +74,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -85,17 +84,15 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFiles;
-import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
-import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
+import org.knime.filehandling.core.connections.location.MultiFSPathProviderFactory;
 import org.knime.filehandling.core.data.location.FSLocationValue;
-import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.filehandling.core.util.FSLocationColumnUtils;
 
 /**
  * The node model allowing to extract meta information about files and folders.
@@ -103,8 +100,6 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 final class FileFolderMetaInfoNodeModel extends NodeModel {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(FileFolderMetaInfoNodeModel.class);
 
     private final int m_inputFsConnectionIdx;
 
@@ -154,7 +149,7 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
         final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
         try (final FileAttributesFactory fac = new FileAttributesFactory(createNewColumns(inputTableSpec), pathColIdx,
-            extractFSLocation(inSpecs, pathColIdx), getFSConnection(inSpecs).orElse(null), false)) {
+            getFSConnection(inSpecs).orElse(null), false)) {
             return new PortObjectSpec[]{createColumnRearranger(inputTableSpec, fac).createSpec()};
         }
     }
@@ -168,10 +163,8 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
         final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
 
-        final FSLocationSpec fsLocationSpec = extractFSLocation(inSpecs, pathColIdx);
-
         try (final FileAttributesFactory fac = new FileAttributesFactory(createNewColumns(inputTableSpec), pathColIdx,
-            fsLocationSpec, getFSConnection(inSpecs).orElse(null), true)) {
+            getFSConnection(inSpecs).orElse(null), true)) {
             return new PortObject[]{exec.createColumnRearrangeTable((BufferedDataTable)inObjects[m_inputTableIdx],
                 createColumnRearranger(inputTableSpec, fac), exec)};
         }
@@ -195,35 +188,11 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         // check column existence
         CheckUtils.checkSetting(colIndex >= 0, "The selected column '%s' is not part of the input", pathColName);
 
-        // check column type
+        // validate the selected column
         final DataColumnSpec pathColSpec = inSpec.getColumnSpec(colIndex);
-        if (!pathColSpec.getType().isCompatible(FSLocationValue.class)) {
-            throw new InvalidSettingsException(
-                String.format("The selected column '%s' has the wrong type", pathColName));
-        }
-
-        // check file systems
-        final FSLocationValueMetaData metaData =
-            pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class).orElseThrow(() -> new IllegalStateException(
-                String.format("Path column '%s' without meta data encountered", pathColSpec.getName())));
-
-        if (m_inputFsConnectionIdx >= 0) {
-            if (metaData.getFSCategory() != FSCategory.CONNECTED
-                || !metaData.getFileSystemSpecifier().equals(((FileSystemPortObjectSpec)inSpecs[m_inputFsConnectionIdx])
-                    .getFSLocationSpec().getFileSystemSpecifier())) {
-                setWarningMessage(String.format(
-                    "The file system at the input port differs from the file system used to create the selected column "
-                        + "'%s'. Only the path will be used.",
-                    pathColName));
-            }
-        } else {
-            if (metaData.getFSCategory() == FSCategory.CONNECTED) {
-                throw new InvalidSettingsException(String.format(
-                    "The selected column '%s' references a connected file system. Please add the missing file system"
-                        + " connection port",
-                    pathColName));
-            }
-        }
+        final Optional<String> warningMsg = FSLocationColumnUtils.validateFSLocationColumn(pathColSpec,
+            m_inputFsConnectionIdx >= 0 ? (FileSystemPortObjectSpec)inSpecs[m_inputFsConnectionIdx] : null);
+        warningMsg.ifPresent(this::setWarningMessage);
     }
 
     private static ColumnRearranger createColumnRearranger(final DataTableSpec inputTableSpec,
@@ -237,17 +206,6 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         return m_inputFsConnectionIdx < 0 //
             ? Optional.empty() //
             : ((FileSystemPortObjectSpec)inSpecs[0]).getFileSystemConnection();
-    }
-
-    private FSLocationSpec extractFSLocation(final PortObjectSpec[] inSpecs, final int pathColIdx) {
-        if (m_inputFsConnectionIdx < 0) {
-            DataColumnSpec pathColSpec = ((DataTableSpec)inSpecs[m_inputTableIdx]).getColumnSpec(pathColIdx);
-            return pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class)//
-                .orElseThrow(() -> new IllegalStateException(
-                    String.format("Path column '%s' without meta data encountered", pathColSpec.getName())));
-        } else {
-            return ((FileSystemPortObjectSpec)inSpecs[m_inputFsConnectionIdx]).getFSLocationSpec();
-        }
     }
 
     private static DataColumnSpec[] createNewColumns(final DataTableSpec inputTableSpec) {
@@ -300,17 +258,14 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
         private final int m_colIdx;
 
-        private final FSPathProviderFactory m_providerFactory;
+        private final MultiFSPathProviderFactory m_multiFSPathProviderCellFactory;
 
+        @SuppressWarnings("resource") // the MultiFSPathProviderFactory will be closed in #close
         private FileAttributesFactory(final DataColumnSpec[] colSpecs, final int pathColIdx,
-            final FSLocationSpec fsLocationSpec, final FSConnection fsConnection, final boolean initFactory) {
+            final FSConnection fsConnection, final boolean initFactory) {
             super(colSpecs);
             m_colIdx = pathColIdx;
-            if (initFactory) {
-                m_providerFactory = FSPathProviderFactory.newFactory(Optional.ofNullable(fsConnection), fsLocationSpec);
-            } else {
-                m_providerFactory = null;
-            }
+            m_multiFSPathProviderCellFactory = initFactory ? new MultiFSPathProviderFactory(fsConnection) : null;
         }
 
         @Override
@@ -324,7 +279,8 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         }
 
         private DataCell[] createCells(final FSLocationCell cell) {
-            try (final FSPathProvider pathProvder = m_providerFactory.create(cell.getFSLocation())) {
+            try (final FSPathProvider pathProvder = m_multiFSPathProviderCellFactory
+                .getOrCreateFSPathProviderFactory(cell.getFSLocation()).create(cell.getFSLocation())) {
                 final FSPath path = pathProvder.getPath();
                 if (!FSFiles.exists(path) && !m_failIfPathNotExists.getBooleanValue()) {
                     final DataCell[] cells = createMissingCells(() -> new MissingCell("File/folder does not exist"));
@@ -361,12 +317,8 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
         @Override
         public void close() {
-            if (m_providerFactory != null) {
-                try {
-                    m_providerFactory.close();
-                } catch (final IOException e) {
-                    LOGGER.debug("Unable to close fs path provider factory", e);
-                }
+            if (m_multiFSPathProviderCellFactory != null) {
+                m_multiFSPathProviderCellFactory.close();
             }
         }
     }
