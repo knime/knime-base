@@ -125,7 +125,6 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
 
     @Override
     protected void doneWithContext() {
-        m_dialog.resetUIafterAutodetection();
 
         boolean refreshPreview = false;
         try {
@@ -148,6 +147,7 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
         } catch (InterruptedException | CancellationException ex) {
             // ignore
         } finally {
+            m_dialog.resetUIafterAutodetection();
             // always call m_dialog#refreshPreview, it enables the preview
             m_dialog.refreshPreview(refreshPreview);
         }

@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -127,6 +128,10 @@ public abstract class AbstractCSVTableReaderNodeDialog
     private final JTextField m_colDelimiterField = CSVReaderDialogUtils.mkTextField();
 
     private final JTextField m_rowDelimiterField = CSVReaderDialogUtils.mkTextField();
+
+    private final JRadioButton m_useLineBreakRowDelimiter;
+
+    private final JRadioButton m_useCustomRowDelimiter;
 
     private final JTextField m_quoteField = CSVReaderDialogUtils.mkTextField();
 
@@ -212,6 +217,14 @@ public abstract class AbstractCSVTableReaderNodeDialog
         Long rowEnd = Long.valueOf(Long.MAX_VALUE);
         Long skipOne = Long.valueOf(1);
         Long initLimit = Long.valueOf(50);
+
+        m_useLineBreakRowDelimiter = new JRadioButton("Line break");
+        m_useLineBreakRowDelimiter.addActionListener(l -> toggleCustomLineBreakField());
+        m_useCustomRowDelimiter = new JRadioButton("Custom");
+        m_useCustomRowDelimiter.addActionListener(l -> toggleCustomLineBreakField());
+        final ButtonGroup buttonGrp = new ButtonGroup();
+        buttonGrp.add(m_useLineBreakRowDelimiter);
+        buttonGrp.add(m_useCustomRowDelimiter);
 
         m_hasRowIDChecker = new JCheckBox("Has row ID");
         m_hasColHeaderChecker = new JCheckBox("Has column header");
@@ -363,6 +376,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         m_colDelimiterField.getDocument().addDocumentListener(documentListener);
         m_rowDelimiterField.getDocument().addDocumentListener(documentListener);
+        m_useCustomRowDelimiter.addActionListener(actionListener);
+        m_useLineBreakRowDelimiter.addActionListener(actionListener);
         m_quoteField.getDocument().addDocumentListener(documentListener);
         m_quoteEscapeField.getDocument().addDocumentListener(documentListener);
         m_commentStartField.getDocument().addDocumentListener(documentListener);
@@ -416,6 +431,10 @@ public abstract class AbstractCSVTableReaderNodeDialog
                 m_numberFormatDialog.setColumnDelimiter(m_colDelimiterField.getText());
             }
         });
+    }
+
+    private void toggleCustomLineBreakField() {
+        m_rowDelimiterField.setEnabled(m_useCustomRowDelimiter.isSelected());
     }
 
     private MultiTableReadConfig<CSVTableReaderConfig, Class<?>> saveAndGetConfig() throws InvalidSettingsException {
@@ -609,7 +628,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         autoDetectPanel.add(getInFlowLayout(m_colDelimiterField, new JLabel("Column delimiter ")), gbc);
 
         gbc.gridx += 1;
-        autoDetectPanel.add(getInFlowLayout(m_rowDelimiterField, new JLabel("Row delimiter ")), gbc);
+        autoDetectPanel.add(getRowDelimiterPanel(), gbc);
 
         gbc.gridx += 1;
         gbc.weightx = 1;
@@ -625,6 +644,24 @@ public abstract class AbstractCSVTableReaderNodeDialog
         autoDetectPanel.add(getInFlowLayout(m_quoteEscapeField, new JLabel("Quote escape char ")), gbc);
 
         return autoDetectPanel;
+    }
+
+    private Component getRowDelimiterPanel() {
+        final JPanel rowDelPanel = new JPanel(new GridBagLayout());
+
+        GBCBuilder gbc = new GBCBuilder().anchorFirstLineStart().resetPos().fillNone().weight(0, 0);
+        rowDelPanel.add(new JLabel("Row delimiter "));
+
+        gbc.incX();
+        rowDelPanel.add(m_useLineBreakRowDelimiter, gbc.build());
+
+        gbc.incX();
+        rowDelPanel.add(m_useCustomRowDelimiter, gbc.build());
+
+        gbc.incX().insetLeft(5);
+        rowDelPanel.add(m_rowDelimiterField, gbc.build());
+
+        return rowDelPanel;
     }
 
     private void createCardLayout() {
@@ -803,6 +840,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         CSVTableReaderConfig csvReaderConfig = m_config.getTableReadConfig().getReaderSpecificConfig();
 
         csvReaderConfig.setDelimiter(EscapeUtils.unescape(m_colDelimiterField.getText()));
+        csvReaderConfig.useLineBreakRowDelimiter(m_useLineBreakRowDelimiter.isSelected());
         csvReaderConfig.setLineSeparator(EscapeUtils.unescape(m_rowDelimiterField.getText()));
 
         csvReaderConfig.setQuote(m_quoteField.getText());
@@ -909,6 +947,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
         // CSV specific options
         CSVTableReaderConfig csvReaderConfig = m_config.getTableReadConfig().getReaderSpecificConfig();
         m_colDelimiterField.setText(EscapeUtils.escape(csvReaderConfig.getDelimiter()));
+
+        final boolean useLineBreakRowDel = csvReaderConfig.useLineBreakRowDelimiter();
+        toggleLineBreakButtonGroup(useLineBreakRowDel);
+        toggleCustomLineBreakField();
+
         m_rowDelimiterField.setText(EscapeUtils.escape(csvReaderConfig.getLineSeparator()));
 
         m_quoteField.setText(EscapeUtils.escape(csvReaderConfig.getQuote()));
@@ -977,7 +1020,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
      */
     protected void setAutodetectComponentsEnabled(final boolean enabled) {
         m_colDelimiterField.setEnabled(enabled);
-        m_rowDelimiterField.setEnabled(enabled);
+        if (!enabled) {
+            m_rowDelimiterField.setEnabled(enabled);
+        } else {
+            toggleCustomLineBreakField();
+        }
         m_quoteField.setEnabled(enabled);
         m_quoteEscapeField.setEnabled(enabled);
     }
@@ -991,9 +1038,17 @@ public abstract class AbstractCSVTableReaderNodeDialog
     void updateAutodetectionFields(final CsvFormat format) {
         m_colDelimiterField.setText(EscapeUtils.escape(format.getDelimiterString()));
 
-        m_rowDelimiterField.setText(EscapeUtils.escape(format.getLineSeparatorString()));
+        final String rowDelimiter = format.getLineSeparatorString();
+        final boolean isLineBreak = OSIndependentNewLineReader.isLineBreak(rowDelimiter);
+        toggleLineBreakButtonGroup(isLineBreak);
+        m_rowDelimiterField.setText(EscapeUtils.escape(rowDelimiter));
         m_quoteField.setText(Character.toString(format.getQuote()));
         m_quoteEscapeField.setText(Character.toString(format.getQuoteEscape()));
+    }
+
+    private void toggleLineBreakButtonGroup(final boolean useLineBreak) {
+        m_useLineBreakRowDelimiter.setSelected(useLineBreak);
+        m_useCustomRowDelimiter.setSelected(!useLineBreak);
     }
 
     String getCommentStart() {

@@ -60,6 +60,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.base.node.io.filehandling.streams.CompressionAwareCountingInputStream;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
@@ -116,7 +117,8 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     @Override
-    public Read<Path, String> read(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
+    public Read<Path, String> read(final Path path, final TableReadConfig<CSVTableReaderConfig> config)
+        throws IOException {
         return decorateForReading(new CsvRead(path, config), config);
     }
 
@@ -130,8 +132,8 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      * @throws IOException if an I/O problem occurs
      */
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    public static Read<Path, String> read(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config)
-        throws IOException {
+    public static Read<Path, String> read(final InputStream inputStream,
+        final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
         final CsvRead read = new CsvRead(inputStream, config);
         return decorateForReading(read, config);
     }
@@ -247,16 +249,27 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             m_compressionAwareStream = inputStream;
 
             final CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
-            final String charSetName = csvReaderConfig.getCharSetName();
-            final Charset charset = charSetName == null ? Charset.defaultCharset() : Charset.forName(charSetName);
-            m_reader = BomEncodingUtils.createBufferedReader(m_compressionAwareStream, charset);
+            // Get the Univocity Parser settings from the reader specific configuration.
+            m_csvParserSettings = csvReaderConfig.getCsvSettings();
+            m_reader = createReader(csvReaderConfig);
             if (csvReaderConfig.skipLines()) {
                 skipLines(csvReaderConfig.getNumLinesToSkip());
             }
-            // Get the Univocity Parser settings from the reader specific configuration.
-            m_csvParserSettings = csvReaderConfig.getSettings();
             m_parser = new CsvParser(m_csvParserSettings);
             m_parser.beginParsing(m_reader);
+        }
+
+        @SuppressWarnings("resource")
+        private BufferedReader createReader(final CSVTableReaderConfig csvReaderConfig) {
+            final String charSetName = csvReaderConfig.getCharSetName();
+            final Charset charset = charSetName == null ? Charset.defaultCharset() : Charset.forName(charSetName);
+            if (csvReaderConfig.useLineBreakRowDelimiter()) {
+                m_csvParserSettings.getFormat().setLineSeparator(OSIndependentNewLineReader.LINE_BREAK);
+                return new BufferedReader(
+                    new OSIndependentNewLineReader(BomEncodingUtils.createReader(m_compressionAwareStream, charset)));
+            } else {
+                return BomEncodingUtils.createBufferedReader(m_compressionAwareStream, charset);
+            }
         }
 
         @Override

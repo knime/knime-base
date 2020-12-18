@@ -145,6 +145,9 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
     /** string key used to save the value of column delimiter used to read csv files */
     private static final String CFG_DELIMITER = "column_delimiter";
 
+    /** string key used to save the value of the line break row delimiter to read csv files. */
+    private static final String CFG_USE_LINE_BREAK_ROW_DELIMITER = "use_line_break_row_delimiter";
+
     /** string key used to save the value of line separator used to read csv files */
     private static final String CFG_ROW_DELIMITER = "row_delimiter";
 
@@ -220,6 +223,7 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
         csvConfig.setAutoDetectionBufferSize(
             settings.getInt(CFG_AUTODETECT_BUFFER_SIZE, CSVTableReaderConfig.DEFAULT_AUTODETECTION_BUFFER_SIZE));
         csvConfig.setDelimiter(settings.getString(CFG_DELIMITER, ","));
+        csvConfig.useLineBreakRowDelimiter(settings.getBoolean(CFG_USE_LINE_BREAK_ROW_DELIMITER, true));
         csvConfig.setLineSeparator(settings.getString(CFG_ROW_DELIMITER, "\n"));
         csvConfig.setQuote(settings.getString(CFG_QUOTE_CHAR, "\""));
         csvConfig.setQuoteEscape(settings.getString(CFG_QUOTE_ESCAPE_CHAR, "\""));
@@ -331,6 +335,13 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
         final CSVTableReaderConfig csvConfig = config.getReaderSpecificConfig();
         csvConfig.setAutoDetectionBufferSize(settings.getInt(CFG_AUTODETECT_BUFFER_SIZE));
         csvConfig.setDelimiter(settings.getString(CFG_DELIMITER));
+
+        // Added in 4.4 AP-14006
+        if (settings.containsKey(CFG_USE_LINE_BREAK_ROW_DELIMITER)) {
+            csvConfig.useLineBreakRowDelimiter(settings.getBoolean(CFG_USE_LINE_BREAK_ROW_DELIMITER));
+        } else {
+            csvConfig.useLineBreakRowDelimiter(false);
+        }
         csvConfig.setLineSeparator(settings.getString(CFG_ROW_DELIMITER));
         csvConfig.setQuote(settings.getString(CFG_QUOTE_CHAR));
         csvConfig.setQuoteEscape(settings.getString(CFG_QUOTE_ESCAPE_CHAR));
@@ -407,6 +418,7 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
         settings.addString(CFG_DELIMITER, cc.getDelimiter());
         settings.addString(CFG_QUOTE_CHAR, cc.getQuote());
         settings.addString(CFG_QUOTE_ESCAPE_CHAR, cc.getQuoteEscape());
+        settings.addBoolean(CFG_USE_LINE_BREAK_ROW_DELIMITER, cc.useLineBreakRowDelimiter());
         settings.addString(CFG_ROW_DELIMITER, cc.getLineSeparator());
         settings.addInt(CFG_AUTODETECT_BUFFER_SIZE, cc.getAutoDetectionBufferSize());
     }
@@ -458,9 +470,8 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
     }
 
     @Override
-    public void validate(
-        final CSVMultiTableReadConfig config,
-        final NodeSettingsRO settings) throws InvalidSettingsException {
+    public void validate(final CSVMultiTableReadConfig config, final NodeSettingsRO settings)
+        throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             TABLE_SPEC_CONFIG_SERIALIZER.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
@@ -477,6 +488,10 @@ enum CSVMultiTableReadConfigSerializer implements ConfigSerializer<CSVMultiTable
         settings.getBoolean(CFG_SKIP_EMPTY_DATA_ROWS);
         settings.getInt(CFG_AUTODETECT_BUFFER_SIZE);
         settings.getString(CFG_DELIMITER);
+        // added with 4.4 AP-140006
+        if (settings.containsKey(CFG_USE_LINE_BREAK_ROW_DELIMITER)) {
+            settings.getBoolean(CFG_USE_LINE_BREAK_ROW_DELIMITER);
+        }
         settings.getString(CFG_ROW_DELIMITER);
         settings.getString(CFG_QUOTE_CHAR);
         settings.getString(CFG_QUOTE_ESCAPE_CHAR);

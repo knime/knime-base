@@ -90,6 +90,9 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     /** Setting used to parse csv files */
     private final CsvParserSettings m_settings;
 
+    /** Setting to toggle between default OS independent line breaks and custom line breaks. */
+    private boolean m_useLineBreakRowDel;
+
     /** Setting used to decide whether or not lines are skipped at the beginning */
     private boolean m_skipLines = false;
 
@@ -116,6 +119,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
         m_settings.setEmptyValue("");
         m_settings.setMaxCharsPerColumn(DEFAULT_MAX_CHARS_PER_COLUMN);
         m_settings.setMaxColumns(DEFAULT_MAX_COLUMNS);
+        useLineBreakRowDelimiter(true);
         setQuoteOption(DEFAULT_QUOTE_OPTION);
         setReplaceEmptyWithMissing(true);
         limitCharsPerColumn(true);
@@ -125,6 +129,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
     private CSVTableReaderConfig(final CSVTableReaderConfig toCopy) {
         m_settings = toCopy.m_settings.clone();
+        useLineBreakRowDelimiter(toCopy.useLineBreakRowDelimiter());
         setSkipLines(toCopy.skipLines());
         setNumLinesToSkip(toCopy.getNumLinesToSkip());
         setCharSetName(toCopy.getCharSetName());
@@ -139,7 +144,11 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      *
      * @return the parser settings used
      */
-    CsvParserSettings getSettings() {
+    CsvParserSettings getCsvSettings() {
+        return getSettings().clone();
+    }
+
+    private CsvParserSettings getSettings() {
         return m_settings;
     }
 
@@ -149,6 +158,24 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      */
     private CsvFormat getFormat() {
         return getSettings().getFormat();
+    }
+
+    /**
+     * Returns whether or not line breaks are being used as row delimiter.
+     *
+     * @return {@code true} if line breaks define the row delimiter and {@code false} otherwise
+     */
+    public boolean useLineBreakRowDelimiter() {
+        return m_useLineBreakRowDel;
+    }
+
+    /**
+     * Specifies whether line breaks are the row delimiters or not.
+     *
+     * @param useLinebreakRowDel {@code true} if line breaks define the row delimiter and {@code false} otherwise
+     */
+    public void useLineBreakRowDelimiter(final boolean useLinebreakRowDel) {
+        m_useLineBreakRowDel = useLinebreakRowDel;
     }
 
     /**
