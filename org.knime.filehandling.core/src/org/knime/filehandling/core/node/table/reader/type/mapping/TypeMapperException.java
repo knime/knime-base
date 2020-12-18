@@ -44,69 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 18, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.type.mapping;
 
-import java.util.stream.IntStream;
-
-import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.convert.map.DataRowProducer;
-import org.knime.core.data.convert.map.MappingFramework;
-import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.filehandling.core.node.table.reader.ReadAdapter;
-import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.core.data.convert.map.MappingException;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**
- * Handles mapping from {@link RandomAccessible RandomAccessibles} to {@link DataRow DataRows}.
+ * A {@link TypeMapperException} that stores information about the row that could not be converted.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <V> the type of values mapped to cells
- * @param <C> the type of {@link ReaderSpecificConfig}
- * @noinstantiate non-public API subject to change
- * @noreference non-public API subject to change
- * TODO move to different package?
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
-public final class DefaultTypeMapper<V, C extends ReaderSpecificConfig<C>> implements TypeMapper<V> {
+public final class TypeMapperException extends MappingException {
 
-    private final ReadAdapter<?, V> m_readAdapter;
+    private static final long serialVersionUID = -7451974889714801995L;
 
-    private final ReadAdapterParams<ReadAdapter<?, V>, C>[] m_params;
+    private final String m_rowKey;
 
-    private final DataRowProducer<ReadAdapterParams<ReadAdapter<?, V>, C>> m_rowProducer;
+    private final String m_randomAccessible;
 
     /**
      * Constructor.
      *
-     * @param readAdapter {@link ReadAdapter} serves as source for the type mapping framework
-     * @param productionPaths specifying how cells are to be created
-     * @param fsFactory {@link FileStoreFactory}
-     * @param readerSpecificConfig {@link ReaderSpecificConfig}
+     * @param rowKey the String representation of the {@link RowKey}
+     * @param randomAccessible the String representation of the {@link RandomAccessible}
+     * @param cause cause for the conversion failure
      */
-    public DefaultTypeMapper(final ReadAdapter<?, V> readAdapter, final ProductionPath[] productionPaths,
-        final FileStoreFactory fsFactory, final C readerSpecificConfig) {
-        m_readAdapter = readAdapter;
-        m_rowProducer = MappingFramework.createDataRowProducer(fsFactory, m_readAdapter, productionPaths);
-        // ReadAdapterParams are compatible with any ReadAdapter, the generics
-        // are only necessary to shut up the compiler
-        @SuppressWarnings("unchecked")
-        final ReadAdapterParams<ReadAdapter<?, V>, C>[] params = IntStream.range(0, productionPaths.length)
-            .mapToObj(i -> new ReadAdapterParams<>(i, readerSpecificConfig)).toArray(ReadAdapterParams[]::new);
-        m_params = params;
+    TypeMapperException(final String rowKey, final String randomAccessible, final Throwable cause) {
+        super(cause);
+        m_rowKey = rowKey;
+        m_randomAccessible = randomAccessible;
     }
 
-    @Override
-    public DataRow map(final RowKey key, final RandomAccessible<V> randomAccessible) throws Exception {
-        m_readAdapter.setSource(randomAccessible);
-        try {
-            return m_rowProducer.produceDataRow(key, m_params);
-        } catch (Exception ex) {
-            throw new TypeMapperException(key.toString(), randomAccessible.toString(), ex);
-        }
+    /**
+     * @return the String representation of the row key
+     */
+    public String getRowKey() {
+        return m_rowKey;
+    }
+
+    /**
+     * @return the String representation of the {@link RandomAccessible}
+     */
+    public String getRandomAccessible() {
+        return m_randomAccessible;
     }
 
 }

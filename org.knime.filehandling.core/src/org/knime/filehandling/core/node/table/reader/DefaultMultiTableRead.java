@@ -56,8 +56,11 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.node.table.reader.type.mapping.MappingRuntimeException;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapperException;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.util.CheckedExceptionFunction;
@@ -79,6 +82,8 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
 
     private final TableSpecConfig<T> m_tableSpecConfig;
 
+    private final TableReadConfig<?> m_tableReadConfig;
+
     private final SourceGroup<I> m_sourceGroup;
 
     private final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> m_readFn;
@@ -92,15 +97,18 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
      * @param readFn produces a {@link Read} from a item
      * @param individualTableReaderFactorySupplier creates {@link IndividualTableReader IndividualTableReaders} from
      *            item
+     * @param tableReadConfig the {@link TableReadConfig}
      * @param tableSpecConfig corresponding to this instance
      * @param outputSpec {@link DataTableSpec} of the output table
      */
     public DefaultMultiTableRead(final SourceGroup<I> sourceGroup,
         final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> readFn,
         final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>>> individualTableReaderFactorySupplier,
-        final TableSpecConfig<T> tableSpecConfig, final DataTableSpec outputSpec) {
+        final TableReadConfig<?> tableReadConfig, final TableSpecConfig<T> tableSpecConfig,
+        final DataTableSpec outputSpec) {
         m_outputSpec = outputSpec;
         m_tableSpecConfig = tableSpecConfig;
+        m_tableReadConfig = tableReadConfig;
         m_readFn = readFn;
         m_sourceGroup = sourceGroup;
         m_individualTableReaderFactorySupplier = individualTableReaderFactorySupplier;
@@ -127,6 +135,8 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
             final IndividualTableReader<I, V> reader = individualTableReaderFactory.apply(item, fsFactory);
             try (final Read<I, V> read = m_readFn.apply(item)) {
                 reader.fillOutput(read, output, progress);
+            } catch (TypeMapperException e) {
+                processAndThrowTypeMapperException(item, e);
             }
             progress.setProgress(1.0);
         }
@@ -142,5 +152,22 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
             final IndividualTableReader<I, V> reader = individualTableReaderFactory.apply(p, f);
             return new IndividualTablePreviewRowIterator<>(m_readFn.apply(p), reader::toRow);
         });
+    }
+
+    private void processAndThrowTypeMapperException(final I item, final TypeMapperException e) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append(String.format("Row with ID '%s' ", e.getRowKey()));
+        if (m_sourceGroup.size() > 1) {
+            builder.append(String.format("in file '%s' ", item.toString()));
+        }
+        builder.append("can't be converted to the configured data types.");
+        if (m_tableReadConfig.limitRowsForSpec()) {
+            builder
+            .append(" Increasing the number of scanned rows or changing the target types might resolve the issue.");
+        } else {
+            builder.append(" Changing the target types might resolve the issue.");
+        }
+        builder.append(String.format(" Content of row: %s", e.getRandomAccessible()));
+        throw new MappingRuntimeException(builder.toString(), e);
     }
 }

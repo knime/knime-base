@@ -153,7 +153,6 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
         }
     }
 
-
     @Override
     public MultiTableRead<T> withTransformation(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel) {
@@ -169,7 +168,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
         return new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, tableReadConfig), () -> {
             IndividualTableReaderFactory<I, T, V> factory = createIndividualTableReaderFactory(transformationModel);
             return factory::create;
-        }, tableSpecConfig, TableTransformationUtils.toDataTableSpec(transformationModel));
+        }, tableReadConfig, tableSpecConfig, TableTransformationUtils.toDataTableSpec(transformationModel));
     }
 
     private IndividualTableReaderFactory<I, T, V>
