@@ -60,6 +60,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
+import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.node.workflow.VariableType.LongType;
 
 /**
@@ -78,8 +79,11 @@ final class LoopStartVariable2NodeModel extends TableToVariable3NodeModel implem
     /** The row iterator w.r.t. #m_lastTable. */
     private RowIterator m_iterator;
 
-    LoopStartVariable2NodeModel() {
+    private final boolean m_createLongIterVars;
+
+    LoopStartVariable2NodeModel(final boolean createLongIterVars) {
         super();
+        m_createLongIterVars = createLongIterVars;
     }
 
     @Override
@@ -110,12 +114,21 @@ final class LoopStartVariable2NodeModel extends TableToVariable3NodeModel implem
     }
 
     private void pushIterationVariables(final long maxIter, final long curIter) {
-        pushVariable(createLongVariable("maxIterations", maxIter));
-        pushVariable(createLongVariable("currentIteration", curIter));
+        if (m_createLongIterVars) {
+            pushVariable(createLongVariable("maxIterations", maxIter));
+            pushVariable(createLongVariable("currentIteration", curIter));
+        } else {
+            pushVariable(createIntVariable("maxIterations", Math.toIntExact(maxIter)));
+            pushVariable(createIntVariable("currentIteration", Math.toIntExact(curIter)));
+        }
     }
 
     private static FlowVariable createLongVariable(final String string, final long maxNrIterations) {
         return new FlowVariable(string, LongType.INSTANCE, maxNrIterations);
+    }
+
+    private static FlowVariable createIntVariable(final String string, final int maxNrIterations) {
+        return new FlowVariable(string, IntType.INSTANCE, maxNrIterations);
     }
 
     void clearTableReferences() {

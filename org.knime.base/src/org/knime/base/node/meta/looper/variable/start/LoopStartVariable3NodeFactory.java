@@ -58,11 +58,11 @@ import org.knime.core.node.NodeView;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public class LoopStartVariable2NodeFactory extends NodeFactory<LoopStartVariable2NodeModel> {
+public class LoopStartVariable3NodeFactory extends NodeFactory<LoopStartVariable2NodeModel> {
 
     @Override
     public LoopStartVariable2NodeModel createNodeModel() {
-        return new LoopStartVariable2NodeModel();
+        return new LoopStartVariable2NodeModel(false);
     }
 
     @Override
