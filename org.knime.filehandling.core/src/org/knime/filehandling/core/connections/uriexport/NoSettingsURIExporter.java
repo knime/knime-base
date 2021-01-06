@@ -43,48 +43,62 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.uriexport;
 
-import java.net.URI;
+import java.util.function.Consumer;
 
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
- * {@link URIExporter} implementation using file scheme.
+ * {@link URIExporter} implementation for URIExporters which require no settings.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH
  */
-final class FileURIExporter extends NoSettingsURIExporter {
+public abstract class NoSettingsURIExporter implements URIExporter {
 
-    static final URIExporterID ID = new URIExporterID("knime-file-url");
-
-    static final FileURIExporter INSTANCE = new FileURIExporter();
-
-    private FileURIExporter() {
-    }
-
-    /**
-     * @return singleton instance of this exporter
-     */
-    public static FileURIExporter getInstance() {
-        return INSTANCE;
+    @Override
+    public final void configureInModel(final PortObjectSpec[] specs,
+        final Consumer<StatusMessage> statusMessageConsumer) throws InvalidSettingsException {
+        // nothing to do here
     }
 
     @Override
-    public String getLabel() {
-        return "File URI";
+    public final void loadSettingsForDialog(final NodeSettingsRO settings) throws NotConfigurableException {
+        // nothing to do here
     }
 
     @Override
-    public String getDescription() {
-        return "Exports the path as file URI.";
+    public final void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // nothing to do here
     }
 
     @Override
-    public URI toUri(final FSPath path) {
-        return ((LocalPath)path).getWrappedPath().toUri();
+    public final void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // nothing to do here
+    }
+
+    @Override
+    public final void validate() throws InvalidSettingsException {
+        // nothing to do here
+    }
+
+    @Override
+    public final void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        // nothing to do here
+    }
+
+    @Override
+    public final void saveSettingsForModel(final NodeSettingsWO settings) {
+        // nothing to do here
+    }
+
+    @Override
+    public final NoSettingsURIExporterPanel getPanel() {
+        return new NoSettingsURIExporterPanel(this);
     }
 }

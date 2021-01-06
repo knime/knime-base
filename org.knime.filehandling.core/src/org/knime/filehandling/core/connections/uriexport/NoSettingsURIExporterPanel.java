@@ -42,49 +42,46 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   2020-10-15 (Vyacheslav Soldatov): created
  */
-package org.knime.filehandling.core.connections.local;
 
-import java.net.URI;
+package org.knime.filehandling.core.connections.uriexport;
 
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import java.awt.FlowLayout;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * {@link URIExporter} implementation using file scheme.
+ * Implementation of URIExporterPanel dialog panel for NoSettingsURIExporters.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH
  */
-final class FileURIExporter extends NoSettingsURIExporter {
-
-    static final URIExporterID ID = new URIExporterID("knime-file-url");
-
-    static final FileURIExporter INSTANCE = new FileURIExporter();
-
-    private FileURIExporter() {
-    }
+@SuppressWarnings("serial")
+public class NoSettingsURIExporterPanel extends URIExporterPanel<NoSettingsURIExporter> {
 
     /**
-     * @return singleton instance of this exporter
+     * Creates a new instance.
+     *
+     * @param settings NoSettingsURIExporter
      */
-    public static FileURIExporter getInstance() {
-        return INSTANCE;
+    public NoSettingsURIExporterPanel(final NoSettingsURIExporter settings) {
+        super(new FlowLayout(), settings);
     }
 
     @Override
-    public String getLabel() {
-        return "File URI";
+    protected final void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        // nothing to do
     }
 
     @Override
-    public String getDescription() {
-        return "Exports the path as file URI.";
-    }
-
-    @Override
-    public URI toUri(final FSPath path) {
-        return ((LocalPath)path).getWrappedPath().toUri();
+    protected final void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        // nothing to do
     }
 }
