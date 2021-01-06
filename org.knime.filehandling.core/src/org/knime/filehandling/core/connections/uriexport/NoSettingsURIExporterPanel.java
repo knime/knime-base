@@ -44,41 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
+ *   2020-10-15 (Vyacheslav Soldatov): created
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+package org.knime.filehandling.core.connections.uriexport;
 
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import java.awt.FlowLayout;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * {@link URIExporter} that provides legacy knime:// URLs.
+ * Implementation of URIExporterPanel dialog panel for NoSettingsURIExporters.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH
  */
-final class LegacyKNIMEUrlExporter extends NoSettingsURIExporter {
+@SuppressWarnings("serial")
+public class NoSettingsURIExporterPanel extends URIExporterPanel<NoSettingsURIExporter> {
 
-    static final LegacyKNIMEUrlExporter INSTANCE = new LegacyKNIMEUrlExporter();
-
-    private LegacyKNIMEUrlExporter() {
+    /**
+     * Creates a new instance.
+     *
+     * @param settings NoSettingsURIExporter
+     */
+    public NoSettingsURIExporterPanel(final NoSettingsURIExporter settings) {
+        super(new FlowLayout(), settings);
     }
 
     @Override
-    public String getLabel() {
-        return "knime:// URL";
+    protected final void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        // nothing to do
     }
 
     @Override
-    public String getDescription() {
-        return "Provides a knime:// URL";
-    }
-
-    @Override
-    public URI toUri(final FSPath path) throws URISyntaxException {
-        return ((RelativeToPath)path).toKNIMEProtocolURI();
+    protected final void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        // nothing to do
     }
 }

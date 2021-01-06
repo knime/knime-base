@@ -48,6 +48,7 @@ package org.knime.filehandling.core.connections.local;
 import java.net.URI;
 
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 
@@ -56,12 +57,14 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterID;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-final class FileURIExporter implements URIExporter {
+final class FileURIExporter extends NoSettingsURIExporter {
 
     static final URIExporterID ID = new URIExporterID("knime-file-url");
+
     static final FileURIExporter INSTANCE = new FileURIExporter();
 
-    private FileURIExporter() {}
+    private FileURIExporter() {
+    }
 
     /**
      * @return singleton instance of this exporter

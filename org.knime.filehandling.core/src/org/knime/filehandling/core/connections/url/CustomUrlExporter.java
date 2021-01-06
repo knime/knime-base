@@ -52,7 +52,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 
 /**
@@ -60,9 +60,10 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterID;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class CustomUrlExporter implements URIExporter {
+final class CustomUrlExporter extends NoSettingsURIExporter {
 
     static final URIExporterID ID = new URIExporterID("knime-customurl");
+
     static final CustomUrlExporter INSTANCE = new CustomUrlExporter();
 
     private CustomUrlExporter() {

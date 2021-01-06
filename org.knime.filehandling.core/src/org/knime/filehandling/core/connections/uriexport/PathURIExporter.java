@@ -55,7 +55,7 @@ import org.knime.filehandling.core.connections.FSPath;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public final class PathURIExporter implements URIExporter {
+public final class PathURIExporter extends NoSettingsURIExporter {
 
     /**
      * Unique identifier of this exporter.
@@ -64,7 +64,8 @@ public final class PathURIExporter implements URIExporter {
 
     private static final PathURIExporter INSTANCE = new PathURIExporter();
 
-    private PathURIExporter() {}
+    private PathURIExporter() {
+    }
 
     /**
      * @return singleton instance of this exporter

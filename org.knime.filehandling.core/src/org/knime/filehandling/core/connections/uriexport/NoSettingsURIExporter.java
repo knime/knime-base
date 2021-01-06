@@ -42,43 +42,63 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.uriexport;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.function.Consumer;
 
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
- * {@link URIExporter} that provides legacy knime:// URLs.
+ * {@link URIExporter} implementation for URIExporters which require no settings.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH
  */
-final class LegacyKNIMEUrlExporter extends NoSettingsURIExporter {
+public abstract class NoSettingsURIExporter implements URIExporter {
 
-    static final LegacyKNIMEUrlExporter INSTANCE = new LegacyKNIMEUrlExporter();
-
-    private LegacyKNIMEUrlExporter() {
+    @Override
+    public final void configureInModel(final PortObjectSpec[] specs,
+        final Consumer<StatusMessage> statusMessageConsumer) throws InvalidSettingsException {
+        // nothing to do here
     }
 
     @Override
-    public String getLabel() {
-        return "knime:// URL";
+    public final void loadSettingsForDialog(final NodeSettingsRO settings) throws NotConfigurableException {
+        // nothing to do here
     }
 
     @Override
-    public String getDescription() {
-        return "Provides a knime:// URL";
+    public final void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // nothing to do here
     }
 
     @Override
-    public URI toUri(final FSPath path) throws URISyntaxException {
-        return ((RelativeToPath)path).toKNIMEProtocolURI();
+    public final void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // nothing to do here
+    }
+
+    @Override
+    public final void validate() throws InvalidSettingsException {
+        // nothing to do here
+    }
+
+    @Override
+    public final void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        // nothing to do here
+    }
+
+    @Override
+    public final void saveSettingsForModel(final NodeSettingsWO settings) {
+        // nothing to do here
+    }
+
+    @Override
+    public final NoSettingsURIExporterPanel getPanel() {
+        return new NoSettingsURIExporterPanel(this);
     }
 }
