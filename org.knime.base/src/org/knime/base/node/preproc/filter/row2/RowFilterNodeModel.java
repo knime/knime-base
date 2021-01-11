@@ -122,11 +122,17 @@ public class RowFilterNodeModel extends AbstractRowFilterNodeModel {
         exec.setMessage("Searching first matching row...");
         // Create RowPredicate
         final RowPredicate rowPredicate = createRowPredicate(in.getDataTableSpec());
-        // test rows with row predicate and add only matching rows to the container
-        try (CloseableRowIterator rowIterator = in.filter(createTableFilter(rowPredicate), exec).iterator()) {
+        final long totalRowCount = in.size();
+        final double totalRowCountDouble = totalRowCount;
+        // progress is handled here, so the subprogress for the iterator should have no contribution to the progress
+        try (CloseableRowIterator rowIterator =
+            in.filter(createTableFilter(rowPredicate), exec.createSilentSubProgress(0)).iterator()) {
             for (long i = getStartIdx(rowPredicate); rowIterator.hasNext(); i++) {
                 exec.checkCanceled();
                 final DataRow row = rowIterator.next();
+                final long finalI = i;
+                exec.setProgress(i / totalRowCountDouble,
+                    () -> String.format("Testing row %s/%s, (%s)", finalI, totalRowCount, row.getKey()));
                 if (rowPredicate.test(row, i)) {
                     container.addRowToTable(row);
                 }
@@ -145,14 +151,9 @@ public class RowFilterNodeModel extends AbstractRowFilterNodeModel {
     }
 
     private static TableFilter createTableFilter(final RowPredicate rowPredicate) {
-        //Create TableFilter used later to filter the needed part of the input table
-        final int[] vectorizedColumnIndices =
-            rowPredicate.getRequiredColumns().stream().mapToInt(Integer::intValue).toArray();
-        TableFilter.Builder tableFilterBuilder =
-            new TableFilter.Builder().withMaterializeColumnIndices(vectorizedColumnIndices);
+        TableFilter.Builder tableFilterBuilder = new TableFilter.Builder();
         if (rowPredicate.getRowIndexRange().hasLowerBound()) {
-            tableFilterBuilder =
-                tableFilterBuilder.withFromRowIndex(rowPredicate.getRowIndexRange().lowerEndpoint());
+            tableFilterBuilder = tableFilterBuilder.withFromRowIndex(rowPredicate.getRowIndexRange().lowerEndpoint());
         }
         if (rowPredicate.getRowIndexRange().hasUpperBound()) {
             tableFilterBuilder = tableFilterBuilder.withToRowIndex(rowPredicate.getRowIndexRange().upperEndpoint());
