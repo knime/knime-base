@@ -59,12 +59,16 @@ import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.TransferHandler;
 
+import org.knime.core.node.NodeLogger;
+
 /**
  * Allows to reorder rows using drag-and-drop.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class TransformationTableRowTransferHandler extends TransferHandler {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(TransformationTableRowTransferHandler.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -116,7 +120,7 @@ final class TransformationTableRowTransferHandler extends TransferHandler {
                 return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Dropping the row failed.", e);
         }
         return false;
     }

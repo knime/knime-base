@@ -206,10 +206,11 @@ public class DefaultTableTransformationFactoryTest {
 
     @Test
     public void testCreateFromConfiguredTransformationModel() {
+        final CreateFromConfiguredTester tester = new CreateFromConfiguredTester();
         for (int i = 0; i < 3; i++) {
             for (ColumnFilterMode colFilterMode : ColumnFilterMode.values()) {
-                testCreateFromConfigured(colFilterMode, true, i);
-                testCreateFromConfigured(colFilterMode, false, i);
+                tester.test(colFilterMode, true, i);
+                tester.test(colFilterMode, false, i);
             }
         }
     }
@@ -220,83 +221,138 @@ public class DefaultTableTransformationFactoryTest {
         return prodPath;
     }
 
-    @SuppressWarnings("unchecked")
-    private void testCreateFromConfigured(final ColumnFilterMode colFilterMode, final boolean keepUnknown,
-        final int unknownPos) {
-        setupConfig(true);
+    private class CreateFromConfiguredTester {
 
-        ProductionPath hansProdPath = mockProductionPath(IntCell.TYPE);
-        ProductionPath newHansProdPath = mockProductionPath(IntCell.TYPE);
-        ProductionPath rudigerProdPath = mockProductionPath(IntCell.TYPE);
-        ProductionPath ulfProdPath = mockProductionPath(IntCell.TYPE);
+        ProductionPath m_hansProdPath = mockProductionPath(IntCell.TYPE);
 
-        TypedReaderColumnSpec<String> configuredHans = createColSpec("hans", SIEGFRIEDA);
+        ProductionPath m_newHansProdPath = mockProductionPath(IntCell.TYPE);
 
-        TypedReaderTableSpec<String> oldUnion = createTableSpec(configuredHans, RUDIGER);
-        final RawSpec<String> oldRawSpec = new RawSpec<>(oldUnion, oldUnion);
-        ColumnTransformation<String> hansTrans = mockTransformation(configuredHans, "franz", hansProdPath, 1, true);
-        ColumnTransformation<String> rudigerTrans = mockTransformation(RUDIGER, "sepp", rudigerProdPath, 0, true);
-        when(rudigerTrans.compareTo(hansTrans)).thenReturn(-1);
-        when(m_configuredTransformationModel.stream()).thenReturn(Stream.of(hansTrans, rudigerTrans));
-        when(m_configuredTransformationModel.keepUnknownColumns()).thenReturn(keepUnknown);
-        when(m_configuredTransformationModel.getColumnFilterMode()).thenReturn(colFilterMode);
-        when(m_configuredTransformationModel.getPositionForUnknownColumns()).thenReturn(unknownPos);
-        when(m_configuredTransformationModel.getRawSpec()).thenReturn(oldRawSpec);
-        when(m_configuredTransformationModel.getTransformation(configuredHans)).thenReturn(hansTrans);
-        when(m_configuredTransformationModel.getTransformation(RUDIGER)).thenReturn(rudigerTrans);
+        ProductionPath m_rudigerProdPath = mockProductionPath(IntCell.TYPE);
 
-        when(m_prodPathProvider.getDefaultProductionPath(ELSA)).thenReturn(newHansProdPath);
-        when(m_prodPathProvider.getAvailableProductionPaths(ELSA)).thenReturn(asList(newHansProdPath));
-        when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(ulfProdPath);
-        when(m_prodPathProvider.getAvailableProductionPaths(BERTA)).thenReturn(asList(ulfProdPath));
+        ProductionPath m_ulfProdPath = mockProductionPath(IntCell.TYPE);
 
-        final TableTransformation<String> transformationModel =
-            m_testInstance.createFromExisting(RAW_SPEC, m_configuredTransformationModel);
+        private ColumnFilterMode m_colFilterMode;
 
-        final boolean union = colFilterMode == ColumnFilterMode.UNION;
+        private boolean m_keepUnknown;
 
-        final int actualUnknownPos;
-        if (union) {
-            actualUnknownPos = unknownPos;
-        } else {
-            // when in intersection mode, HANS is considered to be new
-            // hence there is only one known column (RUDIGER)
-            actualUnknownPos = unknownPos == 0 ? 0 : 1;
+        private int m_unknownPos;
+
+        private boolean m_isUnion;
+
+        void test(final ColumnFilterMode colFilterMode, final boolean keepUnknown, final int unknownPos) {
+            assignTestParameters(colFilterMode, keepUnknown, unknownPos);
+            setup();
+            @SuppressWarnings("unchecked")
+            final TableTransformation<String> transformationModel =
+                    m_testInstance.createFromExisting(RAW_SPEC, m_configuredTransformationModel);
+            evaluate(transformationModel);
         }
 
-        int hansPos;
-        if (union) {
-            hansPos = unknownPos <= 1 ? 2 : 1;
-        } else {
-            // RUDIGER is the only known column so the position for new columns is at most 1
-            hansPos = actualUnknownPos;
+        private void assignTestParameters(final ColumnFilterMode colFilterMode, final boolean keepUnknown,
+            final int unknownPos) {
+            m_colFilterMode = colFilterMode;
+            m_keepUnknown = keepUnknown;
+            m_unknownPos = unknownPos;
+            m_isUnion = colFilterMode == ColumnFilterMode.UNION;
         }
 
-        String hansName;
-        if (union) {
-            // we keep the stored transformation
-            hansName = "franz";
-        } else {
-            // hans is considered to be new because it isn't in the intersection
-            hansName = "hans";
+        private void setup() {
+            setupConfig(true);
+            setupConfiguredTableTransformation();
+            setupProductionPathProvider();
         }
 
-        checkTransformation(transformationModel.getTransformation(HANS), HANS, hansName, newHansProdPath, hansPos,
-            union || keepUnknown);
+        @SuppressWarnings("unchecked")
+        private void setupConfiguredTableTransformation() {
+            TypedReaderColumnSpec<String> configuredHans = createColSpec("hans", SIEGFRIEDA);
 
-        int seppPos;
-        if (union) {
-            // hans is not considered to be new
-            seppPos = unknownPos == 0 ? 1 : 0;
-        } else {
-            // hans is considered to be new
-            seppPos = unknownPos == 0 ? 2 : 0;
+            TypedReaderTableSpec<String> oldUnion = createTableSpec(configuredHans, RUDIGER);
+            final RawSpec<String> oldRawSpec = new RawSpec<>(oldUnion, oldUnion);
+            ColumnTransformation<String> hansTrans = mockTransformation(configuredHans, "franz", m_hansProdPath, 1, true);
+            ColumnTransformation<String> rudigerTrans = mockTransformation(RUDIGER, "sepp", m_rudigerProdPath, 0, true);
+            when(rudigerTrans.compareTo(hansTrans)).thenReturn(-1);
+            when(m_configuredTransformationModel.stream()).thenReturn(Stream.of(hansTrans, rudigerTrans));
+            when(m_configuredTransformationModel.keepUnknownColumns()).thenReturn(m_keepUnknown);
+            when(m_configuredTransformationModel.getColumnFilterMode()).thenReturn(m_colFilterMode);
+            when(m_configuredTransformationModel.getPositionForUnknownColumns()).thenReturn(m_unknownPos);
+            when(m_configuredTransformationModel.getRawSpec()).thenReturn(oldRawSpec);
+            when(m_configuredTransformationModel.getTransformation(configuredHans)).thenReturn(hansTrans);
+            when(m_configuredTransformationModel.getTransformation(RUDIGER)).thenReturn(rudigerTrans);
         }
 
-        checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "sepp", rudigerProdPath, seppPos,
-            true);
-        checkTransformation(transformationModel.getTransformation(ULF), ULF, "ulf", ulfProdPath,
-            union ? actualUnknownPos : actualUnknownPos + 1, keepUnknown);
+        private void setupProductionPathProvider() {
+            when(m_prodPathProvider.getDefaultProductionPath(ELSA)).thenReturn(m_newHansProdPath);
+            when(m_prodPathProvider.getAvailableProductionPaths(ELSA)).thenReturn(asList(m_newHansProdPath));
+            when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(m_ulfProdPath);
+            when(m_prodPathProvider.getAvailableProductionPaths(BERTA)).thenReturn(asList(m_ulfProdPath));
+        }
+
+        private void evaluate(final TableTransformation<String> transformationModel) {
+
+            final int actualUnknownPos = findActualUnknownPos();
+
+            int hansPos = findHansPos(actualUnknownPos);
+
+            String hansName = findHansName();
+
+            checkTransformation(transformationModel.getTransformation(HANS), HANS, hansName, m_newHansProdPath, hansPos,
+                m_isUnion || m_keepUnknown);
+
+            int seppPos = findSeppPos();
+
+            checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "sepp", m_rudigerProdPath, seppPos,
+                true);
+            checkTransformation(transformationModel.getTransformation(ULF), ULF, "ulf", m_ulfProdPath,
+                m_isUnion ? actualUnknownPos : (actualUnknownPos + 1), m_keepUnknown);
+        }
+
+        private int findSeppPos() {
+            int seppPos;
+            if (m_isUnion) {
+                // hans is not considered to be new
+                seppPos = m_unknownPos == 0 ? 1 : 0;
+            } else {
+                // hans is considered to be new
+                seppPos = m_unknownPos == 0 ? 2 : 0;
+            }
+            return seppPos;
+        }
+
+        private String findHansName() {
+            String hansName;
+            if (m_isUnion) {
+                // we keep the stored transformation
+                hansName = "franz";
+            } else {
+                // hans is considered to be new because it isn't in the intersection
+                hansName = "hans";
+            }
+            return hansName;
+        }
+
+        private int findHansPos(final int actualUnknownPos) {
+            int hansPos;
+            if (m_isUnion) {
+                hansPos = m_unknownPos <= 1 ? 2 : 1;
+            } else {
+                // RUDIGER is the only known column so the position for new columns is at most 1
+                hansPos = actualUnknownPos;
+            }
+            return hansPos;
+        }
+
+        private int findActualUnknownPos() {
+            final int actualUnknownPos;
+            if (m_isUnion) {
+                actualUnknownPos = m_unknownPos;
+            } else {
+                // when in intersection mode, HANS is considered to be new
+                // hence there is only one known column (RUDIGER)
+                actualUnknownPos = m_unknownPos == 0 ? 0 : 1;
+            }
+            return actualUnknownPos;
+        }
+
     }
 
     private static ColumnTransformation<String> mockTransformation(final TypedReaderColumnSpec<String> externalSpec,

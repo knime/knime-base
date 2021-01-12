@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.VariableType;
@@ -70,6 +71,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
 enum FSLocationHandler implements FSLocationSpecHandler<FSLocation> {
         INSTANCE;
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(FSLocationHandler.class);
+
     private static final String CFG_OLD = "location";
 
     static final String CFG_PATH = "path";
@@ -82,6 +85,8 @@ enum FSLocationHandler implements FSLocationSpecHandler<FSLocation> {
             try {
                 return FSLocationUtils.loadFSLocation(settings.getConfig(CFG_OLD));
             } catch (InvalidSettingsException oldNameEx) {
+                LOGGER.debug("Loading with the old config key failed.",
+                    oldNameEx);
                 throw ex;
             }
         }

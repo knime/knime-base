@@ -127,7 +127,9 @@ final class ObservablePreviewIterator extends CloseableRowIterator {
         } catch (PreviewIteratorException pie) { // NOSONAR, the exception is handled appropriately
             m_errorMsg = pie.getMessage();
             notifyErrorListeners();
-            throw new NoSuchElementException(pie.getMessage());
+            final NoSuchElementException ex = new NoSuchElementException(pie.getMessage());
+            ex.initCause(pie);
+            throw ex;
         }
     }
 

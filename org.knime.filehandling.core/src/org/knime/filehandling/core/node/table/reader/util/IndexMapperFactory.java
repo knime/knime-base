@@ -81,9 +81,11 @@ public final class IndexMapperFactory {
     public IndexMapperFactory(final List<String> originalNamesInOutput, final TableReadConfig<?> config) {
         m_nameToIdx = createNameToIndexMap(originalNamesInOutput);
         final int outputSize = m_nameToIdx.size();
-        m_builderSupplier =
-            config.useRowIDIdx() ? () -> DefaultIndexMapper.builder(outputSize).setRowIDIdx(config.getRowIDIdx())
-                : () -> DefaultIndexMapper.builder(outputSize);
+        if (config.useRowIDIdx()) {
+            m_builderSupplier = () -> DefaultIndexMapper.builder(outputSize).setRowIDIdx(config.getRowIDIdx());
+        } else {
+            m_builderSupplier = () -> DefaultIndexMapper.builder(outputSize);
+        }
     }
 
     private static Map<String, Integer> createNameToIndexMap(final List<String> originalNamesInOutput) {

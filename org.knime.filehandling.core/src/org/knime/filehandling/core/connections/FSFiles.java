@@ -296,7 +296,9 @@ public final class FSFiles {
             Files.readAttributes(path, BasicFileAttributes.class, linkOptions);
             return true;
         } catch (AccessDeniedException ade) { // NOSONAR
-            throw ExceptionUtil.createAccessDeniedException(path);
+            final AccessDeniedException rephrased = ExceptionUtil.createAccessDeniedException(path);
+            rephrased.initCause(ade);
+            throw rephrased;
         } catch (IOException ex) { // NOSONAR
             return false;
         }
