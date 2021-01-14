@@ -1364,6 +1364,7 @@
       </node>
       <node
             category-path="/flowcontrol/variables"
+            deprecated="true"
             factory-class="org.knime.base.node.flowvariable.createfilename.CreateFilenameNodeFactory"
             >
       </node>

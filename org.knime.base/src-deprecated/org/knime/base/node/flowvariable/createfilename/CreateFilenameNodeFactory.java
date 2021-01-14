@@ -48,37 +48,56 @@
  */
 package org.knime.base.node.flowvariable.createfilename;
 
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
+
 /**
-*
-* @author Andisa Dewi, KNIME.com, Berlin, Germany
-*/
-public class CreateFilenameConfigKeys {
-   private CreateFilenameConfigKeys() {
+ *
+ * @author Andisa Dewi, KNIME.com, Berlin, Germany
+ * @deprecated replaced by CreatePathVariable
+ */
+@Deprecated
+public class CreateFilenameNodeFactory extends NodeFactory<CreateFilenameNodeModel> {
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public CreateFilenameNodeModel createNodeModel() {
+       return new CreateFilenameNodeModel();
    }
 
    /**
-    * The configuration key of the path to the base directory.
+    * {@inheritDoc}
     */
-   public static final String CFGKEY_BASE_DIR = "BaseDir";
+   @Override
+   protected int getNrNodeViews() {
+       return 0;
+   }
 
    /**
-    * The configuration key of the name of the new file.
+    * {@inheritDoc}
     */
-   public static final String CFGKEY_FILENAME = "FileName";
+   @Override
+   public NodeView<CreateFilenameNodeModel> createNodeView(final int viewIndex,
+       final CreateFilenameNodeModel nodeModel) {
+       return null;
+   }
 
    /**
-    * The configuration key of the extension of the new file.
+    * {@inheritDoc}
     */
-   public static final String CFGKEY_FILE_EXT = "FileExtension";
+   @Override
+   protected boolean hasDialog() {
+       return true;
+   }
 
    /**
-    * The configuration key of the name of the output flow variable.
+    * {@inheritDoc}
     */
-   public static final String CFGKEY_OUTPUT_VAR = "OutputFlowVarName";
-
-   /**
-    * The configuration key of flag whether to overwrite existing variable.
-    */
-   public static final String CFGKEY_OVERWRITE = "OverwriteFlag";
-
+   @Override
+   protected NodeDialogPane createNodeDialogPane() {
+       return new CreateFilenameNodeDialog();
+   }
 }

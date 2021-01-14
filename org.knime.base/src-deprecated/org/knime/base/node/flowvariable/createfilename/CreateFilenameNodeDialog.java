@@ -80,7 +80,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 /**
  *
  * @author Andisa Dewi, KNIME.com, Berlin, Germany
+ * @deprecated replaced by CreatePathVariable
  */
+@Deprecated
 public class CreateFilenameNodeDialog extends DefaultNodeSettingsPane {
 
     static SettingsModelString getPathModel() {

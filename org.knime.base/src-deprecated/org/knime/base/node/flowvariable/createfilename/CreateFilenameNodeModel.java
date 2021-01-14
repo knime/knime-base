@@ -84,7 +84,9 @@ import org.knime.core.util.UniqueNameGenerator;
 /**
  *
  * @author Andisa Dewi, KNIME.com, Berlin, Germany
+ * @deprecated replaced by CreatePathVariable
  */
+@Deprecated
 public class CreateFilenameNodeModel extends NodeModel {
 
     /**
