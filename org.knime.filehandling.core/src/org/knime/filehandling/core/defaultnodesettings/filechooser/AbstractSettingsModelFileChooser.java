@@ -112,8 +112,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
 public abstract class AbstractSettingsModelFileChooser<T extends AbstractSettingsModelFileChooser<T>>
     extends SettingsModel implements StatusReporter {
 
-    private static final DefaultStatusMessage NO_LOCATION_ERROR =
-        new DefaultStatusMessage(MessageType.ERROR, "Please specify a path");
+    static final String NO_LOCATION_ERROR = "Please specify a %s";
 
     private static final DefaultStatusMessage TRAILING_OR_LEADING_WHITESPACE_ERROR = new DefaultStatusMessage(
         MessageType.ERROR, "The path contains leading and/or trailing whitespaces, please remove them");
@@ -494,7 +493,8 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     private void reportOnLocation(final Consumer<StatusMessage> messageConsumer) {
         final String path = getLocation().getPath();
         if (path.length() == 0) {
-            messageConsumer.accept(NO_LOCATION_ERROR);
+            messageConsumer.accept(new DefaultStatusMessage(MessageType.ERROR,
+                String.format(NO_LOCATION_ERROR, getFilterMode() == FilterMode.FILE ? "file" : "folder")));
         }
         if (!path.equals(path.trim())) {
             messageConsumer.accept(TRAILING_OR_LEADING_WHITESPACE_ERROR);
