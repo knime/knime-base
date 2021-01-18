@@ -213,7 +213,7 @@ public class CellToVariableConverterTest {
      */
     @Test
     public void testStringListCellConverter() {
-        final String[] val = new String[]{"dummy", "foo", "bar"};
+        final String[] val = new String[]{"dummy", "foo", "bar"}; //NOSONAR method only once invoked
         final String name = "string_arr_var";
         final DataCell cell = CollectionCellFactory.createListCell(Arrays.stream(val)//
             .map(StringCell::new)//

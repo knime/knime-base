@@ -70,7 +70,6 @@ import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -129,7 +128,7 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         m_inputFsConnectionIdx =
             Optional.ofNullable(inputPortLocation.get(FileFolderMetaInfoNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME))//
                 .map(a -> a[0])//
-                .orElse(-1);
+                .orElseGet(() -> -1);
         m_inputTableIdx = inputPortLocation.get(FileFolderMetaInfoNodeFactory.DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
         m_selectedColumn = createColumnSettingsModel();
         m_failIfPathNotExists = createFailIfPathNotExistsSettingsModel();
@@ -243,14 +242,12 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to do
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to do
     }
 
@@ -290,8 +287,8 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
                     return createCells(path);
                 }
             } catch (final NoSuchFileException e) { //NOSONAR
-                throw new IllegalArgumentException(
-                    String.format("The file/folder '%s' does not exist", e.getMessage()));
+                throw new IllegalArgumentException(String.format("The file/folder '%s' does not exist", e.getMessage()),
+                    e);
             } catch (IOException e) {
                 throw new IllegalArgumentException(e);
             }

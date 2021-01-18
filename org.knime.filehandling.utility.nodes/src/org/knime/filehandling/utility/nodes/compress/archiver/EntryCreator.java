@@ -123,7 +123,7 @@ final class CPIOEntryCreator extends EntryCreator {
 final class JarEntryCreator extends EntryCreator {
 
     @Override
-    JarArchiveEntry createEntry(final Path p, final String entryName) throws IOException {
+    JarArchiveEntry createEntry(final Path p, final String entryName) {
         return new JarArchiveEntry(entryName);
     }
 
@@ -143,7 +143,7 @@ final class TarEntryCreator extends EntryCreator {
 final class ZIPEntryCreator extends EntryCreator {
 
     @Override
-    ZipArchiveEntry createEntry(final Path p, final String entryName) throws IOException {
+    ZipArchiveEntry createEntry(final Path p, final String entryName) {
         return new ZipArchiveEntry(entryName);
     }
 

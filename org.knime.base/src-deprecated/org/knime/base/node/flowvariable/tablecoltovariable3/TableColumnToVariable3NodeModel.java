@@ -82,6 +82,7 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
  * derived from the row IDs,
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @deprecated replaced by TableColumnToVariable4NodeModel
  */
 @Deprecated
 final class TableColumnToVariable3NodeModel extends NodeModel {

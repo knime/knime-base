@@ -67,13 +67,14 @@ public final class LocalRelativeToMountpointFSTestInitializerProvider implements
 
     private static final String FS_NAME = "knime-local-relative-mountpoint";
 
+    @SuppressWarnings("resource")
     @Override
     public FSTestInitializer setup(final Map<String, String> configuration) throws IOException {
         final Path localMountPointRoot = Files.createTempDirectory("knime-relative-mountpoint-test");
 
         final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
         final LocalRelativeToFSConnection fsConnection =
-            new LocalRelativeToFSConnection(Type.MOUNTPOINT_RELATIVE, true);
+            new LocalRelativeToFSConnection(Type.MOUNTPOINT_RELATIVE, true); //NOSONAR the connection needs to stay open
         LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
 

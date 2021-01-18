@@ -192,7 +192,7 @@ public class OSIndependentNewLineReaderTest extends TestCase {
         final String expected = "\n\n";
         final String toSkip = "\n\n\n\n";
         try (final Reader reader = createInputStream(getText(toSkip, WIN_LB))) {
-            reader.skip(2);
+            reader.skip(2); //NOSONAR we don't care about the result it is tested implicitly
             assertEquals(expected, IOUtils.toString(reader));
         }
         try (final Reader reader = createInputStream(getText(toSkip, MAC_LB))) {

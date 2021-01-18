@@ -257,7 +257,7 @@ public class VariableToCellConverterTest {
      */
     @Test
     public void testStringArrFlowVarConverter() {
-        final String[] val = new String[]{"dummy", "foo", "bar"};
+        final String[] val = new String[]{"dummy", "foo", "bar"}; //NOSONAR method only once invoked
         final String name = "string_arr_var";
         final FlowVariable var = new FlowVariable(name, StringArrayType.INSTANCE, val);
         try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {

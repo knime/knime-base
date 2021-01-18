@@ -57,6 +57,7 @@ import org.knime.core.node.NodeView;
  * The {@link NodeFactory} creating the 'Table Row To Variable Loop Start' node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @deprecated replaced by LoopStartVariable3NodeFactory
  */
 @Deprecated
 public class LoopStartVariable2NodeFactory extends NodeFactory<LoopStartVariable2NodeModel> {

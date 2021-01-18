@@ -49,7 +49,6 @@
 package org.knime.base.node.flowvariable.tablecoltovariable4;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -62,7 +61,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingValue;
 import org.knime.core.data.MissingValueException;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -209,14 +207,12 @@ final class TableColumnToVariable4NodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File internDir, final ExecutionMonitor exec) {
         //No internal state
     }
 
     @Override
-    protected void saveInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File internDir, final ExecutionMonitor exec) {
         //No internal state
     }
 

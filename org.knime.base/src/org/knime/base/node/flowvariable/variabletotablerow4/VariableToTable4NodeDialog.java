@@ -148,7 +148,7 @@ final class VariableToTable4NodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         m_rowID.loadSettingsFrom(settings, specs);
         final FlowVariableFilterConfiguration config =
-            new FlowVariableFilterConfiguration(VariableToTable4NodeModel.CFG_KEY_FILTER);
+            new FlowVariableFilterConfiguration(AbstractVariableToTableNodeModel.CFG_KEY_FILTER);
         final VariableType<?>[] types = VariableToCellConverterFactory.getSupportedTypes();
         config.loadConfigurationInDialog(settings, getAvailableFlowVariables(types));
         m_filter.loadConfiguration(config, getAvailableFlowVariables(types));
@@ -158,7 +158,7 @@ final class VariableToTable4NodeDialog extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_rowID.saveSettingsTo(settings);
         final FlowVariableFilterConfiguration config =
-            new FlowVariableFilterConfiguration(VariableToTable4NodeModel.CFG_KEY_FILTER);
+            new FlowVariableFilterConfiguration(AbstractVariableToTableNodeModel.CFG_KEY_FILTER);
         m_filter.saveConfiguration(config);
         config.saveConfiguration(settings);
     }

@@ -103,24 +103,28 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
                 new CsvParser(getCsvParserSettings(m_dialog.getCommentStart(), m_dialog.getBufferSize()));
 
             if (!paths.isEmpty()) {
-                // use only first file for parsing
-                try (final InputStream in = FileCompressionUtils.createInputStream(paths.get(0));
-                        final BufferedReader reader =
-                            BomEncodingUtils.createBufferedReader(in, m_dialog.getSelectedCharset())) {
-                    if (m_dialog.isSkipLines()) {
-                        skipLines(reader, m_dialog.getNumLinesToSkip());
-                    }
-                    // Fixes a bug where the univocity library does not fill the buffer used for auto-guessing correctly
-                    try (final FullyBufferedReader fullyBufferedReader = new FullyBufferedReader(reader)) {
-                        csvParser.beginParsing(fullyBufferedReader);
-                        csvParser.stopParsing();
-                    }
-                }
-                return csvParser.getDetectedFormat();
+                return detectFormat(paths, csvParser);
             } else {
                 throw new InvalidSettingsException("Please specify a file before running format autodetection");
             }
         }
+    }
+
+    private CsvFormat detectFormat(final List<Path> paths, final CsvParser csvParser) throws IOException {
+        // use only first file for parsing
+        try (final InputStream in = FileCompressionUtils.createInputStream(paths.get(0));
+                final BufferedReader reader =
+                    BomEncodingUtils.createBufferedReader(in, m_dialog.getSelectedCharset())) {
+            if (m_dialog.isSkipLines()) {
+                skipLines(reader, m_dialog.getNumLinesToSkip());
+            }
+            // Fixes a bug where the univocity library does not fill the buffer used for auto-guessing correctly
+            try (final FullyBufferedReader fullyBufferedReader = new FullyBufferedReader(reader)) {
+                csvParser.beginParsing(fullyBufferedReader);
+                csvParser.stopParsing();
+            }
+        }
+        return csvParser.getDetectedFormat();
     }
 
     @Override

@@ -126,19 +126,23 @@ class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implemen
                 error.append(curSpec.getNumColumns());
                 error.append(" vs. ").append(predSpec.getNumColumns());
             } else {
-                for (int i = 0; i < curSpec.getNumColumns(); i++) {
-                    DataColumnSpec inCol = curSpec.getColumnSpec(i);
-                    DataColumnSpec predCol = predSpec.getColumnSpec(i);
-                    if (!inCol.equalStructure(predCol)) {
-                        error.append("Column ").append(i).append(" [");
-                        error.append(inCol).append("] vs. [");
-                        error.append(predCol).append("]");
-                    }
-                }
+                buildDiffColStructErrors(curSpec, predSpec, error);
             }
             error.append(". Have the input variables changed in number, name or type?");
             clear();
             throw new IllegalArgumentException(error.toString());
+        }
+    }
+
+    private static void buildDiffColStructErrors(final DataTableSpec curSpec, final DataTableSpec predSpec, final StringBuilder error) {
+        for (int i = 0; i < curSpec.getNumColumns(); i++) {
+            final DataColumnSpec inCol = curSpec.getColumnSpec(i);
+            final DataColumnSpec predCol = predSpec.getColumnSpec(i);
+            if (!inCol.equalStructure(predCol)) {
+                error.append("Column ").append(i).append(" [");
+                error.append(inCol).append("] vs. [");
+                error.append(predCol).append(']');
+            }
         }
     }
 

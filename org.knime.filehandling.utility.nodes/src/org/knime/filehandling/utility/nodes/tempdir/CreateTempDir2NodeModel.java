@@ -49,8 +49,6 @@
 package org.knime.filehandling.utility.nodes.tempdir;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -267,7 +265,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
         final boolean issueWarning;
         m_onResetTempDir = null;
         if (internalFile.exists()) {
-            try (InputStream in = new FileInputStream(internalFile);
+            try (InputStream in = Files.newInputStream(internalFile.toPath());
                     final FSPathProviderFactory pathFac =
                         FSPathProviderFactory.newFactory(Optional.empty(), DATA_AREA_LOCATION_SPEC)) {
                 issueWarning = readInDataAreaPaths(in, pathFac);
@@ -352,7 +350,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
                 s.addStringArray(CFG_ON_DISPOSE_TEMP_FOLDER_PATHS, m_onDisposeTempDirs.get(DATA_AREA_LOCATION_SPEC)
                     .stream().map(FSLocation::getPath).toArray(String[]::new));
             }
-            try (OutputStream w = new FileOutputStream(new File(nodeInternDir, INTERNAL_FILE_NAME))) {
+            try (OutputStream w = Files.newOutputStream(new File(nodeInternDir, INTERNAL_FILE_NAME).toPath())) {
                 s.saveToXML(w);
             }
         }

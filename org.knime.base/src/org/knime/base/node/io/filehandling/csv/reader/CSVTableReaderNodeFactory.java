@@ -98,7 +98,7 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
     protected CSVMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
         final CSVMultiTableReadConfig cfg = super.createConfig(nodeCreationConfig);
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) {
+        if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) { //NOSONAR
             cfg.getReaderSpecificConfig().setDelimiter("\t");
         }
         return cfg;

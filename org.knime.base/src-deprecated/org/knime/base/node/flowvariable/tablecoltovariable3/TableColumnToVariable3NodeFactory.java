@@ -56,6 +56,7 @@ import org.knime.core.node.NodeView;
  * <code>NodeFactory</code> for the "TableColumnToVariable3" Node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @deprecated replace by TableColumnToVariable4NodeFactory
  */
 @Deprecated
 public final class TableColumnToVariable3NodeFactory extends NodeFactory<TableColumnToVariable3NodeModel> {

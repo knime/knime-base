@@ -70,7 +70,7 @@ public final class UtilityNodesTestcaseCollector extends AbstractTestcaseCollect
      *
      * @throws Exception if something goes wrong
      */
-    public static TestSuite suite() throws Exception {
+    public static TestSuite suite() throws Exception { //NOSONAR
         final TestSuite suite = new TestSuite();
 
         for (Class<?> testClass : new UtilityNodesTestcaseCollector().getUnittestsClasses()) {

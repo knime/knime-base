@@ -52,7 +52,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.config.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.ConfigIDFactory;
@@ -103,8 +102,7 @@ enum LineReaderMultiTableReadConfigSerializer
 
     @Override
     public void loadInDialog(final LineMultiTableReadConfig config, final NodeSettingsRO settings,
-        final PortObjectSpec[] specs) throws NotConfigurableException {
-
+        final PortObjectSpec[] specs) {
         loadSettingsTabInDialog(config, SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB));
         loadAdvancedSettingsTabInDialog(config, SettingsUtils.getOrEmpty(settings, CFG_ADVANCED_SETTINGS_TAB));
         loadEncodingTabInDialog(config, SettingsUtils.getOrEmpty(settings, CFG_ENCODING_TAB));

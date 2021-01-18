@@ -208,7 +208,7 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
             splitValuesAndExtension(varValues, fileExtension);
             setEntries(varNames, varValues, fileExtension);
         } catch (final InvalidSettingsException e) { //NOSONAR
-            throw new InvalidSettingsException(String.format("Config for key \"%s\" not found.", m_cfgKey));
+            throw new InvalidSettingsException(String.format("Config for key \"%s\" not found.", m_cfgKey), e);
         }
     }
 

@@ -86,6 +86,7 @@ import org.knime.core.node.workflow.VariableType;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @deprecated replaced by AppendVariableToTable4NodeModel
  */
 @Deprecated
 class AppendVariableToTable3NodeModel extends SimpleStreamableFunctionNodeModel {

@@ -72,6 +72,7 @@ import org.knime.core.node.util.ColumnFilter;
  * The node dialog for the "TableColumnToVariable3" node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @deprecated replaced by TableColumnToVariable4NodeDialog
  */
 @Deprecated
 final class TableColumnToVariable3NodeDialog extends NodeDialogPane {
