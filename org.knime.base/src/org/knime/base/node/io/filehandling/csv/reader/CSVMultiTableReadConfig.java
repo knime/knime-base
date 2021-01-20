@@ -69,7 +69,6 @@ public final class CSVMultiTableReadConfig extends
             CSVMultiTableReadConfigSerializer.INSTANCE);
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = getTableReadConfig();
         tc.setColumnHeaderIdx(0);
-        tc.setMaxRowsForSpec(1000);
     }
 
     @Override
