@@ -85,6 +85,6 @@ final class FileURIExporter extends NoSettingsURIExporter {
 
     @Override
     public URI toUri(final FSPath path) {
-        return ((LocalPath)path).getWrappedPath().toUri();
+        return ((LocalPath)path.toAbsolutePath()).getWrappedPath().toUri();
     }
 }
