@@ -88,6 +88,13 @@ public interface GenericMultiTableReadConfig<I, C extends ReaderSpecificConfig<C
     boolean failOnDifferingSpecs();
 
     /**
+     * Indicates whether the dialog should save the {@link TableSpecConfig}.
+     *
+     * @return {@code true} if the {@link TableSpecConfig} should be saved by the dialog
+     */
+    boolean saveTableSpecConfig();
+
+    /**
      * Indicates whether a table spec is already provided, or has to be computed.
      *
      * @return <code>true</code> if the {@link DefaultTableSpecConfig} is available, {@code false} otherwise

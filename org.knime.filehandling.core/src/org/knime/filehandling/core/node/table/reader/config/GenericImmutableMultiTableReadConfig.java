@@ -73,6 +73,8 @@ public class GenericImmutableMultiTableReadConfig<I, C extends ReaderSpecificCon
 
     private final SpecMergeMode m_specMergeMode;
 
+    private final boolean m_saveTableSpecConfig;
+
     /**
      * Constructor.
      * @param multiTableReadConfig {@link GenericMultiTableReadConfig}
@@ -86,6 +88,7 @@ public class GenericImmutableMultiTableReadConfig<I, C extends ReaderSpecificCon
         @SuppressWarnings("deprecation") // yes but we still need it for backwards compatibility
         SpecMergeMode specMergeMode = multiTableReadConfig.getSpecMergeMode();//NOSONAR
         m_specMergeMode = specMergeMode;
+        m_saveTableSpecConfig = multiTableReadConfig.saveTableSpecConfig();
     }
 
     @Override
@@ -120,6 +123,11 @@ public class GenericImmutableMultiTableReadConfig<I, C extends ReaderSpecificCon
     @Override
     public SpecMergeMode getSpecMergeMode() {
         return m_specMergeMode;
+    }
+
+    @Override
+    public boolean saveTableSpecConfig() {
+        return m_saveTableSpecConfig;
     }
 
     @Override

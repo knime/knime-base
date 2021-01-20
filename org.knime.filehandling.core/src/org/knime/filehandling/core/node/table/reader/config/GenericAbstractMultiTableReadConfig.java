@@ -71,6 +71,8 @@ public abstract class GenericAbstractMultiTableReadConfig<I, C extends ReaderSpe
 
     private boolean m_failOnDifferingSpecs = true;
 
+    private boolean m_saveTableSpecConfig = true;
+
     /**
      * @deprecated Only used as fallback if no TableSpecConfig is available
      */
@@ -105,6 +107,20 @@ public abstract class GenericAbstractMultiTableReadConfig<I, C extends ReaderSpe
      */
     public void setFailOnDifferingSpecs(final boolean failOnDifferingSpecs) {
         m_failOnDifferingSpecs = failOnDifferingSpecs;
+    }
+
+    @Override
+    public boolean saveTableSpecConfig() {
+        return m_saveTableSpecConfig;
+    }
+
+    /**
+     * Allows to set whether the {@link TableSpecConfig} should be saved in the dialog.
+     *
+     * @param saveTableSpecConfig {@code true} if the {@link TableSpecConfig} should be saved, {@code false} otherwise
+     */
+    public void setSaveTableSpecConfig(final boolean saveTableSpecConfig) {
+        m_saveTableSpecConfig = saveTableSpecConfig;
     }
 
     @Override
