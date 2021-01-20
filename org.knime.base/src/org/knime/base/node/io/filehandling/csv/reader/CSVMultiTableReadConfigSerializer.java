@@ -82,6 +82,8 @@ enum CSVMultiTableReadConfigSerializer implements
          */
         INSTANCE;
 
+    private static final String CFG_SAVE_TABLE_SPEC_CONFIG = "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
+
     private static final boolean DEFAULT_FAIL_ON_DIFFERING_SPECS = true;
 
     private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
@@ -184,6 +186,7 @@ enum CSVMultiTableReadConfigSerializer implements
         }
     }
 
+    @SuppressWarnings("deprecation")
     private static SpecMergeMode loadSpecMergeModeForOldWorkflows(final NodeSettingsRO advancedSettings) {// NOSONAR, stupid rule
         try {
             if (advancedSettings.containsKey(CFG_SPEC_MERGE_MODE_OLD)) {
@@ -265,6 +268,8 @@ enum CSVMultiTableReadConfigSerializer implements
         tc.setLimitRowsForSpec(settings.getBoolean(CFG_LIMIT_DATA_ROWS_SCANNED, true));
         tc.setMaxRowsForSpec(
             settings.getLong(CFG_MAX_DATA_ROWS_SCANNED, AbstractTableReadConfig.DEFAULT_ROWS_FOR_SPEC_GUESSING));
+
+        config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true));
 
         final CSVTableReaderConfig cc = tc.getReaderSpecificConfig();
         cc.setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING, true));
@@ -353,6 +358,11 @@ enum CSVMultiTableReadConfigSerializer implements
         final DefaultTableReadConfig<CSVTableReaderConfig> tc = config.getTableReadConfig();
         tc.setLimitRowsForSpec(settings.getBoolean(CFG_LIMIT_DATA_ROWS_SCANNED));
         tc.setMaxRowsForSpec(settings.getLong(CFG_MAX_DATA_ROWS_SCANNED));
+
+        // added with 4.3.1
+        if (settings.containsKey(CFG_SAVE_TABLE_SPEC_CONFIG)) {
+            config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG));
+        }
 
         final CSVTableReaderConfig cc = tc.getReaderSpecificConfig();
         cc.setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING));
@@ -444,6 +454,8 @@ enum CSVMultiTableReadConfigSerializer implements
         settings.addBoolean(CFG_LIMIT_DATA_ROWS_SCANNED, tc.limitRowsForSpec());
         settings.addLong(CFG_MAX_DATA_ROWS_SCANNED, tc.getMaxRowsForSpec());
 
+        settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, config.saveTableSpecConfig());
+
         final CSVTableReaderConfig cc = config.getReaderSpecificConfig();
         settings.addBoolean(CFG_LIMIT_MEMORY_PER_COLUMN, cc.isCharsPerColumnLimited());
         settings.addInt(CFG_MAXIMUM_NUMBER_OF_COLUMNS, cc.getMaxColumns());
@@ -499,7 +511,6 @@ enum CSVMultiTableReadConfigSerializer implements
         settings.getString(CFG_QUOTE_CHAR);
         settings.getString(CFG_QUOTE_ESCAPE_CHAR);
         settings.getString(CFG_COMMENT_CHAR);
-
     }
 
     public static void validateAdvancedSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -511,6 +522,11 @@ enum CSVMultiTableReadConfigSerializer implements
 
         settings.getBoolean(CFG_LIMIT_DATA_ROWS_SCANNED);
         settings.getLong(CFG_MAX_DATA_ROWS_SCANNED);
+
+        // added with 4.3.1
+        if (settings.containsKey(CFG_SAVE_TABLE_SPEC_CONFIG)) {
+            settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG);
+        }
 
         settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING);
 
