@@ -55,8 +55,15 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <C> The type of {@link ReaderSpecificConfig}
+ * @noreference non-public API
+ * @noextend non-public API
  */
-abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implements TableReadConfig<C> {
+public abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implements TableReadConfig<C> {
+
+    /**
+     * The default number of rows used to for spec guessing.
+     */
+    public static final long DEFAULT_ROWS_FOR_SPEC_GUESSING = 10000;
 
     /**
      * Index of the column header row.
@@ -124,7 +131,7 @@ abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>> implem
     /**
      * The maximum number of rows to read for creating the table spec.
      */
-    protected long m_maxRowsForSpec = 50;
+    protected long m_maxRowsForSpec = DEFAULT_ROWS_FOR_SPEC_GUESSING;
 
     /**
      * Indicates if the {@link Read} should be decorated by the framework.

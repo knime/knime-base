@@ -105,8 +105,6 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
         if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) {
             cfg.getReaderSpecificConfig().setDelimiter("\t");
         }
-        final DefaultTableReadConfig<CSVTableReaderConfig> tc = cfg.getTableReadConfig();
-        tc.setMaxRowsForSpec(1000);
         return cfg;
     }
 }
