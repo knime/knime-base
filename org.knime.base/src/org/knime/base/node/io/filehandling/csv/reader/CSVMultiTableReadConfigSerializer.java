@@ -120,6 +120,8 @@ enum CSVMultiTableReadConfigSerializer
 
     private static final String CFG_LIMIT_DATA_ROWS_SCANNED = "limit_data_rows_scanned";
 
+    private static final String CFG_SAVE_TABLE_SPEC_CONFIG = "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
+
     private static final String CFG_SPEC_MERGE_MODE_OLD = "spec_merge_mode";
 
     private static final String CFG_SPEC_MERGE_MODE_NEW = CFG_SPEC_MERGE_MODE_OLD + SettingsModel.CFGKEY_INTERNAL;
@@ -278,6 +280,8 @@ enum CSVMultiTableReadConfigSerializer
         tc.setMaxRowsForSpec(
             settings.getLong(CFG_MAX_DATA_ROWS_SCANNED, AbstractTableReadConfig.DEFAULT_ROWS_FOR_SPEC_GUESSING));
 
+        config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true));
+
         final CSVTableReaderConfig cc = tc.getReaderSpecificConfig();
         cc.setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING, true));
 
@@ -366,6 +370,11 @@ enum CSVMultiTableReadConfigSerializer
         tc.setLimitRowsForSpec(settings.getBoolean(CFG_LIMIT_DATA_ROWS_SCANNED));
         tc.setMaxRowsForSpec(settings.getLong(CFG_MAX_DATA_ROWS_SCANNED));
 
+        // added in 4.3.1
+        if (settings.containsKey(CFG_SAVE_TABLE_SPEC_CONFIG)) {
+            config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG));
+        }
+
         final CSVTableReaderConfig cc = tc.getReaderSpecificConfig();
         cc.setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING));
 
@@ -449,6 +458,8 @@ enum CSVMultiTableReadConfigSerializer
         settings.addBoolean(CFG_LIMIT_DATA_ROWS_SCANNED, tc.limitRowsForSpec());
         settings.addLong(CFG_MAX_DATA_ROWS_SCANNED, tc.getMaxRowsForSpec());
 
+        settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, config.saveTableSpecConfig());
+
         final CSVTableReaderConfig cc = config.getReaderSpecificConfig();
         settings.addBoolean(CFG_LIMIT_MEMORY_PER_COLUMN, cc.isCharsPerColumnLimited());
         settings.addInt(CFG_MAXIMUM_NUMBER_OF_COLUMNS, cc.getMaxColumns());
@@ -489,7 +500,7 @@ enum CSVMultiTableReadConfigSerializer
         validateEncodingTab(settings.getNodeSettings(CFG_ENCODING_TAB));
     }
 
-    public static void validateSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void validateSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getBoolean(CFG_SUPPORT_SHORT_DATA_ROWS);
         settings.getBoolean(CFG_HAS_COLUMN_HEADER);
         settings.getBoolean(CFG_HAS_ROW_ID);
@@ -508,7 +519,7 @@ enum CSVMultiTableReadConfigSerializer
     }
 
     @SuppressWarnings("deprecation")
-    public static void validateAdvancedSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void validateAdvancedSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
             SpecMergeMode.valueOf(settings.getString(CFG_SPEC_MERGE_MODE_OLD, SpecMergeMode.INTERSECTION.name()));
         } catch (IllegalArgumentException ex) {
@@ -517,6 +528,11 @@ enum CSVMultiTableReadConfigSerializer
 
         settings.getBoolean(CFG_LIMIT_DATA_ROWS_SCANNED);
         settings.getLong(CFG_MAX_DATA_ROWS_SCANNED);
+
+        // added in 4.3.1
+        if (settings.containsKey(CFG_SAVE_TABLE_SPEC_CONFIG)) {
+            settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG);
+        }
 
         settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING);
 
@@ -531,7 +547,7 @@ enum CSVMultiTableReadConfigSerializer
 
     }
 
-    public static void validateLimitRowsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void validateLimitRowsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getBoolean(CFG_SKIP_DATA_ROWS);
         settings.getLong(CFG_NUMBER_OF_ROWS_TO_SKIP);
         settings.getBoolean(CFG_LIMIT_DATA_ROWS);
@@ -540,7 +556,7 @@ enum CSVMultiTableReadConfigSerializer
         settings.getLong(CFG_NUMBER_OF_LINES_TO_SKIP);
     }
 
-    public static void validateEncodingTab(final NodeSettingsRO settings) throws InvalidSettingsException {
+    private static void validateEncodingTab(final NodeSettingsRO settings) throws InvalidSettingsException {
         settings.getString(CFG_CHARSET);
     }
 

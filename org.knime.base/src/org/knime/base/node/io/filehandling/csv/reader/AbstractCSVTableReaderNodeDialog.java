@@ -115,6 +115,8 @@ import com.univocity.parsers.csv.CsvFormat;
 public abstract class AbstractCSVTableReaderNodeDialog
     extends AbstractPathTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> {
 
+    private static final String TRANSFORMATION_TAB = "Transformation";
+
     private static final String START_AUTODETECT_LABEL = "Autodetect format";
 
     private static final String AUTODETECT_CANCEL_LABEL = "Cancel";
@@ -164,6 +166,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
     private final JCheckBox m_limitAnalysisChecker;
 
     private final JSpinner m_limitAnalysisSpinner;
+
+    private final JCheckBox m_supportChangingFileSchemas = new JCheckBox("Support changing file schemas");
 
     private final JSpinner m_maxColsSpinner;
 
@@ -273,6 +277,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_limitAnalysisChecker.addActionListener(e -> controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner));
         m_limitAnalysisChecker.doClick();
 
+        m_supportChangingFileSchemas.addActionListener(e -> updateTransformationTabEnabledStatus());
+
         m_maxColsSpinner = new JSpinner(new SpinnerNumberModel(1024, 1, Integer.MAX_VALUE, 1024));
         m_maxCharsColumnChecker = new JCheckBox("Limit memory per column");
 
@@ -292,7 +298,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_autoDetectionSettings.addActionListener(e -> openSettingsDialog());
 
         addTab("Settings", createSettingsTab());
-        addTab("Transformation", createTransformationTab());
+        addTab(TRANSFORMATION_TAB, createTransformationTab());
         addTab("Advanced Settings", createAdvancedOptionsPanel());
         addTab("Limit Rows", getLimitRowsPanel());
 
@@ -302,6 +308,10 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_config = config;
         registerPreviewChangeListeners();
         hookUpNumberFormatWithColumnDelimiter();
+    }
+
+    private void updateTransformationTabEnabledStatus() {
+        setEnabled(!m_supportChangingFileSchemas.isSelected(), TRANSFORMATION_TAB);
     }
 
     private JPanel createEncodingPanel() {
@@ -393,6 +403,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_skipFirstRowsChecker.addActionListener(actionListener);
         m_skipFirstLinesChecker.addActionListener(actionListener);
         m_limitAnalysisChecker.addActionListener(actionListener);
+        m_supportChangingFileSchemas.addActionListener(actionListener);
         m_maxCharsColumnChecker.addActionListener(actionListener);
         for (final AbstractButton b : Collections.list(m_quoteOptionsButtonGroup.getElements())) {
             b.addActionListener(actionListener);
@@ -522,6 +533,10 @@ public abstract class AbstractCSVTableReaderNodeDialog
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
         specLimitPanel.add(Box.createVerticalBox(), gbc);
+        gbc.gridx = 0;
+        gbc.gridy += 1;
+        gbc.gridwidth = 2;
+        specLimitPanel.add(m_supportChangingFileSchemas, gbc);
         return specLimitPanel;
     }
 
@@ -830,6 +845,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
         tableReadConfig.setLimitRowsForSpec(m_limitAnalysisChecker.isSelected());
         tableReadConfig.setMaxRowsForSpec((Long)m_limitAnalysisSpinner.getValue());
 
+        m_config.setSaveTableSpecConfig(!m_supportChangingFileSchemas.isSelected());
+
         tableReadConfig.setAllowShortRows(m_allowShortDataRowsChecker.isSelected());
     }
 
@@ -875,7 +892,9 @@ public abstract class AbstractCSVTableReaderNodeDialog
     protected void saveConfig() throws InvalidSettingsException {
         saveTableReadSettings();
         saveCsvSettings();
-        m_config.setTableSpecConfig(getTableSpecConfig());
+        if (m_config.saveTableSpecConfig()) {
+            m_config.setTableSpecConfig(getTableSpecConfig());
+        }
     }
 
     /**
@@ -938,6 +957,9 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         m_limitAnalysisChecker.setSelected(tableReadConfig.limitRowsForSpec());
         m_limitAnalysisSpinner.setValue(tableReadConfig.getMaxRowsForSpec());
+
+        m_supportChangingFileSchemas.setSelected(!m_config.saveTableSpecConfig());
+        updateTransformationTabEnabledStatus();
     }
 
     /**
