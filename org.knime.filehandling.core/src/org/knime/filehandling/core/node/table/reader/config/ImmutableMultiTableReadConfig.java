@@ -73,6 +73,8 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
 
     private final boolean m_skipEmptyColumns;
 
+    private final boolean m_saveTableSpecConfig;
+
     @SuppressWarnings("deprecation")
     private final SpecMergeMode m_specMergeMode;
 
@@ -91,7 +93,7 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
         m_specMergeMode = specMergeMode;
         m_skipEmptyColumns = multiTableReadConfig.skipEmptyColumns();
         m_configID = multiTableReadConfig.getConfigID();
-
+        m_saveTableSpecConfig = multiTableReadConfig.saveTableSpecConfig();
     }
 
     @Override
@@ -102,6 +104,11 @@ public class ImmutableMultiTableReadConfig<C extends ReaderSpecificConfig<C>, T>
     @Override
     public boolean hasTableSpecConfig() {
         return m_tableSpecConfig != null;
+    }
+
+    @Override
+    public boolean saveTableSpecConfig() {
+        return m_saveTableSpecConfig;
     }
 
     @Override

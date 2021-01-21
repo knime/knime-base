@@ -102,6 +102,13 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
     boolean hasTableSpecConfig();
 
     /**
+     * Indicates whether the dialog should save the {@link TableSpecConfig}.
+     *
+     * @return {@code true} if the {@link TableSpecConfig} should be saved by the dialog
+     */
+    boolean saveTableSpecConfig();
+
+    /**
      * Returns the {@link DefaultTableSpecConfig}. This method should only be invoked if {@link #hasTableSpecConfig()}
      * returned {@code true}
      *

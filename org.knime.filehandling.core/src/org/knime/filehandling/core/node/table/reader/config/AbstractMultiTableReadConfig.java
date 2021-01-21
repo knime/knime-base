@@ -83,6 +83,8 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
 
     private boolean m_skipEmptyColumns = false;
 
+    private boolean m_saveTableSpecConfig = true;
+
     /**
      * @deprecated Only used as fallback if no TableSpecConfig is available
      */
@@ -179,6 +181,20 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
     @Override
     public final boolean hasTableSpecConfig() {
         return m_tableSpecConfig != null;
+    }
+
+    @Override
+    public boolean saveTableSpecConfig() {
+        return m_saveTableSpecConfig;
+    }
+
+    /**
+     * Allows to set whether the {@link TableSpecConfig} should be set by the dialog.
+     *
+     * @param saveTableSpecConfig {@code true} if the {@link TableSpecConfig} should be saved
+     */
+    public void setSaveTableSpecConfig(final boolean saveTableSpecConfig) {
+        m_saveTableSpecConfig = saveTableSpecConfig;
     }
 
     @Override

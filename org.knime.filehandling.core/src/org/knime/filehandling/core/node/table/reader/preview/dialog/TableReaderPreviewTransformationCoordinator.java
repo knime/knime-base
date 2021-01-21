@@ -302,8 +302,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
                 return;
             }
             try {
-                final MultiTableRead<T> mtr =
-                    m_currentRead.withTransformation(m_sourceGroup, m_transformationModel.getTableTransformation());
+                final MultiTableRead<T> mtr = createMultiTableRead();
                 m_currentTableSpecConfig = mtr.getTableSpecConfig();
                 @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
                 final PreviewDataTable pdt = new PreviewDataTable(mtr::createPreviewIterator, mtr.getOutputSpec());
@@ -312,6 +311,14 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
                 NodeLogger.getLogger(TableReaderPreviewTransformationCoordinator.class).debug(ex);
                 m_analysisComponent.setError(ex.getMessage());
                 m_previewModel.setDataTable(null);
+            }
+        }
+
+        private MultiTableRead<T> createMultiTableRead() {
+            if (m_config.saveTableSpecConfig()) {
+                return m_currentRead.withTransformation(m_sourceGroup, m_transformationModel.getTableTransformation());
+            } else {
+                return m_currentRead.withoutTransformation(m_sourceGroup);
             }
         }
 
