@@ -241,6 +241,22 @@ final class PathCopier {
     }
 
     /**
+     * This method is used in the folder mode to create an entry in the output table with the source and target folder
+     * {@link Path}.
+     *
+     * @param sourcePath the source {@link Path}
+     * @param destinationPath the destination {@link Path}
+     * @param rowIdx the current row index
+     * @param destDirExists indicates whether the destination directory already exists or not.
+     */
+    void handleSourceTargetPath(final Path sourcePath, final Path destinationPath, final long rowIdx,
+        final boolean destDirExists) {
+        pushRow(rowIdx, m_sourceFSLocationCellFactory.createCell(sourcePath.toString()),
+            m_destinationFSLocationCellFactory.createCell(destinationPath.toString()), true,
+            destDirExists ? FileStatus.ALREADY_EXISTED.getText() : FileStatus.CREATED.getText());
+    }
+
+    /**
      * Copies a directory.
      *
      * @param sourcePath the source {@link Path}

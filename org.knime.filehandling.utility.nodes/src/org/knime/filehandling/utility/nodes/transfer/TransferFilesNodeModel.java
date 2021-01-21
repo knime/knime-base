@@ -155,9 +155,11 @@ final class TransferFilesNodeModel extends NodeModel {
         final FSPath destinationDir = writePathAccessor.getOutputPath(m_statusConsumer);
         final List<FSPath> sourcePaths = getSourcePaths(readPathAccessor, filterMode);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+
         //Creates output directories if necessary
+        boolean destDirExists = true;
         if (m_config.getDestinationFileChooserModel().isCreateMissingFolders()) {
-            PathCopier.createDirectories(destinationDir);
+            destDirExists = PathCopier.createDirectories(destinationDir);
         } else {
             CheckUtils.checkSetting(FSFiles.exists(destinationDir),
                 String.format("The specified destination folder %s does not exist.", destinationDir));
@@ -171,10 +173,15 @@ final class TransferFilesNodeModel extends NodeModel {
 
         long rowIdx = 0;
         final long noPaths = sourcePaths.size();
-        for (final Path sourcePath : sourcePaths) {
-            final Path destinationPath = destinationDir.resolve(pathRelativizer.apply(sourcePath));
 
-            pathCopier.copyPath(sourcePath, destinationPath, rowIdx);
+        for (final Path sourcePath : sourcePaths) {
+            //Adds a row for the root and destination folder to the output table
+            if (sourcePath.equals(rootPath) && filterMode == FilterMode.FOLDER && !includeSourceFolder) {
+                pathCopier.handleSourceTargetPath(rootPath, destinationDir, rowIdx, destDirExists);
+            } else {
+                final Path destinationPath = destinationDir.resolve(pathRelativizer.apply(sourcePath));
+                pathCopier.copyPath(sourcePath, destinationPath, rowIdx);
+            }
 
             final long copiedPaths = rowIdx + 1;
             exec.setProgress(copiedPaths / (double)noPaths, () -> ("Copied files/folder :" + copiedPaths));
@@ -256,8 +263,7 @@ final class TransferFilesNodeModel extends NodeModel {
             "No files available please select a folder which contains files");
         if (filterMode == FilterMode.FOLDER) {
             final List<FSPath> pathsFromFolder =
-                FSFiles.getFilesAndFolders(readPathAccessor.getRootPath(m_statusConsumer),
-                    m_config.getSettingsModelIncludeSourceFolder().getBooleanValue());
+                FSFiles.getFilesAndFolders(readPathAccessor.getRootPath(m_statusConsumer), true);
             sourcePaths = pathsFromFolder;
         }
         return sourcePaths;
