@@ -134,7 +134,7 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
      *         parameters
      */
     default boolean isConfiguredWith(final SourceGroup<String> sourceGroup) {
-        return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(getConfigID(), sourceGroup.getID());
+        return hasTableSpecConfig() && getTableSpecConfig().isConfiguredWith(getConfigID(), sourceGroup);
     }
 
 }
