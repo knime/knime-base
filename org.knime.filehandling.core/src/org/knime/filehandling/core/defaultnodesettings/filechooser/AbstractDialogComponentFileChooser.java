@@ -72,6 +72,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
+import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
@@ -121,6 +122,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
 public abstract class AbstractDialogComponentFileChooser<T extends AbstractSettingsModelFileChooser<T>>
     extends DialogComponent {
 
+    private static final String NOT_BROWSABLE_WARNING_TEMPLATE = "%s does not support listing/browsing of files.";
+
     private final DialogType m_dialogType;
 
     private final FileSystemChooser m_fsChooser;
@@ -132,6 +135,8 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
     private final JLabel m_fileSelectionLabel = new JLabel("File");
 
     private final StatusView m_statusView = new StatusView();
+
+    private final JLabel m_notBrowsableWarning = new JLabel("");
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
@@ -223,6 +228,8 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         if (displayFilterModes) {
             panel.add(m_modeLabel, gbc.incY().resetX().insetLeft(0).build());
             panel.add(createModePanel(), gbc.incX().setWidth(2).build());
+        } else {
+            panel.add(m_notBrowsableWarning, gbc.resetX().incX().incY().build());
         }
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
         panel.add(m_fileSelection.getPanel(),
@@ -238,6 +245,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(0);
         panel.add(m_filterMode.getComponentPanel(), gbc.incX().build());
         panel.add(m_filterMode.getFilterConfigPanel(), gbc.incX().insetLeft(20).build());
+        panel.add(m_notBrowsableWarning, gbc.incX().build());
         panel.add(Box.createHorizontalBox(), gbc.fillHorizontal().insetLeft(0).setWeightX(1).build());
         return panel;
     }
@@ -250,7 +258,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
      * @param gbc convenience builder for {@link GridBagConstraints}
      */
     protected void addAdditionalComponents(final JPanel panel, final GBCBuilder gbc) {
-        // no additonal components to add
+        // no additional components to add
     }
 
     private void handleFileSelectionChange() {
@@ -324,8 +332,8 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     private void updateBrowser() {
         final T sm = getSettingsModel();
-        if (!isRemoteJobView() && sm.canBrowse()) {
-            // the connection is present, otherwise browser couldn't be
+        boolean isRemoteJobView = isRemoteJobView();
+        if (!isRemoteJobView && sm.canBrowse()) {
             m_fileSelection.setEnableBrowsing(true);
             m_fileSelection.setFileExtensions(sm.getFileExtensions());
             m_fileSelection.setFSConnectionSupplier(sm::getConnection);
@@ -334,10 +342,23 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
             // if we are in the remote job view, we need to close the connection since we can't browse anyway
             m_fileSelection.setEnableBrowsing(false);
         }
+        updateNotBrowsableWarning();
+    }
+
+    private void updateNotBrowsableWarning() {
+        final T sm = getSettingsModel();
+        if (!sm.canListFiles()) {
+            // only show the warning if we can connect to the file system (otherwise we don't know if we can browse)
+            m_notBrowsableWarning.setText(String.format(NOT_BROWSABLE_WARNING_TEMPLATE, sm.getFileSystemName()));
+            m_notBrowsableWarning.setIcon(SharedIcons.WARNING_YELLOW.get());
+        } else {
+            m_notBrowsableWarning.setText("");
+            m_notBrowsableWarning.setIcon(null);
+        }
     }
 
     private FileSystemBrowser.FileSelectionMode getFileSelectionMode() {
-        final FilterMode filterMode = getSettingsModel().getFilterModeModel().getFilterMode();
+        final FilterMode filterMode = getSettingsModel().getFilterMode();
         return filterMode.getFileSelectionMode();
     }
 
@@ -346,7 +367,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
             return "URL";
         }
 
-        final FilterMode filterMode = getSettingsModel().getFilterModeModel().getFilterMode();
+        final FilterMode filterMode = getSettingsModel().getFilterMode();
         if (filterMode == FilterMode.FILE) {
             return "File";
         } else {
@@ -394,7 +415,8 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     @Override
     protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
-        // nothing is checked here
+        // TODO remove once we can check the filter mode compatibility when loading the settings model
+        getSettingsModel().checkConfigurability(specs, m_filterMode.isSupported(FilterMode.FILE));
     }
 
     @Override

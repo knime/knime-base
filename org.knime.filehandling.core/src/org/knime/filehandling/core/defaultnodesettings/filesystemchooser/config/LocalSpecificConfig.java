@@ -139,4 +139,9 @@ public final class LocalSpecificConfig extends AbstractConvenienceFileSystemSpec
         return true;
     }
 
+    @Override
+    public String getFileSystemName() {
+        return "Local File System";
+    }
+
 }

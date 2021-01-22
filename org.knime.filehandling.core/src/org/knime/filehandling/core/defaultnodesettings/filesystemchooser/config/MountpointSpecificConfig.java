@@ -302,4 +302,9 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
         return m_mountpoint != null && m_mountpoint.isValid() && m_mountpoint.isConnected();
     }
 
+    @Override
+    public String getFileSystemName() {
+        return "Mountpoint";
+    }
+
 }

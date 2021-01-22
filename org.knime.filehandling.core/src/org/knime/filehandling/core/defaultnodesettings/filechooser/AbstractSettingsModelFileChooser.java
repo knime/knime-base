@@ -74,6 +74,7 @@ import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -83,6 +84,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusCons
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
@@ -179,10 +181,65 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
 
     private void updateFilterMode() {
         final FSCategory fsCategory = m_fsConfig.getFSCategory();
-        if (fsCategory == FSCategory.CUSTOM_URL) {
+        final boolean isCustomURL = fsCategory == FSCategory.CUSTOM_URL;
+        if (isCustomURL) {
             m_filterModeModel.setFilterMode(FilterMode.FILE);
         }
-        m_filterModeModel.setEnabled(fsCategory != FSCategory.CUSTOM_URL && isEnabled());
+        m_filterModeModel.setEnabled(!isCustomURL && isEnabled());
+    }
+
+    /**
+     * Workaround for assessing if a file system can list files in
+     * {@link AbstractDialogComponentFileChooser#checkConfigurabilityBeforeLoad(PortObjectSpec[])}.
+     *
+     * TODO remove once {@link SettingsModelFilterMode} knows its supported {@link FilterMode modes} and the
+     * configurability check can be made in {@link #loadSettingsForDialog(NodeSettingsRO, PortObjectSpec[])}.
+     *
+     * @param specs the port object specs
+     * @return {@code false} if the connected file system doesn't support browsing, {@code true} otherwise (including
+     *         for Custom/KNIME URL)
+     */
+    private boolean canListFiles(final PortObjectSpec[] specs) {
+        if (m_fsConfig.hasFSPort()) {
+            final ConnectedFileSystemSpecificConfig connectedConfig =
+                (ConnectedFileSystemSpecificConfig)m_fsConfig.getFileSystemSpecifcConfig(FSCategory.CONNECTED);
+            Optional<FSConnection> connection =
+                FileSystemPortObjectSpec.getFileSystemConnection(specs, connectedConfig.getPortIdx());
+            return connection.map(FSConnection::supportsBrowsing).orElse(true);
+        } else {
+            // Actually not true because Custom/KNIME URLs can't list files either.
+            // That is handled separately
+            return true;
+        }
+    }
+
+    /**
+     * Checks if the connected file system is compatible with the supported filter modes.
+     *
+     * TODO remove once {@link SettingsModelFilterMode} knows its supported {@link FilterMode modes} and the
+     * configurability check can be made in {@link #loadSettingsForDialog(NodeSettingsRO, PortObjectSpec[])}.
+     *
+     * @param specs the port object specs
+     * @param supportsFiles {@code true} if {@link FilterMode#FILE} is supported
+     * @throws NotConfigurableException thrown if the file system doesn't support folders and {@link FilterMode#FILE}
+     *             isn't supported by the node
+     */
+    void checkConfigurability(final PortObjectSpec[] specs, final boolean supportsFiles)
+        throws NotConfigurableException {
+        if (!supportsFiles && !canListFiles(specs)) {
+            final ConnectedFileSystemSpecificConfig connectedConfig =
+                (ConnectedFileSystemSpecificConfig)m_fsConfig.getFileSystemSpecifcConfig(FSCategory.CONNECTED);
+            final Optional<String> fsName =
+                FileSystemPortObjectSpec.getFileSystemType(specs, connectedConfig.getPortIdx());
+            if (fsName.isPresent()) {
+                throw new NotConfigurableException(String.format(
+                    "The connected file system '%s' is not compatible with this node because it doesn't support folders.",
+                    fsName.get()));
+            } else {
+                throw new NotConfigurableException(
+                    "The connected file system is not compatible with this node because it doesn't support folders.");
+            }
+        }
     }
 
     /**
@@ -197,8 +254,13 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
      */
     public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
         throws InvalidSettingsException {
-        checkLocation();
         m_fsConfig.configureInModel(specs, statusMessageConsumer);
+        // must happen after we updated m_fsConfig
+        if (!canListFiles()) {
+            CheckUtils.checkSetting(getFilterMode() == FilterMode.FILE,
+                "The file system '%s' does not support listing files.", getFileSystemName());
+        }
+        checkLocation();
     }
 
     private void checkLocation() throws InvalidSettingsException {
@@ -290,11 +352,21 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
 
     /**
      * Returns <code>true</code> if the {@link FSConnection} can be created otherwise <code>false</code>.
+     *
      * @return <code>true</code> if the FSConnection can be created
      * @see #getConnection()
      */
     public boolean canCreateConnection() {
         return FileSystemHelper.canRetrieveFSConnection(m_fsConfig.getConnection(), getLocation());
+    }
+
+    /**
+     * Returns always {@code true} except the file system is available and does not support file listing.
+     *
+     * @return {@code true} except the file system is available and does not support file listing
+     */
+    public boolean canListFiles() {
+        return !canCreateConnection() || canBrowse();
     }
 
     boolean canBrowse() {
@@ -330,6 +402,17 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
      */
     public FSLocation getLocation() {
         return m_fsConfig.getLocationSpec();
+    }
+
+    /**
+     * Returns the name of the selected file system or {@code null} if
+     * {@link #configureInModel(PortObjectSpec[], Consumer)} hasn't been called at least once. The latter is considered
+     * to be a coding error.
+     *
+     * @return the name of the file system
+     */
+    public String getFileSystemName() {
+        return m_fsConfig.getFileSystemName();
     }
 
     /**
