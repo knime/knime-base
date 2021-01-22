@@ -82,6 +82,14 @@ public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificCon
     FSLocationSpec getLocationSpec();
 
     /**
+     * Returns the name of the file system or {@code null} if {@link #configureInModel(PortObjectSpec[], Consumer)}
+     * hasn't been called for a connected file system. The latter is considered to be a coding error.
+     *
+     * @return the name of the file system this config relates to
+     */
+    String getFileSystemName();
+
+    /**
      * Loads the configuration from {@link NodeSettingsRO settings} in the dialog and sets defaults if some settings are
      * missing.
      *
@@ -107,7 +115,8 @@ public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificCon
     void validate(final FSLocationSpec location) throws InvalidSettingsException;
 
     /**
-     * Returns {@code true} if a connection with the file system has a chance at success i.e. a connection can be established.
+     * Returns {@code true} if a connection with the file system has a chance at success i.e. a connection can be
+     * established.
      *
      * @return {@code true} if a connection with the system is possible
      */

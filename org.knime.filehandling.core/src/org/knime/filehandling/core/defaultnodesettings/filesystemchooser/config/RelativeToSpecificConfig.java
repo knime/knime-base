@@ -194,4 +194,9 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
         return true;
     }
 
+    @Override
+    public String getFileSystemName() {
+        return "Relative to";
+    }
+
 }

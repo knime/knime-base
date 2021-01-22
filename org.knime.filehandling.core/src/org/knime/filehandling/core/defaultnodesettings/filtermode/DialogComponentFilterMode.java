@@ -231,6 +231,17 @@ public final class DialogComponentFilterMode extends DialogComponent {
     }
 
     /**
+     * Returns {@code true} if the provided {@link FilterMode} is supported.
+     * TODO remove/deprecate once we know the supported filter modes in the settings model.
+     *
+     * @param filterMode the filter mode to check for compatibility
+     * @return {@code true} if the provided {@link FilterMode} is supported.
+     */
+    public boolean isSupported(final FilterMode filterMode) {
+        return ArrayUtils.contains(m_filterModes, filterMode);
+    }
+
+    /**
      * Returns if the specified filter mode button is enabled.
      *
      * @param filterMode the filter mode of the button to check

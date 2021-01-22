@@ -440,6 +440,21 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
     }
 
     /**
+     * Returns the name of the selected file system or {@code null} if a file system is connected and
+     * {@link #configureInModel(PortObjectSpec[], Consumer)} isn't called before this method is called.
+     * The latter case is considered a coding error.
+     *
+     * @return the file system name if available, otherwise {@link Optional#empty()}
+     */
+    public String getFileSystemName() {
+        if (hasFSPort()) {
+            return getConnectedConfig().getFileSystemName();
+        } else {
+            return getCurrentSpecificConfig().getFileSystemName();
+        }
+    }
+
+    /**
      * Sets the provided {@link FSCategory} and notifies the listeners if the value changed.</br>
      *
      * NOTE: This method is intended for the use in the dialog and will fail if the provided {@link FSCategory category}

@@ -113,7 +113,12 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
         }
     }
 
-    int getPortIdx() {
+    /**
+     * Getter for the index of the port that contains the file system.
+     *
+     * @return the file system port index
+     */
+    public int getPortIdx() {
         return m_portIdx;
     }
 
@@ -139,6 +144,7 @@ public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemS
      *
      * @return the name of the connected file system
      */
+    @Override
     public String getFileSystemName() {
         return m_fileSystemName;
     }

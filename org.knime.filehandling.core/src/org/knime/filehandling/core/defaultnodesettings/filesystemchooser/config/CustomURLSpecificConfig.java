@@ -198,4 +198,9 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
         return true;
     }
 
+    @Override
+    public String getFileSystemName() {
+        return "Custom/KNIME URL";
+    }
+
 }
