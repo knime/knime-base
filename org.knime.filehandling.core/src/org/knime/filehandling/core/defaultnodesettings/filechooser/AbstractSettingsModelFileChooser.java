@@ -180,12 +180,11 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     }
 
     private void updateFilterMode() {
-        final FSCategory fsCategory = m_fsConfig.getFSCategory();
-        final boolean isCustomURL = fsCategory == FSCategory.CUSTOM_URL;
-        if (isCustomURL) {
+        boolean canListFiles = canListFiles();
+        if (!canListFiles) {
             m_filterModeModel.setFilterMode(FilterMode.FILE);
         }
-        m_filterModeModel.setEnabled(!isCustomURL && isEnabled());
+        m_filterModeModel.setEnabled(canListFiles && isEnabled());
     }
 
     /**
