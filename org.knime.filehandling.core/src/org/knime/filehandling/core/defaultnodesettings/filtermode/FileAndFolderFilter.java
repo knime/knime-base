@@ -328,9 +328,10 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
     public boolean test(final Path path, final BasicFileAttributes attrs) {
         if (attrs.isDirectory()) {
             return testFolder(path, true);
+        } else {
+            // we assume everything that is not a directory to be readable like a file (see AP-16061)
+            return testFile(path);
         }
-        return attrs.isRegularFile() && //
-            testFile(path);
     }
 
     private boolean testFolder(final Path path, final boolean incCounter) {

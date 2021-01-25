@@ -141,7 +141,8 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
                 // yes, it's expected that we accept everything
                 return new AppendHandler("file or folder", a -> true);
             case FILES_ONLY:
-                return new AppendHandler("file", BasicFileAttributes::isRegularFile);
+                // we assume everything that is not a directory to be readable like a file (see AP-16061)
+                return new AppendHandler("file", fileAttrs -> !fileAttrs.isDirectory());
             default:
                 throw new IllegalStateException("Unknown file selection mode: " + fileSelectionMode);
         }
@@ -190,7 +191,8 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
             case FILES_AND_DIRECTORIES:
                 return mkOverwriteWarning(path, attrs);
             case FILES_ONLY:
-                return attrs.isRegularFile() ? mkOverwriteWarning(path, attrs) : createFailStatusMsg(path, attrs);
+                // we assume everything that is not a directory to be readable like a file (see AP-AP-16061)
+                return (!attrs.isDirectory()) ? mkOverwriteWarning(path, attrs) : createFailStatusMsg(path, attrs);
             default:
                 throw new IllegalStateException("Unknown file selection mode: " + getFileSelectionMode());
         }

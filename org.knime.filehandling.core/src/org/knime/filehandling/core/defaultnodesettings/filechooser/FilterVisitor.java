@@ -106,7 +106,9 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
         final FileVisitResult result = super.visitFile(file, attrs);
         // also called for directories (if max depth is hit by Files.walkFileTree) for these directories pre
         // #preVisitDirectory is not being invoked
-        if (attrs.isRegularFile() && m_filter.testFolderName(file.getParent())) {
+
+        // we assume everything that is not a directory to be readable like a file (see AP-16061)
+        if (!attrs.isDirectory() && m_filter.testFolderName(file.getParent())) {
             m_visitedFiles++;
             if (m_includeFiles && m_filter.test(file, attrs)) {
                 m_paths.add(file);

@@ -213,7 +213,10 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
         if (m_filterMode == FilterMode.FILE) {
             CheckUtils.checkSetting(!rootPath.toString().trim().isEmpty(), "Please specify a file.");
-            CheckUtils.checkSetting(attr.isRegularFile(), "%s is not a regular file. Please specify a file.", rootPath);
+
+            // we assume everything that is not a directory to be readable like a file (see AP-16061)
+            CheckUtils.checkSetting(!attr.isDirectory(), "%s is a folder. Please specify a file.", rootPath);
+
             m_fileFilterStatistic = new FileFilterStatistic(0, 0, 1, 0, 0, 0);
         } else if (m_filterMode == FilterMode.FOLDER) {
             checkIsFolder(rootPath, attr);
@@ -236,7 +239,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         checkIsFolder(rootPath, attrs);
         final FilterVisitor visitor = createVisitor(rootPath);
         final boolean includeSubfolders = m_settings.getFilterModeModel().isIncludeSubfolders();
-        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), includeSubfolders ? Integer.MAX_VALUE : 1,
+        Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), includeSubfolders ? Integer.MAX_VALUE : 1,
             visitor);
         m_fileFilterStatistic = visitor.getFileFilterStatistic();
         final List<?> paths = visitor.getPaths();
