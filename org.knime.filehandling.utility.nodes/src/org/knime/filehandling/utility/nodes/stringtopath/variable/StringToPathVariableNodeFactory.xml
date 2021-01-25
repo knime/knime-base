@@ -10,7 +10,10 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-			This node converts the selected String variables into variables of the type Path.
+			<p>This node converts the selected String variables into variables of the type Path.</p>
+			
+            <p><i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a></p>
 		</intro>
 		<option name="Variable selection">
 			The String variables that will be converted to Path variables. The variables have to contain Strings with 

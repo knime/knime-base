@@ -6,10 +6,21 @@
 	<name>Create Folder</name>
 	<shortDescription>Creates a folder upon execute and exposes its path as flow variable.</shortDescription>
 	<fullDescription>
-		<intro>Creates a folder upon execute and exposes its path
+		<intro>
+            <p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable</i></a>
+            <i> to specify the base location. To convert the created path variables to string variables which are 
+            required by some nodes that have not been migrated yet you can use the </i>
+            <a href="https://kni.me/n/7iP1GCKnb_WMgJ4V"><i>Path to String (Variable)</i></a><i> node.</i>
+            <i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+            
+            <p>
+		    Creates a folder upon execute and exposes its path
 			as flow variable. 
 			<br/>
 			<i>Note:</i> By default the new folder is created directly in the workflow data area.
+			</p>
 		</intro>
 		<option name="Write to">
 				Select a file system in which you want to create the folder.
@@ -62,6 +73,9 @@
 					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
 					(Re)execute the connector node to enable browsing.</li>
 				</ul>
+                <i>The location can be exposed as or automatically set via a 
+                </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+                <i>path flow variable.</i></a>
 		</option>
 		<option name="Create missing folders">Select if the folders of the selected output
 			location should be created if they do not already exist. If this

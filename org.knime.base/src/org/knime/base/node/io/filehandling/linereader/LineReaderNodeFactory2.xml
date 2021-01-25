@@ -11,9 +11,15 @@
 
 	<fullDescription>
 		<intro>
+            <p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
+            <i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+            <p>
 			Reads lines from a file or URL. Each line will be represented by a
 			single string data cell in a single row. The row prefix and column header 
 			can be specified in the dialog.
+			</p>
 		</intro>
 		<tab name="Settings">
 				<option name="Read from">
@@ -83,6 +89,9 @@
 					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
 					(Re)execute the connector node to enable browsing.</li>
 				</ul>
+                <i>The location can be exposed as or automatically set via a 
+                </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+                <i>path flow variable.</i></a>
 			</option>
 			<option name="Fail on differing specs">
 			This option is only available if the 'Files in folder' option is selected. If the option is select and the specs of the files are different the node will fail. 

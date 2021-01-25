@@ -7,12 +7,22 @@
 	<shortDescription>Creates paths to files/folders and exposes them as flow variables.</shortDescription>
 	<fullDescription>
 		<intro>
+            <p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable</i></a>
+            <i> to specify the base location. To convert the created path variables to string variables which are 
+            required by some nodes that have not been migrated yet you can use the </i>
+            <a href="https://kni.me/n/7iP1GCKnb_WMgJ4V"><i>Path to String (Variable)</i></a><i> node.</i>
+            <i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+            
+            <p>
 			This node allows selecting a (existing) base folder and to define a list of locations pointing to
 			(existing) files/folders relative to the base location. After execution the specified list of file/folder
 			locations is accessible for subsequent nodes via flow variables.
 			<br />
 			<i>Note:</i>
 			By default the workflow data area is selected as folder, as defined by “.“ in the Folder field
+			</p>
 		</intro>
 		<option name="Create for">
 			Select a file system to which your file names are related. There are three default file system options to
@@ -66,6 +76,9 @@
 					(Re)execute the connector node to enable browsing.
 				</li>
 			</ul>
+            <i>The location can be exposed as or automatically set via a 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+            <i>path flow variable.</i></a>
 		</option>
 		<option name="File/Folder variables">
 			A list of file/folder locations that will form a path with the selected base folder. Enter the name of the
