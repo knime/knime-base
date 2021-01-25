@@ -1363,7 +1363,7 @@
             >
       </node>
       <node
-            category-path="/flowcontrol/variables"
+            category-path="/io/filehandling"
             factory-class="org.knime.base.node.flowvariable.createfilename.CreateFilenameNodeFactory"
             >
       </node>
@@ -1698,9 +1698,7 @@
             factory-class="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory"
             />
       <node
-            after="org.knime.base.node.preproc.createtablestructure.CreateTableStructureNodeFactory"
-            category-path="/io/io-other"
-            deprecated="true"
+            category-path="/io/filehandling/remote"
             factory-class="org.knime.base.node.util.createtempdir.CreateTempDirectoryNodeFactory"
             />
       <node
