@@ -10,6 +10,12 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
+            <p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path cell.</i></a>
+            <i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+            
+            <p>
 			This node adds meta information about the files and folders referenced by the selected column. The following 
 			information are covered:
 			<ul>
@@ -38,6 +44,7 @@
 					Indicator whether or not the file/folder exists
 				</li>
 			</ul>
+			</p>
 		</intro>
 		<option name="Column name">
 			Column containing the paths to the files/folders whose meta information must be extracted.

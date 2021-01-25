@@ -11,7 +11,13 @@
 
 	<fullDescription>
 		<intro>
+            <p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
+            <i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+            <p>
 			This node reads a KNIME model from a file that was written with the Model Writer node.
+			</p>
 		</intro>
 		<option name="Read from">
 				Select a file system which stores the data you want to read. There are
@@ -60,6 +66,9 @@
 					(Re)execute the connector node to enable browsing.
 				</li>
 				</ul>
+                <i>The location can be exposed as or automatically set via a 
+                </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+                <i>path flow variable.</i></a>
 		</option>
 	</fullDescription>
 

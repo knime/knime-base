@@ -11,10 +11,20 @@
 
 	<fullDescription>
 		<intro>
+            <p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable</i></a>
+            <i> to specify the source and destination location. To convert the created path column to a string column which is 
+            required by some nodes that have not been migrated yet you can use the </i>
+            <a href="https://kni.me/n/ZLCisQlHCzW4IiZG"><i>Path to String</i></a><i> node.
+             For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+            
+            <p>
 			This node copies or moves files from a source (folder or file) to another folder. The node offers options to
 			either copy or move a single file, a complete folder or the files in a selected folder, with the option to
 			include subfolders, to a specified folder. If the "Delete source files (move)" option is checked the node
 			performs a move operation for which the source files will be deleted after the copying process is done.
+			</p>
 		</intro>
 		<option name="Read from">
 			Select a file system which stores the files/folders you want to copy/move. There are four default file
@@ -52,7 +62,11 @@
 			connector node to the newly added input port. The file system connection will then be shown in the drop-down
 			menu. It is greyed out if the file system is not connected in which case you have to (re)execute the
 			connector node first. Note: The default file systems listed above can't be selected if a file system is
-			provided via the input port.
+			provided via the input port
+            <br/>
+            <i>The location can be exposed as or automatically set via a 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+            <i>path flow variable.</i></a>.
 		</option>
 		<option name="Mode">
 			There are three different file/folder modes available:
@@ -86,6 +100,10 @@
 			This option allows you to specify a folder where you want to copy your file, files or folder in the end.
 			This option has got the same options, except for the custom URL option, as the Read from option with regards
 			to the file system options.
+            <br/>
+            <i>The location can be exposed as or automatically set via a 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+            <i>path flow variable.</i></a>
 		</option>
 		<option name="Create missing folders">
 			Select if the folders of the selected output location should be created if they do not already exist. If

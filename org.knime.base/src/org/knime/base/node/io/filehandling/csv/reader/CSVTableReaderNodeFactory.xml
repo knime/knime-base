@@ -9,17 +9,21 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-		<p>
-		  Reads CSV files. Use this node if the workflow is used in a server
-		  or batch environment and the input files structure change between
-		  different invocations. In particular, this includes a variable number
-		  of input columns. Upon execution, the node will scan the input file
-		  to determine number and types of the columns and output a table with
-		  the auto-guessed structure.  
-        </p>
-        <p>
-          <b>Note:</b> If you find that this node can't read your file, try the <b>File Reader</b> node. It offers more options for reading complex files.
-        </p>
+            <p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
+            <i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+			<p>
+			  Reads CSV files. Use this node if the workflow is used in a server
+			  or batch environment and the input files structure change between
+			  different invocations. In particular, this includes a variable number
+			  of input columns. Upon execution, the node will scan the input file
+			  to determine number and types of the columns and output a table with
+			  the auto-guessed structure.  
+	        </p>
+	        <p>
+	          <b>Note:</b> If you find that this node can't read your file, try the <b>File Reader</b> node. It offers more options for reading complex files.
+	        </p>
 		</intro>
 		<tab name="Settings">
 			<option name="Read from">
@@ -89,6 +93,9 @@
 					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
 					(Re)execute the connector node to enable browsing.</li>
 				</ul>
+                <i>The location can be exposed as or automatically set via a 
+                </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+                <i>path flow variable.</i></a>
 			</option>
 			<option name="Autodetect format">
 	          By pressing this button, the "Column delimiter", "Row delimiter", "Quote char" and "Quote escape char" get 

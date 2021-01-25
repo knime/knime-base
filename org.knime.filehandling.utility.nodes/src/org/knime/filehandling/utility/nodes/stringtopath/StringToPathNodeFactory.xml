@@ -10,7 +10,10 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-			This node converts a selected String column into a column of the type Path.
+			<p>This node converts a selected String column into a column of the type Path.</p>
+			                     
+            <p><i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a></p>
 		</intro>
 		<option name="File system">
 			Select the file system to which the created paths should be related to. There are four default file system

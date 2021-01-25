@@ -11,10 +11,16 @@
 
 	<fullDescription>
 		<intro>
+		    <p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
+            <i> For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+            <p>
 			This node writes out the input data table into a file or to a
 			remote location denoted by an URL. The input data table
 			must contain only string or numerical columns. Other column types are not
 			supported.
+			</p>
 		</intro>
 		<tab name="Settings">
 			<description>
@@ -79,6 +85,9 @@
 					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
 					(Re)execute the connector node to enable browsing.</li>
 				</ul>
+                <i>The location can be exposed as or automatically set via a 
+                </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+                <i>path flow variable.</i></a>
 		</option>
 			<option name="Create missing folders">Select if the folders of the selected
 				output
