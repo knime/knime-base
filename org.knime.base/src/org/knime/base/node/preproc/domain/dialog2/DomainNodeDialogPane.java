@@ -89,9 +89,12 @@ public class DomainNodeDialogPane extends NodeDialogPane {
     private final JRadioButton m_minMaxUnselectedDropButton;
 
     /** Inits members, does nothing else. */
+    @SuppressWarnings("deprecation")
     public DomainNodeDialogPane() {
-        m_filterPanelPossValues = new DataColumnSpecFilterPanel();
-        m_filterPanelMinMax = new DataColumnSpecFilterPanel();
+        m_filterPanelPossValues =
+            new DataColumnSpecFilterPanel(false, DomainNodeModel.createDCSFilterConfigurationPossVals().getFilter());
+        m_filterPanelMinMax =
+            new DataColumnSpecFilterPanel(false, DomainNodeModel.createDCSFilterConfigurationMinMax().getFilter());
         m_maxValuesChecker = new JCheckBox(
                 "Restrict number of possible values: ");
         SpinnerModel spinModel =

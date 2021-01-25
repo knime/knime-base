@@ -55,6 +55,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.knime.core.data.BoundedValue;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableDomainCreator;
 import org.knime.core.data.DataTableSpec;
@@ -62,6 +63,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.DomainCreatorColumnSelection;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.container.DataContainer;
+import org.knime.core.data.filestore.FileStoreCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -71,6 +73,8 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.ConvenienceMethods;
+import org.knime.core.node.util.filter.InputFilter;
+import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
@@ -303,7 +307,8 @@ public class DomainNodeModel extends NodeModel {
      * @return filter configuration
      */
     static final DataColumnSpecFilterConfiguration createDCSFilterConfigurationPossVals() {
-        return new DataColumnSpecFilterConfiguration("colFilter_possVals");
+        return new DataColumnSpecFilterConfiguration("colFilter_possVals", new FileStoreCellFilter(),
+            NameFilterConfiguration.FILTER_BY_NAMEPATTERN | DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE);
     }
 
     /**
@@ -312,7 +317,17 @@ public class DomainNodeModel extends NodeModel {
      * @return filter configuration
      */
     static final DataColumnSpecFilterConfiguration createDCSFilterConfigurationMinMax() {
-        return new DataColumnSpecFilterConfiguration("colFilter_minMax");
+        return new DataColumnSpecFilterConfiguration("colFilter_minMax", new FileStoreCellFilter(),
+            NameFilterConfiguration.FILTER_BY_NAMEPATTERN | DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE);
+    }
+
+    private static class FileStoreCellFilter extends InputFilter<DataColumnSpec> {
+
+        @Override
+        public boolean include(final DataColumnSpec spec) {
+            Class<? extends DataCell> cellClass = spec.getType().getCellClass();
+            // currently we cannot load file store cells from ConfigRO (AP-16054)
+            return cellClass == null || !FileStoreCell.class.isAssignableFrom(cellClass);
+        }
     }
 }
-
