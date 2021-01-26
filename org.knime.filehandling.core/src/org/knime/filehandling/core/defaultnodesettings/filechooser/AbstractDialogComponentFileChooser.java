@@ -229,7 +229,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
             panel.add(m_modeLabel, gbc.incY().resetX().insetLeft(0).build());
             panel.add(createModePanel(), gbc.incX().setWidth(2).build());
         } else {
-            panel.add(m_notBrowsableWarning, gbc.resetX().incX().incY().build());
+            panel.add(m_notBrowsableWarning, gbc.resetX().incX().incY().insetLeft(11).build());
         }
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
         panel.add(m_fileSelection.getPanel(),

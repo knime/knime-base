@@ -68,6 +68,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  * Currently contains no specific information.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class LocalSpecificConfig extends AbstractConvenienceFileSystemSpecificConfig {
 

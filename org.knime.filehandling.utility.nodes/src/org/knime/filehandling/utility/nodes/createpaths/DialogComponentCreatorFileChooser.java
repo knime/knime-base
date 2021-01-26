@@ -52,6 +52,8 @@ import java.io.IOException;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
@@ -82,6 +84,11 @@ final class DialogComponentCreatorFileChooser
         final FlowVariableModel locationFvm, final FilterMode... filterModes) {
         super(model, historyID, DialogType.OPEN_DIALOG, "Create for", locationFvm,
             s -> new CreaterStatusMessageReporter(), filterModes);
+    }
+
+    @Override
+    protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
+        // the creator does not actually use the path, so we don't need to do the checks
     }
 
     private static class CreaterStatusMessageReporter implements StatusMessageReporter {

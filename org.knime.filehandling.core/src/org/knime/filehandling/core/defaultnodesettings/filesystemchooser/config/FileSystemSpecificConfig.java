@@ -70,6 +70,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusReporter;
  * Config for a specific file system.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface FileSystemSpecificConfig extends DeepCopy<FileSystemSpecificConfig>, StatusReporter {
 

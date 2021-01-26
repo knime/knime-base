@@ -72,6 +72,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  * Holds the timeout used for establishing the connection and reading from it.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystemSpecificConfig {
 

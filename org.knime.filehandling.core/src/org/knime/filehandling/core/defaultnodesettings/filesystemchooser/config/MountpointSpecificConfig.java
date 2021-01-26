@@ -85,6 +85,8 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  * Contains the selected mountpoint.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class MountpointSpecificConfig extends AbstractConvenienceFileSystemSpecificConfig
     implements ComboBoxModel<KNIMEConnection> {

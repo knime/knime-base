@@ -104,6 +104,8 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <L> the type of {@link FSLocationSpec} used
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class FileSystemConfiguration<L extends FSLocationSpec>
     implements DeepCopy<FileSystemConfiguration<L>>, StatusReporter {

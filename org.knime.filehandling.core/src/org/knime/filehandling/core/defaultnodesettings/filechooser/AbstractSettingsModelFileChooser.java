@@ -179,7 +179,11 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
         }
     }
 
-    private void updateFilterMode() {
+    /**
+     * Called when the config changes. The default implementation switches the filter mode to {@link FilterMode#FILE} if
+     * folders are not supported by the selected file system and also disables the filter model.
+     */
+    protected void updateFilterMode() {
         boolean canListFiles = canListFiles();
         if (!canListFiles) {
             m_filterModeModel.setFilterMode(FilterMode.FILE);
@@ -262,7 +266,13 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
         checkLocation();
     }
 
-    private void checkLocation() throws InvalidSettingsException {
+    /**
+     * Checks the currently specified location for validity. May be used by subclasses that overwrite
+     * {@link #configureInModel(PortObjectSpec[], Consumer)}.
+     *
+     * @throws InvalidSettingsException if the current settings are invalid
+     */
+    protected final void checkLocation() throws InvalidSettingsException {
         final PriorityStatusConsumer locationStatusConsumer = new PriorityStatusConsumer();
         reportOnLocation(locationStatusConsumer);
         Optional<StatusMessage> locationStatus = locationStatusConsumer.get();
@@ -289,7 +299,13 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
         m_fsConfig.setLocationFlowVariableModel(locationFvm);
     }
 
-    FileSystemConfiguration<FSLocation> getFileSystemConfiguration() {
+    /**
+     * Provides access to the underlying {@link FileSystemConfiguration} that manages the file system as well as the
+     * path.
+     *
+     * @return the {@link FileSystemConfiguration} holding the file system and path information
+     */
+    protected FileSystemConfiguration<FSLocation> getFileSystemConfiguration() {
         return m_fsConfig;
     }
 
