@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="createfilename.png" type="Other" deprecated="true" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
-	<name>Create File Name</name>
+<knimeNode icon="createfilename.png" type="Other" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Create File Name (legacy)</name>
 	<shortDescription>Create a new file name as flow variable</shortDescription>
 	<fullDescription>
 		<intro>
+			<p>
+				<i>This legacy file handling node has been replaced by the
+				</i><a href="https://kni.me/n/EgOX1gHkh6df_n56"><i>Create File/Folder Variables</i></a><i>
+				and will become deprecated in the foreseeable future. For further information about the 
+				new file handling framework see the
+				</i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.
+				</i></a><br/>
+			</p>
 			This node takes a base directory path, a file name, and a file
 			extension
 			to create a new file path. Inputs can be entered in the
