@@ -49,12 +49,16 @@
 package org.knime.filehandling.utility.nodes.createpaths;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
  * File chooser settings model for the "Create File/Folder Variables" node.
@@ -97,6 +101,19 @@ final class SettingsModelCreatorFileChooser extends AbstractSettingsModelFileCho
     @Override
     public SettingsModelCreatorFileChooser createClone() {
         return new SettingsModelCreatorFileChooser(this);
+    }
+
+    @Override
+    protected void updateFilterMode() {
+        // don't change the filter mode depending on the file system
+    }
+
+    @Override
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+        // overwrite the super class because this model is a lot less restrictive
+        getFileSystemConfiguration().configureInModel(specs, statusMessageConsumer);
+        checkLocation();
     }
 
     /**

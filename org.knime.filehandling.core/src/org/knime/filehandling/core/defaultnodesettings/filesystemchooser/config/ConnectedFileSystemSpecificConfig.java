@@ -75,6 +75,8 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  * Holds the actual file system type as well as whether a connection is available.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class ConnectedFileSystemSpecificConfig extends AbstractFileSystemSpecificConfig {
 

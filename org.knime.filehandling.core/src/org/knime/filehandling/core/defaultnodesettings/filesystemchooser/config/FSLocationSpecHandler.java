@@ -60,6 +60,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <L> the type of {@link FSLocationSpec} this handler handles
+ * @noreference non-public API
+ * @noimplement non-public API
  */
 public interface FSLocationSpecHandler<L> {
 
@@ -99,7 +101,7 @@ public interface FSLocationSpecHandler<L> {
 
     /**
      * Returns the {@link VariableType} compatible with this handler.
-     * 
+     *
      * @return the {@link VariableType} with which this location handler can work
      */
     VariableType<L> getVariableType();

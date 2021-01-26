@@ -70,6 +70,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  * Config specific to the "relative to" file system.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class RelativeToSpecificConfig extends AbstractConvenienceFileSystemSpecificConfig {
 
