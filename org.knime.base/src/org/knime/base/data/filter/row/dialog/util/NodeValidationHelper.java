@@ -52,7 +52,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 
 import org.knime.base.data.filter.row.dialog.OperatorParameters;
@@ -156,7 +155,7 @@ public final class NodeValidationHelper {
 
         if (nodeView instanceof TreeGroup) {
             @SuppressWarnings("unchecked")
-            final Enumeration<MutableTreeNode> children = treeNode.children();
+            final Enumeration<TreeNode> children = treeNode.children();
             while (children.hasMoreElements()) {
                 final DefaultMutableTreeNode next = (DefaultMutableTreeNode)children.nextElement();
 

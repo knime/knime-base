@@ -230,10 +230,10 @@ public class TreePanelActions {
             } else {
                 // collect children
                 @SuppressWarnings("unchecked")
-                final Enumeration<MutableTreeNode> itertator = node.children();
+                final Enumeration<TreeNode> itertator = node.children();
                 final List<MutableTreeNode> children = new ArrayList<>();
                 while (itertator.hasMoreElements()) {
-                    children.add(itertator.nextElement());
+                    children.add((MutableTreeNode)itertator.nextElement());
                 }
 
                 // insert children into parent, this will also remove them from node

@@ -53,6 +53,7 @@ import java.util.Enumeration;
 
 import javax.swing.AbstractAction;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 
 /**
  * An action to collapse the branch starting from the selected node in a
@@ -87,12 +88,12 @@ public class CollapseBranchAction<K> extends AbstractAction {
         }
         DefaultMutableTreeNode node =
             m_graph.getTreeMap().get(selected);
-        Enumeration<DefaultMutableTreeNode> enumeration =
+        Enumeration<TreeNode> enumeration =
             node.breadthFirstEnumeration();
         // skip starting node
         enumeration.nextElement();
-        for (DefaultMutableTreeNode n : Collections.list(enumeration)) {
-            K k = (K)n.getUserObject();
+        for (TreeNode n : Collections.list(enumeration)) {
+            K k = (K)((DefaultMutableTreeNode)n).getUserObject();
             m_graph.getVisible().remove(k);
             m_graph.getCollapsed().remove(k);
             m_graph.getWidgets().remove(k);

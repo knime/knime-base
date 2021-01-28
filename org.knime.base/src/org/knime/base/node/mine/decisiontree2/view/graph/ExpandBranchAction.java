@@ -54,6 +54,7 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 
 /**
  * An action to expand the branch starting from the selected node in a
@@ -89,7 +90,7 @@ public class ExpandBranchAction<K> extends AbstractAction {
         DefaultMutableTreeNode node =
             m_graph.getTreeMap().get(selected);
         K userObject = (K)node.getUserObject();
-        List<Object> branch =
+        List<TreeNode> branch =
             Collections.list(node.breadthFirstEnumeration());
         for (Object o : branch) {
             DefaultMutableTreeNode n = (DefaultMutableTreeNode)o;
@@ -107,7 +108,7 @@ public class ExpandBranchAction<K> extends AbstractAction {
         Rectangle p = m_graph.getVisible().get(userObject);
 
         Rectangle vis = new Rectangle(p);
-        List<Object> expandedSubtree =
+        List<TreeNode> expandedSubtree =
                 Collections.list(node.breadthFirstEnumeration());
         for (Object o : expandedSubtree) {
             DefaultMutableTreeNode n = (DefaultMutableTreeNode)o;

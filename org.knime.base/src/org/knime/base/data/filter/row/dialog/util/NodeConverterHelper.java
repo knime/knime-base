@@ -48,7 +48,7 @@ package org.knime.base.data.filter.row.dialog.util;
 import java.util.Enumeration;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
 
 import org.knime.base.data.filter.row.dialog.component.tree.TreePanelActions;
 import org.knime.base.data.filter.row.dialog.component.tree.model.TreeElement;
@@ -76,7 +76,7 @@ public final class NodeConverterHelper {
             final Node node = new Node(nodeView.getValue());
             if (nodeView instanceof TreeGroup) {
                 @SuppressWarnings("unchecked")
-                final Enumeration<MutableTreeNode> children = treeNode.children();
+                final Enumeration<TreeNode> children = treeNode.children();
                 while (children.hasMoreElements()) {
                     final DefaultMutableTreeNode next = (DefaultMutableTreeNode)children.nextElement();
                     node.addChild(convertToNode(next));

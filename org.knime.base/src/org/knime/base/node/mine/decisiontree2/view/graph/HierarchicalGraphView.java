@@ -73,6 +73,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 
 import org.knime.core.data.property.ColorAttr;
 import org.knime.core.node.util.ViewUtils;
@@ -513,10 +514,10 @@ public abstract class HierarchicalGraphView<K> {
         final Font origFont = g.getFont();
         g.setFont(origFont.deriveFont(origFont.getSize() * m_scale));
         g.setColor(ColorAttr.BORDER);
-        Enumeration<DefaultMutableTreeNode> breadthFirst =
+        Enumeration<TreeNode> breadthFirst =
             m_root.breadthFirstEnumeration();
         while (breadthFirst.hasMoreElements()) {
-            DefaultMutableTreeNode curr = breadthFirst.nextElement();
+            DefaultMutableTreeNode curr = (DefaultMutableTreeNode)breadthFirst.nextElement();
             K currK = (K)curr.getUserObject();
             if (!getVisible().containsKey(currK)) {
                 continue;
@@ -740,12 +741,12 @@ public abstract class HierarchicalGraphView<K> {
                 // collapse children
                 DefaultMutableTreeNode node = m_collapseSign.get(r);
                 K userObject = (K)node.getUserObject();
-                Enumeration<DefaultMutableTreeNode> enumeration =
+                Enumeration<TreeNode> enumeration =
                         node.breadthFirstEnumeration();
                 // skip starting node
                 enumeration.nextElement();
-                for (DefaultMutableTreeNode n : Collections.list(enumeration)) {
-                    K k = (K)n.getUserObject();
+                for (TreeNode n : Collections.list(enumeration)) {
+                    K k = (K)((DefaultMutableTreeNode)n).getUserObject();
                     if (getCollapsed().contains(k)) {
                         getCollapsed().remove(k);
                         getWidgets().remove(k);
@@ -756,7 +757,7 @@ public abstract class HierarchicalGraphView<K> {
                 }
                 layoutGraph();
                 // check if a node was selected in the collapsed subtree
-                List<Object> collapsedSubtree =
+                List<TreeNode> collapsedSubtree =
                         Collections.list(node.breadthFirstEnumeration());
                 for (Object o : collapsedSubtree) {
                     DefaultMutableTreeNode n = (DefaultMutableTreeNode)o;
@@ -781,12 +782,12 @@ public abstract class HierarchicalGraphView<K> {
                     K k = (K)child.getUserObject();
                     getCollapsed().add(k);
                 }
-                Enumeration<DefaultMutableTreeNode> enumeration =
+                Enumeration<TreeNode> enumeration =
                         node.breadthFirstEnumeration();
                 // skip starting node
                 enumeration.nextElement();
-                for (DefaultMutableTreeNode n : Collections.list(enumeration)) {
-                    K k = (K)n.getUserObject();
+                for (TreeNode n : Collections.list(enumeration)) {
+                    K k = (K)((DefaultMutableTreeNode)n).getUserObject();
                     if (getCollapsed().contains(k)) {
                         getVisible().put(k, new Rectangle());
                         getCollapsed().remove(k);
@@ -799,7 +800,7 @@ public abstract class HierarchicalGraphView<K> {
                 // get surrounding rectangle of the opened subtree
                 Rectangle p = getVisible().get(userObject);
                 Rectangle vis = new Rectangle(p);
-                List<Object> expandedSubtree =
+                List<TreeNode> expandedSubtree =
                         Collections.list(node.breadthFirstEnumeration());
                 for (Object o : expandedSubtree) {
                     DefaultMutableTreeNode n = (DefaultMutableTreeNode)o;
