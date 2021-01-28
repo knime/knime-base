@@ -3,10 +3,11 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Core NIO file systems that are always present
 Bundle-SymbolicName: org.knime.filehandling.core.fs;singleton:=true
 Bundle-Version: 4.4.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Require-Bundle: org.knime.filehandling.core;bundle-version="[4.2.0,5.0.0)",
  org.knime.core;bundle-version="[4.2.0,5.0.0)",
  org.eclipse.equinox.common;bundle-version="[3.0.0,4.0.0)"
+Automatic-Module-Name: org.knime.filehandling.core.fs

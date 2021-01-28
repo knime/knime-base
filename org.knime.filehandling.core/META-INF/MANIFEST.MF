@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Filehandling functionality for KNIME
 Bundle-SymbolicName: org.knime.filehandling.core;singleton:=true
 Bundle-Version: 4.4.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.connections.base,
  org.knime.filehandling.core.connections.base.attributes,
@@ -54,8 +54,10 @@ Require-Bundle: org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  org.knime.core;bundle-version="[4.3.0,5.0.0)",
  org.knime.core.ui;bundle-version="[4.1.0,5.0.0)",
  com.google.guava;bundle-version="[19.0.0,20.0.0)",
- org.apache.commons.httpclient;bundle-version="[3.1.0,4.0.0)"
+ org.apache.commons.httpclient;bundle-version="[3.1.0,4.0.0)",
+ javax.activation;bundle-version="[1.2.2,2.0.0)"
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.knime.filehandling.core.FSPluginActivator
 Bundle-ClassPath: .
+Automatic-Module-Name: org.knime.filehandling.core
