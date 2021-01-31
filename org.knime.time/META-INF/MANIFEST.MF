@@ -14,6 +14,7 @@ Export-Package: org.knime.base.data.filter.row.dialog,
   org.knime.core.data.time.localtime,
   org.knime.core.data.time.period,
   org.knime.core.data.time.zoneddatetime,
+  org.knime.core.data.v2.time,
   org.knime.time.util
 Require-Bundle: org.knime.base;bundle-version="[4.0.0,5.0.0)",
   org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
