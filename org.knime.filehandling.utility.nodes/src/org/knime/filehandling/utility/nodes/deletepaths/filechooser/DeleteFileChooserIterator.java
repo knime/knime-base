@@ -44,79 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 3, 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
+ *   01.03.2021 (lars.schweikardt): created
  */
-package org.knime.filehandling.utility.nodes.deletepaths;
+package org.knime.filehandling.utility.nodes.deletepaths.filechooser;
 
-import java.util.EnumSet;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesFolderIterator;
 
 /**
- * Configuration of the "Delete Files/Folders" node.
+ * A {@link DeleteFilesFolderIterator} based on the {@link SettingsModelReaderFileChooser}.
  *
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @author Lars Schweikardt, KNIME GmbH, Berlin, Germany
  */
-final class DeleteFilesAndFoldersNodeConfig {
+final class DeleteFileChooserIterator implements DeleteFilesFolderIterator {
 
-    private static final String CFG_FILE_CHOOSER = "file_chooser";
+    private final ReadPathAccessor m_accessor;
 
-    private static final String CFG_ABORT_IF_FAILS = "abort_if_delete_fails";
+    private final Iterator<FSPath> m_iterator;
 
-    private static final boolean DEFAULT_ABORT_IF_FAILS = true;
+    private final long m_size;
 
-    private final SettingsModelReaderFileChooser m_fileChooserSettings;
-
-    private boolean m_abortIfFails;
-
-    DeleteFilesAndFoldersNodeConfig(final PortsConfiguration portsConfiguration) {
-        m_fileChooserSettings = new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER, portsConfiguration,
-            DeleteFilesAndFoldersNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FILE,
-            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
-
-        m_fileChooserSettings.getFilterModeModel().setIncludeSubfolders(true);
-
-        m_abortIfFails = DEFAULT_ABORT_IF_FAILS;
+    DeleteFileChooserIterator(final SettingsModelReaderFileChooser settingsModelFileChooser,
+        final Consumer<StatusMessage> statusMessageConsumer) throws IOException, InvalidSettingsException {
+        m_accessor = settingsModelFileChooser.createReadPathAccessor();
+        try {
+            final List<FSPath> paths = m_accessor.getFSPaths(statusMessageConsumer);
+            m_size = paths.size();
+            m_iterator = paths.iterator();
+        } catch (IOException | InvalidSettingsException e) {
+            m_accessor.close();
+            throw e;
+        }
     }
 
-    boolean isAbortedIfFails() {
-        return m_abortIfFails;
+    @Override
+    public boolean hasNext() {
+        return m_iterator.hasNext();
     }
 
-    void setAbortIfFails(final boolean abortIfFails) {
-        m_abortIfFails = abortIfFails;
+    @Override
+    public FSPath next() {
+        return m_iterator.next();
     }
 
-    SettingsModelReaderFileChooser getFileChooserSettings() {
-        return m_fileChooserSettings;
+    @Override
+    public void close() throws IOException {
+        m_accessor.close();
     }
 
-    void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fileChooserSettings.loadSettingsFrom(settings);
-        m_abortIfFails = settings.getBoolean(CFG_ABORT_IF_FAILS, DEFAULT_ABORT_IF_FAILS);
-    }
-
-    void saveSettingsForModel(final NodeSettingsWO settings) {
-        m_fileChooserSettings.saveSettingsTo(settings);
-        settings.addBoolean(CFG_ABORT_IF_FAILS, m_abortIfFails);
-    }
-
-    void saveSettingsForDialog(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_ABORT_IF_FAILS, m_abortIfFails);
-    }
-
-    void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fileChooserSettings.validateSettings(settings);
-        settings.getBoolean(CFG_ABORT_IF_FAILS);
-    }
-
-    void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_abortIfFails = settings.getBoolean(CFG_ABORT_IF_FAILS, DEFAULT_ABORT_IF_FAILS);
+    @Override
+    public long size() {
+        return m_size;
     }
 }

@@ -196,17 +196,17 @@ public abstract class AbstractDeleteFilesAndFoldersNodeModel<C extends AbstractD
     private final void deletePaths(final PortObject[] inData, final ExecutionContext exec, final RowOutput rowOutput)
         throws IOException, InvalidSettingsException, CanceledExecutionException, InterruptedException {
 
-        try (final DeleteFilesFolderIterator deleteFileIterator = getDeleteFilesFolderIterator(inData)) {
+        try (final DeleteFilesFolderIterator deleteFileIterator = getDeleteFilesFolderIterator(inData);
+                final MultiSimpleFSLocationCellFactory locationFactory = new MultiSimpleFSLocationCellFactory()) {
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
             final long numberOfPaths = deleteFileIterator.size();
-            final MultiSimpleFSLocationCellFactory locationFactory = new MultiSimpleFSLocationCellFactory();
             long rec = 0;
 
             while (deleteFileIterator.hasNext()) {
                 final FSPath path = deleteFileIterator.next();
                 final boolean fileExists = FSFiles.exists(path);
                 final boolean isDeleted = deletePath(path);
-                final SimpleFSLocationCell locationCell = locationFactory.createCell(path.toFSLocation());
+                final SimpleFSLocationCell locationCell = locationFactory.createCell(exec, path.toFSLocation());
 
                 createRow(rowOutput, locationCell, isDeleted, fileExists, rec);
                 ++rec;
