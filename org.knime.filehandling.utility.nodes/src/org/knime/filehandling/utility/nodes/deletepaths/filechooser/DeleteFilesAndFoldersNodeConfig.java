@@ -46,7 +46,7 @@
  * History
  *   Aug 3, 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.utility.nodes.deletepaths;
+package org.knime.filehandling.utility.nodes.deletepaths.filechooser;
 
 import java.util.EnumSet;
 
@@ -58,67 +58,60 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.utility.nodes.deletepaths.AbstractDeleteFilesAndFoldersNodeConfig;
 
 /**
  * Configuration of the "Delete Files/Folders" node.
  *
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-final class DeleteFilesAndFoldersNodeConfig {
+final class DeleteFilesAndFoldersNodeConfig extends AbstractDeleteFilesAndFoldersNodeConfig {
 
     private static final String CFG_FILE_CHOOSER = "file_chooser";
 
-    private static final String CFG_ABORT_IF_FAILS = "abort_if_delete_fails";
-
-    private static final boolean DEFAULT_ABORT_IF_FAILS = true;
-
     private final SettingsModelReaderFileChooser m_fileChooserSettings;
 
-    private boolean m_abortIfFails;
-
+    /**
+     * Constructor.
+     *
+     * @param portsConfiguration the {@link PortsConfiguration}
+     */
     DeleteFilesAndFoldersNodeConfig(final PortsConfiguration portsConfiguration) {
+        super();
         m_fileChooserSettings = new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER, portsConfiguration,
-            DeleteFilesAndFoldersNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME,
+            AbstractDeleteFilesAndFoldersNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME,
             EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS),
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
 
         m_fileChooserSettings.getFilterModeModel().setIncludeSubfolders(true);
-
-        m_abortIfFails = DEFAULT_ABORT_IF_FAILS;
-    }
-
-    boolean isAbortedIfFails() {
-        return m_abortIfFails;
-    }
-
-    void setAbortIfFails(final boolean abortIfFails) {
-        m_abortIfFails = abortIfFails;
     }
 
     SettingsModelReaderFileChooser getFileChooserSettings() {
         return m_fileChooserSettings;
     }
 
-    void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    @Override
+    protected boolean isAbortIfFileNotExist() {
+        //Always returns true since the version of this node does not have this option
+        return true;
+    }
+
+    @Override
+    public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserSettings.loadSettingsFrom(settings);
-        m_abortIfFails = settings.getBoolean(CFG_ABORT_IF_FAILS, DEFAULT_ABORT_IF_FAILS);
+        super.loadSettingsForModel(settings);
     }
 
-    void saveSettingsForModel(final NodeSettingsWO settings) {
+    @Override
+    public void saveSettingsForModel(final NodeSettingsWO settings) {
         m_fileChooserSettings.saveSettingsTo(settings);
-        settings.addBoolean(CFG_ABORT_IF_FAILS, m_abortIfFails);
+        super.saveSettingsForModel(settings);
     }
 
-    void saveSettingsForDialog(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_ABORT_IF_FAILS, m_abortIfFails);
-    }
-
-    void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    @Override
+    public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserSettings.validateSettings(settings);
-        settings.getBoolean(CFG_ABORT_IF_FAILS);
-    }
-
-    void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_abortIfFails = settings.getBoolean(CFG_ABORT_IF_FAILS, DEFAULT_ABORT_IF_FAILS);
+        super.validateSettingsForModel(settings);
     }
 }

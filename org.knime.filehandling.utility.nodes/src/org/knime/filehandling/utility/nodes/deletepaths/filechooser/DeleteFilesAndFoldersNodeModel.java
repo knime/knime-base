@@ -1,6 +1,5 @@
 /*
  * ------------------------------------------------------------------------
- *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,51 +40,56 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
+ * ------------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Mar 1, 2021 (Lars Schweikardt, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.deletepaths.filechooser;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory;
-import org.knime.filehandling.utility.nodes.deletepaths.filechooser.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
+import org.knime.filehandling.utility.nodes.deletepaths.AbstractDeleteFilesAndFoldersNodeModel;
+import org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesFolderIterator;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
+ * Node model of the "Delete Files/Folders" node.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+final class DeleteFilesAndFoldersNodeModel
+    extends AbstractDeleteFilesAndFoldersNodeModel<DeleteFilesAndFoldersNodeConfig> {
 
-    @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.compress.CompressNodeFactory",
-            CompressFileChooserNodeFactory.class);
-        return map;
+    /**
+     * Constructor.
+     *
+     * @param portsConfig this nodes ports configuration
+     */
+    DeleteFilesAndFoldersNodeModel(final PortsConfiguration portsConfig) {
+        super(portsConfig, new DeleteFilesAndFoldersNodeConfig(portsConfig));
     }
 
+    @Override
+    protected void doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        getConfig().getFileChooserSettings().configureInModel(inSpecs, getStatusConsumer());
+    }
+
+    @Override
+    protected DeleteFilesFolderIterator getDeleteFilesFolderIterator(final PortObject[] inData)
+        throws IOException, InvalidSettingsException {
+        return new DeleteFileChooserIterator(getConfig().getFileChooserSettings(), getStatusConsumer());
+    }
+
+    @Override
+    protected FSLocationValueMetaData getFSLocationValueMetaData(final PortObjectSpec[] inSpecs) {
+        final FSLocation fsLocation = getConfig().getFileChooserSettings().getLocation();
+        return new FSLocationValueMetaData(fsLocation.getFileSystemCategory(),
+            fsLocation.getFileSystemSpecifier().orElse(null));
+    }
 }

@@ -45,7 +45,7 @@
  * History
  *   Aug 3, 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.utility.nodes.deletepaths;
+package org.knime.filehandling.utility.nodes.deletepaths.filechooser;
 
 import java.util.Optional;
 
@@ -55,6 +55,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.utility.nodes.deletepaths.AbstractDeleteFilesAndFoldersNodeConfig;
 
 /**
  * Node Factory of the "Delete Files/Folders" node.
@@ -63,15 +64,11 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  */
 public final class DeleteFilesAndFoldersNodeFactory extends ConfigurableNodeFactory<DeleteFilesAndFoldersNodeModel> {
 
-    static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
-
-    private static final String OUTPUT_PORT_GRP_NAME = "Output Port";
-
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         PortsConfigurationBuilder b = new PortsConfigurationBuilder();
-        b.addOptionalInputPortGroup(CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
-        b.addFixedOutputPortGroup(OUTPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
+        b.addOptionalInputPortGroup(AbstractDeleteFilesAndFoldersNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        b.addFixedOutputPortGroup(AbstractDeleteFilesAndFoldersNodeConfig.OUTPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
         return Optional.of(b);
     }
 

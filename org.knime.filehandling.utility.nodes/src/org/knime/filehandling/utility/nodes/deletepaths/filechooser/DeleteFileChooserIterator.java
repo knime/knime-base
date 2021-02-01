@@ -44,48 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   01.03.2021 (lars.schweikardt): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.deletepaths.filechooser;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory;
-import org.knime.filehandling.utility.nodes.deletepaths.filechooser.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesFolderIterator;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
+ * A {@link DeleteFilesFolderIterator} based on the {@link SettingsModelReaderFileChooser}.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Lars Schweikardt, KNIME GmbH, Berlin, Germany
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+final class DeleteFileChooserIterator implements DeleteFilesFolderIterator {
 
-    @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.compress.CompressNodeFactory",
-            CompressFileChooserNodeFactory.class);
-        return map;
+    private final ReadPathAccessor m_accessor;
+
+    private final Iterator<FSPath> m_iterator;
+
+    private final long m_size;
+
+    DeleteFileChooserIterator(final SettingsModelReaderFileChooser settingsModelFileChooser,
+        final Consumer<StatusMessage> statusMessageConsumer) throws IOException, InvalidSettingsException {
+        m_accessor = settingsModelFileChooser.createReadPathAccessor();
+        try {
+            final List<FSPath> paths = m_accessor.getFSPaths(statusMessageConsumer);
+            m_size = paths.size();
+            m_iterator = paths.iterator();
+        } catch (IOException | InvalidSettingsException e) {
+            m_accessor.close();
+            throw e;
+        }
     }
 
+    @Override
+    public boolean hasNext() {
+        return m_iterator.hasNext();
+    }
+
+    @Override
+    public FSPath next() {
+        return m_iterator.next();
+    }
+
+    @Override
+    public void close() throws IOException {
+        m_accessor.close();
+    }
+
+    @Override
+    public long size() {
+        return m_size;
+    }
 }
