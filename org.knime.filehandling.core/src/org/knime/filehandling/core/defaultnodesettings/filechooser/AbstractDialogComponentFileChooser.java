@@ -58,7 +58,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -72,7 +71,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
-import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
@@ -122,7 +120,8 @@ import org.knime.filehandling.core.util.GBCBuilder;
 public abstract class AbstractDialogComponentFileChooser<T extends AbstractSettingsModelFileChooser<T>>
     extends DialogComponent {
 
-    private static final String NOT_BROWSABLE_WARNING_TEMPLATE = "%s does not support listing/browsing of files.";
+    private static final String NOT_BROWSABLE_WARNING_TEMPLATE =
+        "%s does not support listing/browsing of files. You can enter the path in the text box below.";
 
     private final DialogType m_dialogType;
 
@@ -136,7 +135,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     private final StatusView m_statusView = new StatusView();
 
-    private final JLabel m_notBrowsableWarning = new JLabel("");
+    private final StatusView m_notBrowsableWarning = new StatusView(false);
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
@@ -221,15 +220,16 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
     private void layout(final boolean displayFilterModes) {
         final JPanel panel = getComponentPanel();
         panel.setLayout(new GridBagLayout());
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(1);
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal();
         panel.add(m_fsChooserLabel, gbc.setWeightX(0).setWidth(1).build());
         panel.add(m_fsChooser.getPanel(), gbc.incX().insetLeft(5).fillNone().build());
-        gbc.insetLeft(0);
+        gbc.fillHorizontal();
         if (displayFilterModes) {
             panel.add(m_modeLabel, gbc.incY().resetX().insetLeft(0).build());
-            panel.add(createModePanel(), gbc.incX().setWidth(2).build());
+            panel.add(createModePanel(), gbc.incX().setWeightX(1).widthRemainder().build());
         } else {
-            panel.add(m_notBrowsableWarning, gbc.resetX().incX().incY().insetLeft(11).build());
+            panel.add(m_notBrowsableWarning.getLabel(),
+                gbc.resetX().incX().incY().insetLeft(11).setWeightX(1).build());
         }
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
         panel.add(m_fileSelection.getPanel(),
@@ -245,8 +245,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(0);
         panel.add(m_filterMode.getComponentPanel(), gbc.incX().build());
         panel.add(m_filterMode.getFilterConfigPanel(), gbc.incX().insetLeft(20).build());
-        panel.add(m_notBrowsableWarning, gbc.incX().build());
-        panel.add(Box.createHorizontalBox(), gbc.fillHorizontal().insetLeft(0).setWeightX(1).build());
+        panel.add(m_notBrowsableWarning.getLabel(), gbc.incX().setWeightX(1).build());
         return panel;
     }
 
@@ -349,11 +348,11 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         final T sm = getSettingsModel();
         if (!sm.canListFiles()) {
             // only show the warning if we can connect to the file system (otherwise we don't know if we can browse)
-            m_notBrowsableWarning.setText(String.format(NOT_BROWSABLE_WARNING_TEMPLATE, sm.getFileSystemName()));
-            m_notBrowsableWarning.setIcon(SharedIcons.WARNING_YELLOW.get());
+            final StatusMessage msg =
+                DefaultStatusMessage.mkWarning(NOT_BROWSABLE_WARNING_TEMPLATE, sm.getFileSystemName());
+            m_notBrowsableWarning.setStatus(msg);
         } else {
-            m_notBrowsableWarning.setText("");
-            m_notBrowsableWarning.setIcon(null);
+            m_notBrowsableWarning.clearStatus();
         }
     }
 

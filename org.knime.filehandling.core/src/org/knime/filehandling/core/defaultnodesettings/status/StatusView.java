@@ -72,11 +72,20 @@ public final class StatusView {
     private StatusMessage m_statusMsg = null;
 
     /**
-     * Constructor.
+     * Constructor that reserves space for one line.
      *
      */
     public StatusView() {
-        m_statusLabel = new WordWrapJLabel(" ");
+        this(true);
+    }
+
+    /**
+     * Constructor that allows to specify whether space for one line should be reserved or not.
+     *
+     * @param reserveSpace set to {@code true} if space for one line should be reserved
+     */
+    public StatusView(final boolean reserveSpace) {
+        m_statusLabel = new WordWrapJLabel(reserveSpace ? " " : "", reserveSpace);
     }
 
     /**
@@ -123,7 +132,7 @@ public final class StatusView {
      */
     public void clearStatus() {
         m_statusMsg = null;
-        m_statusLabel.setText(" ");
+        m_statusLabel.setText(null);
         m_statusLabel.setIcon(null);
     }
 

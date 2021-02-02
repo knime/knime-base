@@ -72,6 +72,8 @@ public final class WordWrapJLabel extends JLabel {
 
     private static final String HTML_FORMAT = "<html><p>%s</p></html>";
 
+    private final String m_emptyPlaceholder;
+
     private JViewport m_viewport;
 
     private static final ComponentAdapter LISTENER = new ComponentAdapter() {
@@ -83,7 +85,8 @@ public final class WordWrapJLabel extends JLabel {
                 //set width to min size or the visible size of the viewport
                 final int width = Math.max(view.getMinimumSize().width, viewport.getExtentSize().width);
                 view.setPreferredSize(new Dimension(width, Integer.MAX_VALUE));
-                final int minWidth = Math.min(view.getLayout().preferredLayoutSize(view).width, view.getPreferredSize().width);
+                final int minWidth =
+                    Math.min(view.getLayout().preferredLayoutSize(view).width, view.getPreferredSize().width);
                 view.setPreferredSize(new Dimension(minWidth, view.getLayout().preferredLayoutSize(view).height));
                 view.revalidate();
             }
@@ -92,11 +95,23 @@ public final class WordWrapJLabel extends JLabel {
 
     /**
      * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+     * The returned label reserves space for one line.
      *
      * @param text the text to set
      */
     public WordWrapJLabel(final String text) {
+        this(text, true);
+    }
+
+    /**
+     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
+     *
+     * @param text the text to set
+     * @param reserveSpace {@code true} if space for one line should be reserved
+     */
+    public WordWrapJLabel(final String text, final boolean reserveSpace) {
         super(text);
+        m_emptyPlaceholder = reserveSpace ? " " : "";
         addHierarchyListener(new HierarchyListener() {
             private boolean m_notSet = true;
 
@@ -116,7 +131,7 @@ public final class WordWrapJLabel extends JLabel {
     @Override
     public void setText(final String text) {
         if (text == null || text.trim().isEmpty()) {
-            super.setText(" ");
+            super.setText(m_emptyPlaceholder);
         } else {
             super.setText(String.format(HTML_FORMAT, text));
         }
