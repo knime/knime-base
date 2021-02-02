@@ -72,7 +72,6 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
-import org.knime.filehandling.core.node.table.reader.config.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.paths.SourceSettings;
@@ -143,7 +142,8 @@ public class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> exten
         m_sourceSettings.configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         if (m_config.hasTableSpecConfig()) {
-            if (m_config.getTableSpecConfig().isConfiguredWith(m_config.getConfigID(), m_sourceSettings.getSourceIdentifier())) {
+            if (m_config.getTableSpecConfig().isConfiguredWith(m_config.getConfigID(),
+                m_sourceSettings.getSourceIdentifier())) {
                 return new PortObjectSpec[]{m_config.getTableSpecConfig().getDataTableSpec()};
             }
             setWarningMessage("The stored spec has not been created with the given file/path.");
@@ -156,8 +156,7 @@ public class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> exten
         try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
             final List<I> paths = getPaths(accessor);
             final SourceGroup<I> sourceGroup = new DefaultSourceGroup<>(m_sourceSettings.getSourceIdentifier(), paths);
-            return new PortObject[]{
-                m_tableReader.readTable(sourceGroup, m_config, exec)};
+            return new PortObject[]{m_tableReader.readTable(sourceGroup, m_config, exec)};
         }
     }
 
@@ -167,8 +166,7 @@ public class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> exten
         try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
             final List<I> items = getPaths(accessor);
             final SourceGroup<I> sourceGroup = new DefaultSourceGroup<>(m_sourceSettings.getSourceIdentifier(), items);
-            return new PortObjectSpec[]{
-                m_tableReader.createTableSpec(sourceGroup, m_config)};
+            return new PortObjectSpec[]{m_tableReader.createTableSpec(sourceGroup, m_config)};
         } catch (IOException ex) {
             throw new InvalidSettingsException(ex);
         }
@@ -184,7 +182,8 @@ public class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> exten
                 try (final GenericItemAccessor<I> accessor = m_sourceSettings.createItemAccessor()) {
                     final List<I> paths = getPaths(accessor);
                     final RowOutput output = (RowOutput)outputs[0];
-                    final SourceGroup<I> sourceGroup = new DefaultSourceGroup<>(m_sourceSettings.getSourceIdentifier(), paths);
+                    final SourceGroup<I> sourceGroup =
+                        new DefaultSourceGroup<>(m_sourceSettings.getSourceIdentifier(), paths);
                     m_tableReader.fillRowOutput(sourceGroup, m_config, output, exec);
                 }
             }

@@ -88,4 +88,5 @@ public interface IndexMapper {
      * @return the index of the row id or {@link OptionalInt#empty()}
      */
     OptionalInt getRowIDIdx();
+
 }

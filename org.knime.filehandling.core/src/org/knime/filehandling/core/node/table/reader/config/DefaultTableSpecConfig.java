@@ -59,12 +59,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
@@ -183,12 +181,6 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     @Override
     public TypedReaderTableSpec<T> getSpec(final String item) {
         return m_individualSpecs.get(item);
-    }
-
-    @Override
-    public ProductionPath[] getProductionPaths() {
-        return m_tableTransformation.stream().filter(ColumnTransformation::keep).sorted()
-            .map(ColumnTransformation::getProductionPath).toArray(ProductionPath[]::new);
     }
 
     @Override

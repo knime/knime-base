@@ -55,14 +55,14 @@ import org.knime.core.data.RowKey;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleDecorator;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
 import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 
 /**
- * Genric default implementation of {@link IndividualTableReader}.
+ * Generic default implementation of {@link IndividualTableReader}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
@@ -76,7 +76,7 @@ public final class DefaultIndividualTableReader<I, V> implements IndividualTable
 
     private final RowKeyGenerator<V> m_rowKeyGenerator;
 
-    private final IndexMappingRandomAccessibleDecorator<V> m_mapper;
+    private final RandomAccessibleDecorator<V> m_mapper;
 
     private final TypeMapper<V> m_typeMapper;
 
@@ -85,12 +85,12 @@ public final class DefaultIndividualTableReader<I, V> implements IndividualTable
      *
      * @param typeMapper maps from {@link RandomAccessible RandomAccessibles} to {@link DataRow DataRows} given a
      *            {@link RowKey}
-     * @param idxMapper represents the mapping from the global columns to the columns in the individual table
+     * @param indexMapper represents the mapping from the global columns to the columns in the individual table
      * @param rowKeyGenerator creates {@link RowKey RowKeys} from {@link RandomAccessible RandomAccessibles.}
      */
-    public DefaultIndividualTableReader(final TypeMapper<V> typeMapper, final IndexMapper idxMapper,
+    public DefaultIndividualTableReader(final TypeMapper<V> typeMapper, final RandomAccessibleDecorator<V> indexMapper,
         final RowKeyGenerator<V> rowKeyGenerator) {
-        m_mapper = new IndexMappingRandomAccessibleDecorator<>(idxMapper);
+        m_mapper = indexMapper;
         m_rowKeyGenerator = rowKeyGenerator;
         m_typeMapper = typeMapper;
     }

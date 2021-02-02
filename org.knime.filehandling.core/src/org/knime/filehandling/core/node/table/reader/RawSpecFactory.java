@@ -65,7 +65,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * Merges multiple {@link TypedReaderTableSpec TypedReaderTableSpecs} using {@link SpecMergeMode}.
+ * Utility class that creates a {@link RawSpec} from multiple {@link TypedReaderTableSpec specs}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> The type used to identify external data types

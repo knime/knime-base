@@ -50,16 +50,21 @@ package org.knime.filehandling.core.node.table.reader;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleDecorator;
 import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
 import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
@@ -89,31 +94,61 @@ public final class IndividualTableReaderFactory<I, T, V> {
 
     private final ProductionPath[] m_prodPaths;
 
+    private final EmptyCheckingRandomAccessibleDecoratorFactory<V> m_emptyCheckerFactory;
+
     private final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> m_typeMapperFactory;
 
     /**
      * Constructor.
+     *
      * @param specs the individual input specs
      * @param config {@link TableReadConfig}
-     * @param outputTransformations list of {@link ColumnTransformation}s
+     * @param tableTransformation the {@link TableTransformation}
      * @param typeMapperFactory type mapper factory
      * @param rowKeyGenContext GenericRowKeyGeneratorContextFactory
      *
      */
-    public IndividualTableReaderFactory(final Map<I, TypedReaderTableSpec<T>> specs,
-        final TableReadConfig<?> config, final List<ColumnTransformation<T>> outputTransformations,
+    public IndividualTableReaderFactory(final Map<I, TypedReaderTableSpec<T>> specs, final TableReadConfig<?> config,
+        final TableTransformation<T> tableTransformation,
         final BiFunction<ProductionPath[], FileStoreFactory, TypeMapper<V>> typeMapperFactory,
         final GenericRowKeyGeneratorContext<I, V> rowKeyGenContext) {
         m_specs = specs;
+        final List<ColumnTransformation<T>> outputTransformations =
+            TableTransformationUtils.getCandidates(tableTransformation)//
+                .filter(ColumnTransformation::keep)// remove columns filtered by user
+                .sorted()//
+                .collect(toList());
+        // must contain columns that are suspected to be empty, so we can check if they really are during execution
         m_indexMapperFactory = new IndexMapperFactory(outputTransformations.stream()//
             .map(ColumnTransformation::getExternalSpec)//
             .map(MultiTableUtils::getNameAfterInit)//
             .collect(toList()), config);
+        final boolean skipEmptyColumns = tableTransformation.skipEmptyColumns();
+        if (skipEmptyColumns
+            && outputTransformations.stream().anyMatch(IndividualTableReaderFactory::isColumnEmpty)) {
+            // we only need to do empty checking if there are columns suspected to be empty
+            m_emptyCheckerFactory = new EmptyCheckingRandomAccessibleDecoratorFactory<>(outputTransformations);
+        } else {
+            m_emptyCheckerFactory = null;
+        }
         m_rowKeyGenContext = rowKeyGenContext;
         m_typeMapperFactory = typeMapperFactory;
-        m_prodPaths = outputTransformations.stream()//
-            .map(ColumnTransformation::getProductionPath)//
-            .toArray(ProductionPath[]::new);
+        m_prodPaths = getRelevantProductionPaths(outputTransformations, skipEmptyColumns);
+    }
+
+    private ProductionPath[] getRelevantProductionPaths(final List<ColumnTransformation<T>> outputTransformations,
+        final boolean skipEmptyColumns) {
+        Stream<ColumnTransformation<T>> prodPathTransformations = outputTransformations.stream();
+        if (skipEmptyColumns) {
+            prodPathTransformations = prodPathTransformations.filter(c -> !isColumnEmpty(c));
+        }
+        return prodPathTransformations//
+                .map(ColumnTransformation::getProductionPath)//
+                .toArray(ProductionPath[]::new);
+    }
+
+    private static boolean isColumnEmpty(final ColumnTransformation<?> columnTransformation) {
+        return !columnTransformation.getExternalSpec().hasType();
     }
 
     /**
@@ -121,11 +156,50 @@ public final class IndividualTableReaderFactory<I, T, V> {
      * @param fsFactory {@link FileStoreFactory}
      * @return {@link IndividualTableReader}
      */
-    public IndividualTableReader<I, V> create(final I item, final FileStoreFactory fsFactory) {
-        final IndexMapper idxMapper = m_indexMapperFactory.createIndexMapper(m_specs.get(item));
+    public DefaultIndividualTableReader<I, V> create(final I item, final FileStoreFactory fsFactory) {
+        final RandomAccessibleDecorator<V> idxMapper = createIndexMapper(m_specs.get(item));
         final RowKeyGenerator<V> rowKeyGen = m_rowKeyGenContext.createKeyGenerator(item);
         final TypeMapper<V> typeMapper = m_typeMapperFactory.apply(m_prodPaths, fsFactory);
         return new DefaultIndividualTableReader<>(typeMapper, idxMapper, rowKeyGen);
+    }
+
+    private RandomAccessibleDecorator<V> createIndexMapper(final TypedReaderTableSpec<T> spec) {
+        final IndexMapper idxMapper = m_indexMapperFactory.createIndexMapper(spec);
+        final IndexMappingRandomAccessibleDecorator<V> idxMappingDecorator =
+            new IndexMappingRandomAccessibleDecorator<>(idxMapper);
+        if (m_emptyCheckerFactory == null) {
+            return idxMappingDecorator;
+        }
+        final EmptyCheckingRandomAccessibleDecorator<V> emptyCheckingDecorator = m_emptyCheckerFactory.create();
+        return idxMappingDecorator.andThen(emptyCheckingDecorator);
+    }
+
+    private static class EmptyCheckingRandomAccessibleDecoratorFactory<V> {
+
+        private final int[] m_emptyColumnPositions;
+
+        private final String[] m_emptyColumnNames;
+
+        <T> EmptyCheckingRandomAccessibleDecoratorFactory(final Iterable<ColumnTransformation<T>> transformations) {
+            int i = 0;
+            final List<String> emptyColumnNames = new ArrayList<>();
+            final List<Integer> emptyColumnPositions = new ArrayList<>();
+            for (ColumnTransformation<?> t : transformations) {
+                if (isColumnEmpty(t)) {
+                    emptyColumnNames.add(t.getOriginalName());
+                    emptyColumnPositions.add(i);
+                }
+                i++;
+            }
+            m_emptyColumnNames = emptyColumnNames.toArray(new String[0]);
+            m_emptyColumnPositions = emptyColumnPositions.stream()//
+                .mapToInt(Integer::intValue)//
+                .toArray();
+        }
+
+        EmptyCheckingRandomAccessibleDecorator<V> create() {
+            return new EmptyCheckingRandomAccessibleDecorator<>(m_emptyColumnPositions, m_emptyColumnNames);
+        }
     }
 
 }

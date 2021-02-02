@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.node.table.reader.config;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.a;
@@ -186,11 +185,6 @@ public class DefaultTableSpecConfigSerializerTest {
         assertEquals(outputSpec, loadedDataTableSpec);
         assertNotEquals(new DataTableSpec(new DataColumnSpecCreator("Blub", IntCell.TYPE).createSpec()),
             loadedDataTableSpec);
-
-        // test production paths
-        assertArrayEquals(prodPaths, load.getProductionPaths());
-        prodPaths[0] = prodPaths[1];
-        assertNotEquals(prodPaths, load.getProductionPaths());
 
         // tests paths
         assertEquals(asList(ITEMS), load.getItems());

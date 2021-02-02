@@ -44,55 +44,88 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 28, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.knime.filehandling.core.node.table.reader.EmptyCheckingRandomAccessibleDecorator.NotEmptyException;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleDecorator;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Performs mapping between indices and pads {@link RandomAccessible RandomAccessibles} if necessary i.e. if an
- * underlying {@link RandomAccessible} does not contain an index.
+ * Contains unit tests for EmptyCheckingRandomAccessibleDecorator.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class IndexMappingRandomAccessibleDecorator<V> extends AbstractRandomAccessible<V>
-    implements RandomAccessibleDecorator<V> {
+@RunWith(MockitoJUnitRunner.class)
+public class EmptyCheckingRandomAccessibleDecoratorTest {
 
-    private final IndexMapper m_idxMapper;
+    @Mock
+    private RandomAccessible<String> m_decoratee;
 
-    private final int m_size;
+    private EmptyCheckingRandomAccessibleDecorator<String> m_testInstance;
 
-    private RandomAccessible<V> m_decoratee;
-
-    IndexMappingRandomAccessibleDecorator(final IndexMapper idxMapper) {
-        m_idxMapper = idxMapper;
-        // + 1 because the indices are zero based
-        m_size = 1 + idxMapper.getIndexRangeEnd()
-            .orElseThrow(() -> new IllegalArgumentException("The index mapper must have an end index."));
+    /**
+     * Initializes the test instance.
+     */
+    @Before
+    public void init() {
+        m_testInstance = new EmptyCheckingRandomAccessibleDecorator<>(new int[] {0, 2, 3}, new String[]{"A", "C", "D"});
     }
 
-    @Override
-    public void set(final RandomAccessible<V> decoratee) {
-        m_decoratee = decoratee;
+    /**
+     * Tests if non-null values in supposedly empty columns are detected.
+     */
+    @Test (expected = NotEmptyException.class)
+    public void testNonEmptyAreDetected() {
+        stubDecoratee("foo", "bar", "baz", "bum");
+        m_testInstance.set(m_decoratee);
     }
 
-    @Override
-    public int size() {
-        return m_size;
-    }
-
-    @Override
-    public V get(final int idx) {
-        if (m_idxMapper.hasMapping(idx)) {
-            final int mappedIdx = m_idxMapper.map(idx);
-            return m_decoratee.size() > mappedIdx ? m_decoratee.get(mappedIdx) : null;
-        } else {
-            return null;
+    private void stubDecoratee(final String ...values) {
+        for (int i = 0; i < values.length; i++) {
+            when(m_decoratee.get(i)).thenReturn(values[i]);
         }
     }
 
+    /**
+     * Tests if the get method performs filtering properly.
+     */
+    @Test
+    public void testGet() {
+        stubDecoratee(null, "foo", null, null, "baz");
+        m_testInstance.set(m_decoratee);
+        assertEquals("foo", m_testInstance.get(0));
+        assertEquals("baz", m_testInstance.get(1));
+    }
+
+    /**
+     * Test the get method in case no columns are empty.
+     */
+    @Test
+    public void testGetNoEmpty() {
+        EmptyCheckingRandomAccessibleDecorator<String> ra = new EmptyCheckingRandomAccessibleDecorator<>(new int[0], new String[0]);
+        stubDecoratee("foo", "bar", "baz");
+        ra.set(m_decoratee);
+        assertEquals("foo", ra.get(0));
+        assertEquals("bar", ra.get(1));
+        assertEquals("baz", ra.get(2));
+    }
+
+    /**
+     * Tests if the size method returns the correct size.
+     */
+    @Test
+    public void testSize() {
+        when(m_decoratee.size()).thenReturn(4);
+        m_testInstance.set(m_decoratee);
+        assertEquals(1, m_testInstance.size());
+    }
 }

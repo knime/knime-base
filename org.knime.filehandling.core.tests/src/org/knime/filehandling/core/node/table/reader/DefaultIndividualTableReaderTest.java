@@ -54,7 +54,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
-import java.util.OptionalInt;
 import java.util.OptionalLong;
 
 import org.junit.Before;
@@ -65,10 +64,10 @@ import org.knime.core.data.RowKey;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleDecorator;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -85,7 +84,7 @@ public class DefaultIndividualTableReaderTest {
     private TypeMapper<String> m_typeMapper = null;
 
     @Mock
-    private IndexMapper m_idxMapper = null;
+    private RandomAccessibleDecorator<String> m_idxMapper = null;
 
     @Mock
     private RowKeyGenerator<String> m_rowKeyGenerator = null;
@@ -118,7 +117,6 @@ public class DefaultIndividualTableReaderTest {
     @SuppressWarnings("unchecked")
     @Before
     public void init() throws Exception {
-        when(m_idxMapper.getIndexRangeEnd()).thenReturn(OptionalInt.of(1));
         m_testInstance = new DefaultIndividualTableReader<>(m_typeMapper, m_idxMapper, m_rowKeyGenerator);
         RowKey firstKey = RowKey.createRowKey(0L);
         RowKey secondKey = RowKey.createRowKey(1L);

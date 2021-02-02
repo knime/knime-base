@@ -102,7 +102,6 @@ public abstract class ReadAdapter<T, V> implements Source<T> {
      * @return the value identified by params
      */
     public final V get(final ReadAdapterParams<?, ?> params) {
-//        CheckUtils.checkState(m_current != null, "Coding error: No row set.");
         return m_current.get(params.getIdx());
     }
 

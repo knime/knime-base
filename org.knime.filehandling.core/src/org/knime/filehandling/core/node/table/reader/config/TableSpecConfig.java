@@ -51,8 +51,6 @@ package org.knime.filehandling.core.node.table.reader.config;
 import java.util.List;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
@@ -124,14 +122,6 @@ public interface TableSpecConfig<T> {
      * @return the associated {@link ReaderTableSpec}
      */
     TypedReaderTableSpec<T> getSpec(String item);//NOSONAR
-
-    /**
-     * Returns the {@link ProductionPath ProductionPaths} used to map the individual columns to their corresponding
-     * {@link DataType DataTypes}.
-     *
-     * @return the {@link ProductionPath ProductionPaths} used for the type mapping
-     */
-    ProductionPath[] getProductionPaths();
 
     /**
      * Returns the configured {@link ColumnFilterMode}.

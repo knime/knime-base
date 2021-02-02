@@ -326,13 +326,6 @@ public class DefaultTableSpecConfigTest {
         assertEquals(m_individualSpecs.get(PATH2), tsc.getSpec("second"));
     }
 
-    @Test
-    public void testGetProductionPaths() {
-        final TableSpecConfig<String> tsc = builder().withKeep(true, false, true).withPositions(2, 0, 1).build();
-        final ProductionPath[] expected = getProductionPaths(a("Z", "X"), a(DoubleCell.TYPE, StringCell.TYPE));
-        assertArrayEquals(expected, tsc.getProductionPaths());
-    }
-
     /**
      * Tests the equals and hashCode implementations.
      */

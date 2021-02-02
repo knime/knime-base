@@ -57,9 +57,9 @@ import java.util.function.Supplier;
 
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.filehandling.core.node.table.reader.config.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
@@ -174,7 +174,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
         createIndividualTableReaderFactory(final TableTransformation<T> transformationModel) {
         final TableReadConfig<C> tableReadConfig = m_config.getTableReadConfig();
         return new IndividualTableReaderFactory<>(m_individualSpecs, tableReadConfig,
-            TableTransformationUtils.getOutputTransformations(transformationModel), this::createTypeMapper,
+            transformationModel, this::createTypeMapper,
             m_rowKeyGenFactory.createContext(tableReadConfig));
     }
 

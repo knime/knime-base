@@ -57,8 +57,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -101,10 +99,20 @@ public final class TableTransformationUtils {
                 .toArray(DataColumnSpec[]::new));
     }
 
-    private static <T> TypedReaderTableSpec<T> getCandidates(final TableTransformation<T> transformationModel) {
-        final RawSpec<T> rawSpec = transformationModel.getRawSpec();
+    /**
+     * Returns the {@link ColumnTransformation} of the columns that are candidate for the output.<br>
+     * Whether a column is a candidate depends on the {@link ColumnFilterMode}. If a column is only in the union of all
+     * input tables, and {@link TableTransformation#getColumnFilterMode()} returns {@link ColumnFilterMode#INTERSECTION}
+     * then this column is not a candidate and consequently not part of the output stream.
+     *
+     * @param <T> the type used to identify external data types
+     * @param tableTransformation the {@link TableTransformation} from which to get the candidates.
+     * @return the {@link ColumnTransformation candidates} for the output
+     */
+    public static <T> Stream<ColumnTransformation<T>> getCandidates(final TableTransformation<T> tableTransformation) {
+        final RawSpec<T> rawSpec = tableTransformation.getRawSpec();
         final TypedReaderTableSpec<T> candidates;
-        switch (transformationModel.getColumnFilterMode()) {
+        switch (tableTransformation.getColumnFilterMode()) {
             case INTERSECTION:
                 candidates = rawSpec.getIntersection();
                 break;
@@ -113,28 +121,11 @@ public final class TableTransformationUtils {
                 break;
             default:
                 throw new IllegalArgumentException(
-                    "Unsupported ColumnFilterMode: " + transformationModel.getColumnFilterMode());
+                    "Unsupported ColumnFilterMode: " + tableTransformation.getColumnFilterMode());
         }
-        if (transformationModel.skipEmptyColumns()) {
-            return new TypedReaderTableSpec<>(
-                candidates.stream().filter(TypedReaderColumnSpec::hasType).collect(toList()));
-        }
-        return candidates;
+        return candidates.stream().map(tableTransformation::getTransformation);
     }
 
-    /**
-     * Extracts the relevant {@link ProductionPath ProductionPaths} from the provided {@link TableTransformation} and
-     * returns them in order of the output.
-     *
-     * @param <T> the type used to identify external data types
-     * @param transformationModel specifying the output {@link ProductionPath ProductionPaths}
-     * @return the {@link ProductionPath ProductionPaths} in output order
-     */
-    public static <T> ProductionPath[] getOutputProductionPaths(final TableTransformation<T> transformationModel) {
-        return getOutputTransformationStream(transformationModel)//
-            .map(ColumnTransformation::getProductionPath)//
-            .toArray(ProductionPath[]::new);
-    }
 
     private static DataColumnSpec toDataColumnSpec(final ColumnTransformation<?> transformation) {
         final DataType type = transformation.getProductionPath().getConverterFactory().getDestinationType();
@@ -143,23 +134,11 @@ public final class TableTransformationUtils {
 
     private static <T> Stream<ColumnTransformation<T>>
         getOutputTransformationStream(final TableTransformation<T> transformationModel) {
-        return getCandidates(transformationModel).stream()//
-            .map(transformationModel::getTransformation)//
-            .filter(ColumnTransformation::keep)//
-            .sorted();
-    }
-
-    /**
-     * Retrieves the original names of the columns in the output in output order.
-     *
-     * @param <T> the type used to identify external data types
-     * @param transformationModel from which to extract the original names
-     * @return the original names of the columns in the output in output order
-     */
-    public static <T> List<String> getOriginalOutputNames(final TableTransformation<T> transformationModel) {
-        return getOutputTransformationStream(transformationModel)//
-            .map(ColumnTransformation::getOriginalName)//
-            .collect(toList());
+        Stream<ColumnTransformation<T>> stream = getCandidates(transformationModel).filter(ColumnTransformation::keep);
+        if (transformationModel.skipEmptyColumns()) {
+            stream = stream.filter(c -> c.getExternalSpec().hasType());
+        }
+        return stream.sorted();
     }
 
 }

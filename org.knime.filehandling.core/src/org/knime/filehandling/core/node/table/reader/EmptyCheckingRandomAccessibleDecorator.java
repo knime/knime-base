@@ -44,54 +44,108 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 28, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.OptionalInt;
 
 import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleDecorator;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
 
 /**
- * Performs mapping between indices and pads {@link RandomAccessible RandomAccessibles} if necessary i.e. if an
- * underlying {@link RandomAccessible} does not contain an index.
+ * A {@link RandomAccessible} that verifies that columns determined to be empty are actually empty and filters them out.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class IndexMappingRandomAccessibleDecorator<V> extends AbstractRandomAccessible<V>
+final class EmptyCheckingRandomAccessibleDecorator<V> extends AbstractRandomAccessible<V>
     implements RandomAccessibleDecorator<V> {
 
-    private final IndexMapper m_idxMapper;
+    private final int[] m_offsets;
 
-    private final int m_size;
+    private final int[] m_emptyPositions;
+
+    private final String[] m_emptyColumnNames;
+
+    private final int m_numFiltered;
 
     private RandomAccessible<V> m_decoratee;
 
-    IndexMappingRandomAccessibleDecorator(final IndexMapper idxMapper) {
-        m_idxMapper = idxMapper;
-        // + 1 because the indices are zero based
-        m_size = 1 + idxMapper.getIndexRangeEnd()
-            .orElseThrow(() -> new IllegalArgumentException("The index mapper must have an end index."));
+    EmptyCheckingRandomAccessibleDecorator(final int[] emptyColumnPositions, final String[] emptyColumnNames) {
+        m_emptyPositions = emptyColumnPositions;
+        m_emptyColumnNames = emptyColumnNames;
+        final OptionalInt largestEmptyPosition = Arrays.stream(emptyColumnPositions)//
+            .max();
+        if (largestEmptyPosition.isPresent()) {
+            m_offsets = calculateOffsets(m_emptyPositions, largestEmptyPosition.getAsInt());
+        } else {
+            // the offset for all positions is 0
+            m_offsets = new int[]{0};
+        }
+        m_numFiltered = m_emptyPositions.length;
+    }
+
+    private static int[] calculateOffsets(final int[] emptyPositions, final int largestEmptyPosition) {
+        final int maxPos = largestEmptyPosition + 1;
+        final List<Integer> offsetList = new ArrayList<>();
+        int cummulativeOffset = 0;
+        for (int i = 0; i < maxPos; i++) {
+            if (i == emptyPositions[cummulativeOffset]) {
+                cummulativeOffset++;
+            } else {
+                offsetList.add(cummulativeOffset);
+            }
+        }
+        offsetList.add(cummulativeOffset);
+        return offsetList.stream().mapToInt(Integer::intValue).toArray();
     }
 
     @Override
     public void set(final RandomAccessible<V> decoratee) {
+        checkEmpty(decoratee);
         m_decoratee = decoratee;
+    }
+
+    void checkEmpty(final RandomAccessible<?> randomAccessible) {
+        for (int i = 0; i < m_emptyPositions.length; i++) {
+            if (randomAccessible.get(m_emptyPositions[i]) != null) {
+                throw new NotEmptyException(
+                    String.format("The column '%s' was falsely considered to be empty and filtered. "
+                        + "Disable the 'Skip empty columns' option "
+                        + "or increase the number of rows used to calculate the spec.", m_emptyColumnNames[i]));
+            }
+        }
     }
 
     @Override
     public int size() {
-        return m_size;
+        return m_decoratee.size() - m_numFiltered;
     }
 
     @Override
     public V get(final int idx) {
-        if (m_idxMapper.hasMapping(idx)) {
-            final int mappedIdx = m_idxMapper.map(idx);
-            return m_decoratee.size() > mappedIdx ? m_decoratee.get(mappedIdx) : null;
+        return m_decoratee.get(map(idx));
+    }
+
+    private int map(final int idx) {
+        if (idx < m_offsets.length) {
+            return idx + m_offsets[idx];
         } else {
-            return null;
+            // m_offsets contains at least one offset see calculateOffsets
+            return idx + m_offsets[m_offsets.length - 1];
+        }
+    }
+
+    static class NotEmptyException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        public NotEmptyException(final String msg) {
+            super(msg);
         }
     }
 

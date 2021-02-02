@@ -85,6 +85,9 @@ public abstract class AbstractTableReadConfig<C extends ReaderSpecificConfig<C>>
      */
     protected boolean m_useRowIDIdx = false;
 
+    /**
+     * Prefix for generated row ids.
+     */
     protected String m_prefixForGeneratedRowIds = "Row";
 
     /**

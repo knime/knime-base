@@ -44,55 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 29, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
-
-import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleDecorator;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
+package org.knime.filehandling.core.node.table.reader.randomaccess;
 
 /**
- * Performs mapping between indices and pads {@link RandomAccessible RandomAccessibles} if necessary i.e. if an
- * underlying {@link RandomAccessible} does not contain an index.
+ * Interface for decorators operating on {@link RandomAccessible RandomAccessibles}. An example could be a decorator
+ * that reorders or filters the values in the decorated RandomAccessible.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <V> the type of value held by the RandomAccessible
  */
-final class IndexMappingRandomAccessibleDecorator<V> extends AbstractRandomAccessible<V>
-    implements RandomAccessibleDecorator<V> {
+public interface RandomAccessibleDecorator<V> extends RandomAccessible<V> {
 
-    private final IndexMapper m_idxMapper;
+    /**
+     * Sets the decorated {@link RandomAccessible}.
+     *
+     * @param decoratee {@link RandomAccessible} to decorate
+     */
+    void set(final RandomAccessible<V> decoratee);
 
-    private final int m_size;
-
-    private RandomAccessible<V> m_decoratee;
-
-    IndexMappingRandomAccessibleDecorator(final IndexMapper idxMapper) {
-        m_idxMapper = idxMapper;
-        // + 1 because the indices are zero based
-        m_size = 1 + idxMapper.getIndexRangeEnd()
-            .orElseThrow(() -> new IllegalArgumentException("The index mapper must have an end index."));
-    }
-
-    @Override
-    public void set(final RandomAccessible<V> decoratee) {
-        m_decoratee = decoratee;
-    }
-
-    @Override
-    public int size() {
-        return m_size;
-    }
-
-    @Override
-    public V get(final int idx) {
-        if (m_idxMapper.hasMapping(idx)) {
-            final int mappedIdx = m_idxMapper.map(idx);
-            return m_decoratee.size() > mappedIdx ? m_decoratee.get(mappedIdx) : null;
-        } else {
-            return null;
-        }
+    /**
+     * Creates a {@link RandomAccessibleDecorator} that first applies this decorator and then the decorator provided as
+     * argument.
+     *
+     * @param decorator the decorator to apply after this one
+     * @return a decorator that applies first this decorator and then the decorator provided as input
+     */
+    default RandomAccessibleDecorator<V> andThen(final RandomAccessibleDecorator<V> decorator) {
+        return new ChainedRandomAccessibleDecorator<>(this, decorator);
     }
 
 }

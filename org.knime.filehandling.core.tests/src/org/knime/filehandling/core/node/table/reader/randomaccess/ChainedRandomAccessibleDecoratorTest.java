@@ -44,55 +44,88 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 29, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.filehandling.core.node.table.reader.randomaccess;
 
-import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleDecorator;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapper;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * Performs mapping between indices and pads {@link RandomAccessible RandomAccessibles} if necessary i.e. if an
- * underlying {@link RandomAccessible} does not contain an index.
+ * Contains unit tests for ChainedRandomAccessibleDecorator.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class IndexMappingRandomAccessibleDecorator<V> extends AbstractRandomAccessible<V>
-    implements RandomAccessibleDecorator<V> {
+@RunWith(MockitoJUnitRunner.class)
+public class ChainedRandomAccessibleDecoratorTest {
 
-    private final IndexMapper m_idxMapper;
+    @Mock
+    private RandomAccessibleDecorator<String> m_dec1;
 
-    private final int m_size;
+    @Mock
+    private RandomAccessibleDecorator<String> m_dec2;
 
-    private RandomAccessible<V> m_decoratee;
+    @Mock
+    private RandomAccessible<String> m_decoratee;
 
-    IndexMappingRandomAccessibleDecorator(final IndexMapper idxMapper) {
-        m_idxMapper = idxMapper;
-        // + 1 because the indices are zero based
-        m_size = 1 + idxMapper.getIndexRangeEnd()
-            .orElseThrow(() -> new IllegalArgumentException("The index mapper must have an end index."));
+    private ChainedRandomAccessibleDecorator<String> m_chain;
+
+    /**
+     * Initializes the chain.
+     */
+    @Before
+    public void init() {
+        m_chain = new ChainedRandomAccessibleDecorator<>(m_dec1, m_dec2);
     }
 
-    @Override
-    public void set(final RandomAccessible<V> decoratee) {
-        m_decoratee = decoratee;
+    /**
+     * Verifies that the {@link RandomAccessibleDecorator#set(RandomAccessible)} method is propagated through the chain
+     * lazily (i.e. not during executor) and on each invocation of {@code set}.
+     */
+    @Test
+    public void testSet() {
+        verify(m_dec1, never()).set(any());
+        verify(m_dec2, never()).set(any());
+        m_chain.set(m_decoratee);
+        verify(m_dec1).set(m_decoratee);
+        verify(m_dec2).set(m_dec1);
+        m_chain.set(m_decoratee);
+        verify(m_dec1, times(2)).set(m_decoratee);
+        verify(m_dec2, times(2)).set(m_dec1);
     }
 
-    @Override
-    public int size() {
-        return m_size;
+    /**
+     * Tests that size is called on the end of the chain.
+     */
+    @Test
+    public void testSize() {
+        when(m_dec2.size()).thenReturn(3);
+        assertEquals(3, m_chain.size());
+        // in case of real (properly implemented) decorators, the call would be propagated through the chain
+        verify(m_dec1, never()).size();
     }
 
-    @Override
-    public V get(final int idx) {
-        if (m_idxMapper.hasMapping(idx)) {
-            final int mappedIdx = m_idxMapper.map(idx);
-            return m_decoratee.size() > mappedIdx ? m_decoratee.get(mappedIdx) : null;
-        } else {
-            return null;
-        }
+    /**
+     * Tests that get is only called on the end of the chain.
+     */
+    @Test
+    public void testGet() {
+        when(m_dec2.get(2)).thenReturn("foo");
+        assertEquals("foo", m_chain.get(2));
+        // in case of real (properly implemented) decorators, the call would be propagated through the chain
+        verify(m_dec1, never()).get(anyInt());
+        verify(m_dec2, times(1)).get(2);
     }
 
 }
