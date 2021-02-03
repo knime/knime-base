@@ -212,7 +212,8 @@ final class LineRead implements Read<Path, String> {
         try {
             m_reader.close();
         } catch (IOException e) {
-            LOGGER.error(e);
+            LOGGER.error("Something went wrong while closing the BufferedReader. "
+                + "For further details please have a look into the log.", e);
         }
         m_compressionAwareStream.close();
     }

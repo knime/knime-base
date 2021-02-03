@@ -74,6 +74,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
@@ -85,6 +86,8 @@ import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
  * @noreference non-public API
  */
 public final class FSFiles {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(FSFiles.class);
 
     private FSFiles() {
     }
@@ -295,11 +298,12 @@ public final class FSFiles {
         try {
             Files.readAttributes(path, BasicFileAttributes.class, linkOptions);
             return true;
-        } catch (AccessDeniedException ade) { // NOSONAR
+        } catch (AccessDeniedException ade) {
             final AccessDeniedException rephrased = ExceptionUtil.createAccessDeniedException(path);
             rephrased.initCause(ade);
             throw rephrased;
-        } catch (IOException ex) { // NOSONAR
+        } catch (IOException ex) {
+            LOGGER.debug(String.format("An IOException occurred while accessing the attributes of %s.", path), ex);
             return false;
         }
     }
@@ -318,9 +322,12 @@ public final class FSFiles {
     public static boolean isDirectory(final Path path, final LinkOption... linkOptions) throws AccessDeniedException {
         try {
             return Files.readAttributes(path, BasicFileAttributes.class, linkOptions).isDirectory();
-        } catch (AccessDeniedException ade) { // NOSONAR
-            throw ExceptionUtil.createAccessDeniedException(path);
-        } catch (IOException ex) {// NOSONAR
+        } catch (AccessDeniedException ade) {
+            final AccessDeniedException accessDeniedExp = ExceptionUtil.createAccessDeniedException(path);
+            accessDeniedExp.initCause(ade);
+            throw accessDeniedExp;
+        } catch (IOException ex) {
+            LOGGER.debug(String.format("An IOException occurred while accessing the attributes of %s.", path), ex);
             return false;
         }
     }
@@ -397,7 +404,7 @@ public final class FSFiles {
 
         Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs){
                 paths.add((FSPath)file);
                 return FileVisitResult.CONTINUE;
             }
@@ -430,7 +437,7 @@ public final class FSFiles {
             }
 
             @Override
-            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs){
                 paths.add((FSPath)file);
                 return FileVisitResult.CONTINUE;
             }

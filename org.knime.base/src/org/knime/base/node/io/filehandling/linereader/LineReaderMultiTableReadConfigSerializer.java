@@ -211,8 +211,7 @@ enum LineReaderMultiTableReadConfigSerializer
     }
 
     @Override
-    public void saveInDialog(final LineMultiTableReadConfig config, final NodeSettingsWO settings)
-        throws InvalidSettingsException {
+    public void saveInDialog(final LineMultiTableReadConfig config, final NodeSettingsWO settings) {
         saveInModel(config, settings);
     }
 

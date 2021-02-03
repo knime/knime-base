@@ -83,7 +83,7 @@ final class LineReader2 implements TableReader<LineReaderConfig2, Class<?>, Stri
         final String colName = config.useColumnHeaderIdx() ? getFirstLine(path, config)
             : config.getReaderSpecificConfig().getColumnHeaderName();
         return TypedReaderTableSpec.create(Collections.singleton(colName), Collections.singleton(String.class),
-            Collections.singleton(true));
+            Collections.singleton(Boolean.TRUE));
     }
 
     /**

@@ -114,7 +114,7 @@ public final class CompressionAwareCountingInputStream extends InputStream {
             try {
                 m_inputStream = FileCompressionUtils.createDecompressedStream(m_countingStream);
             } catch (ZipException e) {
-                LOGGER.debug(e);
+                LOGGER.debug("A ZIPException occurred while creating the the InputStream.", e);
                 m_countingStream.close();
                 m_countingStream = new CountingInputStream(Files.newInputStream(path));
                 m_inputStream = m_countingStream;
