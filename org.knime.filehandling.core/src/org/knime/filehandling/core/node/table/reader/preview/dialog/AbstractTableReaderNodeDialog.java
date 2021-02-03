@@ -102,18 +102,16 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      * @param productionPathProvider provides the default production paths for every external type
      * @param allowsMultipleFiles whether the reader supports reading tables from multiple files at once
      */
-    @SuppressWarnings("unchecked")
     public AbstractTableReaderNodeDialog(final MultiTableReadFactory<I, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
         m_previewModel = previewModel;
         final TableTransformationTableModel<T> transformationModel =
-            new TableTransformationTableModel<>(productionPathProvider::getDefaultProductionPath);
+            new TableTransformationTableModel<>(productionPathProvider);
         m_coordinator = new TableReaderPreviewTransformationCoordinator<>(readFactory, transformationModel,
             analysisComponentModel, previewModel, this::getConfig, this::createItemAccessor);
-        m_specTransformer = new TableTransformationPanel(transformationModel,
-            t -> productionPathProvider.getAvailableProductionPaths((T)t), allowsMultipleFiles);
+        m_specTransformer = new TableTransformationPanel(transformationModel, allowsMultipleFiles);
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
     }
 

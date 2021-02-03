@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -81,6 +80,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
@@ -137,7 +137,8 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
 
         };
 
-    private final transient Function<T, ProductionPath> m_defaultProductionPathFn;
+
+    private final transient ProductionPathProvider<T> m_productionPathProvider;
 
     private final transient Map<TypedReaderColumnSpec<T>, MutableColumnTransformation<T>> m_bySpec = new HashMap<>();
 
@@ -173,10 +174,10 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     /**
      * Constructor.
      *
-     * @param defaultProductionPathFn provides default {@link ProductionPath ProductionPaths} for external types.
+     * @param productionPathProvider provides default {@link ProductionPath ProductionPaths} for external types.
      */
-    public TableTransformationTableModel(final Function<T, ProductionPath> defaultProductionPathFn) {
-        m_defaultProductionPathFn = defaultProductionPathFn;
+    public TableTransformationTableModel(final ProductionPathProvider<T> productionPathProvider) {
+        m_productionPathProvider = productionPathProvider;
         addTableModelListener(e -> notifyChangeListeners());
         m_byName.put(m_newColTransformationPlaceholder.getName(), m_newColTransformationPlaceholder);
         m_bySpec.put(TypedReaderColumnSpec.getNull(), m_newColTransformationPlaceholder);
@@ -289,7 +290,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
             return false;
         }
         final ProductionPath defaultProductionPath =
-            m_defaultProductionPathFn.apply(transformation.getExternalSpec().getType());
+            m_productionPathProvider.getDefaultProductionPath(transformation.getExternalSpec().getType());
         if (!defaultProductionPath.equals(transformation.getProductionPath())) {
             transformation.setProductionPath(defaultProductionPath);
             return true;
@@ -342,7 +343,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                 tableChanged |= transformation.setPosition(idx);
                 transformation.setOriginalPosition(idx);
             } else {
-                final ProductionPath productionPath = m_defaultProductionPathFn.apply(column.getType());
+                final ProductionPath productionPath = m_productionPathProvider.getDefaultProductionPath(column.getType());
                 transformation = new MutableColumnTransformation<>(createDefaultSpec(column), column, idx,
                     getNameAfterInit(column), productionPath, idx, keepUnknownColumns());
                 newColumns.put(column, transformation);
@@ -415,7 +416,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                 transformation = createMutableTransformation(transformationModel.getTransformation(column), idx);
             } else {
                 transformation = new MutableColumnTransformation<>(createDefaultSpec(column), column, idx,
-                    getNameAfterInit(column), m_defaultProductionPathFn.apply(column.getType()),
+                    getNameAfterInit(column), m_productionPathProvider.getDefaultProductionPath(column.getType()),
                     getPositionForUnknownColumns(), keepUnknownColumns());
             }
             m_bySpec.put(column, transformation);
@@ -460,7 +461,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     }
 
     private DataColumnSpec createDefaultSpec(final TypedReaderColumnSpec<T> column) {
-        final ProductionPath prodPath = m_defaultProductionPathFn.apply(column.getType());
+        final ProductionPath prodPath = m_productionPathProvider.getDefaultProductionPath(column.getType());
         return new DataColumnSpecCreator(MultiTableUtils.getNameAfterInit(column),
             prodPath.getConverterFactory().getDestinationType()).createSpec();
     }
@@ -531,6 +532,12 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         } else {
             throw new IndexOutOfBoundsException();
         }
+    }
+
+    List<ProductionPath> getProductionPaths(final int rowIndex) {
+        final MutableColumnTransformation<T> transformation = getTransformation(rowIndex);
+        final T externalType = transformation.getExternalSpec().getType();
+        return m_productionPathProvider.getAvailableProductionPaths(externalType);
     }
 
     @Override

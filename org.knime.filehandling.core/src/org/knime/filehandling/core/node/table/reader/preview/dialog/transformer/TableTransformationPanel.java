@@ -49,8 +49,6 @@
 package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
 import java.awt.GridBagLayout;
-import java.util.List;
-import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import javax.swing.BorderFactory;
@@ -111,29 +109,28 @@ public final class TableTransformationPanel extends JPanel {
     private final JLabel m_colFilterModeLabel = new JLabel("Take columns from:");
 
     private final ColumnFilterModePanel m_columnFilterModePanel;
+
     /**
      * Constructor.
      *
      * @param model the underlying {@link TableTransformationTableModel}
-     * @param productionPathProvider provides a list of {@link ProductionPath} for a given external type
      * @param includeColumnFilterButtons {@code true} if the column filter buttons should be included
      */
     public TableTransformationPanel(final TableTransformationTableModel<?> model,
-        final Function<Object, List<ProductionPath>> productionPathProvider, final boolean includeColumnFilterButtons) {
-        this(model, productionPathProvider, includeColumnFilterButtons, false);
+        final boolean includeColumnFilterButtons) {
+        this(model, includeColumnFilterButtons, false);
     }
+
     /**
      * Constructor.
      *
      * @param model the underlying {@link TableTransformationTableModel}
-     * @param productionPathProvider provides a list of {@link ProductionPath} for a given external type
      * @param includeColumnFilterButtons {@code true} if the column filter buttons should be included
-     * @param showFullProductionPath <code>true</code> if the full production path should be displayed
-     * in the transformation table otherwise only the target DataType is displayed
+     * @param showFullProductionPath <code>true</code> if the full production path should be displayed in the
+     *            transformation table otherwise only the target DataType is displayed
      */
     public TableTransformationPanel(final TableTransformationTableModel<?> model,
-        final Function<Object, List<ProductionPath>> productionPathProvider, final boolean includeColumnFilterButtons,
-        final boolean showFullProductionPath) {
+        final boolean includeColumnFilterButtons, final boolean showFullProductionPath) {
         super(new GridBagLayout());
         if (includeColumnFilterButtons) {
             m_columnFilterModePanel = new ColumnFilterModePanel(model.getColumnFilterModeModel());
@@ -142,7 +139,7 @@ public final class TableTransformationPanel extends JPanel {
         }
         m_transformationTable = new JTable(model);
         m_tableModel = model;
-        setupTable(model, productionPathProvider, showFullProductionPath);
+        setupTable(model, showFullProductionPath);
 
         m_enforceTypes.setModel(model.getEnforceTypesModel());
 
@@ -207,8 +204,7 @@ public final class TableTransformationPanel extends JPanel {
         m_transformationTable.getSelectionModel().setSelectionInterval(newSelection, newSelection);
     }
 
-    private void setupTable(final TableTransformationTableModel<?> model,
-        final Function<Object, List<ProductionPath>> productionPathProvider, final boolean showFullProductionPath) {
+    private void setupTable(final TableTransformationTableModel<?> model, final boolean showFullProductionPath) {
         TableColumnModel columnModel = m_transformationTable.getColumnModel();
         columnModel.getColumn(0).setMaxWidth(30);
         columnModel.getColumn(1).setMaxWidth(30);
@@ -222,13 +218,12 @@ public final class TableTransformationPanel extends JPanel {
         m_transformationTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         if (showFullProductionPath) {
             m_transformationTable.setDefaultEditor(ProductionPath.class,
-                new ProductionPathCellEditor(productionPathProvider,
-                    new KnimeTypeFullProductionPathListCellRenderer()));
+                new ProductionPathCellEditor(new KnimeTypeFullProductionPathListCellRenderer()));
             m_transformationTable.setDefaultRenderer(ProductionPath.class,
                 new KnimeTypeFullProductionPathTableCellRenderer());
         } else {
             m_transformationTable.setDefaultEditor(ProductionPath.class,
-                new ProductionPathCellEditor(productionPathProvider, new KnimeTypeProductionPathListCellRenderer()));
+                new ProductionPathCellEditor(new KnimeTypeProductionPathListCellRenderer()));
             m_transformationTable.setDefaultRenderer(ProductionPath.class,
                 new KnimeTypeProductionPathTableCellRenderer());
         }

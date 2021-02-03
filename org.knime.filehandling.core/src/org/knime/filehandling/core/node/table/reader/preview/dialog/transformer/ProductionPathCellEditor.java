@@ -50,7 +50,6 @@ package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer
 
 import java.awt.Component;
 import java.util.List;
-import java.util.function.Function;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JComboBox;
@@ -71,11 +70,7 @@ final class ProductionPathCellEditor extends AbstractCellEditor implements Table
 
     private final JComboBox<ProductionPath> m_productionPaths = new JComboBox<>();
 
-    private final transient Function<Object, List<ProductionPath>> m_productionPathProvider;
-
-    ProductionPathCellEditor(final Function<Object, List<ProductionPath>> productionPathProvider,
-        final ListCellRenderer<ProductionPath> renderer) {
-        m_productionPathProvider = productionPathProvider;
+    ProductionPathCellEditor(final ListCellRenderer<ProductionPath> renderer) {
         m_productionPaths.setRenderer(renderer);
         m_productionPaths.addActionListener(e -> stopCellEditing());
     }
@@ -86,10 +81,11 @@ final class ProductionPathCellEditor extends AbstractCellEditor implements Table
     }
 
     @Override
-    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
+    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
+        final int row, final int column) {
         final ProductionPath currentProdPath = (ProductionPath)value;
-        final Object externalType = currentProdPath.getProducerFactory().getSourceType();
-        final List<ProductionPath> availablePaths = m_productionPathProvider.apply(externalType);
+        TableTransformationTableModel<?> model = (TableTransformationTableModel<?>)table.getModel();
+        final List<ProductionPath> availablePaths = model.getProductionPaths(row);
         availablePaths.sort(ProductionPathCellEditor::compare);
         m_productionPaths.removeAllItems();
         availablePaths.forEach(m_productionPaths::addItem);
