@@ -157,7 +157,7 @@ public final class FSLocationValueMetaData implements DataColumnMetaData {
                 set.add(loadDefaultFSLocationSpec(config));
             } else {
                 @SuppressWarnings("unchecked")
-                final Enumeration<ConfigRO> children = config.children();
+                final Enumeration<ConfigRO> children = (Enumeration<ConfigRO>)config.children();
                 while (children.hasMoreElements()) {
                     final ConfigRO subConfig = children.nextElement();
                     set.add(loadDefaultFSLocationSpec(subConfig));
