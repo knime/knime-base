@@ -244,8 +244,10 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
         private ProductionPath determineProductionPath(final TypedReaderColumnSpec<T> column,
             final ColumnTransformation<T> transformation) {
             final T externalType = column.getType();
-            if (externalType.equals(transformation.getExternalSpec().getType())) {
-                // same external type, so it's save to use the configured production path
+            if (!column.hasType() || externalType.equals(transformation.getExternalSpec().getType())) {
+                // the new spec either has no type i.e. no values that were seen
+                // or has the same type as during configuration
+                // in both cases we use the same production path
                 return transformation.getProductionPath();
             } else if (m_enforceTypes) {
                 final DataType configuredKnimeType =
