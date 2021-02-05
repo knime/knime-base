@@ -94,9 +94,9 @@ public class LocalFSConnection implements FSConnection {
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
         if (getFileSystem().getFileSystemCategory() == FSCategory.CONNECTED) {
-            return new LocalFileSystemBrowser(new NioFileSystemView(this));
+            return new LocalFileSystemBrowser(m_fileSystem, new NioFileSystemView(this));
         } else {
-            return new LocalFileSystemBrowser();
+            return new LocalFileSystemBrowser(m_fileSystem);
         }
     }
 

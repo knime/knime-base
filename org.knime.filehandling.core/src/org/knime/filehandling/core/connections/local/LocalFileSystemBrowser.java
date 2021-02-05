@@ -47,18 +47,14 @@
 package org.knime.filehandling.core.connections.local;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.filechooser.FileView;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 
 /**
@@ -70,14 +66,33 @@ import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
  */
 public class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
 
+    /**
+     *
+     */
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(LocalFileSystemBrowser.class);
+
     private final FileSystemView m_fileSystemView;
 
-    public LocalFileSystemBrowser() {
-        this(null);
+    private final LocalFileSystem m_fileSystem;
+
+    /**
+     * Constructor that will use the system default {@link FileSystemView}.
+     *
+     * @param fileSystem the {@link LocalFileSystem} to resolve paths with
+     */
+    public LocalFileSystemBrowser(final LocalFileSystem fileSystem) {
+        this(fileSystem, null);
     }
 
-    public LocalFileSystemBrowser(final FileSystemView fileSystemView) {
+    /**
+     * Constructor that allows to pass in a custom {@link FileSystemView}.
+     *
+     * @param fileSystem the {@link LocalFileSystem} to resolve paths with
+     * @param fileSystemView to use in the {@link JFileChooser}
+     */
+    public LocalFileSystemBrowser(final LocalFileSystem fileSystem, final FileSystemView fileSystemView) {
         m_fileSystemView = fileSystemView;
+        m_fileSystem = fileSystem;
     }
 
     @Override
@@ -98,15 +113,11 @@ public class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
     @Override
     protected File createFileFromPath(final String path) {
         try {
-            URL url = FileUtil.toURL(path);
-            Path localPath = FileUtil.resolveToPath(url);
-            if (localPath != null) {
-                return localPath.toFile();
-            }
-        } catch (IOException | URISyntaxException | InvalidPathException ex) {
-            // ignore
+            return m_fileSystem.getPath(path).toAbsolutePath().toFile();
+        } catch (InvalidPathException ex) {
+            LOGGER.debug(String.format("Creating a path from the string '%s' failed.", path), ex);
+            return null;
         }
-        return null;
     }
 
 }
