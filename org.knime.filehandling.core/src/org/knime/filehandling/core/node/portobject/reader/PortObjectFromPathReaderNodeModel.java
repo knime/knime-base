@@ -98,7 +98,7 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
             getNodeModelStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
             return readFromPath(paths.get(0), exec);
         } catch (NoSuchFileException e) {
-            throw new IOException(String.format("The file '%s' does not exist.", e.getFile()));
+            throw new IOException(String.format("The file '%s' does not exist.", e.getFile()), e);
         }
     }
 
@@ -110,6 +110,7 @@ public abstract class PortObjectFromPathReaderNodeModel<C extends PortObjectRead
      * @return the read in port object(s)
      * @throws Exception if any exception occurs
      */
-    protected abstract PortObject[] readFromPath(final Path inputPath, final ExecutionContext exec) throws Exception;
+    protected abstract PortObject[] readFromPath(final Path inputPath, final ExecutionContext exec)
+            throws Exception; //NOSONAR
 
 }

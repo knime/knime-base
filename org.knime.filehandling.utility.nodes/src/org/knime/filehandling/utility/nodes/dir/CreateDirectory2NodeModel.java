@@ -54,7 +54,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -157,14 +156,12 @@ final class CreateDirectory2NodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // Nothing to do here
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // Nothing to do here
     }
 }

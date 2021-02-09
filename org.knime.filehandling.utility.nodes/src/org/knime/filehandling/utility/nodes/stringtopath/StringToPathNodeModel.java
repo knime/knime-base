@@ -68,7 +68,6 @@ import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -342,10 +341,10 @@ final class StringToPathNodeModel extends NodeModel {
 
     /**
      * In 4.2 the settings were hidden using {@link SettingsModel#CFGKEY_INTERNAL} as suffix. However, that was a bug
-     * because this name is used by the framework to store the enabled status and settings model id.
-     * In 4.3 we removed the suffix because it also causes problems when adding/removing the file system port.
-     * Therefore we don't validate/load the settings in the case we have a fs port AND the settings are old.
-     * That's save because in the connected case nothing is loaded anyway.
+     * because this name is used by the framework to store the enabled status and settings model id. In 4.3 we removed
+     * the suffix because it also causes problems when adding/removing the file system port. Therefore we don't
+     * validate/load the settings in the case we have a fs port AND the settings are old. That's save because in the
+     * connected case nothing is loaded anyway.
      *
      * @param settings to validate/load
      * @return {@code true} if the settings are old
@@ -367,14 +366,12 @@ final class StringToPathNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File internDir, final ExecutionMonitor exec) {
         // Nothing to do here
     }
 
     @Override
-    protected void saveInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File internDir, final ExecutionMonitor exec) {
         // Nothing to do here
     }
 

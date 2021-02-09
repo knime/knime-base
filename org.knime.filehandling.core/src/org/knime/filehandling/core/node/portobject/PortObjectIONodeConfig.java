@@ -61,7 +61,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSetti
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class PortObjectIONodeConfig<S extends AbstractSettingsModelFileChooser> {
+public class PortObjectIONodeConfig<S extends AbstractSettingsModelFileChooser<S>> {
 
     /** The name of the optional connection input port group. */
     protected static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";

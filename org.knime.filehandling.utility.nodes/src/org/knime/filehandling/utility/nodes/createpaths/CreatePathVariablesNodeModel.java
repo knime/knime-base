@@ -49,10 +49,8 @@
 package org.knime.filehandling.utility.nodes.createpaths;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.EnumSet;
 
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -140,14 +138,12 @@ final class CreatePathVariablesNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // Nothing to do here
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // Nothing to do here
     }
 }

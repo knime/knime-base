@@ -198,7 +198,7 @@ public final class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec
         builder.append(m_fileSystemType);
         builder.append(", m_fileSystemId=");
         builder.append(m_fileSystemId);
-        builder.append("]");
+        builder.append(']');
         return builder.toString();
     }
 

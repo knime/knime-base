@@ -62,6 +62,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
@@ -82,7 +83,7 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig<?>
 
     private final List<JPanel> m_additionalPanels = new ArrayList<>();
 
-    private AbstractDialogComponentFileChooser m_filePanel;
+    private AbstractDialogComponentFileChooser<?> m_filePanel;
 
     /**
      * Constructor.
@@ -91,13 +92,18 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig<?>
      * @param createPanel {@link Function} to create an instance of {@link AbstractDialogComponentFileChooser}
      */
     protected PortObjectIONodeDialog(final C config,
-        final Function<FlowVariableModel, ? extends AbstractDialogComponentFileChooser> createPanel) {
+        final Function<FlowVariableModel, ? extends AbstractDialogComponentFileChooser<?>> createPanel) {
         m_config = config;
         m_filePanel = createPanel.apply(createFlowVariableModel(config.getFileChooserModel().getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE));
         m_additionalPanels
             .add(createInputLocationPanel(m_filePanel.getDialogType() == FileSystemBrowser.DialogType.OPEN_DIALOG
                 ? "Input location" : "Output location"));
+    }
+
+    @Override
+    public final FlowVariableModel createFlowVariableModel(final String[] keys, final VariableType<?> type) {
+        return super.createFlowVariableModel(keys, type);
     }
 
     /**

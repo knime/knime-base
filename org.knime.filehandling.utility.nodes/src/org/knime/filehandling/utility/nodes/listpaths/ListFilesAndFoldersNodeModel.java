@@ -140,14 +140,12 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to load
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to save
 
     }
@@ -221,8 +219,7 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
     }
 
     private static DataCell createDirCell(final FSPath p) throws IOException {
-        return BooleanCellFactory
-            .create(Files.readAttributes(p, BasicFileAttributes.class).isDirectory());
+        return BooleanCellFactory.create(Files.readAttributes(p, BasicFileAttributes.class).isDirectory());
     }
 
     @Override

@@ -90,7 +90,7 @@ public final class FileCompressionUtils {
             InputStream inStream = FSFiles.newInputStream(path, options);
             try {
                 return createDecompressedStream(inStream);
-            } catch (ZipException ex) {
+            } catch (ZipException ex) { //NOSONAR
                 // Unable to create a GZIPInputStream. We will close the already opened and probably utilized stream
                 // and fallback to a regular InputStream (i.e., the return statement at the end of the method).
                 inStream.close();

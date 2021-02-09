@@ -77,7 +77,6 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.data.util.CancellableReportingInputStream;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -380,14 +379,12 @@ final class DecompressNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File internDir, final ExecutionMonitor exec) {
         // Not used
     }
 
     @Override
-    protected void saveInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File internDir, final ExecutionMonitor exec) {
         // Not used
     }
 }

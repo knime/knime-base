@@ -89,6 +89,7 @@ public abstract class PortObjectFromFileReaderNodeModel<C extends PortObjectRead
      * @return the read in port object(s)
      * @throws Exception if any exception occurs
      */
-    protected abstract PortObject[] read(final InputStream inputStream, final ExecutionContext exec) throws Exception;
+    protected abstract PortObject[] read(final InputStream inputStream, final ExecutionContext exec)
+            throws Exception; //NOSONAR
 
 }

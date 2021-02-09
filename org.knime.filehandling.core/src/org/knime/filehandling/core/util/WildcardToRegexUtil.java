@@ -81,31 +81,24 @@ public final class WildcardToRegexUtil {
      *            prepending a backslash
      * @return the corresponding regular expression
      */
-    public static String wildcardToRegex(final String wildcard, final boolean enableEscaping) {
+    public static String wildcardToRegex(final String wildcard, final boolean enableEscaping) { //NOSONAR
         StringBuilder buf = new StringBuilder(wildcard.length() + 20);
 
         for (int i = 0; i < wildcard.length(); i++) {
             char c = wildcard.charAt(i);
             switch (c) {
                 case '*':
-                    if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
-                        buf.append('*');
-                    } else {
-                        buf.append(".*");
-                    }
+                    appendZeroOrMore(wildcard, enableEscaping, buf, i);
                     break;
                 case '?':
-                    if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
-                        buf.append('?');
-                    } else {
-                        buf.append(".");
-                    }
+                    appendZeroOrOne(wildcard, enableEscaping, buf, i);
                     break;
                 case '\\':
-                    if (enableEscaping) {
-                        buf.append(c);
-                        break;
+                    if (!enableEscaping) {
+                        buf.append("\\");
                     }
+                    buf.append(c);
+                    break;
                 case '^':
                 case '$':
                 case '[':
@@ -126,5 +119,23 @@ public final class WildcardToRegexUtil {
         }
 
         return buf.toString();
+    }
+
+    private static void appendZeroOrMore(final String wildcard, final boolean enableEscaping, final StringBuilder buf,
+        final int i) {
+        if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
+            buf.append('*');
+        } else {
+            buf.append(".*");
+        }
+    }
+
+    private static void appendZeroOrOne(final String wildcard, final boolean enableEscaping, final StringBuilder buf,
+        final int i) {
+        if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
+            buf.append('?');
+        } else {
+            buf.append(".");
+        }
     }
 }

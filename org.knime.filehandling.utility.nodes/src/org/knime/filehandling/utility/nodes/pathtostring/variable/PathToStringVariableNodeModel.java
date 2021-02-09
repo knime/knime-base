@@ -49,7 +49,6 @@
 package org.knime.filehandling.utility.nodes.pathtostring.variable;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -59,7 +58,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -139,8 +137,7 @@ final class PathToStringVariableNodeModel extends NodeModel {
         }
         final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(
             getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()).keySet());
-        try (final MultiFSPathProviderFactory multiFSPathProviderCellFactory =
-            new MultiFSPathProviderFactory()) {
+        try (final MultiFSPathProviderFactory multiFSPathProviderCellFactory = new MultiFSPathProviderFactory()) {
             for (final Entry<String, FlowVariable> e : filteredVariables.entrySet()) {
                 final FSLocation fsLocation = e.getValue().getValue(FSLocationVariableType.INSTANCE);
                 final String result;
@@ -171,7 +168,7 @@ final class PathToStringVariableNodeModel extends NodeModel {
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) {
         // do nothing since configure already pushed the new variables
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
     }
@@ -201,14 +198,12 @@ final class PathToStringVariableNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to do
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to do
     }
 

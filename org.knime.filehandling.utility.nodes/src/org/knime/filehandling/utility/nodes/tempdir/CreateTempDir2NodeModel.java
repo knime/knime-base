@@ -55,6 +55,8 @@ import java.io.OutputStream;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -143,7 +145,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
             .ofNullable(
                 portsConfig.getInputPortLocation().get(CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME))
             .map(idx -> idx[0])//
-            .orElse(MISSING_FS_PORT_IDX);
+            .orElseGet(() -> MISSING_FS_PORT_IDX);
         m_statusConumser = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.INFO));
         m_onResetTempDir = null;
         // all connection related temporary directories will be removed when the connection gets closed.
@@ -261,11 +263,11 @@ final class CreateTempDir2NodeModel extends NodeModel {
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        final File internalFile = new File(nodeInternDir, INTERNAL_FILE_NAME);
+        final Path internalFile = Paths.get(nodeInternDir.toString(), INTERNAL_FILE_NAME);
         final boolean issueWarning;
         m_onResetTempDir = null;
-        if (internalFile.exists()) {
-            try (InputStream in = Files.newInputStream(internalFile.toPath());
+        if (Files.exists(internalFile)) {
+            try (InputStream in = Files.newInputStream(internalFile);
                     final FSPathProviderFactory pathFac =
                         FSPathProviderFactory.newFactory(Optional.empty(), DATA_AREA_LOCATION_SPEC)) {
                 issueWarning = readInDataAreaPaths(in, pathFac);
@@ -350,7 +352,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
                 s.addStringArray(CFG_ON_DISPOSE_TEMP_FOLDER_PATHS, m_onDisposeTempDirs.get(DATA_AREA_LOCATION_SPEC)
                     .stream().map(FSLocation::getPath).toArray(String[]::new));
             }
-            try (OutputStream w = Files.newOutputStream(new File(nodeInternDir, INTERNAL_FILE_NAME).toPath())) {
+            try (OutputStream w = Files.newOutputStream(Paths.get(nodeInternDir.toString(), INTERNAL_FILE_NAME))) {
                 s.saveToXML(w);
             }
         }

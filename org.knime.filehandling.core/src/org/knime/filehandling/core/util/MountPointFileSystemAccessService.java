@@ -54,7 +54,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
@@ -104,18 +103,22 @@ public final class MountPointFileSystemAccessService {
                     LOGGER.error("Extension " + decl + " ignored.");
                     continue;
                 }
-                try {
-                    m_providers.add((MountPointFileSystemAccess)elem.createExecutableExtension(EXT_POINT_ATTR_DF));
-                } catch (final Throwable t) {
-                    LOGGER.error("Problems during initialization of provider operator (with id '" + operator + "'.)",
-                        t);
-                    if (decl != null) {
-                        LOGGER.error("Extension " + decl + " ignored.", t);
-                    }
-                }
+                addProvider(elem, operator, decl);
             }
-        } catch (final Exception e) {
+        } catch (final Exception e) { //NOSONAR
             LOGGER.error("Exception while registering aggregation operator extensions", e);
+        }
+    }
+
+    private void addProvider(final IConfigurationElement elem, final String operator, final String decl) {
+        try {
+            m_providers.add((MountPointFileSystemAccess)elem.createExecutableExtension(EXT_POINT_ATTR_DF));
+        } catch (final Throwable t) { //NOSONAR
+            LOGGER.error("Problems during initialization of provider operator (with id '" + operator + "'.)",
+                t);
+            if (decl != null) {
+                LOGGER.error("Extension " + decl + " ignored.", t);
+            }
         }
     }
 
@@ -148,19 +151,14 @@ public final class MountPointFileSystemAccessService {
      * @throws IOException if the KNIME URL cannot be resolved
      */
     public URL resolveKNIMEURL(final URL url) throws IOException {
-        final Optional<MountPointFileSystemAccess> findFirst = m_providers.stream().findFirst();
-        if (findFirst.isPresent()) {
-            return findFirst.get().resolveKNIMEURL(url);
-        }
-        throw new RuntimeException("No implementations for the " + EXT_POINT_ID + " available");
+        return getProvider().resolveKNIMEURL(url);
     }
 
     private MountPointFileSystemAccess getProvider() {
-        final Optional<MountPointFileSystemAccess> findFirst = m_providers.stream().findFirst();
-        if (findFirst.isPresent()) {
-            return findFirst.get();
+        if (m_providers.isEmpty()) {
+            throw new RuntimeException("No implementations for the " + EXT_POINT_ID + " available"); //NOSONAR
         }
-        throw new RuntimeException("No implementations for the " + EXT_POINT_ID + " available");
+        return m_providers.get(0);
     }
 
     /**

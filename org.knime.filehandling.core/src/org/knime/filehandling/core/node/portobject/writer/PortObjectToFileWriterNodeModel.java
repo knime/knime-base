@@ -92,6 +92,6 @@ public abstract class PortObjectToFileWriterNodeModel<C extends PortObjectWriter
      * @throws Exception if any exception occurs
      */
     protected abstract void write(final PortObject object, final OutputStream outputStream, final ExecutionContext exec)
-        throws Exception;
+        throws Exception; //NOSONAR
 
 }

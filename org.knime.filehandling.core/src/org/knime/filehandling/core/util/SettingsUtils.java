@@ -84,7 +84,7 @@ public final class SettingsUtils {
     public static NodeSettingsRO getOrEmpty(final NodeSettingsRO settings, final String key) {
         try {
             return settings.getNodeSettings(key);
-        } catch (InvalidSettingsException ex) {
+        } catch (InvalidSettingsException ex) { //NOSONAR
             return new NodeSettings(key);
         }
     }
@@ -105,7 +105,7 @@ public final class SettingsUtils {
             final NodeSettings settings = (NodeSettings)settingsWO;
             try {
                 return settings.getNodeSettings(key);
-            } catch (InvalidSettingsException ex) {
+            } catch (InvalidSettingsException ex) { //NOSONAR
                 return settings.addNodeSettings(key);
             }
         } else {

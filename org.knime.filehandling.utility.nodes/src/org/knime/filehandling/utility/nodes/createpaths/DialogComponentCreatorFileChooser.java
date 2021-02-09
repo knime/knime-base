@@ -52,7 +52,6 @@ import java.io.IOException;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
@@ -87,7 +86,7 @@ final class DialogComponentCreatorFileChooser
     }
 
     @Override
-    protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
+    protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) {
         // the creator does not actually use the path, so we don't need to do the checks
     }
 

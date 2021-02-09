@@ -124,6 +124,6 @@ public abstract class PortObjectToPathWriterNodeModel<C extends PortObjectWriter
      * @throws Exception if any exception occurs
      */
     protected abstract void writeToPath(final PortObject object, final Path outputPath, final ExecutionContext exec)
-        throws Exception;
+        throws Exception; //NOSONAR
 
 }

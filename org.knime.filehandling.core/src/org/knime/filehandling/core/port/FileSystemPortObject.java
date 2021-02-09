@@ -52,9 +52,7 @@ import java.util.Optional;
 
 import javax.swing.JComponent;
 
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.ModelContentWO;
 import org.knime.core.node.port.AbstractSimplePortObject;
@@ -109,7 +107,6 @@ public final class FileSystemPortObject extends AbstractSimplePortObject {
      */
     @Override
     public String getSummary() {
-        //TODO: Create nicer summary
         return m_spec.getFileSystemType() + ": " + m_spec.getFileSystemId() + "";
     }
 
@@ -118,8 +115,7 @@ public final class FileSystemPortObject extends AbstractSimplePortObject {
      */
     @Override
     public JComponent[] getViews() {
-        //TODO: Create nicer view with more information about the file system
-        return null;
+        return null; //NOSONAR
     }
 
     /**
@@ -137,22 +133,15 @@ public final class FileSystemPortObject extends AbstractSimplePortObject {
         return FSConnectionRegistry.getInstance().retrieve(getSpec().getFileSystemId());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void save(final ModelContentWO model, final ExecutionMonitor exec) throws CanceledExecutionException {
-
+    protected void save(final ModelContentWO model, final ExecutionMonitor exec) {
+        // nothing to do here
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void load(final ModelContentRO model, final PortObjectSpec spec, final ExecutionMonitor exec)
-        throws InvalidSettingsException, CanceledExecutionException {
+    protected void load(final ModelContentRO model, final PortObjectSpec spec, final ExecutionMonitor exec) {
         if (spec instanceof FileSystemPortObjectSpec) {
-            m_spec = (FileSystemPortObjectSpec) spec;
+            m_spec = (FileSystemPortObjectSpec)spec;
         }
     }
 
@@ -176,7 +165,7 @@ public final class FileSystemPortObject extends AbstractSimplePortObject {
         builder.append(getSpec().getFileSystemType());
         builder.append(", m_fileSystemId=");
         builder.append(getSpec().getFileSystemId());
-        builder.append("]");
+        builder.append(']');
         return builder.toString();
     }
 }

@@ -102,7 +102,7 @@ public abstract class PortObjectIONodeModel<C extends PortObjectIONodeConfig<?>>
         m_config.getFileChooserModel().configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
         configureInternal(inSpecs);
-        return null;
+        return null; //NOSONAR
     }
 
     /**
