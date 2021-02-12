@@ -297,6 +297,7 @@ public final class NodeTreeSerializer {
             final String[] values = config.getStringArray(OPERATION_VALUES);
             operation.setValues(values);
         } catch (InvalidSettingsException e) {
+            LOGGER.debug("Retrieving the operation values failed.", e);
             //ignore
         }
         return operation;

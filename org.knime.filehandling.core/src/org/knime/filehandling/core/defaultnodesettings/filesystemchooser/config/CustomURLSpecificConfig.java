@@ -182,7 +182,7 @@ public final class CustomURLSpecificConfig extends AbstractConvenienceFileSystem
                 CheckUtils.checkSetting(timeout >= 0, "The timeout must be non-negative but was %s.", timeout);
             } catch (NumberFormatException ex) {
                 throw new InvalidSettingsException(
-                    String.format("The specfied timeout '%s' is not a valid number.", specifier.get()));
+                    String.format("The specfied timeout '%s' is not a valid number.", specifier.get()), ex);
             }
         } else {
             throw new InvalidSettingsException("No timeout specified for custom url file system.");

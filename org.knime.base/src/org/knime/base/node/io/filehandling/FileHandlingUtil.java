@@ -116,7 +116,7 @@ public final class FileHandlingUtil {
         try {
             return m_reader.createDataTableSpec(m_helper.getPaths());
         } catch (final IOException e) {
-            throw new InvalidSettingsException("Could not get paths based on specified file/directory.");
+            throw new InvalidSettingsException("Could not get paths based on specified file/directory.", e);
         }
     }
 

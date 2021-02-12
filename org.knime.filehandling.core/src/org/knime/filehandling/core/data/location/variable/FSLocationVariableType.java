@@ -133,8 +133,6 @@ public final class FSLocationVariableType extends VariableType<FSLocation> {
         return "FSLocation";
     }
 
-    // TODO overwrite getIcon to return the PathCell/FSLocationCell Icon once https://knime-com.atlassian.net/browse/AP-13751 is done
-
     /**
      * Used to register {@link FSLocationVariableType} at the Flow Variable extension point.
      *
@@ -158,8 +156,8 @@ public final class FSLocationVariableType extends VariableType<FSLocation> {
     protected boolean canOverwrite(final Config config, final String configKey) {
         try {
             return FSLocationUtils.canOverwriteWithFSLocation(config.getConfig(configKey));
-        } catch (InvalidSettingsException ex) {
-            // the key did not correspond to a config -> this can't be an FSLocation
+        } catch (InvalidSettingsException ex) {// NOSONAR
+            // the key did not correspond to a config -> this can't be a FSLocation
             return false;
         }
     }
@@ -179,8 +177,8 @@ public final class FSLocationVariableType extends VariableType<FSLocation> {
     protected boolean canCreateFrom(final Config config, final String configKey) {
         try {
             return FSLocationUtils.canCreateFromFSLocation(config.getConfig(configKey));
-        } catch (InvalidSettingsException ex) {
-            // the key did not correspond to a config -> this can't be an FSLocation
+        } catch (InvalidSettingsException ex) {//NOSONAR
+            // the key did not correspond to a config -> this can't be a FSLocation
             return false;
         }
     }

@@ -90,7 +90,7 @@ public interface FilesToDataTableReader {
             return createDataTableSpec(paths, new ExecutionMonitor());
         } catch (CanceledExecutionException e) {
             //this can not happen since no one can cancel the execution monitor
-            throw new IllegalStateException();
+            throw new IllegalStateException(e);
         }
     }
 

@@ -74,7 +74,7 @@ import org.knime.base.data.filter.row.dialog.component.tree.model.TreeGroup;
  *
  * @author Viktor Buria
  */
-public class TreePanel extends JPanel {
+public final class TreePanel extends JPanel {
 
     private static final long serialVersionUID = 1646576859900309912L;
 
@@ -82,17 +82,15 @@ public class TreePanel extends JPanel {
 
     private final JTree m_tree;
 
-    private JButton m_addButton;
-
     private JButton m_deleteButton;
 
     private JButton m_groupButton;
 
     private JButton m_ungroupButton;
 
-    private TreePanelActions m_panelActions;
+    private transient TreePanelActions m_panelActions;
 
-    private final TreePanelConfig m_config;
+    private final transient TreePanelConfig m_config;
 
     private TreeGroupHandler asTreeGroup(final DefaultMutableTreeNode node) {
         return new TreeGroupHandler(node, m_panelActions, m_config.getOperatorRegistry());
@@ -192,39 +190,7 @@ public class TreePanel extends JPanel {
         m_tree.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         m_tree.setCellRenderer(new TreeElementCellRenderer());
 
-        m_tree.addTreeSelectionListener(e -> {
-            m_config.getTreeChangedListener().ifPresent(Runnable::run);
-
-            final DefaultMutableTreeNode node = (DefaultMutableTreeNode)m_tree.getLastSelectedPathComponent();
-
-            if (node == null) {
-                m_deleteButton.setEnabled(false);
-
-                m_groupButton.setEnabled(false);
-
-                m_ungroupButton.setEnabled(false);
-
-                m_config.getNoSelectionListener().ifPresent(Runnable::run);
-
-                return;
-            }
-
-            final boolean isGroup = isGroup(node);
-
-            m_deleteButton.setEnabled(true);
-
-            m_groupButton.setEnabled(!isGroup);
-
-            m_ungroupButton.setEnabled(m_panelActions.supportsUngroup(node));
-
-            if (isGroup) {
-                m_config.getSelectGroupListener().ifPresent(consumer -> consumer.accept(asTreeGroup(node)));
-            } else {
-                m_config.getSelectConditionListener().ifPresent(consumer -> consumer.accept(asTreeCondition(node)));
-            }
-            revalidate();
-            repaint();
-        });
+        m_tree.addTreeSelectionListener(e -> reactToSelection());
 
         gbc.weighty = 10;
         gbc.gridy++;
@@ -240,16 +206,44 @@ public class TreePanel extends JPanel {
         return panel;
     }
 
+    private void reactToSelection() {
+        m_config.getTreeChangedListener().ifPresent(Runnable::run);
+
+        final DefaultMutableTreeNode node = (DefaultMutableTreeNode)m_tree.getLastSelectedPathComponent();
+
+        if (node == null) {
+            m_deleteButton.setEnabled(false);
+            m_groupButton.setEnabled(false);
+            m_ungroupButton.setEnabled(false);
+            m_config.getNoSelectionListener().ifPresent(Runnable::run);
+            return;
+        }
+
+        final boolean isGroup = isGroup(node);
+        m_deleteButton.setEnabled(true);
+        m_groupButton.setEnabled(!isGroup);
+
+        m_ungroupButton.setEnabled(m_panelActions.supportsUngroup(node));
+
+        if (isGroup) {
+            m_config.getSelectGroupListener().ifPresent(consumer -> consumer.accept(asTreeGroup(node)));
+        } else {
+            m_config.getSelectConditionListener().ifPresent(consumer -> consumer.accept(asTreeCondition(node)));
+        }
+        revalidate();
+        repaint();
+    }
+
     private JPanel getButtonsPanel() {
         final JPanel panel = new JPanel();
 
-        m_addButton = new JButton("Add Condition");
-        m_addButton.addActionListener(e -> {
+        JButton addButton = new JButton("Add Condition");
+        addButton.addActionListener(e -> {
             m_config.getTreeChangedListener().ifPresent(Runnable::run);
 
             m_panelActions.addCondition();
         });
-        panel.add(m_addButton);
+        panel.add(addButton);
 
         m_groupButton = new JButton("Add Group");
         m_groupButton.setEnabled(false);

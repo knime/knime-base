@@ -73,8 +73,8 @@ public class Operation {
      * @param values the operands
      */
     public Operation(final Operator operator, final String[] values) {
-        setOperator(operator);
-        setValues(values);
+        setOperator(operator);// NOSONAR, can't fix because it's API
+        setValues(values);// NOSONAR, can't fix because it's API
     }
 
     /**
@@ -118,7 +118,10 @@ public class Operation {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof Operation)) {
+        if (other == null) {
+            return false;
+        }
+        if (this.getClass() != other.getClass()) {
             return false;
         }
         final Operation castOther = (Operation)other;

@@ -72,35 +72,46 @@ public class TreeCondition extends TreeElement<Condition> {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-
         final ColumnSpec spec = getValue().getColumnSpec();
         if (spec != null) {
-            builder.append(spec.getName());
-
-            final Operation operation = getValue().getOperation();
-            if (operation != null) {
-
-                final Operator operator = operation.getOperator();
-                if (operator != null) {
-                    builder.append(SPACER).append(operator.getName());
-                }
-
-                final String[] operands = operation.getValues();
-                if (operands != null && operands.length > 0) {
-                    if (operands.length > 1) {
-                        builder.append(SPACER).append(Arrays.toString(operands));
-                    } else {
-                        builder.append(SPACER).append(operands[0]);
-                    }
-                }
-            }
-
+            return toStringWithSpec(spec);
         } else {
-            builder.append("Condition #").append(getValue().getId());
+            return "Condition #" + getValue().getId();
         }
+    }
 
+    private String toStringWithSpec(final ColumnSpec spec) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append(spec.getName());
+
+        final Operation operation = getValue().getOperation();
+        if (operation != null) {
+            appendOperation(builder, operation);
+        }
         return builder.toString();
+    }
+
+    private static void appendOperation(final StringBuilder builder, final Operation operation) {
+        final Operator operator = operation.getOperator();
+        if (operator != null) {
+            appendOperator(builder, operator);
+        }
+        final String[] operands = operation.getValues();
+        if (operands != null && operands.length > 0) {
+            appendOperands(builder, operands);
+        }
+    }
+
+    private static void appendOperator(final StringBuilder builder, final Operator operator) {
+        builder.append(SPACER).append(operator.getName());
+    }
+
+    private static void appendOperands(final StringBuilder builder, final String[] operands) {
+        if (operands.length > 1) {
+            builder.append(SPACER).append(Arrays.toString(operands));
+        } else {
+            builder.append(SPACER).append(operands[0]);
+        }
     }
 
 }

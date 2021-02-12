@@ -76,14 +76,14 @@ import com.google.common.collect.Range;
 @RunWith(MockitoJUnitRunner.class)
 public class ColumnRowPredicateTest {
 
-    static final int testColumnIndex = 0;
-    long indexRowToTest = 0;
+    private static final int TEST_COLUMN_INDEX = 0;
+    private long m_indexRowToTest = 0;
 
 
     //Which cell you want to verify
-    private DataRow rowToTest;
-    private DataRow rowToTest2;
-    ColumnRowPredicate c;
+    private DataRow m_rowToTest;
+    private DataRow m_rowToTest2;
+    ColumnRowPredicate m_c;
 
 
     /**
@@ -91,12 +91,12 @@ public class ColumnRowPredicateTest {
      */
     @Before
     public void setup() {
-       rowToTest = Mockito.mock(DataRow.class);
-       when(rowToTest.getCell(ArgumentMatchers.anyInt())).thenReturn(new DoubleCell(2.0));
-       rowToTest2 = Mockito.mock(DataRow.class);
-       when(rowToTest2.getCell(ArgumentMatchers.anyInt())).thenReturn(new DoubleCell(3.0));
+       m_rowToTest = Mockito.mock(DataRow.class);
+       when(m_rowToTest.getCell(ArgumentMatchers.anyInt())).thenReturn(new DoubleCell(2.0));
+       m_rowToTest2 = Mockito.mock(DataRow.class);
+       when(m_rowToTest2.getCell(ArgumentMatchers.anyInt())).thenReturn(new DoubleCell(3.0));
         Predicate<DataCell> cellPredicate = p -> p.equals(new DoubleCell(2.0));
-        c = new ColumnRowPredicate(cellPredicate, testColumnIndex);
+        m_c = new ColumnRowPredicate(cellPredicate, TEST_COLUMN_INDEX);
     }
 
     /**
@@ -104,8 +104,8 @@ public class ColumnRowPredicateTest {
      */
     @Test
     public void testTest(){
-        assertTrue(c.test(rowToTest, indexRowToTest));
-        assertFalse(c.test(rowToTest2, indexRowToTest));
+        assertTrue(m_c.test(m_rowToTest, m_indexRowToTest));
+        assertFalse(m_c.test(m_rowToTest2, m_indexRowToTest));
     }
 
 
@@ -116,7 +116,7 @@ public class ColumnRowPredicateTest {
     public void testGetRequiredColumns() {
         Set<Integer> indexToTest = new HashSet<>();
         indexToTest.add(0);
-        assertEquals(c.getRequiredColumns(), indexToTest);
+        assertEquals(m_c.getRequiredColumns(), indexToTest);
     }
 
     /**
@@ -125,7 +125,7 @@ public class ColumnRowPredicateTest {
     @Test
     public void testGetRowIndexRange() {
         Range<Long> rangeOfRows = Range.all();
-        assertEquals(c.getRowIndexRange(), rangeOfRows);
+        assertEquals(m_c.getRowIndexRange(), rangeOfRows);
     }
 
 }

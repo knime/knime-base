@@ -146,6 +146,12 @@ public final class FSLocationUtils {
         }
     }
 
+    /**
+     * Saves the provided {@link FSLocationSpec} into {@link ConfigWO config}.
+     *
+     * @param locationSpec the {@link FSLocationSpec} to save
+     * @param config the {@link ConfigWO} to save to
+     */
     public static void saveFSLocationSpec(final FSLocationSpec locationSpec, final ConfigWO config) {
         // TODO reference check doesn't solve the issue since FSLocation.NULL is also valid NULL FSLocationSpec
         config.addBoolean(CFG_LOCATION_PRESENT, locationSpec != FSLocationSpec.NULL);
@@ -179,12 +185,18 @@ public final class FSLocationUtils {
                 // the config represents a FSLocation if it contains only the flag
                 return config.getChildCount() == 1;
             }
-        } catch (InvalidSettingsException ex) {
+        } catch (InvalidSettingsException ex) {//NOSONAR
             // the config entry does not represent a SettingsModelFSLocation
         }
         return false;
     }
 
+    /**
+     * Checks if the provided {@link ConfigRO} can be overwritten with a {@link FSLocation}.
+     *
+     * @param config to potentially overwrite
+     * @return {@code true} if the config can be overwritten with a FSLocation
+     */
     public static boolean canOverwriteWithFSLocation(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {
@@ -204,31 +216,28 @@ public final class FSLocationUtils {
                 // the config represents a FSLocation if it contains only the flag
                 return config.getChildCount() == 1;
             }
-        } catch (InvalidSettingsException ex) {
+        } catch (InvalidSettingsException ex) {// NOSONAR
             // the config entry does not represent a SettingsModelFSLocation
         }
         return false;
     }
 
+    /**
+     * Checks if an {@link FSLocation} can be created from the provided config.
+     *
+     * @param config to potentially create a {@link FSLocation} from
+     * @return {@code true} if a {@link FSLocation} can be created from {@link ConfigRO config}
+     */
     public static boolean canCreateFromFSLocation(final ConfigRO config) {
-        try {
-            if (config.getBoolean(CFG_LOCATION_PRESENT)) {
-                config.getString(CFG_FS_TYPE);
-                config.getString(CFG_PATH);
-                // the specifier is not necessarily present
-                final String fsSpecifier = config.getString(CFG_FS_SPECIFIER, null);
-                // we can't overwrite if there are more children than expected
-                return config.getChildCount() == (fsSpecifier == null ? 3 : 4);
-            } else {
-                // the config represents a FSLocation if it contains only the flag
-                return config.getChildCount() == 1;
-            }
-        } catch (InvalidSettingsException ex) {
-            // the config entry does not represent a SettingsModelFSLocation
-        }
-        return false;
+        return isFSLocation(config);
     }
 
+    /**
+     * Checks if {@link ConfigRO} contains the information of a {@link FSLocationSpec}.
+     *
+     * @param config that might represent a {@link FSLocationSpec}
+     * @return {@code true} if {@link ConfigRO config} contains the information of a {@link FSLocationSpec}
+     */
     public static boolean isFSLocationSpec(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {
@@ -240,7 +249,7 @@ public final class FSLocationUtils {
                 // the config represents a FSLocationSpec if it contains only the flag
                 return config.getChildCount() == 1;
             }
-        } catch (InvalidSettingsException ex) {
+        } catch (InvalidSettingsException ex) {// NOSONAR
             // the config entry does not represent an FSLocationSpec
         }
         return false;

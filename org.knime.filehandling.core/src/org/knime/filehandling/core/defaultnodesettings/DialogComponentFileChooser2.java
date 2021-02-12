@@ -208,6 +208,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
      *
+     * TODO discuss if this class should be deprecated
+     *
      * @param inPort the index of the optional {@link FileSystemPortObject}
      * @param settingsModel the settings model storing all the necessary information
      * @param historyId id used to store file history used by {@link FilesHistoryPanel}
@@ -523,7 +525,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
             }
 
             m_statusMessage.setText("");
-        } catch (Exception e) {
+        } catch (Exception e) {//NOSONAR
             m_fileHistoryPanel.setFileSystemBrowser(new LocalFileSystemBrowser());
             m_fileHistoryPanel.setBrowseable(false);
             m_statusMessage.setForeground(Color.RED);

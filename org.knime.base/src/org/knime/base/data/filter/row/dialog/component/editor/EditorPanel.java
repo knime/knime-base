@@ -61,7 +61,7 @@ import org.knime.base.data.filter.row.dialog.component.handler.TreeGroupHandler;
  *
  * @author Mor Kalla
  */
-public class EditorPanel extends JPanel {
+public final class EditorPanel extends JPanel {
 
     private static final long serialVersionUID = 1253685075052035986L;
 
@@ -73,7 +73,7 @@ public class EditorPanel extends JPanel {
 
     private final ErrorLabel m_errorLabel;
 
-    private final EditorPanelConfig m_config;
+    private final transient EditorPanelConfig m_config;
 
     /**
      * Constructs an {@link EditorPanel}.

@@ -84,13 +84,13 @@ final class ColumnFilterRandomAccessible<V> extends AbstractRandomAccessible<V> 
     public int size() {
         checkDecorateeIsPresent();
         final int underlyingSize = m_decoratee.size();
-        return underlyingSize > m_columnToFilter ? underlyingSize - 1 : underlyingSize;
+        return underlyingSize > m_columnToFilter ? (underlyingSize - 1) : underlyingSize;
     }
 
     @Override
     public V get(final int idx) {
         checkDecorateeIsPresent();
-        final int filteredIdx = idx < m_columnToFilter ? idx : idx + 1;
+        final int filteredIdx = idx < m_columnToFilter ? idx : (idx + 1);
         return m_decoratee.get(filteredIdx);
     }
 

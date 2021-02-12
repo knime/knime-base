@@ -68,7 +68,7 @@ import org.knime.base.data.filter.row.dialog.registry.OperatorRegistry;
  * @param <V> a type of the tree element view, i.e. {@link TreeGroup} or {@link TreeCondition}
  * @author Viktor Buria
  */
-public abstract class TreeElementHandler<E extends AbstractElement, V extends TreeElement<E>> {
+public abstract class TreeElementHandler<E extends AbstractElement, V extends TreeElement<E>> {//NOSONAR
 
     private final DefaultMutableTreeNode m_treeNode;
 
@@ -167,7 +167,7 @@ public abstract class TreeElementHandler<E extends AbstractElement, V extends Tr
      *
      * @return the {@link OperatorRegistry} object
      */
-    protected OperatorRegistry<?> getOperatorRegistry() {
+    protected OperatorRegistry<?> getOperatorRegistry() {//NOSONAR
         return m_operatorRegistry;
     }
 

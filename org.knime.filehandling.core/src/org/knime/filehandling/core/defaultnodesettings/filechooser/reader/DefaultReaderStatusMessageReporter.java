@@ -50,6 +50,7 @@ package org.knime.filehandling.core.defaultnodesettings.filechooser.reader;
 
 import java.util.Optional;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
@@ -63,6 +64,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class DefaultReaderStatusMessageReporter implements StatusMessageReporter {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultReaderStatusMessageReporter.class);
 
     private final SettingsModelReaderFileChooser m_settings;
 
@@ -90,6 +93,7 @@ final class DefaultReaderStatusMessageReporter implements StatusMessageReporter 
                 return createFilterMessage(stats);
             }
         } catch (Exception ex) {
+            LOGGER.debug("Exception encountered while reporting status message.", ex);
             return DefaultStatusMessage.mkError("%s", ex.getMessage());
         }
     }

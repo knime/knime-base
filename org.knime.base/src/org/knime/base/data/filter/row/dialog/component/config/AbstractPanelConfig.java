@@ -57,7 +57,7 @@ import org.knime.core.data.DataTableSpec;
  * @author Viktor Buria
  * @since 4.0
  */
-public abstract class AbstractPanelConfig {
+public abstract class AbstractPanelConfig {//NOSONAR
 
     private DataTableSpec m_dataTableSpec;
 
@@ -102,7 +102,7 @@ public abstract class AbstractPanelConfig {
      *
      * @return the {@link OperatorRegistry}
      */
-    public OperatorRegistry<?> getOperatorRegistry() {
+    public OperatorRegistry<?> getOperatorRegistry() { //NOSONAR
         return m_operatorRegistry;
     }
 

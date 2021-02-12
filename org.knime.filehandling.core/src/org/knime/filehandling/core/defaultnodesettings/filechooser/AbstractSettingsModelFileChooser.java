@@ -244,7 +244,7 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
                 (ConnectedFileSystemSpecificConfig)m_fsConfig.getFileSystemSpecifcConfig(FSCategory.CONNECTED);
             Optional<FSConnection> connection =
                 FileSystemPortObjectSpec.getFileSystemConnection(specs, connectedConfig.getPortIdx());
-            return connection.map(FSConnection::supportsBrowsing).orElse(true);
+            return connection.map(FSConnection::supportsBrowsing).orElse(Boolean.TRUE);
         } else {
             // Actually not true because Custom/KNIME URLs can't list files either.
             // That is handled separately

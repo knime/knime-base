@@ -71,15 +71,15 @@ public class TwoFieldsPanel extends AbstractFieldPanel {
      * Constructs a {@link TwoFieldsPanel} object.
      */
     public TwoFieldsPanel() {
-        setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+        setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));// NOSONAR, can't fix because it's API
 
-        m_firstTextField = createTextField();
-        add(m_firstTextField);
+        m_firstTextField = createTextField();// NOSONAR, can't fix because it's API
+        add(m_firstTextField);// NOSONAR, can't fix because it's API
 
-        add(Box.createHorizontalStrut(STRUT_WIDTH));
+        add(Box.createHorizontalStrut(STRUT_WIDTH));// NOSONAR, can't fix because it's API
 
-        m_secondTextField = createTextField();
-        add(m_secondTextField);
+        m_secondTextField = createTextField();// NOSONAR, can't fix because it's API
+        add(m_secondTextField);// NOSONAR, can't fix because it's API
     }
 
     @Override

@@ -67,7 +67,7 @@ public class TreeGroup extends TreeElement<Group> {
     @Override
     public String toString() {
         final GroupType type = getValue().getType();
-        return type != null ? type.getName() : "Group #" + getValue().getId();
+        return type != null ? type.getName() : ("Group #" + getValue().getId());
     }
 
 }

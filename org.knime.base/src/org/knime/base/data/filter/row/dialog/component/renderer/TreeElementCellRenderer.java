@@ -53,6 +53,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import org.knime.base.data.filter.row.dialog.ValidationResult;
 import org.knime.base.data.filter.row.dialog.component.DefaultGroupTypes;
 import org.knime.base.data.filter.row.dialog.component.tree.model.TreeElement;
 import org.knime.base.data.filter.row.dialog.component.tree.model.TreeGroup;
@@ -64,7 +65,7 @@ import org.knime.core.node.util.SharedIcons;
  *
  * @author Mor Kalla
  */
-public class TreeElementCellRenderer extends DefaultTreeCellRenderer {
+public final class TreeElementCellRenderer extends DefaultTreeCellRenderer {
 
     private static final long serialVersionUID = 2927287043246204928L;
 
@@ -101,24 +102,31 @@ public class TreeElementCellRenderer extends DefaultTreeCellRenderer {
             if (view instanceof TreeGroup) {
                 setIconType(view);
             }
-            view.getValidationResult().ifPresent(result -> {
-                if (result.hasErrors()) {
-                    setBorderSelectionColor(Color.RED);
-                    setTextNonSelectionColor(Color.RED);
-                    setTextSelectionColor(Color.RED);
-
-                    final StringBuilder tooltip = new StringBuilder("<html><body>");
-                    tooltip.append("<b>Errors:</b><ul>");
-                    result.getErrors().forEach(error -> {
-                        tooltip.append("<li>").append(error.getError()).append("</li>");
-                    });
-                    tooltip.append("</ul>");
-                    tooltip.append("</body></html>");
-                    setToolTipText(tooltip.toString());
-                }
-            });
+            view.getValidationResult().ifPresent(this::reactToValidation);
         }
         return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+    }
+
+    private void reactToValidation(final ValidationResult result) {
+        if (result.hasErrors()) {
+            setBorderSelectionColor(Color.RED);
+            setTextNonSelectionColor(Color.RED);
+            setTextSelectionColor(Color.RED);
+
+            String tooltipString = generateTooltip(result);
+            setToolTipText(tooltipString);
+        }
+    }
+
+    private static String generateTooltip(final ValidationResult result) {
+        final StringBuilder tooltip = new StringBuilder("<html><body>");
+        tooltip.append("<b>Errors:</b><ul>");
+        result.getErrors().forEach(error -> tooltip.append("<li>")//
+            .append(error.getError())//
+            .append("</li>"));//
+        tooltip.append("</ul>");
+        tooltip.append("</body></html>");
+        return tooltip.toString();
     }
 
     /** Decided which is the correct icon, based on the group type. */
@@ -126,9 +134,9 @@ public class TreeElementCellRenderer extends DefaultTreeCellRenderer {
         final TreeGroup treeGroup = (TreeGroup)view;
         final GroupType groupType = treeGroup.getValue().getType();
         final Icon icon;
-        if (groupType.equals(DefaultGroupTypes.AND)){
+        if (groupType.equals(DefaultGroupTypes.AND)) {
             icon = SharedIcons.LOGICAL_AND.get();
-        } else if(groupType.equals(DefaultGroupTypes.OR)) {
+        } else if (groupType.equals(DefaultGroupTypes.OR)) {
             icon = SharedIcons.LOGICAL_OR.get();
         } else {
             icon = SharedIcons.FILTER.get();

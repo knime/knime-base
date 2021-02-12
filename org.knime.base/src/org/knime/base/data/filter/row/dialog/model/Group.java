@@ -74,7 +74,7 @@ public class Group extends AbstractElement {
      */
     public Group(final int id, final GroupType type) {
         super(id);
-        setType(type);
+        setType(type);// NOSONAR, can't fix because it's API
     }
 
     /**
@@ -100,7 +100,10 @@ public class Group extends AbstractElement {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof Group)) {
+        if (other == null) {
+            return false;
+        }
+        if (this.getClass() != other.getClass()) {
             return false;
         }
         final Group castOther = (Group)other;

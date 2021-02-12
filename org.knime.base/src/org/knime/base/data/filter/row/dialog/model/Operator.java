@@ -93,7 +93,10 @@ public class Operator {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof Operator)) {
+        if (other == null) {
+            return false;
+        }
+        if (this.getClass() != other.getClass()) {
             return false;
         }
         final Operator castOther = (Operator)other;

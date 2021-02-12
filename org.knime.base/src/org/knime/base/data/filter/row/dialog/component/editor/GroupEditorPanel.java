@@ -68,7 +68,7 @@ import org.knime.base.data.filter.row.dialog.model.GroupType;
  *
  * @author Mor Kalla
  */
-public class GroupEditorPanel extends JPanel {
+public final class GroupEditorPanel extends JPanel {
 
     private static final long serialVersionUID = -4020466189584375462L;
 
@@ -80,7 +80,7 @@ public class GroupEditorPanel extends JPanel {
 
     private final ErrorLabel m_errorLabel;
 
-    private TreeGroupHandler m_group;
+    private transient TreeGroupHandler m_group;
 
     /**
      * Constructs a {@link GroupEditorPanel}.

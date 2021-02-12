@@ -125,7 +125,7 @@ public final class VariableAndDataCellUtil {
      *
      * @return a list of {@link VariableType VariableTypes} that can be translated to/from a {@link DataCell}
      */
-    public static VariableType<?>[] getSupportedVariableTypes() {
+    public static VariableType<?>[] getSupportedVariableTypes() {//NOSONAR every type may have a different generic
         return TYPES.keySet().stream().toArray(VariableType<?>[]::new);
     }
 

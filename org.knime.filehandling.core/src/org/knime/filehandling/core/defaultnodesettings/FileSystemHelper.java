@@ -215,10 +215,19 @@ public final class FileSystemHelper {
             return Integer.parseInt(timeoutString);
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException(
-                String.format("The provided specifier for the URL location '%s' is not a valid timeout.", location));
+                String.format("The provided specifier for the URL location '%s' is not a valid timeout.", location),
+                ex);
         }
     }
 
+    /**
+     * Retrieves the relative to {@link FSConnection} of the provided {@link KNIMEConnection.Type}.
+     *
+     * @param type of relative to connection
+     * @return the relative to connection
+     * @throws IllegalStateException if type is {@link Type#WORKFLOW_DATA_RELATIVE} or {@link Type#WORKFLOW_RELATIVE}
+     *             and the method is called from a component project
+     */
     public static FSConnection getRelativeToConnection(final Type type) {
 
         if (isRelativeToWorkflowOrWorkflowDataArea(type) && CheckNodeContextUtil.isInComponentProject()) {

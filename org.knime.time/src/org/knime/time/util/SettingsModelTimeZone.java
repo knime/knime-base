@@ -49,6 +49,7 @@ import java.time.ZoneId;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -63,6 +64,9 @@ import org.knime.core.node.port.PortObjectSpec;
  * @since 4.2
  */
 public final class SettingsModelTimeZone extends SettingsModel {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(SettingsModelTimeZone.class);
+
     private final String m_configName;
 
     private ZoneId m_zone;
@@ -130,6 +134,7 @@ public final class SettingsModelTimeZone extends SettingsModel {
         try {
             loadSettingsForModel(settings);
         } catch (InvalidSettingsException ise) {
+            LOGGER.debug("Loading the settings failed. Falling back onto the system default.", ise);
             // load current date and time
             setZone(ZoneId.systemDefault());
         }
@@ -142,10 +147,10 @@ public final class SettingsModelTimeZone extends SettingsModel {
         if (StringUtils.isEmpty(string) || string.equals("missing")) {
             // table row to variable returns "missing" for flow variables when the node isn't executed yet
             setZone(ZoneId.systemDefault());
-        } else if (DateTimeUtils.asTimezone(string).isPresent()) {
-            setZone(DateTimeUtils.asTimezone(string).get());
         } else {
-            throw new InvalidSettingsException("'" + string + "' could not be parsed as a time zone.");
+            ZoneId timezone = DateTimeUtils.asTimezone(string).orElseThrow(
+                () -> new InvalidSettingsException("'" + string + "' could not be parsed as a time zone."));
+            setZone(timezone);
         }
     }
 

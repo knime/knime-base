@@ -78,7 +78,7 @@ public class ValidationResult {
      * @param message the error message.
      */
     public ValidationResult(final int operandIdx, final String message) {
-        addError(operandIdx, message);
+        addError(operandIdx, message);// NOSONAR can't fix because it's API
     }
 
     /**

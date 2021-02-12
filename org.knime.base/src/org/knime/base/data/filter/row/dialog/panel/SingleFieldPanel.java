@@ -67,9 +67,9 @@ public class SingleFieldPanel extends AbstractFieldPanel {
      * Constructs a {@link SingleFieldPanel} object.
      */
     public SingleFieldPanel() {
-        setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-        m_textField = createTextField();
-        add(m_textField);
+        setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));// NOSONAR, can't fix because it's API
+        m_textField = createTextField();// NOSONAR, can't fix because it's API
+        add(m_textField);// NOSONAR, can't fix because it's API
     }
 
     @Override

@@ -59,12 +59,6 @@ public class OperatorPanelParameters {
     private OperatorParameters m_parameters;
 
     /**
-     * Constructs a {@link OperatorPanelParameters}.
-     */
-    public OperatorPanelParameters() {
-    }
-
-    /**
      * Gets the column specification.
      *
      * @return the {@link ColumnSpec}

@@ -86,6 +86,8 @@ enum CSVMultiTableReadConfigSerializer
 
     INSTANCE;
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVMultiTableReadConfigSerializer.class);
+
     private static final boolean DEFAULT_FAIL_ON_DIFFERING_SPECS = true;
 
     private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
@@ -245,7 +247,7 @@ enum CSVMultiTableReadConfigSerializer
                 return null;
             }
         } catch (InvalidSettingsException ise) {
-            NodeLogger.getLogger(CSVMultiTableReadConfigSerializer.class)
+            LOGGER
                 .debug("Loading the SpecMergeMode failed unexpectedly, falling back to null.", ise);
             return null;
         }
@@ -294,7 +296,7 @@ enum CSVMultiTableReadConfigSerializer
         try {
             return loadFailOnDifferingSpecsInModel(advancedSettings);
         } catch (InvalidSettingsException ise) {
-            NodeLogger.getLogger(CSVMultiTableReadConfigSerializer.class)
+            LOGGER
                 .debug(String.format("An error occurred while loading %s", CFG_FAIL_ON_DIFFERING_SPECS), ise);
             return DEFAULT_FAIL_ON_DIFFERING_SPECS;
         }
@@ -320,8 +322,9 @@ enum CSVMultiTableReadConfigSerializer
 
         QuoteOption quoteOption;
         try {
-            quoteOption = QuoteOption.valueOf(settings.getString(CFG_QUOTE_OPTION));
-        } catch (Exception ex) {
+            quoteOption = QuoteOption.valueOf(settings.getString(CFG_QUOTE_OPTION, QuoteOption.KEEP_QUOTES.name()));
+        } catch (IllegalArgumentException ex) {
+            LOGGER.debug("The configured quote option is invalid. Falling back onto the default.", ex);
             quoteOption = QuoteOption.KEEP_QUOTES;
         }
         cc.setQuoteOption(quoteOption);

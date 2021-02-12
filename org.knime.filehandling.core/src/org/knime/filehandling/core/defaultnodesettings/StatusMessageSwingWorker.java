@@ -64,6 +64,7 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.JLabel;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
@@ -77,6 +78,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Julian Bunzel, KNIME GmbH, Berlin, Germany
  */
+// TODO deprecate?
 final class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String>, Pair<Color, String>> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DialogComponentFileChooser2.class);
@@ -167,70 +169,87 @@ final class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, 
         final Path fileOrFolder;
         try {
             fileOrFolder = helper.getPathFromSettings();
-        } catch (final Exception e) {
+        } catch (final InvalidSettingsException | IOException e) {
+            LOGGER.debug("Exception encountered when extracting path from settings.", e);
             return mkError(ExceptionUtil.getDeepestErrorMessage(e, false));
         }
 
-        if (m_dialogType.equals(DialogType.OPEN_DIALOG)) {
-            // fetch file attributes for path, so we can determine whether it exists, is accessible
-            // and whether it is file or folder
-            final BasicFileAttributes basicAttributes;
+        if (m_dialogType == DialogType.OPEN_DIALOG) {
+            return createStatusForOpenDialog(helper, fileOrFolder);
+        } else {
+            return createStatusForSaveDialog(pathOrUrl, fileOrFolder);
+        }
+    }
+
+    private Pair<Color, String> createStatusForSaveDialog(final String pathOrUrl, final Path fileOrFolder) {
+        if (Files.exists(fileOrFolder)) {
+            BasicFileAttributes basicAttributes = null;
             try {
                 basicAttributes = Files.readAttributes(fileOrFolder, BasicFileAttributes.class);
             } catch (final IOException e) {
-                return mkError(
-                    format(FILE_FOLDER_ACCESS_FAILURE_MESSAGE, ExceptionUtil.getDeepestErrorMessage(e, false)));
+                // do nothing
+                LOGGER.debug("Accessing the file attributes failed.", e);
+                return mkSuccess("");
             }
-            if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY) && basicAttributes.isDirectory()) {
-                final String msg = "Input location '" + fileOrFolder.toString() + "' is a directory";
-                return mkError(msg);
-            }
-            if (m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY) && !basicAttributes.isDirectory()) {
-                final String msg = "Input location '" + fileOrFolder.toString() + "' is a not a directory";
-                return mkError(msg);
-            }
-            if ((m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY)
-                || m_fileSelectionMode.equals(FileSelectionMode.FILES_AND_DIRECTORIES))
-                && basicAttributes.isDirectory()) {
-                return scanFolder(helper);
-            }
-            return mkSuccess("");
-        } else {
-            if (Files.exists(fileOrFolder)) {
-                BasicFileAttributes basicAttributes = null;
-                try {
-                    basicAttributes = Files.readAttributes(fileOrFolder, BasicFileAttributes.class);
-                } catch (final IOException e) {
-                    // do nothing
-                }
-                String warning = "";
-                if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY)
-                    && (basicAttributes != null && !basicAttributes.isDirectory())) {
-                    warning = "Output file '" + pathOrUrl + "' already exists and might be overwritten";
-                }
-                if (m_fileSelectionMode.equals(FileSelectionMode.FILES_ONLY)
-                    && (basicAttributes != null && basicAttributes.isDirectory())) {
-                    final String msg = "Output location '" + pathOrUrl + "' is a directory.";
-                    return mkError(msg);
-                }
-                if (m_fileSelectionMode.equals(FileSelectionMode.DIRECTORIES_ONLY)
-                    && (basicAttributes != null && basicAttributes.isDirectory())) {
-                    warning =
-                        "Output directory '" + fileOrFolder.toString() + "' already exists and might be overwritten";
-                }
-                if (m_fileSelectionMode.equals(FileSelectionMode.FILES_AND_DIRECTORIES) && basicAttributes != null) {
-                    if (basicAttributes.isDirectory()) {
-                        warning = "Output directory '" + fileOrFolder.toString()
-                            + "' already exists and might be overwritten";
-                    } else {
-                        warning = "Output file '" + pathOrUrl + "' already exists and might be overwritten";
-                    }
-                }
+            return createSaveStatusMessage(pathOrUrl, fileOrFolder, basicAttributes);
+        }
+        return mkSuccess("");
+    }
 
-                if (!warning.isEmpty()) {
-                    return mkWarning(warning);
-                }
+    private Pair<Color, String> createSaveStatusMessage(final String pathOrUrl, final Path fileOrFolder,
+        final BasicFileAttributes basicAttributes) {
+        String warning = "";
+        if (m_fileSelectionMode == FileSelectionMode.FILES_ONLY
+            && !basicAttributes.isDirectory()) {
+            warning = "Output file '" + pathOrUrl + "' already exists and might be overwritten";
+        }
+        if (m_fileSelectionMode == FileSelectionMode.FILES_ONLY
+            && basicAttributes.isDirectory()) {
+            final String msg = "Output location '" + pathOrUrl + "' is a directory.";
+            return mkError(msg);
+        }
+        if (m_fileSelectionMode == FileSelectionMode.DIRECTORIES_ONLY
+            && basicAttributes.isDirectory()) {
+            warning =
+                "Output directory '" + fileOrFolder.toString() + "' already exists and might be overwritten";
+        }
+        if (m_fileSelectionMode == FileSelectionMode.FILES_AND_DIRECTORIES) {
+            if (basicAttributes.isDirectory()) {
+                warning = "Output directory '" + fileOrFolder.toString()
+                    + "' already exists and might be overwritten";
+            } else {
+                warning = "Output file '" + pathOrUrl + "' already exists and might be overwritten";
             }
+        }
+
+        if (!warning.isEmpty()) {
+            return mkWarning(warning);
+        }
+        return mkSuccess("");
+    }
+
+    private Pair<Color, String> createStatusForOpenDialog(final FileChooserHelper helper, final Path fileOrFolder) {
+        // fetch file attributes for path, so we can determine whether it exists, is accessible
+        // and whether it is file or folder
+        final BasicFileAttributes basicAttributes;
+        try {
+            basicAttributes = Files.readAttributes(fileOrFolder, BasicFileAttributes.class);
+        } catch (final IOException e) {
+            return mkError(
+                format(FILE_FOLDER_ACCESS_FAILURE_MESSAGE, ExceptionUtil.getDeepestErrorMessage(e, false)));
+        }
+        if (m_fileSelectionMode == FileSelectionMode.FILES_ONLY && basicAttributes.isDirectory()) {
+            final String msg = "Input location '" + fileOrFolder.toString() + "' is a directory";
+            return mkError(msg);
+        }
+        if (m_fileSelectionMode == FileSelectionMode.DIRECTORIES_ONLY && !basicAttributes.isDirectory()) {
+            final String msg = "Input location '" + fileOrFolder.toString() + "' is a not a directory";
+            return mkError(msg);
+        }
+        if ((m_fileSelectionMode == FileSelectionMode.DIRECTORIES_ONLY
+            || m_fileSelectionMode == FileSelectionMode.FILES_AND_DIRECTORIES)
+            && basicAttributes.isDirectory()) {
+            return scanFolder(helper);
         }
         return mkSuccess("");
     }
@@ -279,8 +298,9 @@ final class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, 
             if (!(e.getCause() instanceof InterruptedException)) {
                 LOGGER.debug(e.getMessage(), e);
             }
-        } catch (InterruptedException | CancellationException ex) {
+        } catch (InterruptedException | CancellationException ex) {//NOSONAR
             // ignore
+            LOGGER.debug("The swing worker was either cancelled or interrupted.", ex);
         }
     }
 

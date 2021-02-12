@@ -80,7 +80,7 @@ import org.knime.core.data.DataType;
  *
  * @author Viktor Buria
  */
-public class ConditionEditorPanel extends JPanel {
+public final class ConditionEditorPanel extends JPanel {
 
     private static final long serialVersionUID = 419700229649678386L;
 
@@ -94,11 +94,11 @@ public class ConditionEditorPanel extends JPanel {
 
     private final ErrorLabel m_errorLabel;
 
-    private final EditorPanelConfig m_config;
+    private final transient EditorPanelConfig m_config;
 
-    private TreeConditionHandler m_condition;
+    private transient TreeConditionHandler m_condition;
 
-    private Supplier<String[]> m_operatorPanelValuesSupplier;
+    private transient Supplier<String[]> m_operatorPanelValuesSupplier;
 
     private volatile boolean m_displaying;
 
@@ -169,7 +169,7 @@ public class ConditionEditorPanel extends JPanel {
      * Cancels every execution that is currently in progress in this panel.
      */
     public void cancelEveryExecution() {
-        m_operatorPanelHolder.getOperatorPanel().ifPresent(panel -> panel.cancelEveryExecution());
+        m_operatorPanelHolder.getOperatorPanel().ifPresent(OperatorPanel::cancelEveryExecution);
     }
 
     @Override
@@ -321,13 +321,9 @@ public class ConditionEditorPanel extends JPanel {
             final Optional<OperatorPanel> operatorPanel =
                 m_config.getOperatorRegistry().findPanel(OperatorKey.key(columnSpec.getType(), operator));
 
-            // If operator panel cannot be found or an operation doesn't have a panel,i.e. IS NULL operator.
-            if (!operatorPanel.isPresent()) {
-                m_operatorPanelValuesSupplier = null;
-                operation.setValues(null);
-            }
-            // When operator panel exists.
-            operatorPanel.ifPresent(panel -> {
+            if (operatorPanel.isPresent()) {
+                // When operator panel exists.
+                OperatorPanel panel = operatorPanel.get();
                 m_operatorPanelValuesSupplier = panel::getValues;
 
                 final OperatorPanelParameters parameters = m_config.getOperatorPanelParameters();
@@ -339,7 +335,11 @@ public class ConditionEditorPanel extends JPanel {
                     updateTreeCondition();
                 });
                 m_operatorPanelHolder.setOperatorPanel(panel);
-            });
+            } else {
+                // If operator panel cannot be found or an operation doesn't have a panel,i.e. IS NULL operator.
+                m_operatorPanelValuesSupplier = null;
+                operation.setValues(null);
+            }
             m_operatorPanelHolder.refresh();
         }
         // Save latest changes if any.
@@ -351,11 +351,11 @@ public class ConditionEditorPanel extends JPanel {
      *
      * @author Viktor Buria
      */
-    private static class OperatorPanelHolder extends JPanel {
+    private static final class OperatorPanelHolder extends JPanel {
 
         private static final long serialVersionUID = 5129050792359250919L;
 
-        private OperatorPanel m_operatorPanel;
+        private transient OperatorPanel m_operatorPanel;
 
         /**
          * Constructs an {@link OperatorPanelHolder} object.

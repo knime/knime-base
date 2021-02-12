@@ -74,9 +74,6 @@ public class EmptyTable implements BoundedTable {
             // nothing to close
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public boolean hasNext() {
             return false;

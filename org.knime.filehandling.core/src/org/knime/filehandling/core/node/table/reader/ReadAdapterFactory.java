@@ -77,7 +77,7 @@ public interface ReadAdapterFactory<T, V> {
      *
      * @return a compatible {@link ProducerRegistry}
      */
-    ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry();
+    ProducerRegistry<T, ? extends ReadAdapter<T, V>> getProducerRegistry();//NOSONAR
 
     /**
      * Returns the default {@link DataType} for the provided external type.

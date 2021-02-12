@@ -129,7 +129,7 @@ public final class FSLocationSpecVariableType extends VariableType<FSLocationSpe
     private static boolean isFSLocationSpec(final Config config, final String configKey) {
         try {
             return FSLocationUtils.isFSLocationSpec(config.getConfig(configKey));
-        } catch (InvalidSettingsException ex) {
+        } catch (InvalidSettingsException ex) {// NOSONAR
             // the key did not correspond to a config -> this can't be an FSLocationSpec
             return false;
         }
