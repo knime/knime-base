@@ -141,7 +141,7 @@ public class V44TableSpecConfigSerializerTest {
             expectedIndividualSettings.addNodeSettings(TableSpecConfigTestingUtils.PATH2),
             TableSpecConfigTestingUtils.SPEC2);
         TableTransformationSerializerTest.fillSettings(expected.addNodeSettings("table_transformation"), false, 3, true,
-            ColumnFilterMode.INTERSECTION, config.getTransformationModel().stream().collect(toList()));
+            ColumnFilterMode.INTERSECTION, config.getTableTransformation().stream().collect(toList()));
         return expected;
     }
 

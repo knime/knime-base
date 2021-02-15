@@ -140,7 +140,7 @@ public class DefaultTableTransformationFactoryTest {
         when(m_config.hasTableSpecConfig()).thenReturn(hasTableSpecConfig);
         if (hasTableSpecConfig) {
             when(m_config.getTableSpecConfig()).thenReturn(m_tableSpecConfig);
-            when(m_tableSpecConfig.getTransformationModel()).thenReturn(m_configuredTransformationModel);
+            when(m_tableSpecConfig.getTableTransformation()).thenReturn(m_configuredTransformationModel);
         }
     }
 

@@ -61,7 +61,6 @@ import java.util.stream.Collectors;
 import org.knime.core.data.DataTableSpec;
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
@@ -150,7 +149,7 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     }
 
     @Override
-    public TableTransformation<T> getTransformationModel() {
+    public TableTransformation<T> getTableTransformation() {
         return m_tableTransformation;
     }
 
@@ -169,7 +168,7 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
 
     @Override
     public DataTableSpec getDataTableSpec() {
-        return TableTransformationUtils.toDataTableSpec(getTransformationModel());
+        return TableTransformationUtils.toDataTableSpec(getTableTransformation());
     }
 
     @Override
@@ -183,18 +182,13 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     }
 
     @Override
-    public ColumnFilterMode getColumnFilterMode() {
-        return m_tableTransformation.getColumnFilterMode();
-    }
-
-    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((m_individualSpecs == null) ? 0 : m_individualSpecs.hashCode());
-        result = prime * result + ((m_configID == null) ? 0 : m_configID.hashCode());
-        result = prime * result + ((m_sourceGroupID == null) ? 0 : m_sourceGroupID.hashCode());
-        result = prime * result + ((m_tableTransformation == null) ? 0 : m_tableTransformation.hashCode());
+        result = prime * result + m_individualSpecs.hashCode();
+        result = prime * result + m_configID.hashCode();
+        result = prime * result + m_sourceGroupID.hashCode();
+        result = prime * result + m_tableTransformation.hashCode();
         return result;
     }
 

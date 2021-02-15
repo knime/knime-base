@@ -52,7 +52,6 @@ import java.util.List;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;
@@ -72,8 +71,7 @@ public interface TableSpecConfig<T> {
      *
      * @return the {@link TableTransformation}
      */
-    // TODO rename to getTableTransformation
-    TableTransformation<T> getTransformationModel();
+    TableTransformation<T> getTableTransformation();
 
     /**
      * @return the {@link RawSpec} this config has been created with
@@ -136,12 +134,5 @@ public interface TableSpecConfig<T> {
      * @return the associated {@link ReaderTableSpec}
      */
     TypedReaderTableSpec<T> getSpec(String item);//NOSONAR
-
-    /**
-     * Returns the configured {@link ColumnFilterMode}.
-     *
-     * @return the configured {@link ColumnFilterMode}
-     */
-    ColumnFilterMode getColumnFilterMode();
 
 }

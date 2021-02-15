@@ -134,7 +134,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
     public MultiTableRead<T> withoutTransformation(final SourceGroup<I> sourceGroup) {
         if (m_config.hasTableSpecConfig()) {
             final TableSpecConfig<T> tableSpecConfig = m_config.getTableSpecConfig();
-            final TableTransformation<T> configuredTransformation = tableSpecConfig.getTransformationModel();
+            final TableTransformation<T> configuredTransformation = tableSpecConfig.getTableTransformation();
             if (tableSpecConfig.isConfiguredWith(m_config.getConfigID(),
                 transformToString(sourceGroup))) {
                 return createMultiTableRead(sourceGroup, configuredTransformation, m_config.getTableReadConfig(),

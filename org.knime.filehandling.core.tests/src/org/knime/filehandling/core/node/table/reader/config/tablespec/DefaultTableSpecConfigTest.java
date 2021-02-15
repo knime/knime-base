@@ -205,7 +205,7 @@ public class DefaultTableSpecConfigTest {
             .withKeep(true, false, true)//
             .build();
 
-        final TableTransformation<String> tm = tsc.getTransformationModel();
+        final TableTransformation<String> tm = tsc.getTableTransformation();
         assertEquals(RAW_SPEC, tm.getRawSpec());
 
         checkTransformation(tm.getTransformation(COL1), COL1, "A", expectedProdPaths[0], 1, true);

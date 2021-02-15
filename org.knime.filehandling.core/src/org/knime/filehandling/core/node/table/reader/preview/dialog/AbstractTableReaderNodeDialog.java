@@ -244,7 +244,7 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
         setPreviewEnabled(false);
         final MultiTableReadConfig<C, T> config = loadSettings(settings, specs);
         if (config.hasTableSpecConfig()) {
-            m_coordinator.load(config.getTableSpecConfig().getTransformationModel());
+            m_coordinator.load(config.getTableSpecConfig().getTableTransformation());
         }
         ignoreEvents(false);
         refreshPreview(true);

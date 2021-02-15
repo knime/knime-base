@@ -186,7 +186,7 @@ public class DefaultMultiTableReadFactoryTest {
         when(transformationModel.getRawSpec()).thenReturn(RAW_SPEC);
 
         final TableSpecConfig tsc = mock(TableSpecConfig.class);
-        when(tsc.getTransformationModel()).thenReturn(transformationModel);
+        when(tsc.getTableTransformation()).thenReturn(transformationModel);
         final RawSpec rawRawSpec = RAW_SPEC;// NOSONAR, necessary to make Mockito work its magic
         when(tsc.getRawSpec()).thenReturn(rawRawSpec);
 

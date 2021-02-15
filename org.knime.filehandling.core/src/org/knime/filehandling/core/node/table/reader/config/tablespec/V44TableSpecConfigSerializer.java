@@ -88,7 +88,7 @@ final class V44TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
     @Override
     public void save(final TableSpecConfig<T> config, final NodeSettingsWO settings) {
         saveIndividualSpecs(config, settings.addNodeSettings(CFG_INDIVIDUAL_SPECS));
-        m_tableTransformationSerializer.save(config.getTransformationModel(),
+        m_tableTransformationSerializer.save(config.getTableTransformation(),
             settings.addNodeSettings(CFG_TABLE_TRANSFORMATION));
         settings.addString(CFG_SOURCE_GROUP_ID, config.getSourceGroupID());
         ConfigIDSerializer.saveID(config.getConfigID(), settings);

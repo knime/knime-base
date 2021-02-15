@@ -386,7 +386,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
 
         m_config.loadInDialog(settings, specs);
         if (m_config.hasTableSpecConfig()) {
-            m_coordinator.load(m_config.getTableSpecConfig().getTransformationModel());
+            m_coordinator.load(m_config.getTableSpecConfig().getTableTransformation());
         }
         final boolean useRowIDIdx = m_config.getTableReadConfig().useRowIDIdx();
         m_useRowID.setSelected(useRowIDIdx);
