@@ -51,6 +51,7 @@ package org.knime.filehandling.core.node.table.reader;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -135,6 +136,11 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
      */
     public static <T> ImmutableTableTransformation<T> copy(final TableTransformation<T> tableTransformation) {
         return new ImmutableTableTransformation<>(tableTransformation);
+    }
+
+    @Override
+    public Iterator<ColumnTransformation<T>> iterator() {
+        return stream().iterator();
     }
 
     @Override

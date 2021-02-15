@@ -44,29 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 2, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.filehandling.core.node.table.reader.SourceGroup;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
- * A {@link ConfigID} is an immutable identifier of a configuration used to create a {@link TableSpecConfig}.<br>
- * It is stored as part of the TableSpecConfig and then used in
- * {@link TableSpecConfig#isConfiguredWith(ConfigID, SourceGroup)} and
- * {@link TableSpecConfig#isConfiguredWith(ConfigID, String)} to decide if the spec was created with the same config.
- *
- * <b>NOTE</b>: Implementing classes MUST override {@link Object#equals(Object)}.
+ * Serializer for {@link TypedReaderColumnSpec TypedReaderColumnSpecs}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface ConfigID {
+final class TypedReaderColumnSpecSerializer<T> {
 
-    /**
-     * Saves the ConfigID into the provided {@link NodeSettingsWO}.
-     *
-     * @param settings to save to
-     */
-    void save(NodeSettingsWO settings);
+    private static final String CFG_TYPE = "type";
+
+    private static final String CFG_HAS_TYPE = "has_type";
+
+    private static final String CFG_NAME = "name";
+
+    private final NodeSettingsSerializer<T> m_typeSerializer;
+
+    TypedReaderColumnSpecSerializer(final NodeSettingsSerializer<T> typeSerializer) {
+        m_typeSerializer = typeSerializer;
+    }
+
+    void save(final TypedReaderColumnSpec<T> columnSpec, final NodeSettingsWO settings) {
+        settings.addString(CFG_NAME, MultiTableUtils.getNameAfterInit(columnSpec));
+        settings.addBoolean(CFG_HAS_TYPE, columnSpec.hasType());
+        m_typeSerializer.save(columnSpec.getType(), settings.addNodeSettings(CFG_TYPE));
+    }
+
+    TypedReaderColumnSpec<T> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final String name = settings.getString(CFG_NAME);
+        final boolean hasType = settings.getBoolean(CFG_HAS_TYPE);
+        final T type = m_typeSerializer.load(settings.getNodeSettings(CFG_TYPE));
+        return TypedReaderColumnSpec.createWithName(name, type, hasType);
+    }
 }

@@ -68,7 +68,7 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 import org.mockito.Mock;

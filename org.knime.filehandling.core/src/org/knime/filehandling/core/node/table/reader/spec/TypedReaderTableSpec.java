@@ -54,6 +54,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.node.util.CheckUtils;
@@ -150,6 +151,16 @@ public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderCo
     }
 
     /**
+     * Convenience method to create a {@link TypedReaderTableSpecBuilder}.
+     *
+     * @param <T> the type used to identify external data types
+     * @return a fresh {@link TypedReaderTableSpecBuilder}
+     */
+    public static <T> TypedReaderTableSpecBuilder<T> builder() {
+        return new TypedReaderTableSpecBuilder<>();
+    }
+
+    /**
      * Builder for {@link TypedReaderTableSpec}.
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -172,11 +183,15 @@ public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderCo
          * @throws IllegalArgumentException if the name is already taken
          */
         public TypedReaderTableSpecBuilder<T> addColumn(final String name, final T type, final boolean hasType) {
-            CheckUtils.checkArgument(!m_names.contains(name), "The name '%s' is already taken.");
+            checkName(name);
             final TypedReaderColumnSpec<T> column = TypedReaderColumnSpec.createWithName(name, type, hasType);
             m_columns.add(column);
             m_names.add(name);
             return this;
+        }
+
+        private void checkName(final String name) {
+            CheckUtils.checkArgument(!m_names.contains(name), "The name '%s' is already taken.");
         }
 
         /**
@@ -189,6 +204,22 @@ public final class TypedReaderTableSpec<T> extends ReaderTableSpec<TypedReaderCo
          */
         public TypedReaderTableSpecBuilder<T> addColumn(final T type, final boolean hasType) {
             final TypedReaderColumnSpec<T> column = TypedReaderColumnSpec.create(type, hasType);
+            m_columns.add(column);
+            return this;
+        }
+
+        /**
+         * Adds the provided column.
+         *
+         * @param column to add
+         * @return this builder
+         */
+        public TypedReaderTableSpecBuilder<T> addColumn(final TypedReaderColumnSpec<T> column) {
+            Optional<String> name = column.getName();
+            if (name.isPresent()) {
+                checkName(name.get());
+                m_names.add(name.get());
+            }
             m_columns.add(column);
             return this;
         }

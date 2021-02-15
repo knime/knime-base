@@ -62,11 +62,10 @@ import org.knime.core.node.NodeProgressMonitor;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.PreviewDataTable;
 
 /**
- * // TODO AP-14295: we need sth like our own TableReadExecutionMonitor (from that PreviewExecutionMonitor inherits)
  *
  * The execution monitor used when creating a {@link PreviewDataTable}.
  *
- * Note that no real sub progress can be created at the moment (see TODO above).
+ * Note that no real sub progress can be created at the moment.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany

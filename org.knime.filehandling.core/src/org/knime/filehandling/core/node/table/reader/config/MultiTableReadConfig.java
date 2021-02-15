@@ -50,6 +50,9 @@ package org.knime.filehandling.core.node.table.reader.config;
 
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 
 /**
  * Configuration for the table readers that can jointly read tables from multiple sources.

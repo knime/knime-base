@@ -44,23 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 21, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 3, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
+ * Provides methods to save and load objects of a particular type to/from {@link NodeSettingsWO} and
+ * {@link NodeSettingsRO} objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <C> The type of config this factory can extract a {@link ConfigID} from
+ * @param <O> the type of object this serializer serializes
  */
-public interface ConfigIDFactory<C> extends ConfigIDLoader {
+public interface NodeSettingsSerializer<O> {
 
     /**
-     * Creates a {@link ConfigID} from the provided <b>config</b>.
+     * Saves the provided object into the provided {@link NodeSettingsWO}.
      *
-     * @param config to create the {@link ConfigID} from
-     * @return the {@link ConfigID} identifying <b>config</b>
+     * @param object to save
+     * @param settings to save to
      */
-    ConfigID createFromConfig(final C config);
+    void save(O object, NodeSettingsWO settings);
 
+    /**
+     * Loads an object from the provided {@link NodeSettingsRO}.
+     *
+     * @param settings to load from
+     * @return the loaded object
+     * @throws InvalidSettingsException if the settings are invalid for this serializer
+     */
+    O load(final NodeSettingsRO settings) throws InvalidSettingsException;
 }

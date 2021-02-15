@@ -46,7 +46,7 @@
  * History
  *   Dec 15, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;

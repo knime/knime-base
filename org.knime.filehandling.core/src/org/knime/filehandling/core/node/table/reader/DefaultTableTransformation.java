@@ -48,10 +48,13 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
@@ -99,8 +102,8 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
         final boolean includeUnknownColumns, final int unknownColumnPosition, final boolean enforceTypes,
         final boolean skipEmptyColumns) {
         m_rawSpec = rawSpec;
-        m_transformations = transformations.stream()
-            .collect(Collectors.toMap(ColumnTransformation::getExternalSpec, Function.identity()));
+        m_transformations = transformations.stream().collect(
+            toMap(ColumnTransformation::getExternalSpec, Function.identity(), (l, r) -> l, LinkedHashMap::new));
         m_columnFilterMode = columnFilterMode;
         m_includeUnknownColumns = includeUnknownColumns;
         m_unknownColumnPosition = unknownColumnPosition;
@@ -143,6 +146,11 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
     @Override
     public Stream<ColumnTransformation<T>> stream() {
         return m_transformations.values().stream().map(Function.identity());
+    }
+
+    @Override
+    public Iterator<ColumnTransformation<T>> iterator() {
+        return stream().iterator();
     }
 
     @Override

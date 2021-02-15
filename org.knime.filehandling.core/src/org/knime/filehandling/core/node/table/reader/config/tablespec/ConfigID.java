@@ -44,56 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2020 (Tobias): created
+ *   Dec 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 
 /**
- * Encapsulates information necessary to read tables from multiple items.
+ * A {@link ConfigID} is an immutable identifier of a configuration used to create a {@link TableSpecConfig}.<br>
+ * It is stored as part of the TableSpecConfig and then used in
+ * {@link TableSpecConfig#isConfiguredWith(ConfigID, SourceGroup)} and
+ * {@link TableSpecConfig#isConfiguredWith(ConfigID, String)} to decide if the spec was created with the same config.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * <b>NOTE</b>: Implementing classes MUST override {@link Object#equals(Object)}.
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
  */
-public interface MultiTableRead<T> {
+public interface ConfigID {
 
     /**
-     * Returns the {@link DataTableSpec} of the currently read table.
+     * Saves the ConfigID into the provided {@link NodeSettingsWO}.
      *
-     * @return the {@link DataTableSpec} of the currently read table
+     * @param settings to save to
      */
-    DataTableSpec getOutputSpec();
-
-    /**
-     * Allows to create the {@link TableSpecConfig}.
-     *
-     * @return the {@link TableSpecConfig}
-     */
-    TableSpecConfig<T> getTableSpecConfig();
-
-    /**
-     * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.
-     *
-     * @return a {@link PreviewRowIterator} for use in the dialog
-     */
-    PreviewRowIterator createPreviewIterator();
-
-    /**
-     * Fills the provided {@link RowOutput} with the data from this {@link MultiTableRead}.
-     *
-     * @param output to push to
-     * @param exec for progress monitoring and canceling
-     * @param fsFactory the {@link FileStoreFactory} to use for cell creation
-     * @throws Exception if something goes awry
-     */
-    // can't be specialized because the type mapping throws Exception
-    void fillRowOutput(RowOutput output, ExecutionMonitor exec, FileStoreFactory fsFactory) throws Exception; // NOSONAR
-
+    void save(NodeSettingsWO settings);
 }

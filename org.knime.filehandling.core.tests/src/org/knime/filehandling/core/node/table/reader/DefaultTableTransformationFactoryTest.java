@@ -66,7 +66,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;

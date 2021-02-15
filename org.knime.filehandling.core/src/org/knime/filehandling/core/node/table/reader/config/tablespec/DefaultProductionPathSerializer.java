@@ -44,56 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2020 (Tobias): created
+ *   Feb 3, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.data.convert.util.SerializeUtil;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.config.base.ConfigBaseRO;
+import org.knime.core.node.config.base.ConfigBaseWO;
 
 /**
- * Encapsulates information necessary to read tables from multiple items.
+ * Default implementation of a {@link ProductionPathSerializer} that delegates to
+ * {@link SerializeUtil#loadProductionPath(ConfigBaseRO, ProducerRegistry, String)} and
+ * {@link SerializeUtil#storeProductionPath(ProductionPath, ConfigBaseWO, String)}.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
  */
-public interface MultiTableRead<T> {
+public final class DefaultProductionPathSerializer implements ProductionPathSerializer {
+
+    private ProducerRegistry<?, ?> m_registry;
 
     /**
-     * Returns the {@link DataTableSpec} of the currently read table.
+     * Constructor.
      *
-     * @return the {@link DataTableSpec} of the currently read table
+     * @param registry to use for {@link ProductionPath} serialization.
      */
-    DataTableSpec getOutputSpec();
+    public DefaultProductionPathSerializer(final ProducerRegistry<?, ?> registry) {
+        m_registry = registry;
+    }
 
-    /**
-     * Allows to create the {@link TableSpecConfig}.
-     *
-     * @return the {@link TableSpecConfig}
-     */
-    TableSpecConfig<T> getTableSpecConfig();
+    @Override
+    public ProductionPath loadProductionPath(final NodeSettingsRO config, final String key)
+        throws InvalidSettingsException {
+        return SerializeUtil.loadProductionPath(config, m_registry, key).orElseThrow(
+            () -> new InvalidSettingsException(String.format("No production path associated with key <%s>", key)));
+    }
 
-    /**
-     * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.
-     *
-     * @return a {@link PreviewRowIterator} for use in the dialog
-     */
-    PreviewRowIterator createPreviewIterator();
-
-    /**
-     * Fills the provided {@link RowOutput} with the data from this {@link MultiTableRead}.
-     *
-     * @param output to push to
-     * @param exec for progress monitoring and canceling
-     * @param fsFactory the {@link FileStoreFactory} to use for cell creation
-     * @throws Exception if something goes awry
-     */
-    // can't be specialized because the type mapping throws Exception
-    void fillRowOutput(RowOutput output, ExecutionMonitor exec, FileStoreFactory fsFactory) throws Exception; // NOSONAR
+    @Override
+    public void saveProductionPath(final ProductionPath productionPath, final NodeSettingsWO settings,
+        final String key) {
+        SerializeUtil.storeProductionPath(productionPath, settings, key);
+    }
 
 }

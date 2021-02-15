@@ -46,7 +46,7 @@
  * History
  *   Dec 15, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -79,7 +79,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DefaultTableSpecConfigTestingUtils {
+final class TableSpecConfigTestingUtils {
 
     static final TypedReaderColumnSpec<String> COL1 = TypedReaderColumnSpec.createWithName("A", "X", true);
 
@@ -231,9 +231,35 @@ final class DefaultTableSpecConfigTestingUtils {
             return this;
         }
 
+        TableSpecConfigBuilder withColumnFilterMode(final ColumnFilterMode columnFilterMode) {
+            m_columnFilterMode = columnFilterMode;
+            return this;
+        }
+
+        TableSpecConfigBuilder withKeepUnknown(final boolean keepUnknown) {
+            m_keepUnknown = keepUnknown;
+            return this;
+        }
+
+        TableSpecConfigBuilder withUnknownPosition(final int unknownPosition) {
+            m_unknownColPosition = unknownPosition;
+            return this;
+        }
+
+        TableSpecConfigBuilder withEnforceTypes(final boolean enforceTypes) {
+            m_enforceTypes = enforceTypes;
+            return this;
+        }
+
+        TableSpecConfigBuilder withSkipEmptyColumns(final boolean skipEmptyColumns) {
+            m_skipEmptyColumns = skipEmptyColumns;
+            return this;
+        }
+
     }
 
     static final class TransformationStubber<T> {
+
         private final ColumnTransformation<T> m_mockTransformation;
 
         TransformationStubber(final ColumnTransformation<T> mockTransformation) {
@@ -270,7 +296,7 @@ final class DefaultTableSpecConfigTestingUtils {
         return new TransformationStubber<>(mockTransformation);
     }
 
-    private DefaultTableSpecConfigTestingUtils() {
+    private TableSpecConfigTestingUtils() {
         // static utitlity class
     }
 

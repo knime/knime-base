@@ -57,7 +57,7 @@ import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.type.mapping.MappingRuntimeException;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapperException;

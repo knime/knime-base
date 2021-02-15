@@ -53,12 +53,12 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.node.table.reader.config.ConfigID;
-import org.knime.filehandling.core.node.table.reader.config.ConfigIDFactory;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**

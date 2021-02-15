@@ -44,43 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 27, 2020 (Tobias): created
+ *   Dec 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
-import java.util.Optional;
-
-import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
- * Loads {@link ProductionPath}s.
+ * A {@link ConfigID} that is backed by a {@link NodeSettings} object.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @noimplement non-public API
- * @noreference non-public API
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface ProductionPathLoader {
+public final class NodeSettingsConfigID implements ConfigID {
+
+    private final NodeSettings m_settings;
 
     /**
-     * Load a {@link ProductionPath} from given config.
+     * Constructor.
      *
-     * @param config Config to load from
-     * @param key setting key
-     * @return an optional {@link ProductionPath}, present if the converter factory identifier was found in the
-     *         {@link JavaToDataCellConverterRegistry} and producer factory identifier was found in the registry.
-     * @throws InvalidSettingsException
+     * @param settings containing the to store
      */
-    Optional<ProductionPath> loadProductionPath(NodeSettingsRO config, String key) throws InvalidSettingsException;
+    public NodeSettingsConfigID(final NodeSettingsRO settings) {
+        m_settings = new NodeSettings(settings.getKey());
+        settings.copyTo(m_settings);
+    }
 
-    /**
-     * Returns the {@link ProducerRegistry} this path loader uses.
-     *
-     * @return the {@link ProducerRegistry} to use
-     */
-    ProducerRegistry<?, ?> getProducerRegistry();
+    @Override
+    public void save(final NodeSettingsWO settings) {
+        settings.addNodeSettings(m_settings);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof NodeSettingsConfigID) {
+            NodeSettingsConfigID other = (NodeSettingsConfigID)obj;
+            return m_settings.equals(other.m_settings);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return m_settings.hashCode();
+    }
 
 }

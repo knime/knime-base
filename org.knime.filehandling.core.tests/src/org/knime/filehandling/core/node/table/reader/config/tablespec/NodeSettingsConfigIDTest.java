@@ -44,56 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2020 (Tobias): created
+ *   Feb 11, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
+import org.junit.Test;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 
 /**
- * Encapsulates information necessary to read tables from multiple items.
+ * Contains unit tests for {@link NodeSettingsConfigID}.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
  */
-public interface MultiTableRead<T> {
+public class NodeSettingsConfigIDTest {
 
     /**
-     * Returns the {@link DataTableSpec} of the currently read table.
+     * Tests the save method.
      *
-     * @return the {@link DataTableSpec} of the currently read table
+     * @throws InvalidSettingsException never thrown
      */
-    DataTableSpec getOutputSpec();
+    @Test
+    public void testSave() throws InvalidSettingsException {
+        final NodeSettings toSave = new NodeSettings("test");
+        toSave.addString("key", "value");
+
+        final NodeSettingsConfigID configID = new NodeSettingsConfigID(toSave);
+
+        final NodeSettings saved = new NodeSettings("settings");
+        configID.save(saved);
+
+        assertEquals(toSave, saved.getNodeSettings("test"));
+    }
 
     /**
-     * Allows to create the {@link TableSpecConfig}.
-     *
-     * @return the {@link TableSpecConfig}
+     * Tests equals and hashCode.
      */
-    TableSpecConfig<T> getTableSpecConfig();
+    @Test
+    public void testEqualsHashCode() {
+        final NodeSettings settings = new NodeSettings("test");
+        settings.addString("key", "value");
 
-    /**
-     * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.
-     *
-     * @return a {@link PreviewRowIterator} for use in the dialog
-     */
-    PreviewRowIterator createPreviewIterator();
+        final NodeSettingsConfigID id = new NodeSettingsConfigID(settings);
+        assertEquals(id, id);
 
-    /**
-     * Fills the provided {@link RowOutput} with the data from this {@link MultiTableRead}.
-     *
-     * @param output to push to
-     * @param exec for progress monitoring and canceling
-     * @param fsFactory the {@link FileStoreFactory} to use for cell creation
-     * @throws Exception if something goes awry
-     */
-    // can't be specialized because the type mapping throws Exception
-    void fillRowOutput(RowOutput output, ExecutionMonitor exec, FileStoreFactory fsFactory) throws Exception; // NOSONAR
+        final NodeSettingsConfigID otherIDSameContent = new NodeSettingsConfigID(settings);
+        assertEquals(id, otherIDSameContent);
+        assertEquals(id.hashCode(), otherIDSameContent.hashCode());
+
+        final NodeSettings otherKeySettings = new NodeSettings("bar");
+        settings.addString("key", "value");
+        NodeSettingsConfigID otherKeySettingsID = new NodeSettingsConfigID(otherKeySettings);
+        assertNotEquals(id, otherKeySettingsID);
+
+        final NodeSettings otherContentSettings = new NodeSettings("test");
+        settings.addString("key", "otherValue");
+        NodeSettingsConfigID otherContentSettingsID = new NodeSettingsConfigID(otherContentSettings);
+        assertNotEquals(id, otherContentSettingsID);
+
+        assertNotEquals(id, "foo");
+
+        assertNotEquals(id, null);
+    }
 
 }

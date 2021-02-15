@@ -54,6 +54,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 
 /**
  * Abstract implementation of a {@link MultiTableReadConfig} that provides getters and getters.<br>

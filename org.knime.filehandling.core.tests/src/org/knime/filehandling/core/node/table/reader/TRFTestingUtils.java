@@ -68,7 +68,7 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.convert.map.SimpleCellValueProducerFactory;
 import org.knime.core.data.convert.map.Source;
 import org.knime.core.data.def.StringCell;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.ReaderTableSpec;

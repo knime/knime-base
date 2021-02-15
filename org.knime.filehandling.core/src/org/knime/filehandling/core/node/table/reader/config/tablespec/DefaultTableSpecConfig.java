@@ -46,7 +46,7 @@
  * History
  *   Nov 13, 2020 (Tobias): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
 import static java.util.stream.Collectors.joining;
 
@@ -59,7 +59,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
@@ -189,11 +188,6 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     }
 
     @Override
-    public void save(final NodeSettingsWO settings) {
-        DefaultTableSpecConfigSerializer.save(this, settings);
-    }
-
-    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -234,16 +228,14 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
 
     // Getters for DefaultTableSpecConfigSerializer
 
-    ConfigID getConfigID() {
+    @Override
+    public ConfigID getConfigID() {
         return m_configID;
     }
 
-    String getSourceGroupID() {
+    @Override
+    public String getSourceGroupID() {
         return m_sourceGroupID;
-    }
-
-    Collection<TypedReaderTableSpec<T>> getIndividualSpecs() {
-        return m_individualSpecs.values();
     }
 
 }

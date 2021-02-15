@@ -50,6 +50,8 @@ package org.knime.filehandling.core.node.table.reader.config;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 
 /**
  * An immutable implementation of {@link MultiTableReadConfig} i.e. objects of this class guarantee that their state

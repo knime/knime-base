@@ -44,56 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 11, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 21, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
-
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
 /**
- * A {@link ConfigID} that is backed by a {@link NodeSettings} object.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <C> The type of config this factory can extract a {@link ConfigID} from
  */
-public final class NodeSettingsConfigID implements ConfigID {
-
-    private final NodeSettings m_settings;
+public interface ConfigIDFactory<C> extends ConfigIDLoader {
 
     /**
-     * Constructor.
+     * Creates a {@link ConfigID} from the provided <b>config</b>.
      *
-     * @param settings containing the to store
+     * @param config to create the {@link ConfigID} from
+     * @return the {@link ConfigID} identifying <b>config</b>
      */
-    public NodeSettingsConfigID(final NodeSettingsRO settings) {
-        m_settings = new NodeSettings(settings.getKey());
-        settings.copyTo(m_settings);
-    }
-
-    @Override
-    public void save(final NodeSettingsWO settings) {
-        settings.addNodeSettings(m_settings);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (obj instanceof NodeSettingsConfigID) {
-            NodeSettingsConfigID other = (NodeSettingsConfigID)obj;
-            return m_settings.equals(other.m_settings);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return m_settings.hashCode();
-    }
+    ConfigID createFromConfig(final C config);
 
 }

@@ -44,56 +44,49 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2020 (Tobias): created
+ *   Feb 2, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * Encapsulates information necessary to read tables from multiple items.
+ * Serializer for {@link TypedReaderTableSpec TypedReaderTableSpecs}.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
  */
-public interface MultiTableRead<T> {
+final class TypedReaderTableSpecSerializer<T> {
 
-    /**
-     * Returns the {@link DataTableSpec} of the currently read table.
-     *
-     * @return the {@link DataTableSpec} of the currently read table
-     */
-    DataTableSpec getOutputSpec();
+    private static final String CFG_NUM_COLUMNS = "num_columns";
 
-    /**
-     * Allows to create the {@link TableSpecConfig}.
-     *
-     * @return the {@link TableSpecConfig}
-     */
-    TableSpecConfig<T> getTableSpecConfig();
+    private final TypedReaderColumnSpecSerializer<T> m_columnSerializer;
 
-    /**
-     * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.
-     *
-     * @return a {@link PreviewRowIterator} for use in the dialog
-     */
-    PreviewRowIterator createPreviewIterator();
+    TypedReaderTableSpecSerializer(final TypedReaderColumnSpecSerializer<T> columnSerializer) {
+        m_columnSerializer = columnSerializer;
+    }
 
-    /**
-     * Fills the provided {@link RowOutput} with the data from this {@link MultiTableRead}.
-     *
-     * @param output to push to
-     * @param exec for progress monitoring and canceling
-     * @param fsFactory the {@link FileStoreFactory} to use for cell creation
-     * @throws Exception if something goes awry
-     */
-    // can't be specialized because the type mapping throws Exception
-    void fillRowOutput(RowOutput output, ExecutionMonitor exec, FileStoreFactory fsFactory) throws Exception; // NOSONAR
+    void save(final TypedReaderTableSpec<T> tableSpec, final NodeSettingsWO settings) {
+        settings.addInt(CFG_NUM_COLUMNS, tableSpec.size());
+        int i = 0;
+        for (TypedReaderColumnSpec<T> column : tableSpec) {
+            m_columnSerializer.save(column, settings.addNodeSettings("" + i));
+            i++;
+        }
+    }
 
+    TypedReaderTableSpec<T> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final int numColumns = settings.getInt(CFG_NUM_COLUMNS);
+        final List<TypedReaderColumnSpec<T>> columns = new ArrayList<>(numColumns);
+        for (int i = 0; i < numColumns; i++) {
+            columns.add(m_columnSerializer.load(settings.getNodeSettings("" + i)));
+        }
+        return new TypedReaderTableSpec<>(columns);
+    }
 }

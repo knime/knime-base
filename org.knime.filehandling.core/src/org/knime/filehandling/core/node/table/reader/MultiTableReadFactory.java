@@ -54,7 +54,7 @@ import java.util.Map;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;

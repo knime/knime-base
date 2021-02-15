@@ -48,11 +48,10 @@
  */
 package org.knime.base.node.preproc.manipulator;
 
-import static org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry.PATH_LOADER;
+import static org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry.PATH_SERIALIZER;
 import static org.knime.filehandling.core.util.SettingsUtils.getOrEmpty;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -60,14 +59,14 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.node.table.reader.config.ConfigID;
-import org.knime.filehandling.core.node.table.reader.config.ConfigIDFactory;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigSerializer.ExternalConfig;
-import org.knime.filehandling.core.node.table.reader.config.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsSerializer;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
@@ -83,11 +82,6 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
          */
         INSTANCE;
 
-    /**
-         *
-         */
-    private static final ExternalConfig EXTERNAL_CONFIG = new ExternalConfig(null, false);
-
     private static final String CFG_HAS_ROW_ID = "has_row_id";
 
     private static final String CFG_PREPEND_TABLE_IDX_TO_ROWID = "prepend_table_index_to_row_id";
@@ -96,10 +90,29 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
 
     private static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
-    private final DefaultTableSpecConfigSerializer<DataType> m_tableSpecSerializer;
+    private final TableSpecConfigSerializer<DataType> m_tableSpecSerializer;
+
+    private enum DataTypeSerializer implements NodeSettingsSerializer<DataType> {
+
+            SERIALIZER_INSTANCE;
+
+        private static final String CFG_TYPE = "type";
+
+        @Override
+        public void save(final DataType object, final NodeSettingsWO settings) {
+            settings.addDataType(CFG_TYPE, object);
+        }
+
+        @Override
+        public DataType load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getDataType(CFG_TYPE);
+        }
+
+    }
 
     private TableManipulatorConfigSerializer() {
-        m_tableSpecSerializer = new DefaultTableSpecConfigSerializer<>(PATH_LOADER, StringCell.TYPE, this);
+        m_tableSpecSerializer =
+            TableSpecConfigSerializer.createStartingV43(PATH_SERIALIZER, this, DataTypeSerializer.SERIALIZER_INSTANCE);
     }
 
     @Override
@@ -114,8 +127,7 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
         loadSettingsTabInDialog(config, getOrEmpty(settings, CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
             try {
-                config.setTableSpecConfig(
-                    m_tableSpecSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), EXTERNAL_CONFIG));
+                config.setTableSpecConfig(m_tableSpecSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG)));
             } catch (InvalidSettingsException ex) { // NOSONAR, see below
                 /* Can only happen in TableSpecConfig#load, since we checked #NodeSettingsRO#getNodeSettings(String)
                  * before. The framework takes care that #validate is called before load so we can assume that this
@@ -130,7 +142,7 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
     @Override
     public void saveInModel(final TableManipulatorMultiTableReadConfig config, final NodeSettingsWO settings) {
         if (config.hasTableSpecConfig()) {
-            config.getTableSpecConfig().save(settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
+            m_tableSpecSerializer.save(config.getTableSpecConfig(), settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
         saveSettingsTab(config, SettingsUtils.getOrAdd(settings, CFG_SETTINGS_TAB));
     }
@@ -140,8 +152,7 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
         throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(CFG_SETTINGS_TAB));
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            config.setTableSpecConfig(
-                m_tableSpecSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG), EXTERNAL_CONFIG));
+            config.setTableSpecConfig(m_tableSpecSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG)));
         } else {
             config.setTableSpecConfig(null);
         }
@@ -151,7 +162,7 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
     public void validate(final TableManipulatorMultiTableReadConfig config, final NodeSettingsRO settings)
         throws InvalidSettingsException {
         if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
-            m_tableSpecSerializer.validate(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
+            m_tableSpecSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
         }
         validateSettingsTab(settings.getNodeSettings(CFG_SETTINGS_TAB));
     }

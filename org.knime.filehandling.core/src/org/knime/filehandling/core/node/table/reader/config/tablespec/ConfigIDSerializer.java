@@ -44,56 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2020 (Tobias): created
+ *   Feb 9, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
- * Encapsulates information necessary to read tables from multiple items.
+ * Helper class for serializing {@link ConfigID ConfigIDs}.<br>
+ * It provides backwards compatible loading and saving.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
  */
-public interface MultiTableRead<T> {
+final class ConfigIDSerializer {
+
+    private static final String CFG_CONFIG_ID = "config_id";
+
+    private final ConfigIDLoader m_configIDLoader;
+
+    ConfigIDSerializer(final ConfigIDLoader configIDLoader) {
+        m_configIDLoader = configIDLoader;
+    }
+
+    static void saveID(final ConfigID id, final NodeSettingsWO topLevelSettings) {
+        if (id == EmptyConfigID.INSTANCE) {
+            // the TableSpecConfig being serialized was loaded from an old workflow and therefore has no ConfigID
+            // this is done for backwards compatibility
+        } else {
+            id.save(topLevelSettings.addNodeSettings(CFG_CONFIG_ID));
+        }
+    }
+
+    ConfigID loadID(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(CFG_CONFIG_ID)) {
+            return m_configIDLoader.createFromSettings(settings.getNodeSettings(CFG_CONFIG_ID));
+        } else {
+            // the node was last saved before 4.4 -> no config id is available therefore we return the empty config id
+            return EmptyConfigID.INSTANCE;
+        }
+    }
 
     /**
-     * Returns the {@link DataTableSpec} of the currently read table.
+     * Special configID for loading old (pre 4.4) settings.<br>
+     * Package private for testing purposes, DON'T USE this class FOR ANYTHING ELSE.
      *
-     * @return the {@link DataTableSpec} of the currently read table
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    DataTableSpec getOutputSpec();
+    enum EmptyConfigID implements ConfigID {
 
-    /**
-     * Allows to create the {@link TableSpecConfig}.
-     *
-     * @return the {@link TableSpecConfig}
-     */
-    TableSpecConfig<T> getTableSpecConfig();
+            INSTANCE;
 
-    /**
-     * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.
-     *
-     * @return a {@link PreviewRowIterator} for use in the dialog
-     */
-    PreviewRowIterator createPreviewIterator();
+        @Override
+        public void save(final NodeSettingsWO settings) {
+            throw new IllegalStateException(
+                "EmptyConfigID only exist for backwards compatibility and should be handled differently.");
+        }
 
-    /**
-     * Fills the provided {@link RowOutput} with the data from this {@link MultiTableRead}.
-     *
-     * @param output to push to
-     * @param exec for progress monitoring and canceling
-     * @param fsFactory the {@link FileStoreFactory} to use for cell creation
-     * @throws Exception if something goes awry
-     */
-    // can't be specialized because the type mapping throws Exception
-    void fillRowOutput(RowOutput output, ExecutionMonitor exec, FileStoreFactory fsFactory) throws Exception; // NOSONAR
-
+    }
 }

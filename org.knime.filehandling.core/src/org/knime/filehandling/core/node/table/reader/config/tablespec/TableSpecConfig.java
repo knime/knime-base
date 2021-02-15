@@ -46,12 +46,11 @@
  * History
  *   Nov 13, 2020 (Tobias): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
 import java.util.List;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -73,6 +72,7 @@ public interface TableSpecConfig<T> {
      *
      * @return the {@link TableTransformation}
      */
+    // TODO rename to getTableTransformation
     TableTransformation<T> getTransformationModel();
 
     /**
@@ -116,6 +116,20 @@ public interface TableSpecConfig<T> {
     List<String> getItems();
 
     /**
+     * Returns the ID of the source group.
+     *
+     * @return the ID of the source group
+     */
+    String getSourceGroupID();
+
+    /**
+     * Returns the {@link ConfigID} this {@link TableSpecConfig} has been created with.
+     *
+     * @return the {@link ConfigID} this {@link TableSpecConfig} has been created with
+     */
+    ConfigID getConfigID();
+
+    /**
      * Returns the {@link ReaderTableSpec} associated with the given item.
      *
      * @param item the item identifying the {@link ReaderTableSpec}
@@ -129,12 +143,5 @@ public interface TableSpecConfig<T> {
      * @return the configured {@link ColumnFilterMode}
      */
     ColumnFilterMode getColumnFilterMode();
-
-    /**
-     * Saves the configuration to settings.
-     *
-     * @param settings to save to
-     */
-    void save(NodeSettingsWO settings);
 
 }

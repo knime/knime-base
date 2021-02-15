@@ -91,7 +91,7 @@ import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
 
 /**

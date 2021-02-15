@@ -44,56 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2020 (Tobias): created
+ *   Nov 27, 2020 (Tobias): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
+import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
- * Encapsulates information necessary to read tables from multiple items.
+ * Serializes {@link ProductionPath}s.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
+ * @noimplement non-public API
+ * @noreference non-public API
  */
-public interface MultiTableRead<T> {
+public interface ProductionPathSerializer {
 
     /**
-     * Returns the {@link DataTableSpec} of the currently read table.
+     * Load a {@link ProductionPath} from given config.
      *
-     * @return the {@link DataTableSpec} of the currently read table
+     * @param config Config to load from
+     * @param key setting key
+     * @return an optional {@link ProductionPath}, present if the converter factory identifier was found in the
+     *         {@link JavaToDataCellConverterRegistry} and producer factory identifier was found in the registry.
+     * @throws InvalidSettingsException
      */
-    DataTableSpec getOutputSpec();
+    ProductionPath loadProductionPath(NodeSettingsRO config, String key) throws InvalidSettingsException;
 
     /**
-     * Allows to create the {@link TableSpecConfig}.
+     * Saves a {@link ProductionPath} into a {@link NodeSettingsWO} object.
      *
-     * @return the {@link TableSpecConfig}
+     * @param productionPath to save
+     * @param settings to save to
+     * @param key settings key
      */
-    TableSpecConfig<T> getTableSpecConfig();
-
-    /**
-     * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.
-     *
-     * @return a {@link PreviewRowIterator} for use in the dialog
-     */
-    PreviewRowIterator createPreviewIterator();
-
-    /**
-     * Fills the provided {@link RowOutput} with the data from this {@link MultiTableRead}.
-     *
-     * @param output to push to
-     * @param exec for progress monitoring and canceling
-     * @param fsFactory the {@link FileStoreFactory} to use for cell creation
-     * @throws Exception if something goes awry
-     */
-    // can't be specialized because the type mapping throws Exception
-    void fillRowOutput(RowOutput output, ExecutionMonitor exec, FileStoreFactory fsFactory) throws Exception; // NOSONAR
+    void saveProductionPath(final ProductionPath productionPath, final NodeSettingsWO settings, final String key);
 
 }

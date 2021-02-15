@@ -46,28 +46,25 @@
  * History
  *   May 28, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.config;
+package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.a;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.checkTransformation;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.COL1;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.COL2;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.COL3;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.ORIGINAL_NAMES;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.PATH1;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.PATH2;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.RAW_SPEC;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.REGISTRY;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.ROOT_PATH;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.SPEC1;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.SPEC2;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.getProductionPaths;
-import static org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.stub;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.COL1;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.COL2;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.COL3;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.PATH1;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.PATH2;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.RAW_SPEC;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.ROOT_PATH;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.SPEC1;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.SPEC2;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.getProductionPaths;
+import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.stub;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,17 +79,16 @@ import org.junit.runner.RunWith;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.data.convert.util.SerializeUtil;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.TRFTestingUtils;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfigTestingUtils.TableSpecConfigBuilder;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.TableSpecConfigBuilder;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
@@ -215,48 +211,6 @@ public class DefaultTableSpecConfigTest {
         checkTransformation(tm.getTransformation(COL1), COL1, "A", expectedProdPaths[0], 1, true);
         checkTransformation(tm.getTransformation(COL2), COL2, "B", expectedProdPaths[1], 2, false);
         checkTransformation(tm.getTransformation(COL3), COL3, "G", expectedProdPaths[2], 0, true);
-    }
-
-    /**
-     * Tests {@link DefaultTableSpecConfig#save(NodeSettingsWO)}
-     *
-     * @throws InvalidSettingsException shouldn't be thrown
-     */
-    @Test
-    public void testSave() throws InvalidSettingsException {
-        final DataTableSpec expectedOutputSpec = new DataTableSpec("default", new String[]{"A", "B", "G"},
-            new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
-        final ProductionPath[] productionPaths =
-            getProductionPaths(a("X", "Y", "Z"), a(StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE));
-        final int[] positionalMapping = {1, 0, 2};
-        final boolean[] keep = {true, false, true};
-
-        final DefaultTableSpecConfig<String> config = builder()//
-            .withPositions(1, 0, 2)//
-            .withKeep(true, false, true)//
-            .withNames("A", "B", "G")//
-            .build();
-
-        final NodeSettings settings = new NodeSettings("test");
-        config.save(settings);
-
-        assertEquals(ROOT_PATH, settings.getString("root_path_Internals"));
-        assertEquals(expectedOutputSpec, DataTableSpec.load(settings.getNodeSettings("datatable_spec_Internals")));
-        assertArrayEquals(new String[]{"first", "second"}, settings.getStringArray("file_paths_Internals"));
-
-        final NodeSettings individualSpecs = settings.getNodeSettings("individual_specs_Internals");
-        assertArrayEquals(new String[]{"A", "B"}, individualSpecs.getStringArray("individual_spec_0"));
-        assertArrayEquals(new String[]{"B", "C"}, individualSpecs.getStringArray("individual_spec_1"));
-
-        final NodeSettings productionPathSettings = settings.getNodeSettings("production_paths_Internals");
-        for (int i = 0; i < productionPaths.length; i++) {
-            assertEquals(productionPaths[i],
-                SerializeUtil.loadProductionPath(productionPathSettings, REGISTRY, "production_path_" + i).get());//NOSONAR
-        }
-
-        assertArrayEquals(ORIGINAL_NAMES, settings.getStringArray("original_names_Internals"));
-        assertArrayEquals(positionalMapping, settings.getIntArray("positional_mapping_Internals"));
-        assertArrayEquals(keep, settings.getBooleanArray("keep_Internals"));
     }
 
     @Test

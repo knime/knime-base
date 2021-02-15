@@ -59,7 +59,7 @@ import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;

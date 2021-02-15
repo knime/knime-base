@@ -67,7 +67,7 @@ import org.junit.runner.RunWith;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.rowkey.RowKeyGenerator;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;

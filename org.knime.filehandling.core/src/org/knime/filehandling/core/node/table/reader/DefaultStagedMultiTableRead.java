@@ -57,12 +57,12 @@ import java.util.function.Supplier;
 
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.filehandling.core.node.table.reader.config.ConfigID;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContextFactory;

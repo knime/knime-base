@@ -60,7 +60,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> type used to identify external types
  */
-public interface TableTransformation<T> {
+public interface TableTransformation<T> extends Iterable<ColumnTransformation<T>> {
 
     /**
      * Indicates whether there exists a {@link ColumnTransformation} for the provided {@link TypedReaderColumnSpec}.
