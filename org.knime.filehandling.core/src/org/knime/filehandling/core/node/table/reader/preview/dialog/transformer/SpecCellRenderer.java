@@ -51,9 +51,9 @@ package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer
 import java.awt.Component;
 
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.util.DataColumnSpecTableCellRenderer;
 
 /**
  * Renderer for a {@link DataColumnSpec} that checks if the row is valid and marks the cell as red if it isn't (usually
@@ -61,7 +61,7 @@ import org.knime.core.node.util.DataColumnSpecTableCellRenderer;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class SpecCellRenderer extends DataColumnSpecTableCellRenderer { // NOSONAR, Swing...
+final class SpecCellRenderer extends DefaultTableCellRenderer { // NOSONAR, Swing...
 
     private static final long serialVersionUID = 1L;
 
@@ -70,6 +70,9 @@ final class SpecCellRenderer extends DataColumnSpecTableCellRenderer { // NOSONA
         final boolean hasFocus, final int row, final int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         final TableTransformationTableModel<?> model = (TableTransformationTableModel<?>)table.getModel();
+        final DataColumnSpec spec = (DataColumnSpec)value;
+        setText(spec.getName());
+        setToolTipText(spec.getName());
         if (model.isSpecValid(row)) {
             setBorder(null);
         } else {
