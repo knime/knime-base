@@ -53,6 +53,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -65,6 +66,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessage
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 
 /**
@@ -94,8 +96,13 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
 
     @Override
     public StatusMessage report() throws IOException, InvalidSettingsException {
+        final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
+        m_settings.report(consumer);
+        final Optional<StatusMessage> configureMessage = consumer.get();
+        if (configureMessage.filter(m -> m.getType() == MessageType.ERROR).isPresent()) {
+            return configureMessage.get();
+        }
         try (final WritePathAccessor accessor = m_settings.createWritePathAccessor()) {
-            final PriorityStatusConsumer consumer = new PriorityStatusConsumer();
             final FSPath path = accessor.getOutputPath(consumer);
             if (FSFiles.exists(path)) {
                 return handlePathExists(path);
