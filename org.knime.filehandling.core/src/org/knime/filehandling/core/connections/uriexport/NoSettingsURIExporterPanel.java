@@ -51,10 +51,8 @@ package org.knime.filehandling.core.connections.uriexport;
 
 import java.awt.FlowLayout;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
@@ -75,13 +73,12 @@ public class NoSettingsURIExporterPanel extends URIExporterPanel<NoSettingsURIEx
     }
 
     @Override
-    protected final void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
+    protected final void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) {
         // nothing to do
     }
 
     @Override
-    protected final void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+    protected final void saveAdditionalSettingsTo(final NodeSettingsWO settings) {
         // nothing to do
     }
 }

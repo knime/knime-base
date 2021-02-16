@@ -47,10 +47,8 @@ package org.knime.filehandling.core.connections.uriexport;
 
 import java.util.function.Consumer;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
@@ -63,32 +61,32 @@ public abstract class NoSettingsURIExporter implements URIExporter {
 
     @Override
     public final void configureInModel(final PortObjectSpec[] specs,
-        final Consumer<StatusMessage> statusMessageConsumer) throws InvalidSettingsException {
+        final Consumer<StatusMessage> statusMessageConsumer) {
         // nothing to do here
     }
 
     @Override
-    public final void loadSettingsForDialog(final NodeSettingsRO settings) throws NotConfigurableException {
+    public final void loadSettingsForDialog(final NodeSettingsRO settings) {
         // nothing to do here
     }
 
     @Override
-    public final void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public final void loadSettingsForModel(final NodeSettingsRO settings) {
         // nothing to do here
     }
 
     @Override
-    public final void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public final void validateSettings(final NodeSettingsRO settings) {
         // nothing to do here
     }
 
     @Override
-    public final void validate() throws InvalidSettingsException {
+    public final void validate() {
         // nothing to do here
     }
 
     @Override
-    public final void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+    public final void saveSettingsForDialog(final NodeSettingsWO settings) {
         // nothing to do here
     }
 
