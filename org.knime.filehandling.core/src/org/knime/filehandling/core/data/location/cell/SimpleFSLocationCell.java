@@ -44,13 +44,12 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 24, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 19, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.data.location.cell;
 
 import java.io.IOException;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
+import java.util.Optional;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellDataInput;
@@ -58,66 +57,49 @@ import org.knime.core.data.DataCellDataOutput;
 import org.knime.core.data.DataCellSerializer;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.filestore.FileStore;
-import org.knime.core.data.filestore.FileStoreCell;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 
 /**
- * Implementation of {@link FSLocationValue} that uses a file store to share the {@link FSLocationSpec} information
- * between cells.
+ * Implementation of {@link FSLocationValue} that stores the path within a {@link FSLocation} object.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
- * @since 4.2
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 4.3.2
  * @noreference non-public API
  * @noinstantiate non-public API
- * @deprecated use {@link SimpleFSLocationCell} instead
  */
-@Deprecated
-public final class FSLocationCell extends FileStoreCell implements FSLocationValue {
-
-    static final DataType TYPE = DataType.getType(FSLocationCell.class);
+public final class SimpleFSLocationCell extends DataCell implements FSLocationValue {
 
     private static final long serialVersionUID = 1L;
 
-    private FSLocationCellMetaData m_metaData;
+    static final DataType TYPE = DataType.getType(SimpleFSLocationCell.class);
 
-    private FSLocation m_location;
+    private final FSLocation m_fsLocation;//NOSONAR
 
-    private final String m_path;
-
-    FSLocationCell(final FSLocationCellMetaData metaData, final FileStore fileStore, final FSLocation location) {
-        super(fileStore);
-        m_metaData = metaData;
-        m_path = location.getPath();
-        m_location = location;
-    }
-
-    private FSLocationCell(final String path) {
-        m_path = path;
+    SimpleFSLocationCell(final FSLocation fsLocation) {
+        m_fsLocation = fsLocation;
     }
 
     @Override
-    protected void flushToFileStore() throws IOException {
-        m_metaData.write(getFileStores()[0]);
+    public FSLocation getFSLocation() {
+        return m_fsLocation;
     }
 
     @Override
     public String toString() {
-        return m_location.getPath();
+        return m_fsLocation.getPath();
     }
 
     @Override
     protected boolean equalsDataCell(final DataCell dc) {
-        final FSLocationCell other = (FSLocationCell)dc;
-        return m_metaData.equals(other.m_metaData) && m_location.equals(other.m_location);
+        SimpleFSLocationCell other = (SimpleFSLocationCell)dc;
+        return m_fsLocation.equals(other.m_fsLocation);
     }
 
     @Override
     protected boolean equalContent(final DataValue otherValue) {
         if (otherValue instanceof FSLocationValue) {
-            return m_location.equals(((FSLocationValue)otherValue).getFSLocation());
+            return m_fsLocation.equals(((FSLocationValue)otherValue).getFSLocation());
         } else {
             return false;
         }
@@ -125,42 +107,38 @@ public final class FSLocationCell extends FileStoreCell implements FSLocationVal
 
     @Override
     public int hashCode() {//NOSONAR equals is implemented abstractly in the super class
-        return Objects.hash(m_metaData, m_location);
-    }
-
-    @Override
-    protected void postConstruct() throws IOException {
-        try {
-            m_metaData = FSLocationCellMetaData.read(getFileStores()[0]);
-            m_location = new FSLocation(m_metaData.getFileSystemType(), m_metaData.getFileSystemSpecifier(), m_path);
-        } catch (ExecutionException ex) {
-            throw new IOException("The meta data cannot be read.", ex);
-        }
-    }
-
-    @Override
-    public FSLocation getFSLocation() {
-        return m_location;
+        return m_fsLocation.hashCode();
     }
 
     /**
-     * Serializer for {@link FSLocationCell}s.
+     * Serializer for {@link SimpleFSLocationCell SimpleFSlocationCells}.
      *
-     * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
-     * @noreference This class is not intended to be referenced by clients.
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     * @noreference This class is not intended to be referenced by clients
      */
-    public static final class PathSerializer implements DataCellSerializer<FSLocationCell> {
+    public static final class SimpleFSLocationCellSerializer implements DataCellSerializer<SimpleFSLocationCell> {
 
         @Override
-        public void serialize(final FSLocationCell cell, final DataCellDataOutput output) throws IOException {
-            output.writeUTF(cell.m_location.getPath());
+        public void serialize(final SimpleFSLocationCell cell, final DataCellDataOutput output) throws IOException {
+            final FSLocation fsLocation = cell.getFSLocation();
+            output.writeUTF(fsLocation.getFileSystemCategory());
+            final Optional<String> specifier = fsLocation.getFileSystemSpecifier();
+            output.writeBoolean(specifier.isPresent());
+            if (specifier.isPresent()) {
+                output.writeUTF(specifier.get());
+            }
+            output.writeUTF(fsLocation.getPath());
         }
 
         @Override
-        public FSLocationCell deserialize(final DataCellDataInput input) throws IOException {
+        public SimpleFSLocationCell deserialize(final DataCellDataInput input) throws IOException {
+            final String category = input.readUTF();
+            final String specifier = input.readBoolean() ? input.readUTF() : null;
             final String path = input.readUTF();
-            return new FSLocationCell(path);
+            final FSLocation fsLocation = new FSLocation(category, specifier, path);
+            return new SimpleFSLocationCell(fsLocation);
         }
 
     }
+
 }

@@ -48,36 +48,55 @@
  */
 package org.knime.filehandling.core.data.location.cell;
 
-import java.io.IOException;
 import java.util.Objects;
-import java.util.UUID;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.filestore.FileStore;
 import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.data.filestore.FileStoreUtil;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
- * Factory for {@link FSLocationCell}s. Cells created by such a factory share the same meta data and {@link FileStore}.
+ * Factory for {@link SimpleFSLocationCell}s. Cells created by such a factory share the same meta data and {@link FileStore}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  * @noreference non-public API
  * @noinstantiate non-public API
  */
+// TODO rename?
 public final class FSLocationCellFactory {
 
     /**
      * The {@link DataType} of cells created by this factory.
      */
-    public static final DataType TYPE = FSLocationCell.TYPE;
+    public static final DataType TYPE = SimpleFSLocationCell.TYPE;
 
-    private final FSLocationCellMetaData m_metaData;
+    private final String m_fsCategory;
 
-    private final FileStore m_fileStore;
+    private final String m_fsSpecifier;
+
+    /**
+     * Constructs a {@link FSLocationCellFactory} for the creation of {@link SimpleFSLocationCell}s.
+     *
+     * @param fsLocationSpec the file system location spec object holding the type and specifier of the file system
+     */
+    public FSLocationCellFactory(final FSLocationSpec fsLocationSpec) {
+        m_fsCategory = fsLocationSpec.getFileSystemCategory();
+        m_fsSpecifier = fsLocationSpec.getFileSystemSpecifier().orElse(null);
+    }
+
+    /**
+     * Constructs a {@link FSLocationCellFactory} for the creation of {@link SimpleFSLocationCell}s.
+     *
+     * @param fileSystemCategory the file system category
+     * @param fileSystemSpecifier the file system specifier, can be {@code null}
+     */
+    public FSLocationCellFactory(final String fileSystemCategory, final String fileSystemSpecifier) {
+        m_fsCategory = fileSystemCategory;
+        m_fsSpecifier = fileSystemSpecifier;
+    }
 
     /**
      * Constructs a {@link FSLocationCellFactory} for the creation of {@link FSLocationCell}s.
@@ -85,19 +104,12 @@ public final class FSLocationCellFactory {
      * @param fileStoreFactory used to create the {@link FileStore} shared by the cells created by this factory
      * @param fileSystemType the file system type
      * @param fileSystemSpecifier the file system specifier, can be {@code null}
+     * @deprecated use {@link #FSLocationCellFactory(String, String)} instead
      */
+    @Deprecated
     public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final String fileSystemType,
         final String fileSystemSpecifier) {
-        // Check null
-        CheckUtils.checkNotNull(fileStoreFactory, "The file store factory must not be null.");
-        CheckUtils.checkArgumentNotNull(fileSystemType, "The file system must not be null.");
-        try {
-            m_fileStore = fileStoreFactory.createFileStore(UUID.randomUUID().toString());
-        } catch (IOException ex) {
-            throw new IllegalStateException("Can't create file store for location cells.", ex);
-        }
-        m_metaData =
-            new FSLocationCellMetaData(FileStoreUtil.getFileStoreKey(m_fileStore), fileSystemType, fileSystemSpecifier);
+        this(fileSystemType, fileSystemSpecifier);
     }
 
     /**
@@ -105,9 +117,11 @@ public final class FSLocationCellFactory {
      *
      * @param fileStoreFactory used to create the {@link FileStore} shared by the cells created by this factory
      * @param fsLocationSpec the file system location spec object holding the type and specifier of the file system
+     * @deprecated use {@link #FSLocationCellFactory(FSLocationSpec)} instead
      */
+    @Deprecated
     public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final FSLocationSpec fsLocationSpec) {
-        this(fileStoreFactory, fsLocationSpec.getFileSystemCategory(), fsLocationSpec.getFileSystemSpecifier().orElse(null));
+        this(fsLocationSpec);
     }
 
     /**
@@ -119,20 +133,20 @@ public final class FSLocationCellFactory {
      * @throws IllegalArgumentException if the path is null or the file system type and specifier do not match the ones
      *             in the meta data
      */
-    public FSLocationCell createCell(final FSLocation fsLocation) {
+    public SimpleFSLocationCell createCell(final FSLocation fsLocation) {
         // Check null
         CheckUtils.checkNotNull(fsLocation, "The file system location must not be null.");
         CheckUtils.checkArgumentNotNull(fsLocation.getPath(), "The path must not be null.");
         // Check that fs type and specifier are compatible with meta data
-        final String fileSystemType = fsLocation.getFileSystemCategory();
-        CheckUtils.checkArgument(fileSystemType.equals(m_metaData.getFileSystemType()),
-            "The file system type (%s) must match the file system type in the meta data (%s).", fileSystemType,
-            m_metaData.getFileSystemType());
+        final String fileSystemCategory = fsLocation.getFileSystemCategory();
+        CheckUtils.checkArgument(fileSystemCategory.equals(m_fsCategory),
+            "The file system type (%s) must match the file system type in the meta data (%s).", fileSystemCategory,
+            m_fsCategory);
         final String fileSystemSpecifier = fsLocation.getFileSystemSpecifier().orElse(null);
-        CheckUtils.checkArgument(Objects.equals(fileSystemSpecifier, m_metaData.getFileSystemSpecifier()),
+        CheckUtils.checkArgument(Objects.equals(fileSystemSpecifier, m_fsSpecifier),
             "The file system specifier (%s) must match the file system specifier in the meta data (%s).",
-            fileSystemSpecifier, m_metaData.getFileSystemSpecifier());
-        return new FSLocationCell(m_metaData, m_fileStore, fsLocation);
+            fileSystemSpecifier, m_fsSpecifier);
+        return new SimpleFSLocationCell(fsLocation);
     }
 
     /**
@@ -142,10 +156,10 @@ public final class FSLocationCellFactory {
      * @return a {@link FSLocationCell} containing a path and information about the file system
      * @throws NullPointerException if {@code path} is null
      */
-    public FSLocationCell createCell(final String path) {
+    public SimpleFSLocationCell createCell(final String path) {
         // Check null
         CheckUtils.checkNotNull(path, "The path must not be null.");
-        return new FSLocationCell(m_metaData, m_fileStore,
-            new FSLocation(m_metaData.getFileSystemType(), m_metaData.getFileSystemSpecifier(), path));
+        final FSLocation fsLocation = new FSLocation(m_fsCategory, m_fsSpecifier, path);
+        return new SimpleFSLocationCell(fsLocation);
     }
 }
