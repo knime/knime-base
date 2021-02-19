@@ -89,7 +89,6 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.MultiFSPathProviderFactory;
 import org.knime.filehandling.core.data.location.FSLocationValue;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
 
@@ -271,11 +270,11 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
             if (c.isMissing()) {
                 return createMissingCells(DataType::getMissingCell);
             } else {
-                return createCells((FSLocationCell)c);
+                return createCells((FSLocationValue)c);
             }
         }
 
-        private DataCell[] createCells(final FSLocationCell cell) {
+        private DataCell[] createCells(final FSLocationValue cell) {
             try (final FSPathProvider pathProvder = m_multiFSPathProviderCellFactory
                 .getOrCreateFSPathProviderFactory(cell.getFSLocation()).create(cell.getFSLocation())) {
                 final FSPath path = pathProvder.getPath();

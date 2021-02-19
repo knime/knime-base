@@ -42,6 +42,13 @@
                serializerClass="org.knime.filehandling.core.data.location.cell.FSLocationCell$PathSerializer">
          </serializer>
       </DataType>
+      <DataType
+            cellClass="org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell">
+         <serializer
+               cellClass="org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell"
+               serializerClass="org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell$SimpleFSLocationCellSerializer">
+         </serializer>
+      </DataType>
    </extension>
    <extension
          point="org.knime.core.DataColumnMetaDataType">

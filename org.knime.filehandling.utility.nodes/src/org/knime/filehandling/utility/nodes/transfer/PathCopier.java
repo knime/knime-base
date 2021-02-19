@@ -72,8 +72,8 @@ import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
@@ -305,12 +305,12 @@ final class PathCopier {
      * Creates a new row and adds it via the {@link Consumer} of {@link DataRow}.
      *
      * @param rowIdx the current row index
-     * @param sourcePathCell the {@link FSLocationCell} for the source path
-     * @param destinationPathCell the {@link FSLocationCell} for the destination path
+     * @param sourcePathCell the {@link SimpleFSLocationCell} for the source path
+     * @param destinationPathCell the {@link SimpleFSLocationCell} for the destination path
      * @param isDirectory the flag whether the path points to a folder or not
      * @param deleted the flag whether the file has been deleted or not
      */
-    private void pushRow(final long rowIdx, final FSLocationCell sourcePathCell, final DataCell destinationPathCell,
+    private void pushRow(final long rowIdx, final DataCell sourcePathCell, final DataCell destinationPathCell,
         final boolean isDirectory, final String status) {
         final DataCell[] cells = new DataCell[NUMBER_OF_COLS];
         cells[SOURCE_COL_IDX] = sourcePathCell;

@@ -83,7 +83,6 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
@@ -199,7 +198,7 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
                 FileStoreFactory.createFileStoreFactory(exec), m_config.getFileChooserSettings().getLocation());
 
             for (final FSPath p : fsPaths) {
-                final FSLocationCell locationCell = locationFactory.createCell(p.toFSLocation());
+                final DataCell locationCell = locationFactory.createCell(p.toFSLocation());
                 final DataCell[] cells;
                 if (m_config.addDirIndicatorColumn()) {
                     cells = new DataCell[]{locationCell, createDirCell(p)};

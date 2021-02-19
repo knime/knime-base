@@ -86,7 +86,7 @@ public final class MultiFSLocationCellFactory implements AutoCloseable {
      * @throws IllegalArgumentException if the path is null or the file system type and specifier do not match the ones
      *             in the meta data
      */
-    public FSLocationCell createCell(final ExecutionContext exec, final FSLocation fsLocation) {
+    public SimpleFSLocationCell createCell(final ExecutionContext exec, final FSLocation fsLocation) {
         final DefaultFSLocationSpec defaultFSLocationSpec = new DefaultFSLocationSpec(fsLocation.getFSCategory(),
             fsLocation.getFileSystemSpecifier().orElseGet(() -> null));
         final FSLocationCellFactory fac = m_factories

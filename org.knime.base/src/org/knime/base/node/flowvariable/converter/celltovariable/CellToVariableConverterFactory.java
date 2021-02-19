@@ -77,7 +77,6 @@ import org.knime.core.node.workflow.VariableType.LongType;
 import org.knime.core.node.workflow.VariableType.StringArrayType;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.filehandling.core.data.location.FSLocationValue;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -338,7 +337,7 @@ public final class CellToVariableConverterFactory {
 
         @Override
         public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, getVariableType(), ((FSLocationCell)cell).getFSLocation());
+            return new FlowVariable(varName, getVariableType(), ((FSLocationValue)cell).getFSLocation());
         }
 
         @Override
