@@ -182,14 +182,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         m_fsChooserLabel = new JLabel(fsChooserLabel);
         CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
         model.setLocationFlowVariableModel(locationFvm);
-        Set<FilterMode> selectableFilterModes =
-            Stream.concat(Stream.of(model.getFilterModeModel().getFilterMode()), Arrays.stream(filterModes)).distinct()
-                .collect(Collectors.toCollection(() -> EnumSet.noneOf(FilterMode.class)));
-        if (model.getFileSystemConfiguration().getActiveFSCategories().contains(FSCategory.CUSTOM_URL)) {
-            CheckUtils.checkArgument(selectableFilterModes.contains(FilterMode.FILE),
-                "FilterMode.FILE must be among the selectable filter modes "
-                    + "if FSCategory.CUSTOM_URL is an active file system.");
-        }
+        final Set<FilterMode> selectableFilterModes = extractSelectableFilterModes(model, filterModes);
         m_locationFvmBtn = new FlowVariableModelButton(locationFvm);
         m_statusMessageReporter = statusMessageReporter;
         m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration());
@@ -201,6 +194,36 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
             supportedModes.iterator().next(), model.getFileExtensions());
         hookUpListeners();
         layout(selectableFilterModes.size() > 1);
+    }
+
+    /**
+     * Extracts the filter modes that will be selectable in the dialog.
+     *
+     * @param model the settings model (must not necessarily among the provided filter modes
+     * @param filterModes the supported filter modes
+     * @return the {@link Set} of selectable {@link FilterMode FilterModes}
+     */
+    protected static final Set<FilterMode> extractSelectableFilterModes(final AbstractSettingsModelFileChooser<?> model,
+        final FilterMode... filterModes) {
+        return Stream.concat(Stream.of(model.getFilterMode()), Arrays.stream(filterModes)).distinct()
+            .collect(Collectors.toCollection(() -> EnumSet.noneOf(FilterMode.class)));
+    }
+
+    /**
+     * Checks if all file systems support at least one of the selectable filter modes.<br>
+     *
+     * @param model the settings model
+     * @param selectableFilterModes the filter modes that are selectable in the dialog
+     * @throws IllegalArgumentException if {@link FSCategory#CUSTOM_URL} is among the selectable file systems and
+     *             {@link FilterMode#FILE} is not among the selectable filter modes
+     */
+    protected static final void checkFilterModesSupportedByAllFs(final AbstractSettingsModelFileChooser<?> model,
+        final Set<FilterMode> selectableFilterModes) {
+        if (model.getFileSystemConfiguration().getActiveFSCategories().contains(FSCategory.CUSTOM_URL)) {
+            CheckUtils.checkArgument(selectableFilterModes.contains(FilterMode.FILE),
+                "FilterMode.FILE must be among the selectable filter modes "
+                    + "if FSCategory.CUSTOM_URL is an active file system.");
+        }
     }
 
     /**
