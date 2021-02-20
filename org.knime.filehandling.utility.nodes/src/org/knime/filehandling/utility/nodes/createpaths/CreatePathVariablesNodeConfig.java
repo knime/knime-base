@@ -82,7 +82,7 @@ final class CreatePathVariablesNodeConfig {
     CreatePathVariablesNodeConfig(final PortsConfiguration portsConfig) {
         m_dirChooserModel = new SettingsModelCreatorFileChooser(CFG_DIR_PARENT, portsConfig,
             CreatePathVariablesNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER,
-            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE, FSCategory.CUSTOM_URL));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> .)
         if (!portsConfig.getInputPortLocation().containsKey(CreatePathVariablesNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
             m_dirChooserModel

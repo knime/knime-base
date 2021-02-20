@@ -154,6 +154,7 @@ public final class DialogComponentWriterFileChooser
             , locationFvm//
             , statusMessageReporter//
             , filterModes);
+        checkFilterModesSupportedByAllFs(model, extractSelectableFilterModes(model, filterModes));
         initComponents();
         m_createMissingFolders
             .addActionListener(e -> model.setCreateMissingFolders(m_createMissingFolders.isSelected()));

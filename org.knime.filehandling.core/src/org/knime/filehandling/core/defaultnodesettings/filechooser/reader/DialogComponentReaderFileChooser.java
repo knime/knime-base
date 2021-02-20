@@ -126,6 +126,7 @@ public final class DialogComponentReaderFileChooser
             , locationFvm//
             , statusMessageReporter//
             , filterModes);
+        checkFilterModesSupportedByAllFs(model, extractSelectableFilterModes(model, filterModes));
     }
 
 }

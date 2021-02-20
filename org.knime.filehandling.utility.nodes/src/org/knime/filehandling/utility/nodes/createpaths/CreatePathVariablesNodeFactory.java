@@ -82,16 +82,19 @@ public final class CreatePathVariablesNodeFactory extends ConfigurableNodeFactor
 
     @Override
     protected CreatePathVariablesNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new CreatePathVariablesNodeModel((creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
+        return new CreatePathVariablesNodeModel(
+            (creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CreatePathVariablesNodeDialog(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+        return new CreatePathVariablesNodeDialog(
+            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
     }
 
     @Override
-    public NodeView<CreatePathVariablesNodeModel> createNodeView(final int viewIndex, final CreatePathVariablesNodeModel nodeModel) {
+    public NodeView<CreatePathVariablesNodeModel> createNodeView(final int viewIndex,
+        final CreatePathVariablesNodeModel nodeModel) {
         return null;
     }
 
