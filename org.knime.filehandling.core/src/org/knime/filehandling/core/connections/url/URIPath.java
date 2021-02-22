@@ -51,6 +51,7 @@ package org.knime.filehandling.core.connections.url;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
@@ -70,50 +71,42 @@ public class URIPath extends UnixStylePath {
     private final URI m_uri;
 
     /**
-     * Constructs a new URIPath. Note that URL query and fragment can be passed through
-     * if included in the first/more arguments. If so, they not become part of the name components,
-     * but are part of the URI returned by {@link #getURI()}.
+     * Constructs a new URIPath, passing the URI directly (which can include query and fragment).
      *
      * @param fileSystem the paths file system.
-     * @param first First name component (may contain URL query and fragment in encoded form, if "more" is empty).
-     * @param more More name components (may contain URL query and fragment in encoded form).
+     * @param pathString The (decoded) path of the URI.
+     * @param uri The URI.
      */
-    protected URIPath(final URIFileSystem fileSystem, final String first, final String...more) {
-        super(fileSystem, extractPathString(fileSystem, first, more));
-        m_uri = buildURI(fileSystem, first, more);
+    protected URIPath(final URIFileSystem fileSystem, final String pathString, final URI uri) {
+        super(fileSystem, pathString);
+        m_uri = uri;
     }
 
-    private static String extractPathString(final URIFileSystem fileSystem, final String first, final String[] more) {
-        // the actual path may actually be relative, but it still may contain query and fragment
-        final String concatenatedPath = concatenatePathSegments(fileSystem.getSeparator(), first, more);
+    /**
+     * Constructs a new URIPath from name components. This constructor does not allow passing a query or fragment.
+     *
+     * @param fileSystem The file system.
+     * @param first The path string or initial part of the path string
+     * @param more Additional strings to be joined to form the path string
+     */
+    protected URIPath(final URIFileSystem fileSystem, final String first, final String... more) {
+        super(fileSystem, concatenatePathSegments(fileSystem.getSeparator(), first, more));
+        m_uri = buildURI(fileSystem, concatenatePathSegments(fileSystem.getSeparator(), first, more));
+    }
 
-        final String pathString;
+    private static URI buildURI(final URIFileSystem fileSystem, final String pathString) {
+        final URI baseURI = URI.create(fileSystem.getBaseURI() + fileSystem.getSeparator());
 
-        if (!concatenatedPath.startsWith(fileSystem.getSeparator())) {
-            // we need to briefly turn this relative path into an absolute one so we can parse the proper path string
-            // (without query and fragment) out of a URL instance.
-            pathString = buildURI(fileSystem, first, more).getPath().substring(1);
-        } else {
-            pathString = buildURI(fileSystem, first, more).getPath();
+        final String absolutePathString = pathString.startsWith(fileSystem.getSeparator()) //
+                ? pathString //
+                : (fileSystem.getSeparator() + pathString);
+
+        try {
+            return new URI(baseURI.getScheme(), baseURI.getAuthority(), absolutePathString, null, null);
+        } catch (URISyntaxException ex) {
+            throw new IllegalStateException("Failed to instantiate URI, this is probably a bug.", ex);
         }
-
-        return pathString;
     }
-
-    private static URI buildURI(final URIFileSystem fileSystem, final String first, final String[] more) {
-        final String concatenatedPath = concatenatePathSegments(fileSystem.getSeparator(), first, more);
-
-        String baseURI = fileSystem.getBaseURI();
-        if (!concatenatedPath.startsWith(fileSystem.getSeparator())) {
-            // in this case the concatenatedPath is relative, however URLs can only handle absolute paths,
-            // so we prepend a separator just for the sake of being able to build a URL. For knime:// URLs
-            // this also gives the correct result.
-            baseURI = baseURI + fileSystem.getSeparator();
-        }
-
-        return URI.create(baseURI + concatenatedPath.replace(" ", "%20"));
-    }
-
 
     /**
      * @return the underlying URI of this path, including query and fragment.
