@@ -169,7 +169,7 @@ final class TransferFilesNodeModel extends NodeModel {
             m_config.getSettingsModelIncludeSourceFolder().getBooleanValue(), filterMode, false);
 
         final FileStoreFactory fileStoreFactory = FileStoreFactory.createFileStoreFactory(exec);
-        final PathCopier pathCopier = new PathCopier(container::addRowToTable, m_config, fileStoreFactory);
+        final PathCopier pathCopier = new PathCopier(container::addRowToTable, m_config);
 
         long rowIdx = 0;
         final long noPaths = sourcePaths.size();

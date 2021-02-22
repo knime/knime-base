@@ -66,7 +66,6 @@ import org.knime.core.data.MissingValueException;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -194,7 +193,7 @@ final class StringToPathNodeModel extends NodeModel {
         validateSettings(inSpecs);
 
         // create output spec
-        try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, null)) {
+        try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, false)) {
             final ColumnRearranger rearranger = createColumnRearranger(inSpec, factory);
             return new PortObjectSpec[]{rearranger.createSpec()};
         }
@@ -248,7 +247,7 @@ final class StringToPathNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final PortObject[] data, final ExecutionContext exec) throws Exception {
         final BufferedDataTable inTable = (BufferedDataTable)data[m_dataTablePortIndex];
         final DataTableSpec inSpec = inTable.getDataTableSpec();
-        try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, exec)) {
+        try (final StringToPathCellFactory factory = createStringPathCellFactory(inSpec, true)) {
             final BufferedDataTable out =
                 exec.createColumnRearrangeTable(inTable, createColumnRearranger(inSpec, factory), exec);
             return new BufferedDataTable[]{out};
@@ -294,11 +293,10 @@ final class StringToPathNodeModel extends NodeModel {
         return rearranger;
     }
 
-    private StringToPathCellFactory createStringPathCellFactory(final DataTableSpec inSpec,
-        final ExecutionContext exec) {
+    private StringToPathCellFactory createStringPathCellFactory(final DataTableSpec inSpec, final boolean isExecute) {
         final int colIdx = inSpec.findColumnIndex(m_selectedColumnNameModel.getStringValue());
         DataColumnSpec colSpec = getNewColumnSpec(inSpec);
-        return new StringToPathCellFactory(colSpec, colIdx, exec);
+        return new StringToPathCellFactory(colSpec, colIdx, isExecute);
     }
 
     private DataColumnSpec getNewColumnSpec(final DataTableSpec inSpec) {
@@ -390,19 +388,14 @@ final class StringToPathNodeModel extends NodeModel {
          *
          * @param newColSpec the spec for the new column
          * @param colIdx the index of the selected column
-         * @param exec execution context used to create file store for {@link FSLocationCellFactory}
          */
-        StringToPathCellFactory(final DataColumnSpec newColSpec, final int colIdx, final ExecutionContext exec) {
+        StringToPathCellFactory(final DataColumnSpec newColSpec, final int colIdx, final boolean isExecute) {
             super(newColSpec);
             m_colIdx = colIdx;
-            if (exec != null) {
+            final FSLocationSpec locationSpec = m_fileSystemModel.getLocationSpec();
+            m_fsLocationCellFactory = new FSLocationCellFactory(locationSpec);
+            if (isExecute) {
                 m_fsLocationFactory = m_fileSystemModel.createFSLocationFactory();
-
-                final FSLocationSpec locationSpec = m_fileSystemModel.getLocationSpec();
-
-                m_fsLocationCellFactory =
-                    new FSLocationCellFactory(FileStoreFactory.createFileStoreFactory(exec), locationSpec);
-
                 if (m_abortOnMissingFileModel.getBooleanValue()) {
                     m_fsPathProviderFactory =
                         FSPathProviderFactory.newFactory(m_fileSystemModel.getConnection(), locationSpec);
@@ -411,7 +404,6 @@ final class StringToPathNodeModel extends NodeModel {
                 }
             } else {
                 m_fsLocationFactory = null;
-                m_fsLocationCellFactory = null;
                 m_fsPathProviderFactory = null;
             }
         }
@@ -500,7 +492,7 @@ final class StringToPathNodeModel extends NodeModel {
             final RowInput in = (RowInput)inputs[m_dataTablePortIndex];
             final RowOutput out = (RowOutput)outputs[DATA_TABLE_OUTPUT_IDX];
             final DataTableSpec inSpec = in.getDataTableSpec();
-            try (StringToPathCellFactory factory = createStringPathCellFactory(inSpec, exec)) {
+            try (StringToPathCellFactory factory = createStringPathCellFactory(inSpec, true)) {
                 final StreamableFunction streamableFunction =
                     createColumnRearranger(inSpec, factory).createStreamableFunction();
                 DataRow row;

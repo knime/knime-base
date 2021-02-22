@@ -75,7 +75,6 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell.StringCellFactory;
-import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.data.util.CancellableReportingInputStream;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -192,14 +191,12 @@ final class DecompressNodeModel extends NodeModel {
     private void decompress(final InputStream uncompressedStream, final RowOutput rowOutput,
         final ExecutionContext exec) throws IOException, InterruptedException, InvalidSettingsException {
 
-        final FileStoreFactory fsFac = FileStoreFactory.createFileStoreFactory(exec);
-
         try (final WritePathAccessor writeAccessor = m_config.getOutputDirChooserModel().createWritePathAccessor()) {
             final FSPath outputPath = writeAccessor.getOutputPath(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
             createParentDirIfRequired(outputPath);
             final FSLocationCellFactory locationCellFactory =
-                new FSLocationCellFactory(fsFac, m_config.getOutputDirChooserModel().getLocation());
+                new FSLocationCellFactory(m_config.getOutputDirChooserModel().getLocation());
 
             final FileOverwritePolicy overwritePolicy = m_config.getOutputDirChooserModel().getFileOverwritePolicy();
 
@@ -217,8 +214,6 @@ final class DecompressNodeModel extends NodeModel {
                 }
             }
 
-        } finally {
-            fsFac.close();
         }
     }
 

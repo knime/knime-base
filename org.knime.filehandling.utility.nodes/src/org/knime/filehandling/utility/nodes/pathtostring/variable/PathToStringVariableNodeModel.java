@@ -81,14 +81,14 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.location.MultiFSPathProviderFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
 
 /**
  * This node allows you to convert a flow variable of type {@link FSLocationVariableType} to a flow variable of type
  * String. Depending on the settings, the created flow variable will contain the value returned by
- * {@link FSLocation#getPath()} stored in the {@link FSLocationCell} or the string value of the {@link URI} returned by
+ * {@link FSLocation#getPath()} stored in the {@link SimpleFSLocationCell} or the string value of the {@link URI} returned by
  * the {@link URIExporter} with id {@link URIExporterIDs#LEGACY_KNIME_URL}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany

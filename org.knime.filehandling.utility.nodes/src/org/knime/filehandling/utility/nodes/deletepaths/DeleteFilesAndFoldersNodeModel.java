@@ -63,7 +63,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -141,14 +140,13 @@ final class DeleteFilesAndFoldersNodeModel extends NodeModel {
 
     private void writeOutput(final RowOutput rowOutput, final ExecutionContext exec)
         throws IOException, InvalidSettingsException, InterruptedException, CanceledExecutionException {
-        final FileStoreFactory fsFac = FileStoreFactory.createFileStoreFactory(exec);
         try (final ReadPathAccessor accessor = m_config.getFileChooserSettings().createReadPathAccessor();) {
             final List<FSPath> fsPaths = accessor.getFSPaths(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
             long rec = 0;
             final int numEntries = fsPaths.size();
             final FSLocationCellFactory locationFactory =
-                new FSLocationCellFactory(fsFac, m_config.getFileChooserSettings().getLocation());
+                new FSLocationCellFactory(m_config.getFileChooserSettings().getLocation());
 
             final DataCell[] row = new DataCell[m_config.isAbortedIfFails() ? 1 : 2];
 
@@ -182,7 +180,6 @@ final class DeleteFilesAndFoldersNodeModel extends NodeModel {
             }
         } finally {
             rowOutput.close();
-            fsFac.close();
         }
     }
 

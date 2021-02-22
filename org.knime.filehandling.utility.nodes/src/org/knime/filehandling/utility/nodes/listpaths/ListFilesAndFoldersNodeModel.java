@@ -61,7 +61,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -194,8 +193,8 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
             long rec = 0;
             final int numEntries = fsPaths.size();
-            final FSLocationCellFactory locationFactory = new FSLocationCellFactory(
-                FileStoreFactory.createFileStoreFactory(exec), m_config.getFileChooserSettings().getLocation());
+            final FSLocationCellFactory locationFactory =
+                new FSLocationCellFactory(m_config.getFileChooserSettings().getLocation());
 
             for (final FSPath p : fsPaths) {
                 final DataCell locationCell = locationFactory.createCell(p.toFSLocation());

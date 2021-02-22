@@ -89,12 +89,12 @@ import org.knime.filehandling.core.connections.location.MultiFSPathProviderFacto
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.data.location.FSLocationValue;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 
 /**
- * This node allows you to convert a {@link FSLocationCell} to a {@link StringCell}. Depending on the settings, the
+ * This node allows you to convert a {@link SimpleFSLocationCell} to a {@link StringCell}. Depending on the settings, the
  * {@link StringCell} will contain the value returned by {@link FSLocation#getPath()} stored in the
- * {@link FSLocationCell} or the string value of the {@link URI} returned by the {@link URIExporter} with id
+ * {@link SimpleFSLocationCell} or the string value of the {@link URI} returned by the {@link URIExporter} with id
  * {@link URIExporterIDs#LEGACY_KNIME_URL}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany

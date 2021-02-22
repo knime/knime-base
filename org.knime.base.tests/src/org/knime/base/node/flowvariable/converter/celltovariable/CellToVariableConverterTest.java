@@ -62,7 +62,6 @@ import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.IntCell.IntCellFactory;
 import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType.BooleanArrayType;
 import org.knime.core.node.workflow.VariableType.BooleanType;
@@ -150,14 +149,11 @@ public class CellToVariableConverterTest {
     public void testFSLocationCellConverter() {
         final FSLocation val = new FSLocation(FSCategory.CONNECTED, "dummy-specifier", "not-a-path");
         final String name = "fsLocation_var";
-        final FileStoreFactory fsFac = FileStoreFactory.createFileStoreFactory(null);
-        final FSLocationCellFactory fac = new FSLocationCellFactory(fsFac, val);
+        final FSLocationCellFactory fac = new FSLocationCellFactory(val);
         final DataCell cell = fac.createCell(val);
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
         assertEquals(new FlowVariable(name, FSLocationVariableType.INSTANCE, val),
             converter.createFlowVariable(name, cell));
-
-        fsFac.close();
     }
 
     /**

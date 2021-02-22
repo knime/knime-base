@@ -67,7 +67,6 @@ import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.def.StringCell.StringCellFactory;
-import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -117,17 +116,15 @@ final class PathCopier {
      *
      * @param rowConsumer the {@link Consumer} of {@link DataRow}
      * @param config the {@link TransferFilesNodeConfig}
-     * @param fileStoreFactory the {@link FileStoreFactory}
      * @param numberOfCols the number of columns in the output spec
      */
-    PathCopier(final Consumer<DataRow> rowConsumer, final TransferFilesNodeConfig config,
-        final FileStoreFactory fileStoreFactory) {
+    PathCopier(final Consumer<DataRow> rowConsumer, final TransferFilesNodeConfig config) {
         m_rowConsumer = rowConsumer;
         m_config = config;
         m_sourceFSLocationCellFactory =
-            new FSLocationCellFactory(fileStoreFactory, m_config.getSourceFileChooserModel().getLocation());
+            new FSLocationCellFactory(m_config.getSourceFileChooserModel().getLocation());
         m_destinationFSLocationCellFactory =
-            new FSLocationCellFactory(fileStoreFactory, m_config.getDestinationFileChooserModel().getLocation());
+            new FSLocationCellFactory(m_config.getDestinationFileChooserModel().getLocation());
         m_fileOverWritePolicy = m_config.getDestinationFileChooserModel().getFileOverwritePolicy();
         m_copyFunction = getCopyFunction(m_fileOverWritePolicy);
     }
