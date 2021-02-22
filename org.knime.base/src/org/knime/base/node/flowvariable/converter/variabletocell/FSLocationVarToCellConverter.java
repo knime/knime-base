@@ -51,17 +51,16 @@ package org.knime.base.node.flowvariable.converter.variabletocell;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
 import org.knime.filehandling.core.data.location.cell.MultiFSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
- * Converter class to create a {@link FSLocationCell} from a {@link FSLocationVariableType}.
+ * Converter class to create a {@link SimpleFSLocationCell} from a {@link FSLocationVariableType}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
@@ -77,8 +76,8 @@ final class FSLocationVarToCellConverter implements VariableToCellConverter {
     }
 
     @Override
-    public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
-        return m_multiCellFactory.createCell(exec, getFsLocation(flowVar));
+    public DataCell getDataCell(final FlowVariable flowVar) {
+        return m_multiCellFactory.createCell(getFsLocation(flowVar));
     }
 
     @Override
@@ -93,11 +92,6 @@ final class FSLocationVarToCellConverter implements VariableToCellConverter {
 
     private static FSLocation getFsLocation(final FlowVariable flowVar) {
         return flowVar.getValue(FSLocationVariableType.INSTANCE);
-    }
-
-    @Override
-    public void close() {
-        m_multiCellFactory.close();
     }
 
 }

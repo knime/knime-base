@@ -82,8 +82,8 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
 import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -101,12 +101,11 @@ public class VariableToCellConverterTest {
         final int val = 4;
         final String name = "int_var";
         final FlowVariable var = new FlowVariable(name, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(IntCell.TYPE, createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(IntCell.TYPE, createSpec.getType());
 
-            assertEquals(IntCellFactory.create(val), converter.getDataCell(null, var));
-        }
+        assertEquals(IntCellFactory.create(val), converter.getDataCell(var));
     }
 
     /**
@@ -117,12 +116,11 @@ public class VariableToCellConverterTest {
         final long val = 1232;
         final String name = "long_var";
         final FlowVariable var = new FlowVariable(name, LongType.INSTANCE, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(LongCell.TYPE, createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(LongCell.TYPE, createSpec.getType());
 
-            assertEquals(LongCellFactory.create(val), converter.getDataCell(null, var));
-        }
+        assertEquals(LongCellFactory.create(val), converter.getDataCell(var));
     }
 
     /**
@@ -133,12 +131,11 @@ public class VariableToCellConverterTest {
         final double val = -124.39239;
         final String name = "double_var";
         final FlowVariable var = new FlowVariable(name, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(DoubleCell.TYPE, createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(DoubleCell.TYPE, createSpec.getType());
 
-            assertEquals(DoubleCellFactory.create(val), converter.getDataCell(null, var));
-        }
+        assertEquals(DoubleCellFactory.create(val), converter.getDataCell(var));
     }
 
     /**
@@ -149,12 +146,11 @@ public class VariableToCellConverterTest {
         final String val = "dummy";
         final String name = "string_var";
         final FlowVariable var = new FlowVariable(name, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(StringCell.TYPE, createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(StringCell.TYPE, createSpec.getType());
 
-            assertEquals(new StringCell(val), converter.getDataCell(null, var));
-        }
+        assertEquals(new StringCell(val), converter.getDataCell(var));
     }
 
     /**
@@ -165,12 +161,11 @@ public class VariableToCellConverterTest {
         final boolean val = true;
         final String name = "boolean_var";
         final FlowVariable var = new FlowVariable(name, BooleanType.INSTANCE, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(BooleanCell.TYPE, createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(BooleanCell.TYPE, createSpec.getType());
 
-            assertEquals(BooleanCellFactory.create(val), converter.getDataCell(null, var));
-        }
+        assertEquals(BooleanCellFactory.create(val), converter.getDataCell(var));
     }
 
     /**
@@ -181,18 +176,17 @@ public class VariableToCellConverterTest {
         final FSLocation val = new FSLocation(FSCategory.CONNECTED, "dummy-specifier", "not-a-path");
         final String name = "fsLocation_var";
         final FlowVariable var = new FlowVariable(name, FSLocationVariableType.INSTANCE, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(FSLocationCellFactory.TYPE, createSpec.getType());
-            final FSLocationValueMetaData metaData = createSpec.getMetaDataOfType(FSLocationValueMetaData.class)
-                .orElseThrow(() -> new IllegalStateException("No meta data available"));
-            final Set<DefaultFSLocationSpec> fsLocationSpecs = metaData.getFSLocationSpecs();
-            assertTrue(fsLocationSpecs.size() == 1);
-            assertTrue(FSLocationSpec.areEqual(fsLocationSpecs.iterator().next(), val));
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(FSLocationCellFactory.TYPE, createSpec.getType());
+        final FSLocationValueMetaData metaData = createSpec.getMetaDataOfType(FSLocationValueMetaData.class)
+            .orElseThrow(() -> new IllegalStateException("No meta data available"));
+        final Set<DefaultFSLocationSpec> fsLocationSpecs = metaData.getFSLocationSpecs();
+        assertTrue(fsLocationSpecs.size() == 1);
+        assertTrue(FSLocationSpec.areEqual(fsLocationSpecs.iterator().next(), val));
 
-            final FSLocationCell cell = (FSLocationCell)converter.getDataCell(null, var);
-            assertEquals(val, cell.getFSLocation());
-        }
+        final SimpleFSLocationCell cell = (SimpleFSLocationCell)converter.getDataCell(var);
+        assertEquals(val, cell.getFSLocation());
     }
 
     /**
@@ -203,15 +197,14 @@ public class VariableToCellConverterTest {
         final Integer[] val = new Integer[]{1, 589, -2};
         final String name = "int_arr_var";
         final FlowVariable var = new FlowVariable(name, IntArrayType.INSTANCE, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(getCollectionType(IntCell.TYPE), createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(getCollectionType(IntCell.TYPE), createSpec.getType());
 
-            final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
-                .map(IntCellFactory::create)//
-                .collect(Collectors.toList()));
-            assertEquals(c, converter.getDataCell(null, var));
-        }
+        final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
+            .map(IntCellFactory::create)//
+            .collect(Collectors.toList()));
+        assertEquals(c, converter.getDataCell(var));
     }
 
     /**
@@ -222,15 +215,14 @@ public class VariableToCellConverterTest {
         final Long[] val = new Long[]{2930L, 2392932L, -9319L};
         final String name = "long_arr_var";
         final FlowVariable var = new FlowVariable(name, LongArrayType.INSTANCE, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(getCollectionType(LongCell.TYPE), createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(getCollectionType(LongCell.TYPE), createSpec.getType());
 
-            final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
-                .map(LongCellFactory::create)//
-                .collect(Collectors.toList()));
-            assertEquals(c, converter.getDataCell(null, var));
-        }
+        final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
+            .map(LongCellFactory::create)//
+            .collect(Collectors.toList()));
+        assertEquals(c, converter.getDataCell(var));
     }
 
     /**
@@ -241,15 +233,14 @@ public class VariableToCellConverterTest {
         final Double[] val = new Double[]{2432.4399, 29.3, -124.39239};
         final String name = "double_arr_var";
         final FlowVariable var = new FlowVariable(name, DoubleArrayType.INSTANCE, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(getCollectionType(DoubleCell.TYPE), createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(getCollectionType(DoubleCell.TYPE), createSpec.getType());
 
-            final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
-                .map(DoubleCellFactory::create)//
-                .collect(Collectors.toList()));
-            assertEquals(c, converter.getDataCell(null, var));
-        }
+        final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
+            .map(DoubleCellFactory::create)//
+            .collect(Collectors.toList()));
+        assertEquals(c, converter.getDataCell(var));
     }
 
     /**
@@ -260,15 +251,14 @@ public class VariableToCellConverterTest {
         final String[] val = new String[]{"dummy", "foo", "bar"}; //NOSONAR method only once invoked
         final String name = "string_arr_var";
         final FlowVariable var = new FlowVariable(name, StringArrayType.INSTANCE, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(getCollectionType(StringCell.TYPE), createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(getCollectionType(StringCell.TYPE), createSpec.getType());
 
-            final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
-                .map(StringCell::new)//
-                .collect(Collectors.toList()));
-            assertEquals(c, converter.getDataCell(null, var));
-        }
+        final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
+            .map(StringCell::new)//
+            .collect(Collectors.toList()));
+        assertEquals(c, converter.getDataCell(var));
     }
 
     /**
@@ -279,15 +269,14 @@ public class VariableToCellConverterTest {
         final Boolean[] val = new Boolean[]{true, false, true};
         final String name = "boolean_arr_var";
         final FlowVariable var = new FlowVariable(name, BooleanArrayType.INSTANCE, val);
-        try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
-            DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(getCollectionType(BooleanCell.TYPE), createSpec.getType());
+        final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var);
+        DataColumnSpec createSpec = converter.createSpec(name, var);
+        assertEquals(getCollectionType(BooleanCell.TYPE), createSpec.getType());
 
-            final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
-                .map(BooleanCellFactory::create)//
-                .collect(Collectors.toList()));
-            assertEquals(c, converter.getDataCell(null, var));
-        }
+        final DataCell c = CollectionCellFactory.createListCell(Arrays.stream(val)//
+            .map(BooleanCellFactory::create)//
+            .collect(Collectors.toList()));
+        assertEquals(c, converter.getDataCell(var));
     }
 
 }

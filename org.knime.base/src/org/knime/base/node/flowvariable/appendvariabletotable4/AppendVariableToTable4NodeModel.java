@@ -120,7 +120,7 @@ final class AppendVariableToTable4NodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         final BufferedDataTable table = (BufferedDataTable)inData[1];
         try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
-            final ColumnRearranger columnRearranger = createColumnRearranger(table.getSpec(), exec, conv, false);
+            final ColumnRearranger columnRearranger = createColumnRearranger(table.getSpec(), conv, false);
             return new BufferedDataTable[]{exec.createColumnRearrangeTable(table, columnRearranger, exec)};
         }
     }
@@ -128,14 +128,13 @@ final class AppendVariableToTable4NodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
-            final ColumnRearranger columnRearranger =
-                createColumnRearranger((DataTableSpec)inSpecs[1], null, conv, true);
+            final ColumnRearranger columnRearranger = createColumnRearranger((DataTableSpec)inSpecs[1], conv, true);
             return new DataTableSpec[]{columnRearranger.createSpec()};
         }
     }
 
-    private ColumnRearranger createColumnRearranger(final DataTableSpec spec, final ExecutionContext exec,
-        final VariableToDataColumnConverter conv, final boolean warn) throws InvalidSettingsException {
+    private ColumnRearranger createColumnRearranger(final DataTableSpec spec, final VariableToDataColumnConverter conv,
+        final boolean warn) {
         final ColumnRearranger columnRearranger = new ColumnRearranger(spec);
         final Set<String> nameHash = spec.stream()//
             .map(DataColumnSpec::getName)//
@@ -174,7 +173,7 @@ final class AppendVariableToTable4NodeModel extends NodeModel {
                 synchronized (m_lock) {
                     if (m_cells == null) {
                         m_cells = vars.entrySet().stream()//
-                            .map(e -> conv.getDataCell(exec, e.getKey(), e.getValue()))//
+                            .map(e -> conv.getDataCell(e.getKey(), e.getValue()))//
                             .toArray(DataCell[]::new);
                     }
                 }
@@ -226,7 +225,7 @@ final class AppendVariableToTable4NodeModel extends NodeModel {
                 final RowOutput out = (RowOutput)outputs[DATA_OUTPUT_PORT_IDX];
                 try (final VariableToDataColumnConverter conv = new VariableToDataColumnConverter()) {
                     final StreamableFunction streamableFunction =
-                        createColumnRearranger(in.getDataTableSpec(), exec, conv, false).createStreamableFunction();
+                        createColumnRearranger(in.getDataTableSpec(), conv, false).createStreamableFunction();
                     DataRow row;
                     while ((row = in.poll()) != null) {
                         out.push(streamableFunction.compute(row));

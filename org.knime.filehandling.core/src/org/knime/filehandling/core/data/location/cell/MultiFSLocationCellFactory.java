@@ -52,12 +52,8 @@ import java.nio.file.FileSystem;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
  * A factory class allowing to easily create {@link FSLocationCell}s. This class is especially useful when the same
@@ -65,9 +61,9 @@ import org.knime.filehandling.core.connections.FSLocationSpec;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class MultiFSLocationCellFactory implements AutoCloseable {
+public final class MultiFSLocationCellFactory {
 
-    private final Map<DefaultFSLocationSpec, Pair<FileStoreFactory, FSLocationCellFactory>> m_factories;
+    private final Map<DefaultFSLocationSpec, FSLocationCellFactory> m_factories;
 
     /**
      * Constructor.
@@ -78,33 +74,19 @@ public final class MultiFSLocationCellFactory implements AutoCloseable {
 
     /**
      * Create a new {@link FSLocationCell}.
-     *
-     * @param exec the {@link ExecutionContext} used to create the {@link FileStoreFactory}
      * @param fsLocation the file system location
+     *
      * @return a {@link FSLocationCell} containing a path and information about the file system
      * @throws NullPointerException if {@code fsLocation} is null
      * @throws IllegalArgumentException if the path is null or the file system type and specifier do not match the ones
      *             in the meta data
      */
-    public SimpleFSLocationCell createCell(final ExecutionContext exec, final FSLocation fsLocation) {
+    public SimpleFSLocationCell createCell(final FSLocation fsLocation) {
         final DefaultFSLocationSpec defaultFSLocationSpec = new DefaultFSLocationSpec(fsLocation.getFSCategory(),
             fsLocation.getFileSystemSpecifier().orElseGet(() -> null));
         final FSLocationCellFactory fac = m_factories
-            .computeIfAbsent(defaultFSLocationSpec, fsLocSpec -> createFactory(exec, fsLocation)).getSecond();
+            .computeIfAbsent(defaultFSLocationSpec, FSLocationCellFactory::new);
         return fac.createCell(fsLocation);
-    }
-
-    private static Pair<FileStoreFactory, FSLocationCellFactory> createFactory(final ExecutionContext exec,
-        final FSLocationSpec fsLocSpec) {
-        final FileStoreFactory fileStoreFac = FileStoreFactory.createFileStoreFactory(exec);
-        return new Pair<>(fileStoreFac, new FSLocationCellFactory(fileStoreFac, fsLocSpec));
-    }
-
-    @Override
-    public void close() {
-        m_factories.values().stream()//
-            .map(Pair::getFirst)//
-            .forEach(FileStoreFactory::close);
     }
 
 }

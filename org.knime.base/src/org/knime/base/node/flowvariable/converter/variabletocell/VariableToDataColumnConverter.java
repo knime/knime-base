@@ -53,8 +53,6 @@ import java.util.Map;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 
@@ -74,7 +72,6 @@ public final class VariableToDataColumnConverter implements AutoCloseable {
         m_converters = new HashMap<>();
     }
 
-    @SuppressWarnings("resource") // see #close
     private ConvenienceVariableToCellConverter getConverter(final String columnName) {
         if (!m_converters.containsKey(columnName)) {
             m_converters.put(columnName, new ConvenienceVariableToCellConverter());
@@ -84,15 +81,13 @@ public final class VariableToDataColumnConverter implements AutoCloseable {
 
     /**
      * Creates the {@link DataCell} from the given {@link FlowVariable}.
-     *
-     * @param exec the {@link ExecutionContext} needed, e.g., to create a {@link FileStoreFactory}
      * @param columnName the column name
      * @param flowVar the {@link FlowVariable} to be converted to a {@link DataCell}
+     *
      * @return the cell representation of the converted variable
      */
-    @SuppressWarnings("resource") // see #close
-    public DataCell getDataCell(final ExecutionContext exec, final String columnName, final FlowVariable flowVar) {
-        return getConverter(columnName).getDataCell(exec, flowVar);
+    public DataCell getDataCell(final String columnName, final FlowVariable flowVar) {
+        return getConverter(columnName).getDataCell(flowVar);
     }
 
     /**
@@ -102,7 +97,6 @@ public final class VariableToDataColumnConverter implements AutoCloseable {
      * @param flowVar the {@link FlowVariable} for which the {@link DataColumnSpec} needs to be created
      * @return the data {@link DataColumnSpec} of the column to be created
      */
-    @SuppressWarnings("resource") // see #close
     public DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar) {
         return getConverter(columnName).createSpec(columnName, flowVar);
     }
@@ -121,7 +115,6 @@ public final class VariableToDataColumnConverter implements AutoCloseable {
             m_converters = new HashMap<>();
         }
 
-        @SuppressWarnings("resource") // see #close
         private VariableToCellConverter getConverter(final FlowVariable flowVar) {
             final VariableType<?> varType = flowVar.getVariableType();
             if (!m_converters.containsKey(varType)) {
@@ -130,23 +123,16 @@ public final class VariableToDataColumnConverter implements AutoCloseable {
             return m_converters.get(varType);
         }
 
-        @SuppressWarnings("resource") // see #close
         @Override
-        public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar) {
-            return getConverter(flowVar).getDataCell(exec, flowVar);
+        public DataCell getDataCell(final FlowVariable flowVar) {
+            return getConverter(flowVar).getDataCell(flowVar);
         }
 
-        @SuppressWarnings("resource") // see #close
         @Override
         public DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar) {
             return getConverter(flowVar).createSpec(columnName, flowVar);
         }
 
-        @Override
-        public void close() {
-            m_converters.values().stream()//
-                .close();
-        }
     }
 
 }

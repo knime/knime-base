@@ -115,7 +115,7 @@ public abstract class AbstractVariableToTableNodeModel extends NodeModel {
     protected DataRow createTableRow(final ExecutionContext exec, final VariableToDataColumnConverter conv,
         final String rowId) {
         final DataCell[] cells = getFilteredVariables().entrySet().stream()//
-            .map(e -> conv.getDataCell(exec, e.getKey(), e.getValue()))//
+            .map(e -> conv.getDataCell(e.getKey(), e.getValue()))//
             .toArray(DataCell[]::new);
         return new DefaultRow(rowId, cells);
     }

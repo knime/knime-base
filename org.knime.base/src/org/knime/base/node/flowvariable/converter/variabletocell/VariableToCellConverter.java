@@ -50,8 +50,6 @@ package org.knime.base.node.flowvariable.converter.variabletocell;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.workflow.FlowVariable;
 
 /**
@@ -59,16 +57,15 @@ import org.knime.core.node.workflow.FlowVariable;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public interface VariableToCellConverter extends AutoCloseable {
+public interface VariableToCellConverter {
 
     /**
      * Creates the {@link DataCell} from the given {@link FlowVariable}.
-     *
-     * @param exec the {@link ExecutionContext} needed, e.g., to create a {@link FileStoreFactory}
      * @param flowVar the {@link FlowVariable} to be converted to a {@link DataCell}
+     *
      * @return the cell representation of the converted variable
      */
-    public DataCell getDataCell(final ExecutionContext exec, final FlowVariable flowVar);
+    public DataCell getDataCell(final FlowVariable flowVar);
 
     /**
      * Creates the data column for this converter.
@@ -78,8 +75,5 @@ public interface VariableToCellConverter extends AutoCloseable {
      * @return the data {@link DataColumnSpec} of the column to be created
      */
     DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar);
-
-    @Override
-    void close();
 
 }
