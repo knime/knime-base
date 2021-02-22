@@ -62,8 +62,10 @@ import java.util.stream.Stream;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 import org.knime.filehandling.core.filefilter.FileFilter;
@@ -224,7 +226,7 @@ public final class FileChooserHelper {
             case CONNECTED_FS:
                 return getFileSystem().getPath(m_settings.getPathOrURL());
             case CUSTOM_URL_FS:
-                return getFileSystem().getPath(ValidationUtils.toCustomURLPathString(m_settings.getPathOrURL()));
+                return getFileSystem().getPath(toCustomUrlFSLocation(m_settings.getPathOrURL(), m_timeoutInMillis));
             case KNIME_FS:
                 pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
                 ValidationUtils.validateKnimeFSPath(pathOrUrl);
@@ -247,6 +249,10 @@ public final class FileChooserHelper {
                     String.format("Unknown choice enum '%s', make sure the switch covers all cases!", fileSystemChoice);
                 throw new RuntimeException(errMsg);
         }
+    }
+
+    private static FSLocation toCustomUrlFSLocation(final String url, final int timeoutInMillis) {
+        return new FSLocation(FSCategory.CUSTOM_URL, Integer.toString(timeoutInMillis), url);
     }
 
     /**
