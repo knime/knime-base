@@ -24,7 +24,14 @@
       <node
             category-path="/io/f-f-util/archive"
             deprecated="false"
-            factory-class="org.knime.filehandling.utility.nodes.compress.CompressNodeFactory"
+            factory-class="org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory"
+            hidden="false">
+      </node>
+      <node
+            after="org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory"
+            category-path="/io/f-f-util/archive"
+            deprecated="false"
+            factory-class="org.knime.filehandling.utility.nodes.compress.table.CompressTableNodeFactory"
             hidden="false">
       </node>
       <node

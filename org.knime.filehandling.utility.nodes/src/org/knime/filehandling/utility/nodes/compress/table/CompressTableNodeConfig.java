@@ -44,46 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Jan 28, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.compress.table;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory;
-import org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+final class CompressTableNodeConfig extends AbstractCompressNodeConfig {
+
+    private static final String CFG_INPUT_COLUMN = "source_column";
+
+    private final SettingsModelString m_pathColModel;
+
+    /**
+     * Constructor.
+     *
+     * @param portsConfig
+     */
+    protected CompressTableNodeConfig(final PortsConfiguration portsConfig) {
+        super(portsConfig);
+        m_pathColModel = new SettingsModelString(CFG_INPUT_COLUMN, null);
+    }
+
+    SettingsModelString getPathColModel() {
+        return m_pathColModel;
+    }
 
     @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.compress.CompressNodeFactory",
-            CompressFileChooserNodeFactory.class);
-        return map;
+    protected void validateAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_pathColModel.validateSettings(settings);
+    }
+
+    @Override
+    protected void loadAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_pathColModel.loadSettingsFrom(settings);
+    }
+
+    @Override
+    protected void saveAdditionalSettingsForModel(final NodeSettingsWO settings) {
+        m_pathColModel.saveSettingsTo(settings);
     }
 
 }

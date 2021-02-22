@@ -44,46 +44,62 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   27 Aug 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.compress.filechooser;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory;
-import org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
+import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
+ * Node Factory for the "Compress Files/Folder" no table input node.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+public final class CompressFileChooserNodeFactory extends ConfigurableNodeFactory<CompressFileChooserNodeModel> {
 
     @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.compress.CompressNodeFactory",
-            CompressFileChooserNodeFactory.class);
-        return map;
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
+        builder.addOptionalInputPortGroup(AbstractCompressNodeConfig.CONNECTION_INPUT_FILE_PORT_GRP_NAME,
+            FileSystemPortObject.TYPE);
+        builder.addOptionalInputPortGroup(AbstractCompressNodeConfig.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME,
+            FileSystemPortObject.TYPE);
+
+        return Optional.of(builder);
     }
 
+    @Override
+    protected CompressFileChooserNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new CompressFileChooserNodeModel(
+            (creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return new CompressFileChooserNodeDialog(
+            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+    }
+
+    @Override
+    public NodeView<CompressFileChooserNodeModel> createNodeView(final int viewIndex,
+        final CompressFileChooserNodeModel nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
 }

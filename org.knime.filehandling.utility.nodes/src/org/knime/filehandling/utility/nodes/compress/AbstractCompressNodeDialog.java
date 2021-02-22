@@ -48,14 +48,19 @@
  */
 package org.knime.filehandling.utility.nodes.compress;
 
+import java.awt.Component;
 import java.awt.GridBagLayout;
 import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -64,106 +69,125 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusSwingWorker;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.util.GBCBuilder;
-import org.knime.filehandling.utility.nodes.dialog.swingworker.IncludeSourceFolderSwingWorker;
-import org.knime.filehandling.utility.nodes.dialog.swingworker.SwingWorkerManager;
+import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
 
 /**
  * Node Dialog for the "Compress Files/Folder" node
  *
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @param <T> an {@link AbstractCompressNodeConfig} instance
  */
-final class CompressNodeDialog extends NodeDialogPane {
+public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeConfig> extends NodeDialogPane {
+
+    private static final String FILE_OUTPUT_HISTORY_ID = "compress_output_files_history";
 
     private static final Pattern PATTERN = Pattern.compile(//
-        Arrays.stream(CompressNodeConfig.COMPRESSIONS)//
+        Arrays.stream(AbstractCompressNodeConfig.COMPRESSIONS)//
             .map(s -> "\\." + s)//
             .collect(Collectors.joining("|", "(", ")\\s*$")),
         Pattern.CASE_INSENSITIVE);
-
-    private static final String FILE_HISTORY_ID = "compress_files_history";
-
-    private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
 
     private final DialogComponentWriterFileChooser m_destinationFileChooserPanel;
 
     private final DialogComponentStringSelection m_compressionSelection;
 
-    private final JCheckBox m_includeSourceFolder;
+    private final JCheckBox m_includeEmptyFolders;
 
     private final JCheckBox m_flattenHierarchyPanel;
 
-    private final CompressNodeConfig m_config;
+    private final T m_config;
 
-    private final SwingWorkerManager m_includeSourceFolderSwingWorkerManager;
+    private final EnumMap<TruncatePathOption, JRadioButton> m_truncateMap;
 
-    private final StatusView m_flattenHierarchyStatusView;
-
-    private final StatusView m_includeSourceFolderStatusView;
-
-    private final SwingWorkerManager m_flattenHierarchySwingWorkerManager;
+    private final DialogComponentString m_truncateRegex;
 
     private boolean m_isLoading;
 
-    CompressNodeDialog(final PortsConfiguration portsConfig) {
-        m_config = new CompressNodeConfig(portsConfig);
+    /**
+     * Constructor.
+     *
+     * @param portsConfig the ports configuration
+     * @param config the configuration
+     */
+    protected AbstractCompressNodeDialog(final PortsConfiguration portsConfig, final T config) {
+        m_config = config;
 
-        final SettingsModelReaderFileChooser sourceLocationChooserModel = m_config.getInputLocationChooserModel();
         final SettingsModelWriterFileChooser destinationFileChooserModel = m_config.getTargetFileChooserModel();
 
-        final FlowVariableModel readFvm =
-            createFlowVariableModel(sourceLocationChooserModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_inputFileChooserPanel = new DialogComponentReaderFileChooser(sourceLocationChooserModel, FILE_HISTORY_ID,
-            readFvm, FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDER, FilterMode.FILE);
-
-        m_includeSourceFolder = new JCheckBox("Include selected source folder");
-        m_includeSourceFolderStatusView = new StatusView();
-
-        m_flattenHierarchyPanel = new JCheckBox("Flatten hierarchy");
-        m_flattenHierarchyStatusView = new StatusView();
-
-        m_config.getInputLocationChooserModel().addChangeListener(c -> m_flattenHierarchyPanel
-            .setEnabled((m_config.getInputLocationChooserModel().getFilterMode()) != FilterMode.FILE));
-
-        m_config.getInputLocationChooserModel().addChangeListener(c -> m_includeSourceFolder
-            .setEnabled((m_config.getInputLocationChooserModel().getFilterMode()) != FilterMode.FILE));
+        m_includeEmptyFolders = new JCheckBox("Include empty folders");
+        m_flattenHierarchyPanel = new JCheckBox("Flatten folder");
 
         final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserModel.getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE);
         m_destinationFileChooserPanel = new DialogComponentWriterFileChooser(destinationFileChooserModel,
-            FILE_HISTORY_ID, writeFvm, FilterMode.FILE);
+            FILE_OUTPUT_HISTORY_ID, writeFvm, FilterMode.FILE);
 
         SettingsModelString compressionModel = m_config.getCompressionModel();
-        m_compressionSelection = new DialogComponentStringSelection(compressionModel, "Compression",
-            Arrays.asList(CompressNodeConfig.COMPRESSIONS));
+        m_compressionSelection = new DialogComponentStringSelection(compressionModel, "Format",
+            Arrays.asList(AbstractCompressNodeConfig.COMPRESSIONS));
         compressionModel.addChangeListener(l -> updateLocation());
 
-        m_includeSourceFolderSwingWorkerManager = new SwingWorkerManager(this::createIncludeParentFolderSwingWorker);
+        m_truncateMap = new EnumMap<>(TruncatePathOption.class);
+        final ButtonGroup grp = new ButtonGroup();
+        for (final TruncatePathOption opt : TruncatePathOption.values()) {
+            final JRadioButton btn = new JRadioButton(opt.getLabel());
+            btn.addActionListener(l -> toggleRegexField());
+            m_truncateMap.put(opt, btn);
+            grp.add(btn);
+        }
 
-        m_flattenHierarchySwingWorkerManager = new SwingWorkerManager(this::createFlattenSwingWorker);
+        m_truncateRegex = new DialogComponentString(m_config.getTruncateRegexModel(), null, true, 15);
 
-        sourceLocationChooserModel.addChangeListener(l -> includeSourceFolder());
-        sourceLocationChooserModel.addChangeListener(l -> flattenHierarchy());
-
-        m_flattenHierarchyPanel.addActionListener(l -> flattenHierarchy());
-        m_includeSourceFolder.addActionListener(l -> includeSourceFolder());
-
-        addTab("Settings", initLayout());
+        m_isLoading = false;
     }
 
-    private JPanel initLayout() {
+    @Override
+    public final FlowVariableModel createFlowVariableModel(final String[] keys, final VariableType<?> type) {
+        return super.createFlowVariableModel(keys, type);
+    }
+
+    /**
+     * Returns the config.
+     *
+     * @return the config
+     */
+    protected final T getConfig() {
+        return m_config;
+    }
+
+    /**
+     * Returns the include empty folders check box.
+     *
+     * @return the include empty folders check box.
+     */
+    protected final JCheckBox getIncludeEmptyFoldersCheckBox() {
+        return m_includeEmptyFolders;
+    }
+
+    /**
+     * Returns the flatten hierarchy check box.
+     *
+     * @return the flatten hierarchy folders check box.
+     */
+    protected final JCheckBox getFlattenHierarchyCheckBox() {
+        return m_flattenHierarchyPanel;
+    }
+
+    /**
+     * Creates the settings tab.
+     */
+    protected final void createSettingsTab() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().fillHorizontal().setWeightX(1).anchorLineStart();
         panel.add(createInputPanel(), gbc.build());
@@ -177,16 +201,24 @@ final class CompressNodeDialog extends NodeDialogPane {
         gbc.incY().setWeightY(1).setWeightX(1).fillBoth();
         panel.add(new JPanel(), gbc.build());
 
-        return panel;
+        addTab("settings", panel);
     }
 
-    private JPanel createInputPanel() {
-        final JPanel inputPanel = new JPanel(new GridBagLayout());
-        inputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source"));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY();
-        inputPanel.add(m_inputFileChooserPanel.getComponentPanel(),
-            gbc.resetX().incY().fillHorizontal().setWeightX(1).build());
-        return inputPanel;
+    /**
+     * Creates the input panel, i.e., the panel containing the the location the files/folders to be compressed originate
+     * from.
+     *
+     * @return the panel containing all elements required to specify the files/folders to compress
+     */
+    protected abstract JPanel createInputPanel();
+
+    /**
+     * Returns whether or not the dialog is loading the settings.
+     *
+     * @return {@code true} if the dialog is still loading the settings and {@code false} otherwise
+     */
+    protected boolean isLoading() {
+        return m_isLoading;
     }
 
     private JPanel createOutputPanel() {
@@ -203,44 +235,55 @@ final class CompressNodeDialog extends NodeDialogPane {
 
     private JPanel createOptionsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Archive options"));
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
         panel.add(m_compressionSelection.getComponentPanel(), gbc.build());
 
-        gbc.incY();
-        panel.add(m_includeSourceFolder, gbc.build());
-
-        gbc.incX().setWeightY(1).fillVertical().setHeight(2);
-        panel.add(m_includeSourceFolderStatusView.getLabel(), gbc.build());
-
-        gbc.setHeight(1).fillNone().setWeightY(0).resetX().incY();
-        panel.add(new JPanel());
-
-        gbc.incY();
-        panel.add(m_flattenHierarchyPanel, gbc.build());
-
-        gbc.incX().setWeightY(1).fillVertical().setHeight(2);
-        panel.add(m_flattenHierarchyStatusView.getLabel(), gbc.build());
-
-        panel.add(new JPanel(),
-            gbc.insetTop(0).resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().setWidth(2).build());
+        gbc.incY().setWeightX(1).fillHorizontal().insetTop(3);
+        panel.add(createTruncatePanel(), gbc.build());
+        panel.add(createContentPanel(), gbc.incY().build());
+        panel.add(new JPanel(), gbc.insetTop(0).resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().build());
         return panel;
     }
 
-    private StatusSwingWorker createIncludeParentFolderSwingWorker() {
-        return new StatusSwingWorker(m_includeSourceFolderStatusView::setStatus,
-            new IncludeSourceFolderSwingWorker(m_config.getInputLocationChooserModel().createClone()), false);
+    private Component createTruncatePanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source folder truncation"));
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
+
+        panel.add(m_truncateMap.get(TruncatePathOption.KEEP_FULL_PATH), gbc.build());
+        panel.add(m_truncateMap.get(TruncatePathOption.KEEP_SRC_FOLDER), gbc.incX().build());
+        panel.add(m_truncateMap.get(TruncatePathOption.TRUNCATE_SRC_FOLDER), gbc.resetX().incY().build());
+        panel.add(getRegexPanel(), gbc.incX().build());
+        panel.add(new JPanel(), gbc.setWeightX(1).setWidth(2).fillHorizontal().build());
+        return panel;
     }
 
-    private StatusSwingWorker createFlattenSwingWorker() {
-        return new StatusSwingWorker(m_flattenHierarchyStatusView::setStatus,
-            new FlattenHierarchyStatusReporter(m_config.getInputLocationChooserModel().createClone()), false);
+    private Component getRegexPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
+        panel.add(m_truncateMap.get(TruncatePathOption.TRUNCATE_REGEX), gbc.build());
+        panel.add(m_truncateRegex.getComponentPanel(), gbc.incX().build());
+        return panel;
+    }
+
+    private Component createContentPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source folder content"));
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
+
+        panel.add(m_flattenHierarchyPanel, gbc.build());
+        gbc.incY();
+        panel.add(m_includeEmptyFolders, gbc.build());
+        panel.add(new JPanel(), gbc.setWeightX(1).incY().fillHorizontal().build());
+        return panel;
     }
 
     private void updateLocation() {
         final String compression = "." + ((SettingsModelString)m_compressionSelection.getModel()).getStringValue();
         SettingsModelWriterFileChooser writerModel = m_destinationFileChooserPanel.getSettingsModel();
-        if (!m_isLoading && !writerModel.isOverwrittenByFlowVariable()) {
+        if (!isLoading() && !writerModel.isOverwrittenByFlowVariable()) {
             FSLocation location = writerModel.getLocation();
             final String locPath = location.getPath();
             final String newPath = PATTERN.matcher(locPath).replaceAll(compression);
@@ -252,57 +295,67 @@ final class CompressNodeDialog extends NodeDialogPane {
         writerModel.setFileExtensions(compression);
     }
 
-    private void flattenHierarchy() {
-        startCancelSwingWorker(m_flattenHierarchyStatusView, m_flattenHierarchyPanel,
-            m_flattenHierarchySwingWorkerManager);
-    }
-
-    private void includeSourceFolder() {
-        startCancelSwingWorker(m_includeSourceFolderStatusView, m_includeSourceFolder,
-            m_includeSourceFolderSwingWorkerManager);
-    }
-
-    private void startCancelSwingWorker(final StatusView statusView, final JCheckBox checkBox,
-        final SwingWorkerManager swingWorker) {
-        statusView.clearStatus();
-        if (m_isLoading) {
-            return;
-        }
-        if (checkBox.isSelected() && m_config.getInputLocationChooserModel().getFilterMode() != FilterMode.FILE) {
-            swingWorker.startSwingWorker();
-        } else {
-            swingWorker.cancelSwingWorker();
-        }
-    }
-
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_inputFileChooserPanel.saveSettingsTo(settings);
         m_destinationFileChooserPanel.saveSettingsTo(settings);
         m_compressionSelection.saveSettingsTo(settings);
-        m_config.includeSelectedFolder(m_includeSourceFolder.isSelected());
+        m_truncateRegex.saveSettingsTo(settings);
+        m_config.setTrunacePathOption(getTruncateOption());
+        m_config.includeEmptyFolders(m_includeEmptyFolders.isSelected());
         m_config.flattenHierarchy(m_flattenHierarchyPanel.isSelected());
         m_config.saveSettingsForDialog(settings);
     }
 
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        // we want to disable the flatten hierarchy invocations until we have loaded all settings
-        m_isLoading = true;
+    private TruncatePathOption getTruncateOption() throws InvalidSettingsException {
+        return m_truncateMap.entrySet().stream()//
+            .filter(e -> e.getValue().isSelected())//
+            .map(Entry::getKey)//
+            .findFirst()//
+            .orElseThrow(() -> new InvalidSettingsException("Please select one of the truncate options"));
+    }
 
-        m_inputFileChooserPanel.loadSettingsFrom(settings, specs);
+    private void selectTruncateOption(final TruncatePathOption truncatePathOption) {
+        m_truncateMap.entrySet().stream()//
+            .forEachOrdered(e -> e.getValue().setSelected(e.getKey() == truncatePathOption));
+    }
+
+    private void toggleRegexField() {
+        m_truncateRegex.getModel().setEnabled(m_truncateMap.get(TruncatePathOption.TRUNCATE_REGEX).isSelected());
+    }
+
+    @Override
+    protected final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_isLoading = true;
+        loadSettings(settings, specs);
+        selectTruncateOption(getConfig().getTruncatePathOption());
+        m_isLoading = false;
+        afterLoad();
+    }
+
+    /**
+     * Invoked after loading the settings.
+     */
+    protected void afterLoad() {
+        toggleRegexField();
+    }
+
+    /**
+     * Loads the settings.
+     *
+     * @param settings the settings
+     * @param specs the specs
+     * @throws NotConfigurableException - If something goes wrong while loading the settings
+     */
+    protected void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
         m_destinationFileChooserPanel.loadSettingsFrom(settings, specs);
         m_compressionSelection.loadSettingsFrom(settings, specs);
 
         m_config.loadSettingsForDialog(settings);
-        m_includeSourceFolder.setSelected(m_config.includeSourceFolder());
+        m_truncateRegex.loadSettingsFrom(settings, specs);
+        m_includeEmptyFolders.setSelected(m_config.includeEmptyFolders());
         m_flattenHierarchyPanel.setSelected(m_config.flattenHierarchy());
-
-        // update the flatten hierarchy status
-        m_isLoading = false;
-        flattenHierarchy();
-        includeSourceFolder();
     }
 
     /**
@@ -310,9 +363,6 @@ final class CompressNodeDialog extends NodeDialogPane {
      */
     @Override
     public void onClose() {
-        m_includeSourceFolderSwingWorkerManager.cancelSwingWorker();
-        m_flattenHierarchySwingWorkerManager.cancelSwingWorker();
         m_destinationFileChooserPanel.onClose();
-        m_inputFileChooserPanel.onClose();
     }
 }

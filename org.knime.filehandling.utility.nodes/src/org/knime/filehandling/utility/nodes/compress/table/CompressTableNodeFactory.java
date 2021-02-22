@@ -44,50 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Aug 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
+ *   Jan 28, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress;
+package org.knime.filehandling.utility.nodes.compress.table;
 
 import java.util.Optional;
 
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
 
 /**
  * Node Factory for the "Compress Files/Folder" node
  *
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class CompressNodeFactory extends ConfigurableNodeFactory<CompressNodeModel> {
+public final class CompressTableNodeFactory extends ConfigurableNodeFactory<CompressTableNodeModel> {
 
-    static final String CONNECTION_INPUT_FILE_PORT_GRP_NAME = "Source File System Connection";
-
-    static final String CONNECTION_OUTPUT_DIR_PORT_GRP_NAME = "Destination File System Connection";
+    static final String TABLE_INPUT_FILE_PORT_GRP_NAME = "Input Table";
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(CONNECTION_INPUT_FILE_PORT_GRP_NAME, FileSystemPortObject.TYPE);
-        builder.addOptionalInputPortGroup(CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, FileSystemPortObject.TYPE);
-
+        builder.addOptionalInputPortGroup(AbstractCompressNodeConfig.CONNECTION_INPUT_FILE_PORT_GRP_NAME,
+            FileSystemPortObject.TYPE);
+        builder.addFixedInputPortGroup(TABLE_INPUT_FILE_PORT_GRP_NAME, BufferedDataTable.TYPE);
+        builder.addOptionalInputPortGroup(AbstractCompressNodeConfig.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME,
+            FileSystemPortObject.TYPE);
         return Optional.of(builder);
     }
 
     @Override
-    protected CompressNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new CompressNodeModel((creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
+    protected CompressTableNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        final PortsConfiguration portsConfiguration =
+            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+        return new CompressTableNodeModel(portsConfiguration);
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CompressNodeDialog(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+        return new CompressTableNodeDialog(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
     }
 
     @Override
-    public NodeView<CompressNodeModel> createNodeView(final int viewIndex, final CompressNodeModel nodeModel) {
+    public NodeView<CompressTableNodeModel> createNodeView(final int viewIndex,
+        final CompressTableNodeModel nodeModel) {
         return null;
     }
 

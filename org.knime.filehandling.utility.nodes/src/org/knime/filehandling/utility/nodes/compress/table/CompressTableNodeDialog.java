@@ -44,46 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Jan 28, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.compress.table;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.awt.GridBagLayout;
 
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory;
-import org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.data.location.FSLocationValue;
+import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeDialog;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+public class CompressTableNodeDialog extends AbstractCompressNodeDialog<CompressTableNodeConfig> {
 
-    @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.compress.CompressNodeFactory",
-            CompressFileChooserNodeFactory.class);
-        return map;
+    private final DialogComponentColumnNameSelection m_inputColSelection;
+
+    /**
+     * @param portsConfig
+     */
+    @SuppressWarnings("unchecked")
+    public CompressTableNodeDialog(final PortsConfiguration portsConfig) {
+        super(portsConfig, new CompressTableNodeConfig(portsConfig));
+        m_inputColSelection = new DialogComponentColumnNameSelection(getConfig().getPathColModel(), "Source column",
+            portsConfig.getInputPortLocation().get(CompressTableNodeFactory.TABLE_INPUT_FILE_PORT_GRP_NAME)[0],
+            FSLocationValue.class);
+        createSettingsTab();
     }
 
+    @Override
+    protected JPanel createInputPanel() {
+        final JPanel inputPanel = new JPanel(new GridBagLayout());
+        inputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source"));
+        final GBCBuilder gbc = new GBCBuilder();
+        inputPanel.add(m_inputColSelection.getComponentPanel(),
+            gbc.resetX().resetY().anchorFirstLineStart().fillNone().setWeightX(0).build());
+        inputPanel.add(new JPanel(), gbc.incX().setWeightX(1).fillHorizontal().build());
+        return inputPanel;
+    }
+
+    @Override
+    protected void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_inputColSelection.loadSettingsFrom(settings, specs);
+        super.loadSettings(settings, specs);
+    }
+
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_inputColSelection.saveSettingsTo(settings);
+        super.saveSettingsTo(settings);
+    }
 }
