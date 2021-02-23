@@ -47,9 +47,7 @@ package org.knime.filehandling.core.node.portobject.reader;
 
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeDialog;
-import org.knime.filehandling.core.node.portobject.SelectionMode;
 
 /**
  * Node dialog for port object reader nodes that can be extended with additional settings components.
@@ -67,33 +65,10 @@ public class PortObjectReaderNodeDialog<C extends PortObjectReaderNodeConfig> ex
      *
      * @param config the config
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
-     * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
-     *            from <b>model</b> is used)
-     */
-    private PortObjectReaderNodeDialog(final C config, final String historyID, final FilterMode[] filterModes) {
-        super(config,
-            fvm -> new DialogComponentReaderFileChooser(config.getFileChooserModel(), historyID, fvm, filterModes));
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param config the config
-     * @param historyID id used to store file history used by {@link FileSelectionDialog}
-     * @param selectionMode the available {@link SelectionMode}s
-     */
-    public PortObjectReaderNodeDialog(final C config, final String historyID, final SelectionMode selectionMode) {
-        this(config, historyID, selectionMode.getFilters());
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param config the config
-     * @param historyID id used to store file history used by {@link FileSelectionDialog}
      */
     public PortObjectReaderNodeDialog(final C config, final String historyID) {
-        this(config, historyID, new FilterMode[0]);
+        super(config,
+            fvm -> new DialogComponentReaderFileChooser(config.getFileChooserModel(), historyID, fvm));
     }
 
 }

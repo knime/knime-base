@@ -156,6 +156,19 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
         addChangeListener(e -> updateFilterMode());
     }
 
+    /**
+     * Checks if all selectable file systems are compatible with the selectable filter modes. That is if
+     * {@link FSCategory#CONNECTED} is among the file systems, then {@link FilterMode#FILE} must be among the selectable
+     * filter modes.
+     */
+    protected final void checkFilterModesSupportedByAllFileSystems() {
+        if (getFileSystemConfiguration().getActiveFSCategories().contains(FSCategory.CUSTOM_URL)) {
+            CheckUtils.checkArgument(m_filterModeModel.isSupported(FilterMode.FILE),
+                "FilterMode.FILE must be among the selectable filter modes "
+                    + "if FSCategory.CUSTOM_URL is an active file system.");
+        }
+    }
+
     @Override
     public final void addChangeListener(final ChangeListener l) {
         // overwritten to finalize the method (otherwise Sonar will complain if we use it in the constructor)
@@ -344,6 +357,10 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
      */
     public SettingsModelFilterMode getFilterModeModel() {
         return m_filterModeModel;
+    }
+
+    boolean supportsMultipleFilterModes() {
+        return m_filterModeModel.getNumberOfSupportedFilterModes() > 1;
     }
 
     /**

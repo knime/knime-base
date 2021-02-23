@@ -78,7 +78,6 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
 
@@ -130,8 +129,8 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
 
         final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserModel.getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE);
-        m_destinationFileChooserPanel = new DialogComponentWriterFileChooser(destinationFileChooserModel,
-            FILE_OUTPUT_HISTORY_ID, writeFvm, FilterMode.FILE);
+        m_destinationFileChooserPanel =
+            new DialogComponentWriterFileChooser(destinationFileChooserModel, FILE_OUTPUT_HISTORY_ID, writeFvm);
 
         SettingsModelString compressionModel = m_config.getCompressionModel();
         m_compressionSelection = new DialogComponentStringSelection(compressionModel, "Format",

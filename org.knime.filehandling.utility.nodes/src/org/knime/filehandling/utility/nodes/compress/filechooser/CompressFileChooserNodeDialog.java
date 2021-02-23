@@ -85,8 +85,8 @@ final class CompressFileChooserNodeDialog extends AbstractCompressNodeDialog<Com
         final SettingsModelReaderFileChooser sourceLocationChooserModel = config.getInputLocationChooserModel();
         final FlowVariableModel readFvm =
             createFlowVariableModel(sourceLocationChooserModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_inputFileChooserPanel = new DialogComponentReaderFileChooser(sourceLocationChooserModel,
-            FILE_INPUT_HISTORY_ID, readFvm, FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDER, FilterMode.FILE);
+        m_inputFileChooserPanel =
+            new DialogComponentReaderFileChooser(sourceLocationChooserModel, FILE_INPUT_HISTORY_ID, readFvm);
 
         sourceLocationChooserModel.addChangeListener(l -> toggleArchiveOptions());
 

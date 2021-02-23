@@ -135,6 +135,29 @@ public final class SettingsModelFilterMode extends SettingsModel {
         return m_filterMode;
     }
 
+    FilterMode[] getSupportedFilterModes() {
+        return m_filterModeConfig.getSupportedValues().toArray(new FilterMode[0]);
+    }
+
+    /**
+     * Returns {@code true} if the provided {@link FilterMode} is among the supported modes.
+     *
+     * @param mode to check for support
+     * @return {@code true} if {@link FilterMode mode} is supported
+     */
+    public boolean isSupported(final FilterMode mode) {
+        return m_filterModeConfig.isSupported(mode);
+    }
+
+    /**
+     * Returns the number of supported {@link FilterMode FilterModes}.
+     *
+     * @return the number of supported {@link FilterMode FilterModes}
+     */
+    public int getNumberOfSupportedFilterModes() {
+        return m_filterModeConfig.getNumberOfSupportedValues();
+    }
+
     /**
      * @param filterMode the filterMode to set
      */

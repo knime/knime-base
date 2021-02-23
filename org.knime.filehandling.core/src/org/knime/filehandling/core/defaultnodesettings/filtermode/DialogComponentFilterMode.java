@@ -61,7 +61,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
@@ -109,18 +108,16 @@ public final class DialogComponentFilterMode extends DialogComponent {
      *
      * @param model the settings model
      * @param showFilterOptionsPanel if the panel that allows setting filter options is shown or not
-     * @param filterModes filter modes that will be available and be arranged according the order (first one is
-     *            leftmost)
      *
      * @throws IllegalArgumentException if the list of filter modes contains duplicates
      */
-    public DialogComponentFilterMode(final SettingsModelFilterMode model, final boolean showFilterOptionsPanel,
-        final FilterMode... filterModes) {
+    public DialogComponentFilterMode(final SettingsModelFilterMode model, final boolean showFilterOptionsPanel) {
         super(model);
-        m_filterModes = filterModes;
+        m_filterModes = model.getSupportedFilterModes();
         // does not need a meaningful config name since it will never be saved
         m_filterModeSettingsModel = new SettingsModelString("dummy", model.getFilterMode().name());
-        m_filterModeButtonGroup = new DialogComponentButtonGroup(m_filterModeSettingsModel, null, false, filterModes);
+        m_filterModeButtonGroup =
+            new DialogComponentButtonGroup(m_filterModeSettingsModel, null, false, model.getSupportedFilterModes());
         m_filterOptionsButton.addActionListener(e -> showFileFilterConfigurationDialog());
 
         m_filterModePanel = createFilterModePanel();
@@ -191,7 +188,7 @@ public final class DialogComponentFilterMode extends DialogComponent {
      *         dialog pane.
      */
     @Override
-    public JPanel getComponentPanel() {
+    public JPanel getComponentPanel() {//NOSONAR
         return super.getComponentPanel();
     }
 
@@ -205,7 +202,7 @@ public final class DialogComponentFilterMode extends DialogComponent {
      * @return the selected filter mode after the call of this function
      */
     public FilterMode setEnabledFilterModeButton(final FilterMode filterMode, final boolean enabled) {
-        if (!ArrayUtils.contains(m_filterModes, filterMode)) {
+        if (!isSupported(filterMode)) {
             return FilterMode.valueOf(m_filterModeSettingsModel.getStringValue());
         }
         final JRadioButton button = (JRadioButton)m_filterModeButtonGroup.getButton(filterMode.name());
@@ -230,15 +227,19 @@ public final class DialogComponentFilterMode extends DialogComponent {
         return FilterMode.valueOf(m_filterModeSettingsModel.getStringValue());
     }
 
+    private SettingsModelFilterMode getSM() {
+        return (SettingsModelFilterMode)getModel();
+    }
+
     /**
-     * Returns {@code true} if the provided {@link FilterMode} is supported.
-     * TODO remove/deprecate once we know the supported filter modes in the settings model.
+     * Returns {@code true} if the provided {@link FilterMode} is supported. TODO remove/deprecate once we know the
+     * supported filter modes in the settings model.
      *
      * @param filterMode the filter mode to check for compatibility
      * @return {@code true} if the provided {@link FilterMode} is supported.
      */
     public boolean isSupported(final FilterMode filterMode) {
-        return ArrayUtils.contains(m_filterModes, filterMode);
+        return getSM().isSupported(filterMode);
     }
 
     /**

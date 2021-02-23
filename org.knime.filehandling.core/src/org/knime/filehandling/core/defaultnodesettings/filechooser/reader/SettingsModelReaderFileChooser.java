@@ -102,6 +102,7 @@ public final class SettingsModelReaderFileChooser
         final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
         final Set<FSCategory> convenienceFS, final String... fileExtensions) {
         super(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, convenienceFS, fileExtensions);
+        checkFilterModesSupportedByAllFileSystems();
     }
 
     /**
@@ -117,7 +118,7 @@ public final class SettingsModelReaderFileChooser
     public SettingsModelReaderFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
         final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, EnumSet.allOf(FSCategory.class),
+        this(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, EnumSet.allOf(FSCategory.class),
             fileExtensions);
     }
 

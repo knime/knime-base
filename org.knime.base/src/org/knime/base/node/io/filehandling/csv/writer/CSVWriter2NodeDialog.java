@@ -79,7 +79,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
@@ -130,8 +129,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         FlowVariableModel fvm = createFlowVariableModel(m_writerConfig.getLocationKeyChain(),
             FSLocationVariableType.INSTANCE);
         m_filePanel = new DialogComponentWriterFileChooser(m_writerConfig.getFileChooserModel(), FILE_HISTORY_ID,
-            fvm,
-            FilterMode.FILE);
+            fvm);
 
         m_writeColumnHeaderChecker = new JCheckBox("Write column header");
         m_writeColumnHeaderChecker.addItemListener(e -> checkCheckerState());

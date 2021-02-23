@@ -153,8 +153,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         m_config = config;
         m_pathSettings = pathSettings;
 
-        m_sourceFilePanel = new DialogComponentReaderFileChooser(fileChooserModel, "source_chooser", sourceFvm,
-            FilterMode.FILE, FilterMode.FILES_IN_FOLDERS);
+        m_sourceFilePanel = new DialogComponentReaderFileChooser(fileChooserModel, "source_chooser", sourceFvm);
         m_sourceFilePanel.getSettingsModel().getFilterModeModel().addChangeListener(l -> failOnDiffSpecsListener());
 
         m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());

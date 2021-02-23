@@ -63,7 +63,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -93,7 +92,7 @@ final class DecompressNodeDialog extends NodeDialogPane {
         final FlowVariableModel readFvm = createFlowVariableModel(
             m_config.getInputFileChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
         m_inputFileChooserPanel = new DialogComponentReaderFileChooser(m_config.getInputFileChooserModel(),
-            FILE_HISTORY_ID, readFvm, FilterMode.FILE);
+            FILE_HISTORY_ID, readFvm);
 
         m_config.getInputFileChooserModel().addChangeListener(l -> m_outputDirChooserPanel.updateComponent());
 

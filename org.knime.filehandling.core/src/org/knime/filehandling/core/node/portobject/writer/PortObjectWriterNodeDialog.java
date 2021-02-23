@@ -47,9 +47,7 @@ package org.knime.filehandling.core.node.portobject.writer;
 
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeDialog;
-import org.knime.filehandling.core.node.portobject.SelectionMode;
 
 /**
  * Node dialog for port object writer nodes that can be extended with additional settings components.
@@ -67,33 +65,10 @@ public class PortObjectWriterNodeDialog<C extends PortObjectWriterNodeConfig> ex
      *
      * @param config the config
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
-     * @param filterModes the available {@link FilterMode FilterModes} (if none are provided, the default filter mode
-     *            from <b>model</b> is used)
-     */
-    private PortObjectWriterNodeDialog(final C config, final String historyID, final FilterMode[] filterModes) {
-        super(config,
-            fvm -> new DialogComponentWriterFileChooser(config.getFileChooserModel(), historyID, fvm, filterModes));
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param config the config
-     * @param historyID id used to store file history used by {@link FileSelectionDialog}
-     * @param selectionMode the available {@link SelectionMode}s
-     */
-    public PortObjectWriterNodeDialog(final C config, final String historyID, final SelectionMode selectionMode) {
-        this(config, historyID, selectionMode.getFilters());
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param config the config
-     * @param historyID id used to store file history used by {@link FileSelectionDialog}
      */
     public PortObjectWriterNodeDialog(final C config, final String historyID) {
-        this(config, historyID, new FilterMode[0]);
+        super(config,
+            fvm -> new DialogComponentWriterFileChooser(config.getFileChooserModel(), historyID, fvm));
     }
 
     /**

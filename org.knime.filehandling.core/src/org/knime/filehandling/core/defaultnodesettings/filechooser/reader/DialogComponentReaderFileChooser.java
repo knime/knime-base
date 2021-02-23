@@ -56,7 +56,6 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialo
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * File chooser dialog component for reader nodes.
@@ -83,16 +82,13 @@ public final class DialogComponentReaderFileChooser
      * @param model the {@link AbstractSettingsModelFileChooser} the dialog component interacts with
      * @param historyID id used to store file history used by {@link FileSelectionDialog}
      * @param locationFvm the {@link FlowVariableModel} for the location
-     * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
-     *            from <b>model</b> is used)
      */
     public DialogComponentReaderFileChooser(final SettingsModelReaderFileChooser model, final String historyID,
-        final FlowVariableModel locationFvm, final FilterMode... filterModes) {
+        final FlowVariableModel locationFvm) {
         this(model//
             , historyID//
             , locationFvm//
-            , DefaultReaderStatusMessageReporter::new//
-            , filterModes);
+            , DefaultReaderStatusMessageReporter::new);
     }
 
     /**
@@ -112,21 +108,16 @@ public final class DialogComponentReaderFileChooser
      * @param locationFvm the {@link FlowVariableModel} for the location
      * @param statusMessageReporter function to create a {@link StatusMessageReporter} used to update the status of this
      *            component
-     * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
-     *            from <b>model</b> is used)
      */
     public DialogComponentReaderFileChooser(final SettingsModelReaderFileChooser model, final String historyID,
         final FlowVariableModel locationFvm,
-        final Function<SettingsModelReaderFileChooser, StatusMessageReporter> statusMessageReporter,
-        final FilterMode... filterModes) {
+        final Function<SettingsModelReaderFileChooser, StatusMessageReporter> statusMessageReporter) {
         super(model//
             , historyID//
             , DialogType.OPEN_DIALOG//
             , "Read from"//
             , locationFvm//
-            , statusMessageReporter//
-            , filterModes);
-        checkFilterModesSupportedByAllFs(model, extractSelectableFilterModes(model, filterModes));
+            , statusMessageReporter);
     }
 
 }

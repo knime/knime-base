@@ -171,29 +171,25 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
      * @param locationFvm the {@link FlowVariableModel} for the location
      * @param statusMessageReporter function to create a {@link StatusMessageReporter} used to update the status of this
      *            component
-     * @param filterModes the available {@link FilterMode FilterModes} (if a none are provided, the default filter mode
-     *            from <b>model</b> is used)
      */
     protected AbstractDialogComponentFileChooser(final T model, final String historyID,
         final FileSystemBrowser.DialogType dialogType, final String fsChooserLabel, final FlowVariableModel locationFvm,
-        final Function<T, StatusMessageReporter> statusMessageReporter, final FilterMode... filterModes) {
+        final Function<T, StatusMessageReporter> statusMessageReporter) {
         super(model);
         m_dialogType = dialogType;
         m_fsChooserLabel = new JLabel(fsChooserLabel);
         CheckUtils.checkArgumentNotNull(locationFvm, "The location flow variable model must not be null.");
         model.setLocationFlowVariableModel(locationFvm);
-        final Set<FilterMode> selectableFilterModes = extractSelectableFilterModes(model, filterModes);
         m_locationFvmBtn = new FlowVariableModelButton(locationFvm);
         m_statusMessageReporter = statusMessageReporter;
         m_fsChooser = FileSystemChooserUtils.createFileSystemChooser(model.getFileSystemConfiguration());
-        m_filterMode = new DialogComponentFilterMode(model.getFilterModeModel(), false,
-            selectableFilterModes.toArray(new FilterMode[0]));
+        m_filterMode = new DialogComponentFilterMode(model.getFilterModeModel(), false);
         Set<FileSystemBrowser.FileSelectionMode> supportedModes =
             model.getFileSystemConfiguration().getSupportedFileSelectionModes();
         m_fileSelection = new FileSelectionDialog(historyID, 10, model::getConnection, dialogType,
             supportedModes.iterator().next(), model.getFileExtensions());
         hookUpListeners();
-        layout(selectableFilterModes.size() > 1);
+        layout(model.supportsMultipleFilterModes());
     }
 
     /**

@@ -115,13 +115,11 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
         final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserConfig.getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE);
 
-        m_sourceFilePanel = new DialogComponentReaderFileChooser(sourceFileChooserConfig, "source_chooser", sourceFvm,
-            FilterMode.FILE, FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDER);
+        m_sourceFilePanel = new DialogComponentReaderFileChooser(sourceFileChooserConfig, "source_chooser", sourceFvm);
 
         m_destinationFilePanel = new DialogComponentWriterFileChooser(destinationFileChooserConfig,
             "destination_chooser", writeFvm, s -> new TransferFilesStatusMessageReporter(s,
-                sourceFileChooserConfig.createClone(), config.getSettingsModelIncludeSourceFolder().getBooleanValue()),
-            FilterMode.FOLDER);
+                sourceFileChooserConfig.createClone(), config.getSettingsModelIncludeSourceFolder().getBooleanValue()));
 
         m_includeSourceFolderStatusView = new StatusView();
 

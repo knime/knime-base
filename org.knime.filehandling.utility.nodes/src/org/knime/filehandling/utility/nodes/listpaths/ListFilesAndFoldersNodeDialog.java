@@ -65,7 +65,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -88,8 +87,7 @@ final class ListFilesAndFoldersNodeDialog extends NodeDialogPane {
 
         final FlowVariableModel readFvm = createFlowVariableModel(
             config.getFileChooserSettings().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_dialog = new DialogComponentReaderFileChooser(config.getFileChooserSettings(), "list_files_history", readFvm,
-            FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDERS, FilterMode.FILES_AND_FOLDERS);
+        m_dialog = new DialogComponentReaderFileChooser(config.getFileChooserSettings(), "list_files_history", readFvm);
         m_dialog.getComponentPanel().setBorder(BorderFactory.createTitledBorder("Read"));
 
         m_includeRootDir = new JCheckBox("Include parent folder");

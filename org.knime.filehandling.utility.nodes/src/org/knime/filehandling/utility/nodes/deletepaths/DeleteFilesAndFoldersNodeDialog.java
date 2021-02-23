@@ -68,7 +68,6 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * Node dialog of the "Delete Files/Folders" node.
@@ -94,8 +93,7 @@ final class DeleteFilesAndFoldersNodeDialog extends NodeDialogPane {
 
         final FlowVariableModel readFvm = createFlowVariableModel(
             m_config.getFileChooserSettings().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_fileChooser = new DialogComponentReaderFileChooser(m_config.getFileChooserSettings(), HISTORY_ID, readFvm,
-            FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDER, FilterMode.FILE);
+        m_fileChooser = new DialogComponentReaderFileChooser(m_config.getFileChooserSettings(), HISTORY_ID, readFvm);
 
         m_abortIfFails = new JCheckBox("Abort if delete fails");
 

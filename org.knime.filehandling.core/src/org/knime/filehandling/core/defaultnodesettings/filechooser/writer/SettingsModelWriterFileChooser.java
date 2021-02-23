@@ -112,16 +112,18 @@ public final class SettingsModelWriterFileChooser
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
      * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
      *            FilterModes}
-     * @param overwritePolicyConfig the {@link EnumConfig} specifying the default and supported {@link FileOverwritePolicy FileOverwritePolicies}
+     * @param overwritePolicyConfig the {@link EnumConfig} specifying the default and supported
+     *            {@link FileOverwritePolicy FileOverwritePolicies}
      * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
      *            no file system port is present
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelWriterFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
-        final EnumConfig<FileOverwritePolicy> overwritePolicyConfig,
-        final Set<FSCategory> convenienceFS, final String... fileExtensions) {
+        final EnumConfig<FileOverwritePolicy> overwritePolicyConfig, final Set<FSCategory> convenienceFS,
+        final String... fileExtensions) {
         super(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, convenienceFS, fileExtensions);
+        checkFilterModesSupportedByAllFileSystems();
         m_overwritePolicyConfig = overwritePolicyConfig;
         m_selectedPolicy = overwritePolicyConfig.getDefaultValue();
     }
@@ -134,18 +136,16 @@ public final class SettingsModelWriterFileChooser
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
      * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
      *            FilterModes}
-     * @param overwritePolicyConfig the {@link EnumConfig} specifying the default and supported {@link FileOverwritePolicy FileOverwritePolicies}
-     *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
+     * @param overwritePolicyConfig the {@link EnumConfig} specifying the default and supported
+     *            {@link FileOverwritePolicy FileOverwritePolicies} <b>defaultPolicy</b> or must be empty if
+     *            defaultPolicy is {@code null}))
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelWriterFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
-        final EnumConfig<FileOverwritePolicy> overwritePolicyConfig,
-        final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, EnumSet.allOf(FSCategory.class),
-            fileExtensions);
-        m_selectedPolicy = overwritePolicyConfig.getDefaultValue();
-        m_overwritePolicyConfig = overwritePolicyConfig;
+        final EnumConfig<FileOverwritePolicy> overwritePolicyConfig, final String... fileExtensions) {
+        this(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, overwritePolicyConfig,
+            EnumSet.allOf(FSCategory.class), fileExtensions);
     }
 
     private SettingsModelWriterFileChooser(final SettingsModelWriterFileChooser toCopy) {
@@ -190,8 +190,8 @@ public final class SettingsModelWriterFileChooser
      * @param policy {@link FileOverwritePolicy} to set
      */
     public void setFileOverwritePolicy(final FileOverwritePolicy policy) {
-        CheckUtils.checkArgument(m_overwritePolicyConfig.isSupported(policy), "The policy '%s' is not supported by this node.",
-            policy);
+        CheckUtils.checkArgument(m_overwritePolicyConfig.isSupported(policy),
+            "The policy '%s' is not supported by this node.", policy);
         if (policy != m_selectedPolicy) {
             m_selectedPolicy = policy;
             notifyChangeListeners();
