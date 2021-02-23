@@ -158,7 +158,7 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
 
     /**
      * Checks if all selectable file systems are compatible with the selectable filter modes. That is if
-     * {@link FSCategory#CONNECTED} is among the file systems, then {@link FilterMode#FILE} must be among the selectable
+     * {@link FSCategory#CUSTOM_URL} is among the file systems, then {@link FilterMode#FILE} must be among the selectable
      * filter modes.
      */
     protected final void checkFilterModesSupportedByAllFileSystems() {
@@ -207,11 +207,32 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     }
 
     /**
+     * Checks if the connected file system is compatible with the supported filter modes.
+     *
+     * @param specs the port object specs
+     */
+    private Optional<String> checkConfigurability(final PortObjectSpec[] specs) {
+        if (!m_filterModeModel.isSupported(FilterMode.FILE) && !canListFiles(specs)) {
+            final ConnectedFileSystemSpecificConfig connectedConfig =
+                (ConnectedFileSystemSpecificConfig)m_fsConfig.getFileSystemSpecifcConfig(FSCategory.CONNECTED);
+            final Optional<String> fsName =
+                FileSystemPortObjectSpec.getFileSystemType(specs, connectedConfig.getPortIdx());
+            if (fsName.isPresent()) {
+                return Optional.of(String.format(
+                    "The connected file system '%s' is not compatible with this node because it doesn't support folders.",
+                    fsName.get()));
+            } else {
+                return Optional.of(
+                    "The connected file system is not compatible with this node because it doesn't support folders.");
+            }
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Workaround for assessing if a file system can list files in
      * {@link AbstractDialogComponentFileChooser#checkConfigurabilityBeforeLoad(PortObjectSpec[])}.
-     *
-     * TODO remove once {@link SettingsModelFilterMode} knows its supported {@link FilterMode modes} and the
-     * configurability check can be made in {@link #loadSettingsForDialog(NodeSettingsRO, PortObjectSpec[])}.
      *
      * @param specs the port object specs
      * @return {@code false} if the connected file system doesn't support browsing, {@code true} otherwise (including
@@ -232,35 +253,6 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     }
 
     /**
-     * Checks if the connected file system is compatible with the supported filter modes.
-     *
-     * TODO remove once {@link SettingsModelFilterMode} knows its supported {@link FilterMode modes} and the
-     * configurability check can be made in {@link #loadSettingsForDialog(NodeSettingsRO, PortObjectSpec[])}.
-     *
-     * @param specs the port object specs
-     * @param supportsFiles {@code true} if {@link FilterMode#FILE} is supported
-     * @throws NotConfigurableException thrown if the file system doesn't support folders and {@link FilterMode#FILE}
-     *             isn't supported by the node
-     */
-    void checkConfigurability(final PortObjectSpec[] specs, final boolean supportsFiles)
-        throws NotConfigurableException {
-        if (!supportsFiles && !canListFiles(specs)) {
-            final ConnectedFileSystemSpecificConfig connectedConfig =
-                (ConnectedFileSystemSpecificConfig)m_fsConfig.getFileSystemSpecifcConfig(FSCategory.CONNECTED);
-            final Optional<String> fsName =
-                FileSystemPortObjectSpec.getFileSystemType(specs, connectedConfig.getPortIdx());
-            if (fsName.isPresent()) {
-                throw new NotConfigurableException(String.format(
-                    "The connected file system '%s' is not compatible with this node because it doesn't support folders.",
-                    fsName.get()));
-            } else {
-                throw new NotConfigurableException(
-                    "The connected file system is not compatible with this node because it doesn't support folders.");
-            }
-        }
-    }
-
-    /**
      * Configures the settings model in the {@link NodeModel} and validates the input specs and settings.</br>
      * The statusMessageConsumer is used to communicate warning and info messages. In most cases you can use
      * {@link NodeModelStatusConsumer}.
@@ -274,9 +266,9 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
         throws InvalidSettingsException {
         m_fsConfig.configureInModel(specs, statusMessageConsumer);
         // must happen after we updated m_fsConfig
-        if (!canListFiles()) {
-            CheckUtils.checkSetting(getFilterMode() == FilterMode.FILE,
-                "The file system '%s' does not support listing files.", getFileSystemName());
+        final Optional<String> specConfigurableError = checkConfigurability(specs);
+        if (specConfigurableError.isPresent()) {
+            throw new InvalidSettingsException(specConfigurableError.get());
         }
         checkLocation();
     }
@@ -483,6 +475,10 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
         m_fsConfig.loadSettingsForDialog(topLevel, specs);
         m_filterModeModel.loadSettingsForDialog(topLevel, specs);
         loadAdditionalSettingsForDialog(topLevel, specs);
+        final Optional<String> specConfigurableError = checkConfigurability(specs);
+        if (specConfigurableError.isPresent()) {
+            throw new NotConfigurableException(specConfigurableError.get());
+        }
         m_loading = false;
         notifyChangeListeners();
     }

@@ -228,7 +228,8 @@ public final class SettingsModelFilterMode extends SettingsModel {
         throws NotConfigurableException {
         try {
             final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
-            m_filterMode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE, m_filterMode.name()));
+            FilterMode loadedFilterMode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE, m_filterMode.name()));
+            m_filterMode = m_filterModeConfig.isSupported(loadedFilterMode) ? loadedFilterMode : m_filterMode;
             m_includeSubfolders = nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS, DEFAULT_INCLUDE_SUBFOLDERS);
             m_filterOptionsSettings.loadFromConfigForDialog(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
             notifyChangeListeners();

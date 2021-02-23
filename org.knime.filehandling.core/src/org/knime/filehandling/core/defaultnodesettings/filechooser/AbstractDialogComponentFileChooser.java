@@ -433,8 +433,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     @Override
     protected void checkConfigurabilityBeforeLoad(final PortObjectSpec[] specs) throws NotConfigurableException {
-        // TODO remove once we can check the filter mode compatibility when loading the settings model
-        getSettingsModel().checkConfigurability(specs, m_filterMode.isSupported(FilterMode.FILE));
+        // nothing to check
     }
 
     @Override
