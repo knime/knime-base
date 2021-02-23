@@ -92,7 +92,7 @@ import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
@@ -139,7 +139,7 @@ final class DecompressNodeModel extends NodeModel {
     }
 
     private DataTableSpec createOutputSpec() {
-        final DataColumnSpecCreator colCreator = new DataColumnSpecCreator("Path", FSLocationCellFactory.TYPE);
+        final DataColumnSpecCreator colCreator = new DataColumnSpecCreator("Path", SimpleFSLocationCellFactory.TYPE);
         final FSLocation location = m_config.getOutputDirChooserModel().getLocation();
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
             location.getFileSystemSpecifier().orElse(null));
@@ -195,8 +195,8 @@ final class DecompressNodeModel extends NodeModel {
             final FSPath outputPath = writeAccessor.getOutputPath(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
             createParentDirIfRequired(outputPath);
-            final FSLocationCellFactory locationCellFactory =
-                new FSLocationCellFactory(m_config.getOutputDirChooserModel().getLocation());
+            final SimpleFSLocationCellFactory locationCellFactory =
+                new SimpleFSLocationCellFactory(m_config.getOutputDirChooserModel().getLocation());
 
             final FileOverwritePolicy overwritePolicy = m_config.getOutputDirChooserModel().getFileOverwritePolicy();
 
@@ -229,7 +229,7 @@ final class DecompressNodeModel extends NodeModel {
     }
 
     private static void decompress(final ArchiveInputStream archiveInputStream, final FSPath outputPath,
-        final FileOverwritePolicy overwritePolicy, final FSLocationCellFactory locationCellFactory,
+        final FileOverwritePolicy overwritePolicy, final SimpleFSLocationCellFactory locationCellFactory,
         final RowOutput rowOutput, final ExecutionContext exec) throws IOException, InterruptedException {
 
         long rowId = 0;
@@ -250,7 +250,7 @@ final class DecompressNodeModel extends NodeModel {
         }
     }
 
-    private static long createDirectories(final FSPath outputPath, final FSLocationCellFactory locationCellFactory,
+    private static long createDirectories(final FSPath outputPath, final SimpleFSLocationCellFactory locationCellFactory,
         final RowOutput rowOutput, long rowId, final ArchiveEntry entry, final Set<String> processedDirs,
         final Path destinationPath) throws IOException, InterruptedException {
         final Path relDestPath = outputPath.relativize(destinationPath);
@@ -265,7 +265,7 @@ final class DecompressNodeModel extends NodeModel {
     }
 
     private static long createDirectories(final Set<String> processedDirs, final long rowId, final RowOutput rowOutput,
-        final Path relDestPath, final Path destPath, final FSLocationCellFactory locationCellFactory)
+        final Path relDestPath, final Path destPath, final SimpleFSLocationCellFactory locationCellFactory)
         throws IOException, InterruptedException {
         if (relDestPath == null) {
             return rowId;
@@ -288,7 +288,7 @@ final class DecompressNodeModel extends NodeModel {
         }
     }
 
-    private static void pushRow(final FSLocationCellFactory locationCellFactory, final RowOutput rowOutput,
+    private static void pushRow(final SimpleFSLocationCellFactory locationCellFactory, final RowOutput rowOutput,
         final long rowId, final Path destinationPath, final FileStatus status, final boolean isDirectory)
         throws InterruptedException {
         final DataCell[] row = new DataCell[3];

@@ -58,15 +58,15 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 
 /**
- * Factory for {@link SimpleFSLocationCell}s. Cells created by such a factory share the same meta data and {@link FileStore}.
+ * Factory for {@link SimpleFSLocationCell}s. Cells created by such a factory share the same meta data and
+ * {@link FileStore}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @since 4.2
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-// TODO rename?
-public final class FSLocationCellFactory {
+public final class SimpleFSLocationCellFactory {
 
     /**
      * The {@link DataType} of cells created by this factory.
@@ -78,49 +78,49 @@ public final class FSLocationCellFactory {
     private final String m_fsSpecifier;
 
     /**
-     * Constructs a {@link FSLocationCellFactory} for the creation of {@link SimpleFSLocationCell}s.
+     * Constructs a {@link SimpleFSLocationCellFactory} for the creation of {@link SimpleFSLocationCell}s.
      *
      * @param fsLocationSpec the file system location spec object holding the type and specifier of the file system
      */
-    public FSLocationCellFactory(final FSLocationSpec fsLocationSpec) {
+    public SimpleFSLocationCellFactory(final FSLocationSpec fsLocationSpec) {
         m_fsCategory = fsLocationSpec.getFileSystemCategory();
         m_fsSpecifier = fsLocationSpec.getFileSystemSpecifier().orElse(null);
     }
 
     /**
-     * Constructs a {@link FSLocationCellFactory} for the creation of {@link SimpleFSLocationCell}s.
+     * Constructs a {@link SimpleFSLocationCellFactory} for the creation of {@link SimpleFSLocationCell}s.
      *
      * @param fileSystemCategory the file system category
      * @param fileSystemSpecifier the file system specifier, can be {@code null}
      */
-    public FSLocationCellFactory(final String fileSystemCategory, final String fileSystemSpecifier) {
+    public SimpleFSLocationCellFactory(final String fileSystemCategory, final String fileSystemSpecifier) {
         m_fsCategory = fileSystemCategory;
         m_fsSpecifier = fileSystemSpecifier;
     }
 
     /**
-     * Constructs a {@link FSLocationCellFactory} for the creation of {@link FSLocationCell}s.
+     * Constructs a {@link SimpleFSLocationCellFactory} for the creation of {@link FSLocationCell}s.
      *
      * @param fileStoreFactory used to create the {@link FileStore} shared by the cells created by this factory
      * @param fileSystemType the file system type
      * @param fileSystemSpecifier the file system specifier, can be {@code null}
-     * @deprecated use {@link #FSLocationCellFactory(String, String)} instead
+     * @deprecated use {@link #SimpleFSLocationCellFactory(String, String)} instead
      */
     @Deprecated
-    public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final String fileSystemType,
+    public SimpleFSLocationCellFactory(final FileStoreFactory fileStoreFactory, final String fileSystemType,
         final String fileSystemSpecifier) {
         this(fileSystemType, fileSystemSpecifier);
     }
 
     /**
-     * Constructs a {@link FSLocationCellFactory} for the creation of {@link FSLocationCell}s.
+     * Constructs a {@link SimpleFSLocationCellFactory} for the creation of {@link FSLocationCell}s.
      *
      * @param fileStoreFactory used to create the {@link FileStore} shared by the cells created by this factory
      * @param fsLocationSpec the file system location spec object holding the type and specifier of the file system
-     * @deprecated use {@link #FSLocationCellFactory(FSLocationSpec)} instead
+     * @deprecated use {@link #SimpleFSLocationCellFactory(FSLocationSpec)} instead
      */
     @Deprecated
-    public FSLocationCellFactory(final FileStoreFactory fileStoreFactory, final FSLocationSpec fsLocationSpec) {
+    public SimpleFSLocationCellFactory(final FileStoreFactory fileStoreFactory, final FSLocationSpec fsLocationSpec) {
         this(fsLocationSpec);
     }
 

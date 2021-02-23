@@ -100,7 +100,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.SettingsModelFileSystem;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
@@ -305,7 +305,7 @@ final class StringToPathNodeModel extends NodeModel {
         final FSLocationSpec location = m_fileSystemModel.getLocationSpec();
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
             location.getFileSystemSpecifier().orElse(null));
-        final DataColumnSpecCreator fsLocationSpec = new DataColumnSpecCreator(columnName, FSLocationCellFactory.TYPE);
+        final DataColumnSpecCreator fsLocationSpec = new DataColumnSpecCreator(columnName, SimpleFSLocationCellFactory.TYPE);
         fsLocationSpec.addMetaData(metaData, true);
         return fsLocationSpec.createSpec();
     }
@@ -379,7 +379,7 @@ final class StringToPathNodeModel extends NodeModel {
 
         private final FSLocationFactory m_fsLocationFactory;
 
-        private final FSLocationCellFactory m_fsLocationCellFactory;
+        private final SimpleFSLocationCellFactory m_fsLocationCellFactory;
 
         private final FSPathProviderFactory m_fsPathProviderFactory;
 
@@ -393,7 +393,7 @@ final class StringToPathNodeModel extends NodeModel {
             super(newColSpec);
             m_colIdx = colIdx;
             final FSLocationSpec locationSpec = m_fileSystemModel.getLocationSpec();
-            m_fsLocationCellFactory = new FSLocationCellFactory(locationSpec);
+            m_fsLocationCellFactory = new SimpleFSLocationCellFactory(locationSpec);
             if (isExecute) {
                 m_fsLocationFactory = m_fileSystemModel.createFSLocationFactory();
                 if (m_abortOnMissingFileModel.getBooleanValue()) {

@@ -72,7 +72,7 @@ import org.knime.core.node.workflow.VariableType.LongType;
 import org.knime.core.node.workflow.VariableType.StringArrayType;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -149,7 +149,7 @@ public class CellToVariableConverterTest {
     public void testFSLocationCellConverter() {
         final FSLocation val = new FSLocation(FSCategory.CONNECTED, "dummy-specifier", "not-a-path");
         final String name = "fsLocation_var";
-        final FSLocationCellFactory fac = new FSLocationCellFactory(val);
+        final SimpleFSLocationCellFactory fac = new SimpleFSLocationCellFactory(val);
         final DataCell cell = fac.createCell(val);
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
         assertEquals(new FlowVariable(name, FSLocationVariableType.INSTANCE, val),

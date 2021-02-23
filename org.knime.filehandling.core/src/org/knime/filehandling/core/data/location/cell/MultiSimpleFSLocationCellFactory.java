@@ -61,14 +61,14 @@ import org.knime.filehandling.core.connections.FSLocation;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class MultiFSLocationCellFactory {
+public final class MultiSimpleFSLocationCellFactory {
 
-    private final Map<DefaultFSLocationSpec, FSLocationCellFactory> m_factories;
+    private final Map<DefaultFSLocationSpec, SimpleFSLocationCellFactory> m_factories;
 
     /**
      * Constructor.
      */
-    public MultiFSLocationCellFactory() {
+    public MultiSimpleFSLocationCellFactory() {
         m_factories = new HashMap<>();
     }
 
@@ -84,8 +84,8 @@ public final class MultiFSLocationCellFactory {
     public SimpleFSLocationCell createCell(final FSLocation fsLocation) {
         final DefaultFSLocationSpec defaultFSLocationSpec = new DefaultFSLocationSpec(fsLocation.getFSCategory(),
             fsLocation.getFileSystemSpecifier().orElseGet(() -> null));
-        final FSLocationCellFactory fac = m_factories
-            .computeIfAbsent(defaultFSLocationSpec, FSLocationCellFactory::new);
+        final SimpleFSLocationCellFactory fac = m_factories
+            .computeIfAbsent(defaultFSLocationSpec, SimpleFSLocationCellFactory::new);
         return fac.createCell(fsLocation);
     }
 
