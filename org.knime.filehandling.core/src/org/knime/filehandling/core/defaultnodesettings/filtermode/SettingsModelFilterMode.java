@@ -69,6 +69,8 @@ import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
  */
 public final class SettingsModelFilterMode extends SettingsModel {
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(SettingsModelFilterMode.class);
+
     private static final String MODEL_TYPE_ID = "SMID_FilterMode";
 
     private static final String CFG_FILTER_MODE = "filter_mode";
@@ -80,6 +82,10 @@ public final class SettingsModelFilterMode extends SettingsModel {
     private static final boolean DEFAULT_INCLUDE_SUBFOLDERS = false;
 
     private final String m_configName;
+
+    private final boolean m_supportsMultipleFilterModes;
+
+    private final boolean m_filterOptionsNeeded;
 
     private FilterMode m_filterMode;
 
@@ -118,6 +124,8 @@ public final class SettingsModelFilterMode extends SettingsModel {
         m_filterModeConfig = filterModeConfig;
         m_includeSubfolders = defaultIncludeSubfolders;
         m_filterOptionsSettings = new FilterOptionsSettings();
+        m_filterOptionsNeeded = filterModeConfig.stream().anyMatch(FilterMode::hasFilterOptions);
+        m_supportsMultipleFilterModes = filterModeConfig.getNumberOfSupportedValues() > 1;
     }
 
     private SettingsModelFilterMode(final SettingsModelFilterMode toCopy) {
@@ -126,6 +134,8 @@ public final class SettingsModelFilterMode extends SettingsModel {
         m_includeSubfolders = toCopy.m_includeSubfolders;
         m_filterOptionsSettings = toCopy.m_filterOptionsSettings;
         m_filterModeConfig = toCopy.m_filterModeConfig;
+        m_filterOptionsNeeded = toCopy.m_filterOptionsNeeded;
+        m_supportsMultipleFilterModes = toCopy.m_supportsMultipleFilterModes;
     }
 
     /**
@@ -226,16 +236,20 @@ public final class SettingsModelFilterMode extends SettingsModel {
     @Override
     public void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        if (!hasSettings()) {
+            return;
+        }
         try {
             final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
-            FilterMode loadedFilterMode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE, m_filterMode.name()));
+            final FilterMode loadedFilterMode =
+                FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE, m_filterMode.name()));
             m_filterMode = m_filterModeConfig.isSupported(loadedFilterMode) ? loadedFilterMode : m_filterMode;
             m_includeSubfolders = nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS, DEFAULT_INCLUDE_SUBFOLDERS);
             m_filterOptionsSettings.loadFromConfigForDialog(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
             notifyChangeListeners();
 
         } catch (InvalidSettingsException ex) {
-            NodeLogger.getLogger(SettingsModelFilterMode.class).debug("Loading the filter mode failed.", ex);
+            LOGGER.debug("Loading the filter mode failed.", ex);
             // nothing to do
         }
     }
@@ -247,28 +261,55 @@ public final class SettingsModelFilterMode extends SettingsModel {
 
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (!hasSettings()) {
+            return;
+        }
         final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
-        final FilterMode mode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE));
-        CheckUtils.checkSetting(m_filterModeConfig.isSupported(mode),
-            "The filter mode %s is not supported by this node.", mode);
-        nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS);
-        FilterOptionsSettings.validate(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
+        if (m_supportsMultipleFilterModes) {
+            final FilterMode mode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE));
+            CheckUtils.checkSetting(m_filterModeConfig.isSupported(mode),
+                "The filter mode %s is not supported by this node.", mode);
+        }
+        if (m_filterOptionsNeeded) {
+            nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS);
+            FilterOptionsSettings.validate(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
+        }
     }
 
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (!hasSettings()) {
+            return;
+        }
         final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
-        m_filterMode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE));
-        m_includeSubfolders = nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS);
-        m_filterOptionsSettings.loadFromConfigForModel(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
+        if (m_supportsMultipleFilterModes) {
+            m_filterMode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE));
+        }
+        if (m_filterOptionsNeeded) {
+            m_includeSubfolders = nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS);
+            m_filterOptionsSettings.loadFromConfigForModel(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
+        }
+    }
+
+    private boolean hasSettings() {
+        return m_filterOptionsNeeded || m_supportsMultipleFilterModes;
     }
 
     @Override
     protected void saveSettingsForModel(final NodeSettingsWO settings) {
+        if (!hasSettings()) {
+            return;
+        }
         final NodeSettingsWO nodeSettings = settings.addNodeSettings(m_configName);
-        nodeSettings.addString(CFG_FILTER_MODE, m_filterMode.name());
-        nodeSettings.addBoolean(CFG_INCLUDE_SUBFOLDERS, m_includeSubfolders);
-        m_filterOptionsSettings.saveToConfig(nodeSettings.addConfig(CFG_FILTER_OPTIONS));
+        if (m_supportsMultipleFilterModes) {
+            // no need to save the filter mode if there is only one option
+            nodeSettings.addString(CFG_FILTER_MODE, m_filterMode.name());
+        }
+        if (m_filterOptionsNeeded) {
+            // only store options related to filtering if they are needed by at least one supported filter mode
+            nodeSettings.addBoolean(CFG_INCLUDE_SUBFOLDERS, m_includeSubfolders);
+            m_filterOptionsSettings.saveToConfig(nodeSettings.addConfig(CFG_FILTER_OPTIONS));
+        }
     }
 
     @Override
@@ -283,23 +324,27 @@ public final class SettingsModelFilterMode extends SettingsModel {
      */
     public enum FilterMode implements ButtonGroupEnumInterface {
             /** Only one file */
-            FILE("File", FileSelectionMode.FILES_ONLY),
+            FILE("File", FileSelectionMode.FILES_ONLY, false),
             /** Only one folder */
-            FOLDER("Folder", FileSelectionMode.DIRECTORIES_ONLY),
+            FOLDER("Folder", FileSelectionMode.DIRECTORIES_ONLY, false),
             /** Several files in a folder */
-            FILES_IN_FOLDERS("Files in folder", FileSelectionMode.DIRECTORIES_ONLY),
+            FILES_IN_FOLDERS("Files in folder", FileSelectionMode.DIRECTORIES_ONLY, true),
             /** Multiple folders */
-            FOLDERS("Folders", FileSelectionMode.DIRECTORIES_ONLY),
+            FOLDERS("Folders", FileSelectionMode.DIRECTORIES_ONLY, true),
             /** Multiple files and folders */
-            FILES_AND_FOLDERS("Files and folders", FileSelectionMode.DIRECTORIES_ONLY);
+            FILES_AND_FOLDERS("Files and folders", FileSelectionMode.DIRECTORIES_ONLY, true);
 
         private final String m_label;
 
         private final FileSelectionMode m_fileSelectionMode;
 
-        private FilterMode(final String label, final FileSelectionMode fileSelectionMode) {
+        private final boolean m_hasFilterOptions;
+
+        private FilterMode(final String label, final FileSelectionMode fileSelectionMode,
+            final boolean hasFilterOptions) {
             m_label = label;
             m_fileSelectionMode = fileSelectionMode;
+            m_hasFilterOptions = hasFilterOptions;
         }
 
         @Override
@@ -330,6 +375,10 @@ public final class SettingsModelFilterMode extends SettingsModel {
          */
         public FileSelectionMode getFileSelectionMode() {
             return m_fileSelectionMode;
+        }
+
+        boolean hasFilterOptions() {
+            return m_hasFilterOptions;
         }
     }
 }
