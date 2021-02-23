@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -73,9 +74,10 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
      * Tests reading from a https:// URL with query and fragment that have encoded characters (those must be preserved).
      *
      * @throws IOException
+     * @throws URISyntaxException
      */
     @Test
-    public void test_https_location_with_encoded_query_and_fragment() throws IOException {
+    public void test_https_location_with_encoded_query_and_fragment() throws IOException, URISyntaxException {
         final String url = "https://knime.com/path/index.html?bla=%2B%3D%2F#%2B%3D%2F";
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
 
@@ -88,12 +90,15 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
                 assertEquals(URI.create(url), ((URIPath)path).getURI());
 
 
-                final FSPath samePath = path.getFileSystem().getPath("/path/index.html?bla=%2B%3D%2F#%2B%3D%2F");
-                assertEquals("/path/index.html", samePath.toString());
-                assertEquals(loc, samePath.toFSLocation());
-                assertEquals(URI.create(url), ((URIPath)samePath).getURI());
+                // FileSystem.getPath(String) does not allow to pass query or fragment, only FileSystem.getPath(FSLocation) does
+                // The query and fragment become part of the path and will be encoded
+                final String otherPathString = "/path/index.html?bla=%2B%3D%2F#%2B%3D%2F";
+                final FSPath otherPath = path.getFileSystem().getPath(otherPathString);
+                assertEquals(otherPathString, otherPath.toString());
+                assertEquals(new URI("https", "knime.com", otherPathString, null, null), ((URIPath)otherPath).getURI());
             }
         }
+
     }
 
     /**
