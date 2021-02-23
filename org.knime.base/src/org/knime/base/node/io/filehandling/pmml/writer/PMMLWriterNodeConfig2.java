@@ -76,7 +76,7 @@ final class PMMLWriterNodeConfig2 extends PortObjectWriterNodeConfig {
      * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
      */
     PMMLWriterNodeConfig2(final NodeCreationConfiguration creationConfig) {
-        super(creationConfig, PMML_SUFFIX);
+        super(builder(creationConfig).withFileSuffixes(PMML_SUFFIX));
     }
 
     /**

@@ -48,6 +48,9 @@
  */
 package org.knime.filehandling.core.node.portobject;
 
+import java.util.Arrays;
+
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
@@ -73,9 +76,14 @@ public enum SelectionMode {
 
     private final FilterMode m_defaultFilter;
 
+    private final EnumConfig<FilterMode> m_filterConfig;
+
     private SelectionMode(final FilterMode... filters) {
         m_filters = filters;
         m_defaultFilter = filters[0];
+        m_filterConfig = EnumConfig.create(m_defaultFilter, Arrays.stream(filters)//
+            .skip(1)//
+            .toArray(FilterMode[]::new));
     }
 
     /**
@@ -94,5 +102,14 @@ public enum SelectionMode {
      */
     public FilterMode getDefaultFilter() {
         return m_defaultFilter;
+    }
+
+    /**
+     * Returns the {@link EnumConfig} corresponding to this {@link SelectionMode}.
+     *
+     * @return the {@link EnumConfig} corresponding to this {@link SelectionMode}
+     */
+    public EnumConfig<FilterMode> getFilterModeConfig() {
+        return m_filterConfig;
     }
 }

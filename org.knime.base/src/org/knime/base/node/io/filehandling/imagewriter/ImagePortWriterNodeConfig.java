@@ -67,6 +67,6 @@ final class ImagePortWriterNodeConfig extends PortObjectWriterNodeConfig {
      * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
      */
     ImagePortWriterNodeConfig(final NodeCreationConfiguration creationConfig) {
-        super(creationConfig, MODEL_SUFFIX);
+        super(builder(creationConfig).withFileSuffixes(MODEL_SUFFIX));
     }
 }

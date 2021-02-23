@@ -98,7 +98,9 @@ public final class PMMLReaderNodeFactory3
      */
     private static PortObjectReaderNodeConfig getConfig(final NodeCreationConfiguration creationConfig) {
         final Optional<? extends URLConfiguration> urlConfig = creationConfig.getURLConfig();
-        final PortObjectReaderNodeConfig cfg = new PortObjectReaderNodeConfig(creationConfig, PMML_SUFFIX);
+        final PortObjectReaderNodeConfig cfg = PortObjectReaderNodeConfig.builder(creationConfig)//
+            .withFileSuffixes(PMML_SUFFIX)//
+            .build();//
         if (urlConfig.isPresent()) {
             cfg.getFileChooserModel()
                 .setLocation(new FSLocation(FSCategory.CUSTOM_URL, URL_TIMEOUT, urlConfig.get().getUrl().toString()));

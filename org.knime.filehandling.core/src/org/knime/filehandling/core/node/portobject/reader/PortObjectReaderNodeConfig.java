@@ -46,13 +46,9 @@
  */
 package org.knime.filehandling.core.node.portobject.reader;
 
-import java.util.EnumSet;
-import java.util.Set;
-
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.node.portobject.AbstractPortObjectIONodeConfigBuilder;
 import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
 
 /**
@@ -66,48 +62,59 @@ import org.knime.filehandling.core.node.portobject.PortObjectIONodeConfig;
 public class PortObjectReaderNodeConfig extends PortObjectIONodeConfig<SettingsModelReaderFileChooser> {
 
     /**
-     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
+     * Constructor. Should only be used by extending classes, all other clients should use the builder provided by
+     * {@link #builder(NodeCreationConfiguration)}.
      *
-     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
-     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
-     *            no file system port is present
+     * @param builder holding the configuration (can be created via {@link #builder(NodeCreationConfiguration)})
      */
-    public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig, final Set<FSCategory> convenienceFS) {
-        this(creationConfig, convenienceFS, new String[0]);
+    protected PortObjectReaderNodeConfig(final PortObjectReaderNodeConfigBuilder builder) {
+        super(new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER, builder.getPortConfig(),
+            CONNECTION_INPUT_PORT_GRP_NAME, builder.getFilterModeConfig(), builder.getConvenienceFS(),
+            builder.getFileSuffixes()));
     }
 
     /**
-     * Constructor for configs in which the file chooser doesn't filter on file suffixes.
+     * Creates a {@link PortObjectReaderNodeConfigBuilder builder} for the creation of
+     * {@link PortObjectReaderNodeConfig} objects.
      *
-     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
+     * @param creationConfig the {@link NodeCreationConfiguration} of the current node
+     * @return a {@link PortObjectReaderNodeConfigBuilder builder} for {@link PortObjectReaderNodeConfig} objects
      */
-    public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig) {
-        this(creationConfig, EnumSet.allOf(FSCategory.class), new String[0]);
+    public static PortObjectReaderNodeConfigBuilder builder(final NodeCreationConfiguration creationConfig) {
+        return new PortObjectReaderNodeConfigBuilder(creationConfig);
     }
 
     /**
-     * Constructor for configs in which the file chooser filters on a set of file suffixes.
+     * A builder for {@link PortObjectReaderNodeConfig} objects.
      *
-     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
-     * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
-     *            no file system port is present
-     * @param fileSuffixes the file suffixes to filter on
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig, final Set<FSCategory> convenienceFS, final String[] fileSuffixes) {
-        super(new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER,
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), CONNECTION_INPUT_PORT_GRP_NAME,
-            FilterMode.FILE, convenienceFS, fileSuffixes));
+    public static class PortObjectReaderNodeConfigBuilder
+        extends AbstractPortObjectIONodeConfigBuilder<PortObjectReaderNodeConfigBuilder> {
+
+        /**
+         * Constructor.
+         *
+         * @param creationConfig the {@link NodeCreationConfiguration} of the current node
+         */
+        private PortObjectReaderNodeConfigBuilder(final NodeCreationConfiguration creationConfig) {
+            super(creationConfig);
+        }
+
+        @Override
+        protected PortObjectReaderNodeConfigBuilder getThis() {
+            return this;
+        }
+
+        /**
+         * Builds the config.
+         *
+         * @return a fresh {@link PortObjectReaderNodeConfig} that uses values currently configured in this builder
+         */
+        public PortObjectReaderNodeConfig build() {
+            return new PortObjectReaderNodeConfig(this);
+        }
+
     }
 
-    /**
-     * Constructor for configs in which the file chooser filters on a set of file suffixes.
-     *
-     * @param creationConfig {@link NodeCreationConfiguration} of the corresponding KNIME node
-     * @param fileSuffixes the file suffixes to filter on
-     */
-    public PortObjectReaderNodeConfig(final NodeCreationConfiguration creationConfig, final String[] fileSuffixes) {
-        super(new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER,
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new), CONNECTION_INPUT_PORT_GRP_NAME,
-            FilterMode.FILE, EnumSet.allOf(FSCategory.class), fileSuffixes));
-    }
 }

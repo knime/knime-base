@@ -48,10 +48,7 @@
  */
 package org.knime.filehandling.core.node.portobject.reader;
 
-import java.util.EnumSet;
-
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.filehandling.core.connections.FSCategory;
 
 /**
  * Abstract node factory for simple port object reader nodes.
@@ -100,7 +97,9 @@ public abstract class SimplePortObjectReaderNodeFactory extends
      * @return the reader configuration
      */
     private PortObjectReaderNodeConfig getConfig(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectReaderNodeConfig(creationConfig, EnumSet.allOf(FSCategory.class), m_fileSuffixes);
+        return PortObjectReaderNodeConfig.builder(creationConfig)//
+            .withFileSuffixes(m_fileSuffixes)//
+            .build();
     }
 
 }

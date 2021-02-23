@@ -99,6 +99,8 @@ public abstract class SimplePortObjectWriterNodeFactory extends
      * @return the writer configuration
      */
     private PortObjectWriterNodeConfig getConfig(final NodeCreationConfiguration creationConfig) {
-        return new PortObjectWriterNodeConfig(creationConfig, m_fileSuffixes);
+        return PortObjectWriterNodeConfig.builder(creationConfig)//
+                .withFileSuffixes(m_fileSuffixes)//
+                .build();
     }
 }
