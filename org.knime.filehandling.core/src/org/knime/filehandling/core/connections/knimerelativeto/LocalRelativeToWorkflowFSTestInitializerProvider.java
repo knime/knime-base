@@ -67,12 +67,14 @@ public final class LocalRelativeToWorkflowFSTestInitializerProvider implements F
 
     private static final String FS_NAME = "knime-local-relative-workflow";
 
+    @SuppressWarnings({"resource", "rawtypes"})
     @Override
     public FSTestInitializer setup(final Map<String, String> configuration) throws IOException {
         final Path localMountPointRoot = Files.createTempDirectory("knime-relative-workflow-test");
 
         final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
-        final LocalRelativeToFSConnection fsConnection = new LocalRelativeToFSConnection(Type.WORKFLOW_RELATIVE, true);
+        final LocalRelativeToFSConnection fsConnection = new LocalRelativeToFSConnection(//NOSONAR
+            Type.WORKFLOW_RELATIVE, true);
         LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
         LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
 

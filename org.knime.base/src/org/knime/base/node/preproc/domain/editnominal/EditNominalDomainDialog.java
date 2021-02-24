@@ -240,7 +240,7 @@ public final class EditNominalDomainDialog {
 
             m_searchableListModifier = m_searchableListPanel.update(m_orgSpec, m_columnFilter);
             addColumnSpecsForNotExistingColumns();
-        } catch (Exception e) {
+        } catch (Exception e) { //NOSONAR
             LOGGER.error("Unable to load the settings into the dialog.", e);
         }
     }
@@ -359,35 +359,36 @@ public final class EditNominalDomainDialog {
     private void configurationListenerRequested(final ConfigurationRequestEvent searchEvent) {
         switch (searchEvent.getType()) {
             case DELETION:
-                DataColumnSpec selectedColumn = m_searchableListPanel.getSelectedColumn();
-                if (checkConfigured(selectedColumn)) {
-                    removeConfiguration();
-                }
+                handleDeletionEvent();
                 break;
             case SELECTION:
-                DataColumnSpec newSpec = m_searchableListPanel.getSelectedColumn();
-
-                if (newSpec != null && newSpec != m_currentColSpec) {
-
-                    storeCurrentList();
-
-                    m_currentSorting.clear();
-
-                    m_currentColSpec = newSpec;
-
-                    addDataCellElements(m_currentColSpec);
-
-                    if (isInvalid(m_currentColSpec)) {
-                        m_resetButton.setText("Delete");
-                    } else {
-                        m_resetButton.setText("Reset");
-                    }
-
-                    m_somethingChanged = false;
-                }
+                handleSelectionEvent();
                 break;
             default:
                 break;
+        }
+    }
+
+    private void handleDeletionEvent() {
+        final DataColumnSpec selectedColumn = m_searchableListPanel.getSelectedColumn();
+        if (checkConfigured(selectedColumn)) {
+            removeConfiguration();
+        }
+    }
+
+    private void handleSelectionEvent() {
+        final DataColumnSpec newSpec = m_searchableListPanel.getSelectedColumn();
+        if (newSpec != null && newSpec != m_currentColSpec) {
+            storeCurrentList();
+            m_currentSorting.clear();
+            m_currentColSpec = newSpec;
+            addDataCellElements(m_currentColSpec);
+            if (isInvalid(m_currentColSpec)) {
+                m_resetButton.setText("Delete");
+            } else {
+                m_resetButton.setText("Reset");
+            }
+            m_somethingChanged = false;
         }
     }
 
@@ -441,7 +442,8 @@ public final class EditNominalDomainDialog {
 
         int offset = 0;
         for (int i : selectedIndices) {
-            toAdd.put(i, m_currentSorting.remove(i - offset++));
+            toAdd.put(i, m_currentSorting.remove(i - offset));
+            offset++;
         }
 
         if (!overflows) {
@@ -449,11 +451,12 @@ public final class EditNominalDomainDialog {
                 m_currentSorting.add(entry.getKey() + step, entry.getValue());
             }
             m_jlist.setSelectedIndices(addOffset(selectedIndices, step));
-            m_jlist.ensureIndexIsVisible(selectedIndices[addToVisibleIndices ? selectedIndices.length - 1 : 0]);
+            m_jlist.ensureIndexIsVisible(selectedIndices[addToVisibleIndices ? (selectedIndices.length - 1) : 0]);
         } else {
             m_currentSorting.addAll(boundOffset, toAdd.values());
             m_jlist.setSelectedIndices(createAscendingIntArray(boundOffset, selectedIndices.length));
-            m_jlist.ensureIndexIsVisible(addToVisibleIndices ? boundOffset : boundOffset + selectedIndices.length - 1);
+            m_jlist
+                .ensureIndexIsVisible(addToVisibleIndices ? boundOffset : (boundOffset + selectedIndices.length - 1));
         }
 
     }
@@ -490,24 +493,30 @@ public final class EditNominalDomainDialog {
 
     private void removeStringCellsConfiguration() {
         int[] selectedIndices = m_jlist.getSelectedIndices();
-
         if (selectedIndices.length > 0) {
             int offset = 0;
             for (int i : selectedIndices) {
                 DataCell dataCell = m_currentSorting.get(i - offset);
                 if (!EditNominalDomainConfiguration.UNKNOWN_VALUES_CELL.equals(dataCell)) {
-                    if (m_allowRemovingExistingCells && m_currentSorting.size() > 2) {
-                        m_currentSorting.remove(i - offset++);
-                        m_configuration.addRemovedValue(m_currentColSpec.getName(), dataCell);
-                    } else {
-                        // we can only remove cells which are not part of the input table domain.
-                        if (!m_orgDomainCells.contains(dataCell)) {
-                            m_currentSorting.remove(i - offset++);
-                        }
-                    }
+                    offset = removeStringCellsConfiguration(offset, i, dataCell);
                 }
             }
         }
+    }
+
+    private int removeStringCellsConfiguration(int offset, final int i, final DataCell dataCell) {
+        if (m_allowRemovingExistingCells && m_currentSorting.size() > 2) {
+            m_currentSorting.remove(i - offset);
+            offset++;
+            m_configuration.addRemovedValue(m_currentColSpec.getName(), dataCell);
+        } else {
+            // we can only remove cells which are not part of the input table domain.
+            if (!m_orgDomainCells.contains(dataCell)) {
+                m_currentSorting.remove(i - offset);
+                offset++;
+            }
+        }
+        return offset;
     }
 
     private void sortNamesConfiguration(final SortOption b) {
@@ -522,13 +531,14 @@ public final class EditNominalDomainDialog {
 
             int offset = 0;
             for (int i : selectedIndices) {
-                toAdd.add(m_currentSorting.remove(i - offset++));
+                toAdd.add(m_currentSorting.remove(i - offset));
+                offset++;
             }
 
             m_currentSorting.addAll(offsets, toAdd);
 
             m_jlist.setSelectedIndices(createAscendingIntArray(offsets, selectedIndices.length));
-            m_jlist.ensureIndexIsVisible(addLegthToVisibleIndex ? offsets + selectedIndices.length - 1 : offsets);
+            m_jlist.ensureIndexIsVisible(addLegthToVisibleIndex ? (offsets + selectedIndices.length - 1) : offsets);
         }
     }
 
@@ -564,33 +574,39 @@ public final class EditNominalDomainDialog {
      * @param columnSpec of the selected column
      */
     private void addDataCellElements(final DataColumnSpec columnSpec) {
-
         final String columnName = columnSpec.getName();
-
         List<DataCell> sorting = m_configuration.getSorting(columnName);
         Optional<Set<DataCell>> values = m_specToPossibleValuesFunction.apply(columnSpec);
         m_orgDomainCells =
             values.isPresent() ? Collections.unmodifiableSet(values.get()) : Collections.<DataCell> emptySet();
         if (sorting == null) {
-            // there does not exist any sorting, so we just add the original cells and return.
-            if (m_orgDomainCells != null) {
-                for (DataCell cell : m_orgDomainCells) {
-                    m_currentSorting.add(cell);
-                }
-            }
-            m_currentSorting.add(EditNominalDomainConfiguration.UNKNOWN_VALUES_CELL);
+            addDomainCells();
         } else {
-            // determine the difference set between the original cells and the stored configuration.
-            // Add them at the UNKOWN_VALUE_CELL position.
-            for (DataCell cell : sorting) {
-                if (EditNominalDomainConfiguration.UNKNOWN_VALUES_CELL.equals(cell)) {
+            addSortedCells(columnName, sorting);
+        }
+    }
+
+    private void addDomainCells() {
+        // there does not exist any sorting, so we just add the original cells and return.
+        if (m_orgDomainCells != null) {
+            for (DataCell cell : m_orgDomainCells) {
+                m_currentSorting.add(cell);
+            }
+        }
+        m_currentSorting.add(EditNominalDomainConfiguration.UNKNOWN_VALUES_CELL);
+    }
+
+    private void addSortedCells(final String columnName, final List<DataCell> sorting) {
+        // determine the difference set between the original cells and the stored configuration.
+        // Add them at the UNKOWN_VALUE_CELL position.
+        for (DataCell cell : sorting) {
+            if (EditNominalDomainConfiguration.UNKNOWN_VALUES_CELL.equals(cell)) {
+                m_currentSorting.add(cell);
+            } else if (m_configuration.isCreatedValue(columnName, cell)) {
+                m_currentSorting.add(cell);
+            } else {
+                if (!m_configuration.isRemovedValue(columnName, cell)) {
                     m_currentSorting.add(cell);
-                } else if (m_configuration.isCreatedValue(columnName, cell)) {
-                    m_currentSorting.add(cell);
-                } else {
-                    if (!m_configuration.isRemovedValue(columnName, cell)) {
-                        m_currentSorting.add(cell);
-                    }
                 }
             }
         }

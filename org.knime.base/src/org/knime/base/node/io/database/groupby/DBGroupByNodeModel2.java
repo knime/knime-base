@@ -63,7 +63,6 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -282,33 +281,44 @@ final class DBGroupByNodeModel2 extends DBNodeModel {
         settings.copyTo(m_settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected final PortObject[] execute(final PortObject[] inData, final ExecutionContext exec)
-        throws CanceledExecutionException, Exception {
+    protected final PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         exec.setMessage("Retrieving metadata from database");
         final DatabasePortObject dbObject = (DatabasePortObject)inData[0];
         final DatabasePortObject outObject = new DatabasePortObject(createDbOutSpec(dbObject.getSpec(), false));
         return new PortObject[]{outObject};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DatabasePortObjectSpec dbSpec = (DatabasePortObjectSpec)inSpecs[0];
         final DataTableSpec tableSpec = dbSpec.getDataTableSpec();
         final DatabaseQueryConnectionSettings connection = dbSpec.getConnectionSettings(null);
         final String dbIdentifier = connection.getDatabaseIdentifier();
-        final List<DBColumnAggregationFunctionRow> columnFunctions = DBColumnAggregationFunctionRow.loadFunctions(
-            m_settings, DBGroupByNodeModel2.CFG_AGGREGATION_FUNCTIONS, dbIdentifier, tableSpec);
-        final ArrayList<DBColumnAggregationFunctionRow> invalidColAggrs = new ArrayList<>(1);
         final Set<String> usedColNames = new HashSet<>(tableSpec.getNumColumns());
         usedColNames.addAll(m_groupByCols.getIncludeList());
         m_aggregationFunction2Use.clear();
+        final ArrayList<DBColumnAggregationFunctionRow> invalidColAggrs =
+            validateAndCollectColAggregationFunctions(tableSpec, dbIdentifier, usedColNames);
+        collectPatternAggregationFunctions(tableSpec, dbIdentifier, usedColNames);
+        collectDataTypeAggregationFunctions(tableSpec, dbIdentifier, usedColNames);
+        if (m_groupByCols.getIncludeList().isEmpty() && m_aggregationFunction2Use.isEmpty()
+                && !m_addCountStar.getBooleanValue()) {
+            throw new InvalidSettingsException("Please select at least one group or aggregation function or the "
+                + "COUNT(*) option.");
+        }
+        if (!invalidColAggrs.isEmpty()) {
+            setWarningMessage(invalidColAggrs.size() + " aggregation functions ignored due to incompatible columns.");
+        }
+        return new PortObjectSpec[]{createDbOutSpec(dbSpec, true)};
+    }
+
+    private ArrayList<DBColumnAggregationFunctionRow> validateAndCollectColAggregationFunctions(
+        final DataTableSpec tableSpec, final String dbIdentifier, final Set<String> usedColNames)
+        throws InvalidSettingsException {
+        final ArrayList<DBColumnAggregationFunctionRow> invalidColAggrs = new ArrayList<>(1);
+        final List<DBColumnAggregationFunctionRow> columnFunctions = DBColumnAggregationFunctionRow
+            .loadFunctions(m_settings, DBGroupByNodeModel2.CFG_AGGREGATION_FUNCTIONS, dbIdentifier, tableSpec);
         for (DBColumnAggregationFunctionRow row : columnFunctions) {
             final DataColumnSpec columnSpec = row.getColumnSpec();
             final DataColumnSpec inputSpec = tableSpec.getColumnSpec(columnSpec.getName());
@@ -325,58 +335,68 @@ final class DBGroupByNodeModel2 extends DBNodeModel {
                     function.configure(tableSpec);
                 } catch (InvalidSettingsException e) {
                     throw new InvalidSettingsException("Exception in aggregation function " + function.getLabel()
-                        + " of column " + row.getColumnSpec().getName() + ": " + e.getMessage());
+                        + " of column " + row.getColumnSpec().getName() + ": " + e.getMessage(), e);
                 }
             }
             usedColNames.add(row.getColumnSpec().getName());
             m_aggregationFunction2Use.add(row);
         }
-        final List<DBPatternAggregationFunctionRow> patternFunctions = DBPatternAggregationFunctionRow.loadFunctions(
-            m_settings, CFG_PATTERN_AGGREGATION_FUNCTIONS, dbIdentifier, tableSpec);
+        return invalidColAggrs;
+    }
+
+    private void collectPatternAggregationFunctions(final DataTableSpec tableSpec, final String dbIdentifier,
+        final Set<String> usedColNames) throws InvalidSettingsException {
+        final List<DBPatternAggregationFunctionRow> patternFunctions = DBPatternAggregationFunctionRow
+            .loadFunctions(m_settings, CFG_PATTERN_AGGREGATION_FUNCTIONS, dbIdentifier, tableSpec);
         if (tableSpec.getNumColumns() > usedColNames.size() && !patternFunctions.isEmpty()) {
             for (final DataColumnSpec spec : tableSpec) {
-                if (!usedColNames.contains(spec.getName())) {
-                    for (final DBPatternAggregationFunctionRow patternFunction : patternFunctions) {
-                        final Pattern pattern = patternFunction.getRegexPattern();
-                        final DBAggregationFunction function = patternFunction.getFunction();
-                        if (pattern != null && pattern.matcher(spec.getName()).matches()
-                                && function.isCompatible(spec.getType())) {
-                            final DBColumnAggregationFunctionRow row =
-                                    new DBColumnAggregationFunctionRow(spec, patternFunction.getFunction());
-                            m_aggregationFunction2Use.add(row);
-                            usedColNames.add(spec.getName());
-                        }
-                    }
+                collectPatternAggregationFunctions(usedColNames, patternFunctions, spec);
+            }
+        }
+    }
+
+    private void collectPatternAggregationFunctions(final Set<String> usedColNames,
+        final List<DBPatternAggregationFunctionRow> patternFunctions, final DataColumnSpec spec) {
+        if (!usedColNames.contains(spec.getName())) {
+            for (final DBPatternAggregationFunctionRow patternFunction : patternFunctions) {
+                final Pattern pattern = patternFunction.getRegexPattern();
+                final DBAggregationFunction function = patternFunction.getFunction();
+                if (pattern != null && pattern.matcher(spec.getName()).matches()
+                    && function.isCompatible(spec.getType())) {
+                    final DBColumnAggregationFunctionRow row =
+                        new DBColumnAggregationFunctionRow(spec, patternFunction.getFunction());
+                    m_aggregationFunction2Use.add(row);
+                    usedColNames.add(spec.getName());
                 }
             }
         }
-        final List<DBDataTypeAggregationFunctionRow> typeFunctions = DBDataTypeAggregationFunctionRow.loadFunctions(
-            m_settings, CFG_TYPE_AGGREGATION_FUNCTIONS, dbIdentifier, tableSpec);
-      //check if some columns are left
+    }
+
+    private void collectDataTypeAggregationFunctions(final DataTableSpec tableSpec, final String dbIdentifier,
+        final Set<String> usedColNames) throws InvalidSettingsException {
+        final List<DBDataTypeAggregationFunctionRow> typeFunctions = DBDataTypeAggregationFunctionRow
+            .loadFunctions(m_settings, CFG_TYPE_AGGREGATION_FUNCTIONS, dbIdentifier, tableSpec);
+        //check if some columns are left
         if (tableSpec.getNumColumns() > usedColNames.size() && !typeFunctions.isEmpty()) {
             for (final DataColumnSpec spec : tableSpec) {
-                if (!usedColNames.contains(spec.getName())) {
-                    final DataType dataType = spec.getType();
-                    for (final DBDataTypeAggregationFunctionRow typeAggregator : typeFunctions) {
-                        if (typeAggregator.isCompatibleType(dataType, m_typeMatch.useStrictTypeMatching())) {
-                            final DBColumnAggregationFunctionRow row =
-                                new DBColumnAggregationFunctionRow(spec, typeAggregator.getFunction());
-                            m_aggregationFunction2Use.add(row);
-                            usedColNames.add(spec.getName());
-                        }
-                    }
+                collectDataTypeAggregationFunctions(usedColNames, typeFunctions, spec);
+            }
+        }
+    }
+
+    private void collectDataTypeAggregationFunctions(final Set<String> usedColNames,
+        final List<DBDataTypeAggregationFunctionRow> typeFunctions, final DataColumnSpec spec) {
+        if (!usedColNames.contains(spec.getName())) {
+            final DataType dataType = spec.getType();
+            for (final DBDataTypeAggregationFunctionRow typeAggregator : typeFunctions) {
+                if (typeAggregator.isCompatibleType(dataType, m_typeMatch.useStrictTypeMatching())) {
+                    final DBColumnAggregationFunctionRow row =
+                        new DBColumnAggregationFunctionRow(spec, typeAggregator.getFunction());
+                    m_aggregationFunction2Use.add(row);
+                    usedColNames.add(spec.getName());
                 }
             }
         }
-        if (m_groupByCols.getIncludeList().isEmpty() && m_aggregationFunction2Use.isEmpty()
-                && !m_addCountStar.getBooleanValue()) {
-            throw new InvalidSettingsException("Please select at least one group or aggregation function or the "
-                + "COUNT(*) option.");
-        }
-        if (!invalidColAggrs.isEmpty()) {
-            setWarningMessage(invalidColAggrs.size() + " aggregation functions ignored due to incompatible columns.");
-        }
-        return new PortObjectSpec[]{createDbOutSpec(dbSpec, true)};
     }
 
     /**
@@ -446,6 +466,13 @@ final class DBGroupByNodeModel2 extends DBNodeModel {
             }
         }
         //we add this hack since google big query requires the AS here but Oracle for example does not supports it
+        appendAS(connection, manipulator, buf, selectQuery, tableName, columnBuf, groupByCols);
+        return buf.toString();
+    }
+
+    private static void appendAS(final DatabaseQueryConnectionSettings connection, final StatementManipulator manipulator,
+        final StringBuilder buf, final String selectQuery, String tableName, final StringBuilder columnBuf,
+        final List<String> groupByCols) {
         final boolean appendAs = connection.getDriver().toLowerCase().contains("googlebigquery");
         buf.append("SELECT " + columnBuf.toString() + " FROM (" + selectQuery + ") ");
         if (appendAs) {
@@ -462,7 +489,6 @@ final class DBGroupByNodeModel2 extends DBNodeModel {
                 buf.append(", ");
             }
         }
-        return buf.toString();
     }
 
     /**

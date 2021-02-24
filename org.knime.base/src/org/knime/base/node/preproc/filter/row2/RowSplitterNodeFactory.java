@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.preproc.filter.row2;
 
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
@@ -59,43 +58,28 @@ import org.knime.core.node.NodeView;
  */
 public final class RowSplitterNodeFactory extends NodeFactory<RowSplitterNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public RowSplitterNodeModel createNodeModel() {
         return new RowSplitterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<RowSplitterNodeModel> createNodeView(final int viewIndex, final RowSplitterNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
+    public RowSplitterNodeDialog createNodeDialogPane() {
         return new RowSplitterNodeDialog();
     }
 

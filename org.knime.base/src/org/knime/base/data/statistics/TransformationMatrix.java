@@ -50,7 +50,7 @@ package org.knime.base.data.statistics;
 
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -70,6 +70,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.ModelContentRO;
 import org.knime.core.node.ModelContentWO;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 
 import Jama.EigenvalueDecomposition;
@@ -82,6 +83,8 @@ import Jama.Matrix;
  * @since 4.0
  */
 public final class TransformationMatrix {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(TransformationMatrix.class);
 
     private static final String EIGENVECTOR_CONTENT_KEY = "eigenvector";
 
@@ -155,27 +158,19 @@ public final class TransformationMatrix {
         CheckUtils.checkArgument(maxDimToReduceTo > 0, "Max dimensions has to be greater than zero");
 
         Supplier<double[]> realEigenVals;
-        Function<Integer, RealVector> getEigenvector;
+        IntFunction<RealVector> getEigenvector;
         try {
             final EigenDecomposition eigenDecomp = new EigenDecomposition(matrix);
-            realEigenVals = () -> eigenDecomp.getRealEigenvalues();
-            getEigenvector = i -> eigenDecomp.getEigenvector(i);
+            realEigenVals = eigenDecomp::getRealEigenvalues;
+            getEigenvector = eigenDecomp::getEigenvector;
         } catch (final MaxCountExceededException | MathArithmeticException e) {
+            LOGGER.debug(e);
             // math.commons has problems in some cases so we use jama as fallback see AP-13058
             final EigenvalueDecomposition jama = new EigenvalueDecomposition(new Matrix(matrix.getData()));
-            realEigenVals = () -> jama.getRealEigenvalues();
-            getEigenvector = new Function<Integer, RealVector>() {
-
-                private final double[][] eVecs = jama.getV().transpose().getArray();
-
-                @Override
-                public RealVector apply(final Integer idx) {
-                    return new ArrayRealVector(eVecs[idx]);
-                }
-
-            };
+            realEigenVals = jama::getRealEigenvalues;
+            final double[][] eVecs = jama.getV().transpose().getArray();
+            getEigenvector = i -> new ArrayRealVector(eVecs[i]);
         }
-
         final double[] eVals = realEigenVals.get();
         int[] permutation = IntStream.range(0, eVals.length)//
             .boxed()//
@@ -195,7 +190,7 @@ public final class TransformationMatrix {
         m_maxDimToReduceTo = Math.min(maxDimToReduceTo, m_centers.getDimension());
     }
 
-    private static RealMatrix normalizeEigenvectorsAndSigns(final Function<Integer, RealVector> getEigenvector,
+    private static RealMatrix normalizeEigenvectorsAndSigns(final IntFunction<RealVector> getEigenvector,
         final int[] permutation) {
         final double[][] normEigenVecs = Arrays.stream(permutation)//
             .mapToObj(i -> getEigenvector.apply(i).mapMultiply(1.0 / getEigenvector.apply(i).getNorm()).toArray())
@@ -248,11 +243,9 @@ public final class TransformationMatrix {
      * @param failOnMissings flag indicating whether to fail if missing values are encountered (@code{true}) or skip
      *            those rows ({@code false})
      * @return an array of double cells that constitutes the projection of the data.
-     * @throws InvalidSettingsException when there are missing values
      *
      */
-    public DataCell[] getProjection(final DataRow row, final int[] colIdx, final boolean failOnMissings)
-        throws InvalidSettingsException {
+    public DataCell[] getProjection(final DataRow row, final int[] colIdx, final boolean failOnMissings) {
         return getProjection(row, colIdx, colIdx.length, failOnMissings);
     }
 
@@ -265,11 +258,10 @@ public final class TransformationMatrix {
      * @param failOnMissings flag indicating whether to fail if missing values are encountered (@code{true}) or skip
      *            those rows ({@code false})
      * @return the projected data
-     * @throws InvalidSettingsException when there are missing values
      *
      */
-    public DataCell[] getProjection(final DataRow row, final int[] colIdx, final int dim, final boolean failOnMissings)
-        throws InvalidSettingsException {
+    public DataCell[] getProjection(final DataRow row, final int[] colIdx, final int dim,
+        final boolean failOnMissings) {
         final Optional<RealVector> rVec = TransformationUtils.rowToRealVector(row, colIdx);
         if (!rVec.isPresent()) {
             if (failOnMissings) {

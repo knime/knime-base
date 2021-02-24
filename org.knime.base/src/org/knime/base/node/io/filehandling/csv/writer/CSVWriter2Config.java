@@ -203,7 +203,8 @@ final class CSVWriter2Config {
 
         try {
             loadSettingsTabForDialog(settings.getNodeSettings(CFG_SETTINGS_TAB));
-        } catch (InvalidSettingsException e) {
+        } catch (final InvalidSettingsException e) { //NOSONAR
+            // nothing to do
         }
 
         m_advancedConfig.loadInDialog(getConfigForDialog(settings, CFG_ADVANCED));
@@ -214,7 +215,7 @@ final class CSVWriter2Config {
     private void loadSettingsTabForDialog(final NodeSettingsRO settings) {
         try {
             m_lineBreak = LineBreakTypes.loadSettings(settings);
-        } catch (InvalidSettingsException e) {
+        } catch (final InvalidSettingsException e) { //NOSONAR
             // nothing to do
         }
         m_columnDelimiter = settings.getString(CFG_COLUMN_DELIMITER, DEFAULT_COLUMN_DELIMITER);

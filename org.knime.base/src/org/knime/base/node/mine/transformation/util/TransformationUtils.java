@@ -71,7 +71,6 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.util.UniqueNameGenerator;
 
 /**
@@ -144,11 +143,7 @@ public final class TransformationUtils {
 
             @Override
             public DataCell[] getCells(final DataRow row) {
-                try {
-                    return transMatrix.getProjection(row, m_colIdx, k, false);
-                } catch (final InvalidSettingsException e) {
-                    return null;
-                }
+                return transMatrix.getProjection(row, m_colIdx, k, false);
             }
         });
 

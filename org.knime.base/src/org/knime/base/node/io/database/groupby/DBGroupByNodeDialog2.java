@@ -311,13 +311,13 @@ final class DBGroupByNodeDialog2 extends NodeDialogPane {
             c.weighty = 1;
             m_descriptionTab.add(functionProvider.getDescriptionPane(), c);
         } catch (final InvalidSettingsException e) {
-            throw new NotConfigurableException(e.getMessage());
+            throw new NotConfigurableException(e.getMessage(), e);
         }
         m_groupCol.loadSettingsFrom(settings, new DataTableSpec[]{spec});
         try {
             // AP-7020: the default value false ensures backwards compatibility (KNIME 3.8)
             m_typeMatch.setSelectedItem(TypeMatch.loadSettingsFrom(settings));
-        } catch (InvalidSettingsException e1) {
+        } catch (InvalidSettingsException e1) { //NOSONAR
             m_typeMatch.setSelectedItem(TypeMatch.SUB_TYPE);
         }
         columnsChanged();

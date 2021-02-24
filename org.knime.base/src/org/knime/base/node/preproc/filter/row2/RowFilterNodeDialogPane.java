@@ -96,7 +96,7 @@ public class RowFilterNodeDialogPane extends NodeDialogPane {
      */
 
     public RowFilterNodeDialogPane() {
-        super.addTab("Filter Criteria", createRowFilterPanel());
+        super.addTab("Filter Criteria", createRowFilterPanel()); //NOSONAR
     }
 
     /**

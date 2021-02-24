@@ -79,13 +79,6 @@ public final class PCA {
     private int m_missings;
 
     /**
-     * Constructor.
-     */
-    public PCA() {
-
-    }
-
-    /**
      * Calculates the PCA.
      *
      * @param exec the execution context

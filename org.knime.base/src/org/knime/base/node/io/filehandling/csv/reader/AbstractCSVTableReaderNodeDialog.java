@@ -213,7 +213,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles) {
         super(multiReader, productionPathProvider, allowsReadingMultipleFiles);
-        init(pathSettings);
+        init(pathSettings); //NOSONAR
         m_pathSettings = pathSettings;
 
         Long stepSize = Long.valueOf(1);
@@ -247,7 +247,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_autoDetectionSettings = new JButton(SharedIcons.SETTINGS.get());
 
         // disable auto-detection for remote view
-        if (areIOComponentsDisabled()) {
+        if (areIOComponentsDisabled()) { //NOSONAR
             m_startAutodetection.setEnabled(false);
             m_autoDetectionSettings.setEnabled(false);
         }
@@ -306,7 +306,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         addTab("Encoding", createEncodingPanel());
 
         m_config = config;
-        registerPreviewChangeListeners();
+        registerPreviewChangeListeners(); //NOSONAR
         hookUpNumberFormatWithColumnDelimiter();
     }
 

@@ -197,31 +197,7 @@ public class AbstractColumnRefNodeModel extends NodeModel {
         final List<String> removeFromTable1 = new ArrayList<>();
         final List<String> removeFromTable2 = new ArrayList<>();
 
-        boolean exclude = isInvertInclusion();
-
-        for (DataColumnSpec cspec : oSpec) {
-            String name = cspec.getName();
-            if (exclude) {
-                // only true if m_splitter==false
-                if (filterSpec.containsName(name)) {
-                    DataType fType = filterSpec.getColumnSpec(name).getType();
-                    if (!m_typeComp.getBooleanValue() || cspec.getType().isASuperTypeOf(fType)) {
-                        removeFromTable1.add(name);
-                    }
-                }
-            } else {
-                if (!filterSpec.containsName(name)) {
-                    removeFromTable1.add(name);
-                } else {
-                    DataType fType = filterSpec.getColumnSpec(name).getType();
-                    if (m_typeComp.getBooleanValue() && !cspec.getType().isASuperTypeOf(fType)) {
-                        removeFromTable1.add(name);
-                    } else if (m_isSplitter) {
-                        removeFromTable2.add(name);
-                    }
-                }
-            }
-        }
+        fillListsWithColsToRemove(oSpec, filterSpec, removeFromTable1, removeFromTable2);
 
         cr[0].remove(removeFromTable1.stream().toArray(String[]::new));
         if (!removeFromTable2.isEmpty()) {
@@ -231,6 +207,33 @@ public class AbstractColumnRefNodeModel extends NodeModel {
 
         return cr;
 
+    }
+
+    private void fillListsWithColsToRemove(final DataTableSpec oSpec, final DataTableSpec filterSpec,
+        final List<String> removeFromTable1, final List<String> removeFromTable2) {
+        final boolean exclude = isInvertInclusion();
+        for (final DataColumnSpec cspec : oSpec) {
+            final String name = cspec.getName();
+            if (exclude) {
+                // only true if m_splitter==false
+                if (filterSpec.containsName(name) && requiresRemoval(filterSpec, cspec, name)) {
+                    removeFromTable1.add(name);
+                }
+            } else {
+                if (!filterSpec.containsName(name)) {
+                    removeFromTable1.add(name);
+                } else if (requiresRemoval(filterSpec, cspec, name)) {
+                    removeFromTable2.add(name);
+                } else {
+                    removeFromTable1.add(name);
+                }
+            }
+        }
+    }
+
+    private boolean requiresRemoval(final DataTableSpec filterSpec, final DataColumnSpec cspec, final String name) {
+        final DataType fType = filterSpec.getColumnSpec(name).getType();
+        return !m_typeComp.getBooleanValue() || cspec.getType().isASuperTypeOf(fType);
     }
 
     /**

@@ -47,7 +47,6 @@
  */
 package org.knime.base.node.preproc.filter.row2;
 
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
@@ -58,43 +57,29 @@ import org.knime.core.node.NodeView;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class RowFilterNodeFactory extends NodeFactory<RowFilterNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
     public RowFilterNodeModel createNodeModel() {
         return new RowFilterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<RowFilterNodeModel> createNodeView(final int viewIndex, final RowFilterNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
+    public RowFilterNodeDialogPane createNodeDialogPane() {
         return new RowFilterNodeDialogPane();
     }
 }

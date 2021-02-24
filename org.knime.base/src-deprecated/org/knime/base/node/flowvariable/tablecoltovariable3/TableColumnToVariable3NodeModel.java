@@ -121,25 +121,27 @@ final class TableColumnToVariable3NodeModel extends NodeModel {
             assert colIndex >= 0 : colIndex;
             final DataType type = spec.getColumnSpec(colIndex).getType();
             if (table.size() > 0) {
-
-                for (final DataRow row : table) {
-                    final DataCell cell = row.getCell(colIndex);
-                    final String name = row.getKey().getString();
-                    if (cell.isMissing()) {
-                        if (m_ignoreMissing.getBooleanValue()) {
-                            continue;
-                        }
-                        throw new MissingValueException((MissingValue)cell, String.format(
-                            "Missing value in column '%s' for row '%s'", m_column.getStringValue(), row.getKey()));
-                    }
-
-                    VariableAndDataCellUtil.pushVariable(type, cell, (t, c) -> pushFlowVariable(name, t, c));
-                }
+                execute(table, colIndex, type);
             } else {
                 setWarningMessage("Node created no variables since the input data table is empty.");
             }
         }
         return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};
+    }
+
+    private void execute(final BufferedDataTable table, final int colIndex, final DataType type) {
+        for (final DataRow row : table) {
+            final DataCell cell = row.getCell(colIndex);
+            final String name = row.getKey().getString();
+            if (cell.isMissing()) {
+                if (m_ignoreMissing.getBooleanValue()) {
+                    continue;
+                }
+                throw new MissingValueException((MissingValue)cell, String
+                    .format("Missing value in column '%s' for row '%s'", m_column.getStringValue(), row.getKey()));
+            }
+            VariableAndDataCellUtil.pushVariable(type, cell, (t, c) -> pushFlowVariable(name, t, c));
+        }
     }
 
     @Override
