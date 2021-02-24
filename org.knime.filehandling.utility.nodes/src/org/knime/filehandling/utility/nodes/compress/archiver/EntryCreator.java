@@ -68,6 +68,7 @@ import org.knime.filehandling.core.connections.FSFiles;
  */
 abstract class EntryCreator implements ArchiveEntryCreator {
 
+    @SuppressWarnings("resource")
     @Override
     public ArchiveEntry apply(final Path p, final String entryName) throws IOException {
         final String newEntryName;
@@ -75,7 +76,7 @@ abstract class EntryCreator implements ArchiveEntryCreator {
             if (entryName.endsWith("/") || entryName.endsWith("\\")) {
                 newEntryName = entryName;
             } else {
-                newEntryName = entryName + "/";
+                newEntryName = entryName + p.getFileSystem().getSeparator();
             }
         } else {
             newEntryName = entryName;
