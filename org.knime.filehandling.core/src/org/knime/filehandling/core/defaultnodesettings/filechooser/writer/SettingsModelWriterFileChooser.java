@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser.writer;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
@@ -65,6 +64,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
@@ -98,9 +98,7 @@ public final class SettingsModelWriterFileChooser
 
     private static final String CFG_FILE_OVERWRITE_POLICY = "if_path_exists";
 
-    private final Set<FileOverwritePolicy> m_supportedPolicies;
-
-    private final FileOverwritePolicy m_defaultPolicy;
+    private final EnumConfig<FileOverwritePolicy> m_overwritePolicyConfig;
 
     private FileOverwritePolicy m_selectedPolicy;
 
@@ -112,30 +110,20 @@ public final class SettingsModelWriterFileChooser
      * @param configName under which to store the settings
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
-     * @param defaultFilterMode the default {@link FilterMode} (may be {@code null} if there is no policy for existing
-     *            files)
-     * @param defaultPolicy the policy selected by default
-     * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
-     *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
+     * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
+     *            FilterModes}
+     * @param overwritePolicyConfig the {@link EnumConfig} specifying the default and supported {@link FileOverwritePolicy FileOverwritePolicies}
      * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
      *            no file system port is present
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelWriterFileChooser(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode,
-        final FileOverwritePolicy defaultPolicy, final Set<FileOverwritePolicy> supportedPolicies,
+        final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
+        final EnumConfig<FileOverwritePolicy> overwritePolicyConfig,
         final Set<FSCategory> convenienceFS, final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, convenienceFS, fileExtensions);
-        if (defaultPolicy == null) {
-            CheckUtils.checkArgument(supportedPolicies.isEmpty(),
-                "There must not be any supported policy if the default policy is null.");
-        } else {
-            CheckUtils.checkArgument(supportedPolicies.contains(defaultPolicy),
-                "The default policy must be among the possible policies.");
-        }
-        m_defaultPolicy = defaultPolicy;
-        m_supportedPolicies = Collections.unmodifiableSet(EnumSet.copyOf(supportedPolicies));
-        m_selectedPolicy = defaultPolicy;
+        super(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, convenienceFS, fileExtensions);
+        m_overwritePolicyConfig = overwritePolicyConfig;
+        m_selectedPolicy = overwritePolicyConfig.getDefaultValue();
     }
 
     /**
@@ -144,37 +132,27 @@ public final class SettingsModelWriterFileChooser
      * @param configName under which to store the settings
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
-     * @param defaultFilterMode the default {@link FilterMode} (may be {@code null} if there is no policy for existing
-     *            files)
-     * @param defaultPolicy the policy selected by default
-     * @param supportedPolicies the policies supported by the corresponding KNIME node (must contain
+     * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
+     *            FilterModes}
+     * @param overwritePolicyConfig the {@link EnumConfig} specifying the default and supported {@link FileOverwritePolicy FileOverwritePolicies}
      *            <b>defaultPolicy</b> or must be empty if defaultPolicy is {@code null}))
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelWriterFileChooser(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode,
-        final FileOverwritePolicy defaultPolicy, final Set<FileOverwritePolicy> supportedPolicies,
+        final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
+        final EnumConfig<FileOverwritePolicy> overwritePolicyConfig,
         final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, EnumSet.allOf(FSCategory.class),
+        super(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, EnumSet.allOf(FSCategory.class),
             fileExtensions);
-        if (defaultPolicy == null) {
-            CheckUtils.checkArgument(supportedPolicies.isEmpty(),
-                "There must not be any supported policy if the default policy is null.");
-        } else {
-            CheckUtils.checkArgument(supportedPolicies.contains(defaultPolicy),
-                "The default policy must be among the possible policies.");
-        }
-        m_defaultPolicy = defaultPolicy;
-        m_supportedPolicies = Collections.unmodifiableSet(EnumSet.copyOf(supportedPolicies));
-        m_selectedPolicy = defaultPolicy;
+        m_selectedPolicy = overwritePolicyConfig.getDefaultValue();
+        m_overwritePolicyConfig = overwritePolicyConfig;
     }
 
     private SettingsModelWriterFileChooser(final SettingsModelWriterFileChooser toCopy) {
         super(toCopy);
         m_selectedPolicy = toCopy.m_selectedPolicy;
         m_createMissingFolders = toCopy.m_createMissingFolders;
-        m_supportedPolicies = toCopy.m_supportedPolicies;
-        m_defaultPolicy = toCopy.m_defaultPolicy;
+        m_overwritePolicyConfig = toCopy.m_overwritePolicyConfig;
     }
 
     /**
@@ -194,7 +172,7 @@ public final class SettingsModelWriterFileChooser
      * @return an unmodifiable set of the supported {@link FileOverwritePolicy policies}
      */
     public Set<FileOverwritePolicy> getSupportedPolicies() {
-        return m_supportedPolicies;
+        return m_overwritePolicyConfig.getSupportedValues();
     }
 
     /**
@@ -212,7 +190,7 @@ public final class SettingsModelWriterFileChooser
      * @param policy {@link FileOverwritePolicy} to set
      */
     public void setFileOverwritePolicy(final FileOverwritePolicy policy) {
-        CheckUtils.checkArgument(m_supportedPolicies.contains(policy), "The policy '%s' is not supported by this node.",
+        CheckUtils.checkArgument(m_overwritePolicyConfig.isSupported(policy), "The policy '%s' is not supported by this node.",
             policy);
         if (policy != m_selectedPolicy) {
             m_selectedPolicy = policy;
@@ -292,7 +270,7 @@ public final class SettingsModelWriterFileChooser
      * @return {@code true} if the user can select a {@link FileOverwritePolicy}
      */
     public boolean hasPolicyChoice() {
-        return m_supportedPolicies.size() > 1;
+        return m_overwritePolicyConfig.getNumberOfSupportedValues() > 1;
     }
 
     @Override
@@ -305,12 +283,13 @@ public final class SettingsModelWriterFileChooser
     }
 
     private FileOverwritePolicy loadPolicyInDialog(final NodeSettingsRO settings) {
-        final String policyText = settings.getString(CFG_FILE_OVERWRITE_POLICY, m_defaultPolicy.getText());
-        return getPolicyFromText(policyText).orElse(m_defaultPolicy);
+        final FileOverwritePolicy defaultValue = m_overwritePolicyConfig.getDefaultValue();
+        final String policyText = settings.getString(CFG_FILE_OVERWRITE_POLICY, defaultValue.getText());
+        return getPolicyFromText(policyText).orElse(defaultValue);
     }
 
     private Optional<FileOverwritePolicy> getPolicyFromText(final String policyText) {
-        return m_supportedPolicies.stream()//
+        return m_overwritePolicyConfig.stream()//
             .filter(p -> p.getText().equals(policyText))//
             .findAny();
     }

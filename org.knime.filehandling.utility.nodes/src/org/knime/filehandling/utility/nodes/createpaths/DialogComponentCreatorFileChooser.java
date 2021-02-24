@@ -80,9 +80,9 @@ final class DialogComponentCreatorFileChooser
      *            from <b>model</b> is used)
      */
     DialogComponentCreatorFileChooser(final SettingsModelCreatorFileChooser model, final String historyID,
-        final FlowVariableModel locationFvm, final FilterMode... filterModes) {
+        final FlowVariableModel locationFvm) {
         super(model, historyID, DialogType.OPEN_DIALOG, "Create for", locationFvm,
-            s -> new CreaterStatusMessageReporter(), filterModes);
+            s -> new CreaterStatusMessageReporter());
     }
 
     @Override

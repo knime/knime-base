@@ -48,14 +48,13 @@
  */
 package org.knime.filehandling.utility.nodes.compress;
 
-import java.util.EnumSet;
-
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -125,8 +124,8 @@ public abstract class AbstractCompressNodeConfig {
      */
     protected AbstractCompressNodeConfig(final PortsConfiguration portsConfig) {
         m_destinationFileChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
-            CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, FilterMode.FILE, FileOverwritePolicy.FAIL,
-            EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), COMPRESSIONS);
+            CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, EnumConfig.create(FilterMode.FILE),
+            EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), COMPRESSIONS);
         m_compressionModel = new SettingsModelString(CFG_COMPRESSION, DEFAULT_COMPRESSION);
         m_truncatePathOption = TruncatePathOption.getDefault();
         m_truncateRegex = new SettingsModelString(CFG_TRUNACTE_REGEX, DEFAULT_REGEX) {

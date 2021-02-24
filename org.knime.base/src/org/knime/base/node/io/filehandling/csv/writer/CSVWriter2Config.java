@@ -51,7 +51,6 @@ package org.knime.base.node.io.filehandling.csv.writer;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
@@ -66,6 +65,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -150,9 +150,8 @@ final class CSVWriter2Config {
      */
     public CSVWriter2Config(final PortsConfiguration portsConfig) {
         m_fileChooserModel = new SettingsModelWriterFileChooser(CFG_FILE_CHOOSER, portsConfig,
-            CSVWriter2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FILE,
-            org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy.FAIL,
-            EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.APPEND),
+            CSVWriter2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, EnumConfig.create(FilterMode.FILE),
+            EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.APPEND),
             FILE_SUFFIXES);
 
         m_columnDelimiter = DEFAULT_COLUMN_DELIMITER;

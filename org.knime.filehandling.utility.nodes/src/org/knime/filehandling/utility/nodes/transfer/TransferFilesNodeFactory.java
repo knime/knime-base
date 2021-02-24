@@ -58,6 +58,7 @@ import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
@@ -118,10 +119,10 @@ public final class TransferFilesNodeFactory extends ConfigurableNodeFactory<Tran
     private static TransferFilesNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
         return new TransferFilesNodeConfig(
             new SettingsModelReaderFileChooser("source_location", portsConfiguration, CONNECTION_SOURCE_PORT_GRP_NAME,
-                FilterMode.FILE),
+                EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS)),
             new SettingsModelWriterFileChooser("destination_location", portsConfiguration,
-                CONNECTION_DESTINATION_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.IGNORE,
-                EnumSet.of(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE),
+                CONNECTION_DESTINATION_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
+                EnumConfig.create(FileOverwritePolicy.IGNORE, FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE),
                 EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE)));
     }
 }

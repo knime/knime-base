@@ -55,6 +55,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
@@ -77,7 +78,8 @@ final class DeleteFilesAndFoldersNodeConfig {
 
     DeleteFilesAndFoldersNodeConfig(final PortsConfiguration portsConfiguration) {
         m_fileChooserSettings = new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER, portsConfiguration,
-            DeleteFilesAndFoldersNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FILE,
+            DeleteFilesAndFoldersNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME,
+            EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS),
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
 
         m_fileChooserSettings.getFilterModeModel().setIncludeSubfolders(true);

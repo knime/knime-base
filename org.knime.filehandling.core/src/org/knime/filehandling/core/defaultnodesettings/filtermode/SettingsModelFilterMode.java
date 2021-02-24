@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filtermode;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -57,6 +58,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 
 /**
  * Settings model for {@link DialogComponentFilterMode}.
@@ -81,6 +83,8 @@ public final class SettingsModelFilterMode extends SettingsModel {
 
     private FilterMode m_filterMode;
 
+    private final EnumConfig<FilterMode> m_filterModeConfig;
+
     private boolean m_includeSubfolders;
 
     private FilterOptionsSettings m_filterOptionsSettings;
@@ -89,26 +93,29 @@ public final class SettingsModelFilterMode extends SettingsModel {
      * Constructor. Value for {@code includeSubfolders} will be set {@code false}.
      *
      * @param configName the config name
-     * @param defaultFilterMode the default {@link FilterMode}
+     * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
+     *            FilterModes}
      */
-    public SettingsModelFilterMode(final String configName, final FilterMode defaultFilterMode) {
-        this(configName, defaultFilterMode, DEFAULT_INCLUDE_SUBFOLDERS);
+    public SettingsModelFilterMode(final String configName, final EnumConfig<FilterMode> filterModeConfig) {
+        this(configName, filterModeConfig, DEFAULT_INCLUDE_SUBFOLDERS);
     }
 
     /**
      * Constructor.
      *
      * @param configName the config name
-     * @param defaultFilterMode the default {@link FilterMode}
+     * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
+     *            FilterModes}
      * @param defaultIncludeSubfolders the default value for include subfolders
      */
-    public SettingsModelFilterMode(final String configName, final FilterMode defaultFilterMode,
+    public SettingsModelFilterMode(final String configName, final EnumConfig<FilterMode> filterModeConfig,
         final boolean defaultIncludeSubfolders) {
         CheckUtils.checkArgumentNotNull(configName, "The config name must not be null.");
         CheckUtils.checkArgument(!configName.trim().isEmpty(), "The config name must not be empty.");
-        CheckUtils.checkArgumentNotNull(defaultFilterMode, "The default filter mode must not be null.");
+        CheckUtils.checkArgumentNotNull(filterModeConfig, "The filter mode config must not be null.");
         m_configName = configName;
-        m_filterMode = defaultFilterMode;
+        m_filterMode = filterModeConfig.getDefaultValue();
+        m_filterModeConfig = filterModeConfig;
         m_includeSubfolders = defaultIncludeSubfolders;
         m_filterOptionsSettings = new FilterOptionsSettings();
     }
@@ -118,6 +125,7 @@ public final class SettingsModelFilterMode extends SettingsModel {
         m_filterMode = toCopy.m_filterMode;
         m_includeSubfolders = toCopy.m_includeSubfolders;
         m_filterOptionsSettings = toCopy.m_filterOptionsSettings;
+        m_filterModeConfig = toCopy.m_filterModeConfig;
     }
 
     /**
@@ -203,6 +211,7 @@ public final class SettingsModelFilterMode extends SettingsModel {
             notifyChangeListeners();
 
         } catch (InvalidSettingsException ex) {
+            NodeLogger.getLogger(SettingsModelFilterMode.class).debug("Loading the filter mode failed.", ex);
             // nothing to do
         }
     }
@@ -215,7 +224,9 @@ public final class SettingsModelFilterMode extends SettingsModel {
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
-        FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE));
+        final FilterMode mode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE));
+        CheckUtils.checkSetting(m_filterModeConfig.isSupported(mode),
+            "The filter mode %s is not supported by this node.", mode);
         nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS);
         FilterOptionsSettings.validate(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
     }

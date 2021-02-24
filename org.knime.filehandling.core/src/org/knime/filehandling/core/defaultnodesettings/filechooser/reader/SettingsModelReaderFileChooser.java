@@ -58,6 +58,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
@@ -91,15 +92,16 @@ public final class SettingsModelReaderFileChooser
      * @param configName under which to store the settings
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
-     * @param defaultFilterMode the default {@link FilterMode}
+     * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
+     *            FilterModes}
      * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
      *            no file system port is present
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelReaderFileChooser(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final Set<FSCategory> convenienceFS,
-        final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, convenienceFS, fileExtensions);
+        final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
+        final Set<FSCategory> convenienceFS, final String... fileExtensions) {
+        super(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, convenienceFS, fileExtensions);
     }
 
     /**
@@ -108,12 +110,14 @@ public final class SettingsModelReaderFileChooser
      * @param configName under which to store the settings
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
-     * @param defaultFilterMode the default {@link FilterMode}
+     * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
+     *            FilterModes}
      * @param fileExtensions the supported file extensions
      */
     public SettingsModelReaderFileChooser(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final String... fileExtensions) {
-        super(configName, portsConfig, fileSystemPortIdentifier, defaultFilterMode, EnumSet.allOf(FSCategory.class),
+        final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
+        final String... fileExtensions) {
+        super(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, EnumSet.allOf(FSCategory.class),
             fileExtensions);
     }
 

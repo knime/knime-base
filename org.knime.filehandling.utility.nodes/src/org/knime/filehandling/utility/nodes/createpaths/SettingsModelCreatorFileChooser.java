@@ -55,6 +55,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -79,12 +80,12 @@ final class SettingsModelCreatorFileChooser extends AbstractSettingsModelFileCho
      * @param fileExtensions the supported file extensions
      */
     SettingsModelCreatorFileChooser(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final Set<FSCategory> convenienceFS,
+        final String fileSystemPortIdentifier, final Set<FSCategory> convenienceFS,
         final String... fileExtensions) {
         super(configName//
             , portsConfig//
             , fileSystemPortIdentifier//
-            , defaultFilterMode//
+            , EnumConfig.create(FilterMode.FOLDER)//
             , convenienceFS//
             , fileExtensions);
     }

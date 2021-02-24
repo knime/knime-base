@@ -70,6 +70,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
@@ -135,21 +136,22 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
      * @param configName under which to store the settings
      * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
      * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
-     * @param defaultFilterMode the default {@link FilterMode}
+     * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
+     *            FilterModes}
      * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
      *            no file system port is present
      * @param fileExtensions the supported file extensions
      */
     protected AbstractSettingsModelFileChooser(final String configName, final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier, final FilterMode defaultFilterMode, final Set<FSCategory> convenienceFS,
-        final String... fileExtensions) {
+        final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
+        final Set<FSCategory> convenienceFS, final String... fileExtensions) {
         m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier,
             FSLocationHandler.INSTANCE, convenienceFS);
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());
         m_configName = configName;
         m_fileExtensions =
             CheckUtils.checkArgumentNotNull(fileExtensions, "The fileExtensions may be empty but never null.").clone();
-        m_filterModeModel = new SettingsModelFilterMode("filter_mode", defaultFilterMode);
+        m_filterModeModel = new SettingsModelFilterMode("filter_mode", filterModeConfig);
         m_filterModeModel.addChangeListener(e -> notifyChangeListeners());
         addChangeListener(e -> updateFilterMode());
     }

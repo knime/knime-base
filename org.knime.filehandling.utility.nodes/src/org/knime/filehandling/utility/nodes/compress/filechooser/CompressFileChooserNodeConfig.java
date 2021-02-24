@@ -52,6 +52,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
@@ -74,7 +75,8 @@ final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig {
     CompressFileChooserNodeConfig(final PortsConfiguration portsConfig) {
         super(portsConfig);
         m_inputLocationChooserModel = new SettingsModelReaderFileChooser(CFG_INPUT_LOCATION, portsConfig,
-            AbstractCompressNodeConfig.CONNECTION_INPUT_FILE_PORT_GRP_NAME, FilterMode.FILE);
+            AbstractCompressNodeConfig.CONNECTION_INPUT_FILE_PORT_GRP_NAME,
+            EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS));
     }
 
     /**

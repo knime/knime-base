@@ -56,6 +56,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
@@ -76,7 +77,7 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
     protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
         final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
             nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            FilterMode.FILE, FILE_SUFFIXES);
+            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
             settingsModel

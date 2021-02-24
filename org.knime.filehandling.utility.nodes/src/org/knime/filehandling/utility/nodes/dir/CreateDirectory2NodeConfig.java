@@ -58,6 +58,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -91,8 +92,8 @@ final class CreateDirectory2NodeConfig {
      */
     CreateDirectory2NodeConfig(final PortsConfiguration portsConfig) {
         m_parentDirChooserModel = new SettingsModelWriterFileChooser(CFG_DIR_PARENT, portsConfig,
-            CreateDirectory2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.APPEND,
-            EnumSet.of(FileOverwritePolicy.APPEND),
+            CreateDirectory2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
+            EnumConfig.create(FileOverwritePolicy.APPEND),
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> New Folder)
         if (!portsConfig.getInputPortLocation()

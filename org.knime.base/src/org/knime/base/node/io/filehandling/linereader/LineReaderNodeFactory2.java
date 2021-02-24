@@ -52,6 +52,7 @@ import java.nio.file.Path;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
@@ -83,7 +84,7 @@ public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory
     protected PathSettings createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
         return new SettingsModelReaderFileChooser("file_selection",
             nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            FilterMode.FILE);
+            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS));
     }
 
     @Override

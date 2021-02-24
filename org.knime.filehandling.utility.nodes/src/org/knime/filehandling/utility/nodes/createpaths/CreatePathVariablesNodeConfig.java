@@ -58,7 +58,6 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.utility.nodes.dialog.variables.FSLocationVariableTableModel;
 
 /**
@@ -81,7 +80,7 @@ final class CreatePathVariablesNodeConfig {
 
     CreatePathVariablesNodeConfig(final PortsConfiguration portsConfig) {
         m_dirChooserModel = new SettingsModelCreatorFileChooser(CFG_DIR_PARENT, portsConfig,
-            CreatePathVariablesNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, FilterMode.FOLDER,
+            CreatePathVariablesNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME,
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE, FSCategory.CUSTOM_URL));
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> .)
         if (!portsConfig.getInputPortLocation().containsKey(CreatePathVariablesNodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {

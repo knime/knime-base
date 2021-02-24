@@ -56,6 +56,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
@@ -96,11 +97,12 @@ final class DecompressNodeConfig {
      */
     public DecompressNodeConfig(final PortsConfiguration portsConfig) {
         m_inputFileChooserModel = new SettingsModelReaderFileChooser(CFG_INPUT_FILE, portsConfig,
-            DecompressNodeFactory.CONNECTION_INPUT_FILE_PORT_GRP_NAME, FilterMode.FILE, FILE_EXTENSIONS);
+            DecompressNodeFactory.CONNECTION_INPUT_FILE_PORT_GRP_NAME, EnumConfig.create(FilterMode.FILE),
+            FILE_EXTENSIONS);
 
         m_outputDirChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
-            DecompressNodeFactory.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, FilterMode.FOLDER, FileOverwritePolicy.IGNORE,
-            EnumSet.of(FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE, FileOverwritePolicy.FAIL),
+            DecompressNodeFactory.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
+            EnumConfig.create(FileOverwritePolicy.IGNORE, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL),
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
     }
 
