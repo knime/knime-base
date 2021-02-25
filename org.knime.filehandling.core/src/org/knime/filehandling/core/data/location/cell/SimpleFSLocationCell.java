@@ -74,7 +74,7 @@ public final class SimpleFSLocationCell extends DataCell implements FSLocationVa
 
     static final DataType TYPE = DataType.getType(SimpleFSLocationCell.class);
 
-    private final FSLocation m_fsLocation;//NOSONAR
+    private final FSLocation m_fsLocation;
 
     SimpleFSLocationCell(final FSLocation fsLocation) {
         m_fsLocation = fsLocation;

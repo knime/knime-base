@@ -48,33 +48,36 @@
  */
 package org.knime.filehandling.core.connections;
 
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.data.location.cell.FSLocationCell;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 
 /**
- * Object encapsulating all information required to convert between {@link Path} and {@link FSLocationCell}.
+ * Object encapsulating all information required to convert between {@link Path} and {@link SimpleFSLocationCell}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class FSLocation implements FSLocationSpec {
+public final class FSLocation implements FSLocationSpec, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** The file system category. */
     private final String m_fileSystemCategory;
 
     /** The optional file system specifier. */
-    private final Optional<String> m_fileSystemSpecifier;
+    private final String m_fileSystemSpecifier;
 
     /** The actual path to the file/folder. */
     private final String m_path;
 
-    private Integer m_hashCode;
+    private transient Integer m_hashCode;
 
     /**
      * Represents the null object for {@link FSLocation}.
@@ -83,7 +86,7 @@ public final class FSLocation implements FSLocationSpec {
 
     private FSLocation() {
         m_fileSystemCategory = null;
-        m_fileSystemSpecifier = Optional.empty();
+        m_fileSystemSpecifier = null;
         m_path = null;
     }
 
@@ -130,7 +133,7 @@ public final class FSLocation implements FSLocationSpec {
     public FSLocation(final String fsCategory, final String fsSpecifier, final String path) {
         m_fileSystemCategory =
             CheckUtils.checkArgumentNotNull(fsCategory, "The file system category must not be null.");
-        m_fileSystemSpecifier = Optional.ofNullable(fsSpecifier);
+        m_fileSystemSpecifier = fsSpecifier;
         m_path = CheckUtils.checkArgumentNotNull(path, "The path must not be null.");
     }
 
@@ -145,7 +148,7 @@ public final class FSLocation implements FSLocationSpec {
 
     @Override
     public Optional<String> getFileSystemSpecifier() {
-        return m_fileSystemSpecifier;
+        return Optional.ofNullable(m_fileSystemSpecifier);
     }
 
     @Override
@@ -160,8 +163,8 @@ public final class FSLocation implements FSLocationSpec {
         }
         final StringBuilder sb = new StringBuilder("(");
         sb.append(m_fileSystemCategory).append(", ");
-        if (m_fileSystemSpecifier.isPresent()) {
-            sb.append(m_fileSystemSpecifier.get()).append(", ");
+        if (m_fileSystemSpecifier != null) {
+            sb.append(m_fileSystemSpecifier).append(", ");
         }
         sb.append(m_path).append(")");
         return sb.toString();
