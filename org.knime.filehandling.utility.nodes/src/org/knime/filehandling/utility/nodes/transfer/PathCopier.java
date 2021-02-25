@@ -72,7 +72,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.utility.nodes.utils.FileStatus;
@@ -104,9 +104,9 @@ final class PathCopier {
 
     private final TransferFilesNodeConfig m_config;
 
-    private final FSLocationCellFactory m_sourceFSLocationCellFactory;
+    private final SimpleFSLocationCellFactory m_sourceFSLocationCellFactory;
 
-    private final FSLocationCellFactory m_destinationFSLocationCellFactory;
+    private final SimpleFSLocationCellFactory m_destinationFSLocationCellFactory;
 
     private final FileOverwritePolicy m_fileOverWritePolicy;
 
@@ -125,9 +125,9 @@ final class PathCopier {
         m_rowConsumer = rowConsumer;
         m_config = config;
         m_sourceFSLocationCellFactory =
-            new FSLocationCellFactory(fileStoreFactory, m_config.getSourceFileChooserModel().getLocation());
+            new SimpleFSLocationCellFactory(fileStoreFactory, m_config.getSourceFileChooserModel().getLocation());
         m_destinationFSLocationCellFactory =
-            new FSLocationCellFactory(fileStoreFactory, m_config.getDestinationFileChooserModel().getLocation());
+            new SimpleFSLocationCellFactory(fileStoreFactory, m_config.getDestinationFileChooserModel().getLocation());
         m_fileOverWritePolicy = m_config.getDestinationFileChooserModel().getFileOverwritePolicy();
         m_copyFunction = getCopyFunction(m_fileOverWritePolicy);
     }
@@ -347,7 +347,7 @@ final class PathCopier {
     private static DataColumnSpec createMetaColumnSpec(final FSLocation locationsSpec, final String columnName) {
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(locationsSpec.getFileSystemCategory(),
             locationsSpec.getFileSystemSpecifier().orElse(null));
-        final DataColumnSpecCreator fsLocationSpec = new DataColumnSpecCreator(columnName, FSLocationCellFactory.TYPE);
+        final DataColumnSpecCreator fsLocationSpec = new DataColumnSpecCreator(columnName, SimpleFSLocationCellFactory.TYPE);
         fsLocationSpec.addMetaData(metaData, true);
         return fsLocationSpec.createSpec();
     }

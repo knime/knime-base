@@ -83,7 +83,7 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
@@ -117,7 +117,7 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
     }
 
     private DataTableSpec createOutputSpec() {
-        final DataColumnSpecCreator colCreator = new DataColumnSpecCreator("Path", FSLocationCellFactory.TYPE);
+        final DataColumnSpecCreator colCreator = new DataColumnSpecCreator("Path", SimpleFSLocationCellFactory.TYPE);
         final FSLocation location = m_config.getFileChooserSettings().getLocation();
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
             location.getFileSystemSpecifier().orElse(null));
@@ -196,7 +196,7 @@ final class ListFilesAndFoldersNodeModel extends NodeModel {
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
             long rec = 0;
             final int numEntries = fsPaths.size();
-            final FSLocationCellFactory locationFactory = new FSLocationCellFactory(
+            final SimpleFSLocationCellFactory locationFactory = new SimpleFSLocationCellFactory(
                 FileStoreFactory.createFileStoreFactory(exec), m_config.getFileChooserSettings().getLocation());
 
             for (final FSPath p : fsPaths) {

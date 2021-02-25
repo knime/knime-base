@@ -65,14 +65,14 @@ import org.knime.filehandling.core.connections.FSLocationSpec;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class MultiFSLocationCellFactory implements AutoCloseable {
+public final class MultiSimpleFSLocationCellFactory implements AutoCloseable {
 
-    private final Map<DefaultFSLocationSpec, Pair<FileStoreFactory, FSLocationCellFactory>> m_factories;
+    private final Map<DefaultFSLocationSpec, Pair<FileStoreFactory, SimpleFSLocationCellFactory>> m_factories;
 
     /**
      * Constructor.
      */
-    public MultiFSLocationCellFactory() {
+    public MultiSimpleFSLocationCellFactory() {
         m_factories = new HashMap<>();
     }
 
@@ -89,15 +89,15 @@ public final class MultiFSLocationCellFactory implements AutoCloseable {
     public SimpleFSLocationCell createCell(final ExecutionContext exec, final FSLocation fsLocation) {
         final DefaultFSLocationSpec defaultFSLocationSpec = new DefaultFSLocationSpec(fsLocation.getFSCategory(),
             fsLocation.getFileSystemSpecifier().orElseGet(() -> null));
-        final FSLocationCellFactory fac = m_factories
+        final SimpleFSLocationCellFactory fac = m_factories
             .computeIfAbsent(defaultFSLocationSpec, fsLocSpec -> createFactory(exec, fsLocation)).getSecond();
         return fac.createCell(fsLocation);
     }
 
-    private static Pair<FileStoreFactory, FSLocationCellFactory> createFactory(final ExecutionContext exec,
+    private static Pair<FileStoreFactory, SimpleFSLocationCellFactory> createFactory(final ExecutionContext exec,
         final FSLocationSpec fsLocSpec) {
         final FileStoreFactory fileStoreFac = FileStoreFactory.createFileStoreFactory(exec);
-        return new Pair<>(fileStoreFac, new FSLocationCellFactory(fileStoreFac, fsLocSpec));
+        return new Pair<>(fileStoreFac, new SimpleFSLocationCellFactory(fileStoreFac, fsLocSpec));
     }
 
     @Override

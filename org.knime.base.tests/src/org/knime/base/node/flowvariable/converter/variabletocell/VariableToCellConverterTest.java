@@ -81,7 +81,7 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -181,7 +181,7 @@ public class VariableToCellConverterTest {
         final FlowVariable var = new FlowVariable(name, FSLocationVariableType.INSTANCE, val);
         try (final VariableToCellConverter converter = VariableToCellConverterFactory.createConverter(var)) {
             DataColumnSpec createSpec = converter.createSpec(name, var);
-            assertEquals(FSLocationCellFactory.TYPE, createSpec.getType());
+            assertEquals(SimpleFSLocationCellFactory.TYPE, createSpec.getType());
             final FSLocationValueMetaData metaData = createSpec.getMetaDataOfType(FSLocationValueMetaData.class)
                 .orElseThrow(() -> new IllegalStateException("No meta data available"));
             assertTrue(FSLocationSpec.areEqual(metaData, val));

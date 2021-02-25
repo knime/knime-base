@@ -56,8 +56,8 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.FSLocationCell;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
-import org.knime.filehandling.core.data.location.cell.MultiFSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.MultiSimpleFSLocationCellFactory;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -67,13 +67,13 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
  */
 final class FSLocationVarToCellConverter implements VariableToCellConverter {
 
-    private final MultiFSLocationCellFactory m_multiCellFactory;
+    private final MultiSimpleFSLocationCellFactory m_multiCellFactory;
 
     /**
      * Constructor.
      */
     FSLocationVarToCellConverter() {
-        m_multiCellFactory = new MultiFSLocationCellFactory();
+        m_multiCellFactory = new MultiSimpleFSLocationCellFactory();
     }
 
     @Override
@@ -83,7 +83,7 @@ final class FSLocationVarToCellConverter implements VariableToCellConverter {
 
     @Override
     public DataColumnSpec createSpec(final String columnName, final FlowVariable flowVar) {
-        final DataColumnSpecCreator colCreator = new DataColumnSpecCreator(columnName, FSLocationCellFactory.TYPE);
+        final DataColumnSpecCreator colCreator = new DataColumnSpecCreator(columnName, SimpleFSLocationCellFactory.TYPE);
         final FSLocation fsLocation = getFsLocation(flowVar);
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(fsLocation.getFileSystemCategory(),
             fsLocation.getFileSystemSpecifier().orElse(null));

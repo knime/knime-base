@@ -75,7 +75,7 @@ import org.knime.core.node.workflow.VariableType.LongArrayType;
 import org.knime.core.node.workflow.VariableType.LongType;
 import org.knime.core.node.workflow.VariableType.StringArrayType;
 import org.knime.core.node.workflow.VariableType.StringType;
-import org.knime.filehandling.core.data.location.cell.FSLocationCellFactory;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
@@ -90,7 +90,7 @@ public class CellToVariableConverterFactoryTest {
         IntCell.TYPE, //
         LongCell.TYPE, //
         DoubleCell.TYPE, //
-        FSLocationCellFactory.TYPE, //
+        SimpleFSLocationCellFactory.TYPE, //
         StringCell.TYPE, //
         getCollectionType(BooleanCell.TYPE), //
         getCollectionType(IntCell.TYPE), //
