@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.knime.filehandling.core.node.table.reader.util.MultiTableUtils.getNameAfterInit;
 
@@ -127,7 +128,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
             @Override
             public int getPosition() {
                 final int position = super.getPosition();
-                return position == -1 ? (m_union.size() - 1) : position;
+                return position == -1 ? (m_unionIncludingFiltered.size() - 1) : position;
             }
 
             @Override
@@ -333,6 +334,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         m_unionIncludingFiltered.clear();
         m_union.add(m_newColTransformationPlaceholder);
         m_intersection.add(m_newColTransformationPlaceholder);
+        m_unionIncludingFiltered.add(m_newColTransformationPlaceholder);
         m_newColTransformationPlaceholder.setPosition(-1);
         final Set<TypedReaderColumnSpec<T>> intersection = m_rawSpec.getIntersection().stream().collect(toSet());
         for (TypedReaderColumnSpec<T> column : m_rawSpec.getUnion()) {
@@ -354,9 +356,9 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                     m_intersection.add(transformation);
                 }
                 m_union.add(transformation);
-                idx++;
             }
             m_unionIncludingFiltered.add(transformation);
+            idx++;
         }
         tableChanged |= !newColumns.isEmpty();
         final int oldNumberOfTransformations = m_bySpec.size();
@@ -650,14 +652,14 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         if (fromIndex < toIndex) {
             final int unionToIndex = getTransformation(toIndex - 1).getPosition();
             for (int i = unionFromIndex; i < unionToIndex; i++) {
-                final MutableColumnTransformation<T> k = m_union.get(i + 1);
+                final MutableColumnTransformation<T> k = m_unionIncludingFiltered.get(i + 1);
                 k.setPosition(i);
             }
             moved.setPosition(unionToIndex);
         } else {
             final int unionToIndex = getTransformation(toIndex).getPosition();
             for (int i = unionFromIndex; i >= unionToIndex; i--) {
-                final MutableColumnTransformation<T> k = m_union.get(i);
+                final MutableColumnTransformation<T> k = m_unionIncludingFiltered.get(i);
                 k.setPosition(i + 1);
             }
             moved.setPosition(unionToIndex);
@@ -701,13 +703,10 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
 
     @Override
     public TableTransformation<T> getTableTransformation() {
-        int idx = 0;
-        List<ColumnTransformation<T>> transformations = new ArrayList<>();
-        for (ColumnTransformation<T> t : m_unionIncludingFiltered) {
-            transformations.add(new ImmutableColumnTransformation<>(t.getExternalSpec(), t.getProductionPath(),
-                t.keep(), idx, t.getName()));
-            idx++;
-        }
+        final List<ColumnTransformation<T>> transformations = m_unionIncludingFiltered.stream()//
+                .filter(c -> c != m_newColTransformationPlaceholder)//
+                .map(ImmutableColumnTransformation::copy)//
+                .collect(toList());
         return new DefaultTableTransformation<>(m_rawSpec, transformations, getColumnFilterMode(), keepUnknownColumns(),
             getPositionForUnknownColumns(), m_enforceTypesModel.isSelected(), m_skipEmptyColumns);
     }

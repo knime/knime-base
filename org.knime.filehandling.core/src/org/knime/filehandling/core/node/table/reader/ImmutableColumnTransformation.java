@@ -105,7 +105,7 @@ public final class ImmutableColumnTransformation<T> implements ColumnTransformat
      * @return an {@link ImmutableColumnTransformation} copy of {@link ColumnTransformation columnTransformation}
      */
     public static <T> ImmutableColumnTransformation<T> copy(final ColumnTransformation<T> columnTransformation) {
-        return new ImmutableColumnTransformation<T>(columnTransformation);
+        return new ImmutableColumnTransformation<>(columnTransformation);
     }
 
     @Override

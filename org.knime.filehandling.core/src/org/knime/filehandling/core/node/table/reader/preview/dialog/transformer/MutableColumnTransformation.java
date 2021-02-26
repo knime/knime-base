@@ -182,12 +182,14 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T> {
 
     @Override
     public String toString() {
-        return new StringBuilder("[")//
+        StringBuilder sb = new StringBuilder("[")//
             .append(m_name)//
-            .append(", ")//
-            .append(m_productionPath.getConverterFactory().getDestinationType())//
-            .append(", ")//
-            .append(m_keep)//
+            .append(", ");
+        if (m_productionPath != null) {
+            sb.append(m_productionPath.getConverterFactory().getDestinationType())//
+                .append(", ");
+        }
+        return sb.append(m_keep)//
             .append(", ")//
             .append(m_positionInOutput)//
             .append(", ")//
