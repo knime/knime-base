@@ -44,45 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 25, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader;
 
-import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
-import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 
 /**
- * Creates {@link TableTransformation} objects either by adapting an existing transformation to a new {@link RawSpec} or
- * by creating a new one from scratch.
+ * A builder for {@link RawSpec} objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
- * @noimplement non-public API
- * @noreference non-public API
  */
-public interface TableTransformationFactory<T> {
+final class RawSpecBuilder<T> {
 
-    /**
-     * Creates a {@link TableTransformation} by adapting {@link TableTransformation existingModel} to the new
-     * {@link RawSpec}.
-     *
-     * @param newRawSpec the new {@link RawSpec}
-     * @param config the {@link MultiTableReadConfig} of the current execution
-     * @param existingTransformation to adapt
-     * @return anversion of {@link TableTransformation existingModel} that is adapted to {@link RawSpec newRawSpec}
-     */
-    TableTransformation<T> createFromExisting(final RawSpec<T> newRawSpec,
-        MultiTableReadConfig<?, ?> config, final TableTransformation<T> existingTransformation);
+    private final TypedReaderTableSpecBuilder<T> m_unionBuilder = TypedReaderTableSpec.builder();
 
-    /**
-     * Creates a new {@link TableTransformation} based on the provided {@link RawSpec} and {@link MultiTableReadConfig
-     * config}.
-     *
-     * @param rawSpec the {@link RawSpec} for which to create the transformation
-     * @param config for creation
-     * @return a new {@link TableTransformation}
-     */
-    TableTransformation<T> createNew(final RawSpec<T> rawSpec, final MultiTableReadConfig<?, ?> config);
+    private final TypedReaderTableSpecBuilder<T> m_intersectionBuilder = TypedReaderTableSpec.builder();
+
+
+    RawSpecBuilder<T> addColumn(final String name, final T type, final boolean hasType,
+        final boolean isInIntersection) {
+        final TypedReaderColumnSpec<T> col = TypedReaderColumnSpec.createWithName(name, type, hasType);
+        m_unionBuilder.addColumn(col);
+        if (isInIntersection) {
+            m_intersectionBuilder.addColumn(col);
+        }
+        return this;
+    }
+
+    RawSpecBuilder<T> addColumn(final TypedReaderColumnSpec<T> column, final boolean isInIntersection) {
+        m_unionBuilder.addColumn(column);
+        if (isInIntersection) {
+            m_intersectionBuilder.addColumn(column);
+        }
+        return this;
+    }
+
+    RawSpec<T> build() {
+        return new RawSpec<>(m_unionBuilder.build(), m_intersectionBuilder.build());
+    }
 
 }

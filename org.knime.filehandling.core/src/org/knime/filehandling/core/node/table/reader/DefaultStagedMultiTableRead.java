@@ -141,7 +141,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
                     tableSpecConfig);
             } else {
                 final TableTransformation<T> adaptedTransformation =
-                    m_tableTransformationFactory.createFromExisting(m_rawSpec, configuredTransformation);
+                    m_tableTransformationFactory.createFromExisting(m_rawSpec, m_config, configuredTransformation);
                 return withTransformation(sourceGroup, adaptedTransformation);
             }
         } else {

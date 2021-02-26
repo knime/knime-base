@@ -58,6 +58,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
@@ -67,6 +68,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
@@ -111,25 +113,21 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
 
     @Override
     public TableTransformation<T> createFromExisting(final RawSpec<T> newRawSpec,
-        final TableTransformation<T> existingModel) {
+        final MultiTableReadConfig<?, ?> config, final TableTransformation<T> existingModel) {
         final ColumnFilterMode colFilterMode = existingModel.getColumnFilterMode();
-        // The columns that are potentially in the output i.e. the union or intersection of all columns
-        // depending on the ColumnFilterMode
+        // The user might overwrite the skipEmptyColumns option in the MultiTableReadConfig via flow variable
+        // if that happens, then we must react to that change (the TableSpecConfig also contains the skipEmptyColumns
+        // options but since it can't be manipulated with flow variables, we can detect whether this setting was
+        // overwritten with a flow variable in the MultiTableReadConfig)
+        final boolean skipEmptyColumns = config.skipEmptyColumns();
+        // The columns that are potentially in the output i.e. prefiltered by the ColumnFilterMode (intersection/union)
+        // as well as the skipEmptyColumns setting
         final LinkedHashMap<String, TypedReaderColumnSpec<T>> relevantColumns =
-            colFilterMode.getRelevantSpec(newRawSpec).stream().collect(//
-                toMap(MultiTableUtils::getNameAfterInit, //
-                    Function.identity(), //
-                    (c1, c2) -> c1, // never used because the spec doesn't contain duplicates
-                    LinkedHashMap::new));
-        // The transformations for which a column is present in the new input
-        // IMPORTANT: For ColumnFilterMode.INTERSECTION a transformation is also dropped if it is no longer
-        // in the intersection but still in the union.
-        final LinkedHashMap<String, ColumnTransformation<T>> relevantTransformations = colFilterMode
-            .getRelevantSpec(existingModel.getRawSpec()).stream().map(existingModel::getTransformation)//
-            .filter(t -> relevantColumns.containsKey(t.getOriginalName()))//
-            .sorted()// sort by position in output
-            .collect(
-                toMap(ColumnTransformation::getOriginalName, Function.identity(), (t1, t2) -> t1, LinkedHashMap::new));
+            findRelevantColumns(newRawSpec, colFilterMode, skipEmptyColumns);
+        // The transformations for which a column is present in the new input and that were NOT filtered previously
+        // because of the ColumnFilterMode or skipEmptyColumns
+        final LinkedHashMap<String, ColumnTransformation<T>> relevantTransformations =
+            findRelevantTransformations(existingModel, relevantColumns);
 
         // The position at which all unknown columns are inserted
         final int insertUnknownsAt =
@@ -143,11 +141,48 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
 
         final boolean keepUnknownColumns = existingModel.keepUnknownColumns();
         final boolean enforceTypes = existingModel.enforceTypes();
-        final ColumnTransformationFactory transformationFactory = new ColumnTransformationFactory(enforceTypes, keepUnknownColumns);
+        final ColumnTransformationFactory transformationFactory =
+            new ColumnTransformationFactory(enforceTypes, keepUnknownColumns);
         final List<ColumnTransformation<T>> newTransformations = createColumnTransformations(relevantColumns,
             relevantTransformations, insertUnknownsAt, unknowns, transformationFactory);
         return new DefaultTableTransformation<>(newRawSpec, newTransformations, colFilterMode, keepUnknownColumns,
-            insertUnknownsAt + unknowns.size(), enforceTypes, existingModel.skipEmptyColumns());
+            insertUnknownsAt + unknowns.size(), enforceTypes, skipEmptyColumns);
+    }
+
+    private LinkedHashMap<String, ColumnTransformation<T>> findRelevantTransformations(
+        final TableTransformation<T> existingModel,
+        final LinkedHashMap<String, TypedReaderColumnSpec<T>> relevantColumns) {
+        Stream<ColumnTransformation<T>> transformations = TableTransformationUtils.getCandidates(existingModel);
+        if (existingModel.skipEmptyColumns()) {
+            transformations = transformations.filter(t -> t.getExternalSpec().hasType());
+        }
+        return transformations//
+            .filter(t -> relevantColumns.containsKey(t.getOriginalName()))//
+            .sorted()// sort by position in output
+            .collect(
+                toMap(ColumnTransformation::getOriginalName, Function.identity(), (t1, t2) -> t1, LinkedHashMap::new));
+    }
+
+    /**
+     * Extracts the relevant columns from {@link RawSpec newRawSpec} by filtering according to the
+     * {@link ColumnFilterMode} and <b>skipEmptyColumns</b> configuration.
+     *
+     * @param newRawSpec the new {@link RawSpec}
+     * @param colFilterMode the {@link ColumnFilterMode}
+     * @param skipEmptyColumns {@code true} if empty columns should be skipped
+     * @return a {@link LinkedHashMap} of the relevant columns by their name
+     */
+    private LinkedHashMap<String, TypedReaderColumnSpec<T>> findRelevantColumns(final RawSpec<T> newRawSpec,
+        final ColumnFilterMode colFilterMode, final boolean skipEmptyColumns) {
+        Stream<TypedReaderColumnSpec<T>> colStream = colFilterMode.getRelevantSpec(newRawSpec).stream();
+        if (skipEmptyColumns) {
+            colStream = colStream.filter(TypedReaderColumnSpec::hasType);
+        }
+        return colStream.collect(//
+            toMap(MultiTableUtils::getNameAfterInit, //
+                Function.identity(), //
+                (c1, c2) -> c1, // never used because the spec doesn't contain duplicates
+                LinkedHashMap::new));
     }
 
     private int calculateNewPosForUnknown(final Collection<ColumnTransformation<T>> relevantTransformations,
@@ -193,8 +228,7 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
     }
 
     @Override
-    public TableTransformation<T> createNew(final RawSpec<T> rawSpec,
-        final MultiTableReadConfig<?, ?> config) {
+    public TableTransformation<T> createNew(final RawSpec<T> rawSpec, final MultiTableReadConfig<?, ?> config) {
         // there is no TableSpecConfig (e.g. when the dialog was saved with a then invalid path)
         // so we need to fallback to the old SpecMergeMode if available or default to UNION
         @SuppressWarnings("deprecation")

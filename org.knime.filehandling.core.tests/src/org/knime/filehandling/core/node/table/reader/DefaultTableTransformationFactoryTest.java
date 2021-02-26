@@ -49,22 +49,24 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.checkTransformation;
 import static org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec.createWithName;
+import static org.knime.filehandling.core.node.table.reader.util.MultiTableUtils.getNameAfterInit;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.LongCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
@@ -144,27 +146,39 @@ public class DefaultTableTransformationFactoryTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testDontEnforceTypes() {
-        TypedReaderTableSpec<String> hansByHimself = createTableSpec(HANS);
-        TypedReaderColumnSpec<String> hansWithDifferentType = createColSpec("hans", SIEGFRIEDA);
-        TypedReaderTableSpec<String> newHansByHimself = createTableSpec(hansWithDifferentType);
-        RawSpec<String> newRawSpec = new RawSpec<>(newHansByHimself, newHansByHimself);
+        TypedReaderColumnSpec<String> a = createColSpec("A", "X");
+        TypedReaderColumnSpec<String> aWithDifferentType = createColSpec("A", "Y");
+        final TableTransformation<String> configuredTransformation = new TableTransformationMocker()//
+            .addTransformation(a, true)//
+            .withEnforceTypes(false)//
+            .mock();
+        ProductionPath alternativeProdPath = mockProductionPath(IntCell.TYPE);
+        when(m_prodPathProvider.getDefaultProductionPath("Y")).thenReturn(alternativeProdPath);
 
-        ProductionPath oldHansPath = mockProductionPath(DoubleCell.TYPE);
-        ColumnTransformation<String> hansTrans = mockTransformation(HANS, "hans", oldHansPath, 0, true);
-        when(m_configuredTransformationModel.getTransformation(HANS)).thenReturn(hansTrans);
-        when(m_configuredTransformationModel.getColumnFilterMode()).thenReturn(ColumnFilterMode.UNION);
-        when(m_configuredTransformationModel.getRawSpec()).thenReturn(new RawSpec<>(hansByHimself, hansByHimself));
-        final ProductionPath siegfriedaProdPath = mockProductionPath(IntCell.TYPE);
-        when(m_prodPathProvider.getDefaultProductionPath(SIEGFRIEDA)).thenReturn(siegfriedaProdPath);
+        final RawSpec<String> newRawSpec = new RawSpecBuilder<String>().addColumn(aWithDifferentType, true).build();
+        final TableTransformation<String> result =
+            m_testInstance.createFromExisting(newRawSpec, m_config, configuredTransformation);
+        assertEquals(alternativeProdPath, result.getTransformation(aWithDifferentType).getProductionPath());
+    }
 
-        TableTransformation<String> result =
-            m_testInstance.createFromExisting(newRawSpec, m_configuredTransformationModel);
+    @Test
+    public void testEnforceTypesKeepsTypeForNewlyEmptyColumns() {
+        TypedReaderColumnSpec<String> a = createColSpec("A", "X");
+        TableTransformationMocker mocker = new TableTransformationMocker()//
+            .addTransformation(a, true)//
+            .withEnforceTypes(true);
+        final TableTransformation<String> configuredTransformation = mocker//
+            .mock();
+        final TypedReaderColumnSpec<String> emptyA = TypedReaderColumnSpec.createWithName("A", "Y", false);
+        final RawSpec<String> newRawSpec = new RawSpecBuilder<String>().addColumn(emptyA, true).build();
 
-        checkTransformation(result.getTransformation(hansWithDifferentType), hansWithDifferentType, "hans",
-            siegfriedaProdPath, 0, true);
+        final TableTransformation<String> result =
+            m_testInstance.createFromExisting(newRawSpec, m_config, configuredTransformation);
+
+        assertEquals(mocker.getTransformation(0).getProductionPath(),
+            result.getTransformation(emptyA).getProductionPath());
     }
 
     @Test
@@ -177,31 +191,200 @@ public class DefaultTableTransformationFactoryTest {
         testEnforceTypes(false);
     }
 
-    @SuppressWarnings("unchecked")
     private void testEnforceTypes(final boolean alternativePathAvailable) {
-        final TypedReaderTableSpec<String> configured = createTableSpec(HANS);
-        TypedReaderColumnSpec<String> hansWithDifferentType = createColSpec("hans", SIEGFRIEDA);
-        final TypedReaderTableSpec<String> newSpec = createTableSpec(hansWithDifferentType);
-        final RawSpec<String> newRawSpec = new RawSpec<>(newSpec, newSpec);
-        when(m_configuredTransformationModel.enforceTypes()).thenReturn(true);
-        final ProductionPath elsaProdPath = mockProductionPath(LongCell.TYPE);
+        final TypedReaderColumnSpec<String> a = createColSpec("A", "X");
+        final TableTransformation<String> configuredTransformation = new TableTransformationMocker()//
+            .withEnforceTypes(true)//
+            .addTransformation(a, true)//
+            .mock();
+        final TypedReaderColumnSpec<String> aWithDifferentType = createColSpec("A", "Y");
+        final RawSpec<String> newRawSpec = new RawSpecBuilder<String>().addColumn(aWithDifferentType, true).build();
 
-        ColumnTransformation<String> hansTrans = mockTransformation(HANS, "hans", elsaProdPath, 0, true);
-        when(m_configuredTransformationModel.getTransformation(HANS)).thenReturn(hansTrans);
-        when(m_configuredTransformationModel.getColumnFilterMode()).thenReturn(ColumnFilterMode.UNION);
-        when(m_configuredTransformationModel.getRawSpec()).thenReturn(new RawSpec<>(configured, configured));
-
-        final ProductionPath siegfriedaProdPath = mockProductionPath(IntCell.TYPE);
-        List<ProductionPath> availablePaths = new ArrayList<>(asList(siegfriedaProdPath));
+        final ProductionPath intPath = mockProductionPath(IntCell.TYPE);
+        List<ProductionPath> availablePaths = new ArrayList<>(asList(intPath));
+        ProductionPath alternateStringPath = null;
         if (alternativePathAvailable) {
-            availablePaths.add(elsaProdPath);
+            alternateStringPath = mockProductionPath(StringCell.TYPE);
+            availablePaths.add(alternateStringPath);
         }
-        when(m_prodPathProvider.getAvailableProductionPaths(SIEGFRIEDA)).thenReturn(availablePaths);
+        when(m_prodPathProvider.getAvailableProductionPaths("Y")).thenReturn(availablePaths);
 
         TableTransformation<String> result =
-            m_testInstance.createFromExisting(newRawSpec, m_configuredTransformationModel);
-        checkTransformation(result.getTransformation(hansWithDifferentType), hansWithDifferentType, "hans",
-            elsaProdPath, 0, true);
+            m_testInstance.createFromExisting(newRawSpec, m_config, configuredTransformation);
+
+        assertEquals(alternateStringPath, result.getTransformation(aWithDifferentType).getProductionPath());
+    }
+
+    @Test
+    public void testColumnMovesOutOfIntersection() {
+        final TypedReaderColumnSpec<String> a = createColSpec("A", "X");
+        final TypedReaderColumnSpec<String> b = createColSpec("B", "Y");
+        final TypedReaderColumnSpec<String> c = createColSpec("C", "Z");
+        final TypedReaderColumnSpec<String> d = createColSpec("D", "X");
+
+        final TableTransformation<String> configuredTransformation = new TableTransformationMocker()//
+            .withColumnFilterMode(ColumnFilterMode.INTERSECTION)//
+            .withKeepUnknowns(true)//
+            .withUnknownPos(1)//
+            .addTransformation(a, false)//
+            .addTransformation(b, true)//
+            .addTransformation(c, true)//
+            .addTransformation(d, false)//
+            .mock();
+
+        final RawSpec<String> newRawSpec = new RawSpecBuilder<String>()//
+            .addColumn(a, false)//
+            .addColumn(b, true)//
+            .addColumn(c, false)// c moves out of the intersection
+            .addColumn(d, false)//
+            .build();
+
+        TableTransformation<String> result =
+            m_testInstance.createFromExisting(newRawSpec, m_config, configuredTransformation);
+
+        assertEquals(0, result.getTransformation(a).getPosition());
+        // c and d are not part of the output i.e. their position doesn't really matter
+        // we thus insert them at the unknown column position
+        assertEquals(1, result.getTransformation(c).getPosition());
+        assertEquals(2, result.getTransformation(d).getPosition());
+        assertEquals(3, result.getTransformation(b).getPosition());
+    }
+
+    @Test
+    public void testSkipNewlyEmptyColumn() throws Exception {
+        TypedReaderColumnSpec<String> a = createColSpec("A", "X");
+        TypedReaderColumnSpec<String> b = createColSpec("B", "Y");
+        TableTransformation<String> configuredTransformation = new TableTransformationMocker()//
+            .withSkipEmptyColumns(true)//
+            .withUnknownPos(2)//
+            .addTransformation(a, true)//
+            .addTransformation(b, true)//
+            .mock();
+        TypedReaderColumnSpec<String> emptyA = TypedReaderColumnSpec.createWithName("A", "X", false);
+        when(m_config.skipEmptyColumns()).thenReturn(true);
+        RawSpec<String> newRawSpec = new RawSpecBuilder<String>().addColumn(emptyA, true).addColumn(b, true).build();
+        TableTransformation<String> result =
+            m_testInstance.createFromExisting(newRawSpec, m_config, configuredTransformation);
+        assertEquals(0, result.getTransformation(b).getPosition());
+        assertEquals(1, result.getTransformation(emptyA).getPosition());
+    }
+
+    @Test
+    public void testSkipEmptyIsSwitchedOffByFlowVariable() {
+        final TypedReaderColumnSpec<String> a = createColSpec("a", "X");
+        final TypedReaderColumnSpec<String> b = TypedReaderColumnSpec.createWithName("b", "X", false);
+        final TypedReaderColumnSpec<String> c = createColSpec("c", "X");
+
+        final TableTransformation<String> configuredTransformation = new TableTransformationMocker()//
+            .withSkipEmptyColumns(true)//
+            .withKeepUnknowns(true)//
+            .withUnknownPos(3)//
+            .addTransformation(a, true)//
+            .addTransformation(b, true)//
+            .addTransformation(c, true)//
+            .mock();
+
+        // simulate skipEmptyColumns being switched off via flow variable
+        when(m_config.skipEmptyColumns()).thenReturn(false);
+
+        final TableTransformation<String> result = m_testInstance
+            .createFromExisting(configuredTransformation.getRawSpec(), m_config, configuredTransformation);
+
+        final ColumnTransformation<String> bTrans = result.getTransformation(b);
+        // b used to be filtered and should thus be treated as unknown
+        // the unknown position is 2 instead of the stored 3 because there are only two "known" columns
+        assertEquals(2, bTrans.getPosition());
+    }
+
+    private static class TableTransformationMocker {
+        private final List<TypedReaderColumnSpec<String>> m_columns = new ArrayList<>();
+
+        private final List<ColumnTransformation<String>> m_transformations = new ArrayList<>();
+
+        private final RawSpecBuilder<String> m_rawSpecBuilder = new RawSpecBuilder<>();
+
+        private ColumnFilterMode m_columnFilterMode = ColumnFilterMode.UNION;
+
+        private int m_unknownColPos = 0;
+
+        private boolean m_enforceTypes = false;
+
+        private boolean m_keepUnknowns;
+
+        private boolean m_skipEmptyColumns = false;
+
+        TableTransformationMocker withColumnFilterMode(final ColumnFilterMode columnFilterMode) {
+            m_columnFilterMode = columnFilterMode;
+            return this;
+        }
+
+        TableTransformationMocker addTransformation(final TypedReaderColumnSpec<String> column, final String name,
+            final DataType destinationType, final int position, final boolean keep, final boolean isInIntersection) {
+            m_rawSpecBuilder.addColumn(column, isInIntersection);
+            m_columns.add(column);
+            final ProductionPath path = mockProductionPath(destinationType);
+            m_transformations.add(mockTransformation(column, name, path, position, keep));
+            return this;
+        }
+
+        TableTransformationMocker addTransformation(final TypedReaderColumnSpec<String> column,
+            final boolean isInIntersection) {
+            return addTransformation(column, getNameAfterInit(column), StringCell.TYPE, m_columns.size(), true,
+                isInIntersection);
+        }
+
+        TableTransformationMocker withUnknownPos(final int pos) {
+            m_unknownColPos = pos;
+            return this;
+        }
+
+        TableTransformationMocker withSkipEmptyColumns(final boolean skipEmptyColumns) {
+            m_skipEmptyColumns = skipEmptyColumns;
+            return this;
+        }
+
+        TableTransformationMocker withKeepUnknowns(final boolean keepUnknowns) {
+            m_keepUnknowns = keepUnknowns;
+            return this;
+        }
+
+        TableTransformationMocker withEnforceTypes(final boolean enforceTypes) {
+            m_enforceTypes = enforceTypes;
+            return this;
+        }
+
+        ColumnTransformation<String> getTransformation(final int i) {
+            return m_transformations.get(i);
+        }
+
+        TableTransformation<String> mock() {
+            @SuppressWarnings("unchecked")
+            final TableTransformation<String> mock = Mockito.mock(TableTransformation.class);
+            when(mock.getColumnFilterMode()).thenReturn(m_columnFilterMode);
+            when(mock.getPositionForUnknownColumns()).thenReturn(m_unknownColPos);
+            when(mock.keepUnknownColumns()).thenReturn(m_keepUnknowns);
+            when(mock.getRawSpec()).thenReturn(m_rawSpecBuilder.build());
+            when(mock.enforceTypes()).thenReturn(m_enforceTypes);
+            when(mock.skipEmptyColumns()).thenReturn(m_skipEmptyColumns);
+            Iterator<TypedReaderColumnSpec<String>> colIterator = m_columns.iterator();
+            Iterator<ColumnTransformation<String>> transIterator = m_transformations.iterator();
+            while (colIterator.hasNext()) {
+                TypedReaderColumnSpec<String> col = colIterator.next();
+                ColumnTransformation<String> trans = transIterator.next();
+                when(trans.compareTo(any())).thenAnswer(invocation -> {
+                    final ColumnTransformation<?> other = invocation.getArgument(0);
+                    return Integer.compare(trans.getPosition(), other.getPosition());
+                });
+                when(mock.getTransformation(col)).thenReturn(trans);
+            }
+            return mock;
+        }
+    }
+
+    private static ProductionPath mockProductionPath(final DataType destinationType) {
+        ProductionPath prodPath = TRFTestingUtils.mockProductionPath();
+        when(prodPath.getConverterFactory().getDestinationType()).thenReturn(destinationType);
+        return prodPath;
     }
 
     @Test
@@ -215,21 +398,13 @@ public class DefaultTableTransformationFactoryTest {
         }
     }
 
-    private static ProductionPath mockProductionPath(final DataType destinationType) {
-        ProductionPath prodPath = TRFTestingUtils.mockProductionPath();
-        when(prodPath.getConverterFactory().getDestinationType()).thenReturn(destinationType);
-        return prodPath;
-    }
-
     private class CreateFromConfiguredTester {
-
-        ProductionPath m_hansProdPath = mockProductionPath(IntCell.TYPE);
 
         ProductionPath m_newHansProdPath = mockProductionPath(IntCell.TYPE);
 
-        ProductionPath m_rudigerProdPath = mockProductionPath(IntCell.TYPE);
-
         ProductionPath m_ulfProdPath = mockProductionPath(IntCell.TYPE);
+
+        private TableTransformationMocker m_transformationMocker;
 
         private ColumnFilterMode m_colFilterMode;
 
@@ -242,9 +417,8 @@ public class DefaultTableTransformationFactoryTest {
         void test(final ColumnFilterMode colFilterMode, final boolean keepUnknown, final int unknownPos) {
             assignTestParameters(colFilterMode, keepUnknown, unknownPos);
             setup();
-            @SuppressWarnings("unchecked")
             final TableTransformation<String> transformationModel =
-                    m_testInstance.createFromExisting(RAW_SPEC, m_configuredTransformationModel);
+                m_testInstance.createFromExisting(RAW_SPEC, m_config, m_transformationMocker.mock());
             evaluate(transformationModel);
         }
 
@@ -258,26 +432,18 @@ public class DefaultTableTransformationFactoryTest {
 
         private void setup() {
             setupConfig(true);
-            setupConfiguredTableTransformation();
             setupProductionPathProvider();
+            setupConfiguredTableTransformation();
         }
 
-        @SuppressWarnings("unchecked")
         private void setupConfiguredTableTransformation() {
             TypedReaderColumnSpec<String> configuredHans = createColSpec("hans", SIEGFRIEDA);
-
-            TypedReaderTableSpec<String> oldUnion = createTableSpec(configuredHans, RUDIGER);
-            final RawSpec<String> oldRawSpec = new RawSpec<>(oldUnion, oldUnion);
-            ColumnTransformation<String> hansTrans = mockTransformation(configuredHans, "franz", m_hansProdPath, 1, true);
-            ColumnTransformation<String> rudigerTrans = mockTransformation(RUDIGER, "sepp", m_rudigerProdPath, 0, true);
-            when(rudigerTrans.compareTo(hansTrans)).thenReturn(-1);
-            when(m_configuredTransformationModel.stream()).thenReturn(Stream.of(hansTrans, rudigerTrans));
-            when(m_configuredTransformationModel.keepUnknownColumns()).thenReturn(m_keepUnknown);
-            when(m_configuredTransformationModel.getColumnFilterMode()).thenReturn(m_colFilterMode);
-            when(m_configuredTransformationModel.getPositionForUnknownColumns()).thenReturn(m_unknownPos);
-            when(m_configuredTransformationModel.getRawSpec()).thenReturn(oldRawSpec);
-            when(m_configuredTransformationModel.getTransformation(configuredHans)).thenReturn(hansTrans);
-            when(m_configuredTransformationModel.getTransformation(RUDIGER)).thenReturn(rudigerTrans);
+            m_transformationMocker = new TableTransformationMocker()//
+                .withKeepUnknowns(m_keepUnknown)//
+                .withColumnFilterMode(m_colFilterMode)//
+                .withUnknownPos(m_unknownPos)//
+                .addTransformation(configuredHans, "franz", IntCell.TYPE, 1, true, true)//
+                .addTransformation(RUDIGER, "sepp", IntCell.TYPE, 0, true, true);
         }
 
         private void setupProductionPathProvider() {
@@ -288,20 +454,14 @@ public class DefaultTableTransformationFactoryTest {
         }
 
         private void evaluate(final TableTransformation<String> transformationModel) {
-
             final int actualUnknownPos = findActualUnknownPos();
-
             int hansPos = findHansPos(actualUnknownPos);
-
             String hansName = findHansName();
-
             checkTransformation(transformationModel.getTransformation(HANS), HANS, hansName, m_newHansProdPath, hansPos,
                 m_isUnion || m_keepUnknown);
-
             int seppPos = findSeppPos();
-
-            checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "sepp", m_rudigerProdPath, seppPos,
-                true);
+            checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "sepp",
+                m_transformationMocker.getTransformation(1).getProductionPath(), seppPos, true);
             checkTransformation(transformationModel.getTransformation(ULF), ULF, "ulf", m_ulfProdPath,
                 m_isUnion ? actualUnknownPos : (actualUnknownPos + 1), m_keepUnknown);
         }
@@ -319,15 +479,13 @@ public class DefaultTableTransformationFactoryTest {
         }
 
         private String findHansName() {
-            String hansName;
             if (m_isUnion) {
                 // we keep the stored transformation
-                hansName = "franz";
+                return "franz";
             } else {
                 // hans is considered to be new because it isn't in the intersection
-                hansName = "hans";
+                return "hans";
             }
-            return hansName;
         }
 
         private int findHansPos(final int actualUnknownPos) {

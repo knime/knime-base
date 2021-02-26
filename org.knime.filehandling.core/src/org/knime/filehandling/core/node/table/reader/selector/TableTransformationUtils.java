@@ -126,12 +126,21 @@ public final class TableTransformationUtils {
         return candidates.stream().map(tableTransformation::getTransformation);
     }
 
-
     private static DataColumnSpec toDataColumnSpec(final ColumnTransformation<?> transformation) {
         final DataType type = transformation.getProductionPath().getConverterFactory().getDestinationType();
         return new DataColumnSpecCreator(transformation.getName(), type).createSpec();
     }
 
+    /**
+     * Creates a {@link Stream} of the {@link ColumnTransformation ColumnTransformations} in the output.<br>
+     * Filters according to {@link ColumnFilterMode}, {@link ColumnTransformation#keep()} and
+     * {@link TableTransformation#skipEmptyColumns()}.
+     *
+     * @param <T> the type used to identify external data types
+     * @param transformationModel the {@link TableTransformation} from which to extract the {@link ColumnTransformation
+     *            ColumnTransformations}
+     * @return a {@link Stream} of the columns in the output
+     */
     private static <T> Stream<ColumnTransformation<T>>
         getOutputTransformationStream(final TableTransformation<T> transformationModel) {
         Stream<ColumnTransformation<T>> stream = getCandidates(transformationModel).filter(ColumnTransformation::keep);
