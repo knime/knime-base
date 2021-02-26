@@ -164,8 +164,8 @@ public final class TransformationMatrix {
             realEigenVals = eigenDecomp::getRealEigenvalues;
             getEigenvector = eigenDecomp::getEigenvector;
         } catch (final MaxCountExceededException | MathArithmeticException e) {
-            LOGGER.debug(e);
             // math.commons has problems in some cases so we use jama as fallback see AP-13058
+            LOGGER.debug("Eigen decomposition failed (commons.math3)." , e);
             final EigenvalueDecomposition jama = new EigenvalueDecomposition(new Matrix(matrix.getData()));
             realEigenVals = jama::getRealEigenvalues;
             final double[][] eVecs = jama.getV().transpose().getArray();

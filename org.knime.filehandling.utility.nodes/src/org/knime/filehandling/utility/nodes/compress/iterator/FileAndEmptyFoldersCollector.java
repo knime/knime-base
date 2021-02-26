@@ -85,7 +85,7 @@ final class FileAndEmptyFoldersCollector extends SimpleFileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
         m_paths.add((FSPath)file);
         m_empty = false;
         return FileVisitResult.CONTINUE;

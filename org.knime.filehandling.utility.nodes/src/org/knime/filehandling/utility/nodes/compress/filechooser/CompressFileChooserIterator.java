@@ -124,7 +124,7 @@ final class CompressFileChooserIterator implements CompressIterator {
                 }
 
                 @Override
-                public List<FSPath> getPaths() throws IOException {
+                public List<FSPath> getPaths() {
                     return m_paths;
                 }
             };

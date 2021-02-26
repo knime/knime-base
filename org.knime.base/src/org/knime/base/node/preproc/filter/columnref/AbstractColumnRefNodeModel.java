@@ -222,10 +222,10 @@ public class AbstractColumnRefNodeModel extends NodeModel {
             } else {
                 if (!filterSpec.containsName(name)) {
                     removeFromTable1.add(name);
-                } else if (requiresRemoval(filterSpec, cspec, name)) {
-                    removeFromTable2.add(name);
-                } else {
+                } else if (!requiresRemoval(filterSpec, cspec, name)) {
                     removeFromTable1.add(name);
+                } else if(m_isSplitter) {
+                    removeFromTable2.add(name);
                 }
             }
         }

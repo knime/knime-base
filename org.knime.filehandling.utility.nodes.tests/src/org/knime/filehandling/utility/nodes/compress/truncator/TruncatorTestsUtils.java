@@ -67,7 +67,7 @@ final class TruncatorTestsUtils {
     }
 
     static Path createPath(final String first, final String... string) {
-        return Paths.get(first, string);
+        return Paths.get(first, string); //NOSONAR internal use only
     }
 
     static Path append(final Path base, final String... toAppend) {

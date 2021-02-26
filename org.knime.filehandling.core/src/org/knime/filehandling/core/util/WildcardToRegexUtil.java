@@ -95,7 +95,7 @@ public final class WildcardToRegexUtil {
                     break;
                 case '\\':
                     if (!enableEscaping) {
-                        buf.append("\\");
+                        buf.append('\\');
                     }
                     buf.append(c);
                     break;

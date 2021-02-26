@@ -320,7 +320,7 @@ public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeCo
         final Map<String, String> createdEntries, final FSPath pathToCompress, final String entryName)
         throws IOException {
         if (!createdEntries.containsKey(entryName)) {
-            final ArchiveEntry archiveEntry = entryCreator.apply(pathToCompress, entryName);
+            final ArchiveEntry archiveEntry = entryCreator.apply(pathToCompress, entryName); //NOSONAR no expansion
             createArchiveEntry(archiveStream, pathToCompress, archiveEntry);
         } else {
             throw new IllegalArgumentException(
@@ -330,7 +330,7 @@ public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeCo
     }
 
     private static void createArchiveEntry(final ArchiveOutputStream archiveStream, final Path fileToCompress,
-        final ArchiveEntry archiveEntry) throws IOException {
+        final ArchiveEntry archiveEntry) throws IOException { //NOSONAR no entry expansion
         archiveStream.putArchiveEntry(archiveEntry);
         try {
             if (!archiveEntry.isDirectory()) {
