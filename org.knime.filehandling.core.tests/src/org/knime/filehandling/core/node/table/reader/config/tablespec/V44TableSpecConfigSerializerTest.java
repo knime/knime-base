@@ -121,6 +121,7 @@ public class V44TableSpecConfigSerializerTest {
             .withKeepUnknown(false)//
             .withPositions(1, 2, 0)//
             .withKeep(false, true, true)//
+            .withSkipEmptyColumns(true)//
             .withColumnFilterMode(ColumnFilterMode.INTERSECTION)//
             .build();
         final NodeSettings settings = new NodeSettings("test");
@@ -140,8 +141,8 @@ public class V44TableSpecConfigSerializerTest {
         TypedReaderTableSpecSerializerTest.fillSettings(
             expectedIndividualSettings.addNodeSettings(TableSpecConfigTestingUtils.PATH2),
             TableSpecConfigTestingUtils.SPEC2);
-        TableTransformationSerializerTest.fillSettings(expected.addNodeSettings("table_transformation"), false, 3, true,
-            ColumnFilterMode.INTERSECTION, config.getTableTransformation().stream().collect(toList()));
+        TableTransformationSerializerTest.fillSettings(expected.addNodeSettings("table_transformation"), false, true, 3,
+            true, ColumnFilterMode.INTERSECTION, config.getTableTransformation().stream().collect(toList()));
         return expected;
     }
 
@@ -193,7 +194,7 @@ public class V44TableSpecConfigSerializerTest {
         stubForLoading(builder);
 
         final TableSpecConfig<String> loaded = m_testInstance.load(settings,
-            TableSpecConfigSerializer.AdditionalParameters.create().withSkipEmptyColumns(true));
+            TableSpecConfigSerializer.AdditionalParameters.create());
 
         assertEquals(config, loaded);
     }

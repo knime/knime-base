@@ -103,24 +103,18 @@ final class V44TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
     @Override
     public TableSpecConfig<T> load(final NodeSettingsRO settings, final AdditionalParameters additionalParameters)
         throws InvalidSettingsException {
-        final boolean skipEmptyColumns = additionalParameters.skipEmptyColumns();
-        return load(settings, skipEmptyColumns);
-    }
-
-    private TableSpecConfig<T> load(final NodeSettingsRO settings, final boolean skipEmptyColumns)
-        throws InvalidSettingsException {
-        final TableTransformation<T> tableTransformation =
-            m_tableTransformationSerializer.load(settings.getNodeSettings(CFG_TABLE_TRANSFORMATION), skipEmptyColumns);
-        final LinkedHashMap<String, TypedReaderTableSpec<T>> individualSpecs =
-            loadIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS));
-        final String sourceGroupID = settings.getString(CFG_SOURCE_GROUP_ID);
-        final ConfigID configID = m_configIDSerializer.loadID(settings);
-        return new DefaultTableSpecConfig<>(sourceGroupID, configID, individualSpecs, tableTransformation);
+        return load(settings);
     }
 
     @Override
     public TableSpecConfig<T> load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return load(settings, false);
+        final TableTransformation<T> tableTransformation =
+                m_tableTransformationSerializer.load(settings.getNodeSettings(CFG_TABLE_TRANSFORMATION));
+            final LinkedHashMap<String, TypedReaderTableSpec<T>> individualSpecs =
+                loadIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS));
+            final String sourceGroupID = settings.getString(CFG_SOURCE_GROUP_ID);
+            final ConfigID configID = m_configIDSerializer.loadID(settings);
+            return new DefaultTableSpecConfig<>(sourceGroupID, configID, individualSpecs, tableTransformation);
     }
 
     private LinkedHashMap<String, TypedReaderTableSpec<T>> loadIndividualSpecs(final NodeSettingsRO settings)

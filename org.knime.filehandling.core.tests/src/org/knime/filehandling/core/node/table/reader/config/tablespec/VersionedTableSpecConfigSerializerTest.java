@@ -123,8 +123,7 @@ public class VersionedTableSpecConfigSerializerTest {
     public void testLoad42() throws InvalidSettingsException {
         NodeSettings settings = new NodeSettings("test");
         final AdditionalParameters params = TableSpecConfigSerializer.AdditionalParameters.create()//
-            .withColumnFilterMode(ColumnFilterMode.INTERSECTION)//
-            .withSkipEmptyColumns(true);
+            .withColumnFilterMode(ColumnFilterMode.INTERSECTION);
         m_testInstance.load(settings, params);
         verify(m_v42Serializer).load(settings, params);
     }

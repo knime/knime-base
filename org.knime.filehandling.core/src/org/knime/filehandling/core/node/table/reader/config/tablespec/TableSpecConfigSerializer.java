@@ -171,8 +171,6 @@ public interface TableSpecConfigSerializer<T> extends NodeSettingsSerializer<Tab
      */
     static final class AdditionalParameters {
 
-        private boolean m_skipEmptyColumns = false;
-
         private ColumnFilterMode m_columnFilterMode = null;
 
         private AdditionalParameters() {
@@ -182,23 +180,8 @@ public interface TableSpecConfigSerializer<T> extends NodeSettingsSerializer<Tab
             return new AdditionalParameters();
         }
 
-        boolean skipEmptyColumns() {
-            return m_skipEmptyColumns;
-        }
-
         Optional<ColumnFilterMode> getColumnFilterMode() {
             return Optional.ofNullable(m_columnFilterMode);
-        }
-
-        /**
-         * Sets the skip empty columns option to the provided value.
-         *
-         * @param skipEmptyColumns {@code true if empty columns should be skipped}
-         * @return this builder
-         */
-        public AdditionalParameters withSkipEmptyColumns(final boolean skipEmptyColumns) {
-            m_skipEmptyColumns = skipEmptyColumns;
-            return this;
         }
 
         /**

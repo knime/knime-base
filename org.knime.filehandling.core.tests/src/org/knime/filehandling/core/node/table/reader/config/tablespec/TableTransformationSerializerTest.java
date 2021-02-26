@@ -121,11 +121,11 @@ public class TableTransformationSerializerTest {
         m_testInstance.save(tableTransformation, saved);
 
         final NodeSettings expected = new NodeSettings("test");
-        fillSettings(expected, true, 1, true, ColumnFilterMode.INTERSECTION, transformations);
+        fillSettings(expected, true, true, 1, true, ColumnFilterMode.INTERSECTION, transformations);
         assertEquals(expected, saved);
     }
 
-    static void fillSettings(final NodeSettingsWO settings, final boolean keepUnknown, final int positionForUnknown,
+    static void fillSettings(final NodeSettingsWO settings, final boolean keepUnknown, final boolean skipEmptyColumns, final int positionForUnknown,
         final boolean enforceTypes, final ColumnFilterMode columnFilterMode,
         final List<? extends ColumnTransformation<String>> transformations) {
         final NodeSettingsWO columnsSettings = settings.addNodeSettings("columns");
@@ -139,6 +139,7 @@ public class TableTransformationSerializerTest {
                 colTransformation.getExternalSpec().hasType());
         }
         settings.addBoolean("keep_unknown", keepUnknown);
+        settings.addBoolean("skip_empty_columns", skipEmptyColumns);
         settings.addInt("position_for_unknown", positionForUnknown);
         settings.addBoolean("enforce_types", enforceTypes);
         settings.addString("column_filter_mode", columnFilterMode.name());
@@ -161,9 +162,9 @@ public class TableTransformationSerializerTest {
             new ImmutableColumnTransformation<>(TableSpecConfigTestingUtils.COL3, productionPaths[2], false, 0, "baz");
         final List<ImmutableColumnTransformation<String>> transformations = Arrays.asList(trans1, trans2, trans3);
         final NodeSettings settings = new NodeSettings("test");
-        fillSettings(settings, false, 2, false, ColumnFilterMode.UNION, transformations);
+        fillSettings(settings, false, true, 2, false, ColumnFilterMode.UNION, transformations);
         stubForLoading(productionPaths);
-        final TableTransformation<String> loaded = m_testInstance.load(settings, true);
+        final TableTransformation<String> loaded = m_testInstance.load(settings);
         final TableTransformation<String> expected = new ImmutableTableTransformation<>(transformations, RAW_SPEC,
             ColumnFilterMode.UNION, 2, false, false, true);
         assertEquals(loaded, expected);
@@ -202,7 +203,7 @@ public class TableTransformationSerializerTest {
 
         stubForLoading(productionPaths);
 
-        final TableTransformation<String> loaded = m_testInstance.load(settings, false);
+        final TableTransformation<String> loaded = m_testInstance.load(settings);
         assertEquals(saved, loaded);
 
     }
