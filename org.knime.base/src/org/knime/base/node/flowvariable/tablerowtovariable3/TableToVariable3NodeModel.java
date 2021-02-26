@@ -49,11 +49,14 @@ package org.knime.base.node.flowvariable.tablerowtovariable3;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
@@ -98,6 +101,7 @@ import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.util.UniqueNameGenerator;
 
 /**
  * The node model for the table row to variable node.
@@ -237,43 +241,37 @@ public class TableToVariable3NodeModel extends NodeModel {
         final String rowIDVarName = "RowID";
         pushFlowVariableString(rowIDVarName, rowKey == null ? "" : rowKey);
         // column names starting with "knime." are uniquified as they represent global constants
-        final Set<String> variableNames = new HashSet<>();
-        variableNames.add(rowIDVarName);
+        final UniqueNameGenerator variableNameGenerator = new UniqueNameGenerator(Collections.singleton(rowIDVarName));
+
+        // temporarily memorize the new variables, push them in reverse order later
+        // (loop below can't be reversed due to name clash handling)
+        final Deque<FlowVariable> varsToPush = new ArrayDeque<>();
 
         // push the selected cells
-        for (int i = selectedColumns.length - 1; i >= 0; i--) {
+        for (int i = 0; i < selectedColumns.length; i++) {
             final String selectedColumnName = selectedColumns[i];
             final int colIdx = variablesSpec.findColumnIndex(selectedColumnName);
+            // 'name' to be determined independent of whether value is missing (name clash handling)
+            final String name = variableNameGenerator.newName(getBaseName(colIdx, selectedColumnName));
             if (!row[colIdx].isMissing()) {
                 final DataColumnSpec spec = variablesSpec.getColumnSpec(selectedColumnName);
                 final DataType type = spec.getType();
-                final String name = getUniqueName(variableNames, colIdx, spec);
-                pushVariable(
+                varsToPush.addFirst(
                     CellToVariableConverterFactory.createConverter(type).createFlowVariable(name, row[colIdx]));
             }
         }
+
+        // push in reverse order to retain order
+        // ("TableRow to Variable" -> "Variable to TableRow" should restore the same table)
+        for (final FlowVariable fv : varsToPush) { // API iterates from first to last (= stack)
+            pushVariable(fv);
+        }
     }
 
-    private static String getUniqueName(final Set<String> variableNames, final int colIdx, final DataColumnSpec spec) {
-        final String basename = getBaseName(colIdx, spec);
-        int uniquifier = 1;
-        String name = basename;
-        while (!variableNames.add(basename)) {
-            name = basename + "(#" + (uniquifier) + ")";
-            uniquifier++;
-        }
-        return name;
-    }
-
-    private static String getBaseName(final int colIdx, final DataColumnSpec spec) {
-        final String name = spec.getName();
-        if (name.equals("knime.")) {
-            return "column_" + colIdx;
-        } else if (name.startsWith("knime.")) {
-            return name.substring("knime.".length());
-        } else {
-            return name;
-        }
+    private static String getBaseName(final int colIdx, final String name) {
+        // remove (multiple) occurrences of "knime.", if any (disallowed in var identifiers)
+        final String newName = RegExUtils.removeFirst(name, "^(?:knime\\. *)+");
+        return StringUtils.defaultIfEmpty(newName, "column_" + colIdx);
     }
 
     /**
