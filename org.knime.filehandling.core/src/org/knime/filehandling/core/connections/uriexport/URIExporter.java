@@ -155,4 +155,6 @@ public interface URIExporter {
      * @return URIExporterPanel of the URIExporter
      */
     public URIExporterPanel<? extends URIExporter> getPanel(); //NOSONAR rawTypes warning without generic type
+
+    public static final String CFG_URI_EXPORTER_SETTINGS = "uri_exporter_settings";
 }

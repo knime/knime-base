@@ -3,8 +3,12 @@ package org.knime.filehandling.core.connections;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.uriexport.PathURIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
@@ -86,7 +90,8 @@ public interface FSConnection extends AutoCloseable {
     }
 
     /**
-     * Returns a default {@link URIExporter} or {@code null} if there is no {@link URI} representation of this connection.
+     * Returns a default {@link URIExporter} or {@code null} if there is no {@link URI} representation of this
+     * connection.
      *
      * @return default exporter or {@code null}
      */
@@ -101,7 +106,50 @@ public interface FSConnection extends AutoCloseable {
      */
     default Map<URIExporterID, URIExporter> getURIExporters() {
         return new URIExporterMapBuilder() //
-                .add(URIExporterIDs.DEFAULT, PathURIExporter.getInstance()) //
-                .build();
+            .add(URIExporterIDs.DEFAULT, PathURIExporter.getInstance()) //
+            .build();
     }
+
+    /**
+     * Export the relevant Panel for each URIExporter. This panel will contain different settings required to setup
+     * different URIExporters
+     *
+     * @return URIExporterPanel of the URIExporter
+     */
+    default Set<URIExporterID> getURIExporterIDs() {
+        return getURIExporters().keySet();
+    }
+
+    /**
+     * Return the URI Exporter from the URIExporter ID
+     *
+     * @param uriExporterID URIExporterID object for the requested URIExporter
+     *
+     * @return URIExporter A URIExporter object
+     */
+    default URIExporter getURIExporter(final URIExporterID uriExporterID) {
+        return getURIExporters().get(uriExporterID);
+    }
+
+    /**
+     * Return the URI Exporter from the URIExporter ID and load the settings
+     *
+     * @param uriExporterID URIExporterID object for the requested URIExporter
+     * @param settings NodeSettingsRO object to load settings for the URIExporter
+     *
+     * @return URIExporter A URIExporter object
+     * @throws NotConfigurableException Thrown by enclosed in loadSettingsForModel
+     * @throws InvalidSettingsException Thrown by enclosed in validateSettings
+     */
+    default URIExporter getURIExporter(final URIExporterID uriExporterID, final NodeSettingsRO settings)
+        throws NotConfigurableException, InvalidSettingsException {
+        final URIExporter uriExporter = getURIExporters().get(uriExporterID);
+
+        if (settings != null) {
+            uriExporter.validateSettings(settings);
+            uriExporter.loadSettingsForModel(settings);
+        }
+        return uriExporter;
+    }
+
 }
