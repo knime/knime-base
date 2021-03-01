@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="../delete16x16.png" type="Other"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Delete Files/Folders (Table input)</name>
+
+	<shortDescription>
+		Deletes files and folders.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			<p>
+				<i>This node supports the
+				</i>
+				<a
+					href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+					<i>path flow variable.</i>
+				</a>
+				<i> For further information about file handling in general see the
+				</i>
+				<a
+					href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html">
+					<i>File Handling Guide.</i>
+				</a>
+				<br />
+			</p>
+			<p>
+				This nodes deletes files and folders from a Path column. The
+				node
+				has
+				got an optional input port for a File System connection
+				which
+				can
+				be
+				used to delete files and folders on different file
+				systems.
+				<b>Note
+					that if the node is connected to a file system all
+					paths will be
+					resolved against the connected file system. In case the
+					input column
+					contains a path from a connected file system and no
+					filesystem
+					connection is connected, the node will fail during
+					execution.
+				</b>
+			</p>
+		</intro>
+		<option name="Column selection">
+			The Path column that contains the paths which
+			should
+			be deleted.
+		</option>
+		<option name="Abort if delete fails">
+			If this option is checked, the node will abort if
+			one of the files / folders could not be deleted i.e. it could not be
+			accessed. If it is unchecked
+			the output
+			table will contain a column
+			that indicates if a file/folder
+			got
+			successfully deleted or not.
+		</option>
+		<option name="Abort if file does not exist">
+			If this option is checked the node will abort if
+			one of the the files / folders does not exist.
+		</option>
+	</fullDescription>
+	<ports>
+		<inPort index="0" name="Input table">
+			The input table containing a Path
+			column.
+		</inPort>
+		<dynInPort insert-before="0" name="File System Connection"
+			group-identifier="File System Connection">
+			The file system connection.
+		</dynInPort>
+		<outPort name="Output table" index="0">
+			Table containing the list
+			of files/folders that have been deleted, based on abortion options
+			there are additional boolean columns which indicates wheter a
+			deletion was successful or not and if a file existed or not.
+		</outPort>
+	</ports>
+</knimeNode>
