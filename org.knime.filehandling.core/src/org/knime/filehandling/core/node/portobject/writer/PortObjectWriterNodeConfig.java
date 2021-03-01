@@ -47,6 +47,7 @@
 package org.knime.filehandling.core.node.portobject.writer;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.util.CheckUtils;
@@ -136,7 +137,7 @@ public class PortObjectWriterNodeConfig extends PortObjectIONodeConfig<SettingsM
             final FileOverwritePolicy... otherPolicies) {
             CheckUtils.checkArgumentNotNull(defaultPolicy, "The defaultPolicy must not be null.");
             CheckUtils.checkArgumentNotNull(otherPolicies, "The otherPolicies might be empty but never null.");
-            CheckUtils.checkArgument(Arrays.stream(otherPolicies).anyMatch(p -> p == null),
+            CheckUtils.checkArgument(Arrays.stream(otherPolicies).noneMatch(Objects::isNull),
                 "None of the otherPolicies must be null.");
             checkNoNullsInArray(otherPolicies, "otherPolicies");
             m_overwritePolicyConfig = EnumConfig.create(defaultPolicy, otherPolicies);
