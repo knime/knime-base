@@ -52,6 +52,12 @@
             factory-class="org.knime.filehandling.utility.nodes.deletepaths.filechooser.DeleteFilesAndFoldersNodeFactory"
             hidden="false">
       </node>
+	  <node
+            category-path="/io/f-f-util"
+            deprecated="false"
+            factory-class="org.knime.filehandling.utility.nodes.deletepaths.table.DeleteFilesAndFoldersTableNodeFactory"
+            hidden="false">
+      </node>
       <node
             category-path="/io/f-f-util"
             deprecated="false"
