@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filtermode;
 
+import java.util.Optional;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
@@ -242,7 +244,8 @@ public final class SettingsModelFilterMode extends SettingsModel {
         try {
             final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
             final FilterMode loadedFilterMode =
-                FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE, m_filterMode.name()));
+                parseFilterMode(nodeSettings.getString(CFG_FILTER_MODE, m_filterMode.name()))//
+                    .orElse(m_filterMode);
             m_filterMode = m_filterModeConfig.isSupported(loadedFilterMode) ? loadedFilterMode : m_filterMode;
             m_includeSubfolders = nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS, DEFAULT_INCLUDE_SUBFOLDERS);
             m_filterOptionsSettings.loadFromConfigForDialog(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
@@ -266,7 +269,9 @@ public final class SettingsModelFilterMode extends SettingsModel {
         }
         final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
         if (m_supportsMultipleFilterModes) {
-            final FilterMode mode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE));
+            String filterModeString = nodeSettings.getString(CFG_FILTER_MODE);
+            final FilterMode mode =
+                parseFilterMode(filterModeString).orElseThrow(() -> invalidFilterModeString(filterModeString));
             CheckUtils.checkSetting(m_filterModeConfig.isSupported(mode),
                 "The filter mode %s is not supported by this node.", mode);
         }
@@ -283,11 +288,27 @@ public final class SettingsModelFilterMode extends SettingsModel {
         }
         final NodeSettingsRO nodeSettings = settings.getNodeSettings(m_configName);
         if (m_supportsMultipleFilterModes) {
-            m_filterMode = FilterMode.valueOf(nodeSettings.getString(CFG_FILTER_MODE));
+            String filterModeString = nodeSettings.getString(CFG_FILTER_MODE);
+            m_filterMode =
+                parseFilterMode(filterModeString).orElseThrow(() -> invalidFilterModeString(filterModeString));
         }
         if (m_filterOptionsNeeded) {
             m_includeSubfolders = nodeSettings.getBoolean(CFG_INCLUDE_SUBFOLDERS);
             m_filterOptionsSettings.loadFromConfigForModel(nodeSettings.getConfig(CFG_FILTER_OPTIONS));
+        }
+    }
+
+    private static InvalidSettingsException invalidFilterModeString(final String filterModeString) {
+        return new InvalidSettingsException(
+            String.format("The provided string '%s' does not encode a FilterMode.", filterModeString));
+    }
+
+    private static Optional<FilterMode> parseFilterMode(final String filterModeString) {
+        try {
+            return Optional.of(FilterMode.valueOf(filterModeString));
+        } catch (IllegalArgumentException ex) {
+            LOGGER.debug("Couldn't parse FilterMode. Invalid string: " + filterModeString, ex);
+            return Optional.empty();
         }
     }
 
