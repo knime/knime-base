@@ -63,8 +63,6 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
  */
 class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positionable {
 
-    private boolean m_isValid = true;
-
     private final DataColumnSpec m_defaultSpec;
 
     private int m_originalPosition;
@@ -149,10 +147,6 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
         return false;
     }
 
-    boolean isValid() {
-        return m_isValid;
-    }
-
     boolean setName(final String name) {
         if (!Objects.equals(m_name, name)) {
             m_name = name;
@@ -177,10 +171,6 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
         return false;
     }
 
-    void setIsValid(final boolean isValid) {
-        m_isValid = isValid;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[")//
@@ -193,8 +183,6 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
         return sb.append(m_keep)//
             .append(", ")//
             .append(m_positionInOutput)//
-            .append(", ")//
-            .append(m_isValid)//
             .append("]")//
             .toString();
     }
