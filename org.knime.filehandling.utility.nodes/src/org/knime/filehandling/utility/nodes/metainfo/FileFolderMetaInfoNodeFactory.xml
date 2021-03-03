@@ -16,8 +16,8 @@
             </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
             
             <p>
-			This node adds meta information about the files and folders referenced by the selected column. The following 
-			information are covered:
+			This node adds meta information about the files and folders referenced by the selected column. At least the
+			following information are covered:
 			<ul>
 				<li>
 					<i>Directory:</i> 
@@ -55,6 +55,13 @@
 		<option name="Calculate overall folder size">
 			If checked the size of the folder itself plus everything located within this folder is being calculated,
 			otherwise solely the folder's size is being calculated.
+		</option>
+		<option name="Append permissions">
+			If checked the the file/folder permissions, i.e., <i>readable</i>, <i>writable</i>, and <i>executable</i> 
+			flags will be appended to the output.
+			<br/>
+			<i>Note:</i> The meaning of the executable flag with respect to folders is file system depended, e.g., on 
+			UNIX systems this flag is <tt>true</tt> if the JVM has permissions to search the directory.
 		</option>
 	</fullDescription>
 

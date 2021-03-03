@@ -83,6 +83,8 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_calculateOverallFolderSize;
 
+    private final DialogComponentBoolean m_appendPermissions;
+
     FileFolderMetaInfoNodeDialog(final PortsConfiguration portsConfiguration) {
         final ColumnFilter filter = new ColumnFilter() {
             @Override
@@ -103,13 +105,15 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
         m_colSelection
             .setToolTipText("Select the column containing the files/folders whose meta information must be extracted.");
 
-        m_failIfFilePathNotExists =
-            new DialogComponentBoolean(FileFolderMetaInfoNodeModel.createFailIfPathNotExistsSettingsModel(),
-                "Fail if file/folder does not exist");
+        m_failIfFilePathNotExists = new DialogComponentBoolean(
+            FileFolderMetaInfoNodeModel.createFailIfPathNotExistsSettingsModel(), "Fail if file/folder does not exist");
 
         m_calculateOverallFolderSize =
             new DialogComponentBoolean(FileFolderMetaInfoNodeModel.createCalculateOverallFolderSizeSettingsModel(),
                 "Calculate overall folder size");
+
+        m_appendPermissions = new DialogComponentBoolean(
+            FileFolderMetaInfoNodeModel.createAppendPermissionsSettingsModel(), "Append permissions");
 
         addTab("Settings", createDialog());
 
@@ -135,6 +139,9 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
         p.add(m_calculateOverallFolderSize.getComponentPanel(), gbc);
 
         ++gbc.gridy;
+        p.add(m_appendPermissions.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
         gbc.weightx = 1;
         gbc.weighty = 1;
         gbc.fill = GridBagConstraints.BOTH;
@@ -148,6 +155,7 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
         m_colSelection.saveSettingsTo(settings);
         m_failIfFilePathNotExists.saveSettingsTo(settings);
         m_calculateOverallFolderSize.saveSettingsTo(settings);
+        m_appendPermissions.saveSettingsTo(settings);
     }
 
     @Override
@@ -156,5 +164,6 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
         m_colSelection.loadSettingsFrom(settings, specs);
         m_failIfFilePathNotExists.loadSettingsFrom(settings, specs);
         m_calculateOverallFolderSize.loadSettingsFrom(settings, specs);
+        m_appendPermissions.loadSettingsFrom(settings, specs);
     }
 }

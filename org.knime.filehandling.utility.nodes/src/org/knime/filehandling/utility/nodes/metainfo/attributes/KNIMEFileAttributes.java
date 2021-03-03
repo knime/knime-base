@@ -46,7 +46,7 @@
  * History
  *   Sep 11, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.metainfo;
+package org.knime.filehandling.utility.nodes.metainfo.attributes;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -60,19 +60,19 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.knime.core.node.util.CheckUtils;
 
 /**
- * This class provides access to a {@link BasicFileAttributes} and depending on the initialization also calculates the
- * overall size for folders, i.e., the size of the folder itself plus everything it is containing.
+ * Abstract class wrapping {@link BasicFileAttributes} and exposing additional functionality required by the
+ * {@link KNIMEFileAttributesConverter}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class KNIMEFileAttributes {
+public abstract class KNIMEFileAttributes {
 
     private final BasicFileAttributes m_fileAttributes;
 
     private final long m_size;
 
     /**
-     * Constructor allowing to calculated the overall size of the provided path if it is a folder.
+     * Constructor allowing to calculate the overall size of the provided path if it is a folder.
      *
      * @param p the path
      * @param calcFolderSize if {@code true} the size of overall size of the folder will be calculated
@@ -123,7 +123,7 @@ final class KNIMEFileAttributes {
      *
      * @return a {@code FileTime} representing the time the file was last modified
      */
-    FileTime lastModifiedTime() {
+    final FileTime lastModifiedTime() {
         return m_fileAttributes.lastModifiedTime();
     }
 
@@ -137,7 +137,7 @@ final class KNIMEFileAttributes {
      *
      * @return a {@code FileTime} representing the time the file was created
      */
-    FileTime creationTime() {
+    final FileTime creationTime() {
         return m_fileAttributes.creationTime();
     }
 
@@ -146,7 +146,7 @@ final class KNIMEFileAttributes {
      *
      * @return {@code true} if the file is a directory
      */
-    boolean isDirectory() {
+    final boolean isDirectory() {
         return m_fileAttributes.isDirectory();
     }
 
@@ -158,8 +158,28 @@ final class KNIMEFileAttributes {
      *
      * @return the file/folder size, in bytes
      */
-    long size() {
+    final long size() {
         return m_size;
     }
 
+    /**
+     * Returns the is readable flag for the given file/folder.
+     *
+     * @return the is readable flag
+     */
+    abstract boolean isReadable();
+
+    /**
+     * Returns the is writable flag for the given file/folder.
+     *
+     * @return the is readable flag
+     */
+    abstract boolean isWritable();
+
+    /**
+     * Returns the is executable flag for the given file/folder.
+     *
+     * @return the is readable flag
+     */
+    abstract boolean isExecutable();
 }

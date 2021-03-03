@@ -46,7 +46,7 @@
  * History
  *   Sep 14, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.metainfo;
+package org.knime.filehandling.utility.nodes.metainfo.attributes;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -103,10 +103,10 @@ public class KNIMEFileAttributesConverterTest {
     public void testDirectoryConverter() throws IOException {
         final boolean isDirectory = true;
         when(m_basicFileAttributes.isDirectory()).thenReturn(isDirectory);
-        final KNIMEFileAttributesConverter converter = KNIMEFileAttributesConverter.DIRECTORY;
+        final KNIMEFileAttributesConverter converter = BasicKNIMEFileAttributesConverter.DIRECTORY;
         assertEquals(BooleanCell.TYPE, converter.getType());
         assertEquals(BooleanCellFactory.create(isDirectory),
-            converter.createCell(new KNIMEFileAttributes(m_path, false, m_basicFileAttributes)));
+            converter.createCell(new KNIMEFileAttributesWithoutPermissions(m_path, false, m_basicFileAttributes)));
     }
 
     /**
@@ -118,17 +118,17 @@ public class KNIMEFileAttributesConverterTest {
     public void testSizeConverters() throws IOException {
         final long size = 300;
         when(m_basicFileAttributes.size()).thenReturn(size);
-        KNIMEFileAttributesConverter converter = KNIMEFileAttributesConverter.SIZE;
+        KNIMEFileAttributesConverter converter = BasicKNIMEFileAttributesConverter.SIZE;
         assertEquals(LongCell.TYPE, converter.getType());
         final KNIMEFileAttributesConverter converter1 = converter;
         assertEquals(LongCellFactory.create(size),
-            converter1.createCell(new KNIMEFileAttributes(m_path, false, m_basicFileAttributes)));
+            converter1.createCell(new KNIMEFileAttributesWithoutPermissions(m_path, false, m_basicFileAttributes)));
 
-        converter = KNIMEFileAttributesConverter.HUMANSIZE;
+        converter = BasicKNIMEFileAttributesConverter.HUMANSIZE;
         assertEquals(StringCell.TYPE, converter.getType());
         final KNIMEFileAttributesConverter converter2 = converter;
         assertEquals(new StringCell("300 bytes"),
-            converter2.createCell(new KNIMEFileAttributes(m_path, false, m_basicFileAttributes)));
+            converter2.createCell(new KNIMEFileAttributesWithoutPermissions(m_path, false, m_basicFileAttributes)));
     }
 
     /**
@@ -140,10 +140,10 @@ public class KNIMEFileAttributesConverterTest {
     public void testLastModifiedDateConverter() throws IOException {
         final FileTime t = FileTime.fromMillis(4902349);
         when(m_basicFileAttributes.lastModifiedTime()).thenReturn(t);
-        final KNIMEFileAttributesConverter converter = KNIMEFileAttributesConverter.LAST_MODIFIED_DATE;
+        final KNIMEFileAttributesConverter converter = BasicKNIMEFileAttributesConverter.LAST_MODIFIED_DATE;
         assertEquals(LocalDateTimeCellFactory.TYPE, converter.getType());
         assertEquals(LocalDateTimeCellFactory.create(LocalDateTime.ofInstant(t.toInstant(), ZoneId.systemDefault())),
-            converter.createCell(new KNIMEFileAttributes(m_path, false, m_basicFileAttributes)));
+            converter.createCell(new KNIMEFileAttributesWithoutPermissions(m_path, false, m_basicFileAttributes)));
     }
 
     /**
@@ -155,10 +155,10 @@ public class KNIMEFileAttributesConverterTest {
     public void testLastModifiedDateNotAvailableConverter() throws IOException {
         final FileTime t = FileTime.fromMillis(0);
         when(m_basicFileAttributes.lastModifiedTime()).thenReturn(t);
-        final KNIMEFileAttributesConverter converter = KNIMEFileAttributesConverter.LAST_MODIFIED_DATE;
+        final KNIMEFileAttributesConverter converter = BasicKNIMEFileAttributesConverter.LAST_MODIFIED_DATE;
         assertEquals(LocalDateTimeCellFactory.TYPE, converter.getType());
         assertEquals(DataType.getMissingCell(),
-            converter.createCell(new KNIMEFileAttributes(m_path, false, m_basicFileAttributes)));
+            converter.createCell(new KNIMEFileAttributesWithoutPermissions(m_path, false, m_basicFileAttributes)));
     }
 
     /**
@@ -170,10 +170,10 @@ public class KNIMEFileAttributesConverterTest {
     public void testCreatedDateConverter() throws IOException {
         final FileTime t = FileTime.fromMillis(21423349);
         when(m_basicFileAttributes.creationTime()).thenReturn(t);
-        final KNIMEFileAttributesConverter converter = KNIMEFileAttributesConverter.CREATION_DATE;
+        final KNIMEFileAttributesConverter converter = BasicKNIMEFileAttributesConverter.CREATION_DATE;
         assertEquals(LocalDateTimeCellFactory.TYPE, converter.getType());
         assertEquals(LocalDateTimeCellFactory.create(LocalDateTime.ofInstant(t.toInstant(), ZoneId.systemDefault())),
-            converter.createCell(new KNIMEFileAttributes(m_path, false, m_basicFileAttributes)));
+            converter.createCell(new KNIMEFileAttributesWithoutPermissions(m_path, false, m_basicFileAttributes)));
     }
 
     /**
@@ -185,10 +185,10 @@ public class KNIMEFileAttributesConverterTest {
     public void testCreatedDateNotAvailableConverter() throws IOException {
         final FileTime t = FileTime.fromMillis(0);
         when(m_basicFileAttributes.creationTime()).thenReturn(t);
-        final KNIMEFileAttributesConverter converter = KNIMEFileAttributesConverter.CREATION_DATE;
+        final KNIMEFileAttributesConverter converter = BasicKNIMEFileAttributesConverter.CREATION_DATE;
         assertEquals(LocalDateTimeCellFactory.TYPE, converter.getType());
         assertEquals(DataType.getMissingCell(),
-            converter.createCell(new KNIMEFileAttributes(m_path, false, m_basicFileAttributes)));
+            converter.createCell(new KNIMEFileAttributesWithoutPermissions(m_path, false, m_basicFileAttributes)));
     }
 
     /**
@@ -198,10 +198,51 @@ public class KNIMEFileAttributesConverterTest {
      */
     @Test
     public void testExistsConverter() throws IOException {
-        final KNIMEFileAttributesConverter converter = KNIMEFileAttributesConverter.EXISTS;
+        final KNIMEFileAttributesConverter converter = BasicKNIMEFileAttributesConverter.EXISTS;
         assertEquals(BooleanCell.TYPE, converter.getType());
         assertEquals(BooleanCellFactory.create(true),
-            converter.createCell(new KNIMEFileAttributes(m_path, false, m_basicFileAttributes)));
+            converter.createCell(new KNIMEFileAttributesWithoutPermissions(m_path, false, m_basicFileAttributes)));
     }
 
+    /**
+     * Tests the is readable converter.
+     *
+     * @throws IOException - Cannot happen
+     */
+    @Test
+    public void testIsReadableConverter() throws IOException {
+        final KNIMEFileAttributesConverter converter = PermissionsKNIMEFileAttributesConverter.READABLE;
+        assertEquals(BooleanCell.TYPE, converter.getType());
+        assertEquals(BooleanCellFactory.create(true), converter.createCell(
+            new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, true, false, true)));
+
+    }
+
+    /**
+     * Tests the is writable converter.
+     *
+     * @throws IOException - Cannot happen
+     */
+    @Test
+    public void testIsWritableConverter() throws IOException {
+        final KNIMEFileAttributesConverter converter = PermissionsKNIMEFileAttributesConverter.WRITABLE;
+        assertEquals(BooleanCell.TYPE, converter.getType());
+        assertEquals(BooleanCellFactory.create(false), converter.createCell(
+            new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, true, false, true)));
+
+    }
+
+    /**
+     * Tests the is executable converter.
+     *
+     * @throws IOException - Cannot happen
+     */
+    @Test
+    public void testIsExecutableConverter() throws IOException {
+        final KNIMEFileAttributesConverter converter = PermissionsKNIMEFileAttributesConverter.EXECUTABLE;
+        assertEquals(BooleanCell.TYPE, converter.getType());
+        assertEquals(BooleanCellFactory.create(true), converter.createCell(
+            new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, true, false, true)));
+
+    }
 }

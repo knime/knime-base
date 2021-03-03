@@ -46,7 +46,7 @@
  * History
  *   Sep 14, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.metainfo;
+package org.knime.filehandling.utility.nodes.metainfo.attributes;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -69,7 +69,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 @RunWith(MockitoJUnitRunner.class)
-public class KNIMEFileAttributesTest {
+public abstract class KNIMEFileAttributesTest {
 
     private BasicFileAttributes m_fileAttributes = null;
 
@@ -121,7 +121,7 @@ public class KNIMEFileAttributesTest {
         final long size = 300;
         when(m_fileAttributes.size()).thenReturn(size);
         when(m_fileAttributes.isDirectory()).thenReturn(false);
-        assertEquals(size, new KNIMEFileAttributes(m_path, true, m_fileAttributes).size());
+        assertEquals(size, initAttributes(true).size());
     }
 
     /**
@@ -129,7 +129,6 @@ public class KNIMEFileAttributesTest {
      *
      * @throws IOException - Cannot happen
      */
-
     @Test
     public void testLastModifiedTime() throws IOException {
         final FileTime t = FileTime.fromMillis(4902349);
@@ -151,6 +150,27 @@ public class KNIMEFileAttributesTest {
     }
 
     private KNIMEFileAttributes initAttributes() throws IOException {
-        return new KNIMEFileAttributes(m_path, false, m_fileAttributes);
+        return initAttributes(false);
     }
+
+    abstract KNIMEFileAttributes initAttributes(final boolean calcFolderSize) throws IOException;
+
+    /**
+     * Returns the {@link Path} mock.
+     *
+     * @return the {@link Path} mock
+     */
+    protected final Path getPathMock() {
+        return m_path;
+    }
+
+    /**
+     * Returns the {@link BasicFileAttributes} mock.
+     *
+     * @return the {@link BasicFileAttributes} mock
+     */
+    protected final BasicFileAttributes getFileAttributesMock() {
+        return m_fileAttributes;
+    }
+
 }

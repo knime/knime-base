@@ -58,6 +58,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
@@ -91,6 +92,12 @@ import org.knime.filehandling.core.connections.location.MultiFSPathProviderFacto
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
+import org.knime.filehandling.utility.nodes.metainfo.attributes.BasicKNIMEFileAttributesConverter;
+import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttributes;
+import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttributesConverter;
+import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttributesWithPermissions;
+import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttributesWithoutPermissions;
+import org.knime.filehandling.utility.nodes.metainfo.attributes.PermissionsKNIMEFileAttributesConverter;
 
 /**
  * The node model allowing to extract meta information about files and folders.
@@ -98,6 +105,8 @@ import org.knime.filehandling.core.util.FSLocationColumnUtils;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 final class FileFolderMetaInfoNodeModel extends NodeModel {
+
+    private static final String CFG_APPEND_PERMISSIONS = "append_permissions";
 
     private final int m_inputFsConnectionIdx;
 
@@ -108,6 +117,8 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
     private final SettingsModelBoolean m_failIfPathNotExists;
 
     private final SettingsModelBoolean m_calculateOverallFolderSize;
+
+    private final SettingsModelBoolean m_appendPermissions;
 
     static SettingsModelString createColumnSettingsModel() {
         return new SettingsModelString("column", null);
@@ -121,6 +132,10 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         return new SettingsModelBoolean("calculate_overall_folder_size", false);
     }
 
+    static SettingsModelBoolean createAppendPermissionsSettingsModel() {
+        return new SettingsModelBoolean(CFG_APPEND_PERMISSIONS, false);
+    }
+
     FileFolderMetaInfoNodeModel(final PortsConfiguration config) {
         super(config.getInputPorts(), config.getOutputPorts());
         final Map<String, int[]> inputPortLocation = config.getInputPortLocation();
@@ -132,6 +147,7 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         m_selectedColumn = createColumnSettingsModel();
         m_failIfPathNotExists = createFailIfPathNotExistsSettingsModel();
         m_calculateOverallFolderSize = createCalculateOverallFolderSizeSettingsModel();
+        m_appendPermissions = createAppendPermissionsSettingsModel();
     }
 
     @Override
@@ -146,9 +162,22 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         validateSettings(inSpecs);
 
         final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
-        try (final FileAttributesFactory fac = new FileAttributesFactory(createNewColumns(inputTableSpec), pathColIdx,
-            getFSConnection(inSpecs).orElse(null), false)) {
+        final KNIMEFileAttributesConverter[] fileAttrConverters = getFileAttributesConverter();
+        try (final FileAttributesFactory fac = new FileAttributesFactory(fileAttrConverters,
+            createNewColumns(inputTableSpec, fileAttrConverters), pathColIdx, getFSConnection(inSpecs), false)) {
             return new PortObjectSpec[]{createColumnRearranger(inputTableSpec, fac).createSpec()};
+        }
+    }
+
+    private KNIMEFileAttributesConverter[] getFileAttributesConverter() {
+        if (m_appendPermissions.getBooleanValue()) {
+            return Stream.concat(//
+                Arrays.stream(BasicKNIMEFileAttributesConverter.values()),
+                Arrays.stream(PermissionsKNIMEFileAttributesConverter.values())//
+            )//
+                .toArray(KNIMEFileAttributesConverter[]::new);
+        } else {
+            return BasicKNIMEFileAttributesConverter.values();
         }
     }
 
@@ -160,9 +189,10 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
         final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
         final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
+        final KNIMEFileAttributesConverter[] fileAttrConverters = getFileAttributesConverter();
 
-        try (final FileAttributesFactory fac = new FileAttributesFactory(createNewColumns(inputTableSpec), pathColIdx,
-            getFSConnection(inSpecs).orElse(null), true)) {
+        try (final FileAttributesFactory fac = new FileAttributesFactory(fileAttrConverters,
+            createNewColumns(inputTableSpec, fileAttrConverters), pathColIdx, getFSConnection(inSpecs), true)) {
             return new PortObject[]{exec.createColumnRearrangeTable((BufferedDataTable)inObjects[m_inputTableIdx],
                 createColumnRearranger(inputTableSpec, fac), exec)};
         }
@@ -200,15 +230,16 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         return colRearranger;
     }
 
-    private Optional<FSConnection> getFSConnection(final PortObjectSpec[] inSpecs) {
+    private FSConnection getFSConnection(final PortObjectSpec[] inSpecs) {
         return m_inputFsConnectionIdx < 0 //
-            ? Optional.empty() //
-            : ((FileSystemPortObjectSpec)inSpecs[0]).getFileSystemConnection();
+            ? null //
+            : ((FileSystemPortObjectSpec)inSpecs[0]).getFileSystemConnection().orElse(null);
     }
 
-    private static DataColumnSpec[] createNewColumns(final DataTableSpec inputTableSpec) {
+    private static DataColumnSpec[] createNewColumns(final DataTableSpec inputTableSpec,
+        final KNIMEFileAttributesConverter[] fileAttrConverters) {
         final UniqueNameGenerator uniqueNameGen = new UniqueNameGenerator(inputTableSpec);
-        return Arrays.stream(KNIMEFileAttributesConverter.values())//
+        return Arrays.stream(fileAttrConverters)//
             .map(attr -> uniqueNameGen.newColumn(attr.getName(), attr.getType()))//
             .toArray(DataColumnSpec[]::new);
     }
@@ -218,6 +249,7 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         m_selectedColumn.saveSettingsTo(settings);
         m_failIfPathNotExists.saveSettingsTo(settings);
         m_calculateOverallFolderSize.saveSettingsTo(settings);
+        m_appendPermissions.saveSettingsTo(settings);
     }
 
     @Override
@@ -225,6 +257,10 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         m_selectedColumn.validateSettings(settings);
         m_failIfPathNotExists.validateSettings(settings);
         m_calculateOverallFolderSize.validateSettings(settings);
+        // load backwards compatible see AP-15123
+        if (settings.containsKey(CFG_APPEND_PERMISSIONS)) {
+            m_appendPermissions.validateSettings(settings);
+        }
     }
 
     @Override
@@ -232,6 +268,10 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         m_selectedColumn.loadSettingsFrom(settings);
         m_failIfPathNotExists.loadSettingsFrom(settings);
         m_calculateOverallFolderSize.loadSettingsFrom(settings);
+        // load backwards compatible see AP-15123
+        if (settings.containsKey(CFG_APPEND_PERMISSIONS)) {
+            m_appendPermissions.loadSettingsFrom(settings);
+        }
     }
 
     @Override
@@ -252,14 +292,23 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
     private final class FileAttributesFactory extends AbstractCellFactory implements Closeable {
 
+        private final KNIMEFileAttributesConverter[] m_fileAttrConverters;
+
+        private final int m_existsIdx;
+
         private final int m_colIdx;
 
         private final MultiFSPathProviderFactory m_multiFSPathProviderCellFactory;
 
         @SuppressWarnings("resource") // the MultiFSPathProviderFactory will be closed in #close
-        private FileAttributesFactory(final DataColumnSpec[] colSpecs, final int pathColIdx,
-            final FSConnection fsConnection, final boolean initFactory) {
+        FileAttributesFactory(final KNIMEFileAttributesConverter[] fileAttrConverters, final DataColumnSpec[] colSpecs,
+            final int pathColIdx, final FSConnection fsConnection, final boolean initFactory) {
             super(colSpecs);
+            m_fileAttrConverters = fileAttrConverters;
+            m_existsIdx = IntStream.range(0, m_fileAttrConverters.length)//
+                .filter(i -> BasicKNIMEFileAttributesConverter.EXISTS == m_fileAttrConverters[i])//
+                .findFirst()//
+                .orElse(-1);
             m_colIdx = pathColIdx;
             m_multiFSPathProviderCellFactory = initFactory ? new MultiFSPathProviderFactory(fsConnection) : null;
         }
@@ -280,7 +329,9 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
                 final FSPath path = pathProvder.getPath();
                 if (!FSFiles.exists(path) && !m_failIfPathNotExists.getBooleanValue()) {
                     final DataCell[] cells = createMissingCells(() -> new MissingCell("File/folder does not exist"));
-                    cells[KNIMEFileAttributesConverter.EXISTS.getPosition()] = BooleanCellFactory.create(false);
+                    if (m_existsIdx >= 0) {
+                        cells[m_existsIdx] = BooleanCellFactory.create(false);
+                    }
                     return cells;
                 } else {
                     return createCells(path);
@@ -295,20 +346,26 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
         private DataCell[] createMissingCells(final Supplier<DataCell> supplier) {
             return Stream.generate(supplier)//
-                .limit(KNIMEFileAttributesConverter.values().length)//
+                .limit(m_fileAttrConverters.length)//
                 .toArray(DataCell[]::new);
         }
 
         private DataCell[] createCells(final FSPath path) throws IOException {
             final KNIMEFileAttributes attributes = getFileAttributes(path);
-            return Arrays.stream(KNIMEFileAttributesConverter.values())//
+            return Arrays.stream(m_fileAttrConverters)//
                 .map(a -> a.createCell(attributes))//
                 .toArray(DataCell[]::new);
         }
 
         private KNIMEFileAttributes getFileAttributes(final FSPath path) throws IOException {
             final BasicFileAttributes basicAttributes = Files.readAttributes(path, BasicFileAttributes.class);
-            return new KNIMEFileAttributes(path, m_calculateOverallFolderSize.getBooleanValue(), basicAttributes);
+            if (m_appendPermissions.getBooleanValue()) {
+                return new KNIMEFileAttributesWithPermissions(path, m_calculateOverallFolderSize.getBooleanValue(),
+                    basicAttributes);
+            } else {
+                return new KNIMEFileAttributesWithoutPermissions(path, m_calculateOverallFolderSize.getBooleanValue(),
+                    basicAttributes);
+            }
         }
 
         @Override
