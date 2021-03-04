@@ -53,6 +53,7 @@ import static org.knime.filehandling.core.node.table.reader.config.tablespec.Tab
 import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.PATH2;
 import static org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.ROOT_PATH;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -85,7 +86,8 @@ final class Pre44TableSpecConfigSerializerTestUtils {
 
     static final TypedReaderTableSpec<String> SPEC2 = new TypedReaderTableSpec<>(asList(COL2, COL3));
 
-    static final TypedReaderTableSpec<String> INTERSECTION = new TypedReaderTableSpec<>(asList(COL2));
+    static final TypedReaderTableSpec<String> INTERSECTION =
+        new TypedReaderTableSpec<>(Collections.singletonList(COL2));
 
     static final Map<String, TypedReaderTableSpec<String>> INDIVIDUAL_SPECS = createIndividualSpecs();
 
@@ -100,7 +102,7 @@ final class Pre44TableSpecConfigSerializerTestUtils {
         // static utility class
     }
 
-    static NodeSettings createSettings(final DataTableSpec tableSpec, final ProductionPath[] productionPaths,
+    static NodeSettings createSettings(final DataTableSpec tableSpec, final ProductionPath[] productionPaths,//NOSONAR
         final String[] originalNames, final int[] positions, final boolean[] keep,
         final ColumnFilterMode columnFilterMode, final Boolean keepUnknown, final Integer unknownColumnPosition,
         final Boolean enforceTypes) {

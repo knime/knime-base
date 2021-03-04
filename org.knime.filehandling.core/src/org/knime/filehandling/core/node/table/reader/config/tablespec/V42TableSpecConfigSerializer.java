@@ -125,7 +125,7 @@ final class V42TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
     }
 
     @Override
-    public TableSpecConfig<T> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public TableSpecConfig<T> load(final NodeSettingsRO settings) {
         throw noColumnFilterModeProvided();
     }
 

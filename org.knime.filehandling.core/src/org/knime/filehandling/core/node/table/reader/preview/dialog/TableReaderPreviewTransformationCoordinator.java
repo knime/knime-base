@@ -81,6 +81,8 @@ import org.knime.filehandling.core.util.CheckedExceptionSupplier;
  */
 public final class TableReaderPreviewTransformationCoordinator<I, C extends ReaderSpecificConfig<C>, T> {
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(TableReaderPreviewTransformationCoordinator.class);
+
     private final MultiTableReadFactory<I, C, T> m_readFactory;
 
     private final AnalysisComponentModel m_analysisComponent;
@@ -308,7 +310,7 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
                 final PreviewDataTable pdt = new PreviewDataTable(mtr::createPreviewIterator, mtr.getOutputSpec());
                 m_previewModel.setDataTable(pdt);
             } catch (Exception ex) {// NOSONAR we need to handle all exceptions in the same way
-                NodeLogger.getLogger(TableReaderPreviewTransformationCoordinator.class).debug(ex);
+                LOGGER.debug("Updating the preview table failed.", ex);
                 m_analysisComponent.setError(ex.getMessage());
                 m_previewModel.setDataTable(null);
             }

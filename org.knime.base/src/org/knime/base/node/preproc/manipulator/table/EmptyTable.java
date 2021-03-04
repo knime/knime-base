@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.manipulator.table;
 
+import java.util.NoSuchElementException;
+
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
@@ -66,7 +68,7 @@ public class EmptyTable implements BoundedTable {
 
         @Override
         public DataRow next() {
-            return null;
+            throw new NoSuchElementException("This iterator is empty.");
         }
 
         @Override

@@ -312,18 +312,11 @@ public class DefaultTableSpecConfigTest {
             builder().withProductionPaths(getProductionPaths(a("X", "Y", "Z"), types)).build();
         assertFalse(tsc.equals(differentTypes));
 
-        Map<String, TypedReaderTableSpec<String>> differentPathMap = new LinkedHashMap<>();
-        differentPathMap.put("foo", SPEC1);
-        differentPathMap.put(PATH2, SPEC2);
-
         final DefaultTableSpecConfig<String> differentPaths = builder().withItems("foo", PATH2).build();
         assertFalse(tsc.equals(differentPaths));
 
         final TypedReaderTableSpec<String> diffIndividualSpec =
             TRFTestingUtils.createTypedTableSpec(asList("A", "B", "C"), asList("X", "Y", "Z"));
-        Map<String, TypedReaderTableSpec<String>> differentIndividualSpecMap = new LinkedHashMap<>();
-        differentIndividualSpecMap.put(PATH1, diffIndividualSpec);
-        differentIndividualSpecMap.put(PATH2, SPEC2);
         final DefaultTableSpecConfig<?> differentIndividualSpec =
             builder().withSpecs(diffIndividualSpec, SPEC2).build();
 

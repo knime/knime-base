@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.manipulator.table;
 
+import java.util.NoSuchElementException;
+
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
@@ -90,6 +92,9 @@ public class RowInputBackedTable implements Table {
 
         @Override
         public DataRow next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("This iterator has no more rows.");
+            }
             final DataRow currentRow = m_nextRow;
             try {
                 m_nextRow = m_delegate.poll();

@@ -54,6 +54,7 @@ import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.a;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -93,7 +94,8 @@ final class TableSpecConfigTestingUtils {
 
     static final TypedReaderTableSpec<String> UNION = new TypedReaderTableSpec<>(asList(COL1, COL2, COL3));
 
-    static final TypedReaderTableSpec<String> INTERSECTION = new TypedReaderTableSpec<>(asList(COL2));
+    static final TypedReaderTableSpec<String> INTERSECTION =
+        new TypedReaderTableSpec<>(Collections.singletonList(COL2));
 
     static final RawSpec<String> RAW_SPEC = new RawSpec<>(UNION, INTERSECTION);
 
@@ -161,7 +163,7 @@ final class TableSpecConfigTestingUtils {
 
         Integer[] m_positions = a(0, 1, 2);
 
-        Boolean[] m_keeps = a(true, true, true);
+        Boolean[] m_keeps = a(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);
 
         TableSpecConfigBuilder(final ConfigID configID) {
             m_configID = configID;

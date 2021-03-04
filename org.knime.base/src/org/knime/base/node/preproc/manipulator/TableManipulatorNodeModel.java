@@ -66,7 +66,6 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -157,8 +156,8 @@ final class TableManipulatorNodeModel extends NodeModel {
             }
             return new PortObjectSpec[]{tableSpecConfig.getDataTableSpec()};
         } catch (IOException | IllegalStateException e) {
-            LOGGER.debug(e);
-            throw new InvalidSettingsException(e.getMessage());
+            LOGGER.debug("Computing the output spec failed.", e);
+            throw new InvalidSettingsException(e.getMessage(), e);
         }
     }
 
@@ -209,14 +208,12 @@ final class TableManipulatorNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to load
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // no internals to load
     }
 

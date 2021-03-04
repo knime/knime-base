@@ -48,7 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.checkTransformation;
 import static org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec.createWithName;
@@ -57,6 +57,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -102,7 +103,7 @@ public class DefaultTableTransformationFactoryTest {
 
     @SafeVarargs
     private static TypedReaderTableSpec<String> createTableSpec(final TypedReaderColumnSpec<String>... cols) {
-        return new TypedReaderTableSpec<>(asList(cols));
+        return new TypedReaderTableSpec<>(Arrays.asList(cols));
     }
 
     private static final TypedReaderColumnSpec<String> HANS = createColSpec("hans", ELSA);
@@ -201,7 +202,7 @@ public class DefaultTableTransformationFactoryTest {
         final RawSpec<String> newRawSpec = new RawSpecBuilder<String>().addColumn(aWithDifferentType, true).build();
 
         final ProductionPath intPath = mockProductionPath(IntCell.TYPE);
-        List<ProductionPath> availablePaths = new ArrayList<>(asList(intPath));
+        List<ProductionPath> availablePaths = new ArrayList<>(singletonList(intPath));
         ProductionPath alternateStringPath = null;
         if (alternativePathAvailable) {
             alternateStringPath = mockProductionPath(StringCell.TYPE);
@@ -251,7 +252,7 @@ public class DefaultTableTransformationFactoryTest {
     }
 
     @Test
-    public void testSkipNewlyEmptyColumn() throws Exception {
+    public void testSkipNewlyEmptyColumn() {
         TypedReaderColumnSpec<String> a = createColSpec("A", "X");
         TypedReaderColumnSpec<String> b = createColSpec("B", "Y");
         TableTransformation<String> configuredTransformation = new TableTransformationMocker()//
@@ -325,6 +326,19 @@ public class DefaultTableTransformationFactoryTest {
             final ProductionPath path = mockProductionPath(destinationType);
             m_transformations.add(mockTransformation(column, name, path, position, keep));
             return this;
+        }
+
+        private static ColumnTransformation<String> mockTransformation(final TypedReaderColumnSpec<String> externalSpec,
+            final String name, final ProductionPath prodPath, final int position, final boolean keep) {
+            @SuppressWarnings("unchecked")
+            final ColumnTransformation<String> trans = Mockito.mock(ColumnTransformation.class);
+            when(trans.getExternalSpec()).thenReturn(externalSpec);
+            when(trans.getName()).thenReturn(name);
+            when(trans.getOriginalName()).thenReturn(externalSpec.getName().get());//NOSONAR
+            when(trans.getProductionPath()).thenReturn(prodPath);
+            when(trans.getPosition()).thenReturn(position);
+            when(trans.keep()).thenReturn(keep);
+            return trans;
         }
 
         TableTransformationMocker addTransformation(final TypedReaderColumnSpec<String> column,
@@ -448,9 +462,9 @@ public class DefaultTableTransformationFactoryTest {
 
         private void setupProductionPathProvider() {
             when(m_prodPathProvider.getDefaultProductionPath(ELSA)).thenReturn(m_newHansProdPath);
-            when(m_prodPathProvider.getAvailableProductionPaths(ELSA)).thenReturn(asList(m_newHansProdPath));
+            when(m_prodPathProvider.getAvailableProductionPaths(ELSA)).thenReturn(singletonList(m_newHansProdPath));
             when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(m_ulfProdPath);
-            when(m_prodPathProvider.getAvailableProductionPaths(BERTA)).thenReturn(asList(m_ulfProdPath));
+            when(m_prodPathProvider.getAvailableProductionPaths(BERTA)).thenReturn(singletonList(m_ulfProdPath));
         }
 
         private void evaluate(final TableTransformation<String> transformationModel) {
@@ -513,22 +527,13 @@ public class DefaultTableTransformationFactoryTest {
 
     }
 
-    private static ColumnTransformation<String> mockTransformation(final TypedReaderColumnSpec<String> externalSpec,
-        final String name, final ProductionPath prodPath, final int position, final boolean keep) {
-        @SuppressWarnings("unchecked")
-        final ColumnTransformation<String> trans = Mockito.mock(ColumnTransformation.class);
-        when(trans.getExternalSpec()).thenReturn(externalSpec);
-        when(trans.getName()).thenReturn(name);
-        when(trans.getOriginalName()).thenReturn(externalSpec.getName().get());//NOSONAR
-        when(trans.getProductionPath()).thenReturn(prodPath);
-        when(trans.getPosition()).thenReturn(position);
-        when(trans.keep()).thenReturn(keep);
-        return trans;
-    }
-
     @Test
     public void testCreateDefaultTransformationModelNoSpecMergeMode() {
         setupConfig(false);
+        testCreateDefaultTransformation();
+    }
+
+    private void testCreateDefaultTransformation() {
         ProductionPath hansProdPath = TRFTestingUtils.mockProductionPath();
         ProductionPath rudigerProdPath = TRFTestingUtils.mockProductionPath();
         ProductionPath ulfProdPath = TRFTestingUtils.mockProductionPath();
@@ -549,19 +554,7 @@ public class DefaultTableTransformationFactoryTest {
     public void testCreateDefaultIntersectionSpecMergeMode() {
         setupConfig(false);
         when(m_config.getSpecMergeMode()).thenReturn(SpecMergeMode.INTERSECTION);
-        ProductionPath hansProdPath = TRFTestingUtils.mockProductionPath();
-        ProductionPath rudigerProdPath = TRFTestingUtils.mockProductionPath();
-        ProductionPath ulfProdPath = TRFTestingUtils.mockProductionPath();
-        when(m_prodPathProvider.getDefaultProductionPath(ELSA)).thenReturn(hansProdPath);
-        when(m_prodPathProvider.getDefaultProductionPath(FRIEDA)).thenReturn(rudigerProdPath);
-        when(m_prodPathProvider.getDefaultProductionPath(BERTA)).thenReturn(ulfProdPath);
-
-        final TableTransformation<String> transformationModel = m_testInstance.createNew(RAW_SPEC, m_config);
-
-        checkTransformation(transformationModel.getTransformation(HANS), HANS, "hans", hansProdPath, 0, true);
-        checkTransformation(transformationModel.getTransformation(RUDIGER), RUDIGER, "rudiger", rudigerProdPath, 1,
-            true);
-        checkTransformation(transformationModel.getTransformation(ULF), ULF, "ulf", ulfProdPath, 2, true);
+        testCreateDefaultTransformation();
     }
 
 }
