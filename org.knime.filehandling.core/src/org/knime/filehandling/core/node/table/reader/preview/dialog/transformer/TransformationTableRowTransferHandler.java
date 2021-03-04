@@ -112,7 +112,10 @@ final class TransformationTableRowTransferHandler extends TransferHandler {
         try {
             Integer rowFrom = (Integer)info.getTransferable().getTransferData(ROW_INDEX_FLAVOR);
             if (rowFrom != -1 && rowFrom != index) {
-                ((TableTransformationTableModel<?>)m_table.getModel()).reorder(rowFrom, index);
+                // -1 DnD addresses the gaps between rows.
+                // I.e. 0 means before row 0, 1 means after row 0 and 2 means after row 1
+                int toIndex = rowFrom < index ? (index - 1) : index;
+                ((TableTransformationTableModel<?>)m_table.getModel()).reorder(rowFrom, toIndex);
                 if (index > rowFrom) {
                     index--;
                 }

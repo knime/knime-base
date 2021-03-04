@@ -61,7 +61,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class MutableColumnTransformation<T> implements ColumnTransformation<T> {
+class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positionable {
 
     private boolean m_isValid = true;
 
@@ -124,7 +124,8 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T> {
         return !getOriginalName().equals(getName());
     }
 
-    boolean setPosition(final int position) {
+    @Override
+    public boolean setPosition(final int position) {
         if (position != m_positionInOutput) {
             m_positionInOutput = position;
             return true;
