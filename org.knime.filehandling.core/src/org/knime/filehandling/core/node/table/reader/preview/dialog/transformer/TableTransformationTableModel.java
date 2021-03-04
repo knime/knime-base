@@ -385,14 +385,15 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     public void load(final TableTransformation<T> transformationModel) {
         m_rawSpec = transformationModel.getRawSpec();
         m_skipEmptyColumns = transformationModel.skipEmptyColumns();
-        m_transformations.clear();
-        m_transformations.add(m_newColTransformationPlaceholder);
         final int newColPosition = transformationModel.getPositionForUnknownColumns();
         m_newColTransformationPlaceholder.setPosition(newColPosition);
+        m_transformations.clear();
+        final ColumnFilterMode colFilterMode = transformationModel.getColumnFilterMode();
         updateIntersection(m_rawSpec);
+        m_transformations.setFilter(this::displayTransformation);
+        m_transformations.add(m_newColTransformationPlaceholder);
         m_nameChecker.clear();
         m_bySpec.clear();
-        final ColumnFilterMode colFilterMode = transformationModel.getColumnFilterMode();
         m_columnFilterMode.setColumnFilterModel(colFilterMode);
         m_enforceTypesModel.setSelected(transformationModel.enforceTypes());
         int idx = 0;

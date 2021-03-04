@@ -115,7 +115,7 @@ final class FilteredList<T extends Positionable> {
                 m_unfiltered.get(i + 1).setPosition(i);
             }
         } else {
-            for (int i = unfilteredFromIdx; i >= unfilteredToIdx; i--) {
+            for (int i = unfilteredFromIdx - 1; i >= unfilteredToIdx; i--) {
                 m_unfiltered.get(i).setPosition(i + 1);
             }
         }
