@@ -52,11 +52,10 @@ import java.nio.file.Path;
 
 /**
  * A path truncator accepts two paths, whereby the <b>path</b> cannot be null and starts with the <b>baseFolder</b> if
- * the latter is not null itself and returns the String representation of the truncated path.
+ * the latter is not null itself and returns the String (array) representation of the truncated path.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-@FunctionalInterface
 public interface PathTruncator { // NOSONAR
 
     /**
@@ -67,5 +66,15 @@ public interface PathTruncator { // NOSONAR
      * @return the truncated path as a string
      */
     String truncate(final Path baseFolder, final Path path);
+
+    /**
+     * Creates the truncated path.
+     *
+     * @param baseFolder the base folder which can be null
+     * @param path cannot be null and starts with the <b>baseFolder</b>
+     * @return the truncated path as a string
+     */
+    // FIXME: Rename this method (AP-16364)
+    String[] getTruncatedStringArray(final Path baseFolder, final Path path);
 
 }

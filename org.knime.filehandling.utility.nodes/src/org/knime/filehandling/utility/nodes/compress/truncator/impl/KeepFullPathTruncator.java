@@ -69,11 +69,7 @@ public final class KeepFullPathTruncator extends AbstractPathTruncator {
     }
 
     @Override
-    public String truncate(final Path baseFolder, final Path path) {
-        return truncatePath(baseFolder, path).toString();
-    }
-
-    private Path truncatePath(final Path baseFolder, final Path path) {
+    protected Path truncatePath(final Path baseFolder, final Path path) {
         final Path normPath;
         if (flattenHierarchy() && !isSamePath(path, baseFolder)) {
             final Path fileName = path.normalize().getFileName();

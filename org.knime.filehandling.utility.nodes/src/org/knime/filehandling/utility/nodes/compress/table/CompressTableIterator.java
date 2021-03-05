@@ -48,16 +48,13 @@
  */
 package org.knime.filehandling.utility.nodes.compress.table;
 
-import java.io.IOException;
 import java.util.NoSuchElementException;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressEntry;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressFileFolderEntry;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
-import org.knime.filehandling.utility.nodes.utils.iterators.ClosableIterator;
 import org.knime.filehandling.utility.nodes.utils.iterators.FsCellColumnIterator;
 
 /**
@@ -67,7 +64,7 @@ import org.knime.filehandling.utility.nodes.utils.iterators.FsCellColumnIterator
  */
 final class CompressTableIterator implements CompressIterator {
 
-    private final ClosableIterator<FSPath> m_iterator;
+    private final FsCellColumnIterator m_iterator;
 
     private final boolean m_includeEmptyFolders;
 
@@ -91,7 +88,7 @@ final class CompressTableIterator implements CompressIterator {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         m_iterator.close();
     }
 

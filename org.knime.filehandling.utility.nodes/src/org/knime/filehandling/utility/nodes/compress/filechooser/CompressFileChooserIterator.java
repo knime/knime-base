@@ -91,7 +91,7 @@ final class CompressFileChooserIterator implements CompressIterator {
         try {
             m_base = m_accessor.getRootPath(statusMessageConsumer);
             m_paths = m_accessor.getFSPaths(statusMessageConsumer);
-        } catch (IOException | InvalidSettingsException e) {
+        } catch (final IOException | InvalidSettingsException e) {
             m_accessor.close();
             throw e;
         }

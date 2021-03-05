@@ -57,6 +57,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
 import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
+import org.knime.filehandling.utility.nodes.compress.truncator.TruncationSettings;
 
 /**
  * Implements the configuration of the "Compress Files/Folder" no table input node.
@@ -118,11 +119,12 @@ final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig {
     protected void loadTruncatePathOptionInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         // backwards compatibility see AP-15932
         if (settings.containsKey(CFG_INCLUDE_SELECTED_FOLDER)) {
+            final TruncationSettings truncationSettings = getTruncationSettings();
             if (m_inputLocationChooserModel.getFilterMode() != FilterMode.FILE
                 && settings.getBoolean(CFG_INCLUDE_SELECTED_FOLDER)) {
-                setTrunacePathOption(TruncatePathOption.KEEP_SRC_FOLDER);
+                truncationSettings.setTruncatePathOption(TruncatePathOption.KEEP_SRC_FOLDER);
             } else {
-                setTrunacePathOption(TruncatePathOption.TRUNCATE_SRC_FOLDER);
+                truncationSettings.setTruncatePathOption(TruncatePathOption.TRUNCATE_SRC_FOLDER);
             }
             includeEmptyFolders(true);
         } else {

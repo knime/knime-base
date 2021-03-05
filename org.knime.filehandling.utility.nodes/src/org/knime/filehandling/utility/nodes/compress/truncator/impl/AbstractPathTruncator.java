@@ -51,6 +51,7 @@ package org.knime.filehandling.utility.nodes.compress.truncator.impl;
 import java.nio.file.Path;
 
 import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
+import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
 
 /**
  *
@@ -72,6 +73,26 @@ abstract class AbstractPathTruncator implements PathTruncator {
     final boolean flattenHierarchy() {
         return m_flattenHierarchy;
     }
+
+    @Override
+    public final String truncate(final Path baseFolder, final Path path) {
+        return truncatePath(baseFolder, path).toString();
+    }
+
+    @Override
+    public final String[] getTruncatedStringArray(final Path baseFolder, final Path path) {
+        final Path p = truncatePath(baseFolder, path);
+        return PathToStringUtils.split(p);
+    }
+
+    /**
+     * Creates the truncated path.
+     *
+     * @param baseFolder the base folder which can be null
+     * @param path cannot be null and starts with the <b>baseFolder</b>
+     * @return the truncated path
+     */
+    protected abstract Path truncatePath(final Path baseFolder, final Path path);
 
     /**
      * Checks whether two paths are the same or not.

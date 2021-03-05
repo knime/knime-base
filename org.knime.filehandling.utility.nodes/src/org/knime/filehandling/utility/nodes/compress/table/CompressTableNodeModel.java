@@ -138,14 +138,14 @@ final class CompressTableNodeModel extends AbstractCompressNodeModel<CompressTab
         throws IOException, InvalidSettingsException {
         final BufferedDataTable table = (BufferedDataTable)inData[m_inputTableIdx];
         return new CompressTableIterator(table,
-            table.getSpec().findColumnIndex(getConfig().getPathColModel().getStringValue()),
-            getFSConnection(inData).orElse(null), includeEmptyFolders);
+            table.getSpec().findColumnIndex(getConfig().getPathColModel().getStringValue()), getFSConnection(inData),
+            includeEmptyFolders);
     }
 
-    private Optional<FSConnection> getFSConnection(final PortObject[] inData) {
+    private FSConnection getFSConnection(final PortObject[] inData) {
         return m_inputConnectionIdx < 0 //
-            ? Optional.empty() //
-            : ((FileSystemPortObject)inData[0]).getFileSystemConnection();
+            ? null //
+            : ((FileSystemPortObject)inData[0]).getFileSystemConnection().orElse(null);
     }
 
 }

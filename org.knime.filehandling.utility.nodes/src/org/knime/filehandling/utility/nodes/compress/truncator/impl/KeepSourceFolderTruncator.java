@@ -72,11 +72,7 @@ public final class KeepSourceFolderTruncator extends AbstractPathTruncator {
     }
 
     @Override
-    public String truncate(final Path baseFolder, final Path path) {
-        return truncatePath(baseFolder, path).toString();
-    }
-
-    private Path truncatePath(final Path baseFolder, final Path path) {
+    protected Path truncatePath(final Path baseFolder, final Path path) {
         if (baseFolder == null) {
             throw new TruncationException("The base folder cannot be null", TruncatePathOption.KEEP_SRC_FOLDER);
         }

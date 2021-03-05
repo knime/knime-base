@@ -58,7 +58,8 @@ import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
+import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
+import org.knime.filehandling.utility.nodes.compress.truncator.TruncationSettings;
 
 /**
  * Node configuration of the "Compress Files/Folder" node.
@@ -78,10 +79,6 @@ public abstract class AbstractCompressNodeConfig {
 
     private static final String CFG_OUTPUT_LOCATION = "destination_location";
 
-    private static final String CFG_TRUNCATE_PATH_OPTION = "source_folder_truncation";
-
-    private static final String CFG_TRUNACTE_REGEX = "truncate_regex";
-
     private static final String CFG_FLATTEN_HIERARCHY = "flatten_hierarchy";
 
     private static final String CFG_INCLUDE_EMPTY_FOLDERS = "include_empty_folders";
@@ -92,9 +89,7 @@ public abstract class AbstractCompressNodeConfig {
 
     private final SettingsModelString m_compressionModel;
 
-    private TruncatePathOption m_truncatePathOption;
-
-    private SettingsModelString m_truncateRegex;
+    private final TruncationSettings m_truncationSettings;
 
     private boolean m_flattenHierarchy;
 
@@ -115,8 +110,6 @@ public abstract class AbstractCompressNodeConfig {
     /** The default compression is zip. */
     private static final String DEFAULT_COMPRESSION = COMPRESSIONS[0];
 
-    private static final String DEFAULT_REGEX = ".*";
-
     /**
      * Constructor
      *
@@ -127,25 +120,12 @@ public abstract class AbstractCompressNodeConfig {
             CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, EnumConfig.create(FilterMode.FILE),
             EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), COMPRESSIONS);
         m_compressionModel = new SettingsModelString(CFG_COMPRESSION, DEFAULT_COMPRESSION);
-        m_truncatePathOption = TruncatePathOption.getDefault();
-        m_truncateRegex = new SettingsModelString(CFG_TRUNACTE_REGEX, DEFAULT_REGEX) {
-
-            @Override
-            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-                super.validateSettingsForModel(settings);
-                final String val = settings.getString(getKey());
-                if (val == null || val.isEmpty()) {
-                    throw new InvalidSettingsException("The truncation regular expression cannot be empty");
-                }
-            }
-        };
+        m_truncationSettings = new TruncationSettings();
         m_flattenHierarchy = false;
         m_includeEmptyFolders = true;
     }
 
     final void loadSettingsForDialog(final NodeSettingsRO settings) {
-        setTrunacePathOption(TruncatePathOption
-            .valueOf(settings.getString(CFG_TRUNCATE_PATH_OPTION, TruncatePathOption.getDefault().name())));
         includeEmptyFolders(settings.getBoolean(CFG_INCLUDE_EMPTY_FOLDERS, false));
         flattenHierarchy(settings.getBoolean(CFG_FLATTEN_HIERARCHY, false));
     }
@@ -177,9 +157,8 @@ public abstract class AbstractCompressNodeConfig {
      * @throws InvalidSettingsException - If the truncate options validation failed
      */
     protected void validateTruncatePathOption(final NodeSettingsRO settings) throws InvalidSettingsException {
-        TruncatePathOption.valueOf(settings.getString(CFG_TRUNCATE_PATH_OPTION));
+        m_truncationSettings.validateSettingsForModel(settings);
         settings.getBoolean(CFG_INCLUDE_EMPTY_FOLDERS);
-        m_truncateRegex.validateSettings(settings);
     }
 
     /**
@@ -215,16 +194,15 @@ public abstract class AbstractCompressNodeConfig {
      * @throws InvalidSettingsException - If the options cannot be loaded
      */
     protected void loadTruncatePathOptionInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        setTrunacePathOption(TruncatePathOption.valueOf(settings.getString(CFG_TRUNCATE_PATH_OPTION)));
+        m_truncationSettings.loadSettingsForModel(settings);
         includeEmptyFolders(settings.getBoolean(CFG_INCLUDE_EMPTY_FOLDERS));
-        m_truncateRegex.loadSettingsFrom(settings);
     }
 
     final void saveSettingsForModel(final NodeSettingsWO settings) {
         saveNonSettingModelParameters(settings);
         m_destinationFileChooserModel.saveSettingsTo(settings);
         m_compressionModel.saveSettingsTo(settings);
-        m_truncateRegex.saveSettingsTo(settings);
+        m_truncationSettings.saveSettingsForModel(settings);
         saveAdditionalSettingsForModel(settings);
     }
 
@@ -236,13 +214,8 @@ public abstract class AbstractCompressNodeConfig {
     protected abstract void saveAdditionalSettingsForModel(NodeSettingsWO settings);
 
     private void saveNonSettingModelParameters(final NodeSettingsWO settings) {
-        saveTruncateOptions(settings);
         saveFlattenHierarchy(settings);
         saveSkipFolders(settings);
-    }
-
-    private void saveTruncateOptions(final NodeSettingsWO settings) {
-        settings.addString(CFG_TRUNCATE_PATH_OPTION, getTruncatePathOption().name());
     }
 
     /**
@@ -254,25 +227,22 @@ public abstract class AbstractCompressNodeConfig {
         return m_destinationFileChooserModel;
     }
 
+    /**
+     * Returns the {@link SettingsModelString} storing the selected compression.
+     *
+     * @return the {@link SettingsModelString} storing the selected compression
+     */
     final SettingsModelString getCompressionModel() {
         return m_compressionModel;
     }
 
-    final SettingsModelString getTruncateRegexModel() {
-        return m_truncateRegex;
-    }
-
     /**
-     * Sets the {@link TruncatePathOption}
+     * Returns the {@link TruncationSettings}.
      *
-     * @param truncatePathOption the option to set
+     * @return the {@link TruncationSettings}
      */
-    public final void setTrunacePathOption(final TruncatePathOption truncatePathOption) {
-        m_truncatePathOption = truncatePathOption;
-    }
-
-    final TruncatePathOption getTruncatePathOption() {
-        return m_truncatePathOption;
+    protected final TruncationSettings getTruncationSettings() {
+        return m_truncationSettings;
     }
 
     /**
@@ -305,6 +275,15 @@ public abstract class AbstractCompressNodeConfig {
 
     final boolean includeEmptyFolders() {
         return m_includeEmptyFolders;
+    }
+
+    /**
+     * Returns the {@link PathTruncator}.
+     *
+     * @return the {@link PathTruncator}
+     */
+    final PathTruncator getPathTruncator() {
+        return m_truncationSettings.getPathTruncator(flattenHierarchy());
     }
 
 }

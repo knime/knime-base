@@ -50,7 +50,9 @@ package org.knime.filehandling.utility.nodes.pathtostring;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -91,5 +93,18 @@ public final class PathToStringUtils {
             throw new IllegalArgumentException(String.format("The path '%s' could not be converted to a KNIME URL: %s",
                 fsLocation.getPath(), e.getMessage()), e);
         }
+    }
+
+    /**
+     * Splits a path into its individual names and returns it as an String array.
+     *
+     * @param path the path to split
+     * @return the array of strings computed by splitting this path
+     */
+    public static String[] split(final Path path) {
+        return IntStream.range(0, path.getNameCount())//
+            .mapToObj(path::getName)//
+            .map(Path::toString)//
+            .toArray(String[]::new);
     }
 }

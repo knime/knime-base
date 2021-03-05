@@ -77,12 +77,8 @@ public final class RegexTruncator extends AbstractPathTruncator {
     }
 
     @Override
-    public String truncate(final Path baseFolder, final Path path) {
-        return truncatePath(baseFolder, path).toString();
-    }
-
     @SuppressWarnings("resource")
-    private Path truncatePath(final Path baseFolder, final Path path) {
+    protected Path truncatePath(final Path baseFolder, final Path path) {
         final Path truncatedBaseFolder;
         if (baseFolder == null) {
             truncatedBaseFolder = null;

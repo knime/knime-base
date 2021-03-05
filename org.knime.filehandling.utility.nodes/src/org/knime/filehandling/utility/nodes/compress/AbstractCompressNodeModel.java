@@ -235,8 +235,7 @@ public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeCo
             final long numOfFiles = filesToCompress.size();
 
             final Map<String, String> createdEntries = new HashMap<>();
-            final PathTruncator pathTruncator = m_config.getTruncatePathOption()
-                .createPathTruncator(m_config.flattenHierarchy(), m_config.getTruncateRegexModel().getStringValue());
+            final PathTruncator pathTruncator = m_config.getPathTruncator();
             while (filesToCompress.hasNext()) {
                 final ExecutionContext subExec = exec.createSubExecutionContext(1d / numOfFiles);
                 compress(subExec, pathTruncator, outputLocation, filesToCompress.next(), archiveStream, entryCreator,

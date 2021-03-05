@@ -51,16 +51,12 @@ package org.knime.filehandling.utility.nodes.compress;
 import java.awt.Component;
 import java.awt.GridBagLayout;
 import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -69,7 +65,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
@@ -79,7 +74,7 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.util.GBCBuilder;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
+import org.knime.filehandling.utility.nodes.compress.truncator.TruncationPanel;
 
 /**
  * Node Dialog for the "Compress Files/Folder" node
@@ -101,15 +96,13 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
 
     private final DialogComponentStringSelection m_compressionSelection;
 
+    private final TruncationPanel m_truncationPanel;
+
     private final JCheckBox m_includeEmptyFolders;
 
     private final JCheckBox m_flattenHierarchyPanel;
 
     private final T m_config;
-
-    private final EnumMap<TruncatePathOption, JRadioButton> m_truncateMap;
-
-    private final DialogComponentString m_truncateRegex;
 
     private boolean m_isLoading;
 
@@ -132,21 +125,12 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         m_destinationFileChooserPanel =
             new DialogComponentWriterFileChooser(destinationFileChooserModel, FILE_OUTPUT_HISTORY_ID, writeFvm);
 
+        m_truncationPanel = new TruncationPanel("Source folder truncation", config.getTruncationSettings());
+
         SettingsModelString compressionModel = m_config.getCompressionModel();
         m_compressionSelection = new DialogComponentStringSelection(compressionModel, "Format",
             Arrays.asList(AbstractCompressNodeConfig.COMPRESSIONS));
         compressionModel.addChangeListener(l -> updateLocation());
-
-        m_truncateMap = new EnumMap<>(TruncatePathOption.class);
-        final ButtonGroup grp = new ButtonGroup();
-        for (final TruncatePathOption opt : TruncatePathOption.values()) {
-            final JRadioButton btn = new JRadioButton(opt.getLabel());
-            btn.addActionListener(l -> toggleRegexField());
-            m_truncateMap.put(opt, btn);
-            grp.add(btn);
-        }
-
-        m_truncateRegex = new DialogComponentString(m_config.getTruncateRegexModel(), null, true, 15);
 
         m_isLoading = false;
     }
@@ -239,31 +223,9 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         panel.add(m_compressionSelection.getComponentPanel(), gbc.build());
 
         gbc.incY().setWeightX(1).fillHorizontal().insetTop(3);
-        panel.add(createTruncatePanel(), gbc.build());
+        panel.add(m_truncationPanel, gbc.build());
         panel.add(createContentPanel(), gbc.incY().build());
         panel.add(new JPanel(), gbc.insetTop(0).resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().build());
-        return panel;
-    }
-
-    private Component createTruncatePanel() {
-        final JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(
-            BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source folder truncation"));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
-
-        panel.add(m_truncateMap.get(TruncatePathOption.KEEP_FULL_PATH), gbc.build());
-        panel.add(m_truncateMap.get(TruncatePathOption.KEEP_SRC_FOLDER), gbc.incX().build());
-        panel.add(m_truncateMap.get(TruncatePathOption.TRUNCATE_SRC_FOLDER), gbc.resetX().incY().build());
-        panel.add(getRegexPanel(), gbc.incX().build());
-        panel.add(new JPanel(), gbc.setWeightX(1).setWidth(2).fillHorizontal().build());
-        return panel;
-    }
-
-    private Component getRegexPanel() {
-        final JPanel panel = new JPanel(new GridBagLayout());
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
-        panel.add(m_truncateMap.get(TruncatePathOption.TRUNCATE_REGEX), gbc.build());
-        panel.add(m_truncateRegex.getComponentPanel(), gbc.incX().build());
         return panel;
     }
 
@@ -298,28 +260,10 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_destinationFileChooserPanel.saveSettingsTo(settings);
         m_compressionSelection.saveSettingsTo(settings);
-        m_truncateRegex.saveSettingsTo(settings);
-        m_config.setTrunacePathOption(getTruncateOption());
+        m_truncationPanel.saveSettingsTo(settings);
         m_config.includeEmptyFolders(m_includeEmptyFolders.isSelected());
         m_config.flattenHierarchy(m_flattenHierarchyPanel.isSelected());
         m_config.saveSettingsForDialog(settings);
-    }
-
-    private TruncatePathOption getTruncateOption() throws InvalidSettingsException {
-        return m_truncateMap.entrySet().stream()//
-            .filter(e -> e.getValue().isSelected())//
-            .map(Entry::getKey)//
-            .findFirst()//
-            .orElseThrow(() -> new InvalidSettingsException("Please select one of the truncate options"));
-    }
-
-    private void selectTruncateOption(final TruncatePathOption truncatePathOption) {
-        m_truncateMap.entrySet().stream()//
-            .forEachOrdered(e -> e.getValue().setSelected(e.getKey() == truncatePathOption));
-    }
-
-    private void toggleRegexField() {
-        m_truncateRegex.getModel().setEnabled(m_truncateMap.get(TruncatePathOption.TRUNCATE_REGEX).isSelected());
     }
 
     @Override
@@ -327,7 +271,6 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         throws NotConfigurableException {
         m_isLoading = true;
         loadSettings(settings, specs);
-        selectTruncateOption(getConfig().getTruncatePathOption());
         m_isLoading = false;
         afterLoad();
     }
@@ -336,7 +279,7 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
      * Invoked after loading the settings.
      */
     protected void afterLoad() {
-        toggleRegexField();
+        updateLocation();
     }
 
     /**
@@ -352,7 +295,7 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         m_compressionSelection.loadSettingsFrom(settings, specs);
 
         m_config.loadSettingsForDialog(settings);
-        m_truncateRegex.loadSettingsFrom(settings, specs);
+        m_truncationPanel.loadSettings(settings, specs);
         m_includeEmptyFolders.setSelected(m_config.includeEmptyFolders());
         m_flattenHierarchyPanel.setSelected(m_config.flattenHierarchy());
     }

@@ -120,8 +120,8 @@
 		<option name="Source folder truncation">
 			Depending on the selected strategy the folder containing the files/folders to compress is being truncated
 			differently, i.e., the folder structure in the resulting archive is being modified. For the remainder assume
-			that <tt>folder/other/</tt> the selected folder and it contains the file <tt>folder/other/subfolder/file.txt
-			</tt>
+			that <tt>folder/other/</tt> is the selected folder and it contains the file 
+			<tt>folder/other/subfolder/file.txt</tt>
 			<ul>
 				<li><b>Keep full path:</b>
 					This selection ensures that the folder's path is not being truncated, i.e., the archive will contain
@@ -145,7 +145,7 @@
 					<tt>other.*</tt>.
 				</li>
 			</ul> 
-			If it is not possible to apply the selected truncation strategy an node will fail during execution.
+			If it is not possible to apply the selected truncation strategy the node will fail during execution.
 		</option>
 		<option name="Flatten folder">
 			This option allows to specify where the files are located if multiple files have to be compressed. If

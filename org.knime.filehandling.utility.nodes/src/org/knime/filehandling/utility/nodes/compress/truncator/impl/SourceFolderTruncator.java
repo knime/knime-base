@@ -72,11 +72,7 @@ public final class SourceFolderTruncator extends AbstractPathTruncator {
     }
 
     @Override
-    public String truncate(final Path baseFolder, final Path path) {
-        return truncatePath(baseFolder, path).toString();
-    }
-
-    private Path truncatePath(final Path baseFolder, final Path path) {
+    protected Path truncatePath(final Path baseFolder, final Path path) {
         if (isSamePath(path, baseFolder)) {
             throw new TruncationException(
                 String.format("Removing the source folder from itself is prohibited ('%s')", path.toString()),
