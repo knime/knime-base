@@ -46,13 +46,12 @@
  * History
  *   Mar 5, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.utility.nodes.transfer;
+package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
 import java.util.EnumSet;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
@@ -64,39 +63,36 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOv
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeFactory;
 
 /**
- * Node factory of the Transfer Files node.
+ * Node factory of the Transfer Files/Folder node.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
- * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class TransferFilesNodeFactory extends ConfigurableNodeFactory<TransferFilesNodeModel> {
-
-    /** The name of the optional source connection input port group. */
-    private static final String CONNECTION_SOURCE_PORT_GRP_NAME = "Source File System Connection";
-
-    /** The name of the optional destination connection input port group. */
-    private static final String CONNECTION_DESTINATION_PORT_GRP_NAME = "Destination File System Connection";
+public final class TransferFilesFileChooserNodeFactory
+    extends AbstractTransferFilesNodeFactory<TransferFilesFileChooserNodeModel> {
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder b = new PortsConfigurationBuilder();
-        b.addOptionalInputPortGroup(CONNECTION_SOURCE_PORT_GRP_NAME, FileSystemPortObject.TYPE);
-        b.addOptionalInputPortGroup(CONNECTION_DESTINATION_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        b.addOptionalInputPortGroup(AbstractTransferFilesNodeFactory.CONNECTION_SOURCE_PORT_GRP_NAME,
+            FileSystemPortObject.TYPE);
+        b.addOptionalInputPortGroup(AbstractTransferFilesNodeFactory.CONNECTION_DESTINATION_PORT_GRP_NAME,
+            FileSystemPortObject.TYPE);
         b.addFixedOutputPortGroup("Output", BufferedDataTable.TYPE);
         return Optional.of(b);
     }
 
     @Override
-    protected TransferFilesNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+    protected TransferFilesFileChooserNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
         PortsConfiguration portsConfiguration = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new TransferFilesNodeModel(portsConfiguration, createSettings(portsConfiguration));
+        return new TransferFilesFileChooserNodeModel(portsConfiguration, createSettings(portsConfiguration));
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new TransferFilesNodeDialog(
+        return new TransferFilesFileChooserNodeDialog(
             createSettings(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
     }
 
@@ -106,8 +102,8 @@ public final class TransferFilesNodeFactory extends ConfigurableNodeFactory<Tran
     }
 
     @Override
-    public NodeView<TransferFilesNodeModel> createNodeView(final int viewIndex,
-        final TransferFilesNodeModel nodeModel) {
+    public NodeView<TransferFilesFileChooserNodeModel> createNodeView(final int viewIndex,
+        final TransferFilesFileChooserNodeModel nodeModel) {
         return null;
     }
 
@@ -116,13 +112,16 @@ public final class TransferFilesNodeFactory extends ConfigurableNodeFactory<Tran
         return true;
     }
 
-    private static TransferFilesNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
-        return new TransferFilesNodeConfig(
-            new SettingsModelReaderFileChooser("source_location", portsConfiguration, CONNECTION_SOURCE_PORT_GRP_NAME,
+    private static TransferFilesFileChooserNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
+        return new TransferFilesFileChooserNodeConfig(
+            new SettingsModelReaderFileChooser("source_location", portsConfiguration,
+                AbstractTransferFilesNodeFactory.CONNECTION_SOURCE_PORT_GRP_NAME,
                 EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS)),
             new SettingsModelWriterFileChooser("destination_location", portsConfiguration,
-                CONNECTION_DESTINATION_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
+                AbstractTransferFilesNodeFactory.CONNECTION_DESTINATION_PORT_GRP_NAME,
+                EnumConfig.create(FilterMode.FOLDER),
                 EnumConfig.create(FileOverwritePolicy.IGNORE, FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE),
                 EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE)));
     }
+
 }

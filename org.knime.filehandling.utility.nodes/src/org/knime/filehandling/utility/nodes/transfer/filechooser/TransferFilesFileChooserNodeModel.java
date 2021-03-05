@@ -44,51 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Feb 25, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.Set;
 
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory;
-import org.knime.filehandling.utility.nodes.deletepaths.filechooser.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
-import org.knime.filehandling.utility.nodes.transfer.filechooser.TransferFilesFileChooserNodeFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeModel;
+import org.knime.filehandling.utility.nodes.transfer.iterators.TransferIterator;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
+ * The Transfer Files/Folder node model.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+final class TransferFilesFileChooserNodeModel
+    extends AbstractTransferFilesNodeModel<TransferFilesFileChooserNodeConfig> {
+
+    /**
+     * Constructor.
+     *
+     * @param portsConfig the {@link PortsConfiguration}
+     * @param config the {@link TransferFilesFileChooserNodeConfig}
+     */
+    TransferFilesFileChooserNodeModel(final PortsConfiguration portsConfig,
+        final TransferFilesFileChooserNodeConfig config) {
+        super(portsConfig, config);
+    }
 
     @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.compress.CompressNodeFactory",
-            CompressFileChooserNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.transfer.TransferFilesNodeFactory",
-            TransferFilesFileChooserNodeFactory.class);
-        return map;
+    protected TransferIterator getTransferIterator(final PortObject[] inObjects)
+        throws IOException, InvalidSettingsException {
+        final TransferFilesFileChooserNodeConfig cfg = getConfig();
+        return new TransferFileChooserIterator(cfg.getPathTruncator(), cfg.getSourceFileChooserModel(),
+            cfg.getDestinationFileChooserModel(), getStatusConsumer());
+    }
+
+    @Override
+    protected void doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        getConfig().getSourceFileChooserModel().configureInModel(inSpecs, getStatusConsumer());
+        getConfig().getDestinationFileChooserModel().configureInModel(inSpecs, getStatusConsumer());
+
+    }
+
+    @Override
+    protected Set<DefaultFSLocationSpec> getSrcLocationSpecs(final PortObjectSpec[] inSpecs) {
+        return getLocationSpecs(getConfig().getSourceFileChooserModel().getLocation());
     }
 
 }

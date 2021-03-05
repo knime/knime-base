@@ -44,51 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Feb 25, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.awt.Component;
 
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory;
-import org.knime.filehandling.utility.nodes.deletepaths.filechooser.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
-import org.knime.filehandling.utility.nodes.transfer.filechooser.TransferFilesFileChooserNodeFactory;
+import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeDialog;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
+ * Node dialog of the Transfer Files/Folder node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+final class TransferFilesFileChooserNodeDialog
+    extends AbstractTransferFilesNodeDialog<TransferFilesFileChooserNodeConfig> {
 
-    @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.compress.CompressNodeFactory",
-            CompressFileChooserNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.transfer.TransferFilesNodeFactory",
-            TransferFilesFileChooserNodeFactory.class);
-        return map;
+    private final DialogComponentReaderFileChooser m_sourceFilePanel;
+
+    /**
+     * Constructor.
+     *
+     * @param config the {@link TransferFilesFileChooserNodeConfig}
+     */
+    TransferFilesFileChooserNodeDialog(final TransferFilesFileChooserNodeConfig config) {
+        super(config);
+        final SettingsModelReaderFileChooser sourceFileChooserConfig = config.getSourceFileChooserModel();
+        final FlowVariableModel sourceFvm =
+            createFlowVariableModel(sourceFileChooserConfig.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+
+        m_sourceFilePanel = new DialogComponentReaderFileChooser(sourceFileChooserConfig, "source_chooser", sourceFvm);
+
+        createPanel();
     }
 
+    @Override
+    public void onClose() {
+        super.onClose();
+        m_sourceFilePanel.onClose();
+    }
+
+    @Override
+    protected Component getSourceLocationPanel() {
+        return m_sourceFilePanel.getComponentPanel();
+    }
+
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_sourceFilePanel.loadSettingsFrom(settings, specs);
+        super.loadSettingsFrom(settings, specs);
+    }
+
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_sourceFilePanel.saveSettingsTo(settings);
+        super.saveSettingsTo(settings);
+    }
 }

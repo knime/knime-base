@@ -44,51 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Mar 9, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.transfer;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory;
-import org.knime.filehandling.utility.nodes.deletepaths.filechooser.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
-import org.knime.filehandling.utility.nodes.transfer.filechooser.TransferFilesFileChooserNodeFactory;
+import org.knime.core.node.ConfigurableNodeFactory;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
+ * Abstract factory for the Transfer Files/Folder node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @param <T> an instance of {@link AbstractTransferFilesNodeModel}
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+public abstract class AbstractTransferFilesNodeFactory<T extends AbstractTransferFilesNodeModel<? extends
+    AbstractTransferFilesNodeConfig>> extends ConfigurableNodeFactory<T> {
 
-    @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.compress.CompressNodeFactory",
-            CompressFileChooserNodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.transfer.TransferFilesNodeFactory",
-            TransferFilesFileChooserNodeFactory.class);
-        return map;
-    }
+    /** The name of the optional source connection input port group. */
+    protected static final String CONNECTION_SOURCE_PORT_GRP_NAME = "Source File System Connection";
+
+    /** The name of the optional destination connection input port group. */
+    protected static final String CONNECTION_DESTINATION_PORT_GRP_NAME = "Destination File System Connection";
 
 }

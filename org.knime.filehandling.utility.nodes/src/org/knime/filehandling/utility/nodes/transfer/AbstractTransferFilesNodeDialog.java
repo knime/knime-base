@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.utility.nodes.transfer;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -62,124 +63,84 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusSwingWorker;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
-import org.knime.filehandling.utility.nodes.dialog.swingworker.IncludeSourceFolderSwingWorker;
-import org.knime.filehandling.utility.nodes.dialog.swingworker.SwingWorkerManager;
+import org.knime.filehandling.utility.nodes.compress.truncator.TruncationPanel;
 
 /**
- * Node dialog of the Transfer Files node.
+ * Abstract node dialog of the Transfer Files/Folder node.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @param <T> an instance of {@link AbstractTransferFilesNodeConfig}
  */
-final class TransferFilesNodeDialog extends NodeDialogPane {
-
-    private final DialogComponentReaderFileChooser m_sourceFilePanel;
+public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransferFilesNodeConfig>
+    extends NodeDialogPane {
 
     private final DialogComponentWriterFileChooser m_destinationFilePanel;
 
-    private final DialogComponentBoolean m_deleteSourceFilesCheckbox;
+    private final TruncationPanel m_truncationPanel;
 
-    private final DialogComponentBoolean m_includeSourceFolderCheckbox;
+    private final DialogComponentBoolean m_deleteSourceFilesCheckbox;
 
     private final DialogComponentBoolean m_failOnDeletion;
 
-    private final SwingWorkerManager m_includeSourceFolderSwingWorkerManager;
+    private final DialogComponentBoolean m_verboseOutput;
 
-    private final StatusView m_includeSourceFolderStatusView;
-
-    private final TransferFilesNodeConfig m_config;
-
-    private boolean m_isLoading;
+    private final T m_config;
 
     /**
      * Constructor.
      *
-     * @param config the CopyMoveFilesNodeConfig
+     * @param config the {@link AbstractTransferFilesNodeConfig}
      */
-    TransferFilesNodeDialog(final TransferFilesNodeConfig config) {
+    protected AbstractTransferFilesNodeDialog(final T config) {
         m_config = config;
 
-        final SettingsModelReaderFileChooser sourceFileChooserConfig = m_config.getSourceFileChooserModel();
         final SettingsModelWriterFileChooser destinationFileChooserConfig = m_config.getDestinationFileChooserModel();
 
-        final FlowVariableModel sourceFvm =
-            createFlowVariableModel(sourceFileChooserConfig.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
         final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserConfig.getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE);
 
-        m_sourceFilePanel = new DialogComponentReaderFileChooser(sourceFileChooserConfig, "source_chooser", sourceFvm);
+        m_destinationFilePanel =
+            new DialogComponentWriterFileChooser(destinationFileChooserConfig, "destination_chooser", writeFvm);
 
-        m_destinationFilePanel = new DialogComponentWriterFileChooser(destinationFileChooserConfig,
-            "destination_chooser", writeFvm, s -> new TransferFilesStatusMessageReporter(s,
-                sourceFileChooserConfig.createClone(), config.getSettingsModelIncludeSourceFolder().getBooleanValue()));
-
-        m_includeSourceFolderStatusView = new StatusView();
+        m_truncationPanel = new TruncationPanel("Source folder truncation", config.getTruncationSettings());
 
         m_deleteSourceFilesCheckbox =
             new DialogComponentBoolean(m_config.getDeleteSourceFilesModel(), "Delete source files / folders");
-
-        m_includeSourceFolderCheckbox = new DialogComponentBoolean(m_config.getSettingsModelIncludeSourceFolder(),
-            "Include selected source folder");
-
-        m_config.getSourceFileChooserModel().addChangeListener(c -> updateIncludeSourceCheckbox());
 
         m_failOnDeletion =
             new DialogComponentBoolean(m_config.getFailOnDeletionModel(), "Fail on unsuccessful deletion");
         m_deleteSourceFilesCheckbox.getModel().addChangeListener(l -> updateFailOnDeletion());
 
-        m_includeSourceFolderSwingWorkerManager = new SwingWorkerManager(this::createIncludeSourceFolderSwingWorker);
+        m_verboseOutput = new DialogComponentBoolean(m_config.getVerboseOutputModel(), "Verbose output");
+    }
 
-        //Update the component in case something changes so that the status message will be updated accordingly
-        sourceFileChooserConfig.addChangeListener(l -> m_destinationFilePanel.updateComponent());
-        config.getSettingsModelIncludeSourceFolder().addChangeListener(l -> m_destinationFilePanel.updateComponent());
-
-        sourceFileChooserConfig.addChangeListener(l -> startCancelSwingWorker());
-
-        m_includeSourceFolderCheckbox.getModel().addChangeListener(l -> startCancelSwingWorker());
-
-        createPanel();
+    @Override
+    public final FlowVariableModel createFlowVariableModel(final String[] keys, final VariableType<?> type) {
+        return super.createFlowVariableModel(keys, type);
     }
 
     /**
-     * Creates the {@link IncludeSourceFolderSwingWorker}.
+     * Returns the configuration.
      *
-     * @return the {@link StatusSwingWorker}
+     * @return the configuration
      */
-    private StatusSwingWorker createIncludeSourceFolderSwingWorker() {
-        return new StatusSwingWorker(m_includeSourceFolderStatusView::setStatus,
-            new IncludeSourceFolderSwingWorker(m_config.getSourceFileChooserModel().createClone()), false);
+    protected final T getConfig() {
+        return m_config;
     }
 
     /**
-     * Starts and cancels the {@link StatusSwingWorker}.
+     * Enables/disables the destination file chooser panel.
+     *
+     * @param enabled flag indicating whether to enable or disable the panel
      */
-    private void startCancelSwingWorker() {
-        m_includeSourceFolderStatusView.clearStatus();
-        if (m_isLoading) {
-            return;
-        }
-        if (m_includeSourceFolderCheckbox.isSelected()
-            && m_config.getSourceFileChooserModel().getFilterMode() != FilterMode.FILE) {
-            m_includeSourceFolderSwingWorkerManager.startSwingWorker();
-        } else {
-            m_includeSourceFolderSwingWorkerManager.cancelSwingWorker();
-        }
-    }
-
-    /**
-     * Listener method for the include source folder checkbox.
-     */
-    private void updateIncludeSourceCheckbox() {
-        m_includeSourceFolderCheckbox.getModel()
-            .setEnabled((m_config.getSourceFileChooserModel().getFilterMode()) != FilterMode.FILE);
+    protected final void enableDestFileChooserPanel(final boolean enabled) {
+        m_truncationPanel.setEnabled(enabled);
+        m_destinationFilePanel.getModel().setEnabled(enabled);
     }
 
     /**
@@ -192,7 +153,7 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
     /**
      * Method to create the panel.
      */
-    private void createPanel() {
+    protected final void createPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
         panel.add(createSourcePanel(), gbc);
@@ -214,9 +175,16 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source"));
-        panel.add(m_sourceFilePanel.getComponentPanel(), gbc);
+        panel.add(getSourceLocationPanel(), gbc);
         return panel;
     }
+
+    /**
+     * Returns the panel containing the source location.
+     *
+     * @return the source location panel
+     */
+    protected abstract Component getSourceLocationPanel();
 
     /**
      * Creates the option file chooser panel.
@@ -225,45 +193,51 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
-        gbc.fill = GridBagConstraints.NONE;
+
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.weighty = 0;
-        gbc.weightx = 0;
-        panel.add(m_includeSourceFolderCheckbox.getComponentPanel(), gbc);
-        gbc.gridx++;
-        gbc.weighty = 1;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        gbc.gridheight = 2;
-        panel.add(m_includeSourceFolderStatusView.getLabel(), gbc);
-        gbc.gridheight = 1;
+        gbc.weightx = 1;
+        gbc.gridwidth = 2;
+        panel.add(m_truncationPanel, gbc);
+
         gbc.fill = GridBagConstraints.NONE;
-        gbc.weighty = 0;
-        gbc.gridx = 0;
-        gbc.gridy++;
+        gbc.weightx = 0;
+        gbc.gridwidth = 1;
         gbc.gridy++;
         panel.add(m_deleteSourceFilesCheckbox.getComponentPanel(), gbc);
+
         gbc.gridx++;
         panel.add(m_failOnDeletion.getComponentPanel(), gbc);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridwidth = 2;
-        gbc.weighty = 1;
-        gbc.weightx = 1;
+
         gbc.gridx = 0;
         gbc.gridy++;
-        panel.add(new JPanel(), gbc);
+        panel.add(m_verboseOutput.getComponentPanel(), gbc);
+
         return panel;
     }
 
     /**
-     * Creates the destination file chooser panel.
+     * Creates the destination selection panel.
+     *
+     * @return the destination selection panel
      */
     private JPanel createDestinationPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Destination"));
-        panel.add(m_destinationFilePanel.getComponentPanel(), gbc);
+        panel.add(getDestinationPanel(), gbc);
 
         return panel;
+    }
+
+    /**
+     * Creates the destination panel containing a {@link DialogComponentWriterFileChooser}
+     *
+     * @return the destination panel
+     */
+    protected JPanel getDestinationPanel() {
+        return m_destinationFilePanel.getComponentPanel();
     }
 
     /**
@@ -279,43 +253,29 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
         return gbc;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * Cancels the {@link IncludeSourceFolderSwingWorker} when the dialog will be closed. And the
-     * {@link StatusSwingWorker} of the source and destination {@link AbstractDialogComponentFileChooser}.
-     */
     @Override
     public void onClose() {
-        m_includeSourceFolderSwingWorkerManager.cancelSwingWorker();
-        m_sourceFilePanel.onClose();
         m_destinationFilePanel.onClose();
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_sourceFilePanel.saveSettingsTo(settings);
         m_destinationFilePanel.saveSettingsTo(settings);
-        m_includeSourceFolderCheckbox.saveSettingsTo(settings);
+        m_truncationPanel.saveSettingsTo(settings);
         m_deleteSourceFilesCheckbox.saveSettingsTo(settings);
         m_failOnDeletion.saveSettingsTo(settings);
+        m_verboseOutput.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        m_isLoading = true;
-        m_sourceFilePanel.loadSettingsFrom(settings, specs);
-        m_destinationFilePanel.loadSettingsFrom(settings, specs);
-        m_includeSourceFolderCheckbox.loadSettingsFrom(settings, specs);
+        m_verboseOutput.loadSettingsFrom(settings, specs);
+        m_truncationPanel.loadSettings(settings, specs);
         m_deleteSourceFilesCheckbox.loadSettingsFrom(settings, specs);
         m_failOnDeletion.loadSettingsFrom(settings, specs);
-        m_isLoading = false;
-
+        m_destinationFilePanel.loadSettingsFrom(settings, specs);
         //update the checkbox after loading the settings
-        updateIncludeSourceCheckbox();
         updateFailOnDeletion();
-
-        startCancelSwingWorker();
     }
 }

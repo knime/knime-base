@@ -109,9 +109,11 @@ public final class FSLocationColumnUtils {
         final Optional<String> fsSpecifier = fsSpec.getFSLocationSpec().getFileSystemSpecifier();
         // return a warning if an fs is connected but the meta data contains a fs location spec with a different fs
         if (fsLocationSpecs.stream().anyMatch(e -> !FSLocationSpec.areEqual(e, fsSpec.getFSLocationSpec()))) {
-            return Optional.of(String.format("The selected column '%s' seems to contain a path referencing a "
-                + " different file system than the one at the input port. Such paths will be"
-                + " resolved against the file system at the input port (%s).", pathColName, fsSpecifier.orElse("")));
+            return Optional.of(String.format(
+                "The selected column '%s' seems to contain a path referencing a "
+                    + " different file system than the one at the input port. Such paths will be"
+                    + " resolved against the file system at the input port (%s).",
+                pathColName, fsSpecifier.orElse("")));
         } else {
             return Optional.empty();
         }
@@ -125,8 +127,9 @@ public final class FSLocationColumnUtils {
         checkMetaDataContainingOnlyConnectedFS(pathColName, mapOfConnectedAndUnconnectedFS);
         // return a warning if the meta data contains both unconnected and connected fs
         if (!mapOfConnectedAndUnconnectedFS.get(Boolean.TRUE).isEmpty()) {
-            return Optional.of(String.format("The selected column '%s' seems to contain a path referencing a file"
-                + " system that requires to be connected (%s). The node will fail during execution in such case.",
+            return Optional.of(String.format(
+                "The selected column '%s' seems to contain a path referencing a file"
+                    + " system that requires to be connected (%s). The node will fail during execution in such case.",
                 pathColName,
                 mapOfConnectedAndUnconnectedFS.get(Boolean.TRUE).get(0).getFileSystemSpecifier().orElse("")));
         } else {
@@ -146,7 +149,13 @@ public final class FSLocationColumnUtils {
         }
     }
 
-    private static FSLocationValueMetaData validateAndGetMetaData(final DataColumnSpec fsLocationColSpec) {
+    /**
+     * Validates and returns the meta data.
+     *
+     * @param fsLocationColSpec the column containing the {@link FSLocationValueMetaData}.
+     * @return the columns {@link FSLocationValueMetaData}
+     */
+    public static FSLocationValueMetaData validateAndGetMetaData(final DataColumnSpec fsLocationColSpec) {
         final String pathColName = fsLocationColSpec.getName();
         return fsLocationColSpec.getMetaDataOfType(FSLocationValueMetaData.class)
             .orElseThrow(() -> new IllegalStateException(

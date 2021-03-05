@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="transferfiles16x16.png" type="Source"
+<knimeNode icon="../transferfiles16x16.png" type="Source"
 	xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Transfer Files</name>
 
 	<shortDescription>
-		Transfer files from a source (folder or file) to a specified destination folder.
+		Transfer files from a source (file or folder) to a specified destination folder.
 	</shortDescription>
 
 	<fullDescription>
@@ -58,7 +58,7 @@
 				</li>
 			</ul>
 			To copy/move a file/folder from other file systems, click on <b>...</b> in the bottom left corner of the
-			node icon followed by <i>Add File System Connection port</i>. Afterwards, connect the desired file system
+			node icon followed by <i>Source File System Connection</i>. Afterwards, connect the desired file system
 			connector node to the newly added input port. The file system connection will then be shown in the drop-down
 			menu. It is greyed out if the file system is not connected in which case you have to (re)execute the
 			connector node first. Note: The default file systems listed above can't be selected if a file system is
@@ -125,13 +125,31 @@
 				</li>
 			</ul>
 		</option>
-		<option name="Include selected source folder">
-			If this option is selected, a folder with the name of the last part of the selected path will get included
-			in the copy process,otherwise only the contents of the specified folder will get included in the archive.
-			This option does not work if only a single file should be copied or if the selected folder path ends with
-			<b>..</b> or <b>.</b>. For example copying the complete workflow data area by specifying the source path
-			with a <b>.</b>. If it is not possible to include the source folder the dialog will
-			show you an error message and the node will fail during execution.
+		<option name="Source folder truncation">
+			Depending on the selected strategy the folder containing the files/folders to copy/move is being truncated
+			differently, i.e., this option allows to modify the resulting (destination) folder structure. For the 
+			remainder assume that <tt>folder/other/</tt> is the selected folder and it contains the file 
+			<tt>folder/other/subfolder/file.txt</tt>
+			<ul>
+				<li><b>Keep full path:</b>
+					This selection ensures that the folder's path is not being truncated, i.e., the destination folder
+					will contain the entry <tt>folder/other/subfolder/file.txt</tt>
+				</li>
+				<li><b>Keep source folder only:</b>
+					This selection ensures that anything preceding the source folder's name is being truncated,
+					i.e., the destination folder will contain the entry <tt>other/subfolder/file.txt</tt>
+				</li>
+				<li><b>Truncate full path:</b>
+					This selection ensures that the folder's path is being fully truncated, i.e., the destination folder
+					will contain the entry <tt>subfolder/file.txt</tt>.
+				</li>
+				<li><b>Truncate:</b>
+					This selection truncates the first occurrence in the folder's path matching the regular expression,
+					i.e., the destination folder will contain the entry <tt>folder/subfolder/file.txt</tt>
+					given the regular expression <tt>other.*</tt>.
+				</li>
+			</ul> 
+			If it is not possible to apply the selected truncation strategy the node will fail during execution.
 		</option>
 		<option name="Delete source files / folders">
 			If this option is checked all files which have been successfully copied to the destination folder
@@ -141,6 +159,10 @@
 		<option name="Fail on unsuccessful deletion">
 			If the 'Delete source files (move)' option is activated and something goes wrong during the deletion process
 			the node will fail. This option is only available if the before mentioned option is selected.
+		</option>
+		<option name="Verbose output">
+			If selected the output will not only show the folder that has been copied/moved but also all the 
+			files/folders it contains.
 		</option>
 	</fullDescription>
 	<ports>
