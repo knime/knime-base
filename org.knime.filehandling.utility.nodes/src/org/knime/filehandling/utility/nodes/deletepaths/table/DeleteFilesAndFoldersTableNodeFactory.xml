@@ -27,7 +27,7 @@
 				<br />
 			</p>
 			<p>
-				This nodes deletes files and folders from a Path column. The
+				This nodes deletes files and folders listed in a Path column. The
 				node
 				has
 				got an optional input port for a File System connection
@@ -65,7 +65,7 @@
 		</option>
 		<option name="Abort if file does not exist">
 			If this option is checked the node will abort if
-			one of the the files / folders does not exist.
+			one of the files / folders does not exist.
 		</option>
 	</fullDescription>
 	<ports>
@@ -78,10 +78,10 @@
 			The file system connection.
 		</dynInPort>
 		<outPort name="Output table" index="0">
-			Table containing the list
-			of files/folders that have been deleted, based on abortion options
-			there are additional boolean columns which indicates wheter a
-			deletion was successful or not and if a file existed or not.
+			Table containing the list of files/folders that have been deleted.
+			Based on abortion options, there are additional boolean columns
+			which indicates whether a deletion was successful or not and if a file
+			existed or not.
 		</outPort>
 	</ports>
 </knimeNode>
