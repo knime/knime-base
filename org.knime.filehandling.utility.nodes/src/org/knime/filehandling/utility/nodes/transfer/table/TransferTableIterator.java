@@ -72,19 +72,19 @@ import org.knime.filehandling.utility.nodes.utils.iterators.FsCellColumnIterator
  */
 final class TransferTableIterator implements TransferIterator {
 
-    private final FsCellColumnIterator m_sourceIterator;
+    private final FsCellColumnIterator m_srcIter;
 
-    private final FsCellColumnIterator m_destionationIterator;
+    private final FsCellColumnIterator m_destIter;
 
     TransferTableIterator(final BufferedDataTable table, final int srcColIdx, final int destColIdx,
         final FSConnection srcConnection, final FSConnection destConnection) {
-        m_sourceIterator = new FsCellColumnIterator(table, srcColIdx, srcConnection);
-        m_destionationIterator = new FsCellColumnIterator(table, destColIdx, destConnection);
+        m_srcIter = new FsCellColumnIterator(table, srcColIdx, srcConnection);
+        m_destIter = new FsCellColumnIterator(table, destColIdx, destConnection);
     }
 
     @Override
     public boolean hasNext() {
-        return m_sourceIterator.hasNext();
+        return m_srcIter.hasNext();
     }
 
     @Override
@@ -92,18 +92,18 @@ final class TransferTableIterator implements TransferIterator {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        return new TransferKnownTargetEntry(m_sourceIterator.next(), m_destionationIterator.next());
+        return new TransferKnownTargetEntry(m_srcIter.next(), m_destIter.next());
     }
 
     @Override
     public void close() {
-        m_sourceIterator.close();
-        m_destionationIterator.close();
+        m_srcIter.close();
+        m_destIter.close();
     }
 
     @Override
     public long size() {
-        return m_sourceIterator.size();
+        return m_srcIter.size();
     }
 
     private static class TransferKnownTargetEntry implements TransferEntry {
