@@ -143,4 +143,21 @@ public abstract class FSPath implements Path {
             throw new IllegalArgumentException(ex);
         }
     }
+
+    /**
+     * Resolve the given path against this String array.
+     *
+     * @param other the String array to resolve against this path
+     * @return the resulting FSPath
+     */
+    public final FSPath resolve(final String[] other) {
+        if (other == null || other.length == 0) {
+            throw new IllegalArgumentException("Unable to resolve against an empty path");
+        }
+        FSPath p = (FSPath)resolve(other[0]);
+        for (int i = 1; i < other.length; i++) {
+            p = (FSPath)p.resolve(other[i]);
+        }
+        return p;
+    }
 }
