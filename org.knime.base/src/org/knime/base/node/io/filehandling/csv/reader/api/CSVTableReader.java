@@ -287,10 +287,10 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                     // for some reason when running in non-debug mode the memory limit per column exception often
                     // contains a null message
                     if (index == m_csvParserSettings.getMaxCharsPerColumn() || e.getCause().getMessage() == null) {
-                        throw new IOException("Memory limit per column exceeded. Please adapt the according setting.");
+                        throw new IOException("Memory limit per column exceeded. Please adapt the according setting.", e);
                     } else if (index == m_csvParserSettings.getMaxColumns()) {
                         throw new IOException("Number of parsed columns exceeds the defined limit ("
-                            + m_csvParserSettings.getMaxColumns() + "). Please adapt the according setting.");
+                            + m_csvParserSettings.getMaxColumns() + "). Please adapt the according setting.", e);
                     } else {
                         // fall through to default exception
                     }

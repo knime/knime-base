@@ -207,7 +207,7 @@ final class TopKSelectorSettings {
                 try {
                     TopKMode.getTopKModeByText(selectionMode);
                 } catch (IllegalArgumentException e) {
-                    throw new InvalidSettingsException(String.format("No matching selectionMode for '%s' found.", selectionMode));
+                    throw new InvalidSettingsException(String.format("No matching selectionMode for '%s' found.", selectionMode), e);
                 }
                 super.validateSettingsForModel(settings);
             }

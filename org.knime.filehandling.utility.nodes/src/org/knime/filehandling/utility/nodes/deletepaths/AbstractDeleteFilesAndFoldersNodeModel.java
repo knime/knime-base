@@ -235,8 +235,8 @@ public abstract class AbstractDeleteFilesAndFoldersNodeModel<C extends AbstractD
             }
         } catch (NoSuchFileException e) {
             if (m_config.isAbortIfFileNotExist()) {
-                LOGGER.debug(e);
-                throw new NoSuchFileException(e.getFile(), null,
+                LOGGER.debug("File couldn't be found", e);
+                throw new NoSuchFileException(e.getFile(), null, //NOSONAR as we throw the same exception and log it
                     "The file/directory couldn't be deleted since it was not found. "
                         + "Execution was aborted due to user settings");
             }
