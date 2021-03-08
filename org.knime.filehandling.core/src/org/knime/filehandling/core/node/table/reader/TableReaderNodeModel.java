@@ -146,7 +146,8 @@ public class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> exten
                 m_sourceSettings.getSourceIdentifier())) {
                 return new PortObjectSpec[]{m_config.getTableSpecConfig().getDataTableSpec()};
             }
-            setWarningMessage("The stored spec has not been created with the given file/path.");
+            setWarningMessage(
+                "The node configuration changed and the table spec will be recalculated during execution.");
         }
         return null;// NOSONAR, we aren't allowed to do I/O in configure therefore we can't calculate the output spec
     }
