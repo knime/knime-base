@@ -102,5 +102,13 @@ final class ConfigIDSerializer {
                 "EmptyConfigID only exist for backwards compatibility and should be handled differently.");
         }
 
+        @Override
+        public boolean isCompatible(final ConfigID configID) {
+            // Before 4.4.0, there was no ConfigID, and this ConfigID is loaded instead
+            // In order to avoid warnings on all nodes created pre 4.4.0, this ConfigID needs to be compatible
+            // with any other ConfigID.
+            return configID != null;
+        }
+
     }
 }

@@ -54,6 +54,7 @@ import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.mockito.Mockito;
 
 /**
  * Contains unit tests for {@link NodeSettingsConfigID}.
@@ -108,6 +109,33 @@ public class NodeSettingsConfigIDTest {
         assertNotEquals(id, "foo");
 
         assertNotEquals(id, null);
+    }
+
+    /**
+     * Tests the {@link ConfigID#isCompatible(ConfigID)} implementation.
+     */
+    @Test
+    public void testIsCompatible() {
+        final NodeSettings settings = new NodeSettings("test");
+        settings.addString("key", "value");
+
+        final NodeSettingsConfigID id = new NodeSettingsConfigID(settings);
+        assertEquals(true, id.isCompatible(id));
+
+        final NodeSettingsConfigID otherIDSameContent = new NodeSettingsConfigID(settings);
+        assertEquals(true, id.isCompatible(otherIDSameContent));
+
+        final NodeSettings otherKeySettings = new NodeSettings("bar");
+        settings.addString("key", "value");
+        NodeSettingsConfigID otherKeySettingsID = new NodeSettingsConfigID(otherKeySettings);
+        assertEquals(false, id.isCompatible(otherKeySettingsID));
+
+        final NodeSettings otherContentSettings = new NodeSettings("test");
+        settings.addString("key", "otherValue");
+        NodeSettingsConfigID otherContentSettingsID = new NodeSettingsConfigID(otherContentSettings);
+        assertEquals(false, id.isCompatible(otherContentSettingsID));
+
+        assertEquals(false, id.isCompatible(Mockito.mock(ConfigID.class)));
     }
 
 }

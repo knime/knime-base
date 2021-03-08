@@ -96,4 +96,9 @@ public final class NodeSettingsConfigID implements ConfigID {
         return m_settings.hashCode();
     }
 
+    @Override
+    public boolean isCompatible(final ConfigID configID) {
+        return equals(configID);
+    }
+
 }

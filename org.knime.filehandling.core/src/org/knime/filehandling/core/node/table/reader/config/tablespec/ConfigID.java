@@ -69,4 +69,12 @@ public interface ConfigID {
      * @param settings to save to
      */
     void save(NodeSettingsWO settings);
+
+    /**
+     * Indicates whether the provided {@link ConfigID} is compatible with this one.
+     * @param configID to check for compatibility
+     *
+     * @return {@code true} if the provided {@link ConfigID} is compatible with this one
+     */
+    boolean isCompatible(ConfigID configID);
 }

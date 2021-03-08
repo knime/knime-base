@@ -155,7 +155,7 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
 
     @Override
     public boolean isConfiguredWith(final ConfigID configID, final String sourceGroupID) {
-        return m_sourceGroupID.equals(sourceGroupID) && m_configID.equals(configID);
+        return m_sourceGroupID.equals(sourceGroupID) && m_configID.isCompatible(configID);
     }
 
     @Override

@@ -85,9 +85,6 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.TRFTestingUtils;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigTestingUtils.TableSpecConfigBuilder;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
@@ -216,6 +213,7 @@ public class DefaultTableSpecConfigTest {
     @Test
     public void testIsConfiguredWithconfigIDAndSourceGroupSucceeds() {
         final TableSpecConfig<String> tsc = builder().build();
+        when(m_configID.isCompatible(m_configID)).thenReturn(true);
         stubSourceGroup(ROOT_PATH, PATH1, PATH2);
         assertTrue(tsc.isConfiguredWith(m_configID, m_sourceGroup));
     }
@@ -244,6 +242,7 @@ public class DefaultTableSpecConfigTest {
     @Test
     public void testIsConfiguredWithconfigIDAndSourceGroupIDSucceeds() {
         final TableSpecConfig<String> tsc = builder().build();
+        when(m_configID.isCompatible(m_configID)).thenReturn(true);
         assertTrue(tsc.isConfiguredWith(m_configID, ROOT_PATH));
     }
 

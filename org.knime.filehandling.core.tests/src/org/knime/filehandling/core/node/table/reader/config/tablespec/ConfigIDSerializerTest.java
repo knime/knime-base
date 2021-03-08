@@ -59,6 +59,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDSerializer.EmptyConfigID;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -140,5 +141,15 @@ public class ConfigIDSerializerTest {
     @Test (expected = IllegalStateException.class)
     public void testSavingEmptyConfigID() {
         EmptyConfigID.INSTANCE.save(new NodeSettings("test"));
+    }
+
+    /**
+     * Tests the {@link ConfigID#isCompatible(ConfigID)} implementation of EmptyConfigID.
+     */
+    @Test
+    public void testEmptyConfigIDIsCompatible() {
+        assertEquals(false, EmptyConfigID.INSTANCE.isCompatible(null));
+        assertEquals(true, EmptyConfigID.INSTANCE.isCompatible(EmptyConfigID.INSTANCE));
+        assertEquals(true, EmptyConfigID.INSTANCE.isCompatible(Mockito.mock(ConfigID.class)));
     }
 }
