@@ -88,7 +88,7 @@ public final class WordWrapJLabel extends JLabel {
                 final int minWidth =
                     Math.min(view.getLayout().preferredLayoutSize(view).width, view.getPreferredSize().width);
                 view.setPreferredSize(new Dimension(minWidth, view.getLayout().preferredLayoutSize(view).height));
-                view.revalidate();
+                viewport.revalidate();
             }
         }
     };
@@ -112,6 +112,7 @@ public final class WordWrapJLabel extends JLabel {
     public WordWrapJLabel(final String text, final boolean reserveSpace) {
         super(text);
         m_emptyPlaceholder = reserveSpace ? " " : "";
+
         addHierarchyListener(new HierarchyListener() {
             private boolean m_notSet = true;
 
@@ -130,16 +131,17 @@ public final class WordWrapJLabel extends JLabel {
 
     @Override
     public void setText(final String text) {
-        if (text == null || text.trim().isEmpty()) {
+        final boolean isNullOrEmpty = text == null || text.trim().isEmpty();
+        if (isNullOrEmpty) {
             super.setText(m_emptyPlaceholder);
         } else {
             super.setText(String.format(HTML_FORMAT, text));
         }
         /*
-         * we hold the viewport to update the extent size
-         * whenever we changing the text of the label
+         * we hold the viewport to update the extent size to trigger
+         * the listener when we change the text of the label
          */
-        if (m_viewport != null) {
+        if (!isNullOrEmpty && m_viewport != null) {
             m_viewport.setExtentSize(m_viewport.getPreferredSize());
         }
     }
