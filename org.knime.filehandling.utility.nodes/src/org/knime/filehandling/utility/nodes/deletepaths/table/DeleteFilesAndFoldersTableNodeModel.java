@@ -57,6 +57,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
@@ -103,10 +104,10 @@ final class DeleteFilesAndFoldersTableNodeModel
 
     @Override
     protected void doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final String pathCol = getConfig().getColumnSelection().getStringValue();
-        if (pathCol == null) {
+        final SettingsModelString pathCol = getConfig().getColumnSelection();
+        if (pathCol.getStringValue() == null) {
             autoGuess(inSpecs);
-            setWarningMessage(String.format("Auto-guessed column containing file/folder paths '%s'", pathCol));
+            setWarningMessage(String.format("Auto-guessed column containing file/folder paths '%s'", pathCol.getStringValue()));
         }
         validateSettings(inSpecs, pathCol);
     }
@@ -115,13 +116,13 @@ final class DeleteFilesAndFoldersTableNodeModel
      * Validates the settings.
      *
      * @param inSpecs the {@link PortObjectSpec}
-     * @param pathColModel
+     * @param pathColModel the Path column {@link SettingsModelString}
      * @throws InvalidSettingsException
      */
-    private void validateSettings(final PortObjectSpec[] inSpecs, final String pathCol)
+    private void validateSettings(final PortObjectSpec[] inSpecs, final SettingsModelString pathCol)
         throws InvalidSettingsException {
         final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
-        final String pathColName = pathCol;
+        final String pathColName = pathCol.getStringValue();
         final int colIndex = inSpec.findColumnIndex(pathColName);
 
         // check column existence
