@@ -49,7 +49,6 @@
 package org.knime.base.node.preproc.duplicates;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -371,13 +370,13 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
+        // nothing to do
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
+        // nothing to do
     }
 
     @Override
@@ -397,6 +396,7 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
 
     @Override
     protected void reset() {
+        // nothing to do
     }
 
 }

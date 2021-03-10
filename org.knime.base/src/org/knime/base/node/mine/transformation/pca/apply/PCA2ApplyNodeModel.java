@@ -49,7 +49,6 @@
 package org.knime.base.node.mine.transformation.pca.apply;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.knime.base.node.mine.transformation.pca.settings.PCAApplySettings;
 import org.knime.base.node.mine.transformation.port.TransformationPortObject;
@@ -58,7 +57,6 @@ import org.knime.base.node.mine.transformation.util.TransformationUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -210,15 +208,16 @@ final class PCA2ApplyNodeModel extends NodeModel {
 
     @Override
     protected void reset() {
+        // nothing to do
     }
 
     @Override
-    protected void saveInternals(final File arg0, final ExecutionMonitor arg1)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File arg0, final ExecutionMonitor arg1) {
+        // nothing to do
     }
 
     @Override
-    protected void loadInternals(final File arg0, final ExecutionMonitor arg1)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File arg0, final ExecutionMonitor arg1) {
+        // nothing to do
     }
 }
