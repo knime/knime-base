@@ -73,6 +73,7 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -88,6 +89,8 @@ import org.knime.core.node.util.DataColumnSpecListCellRenderer;
  */
 @Deprecated
 public class AccuracyScorerNodeDialog extends NodeDialogPane {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(AccuracyScorerNodeDialog.class);
     /*
      * The text field for the first column to compare The first column
      * represents the real classes of the data
@@ -297,6 +300,7 @@ public class AccuracyScorerNodeDialog extends NodeDialogPane {
         try {
             m_sortingOptions.loadDefault(settings);
         } catch (InvalidSettingsException e) {
+            LOGGER.debug("Invalid Settings",e);
             m_sortingOptions.setSortingStrategy(getFallbackStrategy());
             m_sortingOptions.setReverseOrder(false);
         }

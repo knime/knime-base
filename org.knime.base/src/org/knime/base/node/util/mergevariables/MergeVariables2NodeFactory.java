@@ -92,7 +92,7 @@ public class MergeVariables2NodeFactory extends ConfigurableNodeFactory<MergeVar
 
     @Override
     public MergeVariablesNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new MergeVariablesNodeModel(creationConfig.getPortConfig().get());
+        return new MergeVariablesNodeModel(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
     }
 
     @Override

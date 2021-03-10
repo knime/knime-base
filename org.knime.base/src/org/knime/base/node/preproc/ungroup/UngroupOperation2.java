@@ -108,10 +108,9 @@ public class UngroupOperation2 {
      * @param removeCollectionCol remove collection columns
      * @param colIndices the column indices to ungroup - if <code>null</code> or the length is 0 nothing will be
      *            ungrouped
-     * @throws InvalidSettingsException
      */
     public UngroupOperation2(final boolean enableHilite, final boolean skipMissingValues,
-        final boolean removeCollectionCol, final int[] colIndices) throws InvalidSettingsException {
+        final boolean removeCollectionCol, final int[] colIndices) {
         this(enableHilite, skipMissingValues, false, removeCollectionCol, colIndices);
     }
 

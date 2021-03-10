@@ -103,9 +103,8 @@ public final class StatusMessageUtils {
      *
      * @param isCreateMissingFolders flag whether the option to create new folders is checked or not
      * @return the corresponding {@link StatusMessage}
-     * @throws AccessDeniedException
      */
-    public static StatusMessage handleNewPath(final boolean isCreateMissingFolders) throws AccessDeniedException {
+    public static StatusMessage handleNewPath(final boolean isCreateMissingFolders) {
         if (isCreateMissingFolders) {
             return StatusMessageUtils.SUCCESS_MSG;
         } else {

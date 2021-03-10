@@ -62,6 +62,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -88,6 +89,8 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
  * @author Tobias Koetter, University of Konstanz
  */
 public class UngroupNodeModel extends NodeModel {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(UngroupNodeModel.class);
 
     /** The config key of the collections column names. */
     private static final String CFG_COL_NAMES = "columnNames";
@@ -190,13 +193,12 @@ public class UngroupNodeModel extends NodeModel {
         final DataTableSpec spec = table.getDataTableSpec();
 
         UngroupOperation2 ugO =
-            createUngroupOperation(table.getDataTableSpec(), getSelectedColIdxs(spec, getColumnNames(spec)));
+            createUngroupOperation(getSelectedColIdxs(spec, getColumnNames(spec)));
 
         return new BufferedDataTable[]{ugO.compute(exec, table, m_trans)};
     }
 
-    private UngroupOperation2 createUngroupOperation(final DataTableSpec spec, final int[] colIndices)
-        throws InvalidSettingsException {
+    private UngroupOperation2 createUngroupOperation(final int[] colIndices) {
         return new UngroupOperation2(m_enableHilite.getBooleanValue(), m_skipMissingVal.getBooleanValue(),
             m_skipEmptyCollections.getBooleanValue(), m_removeCollectionCol.getBooleanValue(), colIndices);
     }
@@ -209,7 +211,7 @@ public class UngroupNodeModel extends NodeModel {
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         DataTableSpec spec = (DataTableSpec) inSpecs[0];
         int[] idxs = getSelectedColIdxs(spec, getColumnNames(spec));
-        UngroupOperation2 ugO = createUngroupOperation(spec, idxs);
+        UngroupOperation2 ugO = createUngroupOperation(idxs);
         return new StreamableOperator() {
 
             @Override
@@ -327,6 +329,7 @@ public class UngroupNodeModel extends NodeModel {
             //set the old column name setting to null to indicate that the new settings should be used
             m_columnName.setStringValue(null);
         } catch (InvalidSettingsException e) {
+            LOGGER.debug("Invalid Settings", e);
             //load and use the old settings
             m_columnName.loadSettingsFrom(settings);
         }
@@ -381,7 +384,7 @@ public class UngroupNodeModel extends NodeModel {
             try {
                 m_trans.setMapper(DefaultHiLiteMapper.load(config));
             } catch (final InvalidSettingsException ex) {
-                throw new IOException(ex.getMessage());
+                throw new IOException(ex.getMessage(), ex);
             }
         }
     }
