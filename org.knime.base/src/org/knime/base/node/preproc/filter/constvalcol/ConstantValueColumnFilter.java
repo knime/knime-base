@@ -76,42 +76,28 @@ import org.knime.core.node.ExecutionContext;
  */
 public class ConstantValueColumnFilter {
 
-    /*
-     * The option to filter all constant value columns.
-     */
+    /** The option to filter all constant value columns. */
     private final boolean m_filterAll;
 
-    /*
-     * The option to filter columns with a specific constant numeric value.
-     */
+    /** The option to filter columns with a specific constant numeric value. */
     private final boolean m_filterNumeric;
 
-    /*
-     * The specific numeric value that is to be looked for in filtering.
-     */
+    /** The specific numeric value that is to be looked for in filtering. */
     private final double m_filterNumericValue;
 
-    /*
-     * The option to filter columns with a specific constant String value.
-     */
+    /** The option to filter columns with a specific constant String value. */
     private final boolean m_filterString;
 
-    /*
-     * The specific String value that is to be looked for in filtering.
-     */
+    /** The specific String value that is to be looked for in filtering. */
     private final String m_filterStringValue;
 
-    /*
-     * The option to filter columns containing only missing values.
-     */
+    /** The option to filter columns containing only missing values. */
     private final boolean m_filterMissing;
 
-    /*
-     * The minimum number of rows a table must have to be considered for filtering.
-     */
+    /** The minimum number of rows a table must have to be considered for filtering. */
     private final long m_rowThreshold;
 
-    /*
+    /**
      * Constructor for the Constant Value Column Filter class.
      */
     private ConstantValueColumnFilter(final boolean filterAll, final boolean filterNumeric,
@@ -173,7 +159,7 @@ public class ConstantValueColumnFilter {
         final int[] indicesToKeep = columnCheckers.keySet().stream().mapToInt(i -> i).toArray();
         int index = 0;
         for (final DataRow currentRow : inputTable.filter(TableFilter.materializeCols(indicesToKeep), exec)) {
-        	// the first row has already been read
+            // the first row has already been read
             if (index++ == 0) {
                 continue;
             }

@@ -64,61 +64,44 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
- * The RPropNodeDialog allows to configure the settings (nr. of training
- * iterations and architecture of the neural net).
+ * The RPropNodeDialog allows to configure the settings (nr. of training iterations and architecture of the neural net).
  *
  * @author Nicolas, University of Konstanz
  */
 public class RPropNodeDialog extends DefaultNodeSettingsPane {
     private SettingsModelBoolean m_useRandomSeed;
+
     private SettingsModelInteger m_randomSeed;
 
     /**
-     * Creates a new <code>NodeDialogPane</code> for the RProp neural net in
-     * order to set the desired options.
+     * Creates a new <code>NodeDialogPane</code> for the RProp neural net in order to set the desired options.
      */
     @SuppressWarnings("unchecked")
     public RPropNodeDialog() {
         super();
+        this.addDialogComponent(
+            new DialogComponentNumber(
+                new SettingsModelIntegerBounded(/* config-name: */RPropNodeModel.MAXITER_KEY, /* default */20,
+                    /* min: */1, /* max: */RPropNodeModel.MAXNRITERATIONS),
+                /* label: */"Maximum number of iterations: ", /* step */1));
+        this.addDialogComponent(
+            new DialogComponentNumber(new SettingsModelIntegerBounded(/* config-name: */RPropNodeModel.HIDDENLAYER_KEY,
+                /* default */1, /* min: */1, /* max: */100), /* label: */"Number of hidden layers: ", /* step */ 1));
         this.addDialogComponent(new DialogComponentNumber(
-                new SettingsModelIntegerBounded(
-        /* config-name: */RPropNodeModel.MAXITER_KEY,
-        /* default */20,
-        /* min: */1,
-        /* max: */RPropNodeModel.MAXNRITERATIONS),
-        /* label: */"Maximum number of iterations: ",
-        /* step */1));
-        this.addDialogComponent(new DialogComponentNumber(
-                new SettingsModelIntegerBounded(
-        /* config-name: */RPropNodeModel.HIDDENLAYER_KEY,
-        /* default */1,
-        /* min: */1,
-        /* max: */100),
-        /* label: */"Number of hidden layers: ",
-        /* step */ 1));
-        this.addDialogComponent(new DialogComponentNumber(
-                new SettingsModelIntegerBounded(
-        /* config-name: */RPropNodeModel.NRHNEURONS_KEY,
-        /* default */5,
-        /* min: */1,
-        /* max: */100),
-        /* label: */"Number of hidden neurons per layer: ",
-        /* step */ 1));
+            new SettingsModelIntegerBounded(/* config-name: */RPropNodeModel.NRHNEURONS_KEY, /* default */5,
+                /* min: */1, /* max: */100),
+            /* label: */"Number of hidden neurons per layer: ", /* step */ 1));
         this.addDialogComponent(new DialogComponentColumnNameSelection(
-                new SettingsModelString(
-        /* config-name: */RPropNodeModel.CLASSCOL_KEY, ""),
-        /* label: */"class column: ",
-        /* columns from which port?: */RPropNodeModel.INDATA,
-        /* column-type filter: */DataValue.class));
+            new SettingsModelString(/* config-name: */RPropNodeModel.CLASSCOL_KEY, ""), /* label: */"class column: ",
+            /* columns from which port?: */RPropNodeModel.INDATA, /* column-type filter: */DataValue.class));
 
         this.addDialogComponent(new DialogComponentBoolean(
-                new SettingsModelBoolean(
-        /* config-name: */RPropNodeModel.IGNOREMV_KEY,
-        /* default */ false),
-        /* label: */"Ignore Missing Values"));
+            new SettingsModelBoolean(/* config-name: */RPropNodeModel.IGNOREMV_KEY, /* default */ false),
+            /* label: */"Ignore Missing Values"));
 
         m_useRandomSeed = new SettingsModelBoolean(RPropNodeModel.USE_SEED_KEY, false);
-        m_randomSeed = new SettingsModelInteger(RPropNodeModel.SEED_KEY, (int)(2 * (Math.random() - 0.5) * Integer.MAX_VALUE));
+        m_randomSeed =
+            new SettingsModelInteger(RPropNodeModel.SEED_KEY, (int)(2 * (Math.random() - 0.5) * Integer.MAX_VALUE));
         m_useRandomSeed.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(final ChangeEvent e) {

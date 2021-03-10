@@ -83,17 +83,16 @@ import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
  * @param <T> SettingsModel for a ColumnFilter component
  * @since 4.0
  */
-public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
+public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
+    extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
 
     /**
      * The possible types that the string can be converted to.
      */
-    public static final DataType[] POSSIBLETYPES =
-        new DataType[]{DoubleCell.TYPE, IntCell.TYPE, LongCell.TYPE};
+    public static final DataType[] POSSIBLETYPES = new DataType[]{DoubleCell.TYPE, IntCell.TYPE, LongCell.TYPE};
 
     /* Node Logger of this class. */
-    private static final NodeLogger LOGGER =
-            NodeLogger.getLogger(AbstractStringToNumberNodeModel.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractStringToNumberNodeModel.class);
 
     /*
      * Config key for the operator internals to propagate error messages.
@@ -122,6 +121,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
     /**
      * Key for parsing with optional trailing {@code d}, {@code f}, {@code l}.
+     *
      * @since 2.12
      */
     public static final String CFG_GENERIC_PARSE = "generic_parse";
@@ -138,23 +138,21 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
     /**
      * By default do not accept type suffices.
+     *
      * @since 2.12
      */
     public static final boolean DEFAULT_GENERIC_PARSE = false;
+
     /** For compatibility reasons accept type suffices. */
     static final boolean COMPAT_GENERIC_PARSE = true;
 
     /** The included columns component. */
     private final T m_inclCols;
 
-    /*
-     * The decimal separator
-     */
+    /** The decimal separator. */
     private String m_decimalSep = DEFAULT_DECIMAL_SEPARATOR;
 
-    /*
-     * The thousands separator
-     */
+    /** The thousands separator. */
     private String m_thousandsSep = DEFAULT_THOUSANDS_SEPARATOR;
 
     private DataType m_parseType = POSSIBLETYPES[0];
@@ -163,6 +161,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
     /**
      * Constructor with one inport and one outport.
+     *
      * @param inclCols SettingsModel for a ColumnFilter component
      */
     public AbstractStringToNumberNodeModel(final T inclCols) {
@@ -174,8 +173,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         ColumnRearranger colre = createColumnRearranger(inSpecs[0]);
         DataTableSpec newspec = colre.createSpec();
         return new DataTableSpec[]{newspec};
@@ -185,22 +183,20 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
         DataTableSpec inspec = inData[0].getDataTableSpec();
         String[] inclcols = getStoredInclCols(inspec);
         if (inclcols.length == 0) {
             // nothing to convert, let's return the input table.
-            setWarningMessage("No columns selected,"
-                    + " returning input DataTable.");
+            setWarningMessage("No columns selected," + " returning input DataTable.");
             return new BufferedDataTable[]{inData[0]};
         }
 
         SimpleStreamableOperatorInternals internals = createStreamingOperatorInternals();
         ColumnRearranger colre = createColumnRearranger(inspec, internals);
 
-        BufferedDataTable resultTable =
-                exec.createColumnRearrangeTable(inData[0], colre, exec);
+        BufferedDataTable resultTable = exec.createColumnRearrangeTable(inData[0], colre, exec);
 
         warningMessage(internals);
 
@@ -214,48 +210,47 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      *
      */
     public int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
-		String[] inclCols = getStoredInclCols(spec);
-		StringBuilder warnings = new StringBuilder();
-		if (inclCols.length == 0) {
-			warnings.append("No columns selected");
-		}
-		Vector<Integer> indicesvec = new Vector<Integer>();
-		if (isKeepAllSelected()) {
-			for (DataColumnSpec cspec : spec) {
-				if (cspec.getType().isCompatible(StringValue.class)) {
-					indicesvec.add(spec.findColumnIndex(cspec.getName()));
-				}
-			}
-		} else {
-			for (int i = 0; i < inclCols.length; i++) {
-				int colIndex = spec.findColumnIndex(inclCols[i]);
-				if (colIndex >= 0) {
-					DataType type = spec.getColumnSpec(colIndex).getType();
-					if (type.isCompatible(StringValue.class)) {
-						indicesvec.add(colIndex);
-					} else {
-						warnings.append("Ignoring column \""
-								+ spec.getColumnSpec(colIndex).getName()
-								+ "\"\n");
-					}
-				} else {
-					throw new InvalidSettingsException("Column \""
-							+ inclCols[i] + "\" not found.");
-				}
-			}
-		}
-		if (warnings.length() > 0) {
-			setWarningMessage(warnings.toString());
-		}
-		int[] indices = new int[indicesvec.size()];
-		for (int i = 0; i < indices.length; i++) {
-			indices[i] = indicesvec.get(i);
-		}
-		return indices;
+        String[] inclCols = getStoredInclCols(spec);
+        StringBuilder warnings = new StringBuilder();
+        if (inclCols.length == 0) {
+            warnings.append("No columns selected");
+        }
+        Vector<Integer> indicesvec = new Vector<Integer>();
+        if (isKeepAllSelected()) {
+            for (DataColumnSpec cspec : spec) {
+                if (cspec.getType().isCompatible(StringValue.class)) {
+                    indicesvec.add(spec.findColumnIndex(cspec.getName()));
+                }
+            }
+        } else {
+            for (int i = 0; i < inclCols.length; i++) {
+                int colIndex = spec.findColumnIndex(inclCols[i]);
+                if (colIndex >= 0) {
+                    DataType type = spec.getColumnSpec(colIndex).getType();
+                    if (type.isCompatible(StringValue.class)) {
+                        indicesvec.add(colIndex);
+                    } else {
+                        warnings.append("Ignoring column \"" + spec.getColumnSpec(colIndex).getName() + "\"\n");
+                    }
+                } else {
+                    throw new InvalidSettingsException("Column \"" + inclCols[i] + "\" not found.");
+                }
+            }
+        }
+        if (warnings.length() > 0) {
+            setWarningMessage(warnings.toString());
+        }
+        int[] indices = new int[indicesvec.size()];
+        for (int i = 0; i < indices.length; i++) {
+            indices[i] = indicesvec.get(i);
+        }
+        return indices;
     }
 
     /**
-     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns which were previously of a compatible spec but not anymore.
+     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns
+     * which were previously of a compatible spec but not anymore.
+     *
      * @param inSpec the current DataTableSpec
      * @return a String array with the included columns
      */
@@ -265,7 +260,6 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * @return returns true if the keep all selected checkbox is checked, false if it is not checked or not present
      */
     protected abstract boolean isKeepAllSelected();
-
 
     private void warningMessage(final SimpleStreamableOperatorInternals internals) {
         String errorMessage;
@@ -287,6 +281,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
     /**
      * {@inheritDoc}
+     *
      * @since 3.1
      */
     @Override
@@ -306,9 +301,9 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
         return colre;
     }
 
-
-	/**
+    /**
      * {@inheritDoc}
+     *
      * @since 3.1
      */
     @Override
@@ -320,7 +315,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
                 errorMessages.append(operatorInternals[i].getConfig().getString(CFG_KEY_ERROR_MESSAGES));
                 errorMessages.append("\n");
             } catch (InvalidSettingsException e) {
-              //if no warning message has been set -> nothing to do
+                //if no warning message has been set -> nothing to do
             }
         }
         SimpleStreamableOperatorInternals res = new SimpleStreamableOperatorInternals();
@@ -330,6 +325,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
     /**
      * {@inheritDoc}
+     *
      * @since 3.1
      */
     @Override
@@ -350,14 +346,10 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inclCols.loadSettingsFrom(settings);
-        m_decimalSep =
-                settings.getString(CFG_DECIMALSEP, DEFAULT_DECIMAL_SEPARATOR);
-        m_thousandsSep =
-                settings.getString(CFG_THOUSANDSSEP,
-                        DEFAULT_THOUSANDS_SEPARATOR);
+        m_decimalSep = settings.getString(CFG_DECIMALSEP, DEFAULT_DECIMAL_SEPARATOR);
+        m_thousandsSep = settings.getString(CFG_THOUSANDSSEP, DEFAULT_THOUSANDS_SEPARATOR);
         m_parseType = settings.getDataType(CFG_PARSETYPE, POSSIBLETYPES[0]);
         // added in 2.12
         m_genericParse = settings.getBoolean(CFG_GENERIC_PARSE, COMPAT_GENERIC_PARSE);
@@ -380,25 +372,19 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inclCols.validateSettings(settings);
-        String decimalsep =
-                settings.getString(CFG_DECIMALSEP, DEFAULT_DECIMAL_SEPARATOR);
-        String thousandssep =
-                settings.getString(CFG_THOUSANDSSEP,
-                        DEFAULT_THOUSANDS_SEPARATOR);
+        String decimalsep = settings.getString(CFG_DECIMALSEP, DEFAULT_DECIMAL_SEPARATOR);
+        String thousandssep = settings.getString(CFG_THOUSANDSSEP, DEFAULT_THOUSANDS_SEPARATOR);
         if (decimalsep == null || thousandssep == null) {
             throw new InvalidSettingsException("Separators must not be null");
         }
         if (decimalsep.length() > 1 || thousandssep.length() > 1) {
-            throw new InvalidSettingsException(
-                    "Illegal separator length, expected a single character");
+            throw new InvalidSettingsException("Illegal separator length, expected a single character");
         }
 
         if (decimalsep.equals(thousandssep)) {
-            throw new InvalidSettingsException(
-                    "Decimal and thousands separator must not be the same.");
+            throw new InvalidSettingsException("Decimal and thousands separator must not be the same.");
         }
         DataType myType = settings.getDataType(CFG_PARSETYPE, POSSIBLETYPES[0]);
         boolean found = false;
@@ -418,9 +404,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // empty.
     }
 
@@ -428,9 +413,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // empty.
     }
 
@@ -477,8 +461,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
          * @param spec the original DataTableSpec.
          * @param type the {@link DataType} to convert to.
          */
-        ConverterFactory(final int[] colindices, final DataTableSpec spec,
-                final DataType type, final SimpleStreamableOperatorInternals internals) {
+        ConverterFactory(final int[] colindices, final DataTableSpec spec, final DataType type,
+            final SimpleStreamableOperatorInternals internals) {
             m_colindices = colindices;
             m_spec = spec;
             m_type = type;
@@ -503,24 +487,17 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
                     }
                     try {
                         String corrected = s;
-                        if (m_thousandsSep != null
-                                && m_thousandsSep.length() > 0) {
+                        if (m_thousandsSep != null && m_thousandsSep.length() > 0) {
                             // remove thousands separator
-                            corrected = s.replaceAll(
-                                    Pattern.quote(m_thousandsSep),
-                                    "");
+                            corrected = s.replaceAll(Pattern.quote(m_thousandsSep), "");
                         }
                         if (!".".equals(m_decimalSep)) {
                             if (corrected.contains(".")) {
-                                throw new NumberFormatException(
-                                        "Invalid floating point number");
+                                throw new NumberFormatException("Invalid floating point number");
                             }
-                            if (m_decimalSep != null
-                                    && m_decimalSep.length() > 0) {
+                            if (m_decimalSep != null && m_decimalSep.length() > 0) {
                                 // replace custom separator with standard
-                                corrected =
-                                        corrected.replaceAll(Pattern
-                                                .quote(m_decimalSep), ".");
+                                corrected = corrected.replaceAll(Pattern.quote(m_decimalSep), ".");
                             }
                         }
 
@@ -541,11 +518,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
                         }
                     } catch (NumberFormatException e) {
                         if (m_parseErrorCount == 0) {
-                            m_error =
-                                    "'" + s + "' (RowKey: "
-                                            + row.getKey().toString()
-                                            + ", Position: " + m_colindices[i]
-                                            + ")";
+                            m_error = "'" + s + "' (RowKey: " + row.getKey().toString() + ", Position: "
+                                + m_colindices[i] + ")";
                             LOGGER.debug(e.getMessage());
                         }
                         m_parseErrorCount++;
@@ -563,30 +537,22 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
          */
         @Override
         public DataColumnSpec[] getColumnSpecs() {
-            DataColumnSpec[] newcolspecs =
-                    new DataColumnSpec[m_colindices.length];
+            DataColumnSpec[] newcolspecs = new DataColumnSpec[m_colindices.length];
             for (int i = 0; i < newcolspecs.length; i++) {
                 DataColumnSpec colspec = m_spec.getColumnSpec(m_colindices[i]);
                 DataColumnSpecCreator colspeccreator = null;
                 if (m_type.equals(DoubleCell.TYPE)) {
                     // change DataType to DoubleCell
-                    colspeccreator =
-                            new DataColumnSpecCreator(colspec.getName(),
-                                    DoubleCell.TYPE);
+                    colspeccreator = new DataColumnSpecCreator(colspec.getName(), DoubleCell.TYPE);
                 } else if (m_type.equals(IntCell.TYPE)) {
                     // change DataType to IntCell
-                    colspeccreator =
-                            new DataColumnSpecCreator(colspec.getName(),
-                                    IntCell.TYPE);
+                    colspeccreator = new DataColumnSpecCreator(colspec.getName(), IntCell.TYPE);
                 } else if (m_type.equals(LongCell.TYPE)) {
                     // change DataType to LongCell
-                    colspeccreator =
-                            new DataColumnSpecCreator(colspec.getName(),
-                                LongCell.TYPE);
+                    colspeccreator = new DataColumnSpecCreator(colspec.getName(), LongCell.TYPE);
                 } else {
                     colspeccreator =
-                            new DataColumnSpecCreator("Invalid parse mode",
-                                    DataType.getMissingCell().getType());
+                        new DataColumnSpecCreator("Invalid parse mode", DataType.getMissingCell().getType());
                 }
                 newcolspecs[i] = colspeccreator.createSpec();
             }
@@ -607,13 +573,10 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
                     message = "Could not parse cell with value " + m_error;
                     break;
                 default:
-                    message = "Values in " + m_parseErrorCount
-                            + " cells could not be parsed, first error: " + m_error;
+                    message = "Values in " + m_parseErrorCount + " cells could not be parsed, first error: " + m_error;
             }
             m_internals.getConfig().addString(CFG_KEY_ERROR_MESSAGES, message);
         }
-
-
 
     } // end ConverterFactory
 
@@ -631,7 +594,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
             case 'f':
                 throw new NumberFormatException(corrected + " is invalid because of its suffix.");
             default:
-            return corrected;
+                return corrected;
         }
     }
 }
