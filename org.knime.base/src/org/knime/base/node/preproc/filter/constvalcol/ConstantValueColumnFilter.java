@@ -133,66 +133,90 @@ public class ConstantValueColumnFilter {
         }
 
         final DataTableSpec spec = inputTable.getDataTableSpec();
-
-        /*
-         * Assemble a map of filter candidates that maps the indices of columns that potentially contain only duplicate
-         * values to a column checker object that can be used to check whether further values in that column are
-         * specified in the dialog pane and constant (i.e., identical to the first observed value).
-         */
-        Set<String> colNamesToFilterSet = new HashSet<>(Arrays.asList(colNamesToFilter));
         final String[] allColNames = spec.getColumnNames();
-        Map<Integer, ConstantChecker> columnCheckers = new HashMap<>();
-        try (CloseableRowIterator rowIt = inputTable.iterator()) {
-            DataRow firstRow = rowIt.next();
-            for (int i = 0; i < allColNames.length; i++) {
-                if (colNamesToFilterSet.contains(allColNames[i])) {
-                    DataCell firstCell = firstRow.getCell(i);
-                    final DataType type = spec.getColumnSpec(i).getType();
-                    ConstantChecker checker = createConstantChecker(type, firstCell);
-                    if (checker.isCellSpecified(firstCell)) {
-                        columnCheckers.put(i, checker);
-                    }
-                }
-            }
-        }
+        final Map<Integer, ConstantChecker> columnCheckers = new HashMap<>();
 
-        final int[] indicesToKeep = columnCheckers.keySet().stream().mapToInt(i -> i).toArray();
-        int index = 0;
-        for (final DataRow currentRow : inputTable.filter(TableFilter.materializeCols(indicesToKeep), exec)) {
-            // the first row has already been read
-            if (index++ == 0) {
-                continue;
-            }
-            exec.checkCanceled();
+        assembleCandidates(inputTable, colNamesToFilter, spec, allColNames, columnCheckers);
 
-            /*
-             * Across all filter candidates, check if there is any cell whose value differs from the first cell's value.
-             * When found, this column is not constant and, thus, should be removed from the filter candidates. This
-             * method has a low memory footprint and operates in linear runtime. When the option to filter only constant
-             * columns with specific values is selected, columns should also be removed when they are found to contain a
-             * value other than any of the specified values.
-             */
-            for (final Iterator<Entry<Integer, ConstantChecker>> it = columnCheckers.entrySet().iterator(); it
-                .hasNext();) {
-                Entry<Integer, ConstantChecker> entry = it.next();
-                DataCell cell = currentRow.getCell(entry.getKey());
-                ConstantChecker checker = entry.getValue();
-
-                /*
-                 * Columns are removed from the filter candidates, when (a) the current cell has a value other than the
-                 * specified / allowed values or (b) it differs from the first cell in this column (i.e., this column is
-                 * not constant).
-                 */
-                if (!(checker.isCellSpecified(cell) && checker.isCellConstant(cell))) {
-                    it.remove();
-                }
-            }
-        }
+        filterNonConstantCols(inputTable, exec, columnCheckers);
 
         /*
          * Obtain the names of to-be-filtered columns from the filter candidates map.
          */
-        return columnCheckers.keySet().stream().map(i -> allColNames[i]).toArray(String[]::new);
+        return columnCheckers.keySet().stream()//
+            .map(i -> allColNames[i])//
+            .toArray(String[]::new);
+    }
+
+    /**
+     * Assemble a map of filter candidates that maps the indices of columns that potentially contain only duplicate
+     * values to a column checker object that can be used to check whether further values in that column are specified
+     * in the dialog pane and constant (i.e., identical to the first observed value).
+     */
+    private void assembleCandidates(final BufferedDataTable inputTable, final String[] colNamesToFilter,
+        final DataTableSpec spec, final String[] allColNames, final Map<Integer, ConstantChecker> columnCheckers) {
+        try (CloseableRowIterator rowIt = inputTable.iterator()) {
+            final Set<String> colNamesToFilterSet = new HashSet<>(Arrays.asList(colNamesToFilter));
+            final DataRow firstRow = rowIt.next();
+            assembleCandidates(spec, allColNames, columnCheckers, colNamesToFilterSet, firstRow);
+        }
+    }
+
+    private void assembleCandidates(final DataTableSpec spec, final String[] allColNames,
+        final Map<Integer, ConstantChecker> columnCheckers, final Set<String> colNamesToFilterSet,
+        final DataRow firstRow) {
+        for (int i = 0; i < allColNames.length; i++) {
+            if (colNamesToFilterSet.contains(allColNames[i])) {
+                final DataCell cell = firstRow.getCell(i);
+                final DataType type = spec.getColumnSpec(i).getType();
+                ConstantChecker checker = createConstantChecker(type, cell);
+                if (checker.isCellSpecified(cell)) {
+                    columnCheckers.put(i, checker);
+                }
+            }
+        }
+    }
+
+    private static void filterNonConstantCols(final BufferedDataTable inputTable, final ExecutionContext exec,
+        final Map<Integer, ConstantChecker> columnCheckers) throws CanceledExecutionException {
+        final int[] indicesToKeep = columnCheckers.keySet().stream()//
+            .mapToInt(Integer::intValue)//
+            .toArray();
+        boolean process = false;
+        for (final DataRow currentRow : inputTable.filter(TableFilter.materializeCols(indicesToKeep), exec)) {
+            // the first row has already been read
+            if (process) {
+                exec.checkCanceled();
+                filterNonConstantCols(columnCheckers, currentRow);
+            } else {
+                process = true;
+            }
+        }
+    }
+
+    /**
+     * Across all filter candidates, check if there is any cell whose value differs from the first cell's value. When
+     * found, this column is not constant and, thus, should be removed from the filter candidates. This method has a low
+     * memory footprint and operates in linear runtime. When the option to filter only constant columns with specific
+     * values is selected, columns should also be removed when they are found to contain a value other than any of the
+     * specified values.
+     */
+    private static void filterNonConstantCols(final Map<Integer, ConstantChecker> columnCheckers,
+        final DataRow currentRow) {
+        for (final Iterator<Entry<Integer, ConstantChecker>> it = columnCheckers.entrySet().iterator(); it.hasNext();) {
+            final Entry<Integer, ConstantChecker> entry = it.next();
+            final DataCell cell = currentRow.getCell(entry.getKey());
+            final ConstantChecker checker = entry.getValue();
+
+            /*
+             * Columns are removed from the filter candidates, when (a) the current cell has a value other than the
+             * specified / allowed values or (b) it differs from the first cell in this column (i.e., this column is
+             * not constant).
+             */
+            if (!(checker.isCellSpecified(cell) && checker.isCellConstant(cell))) {
+                it.remove();
+            }
+        }
     }
 
     /*
@@ -213,11 +237,11 @@ public class ConstantValueColumnFilter {
         }
     }
 
-    /*
+    /**
      * A little helper class that checks if a cell is both constant (i.e., similar to the first observed cell from the
      * same column) and specified by the user.
      */
-    abstract class ConstantChecker {
+    abstract class ConstantChecker { //NOSONAR
         abstract boolean isCellConstant(final DataCell cell);
 
         boolean isCellSpecified(final DataCell cell) {
@@ -261,13 +285,14 @@ public class ConstantValueColumnFilter {
 
         @Override
         boolean isCellConstant(final DataCell cell) {
-            return !cell.isMissing() && ((DoubleValue)cell).getDoubleValue() == m_firstCellValue;
+            return !cell.isMissing() && ((DoubleValue)cell).getDoubleValue() == m_firstCellValue; //NOSONAR
         }
 
         @Override
         boolean isCellSpecified(final DataCell cell) {
             return (m_filterNumeric && !cell.isMissing()
-                && ((DoubleValue)cell).getDoubleValue() == m_filterNumericValue) || super.isCellSpecified(cell);
+                && ((DoubleValue)cell).getDoubleValue() == m_filterNumericValue) //NOSONAR
+                || super.isCellSpecified(cell);
         }
     }
 
