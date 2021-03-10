@@ -363,7 +363,7 @@ public class DimensionSelectionPanel {
         try {
             m_dimensionSelectedModel.loadSettingsFrom(settings);
         } catch (final InvalidSettingsException ise) {
-            throw new NotConfigurableException(ise.getMessage());
+            throw new NotConfigurableException(ise.getMessage(), ise);
         }
         m_dimensionComponent.loadSettingsFrom(settings, specs);
         m_infPreservationComponent.loadSettingsFrom(settings, specs);
