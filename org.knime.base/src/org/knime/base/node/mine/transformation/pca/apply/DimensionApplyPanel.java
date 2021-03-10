@@ -134,7 +134,8 @@ final class DimensionApplyPanel extends DimensionSelectionPanel {
                 sum = norm;
             }
         }
-        setDimensionLblText(m_formater.format(100d * sum / norm )+ "% information preservation");
+        setDimensionLblText(m_formater.format(100d * sum / norm) //NOSONAR eigenvalues > 0 and tgtDim > 0
+            + "% information preservation");
     }
 
     private void updateInfPreservationLbl() {

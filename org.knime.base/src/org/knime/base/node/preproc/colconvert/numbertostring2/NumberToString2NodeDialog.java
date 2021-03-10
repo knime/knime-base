@@ -63,6 +63,6 @@ public class NumberToString2NodeDialog extends DefaultNodeSettingsPane {
      *
      */
     public NumberToString2NodeDialog() {
-        addDialogComponent(new DialogComponentColumnFilter2(NumberToString2NodeModel.createInclModel(), 0));
+        addDialogComponent(new DialogComponentColumnFilter2(NumberToString2NodeModel.createInclModel(), 0));//NOSONAR
     }
 }

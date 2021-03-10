@@ -246,7 +246,7 @@ public final class TransformationUtils {
         final double cutOff = infPreservation / 100d;
         for (int i = 0; i < maxDimToReduceTo; i++) {
             sum += eigenValues.getEntry(i);
-            if (sum / norm >= cutOff) {
+            if (sum / norm >= cutOff) { //NOSONAR eigenvalues > 0 and maxDimToReduceTo > 0
                 return i + 1;
             }
         }

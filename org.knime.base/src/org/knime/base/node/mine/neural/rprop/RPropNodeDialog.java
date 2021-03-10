@@ -76,7 +76,7 @@ public class RPropNodeDialog extends DefaultNodeSettingsPane {
     /**
      * Creates a new <code>NodeDialogPane</code> for the RProp neural net in order to set the desired options.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "squid:S1699"})
     public RPropNodeDialog() {
         super();
         this.addDialogComponent(
