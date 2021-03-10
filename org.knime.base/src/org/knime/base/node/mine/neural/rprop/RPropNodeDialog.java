@@ -47,8 +47,7 @@
  */
 package org.knime.base.node.mine.neural.rprop;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import java.util.Random;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
@@ -69,6 +68,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @author Nicolas, University of Konstanz
  */
 public class RPropNodeDialog extends DefaultNodeSettingsPane {
+
+    private static final int HALF_INTEGER_MAX_VALUE = Integer.MAX_VALUE / 2;
+
     private SettingsModelBoolean m_useRandomSeed;
 
     private SettingsModelInteger m_randomSeed;
@@ -100,22 +102,14 @@ public class RPropNodeDialog extends DefaultNodeSettingsPane {
             /* label: */"Ignore Missing Values"));
 
         m_useRandomSeed = new SettingsModelBoolean(RPropNodeModel.USE_SEED_KEY, false);
-        m_randomSeed =
-            new SettingsModelInteger(RPropNodeModel.SEED_KEY, (int)(2 * (Math.random() - 0.5) * Integer.MAX_VALUE));
-        m_useRandomSeed.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                m_randomSeed.setEnabled(m_useRandomSeed.getBooleanValue());
-            }
-        });
+        m_randomSeed = new SettingsModelInteger(RPropNodeModel.SEED_KEY,
+            new Random().nextInt(Integer.MAX_VALUE) - HALF_INTEGER_MAX_VALUE);
+        m_useRandomSeed.addChangeListener(e -> m_randomSeed.setEnabled(m_useRandomSeed.getBooleanValue()));
 
         this.addDialogComponent(new DialogComponentBoolean(m_useRandomSeed, "Use seed for random initialization"));
         this.addDialogComponent(new DialogComponentNumber(m_randomSeed, "Random seed", 1));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
