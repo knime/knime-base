@@ -272,18 +272,27 @@ public final class PMMLRegressionPredictor implements PMMLTablePredictor {
             // check if all covariates are in the given data table and that they
             // are numeric values
             for (PMMLPredictor covariate : content.getCovariateList()) {
-                DataColumnSpec columnSpec = inDataSpec.getColumnSpec(covariate.getName());
+                final String covariateName = covariate.getName();
+                DataColumnSpec columnSpec = inDataSpec.getColumnSpec(covariateName);
                 if (null == columnSpec) {
-                    Matcher matcher = COVARIATE_PATTERN.matcher(covariate.getName());
-                    matcher.matches();
-                    columnSpec = inDataSpec.getColumnSpec(matcher.group(1));
+                    // in case the learning column was a vector the vector position is appended as [0], [1] and so on
+                    columnSpec = inDataSpec.getColumnSpec(extractVectorName(covariateName));
                     CheckUtils.checkSetting(columnSpec != null, "The column \"%s\" is in the model but not in given table.",
-                        covariate.getName());
+                        covariateName);
                 }
                 CheckUtils.checkSetting(!isColumnNumeric(content, columnSpec),
-                    "The column \"%s\" is supposed to be numeric.", covariate.getName());
+                    "The column \"%s\" is supposed to be numeric.", covariateName);
             }
         }
+
+    private static String extractVectorName(final String covariateName) {
+        final Matcher matcher = COVARIATE_PATTERN.matcher(covariateName);
+        if (matcher.matches()) {
+            return matcher.group(1);
+        } else {
+            return null;
+        }
+    }
 
         private static boolean isColumnNumeric(final PMMLGeneralRegressionContent content,
             final DataColumnSpec columnSpec) {
