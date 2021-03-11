@@ -234,17 +234,14 @@ public final class PMMLRegressionPredictor implements PMMLTablePredictor {
     private static void validateModelType(final PMMLGeneralRegressionContent content) throws InvalidSettingsException {
         // the predictor can only predict linear regression models
         final ModelType modelType = content.getModelType();
-        if (!(modelType == ModelType.multinomialLogistic
-            || modelType == ModelType.generalLinear)) {
+        if (!(modelType == ModelType.multinomialLogistic || modelType == ModelType.generalLinear)) {
             throw new InvalidSettingsException("Model Type: " + modelType + " is not supported.");
         }
-        if (modelType == ModelType.generalLinear
-            && content.getFunctionName() != FunctionName.regression) {
+        if (modelType == ModelType.generalLinear && content.getFunctionName() != FunctionName.regression) {
             throw new InvalidSettingsException(
                 "Function Name: " + content.getFunctionName() + " is not supported for linear regression.");
         }
-        if (modelType == ModelType.multinomialLogistic
-            && content.getFunctionName() != FunctionName.classification) {
+        if (modelType == ModelType.multinomialLogistic && content.getFunctionName() != FunctionName.classification) {
             throw new InvalidSettingsException(
                 "Function Name: " + content.getFunctionName() + " is not supported for logistic regression.");
         }
@@ -268,22 +265,22 @@ public final class PMMLRegressionPredictor implements PMMLTablePredictor {
     }
 
     private static void validateCovariates(final PMMLGeneralRegressionContent content, final DataTableSpec inDataSpec)
-            throws InvalidSettingsException {
-            // check if all covariates are in the given data table and that they
-            // are numeric values
-            for (PMMLPredictor covariate : content.getCovariateList()) {
-                final String covariateName = covariate.getName();
-                DataColumnSpec columnSpec = inDataSpec.getColumnSpec(covariateName);
-                if (null == columnSpec) {
-                    // in case the learning column was a vector the vector position is appended as [0], [1] and so on
-                    columnSpec = inDataSpec.getColumnSpec(extractVectorName(covariateName));
-                    CheckUtils.checkSetting(columnSpec != null, "The column \"%s\" is in the model but not in given table.",
-                        covariateName);
-                }
-                CheckUtils.checkSetting(!isColumnNumeric(content, columnSpec),
-                    "The column \"%s\" is supposed to be numeric.", covariateName);
+        throws InvalidSettingsException {
+        // check if all covariates are in the given data table and that they
+        // are numeric values
+        for (PMMLPredictor covariate : content.getCovariateList()) {
+            final String covariateName = covariate.getName();
+            DataColumnSpec columnSpec = inDataSpec.getColumnSpec(covariateName);
+            if (null == columnSpec) {
+                // in case the learning column was a vector the vector position is appended as [0], [1] and so on
+                columnSpec = inDataSpec.getColumnSpec(extractVectorName(covariateName));
+                CheckUtils.checkSetting(columnSpec != null, "The column \"%s\" is in the model but not in given table.",
+                    covariateName);
             }
+            CheckUtils.checkSetting(!isColumnNumeric(content, columnSpec),
+                "The column \"%s\" is supposed to be numeric.", covariateName);
         }
+    }
 
     private static String extractVectorName(final String covariateName) {
         final Matcher matcher = COVARIATE_PATTERN.matcher(covariateName);
@@ -294,24 +291,24 @@ public final class PMMLRegressionPredictor implements PMMLTablePredictor {
         }
     }
 
-        private static boolean isColumnNumeric(final PMMLGeneralRegressionContent content,
-            final DataColumnSpec columnSpec) {
-            final DataType type = columnSpec.getType();
-            return type.isCompatible(DoubleValue.class)//
-                || (isColumnVector(content, columnSpec)//
-                    && (isDoubleList(type)//
-                        || type.isCompatible(BitVectorValue.class)//
-                        || type.isCompatible(ByteVectorValue.class)));
-        }
+    private static boolean isColumnNumeric(final PMMLGeneralRegressionContent content,
+        final DataColumnSpec columnSpec) {
+        final DataType type = columnSpec.getType();
+        return type.isCompatible(DoubleValue.class)//
+            || (isColumnVector(content, columnSpec)//
+                && (isDoubleList(type)//
+                    || type.isCompatible(BitVectorValue.class)//
+                    || type.isCompatible(ByteVectorValue.class)));
+    }
 
-        private static boolean isColumnVector(final PMMLGeneralRegressionContent content, final DataColumnSpec columnSpec) {
-            return content.getVectorLengths().containsKey(columnSpec.getName());
-        }
+    private static boolean isColumnVector(final PMMLGeneralRegressionContent content, final DataColumnSpec columnSpec) {
+        return content.getVectorLengths().containsKey(columnSpec.getName());
+    }
 
-        private static boolean isDoubleList(final DataType type) {
-            return type.isCollectionType()//
-                    && type.getCollectionElementType().isCompatible(DoubleValue.class);
-        }
+    private static boolean isDoubleList(final DataType type) {
+        return type.isCollectionType()//
+            && type.getCollectionElementType().isCompatible(DoubleValue.class);
+    }
 
     private static ColumnRearranger createRearranger1(final DataTableSpec inSpec, final PMMLPortObjectSpec regModelSpec,
         final PMMLRegressionTranslator regModel) throws InvalidSettingsException {
@@ -361,26 +358,26 @@ public final class PMMLRegressionPredictor implements PMMLTablePredictor {
     }
 
     private static int[] findColIndices(final DataTableSpec inSpec, final List<String> learnFields)
-            throws InvalidSettingsException {
-            final int[] colIndices = new int[learnFields.size()];
-            int k = 0;
-            for (String learnCol : learnFields) {
-                int index = inSpec.findColumnIndex(learnCol);
-                if (index < 0) {
-                    throw new InvalidSettingsException("Missing column for regressor variable : \"" + learnCol + "\"");
-                }
-                DataColumnSpec regressor = inSpec.getColumnSpec(index);
-                String name = regressor.getName();
-                DataColumnSpec col = inSpec.getColumnSpec(index);
-                if (!col.getType().isCompatible(DoubleValue.class)) {
-                    throw new InvalidSettingsException("Incompatible type of column \"" + name + "\": " + col.getType());
-                }
-
-                colIndices[k] = index;
-                k++;
+        throws InvalidSettingsException {
+        final int[] colIndices = new int[learnFields.size()];
+        int k = 0;
+        for (String learnCol : learnFields) {
+            int index = inSpec.findColumnIndex(learnCol);
+            if (index < 0) {
+                throw new InvalidSettingsException("Missing column for regressor variable : \"" + learnCol + "\"");
             }
-            return colIndices;
+            DataColumnSpec regressor = inSpec.getColumnSpec(index);
+            String name = regressor.getName();
+            DataColumnSpec col = inSpec.getColumnSpec(index);
+            if (!col.getType().isCompatible(DoubleValue.class)) {
+                throw new InvalidSettingsException("Incompatible type of column \"" + name + "\": " + col.getType());
+            }
+
+            colIndices[k] = index;
+            k++;
         }
+        return colIndices;
+    }
 
     private static DataColumnSpec createPredictionColSpec(final DataTableSpec inSpec, final String targetCol) {
         // try to use some smart naming scheme for the append column
@@ -395,6 +392,7 @@ public final class PMMLRegressionPredictor implements PMMLTablePredictor {
     private static class RegPredictorCellFactory extends SingleCellFactory {
 
         private final RegressionTable m_regressionTable;
+
         private final int[] m_colIndices;
 
         RegPredictorCellFactory(final DataColumnSpec colSpec, final RegressionTable regressionTable,
