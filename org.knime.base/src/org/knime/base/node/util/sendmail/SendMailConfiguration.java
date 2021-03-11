@@ -52,6 +52,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -653,8 +654,8 @@ final class SendMailConfiguration {
         }
         message.setHeader("X-Mailer", "KNIME/" + KNIMEConstants.VERSION);
         message.setHeader("X-Priority", m_priority.toXPriority());
-        message.setSentDate(new Date());
-        message.setSubject(getSubject());
+        message.setSentDate(new Date()); // NOSONAR
+        message.setSubject(getSubject(), StandardCharsets.UTF_8.name());
 
         // text or html message part
         MimeBodyPart contentBody = new MimeBodyPart();
