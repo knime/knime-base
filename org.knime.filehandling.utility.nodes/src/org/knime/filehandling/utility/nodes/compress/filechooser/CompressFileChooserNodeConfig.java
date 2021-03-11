@@ -73,6 +73,9 @@ final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig {
     // Config used pre 4.2.3
     private static final String CFG_INCLUDE_SELECTED_FOLDER = "include_selected_source_folder";
 
+    // Config used pre 4.2.3
+    private static final String CFG_FLATTEN_HIERARCHY = "flatten_hierarchy";
+
     CompressFileChooserNodeConfig(final PortsConfiguration portsConfig) {
         super(portsConfig);
         m_inputLocationChooserModel = new SettingsModelReaderFileChooser(CFG_INPUT_LOCATION, portsConfig,
@@ -91,8 +94,28 @@ final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig {
     }
 
     @Override
+    protected void validateFlattenFolder(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // backwards compatibility see AP-16264
+        if (settings.containsKey(CFG_FLATTEN_HIERARCHY)) {
+            settings.getBoolean(CFG_FLATTEN_HIERARCHY);
+        } else {
+            super.validateFlattenFolder(settings);
+        }
+    }
+
+    @Override
     protected void validateAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inputLocationChooserModel.validateSettings(settings);
+    }
+
+    @Override
+    protected boolean loadFlattenFolderForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // backwards compatibility see AP-16264
+        if (settings.containsKey(CFG_FLATTEN_HIERARCHY)) {
+            return settings.getBoolean(CFG_FLATTEN_HIERARCHY);
+        } else {
+            return super.loadFlattenFolderForModel(settings);
+        }
     }
 
     @Override

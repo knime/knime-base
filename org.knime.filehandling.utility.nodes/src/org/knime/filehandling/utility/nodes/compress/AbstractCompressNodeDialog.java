@@ -262,7 +262,7 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         m_compressionSelection.saveSettingsTo(settings);
         m_truncationPanel.saveSettingsTo(settings);
         m_config.includeEmptyFolders(m_includeEmptyFolders.isSelected());
-        m_config.flattenHierarchy(m_flattenHierarchyPanel.isSelected());
+        m_config.flattenFolder(m_flattenHierarchyPanel.isSelected());
         m_config.saveSettingsForDialog(settings);
     }
 
@@ -297,7 +297,7 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         m_config.loadSettingsForDialog(settings);
         m_truncationPanel.loadSettings(settings, specs);
         m_includeEmptyFolders.setSelected(m_config.includeEmptyFolders());
-        m_flattenHierarchyPanel.setSelected(m_config.flattenHierarchy());
+        m_flattenHierarchyPanel.setSelected(m_config.flattenFolder());
     }
 
     /**

@@ -79,7 +79,7 @@ public abstract class AbstractCompressNodeConfig {
 
     private static final String CFG_OUTPUT_LOCATION = "destination_location";
 
-    private static final String CFG_FLATTEN_HIERARCHY = "flatten_hierarchy";
+    private static final String CFG_FLATTEN_FOLDER = "flatten_folder";
 
     private static final String CFG_INCLUDE_EMPTY_FOLDERS = "include_empty_folders";
 
@@ -91,7 +91,7 @@ public abstract class AbstractCompressNodeConfig {
 
     private final TruncationSettings m_truncationSettings;
 
-    private boolean m_flattenHierarchy;
+    private boolean m_flattenFolder;
 
     private boolean m_includeEmptyFolders;
 
@@ -121,21 +121,21 @@ public abstract class AbstractCompressNodeConfig {
             EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), COMPRESSIONS);
         m_compressionModel = new SettingsModelString(CFG_COMPRESSION, DEFAULT_COMPRESSION);
         m_truncationSettings = new TruncationSettings();
-        m_flattenHierarchy = false;
+        m_flattenFolder = false;
         m_includeEmptyFolders = true;
     }
 
     final void loadSettingsForDialog(final NodeSettingsRO settings) {
         includeEmptyFolders(settings.getBoolean(CFG_INCLUDE_EMPTY_FOLDERS, false));
-        flattenHierarchy(settings.getBoolean(CFG_FLATTEN_HIERARCHY, false));
+        flattenFolder(settings.getBoolean(CFG_FLATTEN_FOLDER, false));
     }
 
     final void saveSettingsForDialog(final NodeSettingsWO settings) {
         saveNonSettingModelParameters(settings);
     }
 
-    private void saveFlattenHierarchy(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_FLATTEN_HIERARCHY, flattenHierarchy());
+    private void saveFlattenFolder(final NodeSettingsWO settings) {
+        settings.addBoolean(CFG_FLATTEN_FOLDER, flattenFolder());
     }
 
     private void saveSkipFolders(final NodeSettingsWO settings) {
@@ -145,9 +145,19 @@ public abstract class AbstractCompressNodeConfig {
     final void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_destinationFileChooserModel.validateSettings(settings);
         m_compressionModel.validateSettings(settings);
+        validateFlattenFolder(settings);
         validateTruncatePathOption(settings);
-        settings.getBoolean(CFG_FLATTEN_HIERARCHY);
         validateAdditionalSettingsForModel(settings);
+    }
+
+    /**
+     * Validates the flatten folder option.
+     *
+     * @param settings the settings to validate
+     * @throws InvalidSettingsException - If the flatten folder option validation failed
+     */
+    protected void validateFlattenFolder(final NodeSettingsRO settings) throws InvalidSettingsException {
+        settings.getBoolean(CFG_FLATTEN_FOLDER);
     }
 
     /**
@@ -172,10 +182,21 @@ public abstract class AbstractCompressNodeConfig {
     final void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_destinationFileChooserModel.loadSettingsFrom(settings);
         m_compressionModel.loadSettingsFrom(settings);
-        flattenHierarchy(settings.getBoolean(CFG_FLATTEN_HIERARCHY));
+        flattenFolder(loadFlattenFolderForModel(settings));
         loadAdditionalSettingsForModel(settings);
         // this method has to be called after #loadAdditionalSettingsForModel due to backwards compatibility
         loadTruncatePathOptionInModel(settings);
+    }
+
+    /**
+     * Loads and returns the flatten folder flag.
+     *
+     * @param settings the setting storing the flatten folder flag
+     * @return the flatten folder flag stored in the settings
+     * @throws InvalidSettingsException - If the option cannot be loaded
+     */
+    protected boolean loadFlattenFolderForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return settings.getBoolean(CFG_FLATTEN_FOLDER);
     }
 
     /**
@@ -214,7 +235,7 @@ public abstract class AbstractCompressNodeConfig {
     protected abstract void saveAdditionalSettingsForModel(NodeSettingsWO settings);
 
     private void saveNonSettingModelParameters(final NodeSettingsWO settings) {
-        saveFlattenHierarchy(settings);
+        saveFlattenFolder(settings);
         saveSkipFolders(settings);
     }
 
@@ -246,22 +267,22 @@ public abstract class AbstractCompressNodeConfig {
     }
 
     /**
-     * Sets the flag indicating whether or not to flatten the hierarchy during compression.
+     * Sets the flag indicating whether or not to flatten the folder during compression.
      *
-     * @param flattenHierarchy {@code true} if the hierarchy has to be flattened during compression and {@code false}
+     * @param flattenFolder {@code true} if the folder has to be flattened during compression and {@code false}
      *            otherwise
      */
-    final void flattenHierarchy(final boolean flattenHierarchy) {
-        m_flattenHierarchy = flattenHierarchy;
+    final void flattenFolder(final boolean flattenFolder) {
+        m_flattenFolder = flattenFolder;
     }
 
     /**
-     * Returns the flag deciding whether or not to flatten the hierarchy during compression.
+     * Returns the flag deciding whether or not to flatten the folder during compression.
      *
-     * @return {code true} if the hierarchy has to be flattened during compression and {@code false} otherwise
+     * @return {code true} if the folder has to be flattened during compression and {@code false} otherwise
      */
-    final boolean flattenHierarchy() {
-        return m_flattenHierarchy;
+    final boolean flattenFolder() {
+        return m_flattenFolder;
     }
 
     /**
@@ -283,7 +304,7 @@ public abstract class AbstractCompressNodeConfig {
      * @return the {@link PathTruncator}
      */
     final PathTruncator getPathTruncator() {
-        return m_truncationSettings.getPathTruncator(flattenHierarchy());
+        return m_truncationSettings.getPathTruncator(flattenFolder());
     }
 
 }
