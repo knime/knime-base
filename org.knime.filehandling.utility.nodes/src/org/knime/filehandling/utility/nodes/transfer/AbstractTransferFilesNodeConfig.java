@@ -157,6 +157,13 @@ public abstract class AbstractTransferFilesNodeConfig {
     }
 
     /**
+     * Returns the flag indicating whether or not to fail if the source file/folder does not exist.
+     *
+     * @return {@code true} if the node is supposed to fail if the source does not exists and {@code false} otherwise
+     */
+    protected abstract boolean failIfSourceDoesNotExist();
+
+    /**
      * Validates the given settings.
      *
      * @param settings the node settings

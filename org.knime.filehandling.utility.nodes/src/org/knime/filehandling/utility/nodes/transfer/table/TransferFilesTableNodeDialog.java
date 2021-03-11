@@ -49,6 +49,7 @@
 package org.knime.filehandling.utility.nodes.transfer.table;
 
 import java.awt.Component;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.Box;
@@ -60,6 +61,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.FSLocationValue;
@@ -83,6 +85,8 @@ final class TransferFilesTableNodeDialog extends AbstractTransferFilesNodeDialog
 
     private final JRadioButton m_fileSelection;
 
+    private final DialogComponentBoolean m_failIfSrcDoesNotExist;
+
     /**
      * Constructor.
      *
@@ -96,6 +100,8 @@ final class TransferFilesTableNodeDialog extends AbstractTransferFilesNodeDialog
             inputTableIdx, FSLocationValue.class);
         m_destColSelection = new DialogComponentColumnNameSelection(config.getDestPathColModel(), "Destination column",
             inputTableIdx, FSLocationValue.class);
+        m_failIfSrcDoesNotExist =
+            new DialogComponentBoolean(config.getFailIfSourceDoesNotExistsModel(), "Fail if source does not exist");
         m_tableSelection = new JRadioButton("From table");
         m_fileSelection = new JRadioButton("From file chooser");
         createPanel();
@@ -141,6 +147,11 @@ final class TransferFilesTableNodeDialog extends AbstractTransferFilesNodeDialog
         return p;
     }
 
+    @Override
+    protected void addAdditionalOptions(final JPanel panel, final GridBagConstraints gbc) {
+        panel.add(m_failIfSrcDoesNotExist.getComponentPanel(), gbc);
+    }
+
     private JPanel createDestColPanel() {
         final JPanel p = new JPanel(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().anchorFirstLineStart().resetPos().weight(0, 0).fillNone();
@@ -163,6 +174,7 @@ final class TransferFilesTableNodeDialog extends AbstractTransferFilesNodeDialog
         getConfig().saveDestDefinedByTableColInDialog(settings);
         m_destColSelection.saveSettingsTo(settings);
         super.saveSettingsTo(settings);
+        m_failIfSrcDoesNotExist.saveSettingsTo(settings);
     }
 
     @Override
@@ -172,6 +184,7 @@ final class TransferFilesTableNodeDialog extends AbstractTransferFilesNodeDialog
         getConfig().loadDestDefinedByTableColInDialog(settings);
         m_destColSelection.loadSettingsFrom(settings, specs);
         super.loadSettingsFrom(settings, specs);
+        m_failIfSrcDoesNotExist.loadSettingsFrom(settings, specs);
         updateSelection();
     }
 

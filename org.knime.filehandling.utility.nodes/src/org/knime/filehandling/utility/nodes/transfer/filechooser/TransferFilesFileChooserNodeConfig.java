@@ -83,6 +83,11 @@ final class TransferFilesFileChooserNodeConfig extends AbstractTransferFilesNode
         m_sourceFileChooserModel = sourceFilceChooserSettings;
     }
 
+    @Override
+    protected boolean failIfSourceDoesNotExist() {
+        return true;
+    }
+
     /**
      * Returns the {@link SettingsModelReaderFileChooser} of the source file / folder chooser.
      *

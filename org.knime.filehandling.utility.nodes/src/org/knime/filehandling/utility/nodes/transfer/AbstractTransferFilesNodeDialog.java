@@ -214,7 +214,20 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
         gbc.gridy++;
         panel.add(m_verboseOutput.getComponentPanel(), gbc);
 
+        gbc.gridy++;
+        addAdditionalOptions(panel, gbc);
+
         return panel;
+    }
+
+    /**
+     * Allows to add additional components to the options panel.
+     *
+     * @param panel the options panel
+     * @param gbc the {@link GridBagConstraints}
+     */
+    protected void addAdditionalOptions(final JPanel panel, final GridBagConstraints gbc) {
+        // nothing to do
     }
 
     /**

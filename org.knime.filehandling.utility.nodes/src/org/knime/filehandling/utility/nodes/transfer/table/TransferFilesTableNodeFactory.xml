@@ -121,6 +121,9 @@
 			If selected the output will not only show the folder that has been copied/moved but also all the 
 			files/folders it contains.
 		</option>
+		<option name="Fail if source does not exist">
+			If selected the node will fail in case the source file/folder to copy/move does not exist.
+		</option>
 	</fullDescription>
 	<ports>
 	<inPort name="Input table" index="0">
@@ -135,8 +138,10 @@
 			The destination file system connection.
 		</dynInPort>
 		<outPort index="0" name="Copied files table">
-			The files which should be copied with a source path column, destination path column, a folder identifier
-			column, a copy status column and a deleted source column.
+			A table revealing the files/folders which were copied/moved.  It contains a source and destination path 
+			column as well as a folder identifier, and a copy status column. Additionally, if <i>Delete source files /
+			folders</i> is selected the output contains a source deleted column and if <i>Fail if source does not
+			exist</i> is unchecked the output has a source exist(ed) column.
 		</outPort>
 	</ports>
 </knimeNode>

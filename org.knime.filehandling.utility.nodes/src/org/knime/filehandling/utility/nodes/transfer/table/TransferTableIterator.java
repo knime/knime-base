@@ -124,6 +124,11 @@ final class TransferTableIterator implements TransferIterator {
         }
 
         @Override
+        public FSPath getSource() {
+            return m_source;
+        }
+
+        @Override
         public TransferPair getSrcDestPair() throws IOException {
             return new TransferPair(m_source, m_destination);
         }

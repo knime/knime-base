@@ -170,6 +170,11 @@ final class TransferFileChooserIterator implements TransferIterator {
         }
 
         @Override
+        public FSPath getSource() {
+            return m_transferPair.getSource();
+        }
+
+        @Override
         public TransferPair getSrcDestPair() throws IOException {
             return m_transferPair;
         }
@@ -178,5 +183,6 @@ final class TransferFileChooserIterator implements TransferIterator {
         public List<TransferPair> getPathsToCopy() throws IOException {
             return Collections.emptyList();
         }
+
     }
 }

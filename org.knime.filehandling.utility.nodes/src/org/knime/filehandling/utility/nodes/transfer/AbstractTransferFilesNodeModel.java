@@ -157,8 +157,19 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
         columnSpecs.add(createMetaColumnSpec(getDestLocationSpecs(inSpecs), "Destination Path"));
         columnSpecs.add(new DataColumnSpecCreator("Directory", BooleanCell.TYPE).createSpec());
         columnSpecs.add(new DataColumnSpecCreator("Status", StringCell.TYPE).createSpec());
-        if (m_config.getDeleteSourceFilesModel().getBooleanValue()) {
+
+        final boolean deleteSourceFiles = m_config.getDeleteSourceFilesModel().getBooleanValue();
+        if (deleteSourceFiles) {
             columnSpecs.add(new DataColumnSpecCreator("Source deleted", BooleanCell.TYPE).createSpec());
+        }
+        if (!m_config.failIfSourceDoesNotExist()) {
+            final String specName;
+            if (deleteSourceFiles) {
+                specName = "Source existed";
+            } else {
+                specName = "Source exists";
+            }
+            columnSpecs.add(new DataColumnSpecCreator(specName, BooleanCell.TYPE).createSpec());
         }
         return new DataTableSpec(columnSpecs.toArray(new DataColumnSpec[0]));
     }
@@ -217,13 +228,14 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
         final BufferedDataContainer container = exec.createDataContainer(outputSpec);
         final PathCopier pathCopier = new PathCopier(m_config.getDestinationFileChooserModel().getFileOverwritePolicy(),
             m_config.getVerboseOutputModel().getBooleanValue(), m_config.getDeleteSourceFilesModel().getBooleanValue(),
-            m_config.getFailOnDeletionModel().getBooleanValue());
+            m_config.getFailOnDeletionModel().getBooleanValue(), m_config.failIfSourceDoesNotExist());
         try (final TransferIterator iter = getTransferIterator(inObjects)) {
             final long numOfFiles = iter.size();
             long rowIdx = 0;
+            final double maxProg = 1d / numOfFiles;
             while (iter.hasNext()) {
                 exec.checkCanceled();
-                final ExecutionContext subExec = exec.createSubExecutionContext(1d / numOfFiles);
+                final ExecutionContext subExec = exec.createSubExecutionContext(maxProg);
                 rowIdx = transfer(subExec, container, rowIdx, pathCopier, iter.next());
             }
             container.close();
@@ -247,7 +259,7 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
 
     private static long transfer(final ExecutionContext exec, final DataContainer container, long rowIdx,
         final PathCopier pathCopier, final TransferEntry entry) throws IOException, CanceledExecutionException {
-        final DataCell[][] rows = pathCopier.copyDelete(exec, entry);
+        final DataCell[][] rows = pathCopier.transfer(exec, entry);
         for (final DataCell[] row : rows) {
             container.addRowToTable(new DefaultRow(RowKey.createRowKey(rowIdx), row));
             rowIdx++;

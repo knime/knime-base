@@ -88,6 +88,11 @@ public final class TransferFileFolderEntry implements TransferEntry {
     }
 
     @Override
+    public FSPath getSource() {
+        return m_source;
+    }
+
+    @Override
     public List<TransferPair> getPathsToCopy() throws IOException {
         if (!FSFiles.isDirectory(m_source)) {
             return Collections.emptyList();

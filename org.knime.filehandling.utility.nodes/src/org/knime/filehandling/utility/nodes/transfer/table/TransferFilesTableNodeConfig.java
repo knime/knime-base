@@ -51,6 +51,7 @@ package org.knime.filehandling.utility.nodes.transfer.table;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeConfig;
@@ -68,9 +69,13 @@ final class TransferFilesTableNodeConfig extends AbstractTransferFilesNodeConfig
 
     private static final String CFG_DESTINATION_COLUMN = "destination_column";
 
+    private static final String CFG_FAIL_IF_SOURCE_NOT_EXIST = "fail_if_source_does_not_exist";
+
     private final SettingsModelString m_srcPathColModel;
 
     private final SettingsModelString m_destPathColModel;
+
+    private final SettingsModelBoolean m_failIfSourceDoesNotExist;
 
     private boolean m_destDefinedByTableCol;
 
@@ -84,6 +89,7 @@ final class TransferFilesTableNodeConfig extends AbstractTransferFilesNodeConfig
         m_srcPathColModel = new SettingsModelString(CFG_INPUT_COLUMN, null);
         m_destPathColModel = new SettingsModelString(CFG_DESTINATION_COLUMN, null);
         m_destDefinedByTableCol = false;
+        m_failIfSourceDoesNotExist = new SettingsModelBoolean(CFG_FAIL_IF_SOURCE_NOT_EXIST, true);
     }
 
     SettingsModelString getSrcPathColModel() {
@@ -103,6 +109,15 @@ final class TransferFilesTableNodeConfig extends AbstractTransferFilesNodeConfig
     }
 
     @Override
+    protected boolean failIfSourceDoesNotExist() {
+        return m_failIfSourceDoesNotExist.getBooleanValue();
+    }
+
+    SettingsModelBoolean getFailIfSourceDoesNotExistsModel() {
+        return m_failIfSourceDoesNotExist;
+    }
+
+    @Override
     protected void validateAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_srcPathColModel.validateSettings(settings);
         m_destPathColModel.validateSettings(settings);
@@ -110,6 +125,7 @@ final class TransferFilesTableNodeConfig extends AbstractTransferFilesNodeConfig
             && settings.getString(CFG_INPUT_COLUMN, "").equals(settings.getString(CFG_DESTINATION_COLUMN, ""))) {
             throw new InvalidSettingsException("The source and destination column cannot be the same");
         }
+        m_failIfSourceDoesNotExist.validateSettings(settings);
     }
 
     @Override
@@ -117,6 +133,7 @@ final class TransferFilesTableNodeConfig extends AbstractTransferFilesNodeConfig
         m_srcPathColModel.saveSettingsTo(settings);
         settings.addBoolean(CFG_DESTINATION_DEFINED_BY_TABLE, m_destDefinedByTableCol);
         m_destPathColModel.saveSettingsTo(settings);
+        m_failIfSourceDoesNotExist.saveSettingsTo(settings);
     }
 
     @Override
@@ -128,6 +145,7 @@ final class TransferFilesTableNodeConfig extends AbstractTransferFilesNodeConfig
     protected void loadAdditionalSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_destDefinedByTableCol = settings.getBoolean(CFG_DESTINATION_DEFINED_BY_TABLE);
         m_destPathColModel.loadSettingsFrom(settings);
+        m_failIfSourceDoesNotExist.loadSettingsFrom(settings);
     }
 
     void saveDestDefinedByTableColInDialog(final NodeSettingsWO settings) {

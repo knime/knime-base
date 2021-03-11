@@ -51,6 +51,8 @@ package org.knime.filehandling.utility.nodes.transfer.iterators;
 import java.io.IOException;
 import java.util.List;
 
+import org.knime.filehandling.core.connections.FSPath;
+
 /**
  * A transfer entry encodes a {@link TransferPair} that must be copied or moved. It consists of a source destination
  * pair and in case this pair refers to a folder all files and folders that have to be additionally copied are
@@ -61,6 +63,13 @@ import java.util.List;
 public interface TransferEntry {
 
     /**
+     * Returns the source {@link FSPath}.
+     *
+     * @return the source path
+     */
+    FSPath getSource();
+
+    /**
      * The source destination {@link TransferPair}.
      *
      * @return the source destination pair
@@ -69,8 +78,8 @@ public interface TransferEntry {
     TransferPair getSrcDestPair() throws IOException;
 
     /**
-     * Returns the list of {@link TransferPair}s. This list must not contain the {@link #getSrcDestPair()}. It
-     * must be empty if the {@link #getSrcDestPair()} refers to files and otherwise contain all files/folder
+     * Returns the list of {@link TransferPair}s. This list must not contain the {@link #getSrcDestPair()}. It must be
+     * empty if the {@link #getSrcDestPair()} refers to files and otherwise contain all files/folder
      * {@link TransferPair}s that need to be additionally transfered.
      *
      * @return the {@link TransferPair}s that have to be additionally copied/moved

@@ -48,16 +48,19 @@
  */
 package org.knime.filehandling.utility.nodes.transfer;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.CanceledExecutionException;
@@ -85,7 +88,7 @@ final class PathCopier {
     private static final String ERROR_MESSAGE =
         "Something went wrong during the copying / moving process. See log for further details.";
 
-    private static final int NUMBER_OF_COLS = 4;
+    private static final int NUMBER_OF_DEFAULT_COLS = 4;
 
     private static final int SOURCE_COL_IDX = 0;
 
@@ -94,6 +97,8 @@ final class PathCopier {
     private static final int IS_DIR_COL_IDX = 2;
 
     private static final int STATUS_COL_IDX = 3;
+
+    private static final int DELETE_COL_IDX = 4;
 
     private final MultiSimpleFSLocationCellFactory m_sourceFSLocationCellFactory;
 
@@ -109,8 +114,12 @@ final class PathCopier {
 
     private final boolean m_failOnUnsuccessfulDeletion;
 
+    private final boolean m_failIfSrcDoesNotExist;
+
+    private final int m_failIfSrcDoesNotExistIdx;
+
     PathCopier(final FileOverwritePolicy overwritePolicy, final boolean verbose, final boolean delete,
-        final boolean failOnDeletion) {
+        final boolean failOnDeletion, final boolean failIfSrcDoesNotExist) {
         m_sourceFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();
         m_destinationFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();
         m_fileOverwritePolicy = overwritePolicy;
@@ -118,63 +127,98 @@ final class PathCopier {
         m_verbose = verbose;
         m_delete = delete;
         m_failOnUnsuccessfulDeletion = failOnDeletion;
+        m_failIfSrcDoesNotExist = failIfSrcDoesNotExist;
+        m_failIfSrcDoesNotExistIdx = m_delete ? DELETE_COL_IDX + 1 : DELETE_COL_IDX;
     }
 
-    DataCell[][] copyDelete(final ExecutionContext exec, final TransferEntry entry)
+    DataCell[][] transfer(final ExecutionContext exec, final TransferEntry entry)
         throws IOException, CanceledExecutionException {
-        final List<TransferPair> paths = entry.getPathsToCopy();
-        final DataCell[][] rows = new DataCell[!m_verbose ? 1 : (1 + paths.size())][];
-        final ListIterator<TransferPair> listIterator = paths.listIterator();
+        final boolean exists = FSFiles.exists(entry.getSource());
+        final DataCell[][] rows;
+        if (exists) {
+            rows = copyDelete(exec, entry);
+        } else {
+            rows = handleMissingSrc(exec, entry);
+        }
+        return rows;
+    }
 
+    private DataCell[][] handleMissingSrc(final ExecutionContext exec, final TransferEntry entry)
+        throws FileNotFoundException {
+        if (m_failIfSrcDoesNotExist) {
+            throw new FileNotFoundException(
+                String.format("The specified file/folder '%s' does not exists", entry.getSource()));
+        } else {
+            exec.setProgress(1);
+            return new DataCell[][]{createSrcDoesNotExistRow(entry.getSource())};
+        }
+    }
+
+    private DataCell[][] copyDelete(final ExecutionContext exec, final TransferEntry entry)
+        throws IOException, CanceledExecutionException {
+        final DataCell[][] rows;
+        final List<TransferPair> paths = entry.getPathsToCopy();
+        rows = new DataCell[!m_verbose ? 1 : (1 + paths.size())][];
+        final ListIterator<TransferPair> listIterator = paths.listIterator();
+        ExecutionContext subExec = exec.createSubExecutionContext(m_delete ? 0.5 : 1);
+        final int entriesToProcess = paths.size() + 1;
         // copy
-        copy(exec, rows, 0, entry.getSrcDestPair(), true);
-        copy(exec, rows, 1, listIterator);
+        copy(subExec, rows, 0, entry.getSrcDestPair(), true, entriesToProcess);
+        copy(subExec, rows, 1, listIterator, entriesToProcess);
 
         // delete it if necessary
         if (m_delete) {
-            delete(exec, rows, listIterator);
-            delete(exec, rows, 0, entry.getSrcDestPair().getSource(), true);
+            subExec = exec.createSubExecutionContext(0.5);
+            delete(subExec, rows, listIterator, entriesToProcess);
+            delete(subExec, rows, 0, entry.getSrcDestPair().getSource(), true, entriesToProcess);
+        }
+
+        // add fail if src does not exists col
+        if (!m_failIfSrcDoesNotExist) {
+            addFailIfSrcDoesNotExistsCol(rows);
         }
         return rows;
     }
 
     private void copy(final ExecutionContext exec, final DataCell[][] rows, int idx,
-        final ListIterator<TransferPair> listIterator) throws CanceledExecutionException, IOException {
+        final ListIterator<TransferPair> listIterator, final double entriesToProcess)
+        throws CanceledExecutionException, IOException {
         while (listIterator.hasNext()) {
             exec.checkCanceled();
-            idx = copy(exec, rows, idx, listIterator.next(), m_verbose);
+            idx = copy(exec, rows, idx, listIterator.next(), m_verbose, entriesToProcess);
         }
     }
 
-    private int copy(final ExecutionContext exec, final DataCell[][] rows, int idx, final TransferPair p,
-        final boolean verbose) throws IOException, CanceledExecutionException {
+    private int copy(final ExecutionContext exec, final DataCell[][] rows, final int idx, final TransferPair p,
+        final boolean verbose, final double entriesToProcess) throws IOException, CanceledExecutionException {
         exec.checkCanceled();
+        exec.setProgress((idx + 1) / entriesToProcess, () -> String.format("Copying '%s'", p.getSource()));
         final DataCell[] row = copyPath(p.getSource(), p.getDestination());
         if (verbose) {
             rows[idx] = row;
-            idx++;
         }
-        return idx;
+        return idx + 1;
     }
 
     private void delete(final ExecutionContext exec, final DataCell[][] rows,
-        final ListIterator<TransferPair> listIterator) throws CanceledExecutionException, IOException {
-        int idx = rows.length - 1;
+        final ListIterator<TransferPair> listIterator, final int entriesToProcess)
+        throws CanceledExecutionException, IOException {
+        int idx = entriesToProcess - 1;
         while (listIterator.hasPrevious()) {
             final FSPath source = listIterator.previous().getSource();
-            idx = delete(exec, rows, idx, source, m_verbose);
+            idx = delete(exec, rows, idx, source, m_verbose, entriesToProcess);
         }
     }
 
-    private int delete(final ExecutionContext exec, final DataCell[][] rows, int idx, final FSPath source,
-        final boolean verbose) throws IOException, CanceledExecutionException {
+    private int delete(final ExecutionContext exec, final DataCell[][] rows, final int idx, final FSPath source,
+        final boolean verbose, final double entriesToProcess) throws IOException, CanceledExecutionException {
         exec.checkCanceled();
+        exec.setProgress((entriesToProcess - idx) / entriesToProcess, () -> String.format("Deleting '%s'", source));
         final DataCell delete = delete(source);
         if (verbose) {
             rows[idx] = ArrayUtils.addAll(rows[idx], delete);
-            --idx;
         }
-        return idx;
+        return idx - 1;
     }
 
     private DataCell delete(final FSPath source) throws IOException {
@@ -202,7 +246,7 @@ final class PathCopier {
     private DataCell[] copyPath(final FSPath src, final FSPath dest) throws IOException {
         validatePair(src, dest);
 
-        final DataCell[] cells = new DataCell[NUMBER_OF_COLS];
+        final DataCell[] cells = new DataCell[NUMBER_OF_DEFAULT_COLS];
         cells[SOURCE_COL_IDX] = m_sourceFSLocationCellFactory.createCell(src.toFSLocation());
         cells[DESTINATION_COL_IDX] = m_destinationFSLocationCellFactory.createCell(dest.toFSLocation());
         final boolean isDirectory = FSFiles.isDirectory(src);
@@ -285,7 +329,7 @@ final class PathCopier {
      * @throws IOException
      * @return exists returns if the path already existed or not
      */
-    static boolean createDirectories(final Path path) throws IOException {
+    private static boolean createDirectories(final Path path) throws IOException {
         final boolean exists = FSFiles.exists(path);
         if (!exists) {
             try {
@@ -315,6 +359,30 @@ final class PathCopier {
             throw new IllegalArgumentException(
                 String.format("Unsupported FileOverwritePolicy '%s' encountered.", fileOverwritePolicy));
         }
+    }
+
+    private static void addFailIfSrcDoesNotExistsCol(final DataCell[][] rows) {
+        final DataCell existsFlag = BooleanCellFactory.create(true);
+        for (int i = 0; i < rows.length; i++) {
+            rows[i] = ArrayUtils.addAll(rows[i], existsFlag);
+        }
+    }
+
+    /**
+     * Creates all data cells required to create a row for a non-existent source path.
+     *
+     * @param src the non-existent source path
+     * @return the default row for non-existent source paths
+     */
+    private DataCell[] createSrcDoesNotExistRow(final FSPath src) {
+        final DataCell[] cells = new DataCell[m_failIfSrcDoesNotExistIdx + 1];
+        Arrays.fill(cells, DataType.getMissingCell());
+        cells[SOURCE_COL_IDX] = m_sourceFSLocationCellFactory.createCell(src.toFSLocation());
+        if (m_delete) {
+            cells[DELETE_COL_IDX] = BooleanCellFactory.create(false);
+        }
+        cells[m_failIfSrcDoesNotExistIdx] = BooleanCellFactory.create(false);
+        return cells;
     }
 
     /**
@@ -373,4 +441,5 @@ final class PathCopier {
         };
 
     }
+
 }
