@@ -59,8 +59,9 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.knimerelativeto.FileSystemExtensionHelper;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnection;
-import org.knime.filehandling.core.connections.knimerelativeto.WorkflowDataRelativeFSConnection;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSConnection;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.connections.url.URIFSConnection;
@@ -236,13 +237,17 @@ public final class FileSystemHelper {
         }
 
         if (type == Type.WORKFLOW_DATA_RELATIVE) {
-            return new WorkflowDataRelativeFSConnection(false);
+            return new LocalRelativeToWorkflowDataFSConnection();
         } else if (isServerContext()) {
             return FileSystemExtensionHelper //
                 .getFSConnectionProvider("knime-server-relative-to") //
                 .getConnection(type);
+        } else if (type == Type.WORKFLOW_RELATIVE) {
+            return new LocalRelativeToWorkflowFSConnection(false);
+        } else if (type == Type.MOUNTPOINT_RELATIVE) {
+            return new LocalRelativeToMountpointFSConnection();
         } else {
-            return new LocalRelativeToFSConnection(type, false);
+            throw new IllegalArgumentException("Unsupported type: " + type);
         }
     }
 

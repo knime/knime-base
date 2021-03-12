@@ -87,6 +87,14 @@ public final class RelativeToUtil {
     }
 
     /**
+     * @return true, when we curently have a workflow context, false otherwise.
+     */
+    public static boolean hasWorkflowContext() {
+        final NodeContext nodeContext = NodeContext.getContext();
+        return nodeContext != null && nodeContext.getWorkflowManager().getContext() != null;
+    }
+
+    /**
      * Validates if the given context is running in a server context.
      *
      * @param context workflow context to validate
