@@ -45,7 +45,9 @@
  */
 package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -148,5 +150,30 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
     public void test_output_stream_on_directory_failure() throws Exception {
         Path file = m_testInitializer.createFile("dir", "file");
         Files.newOutputStream(file.getParent());
+    }
+
+    @Test
+    public void test_write_three_files_same_folder() throws Exception {
+        Path dir = m_testInitializer.makePath("dir");
+        Path file1 = dir.resolve("file1");
+        Path file2 = dir.resolve("file2");
+
+        Files.createDirectories(dir);
+
+        final byte[] file1Bytes = new byte[] {1};
+        try(OutputStream out = Files.newOutputStream(file1)) {
+            out.write(file1Bytes);
+        }
+
+        final byte[] file2Bytes = new byte[] {2};
+        try(OutputStream out = Files.newOutputStream(file2)) {
+            out.write(file2Bytes);
+        }
+
+        assertTrue(Files.isDirectory(dir));
+        assertTrue(Files.isRegularFile(file1));
+        assertArrayEquals(file1Bytes, Files.readAllBytes(file1));
+        assertTrue(Files.isRegularFile(file2));
+        assertArrayEquals(file2Bytes, Files.readAllBytes(file2));
     }
 }
