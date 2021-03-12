@@ -51,6 +51,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -135,5 +136,17 @@ public class AttributesTest extends AbstractParameterizedFSTest {
         assertNotEquals(0, fileMtime);
         // assert that the mtime is in the "vicinity" of now
         assertTrue(Math.abs(fileMtime - now) < 60);
+    }
+
+    @Test(expected = NoSuchFileException.class)
+    public void test_get_file_attributes_for_funny_file1() throws Exception {
+        final Path file =  m_testInitializer.makePath("X:\\AA\\B C\\ X~\\#\\doesnotexist?!");
+        Files.readAttributes(file, BasicFileAttributes.class);
+    }
+
+    @Test(expected = NoSuchFileException.class)
+    public void test_get_file_attributes_for_funny_file2() throws Exception {
+        final Path file =  getFileSystem().getPath("X:\\AA\\B C\\ X~\\#\\doesnotexist?!");
+        Files.readAttributes(file, BasicFileAttributes.class);
     }
 }

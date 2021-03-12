@@ -110,7 +110,7 @@ public class DeleteTest extends AbstractParameterizedFSTest {
     @Test
     public void test_delete_file_by_relative_path() throws IOException {
         final Path fileB = m_testInitializer.createFileWithContent("test", "dir-A", "file-B");
-        final Path fileBRelative = m_testInitializer.getTestCaseScratchDir().getParent().relativize(fileB);
+        final Path fileBRelative = getFileSystem().getWorkingDirectory().relativize(fileB);
 
         // ensure file exist before
         assertTrue(Files.isRegularFile(fileB));
@@ -183,4 +183,18 @@ public class DeleteTest extends AbstractParameterizedFSTest {
         Files.delete(pathToNonExistingFile);
     }
 
+    @Test
+    public void test_deleting_file_from_directory_does_not_delete_directory() throws Exception {
+        final Path dir = m_testInitializer.makePath("dir");
+        Files.createDirectories(dir);
+        assertTrue(Files.isDirectory(dir));
+
+        final Path file = m_testInitializer.createFile("dir", "file");
+        assertTrue(Files.isDirectory(dir));
+        assertTrue(Files.isRegularFile(file));
+
+        Files.delete(file);
+        assertFalse(Files.exists(file));
+        assertTrue(Files.isDirectory(dir));
+    }
 }
