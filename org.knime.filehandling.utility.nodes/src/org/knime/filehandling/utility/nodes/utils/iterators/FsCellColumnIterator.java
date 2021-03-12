@@ -50,8 +50,12 @@ package org.knime.filehandling.utility.nodes.utils.iterators;
 
 import java.io.IOException;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.MissingValue;
+import org.knime.core.data.MissingValueException;
 import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSConnection;
@@ -90,7 +94,7 @@ public final class FsCellColumnIterator implements ClosableIterator<FSPath> {
      */
     public FsCellColumnIterator(final BufferedDataTable table, final int pathColIdx, final FSConnection connection) {
         m_pathProviderFactory = new MultiFSPathProviderFactory(connection);
-        m_iter = table.iterator();
+        m_iter = table.filter(TableFilter.materializeCols(pathColIdx)).iterator();
         m_pathColIdx = pathColIdx;
         m_size = table.size();
     }
@@ -124,7 +128,11 @@ public final class FsCellColumnIterator implements ClosableIterator<FSPath> {
     @SuppressWarnings("resource")
     private FSPath getPath(final DataRow next) {
         closePathProvider();
-        final FSLocationValue pathValue = (FSLocationValue)next.getCell(m_pathColIdx);
+        final DataCell cell = next.getCell(m_pathColIdx);
+        if (cell.isMissing()) {
+            throw new MissingValueException((MissingValue)cell, "Missing values are not supported");
+        }
+        final FSLocationValue pathValue = (FSLocationValue)cell;
         final FSLocation fsLocation = pathValue.getFSLocation();
         m_pathProvider = m_pathProviderFactory.getOrCreateFSPathProviderFactory(fsLocation).create(fsLocation);
         return m_pathProvider.getPath();
