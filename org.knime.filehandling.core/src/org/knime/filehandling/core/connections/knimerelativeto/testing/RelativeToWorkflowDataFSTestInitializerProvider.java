@@ -43,51 +43,42 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.knimerelativeto.testing;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 
-import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * Test initializer provider for the local workflow relative file system.
+ * {@link FSTestInitializerProvider} for testing the workflow data area. It will create a
+ * {@link FSCategory#CONNECTED} file system with a randomized working directory.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class RelativeToWorkflowDataFSTestInitializerProvider implements FSTestInitializerProvider {
+public final class RelativeToWorkflowDataFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
     private static final String FS_NAME = "knime-relative-workflow-data";
 
+    /**
+     * Constructor.
+     */
+    public RelativeToWorkflowDataFSTestInitializerProvider() {
+        super(FS_NAME, BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC);
+    }
+
     @SuppressWarnings("resource")
     @Override
-    public FSTestInitializer setup(final Map<String, String> configuration) throws IOException {
+    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
+        throws IOException {
 
-        final Path tmpDir = Files.createTempDirectory("knime-relative-workflow-test");
-
-        final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(tmpDir);
-
-        final WorkflowDataRelativeFSConnection fsConnection = new WorkflowDataRelativeFSConnection(true);
-        LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
-        LocalRelativeToTestUtil.clearDirectoryContents(tmpDir);
-
-        return new RelativeToWorkflowDataFSTestInitializer(fsConnection);
-    }
-
-    @Override
-    public String getFSType() {
-        return FS_NAME;
-    }
-
-    @Override
-    public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
-        return BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+        final String workingDir = generateRandomizedWorkingDir(BaseRelativeToFileSystem.PATH_SEPARATOR,
+            BaseRelativeToFileSystem.PATH_SEPARATOR);
+        return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(workingDir));
     }
 }

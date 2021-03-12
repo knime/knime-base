@@ -88,19 +88,19 @@
    <extension
          point="org.knime.filehandling.FSTestInitializerProvider">
       <FSTestInitializerProvider
-            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSTestInitializerProvider">
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.testing.LocalRelativeToMountpointFSTestInitializerProvider">
       </FSTestInitializerProvider>
    </extension>
    <extension
          point="org.knime.filehandling.FSTestInitializerProvider">
       <FSTestInitializerProvider
-            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSTestInitializerProvider">
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.testing.LocalRelativeToWorkflowFSTestInitializerProvider">
       </FSTestInitializerProvider>
    </extension>
    <extension
          point="org.knime.filehandling.FSTestInitializerProvider">
       <FSTestInitializerProvider
-            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.RelativeToWorkflowDataFSTestInitializerProvider">
+            ProviderClass="org.knime.filehandling.core.connections.knimerelativeto.testing.RelativeToWorkflowDataFSTestInitializerProvider">
       </FSTestInitializerProvider>
    </extension>
 </plugin>
