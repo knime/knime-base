@@ -69,7 +69,8 @@ public final class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
     private final FSFileSystem<?> m_fileSystem;
 
     /**
-     * Creates a new local KNIME relative-to file system browser with a view and base location.
+     * Creates a new local KNIME relative-to file system browser. The "home directory" and the initial directory of the
+     * browser are the working directory of the given file system.
      *
      * @param fileSystem the file system to use
      */
@@ -77,9 +78,17 @@ public final class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
         this(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getWorkingDirectory());
     }
 
+    /**
+     * Creates a new local KNIME relative-to file system browser. The "home directory" and the "default directory" of
+     * the browser are the working directory of the given file system.
+     *
+     * @param fileSystem the file system to use
+     * @param homeDir The "home directory" that the browser jumps to when the user presses the "home" button.
+     * @param defaultDir The default directory, where the user starts to browse.
+     */
     public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
         final FSPath defaultDir) {
-        super(new NioFileSystemView(fileSystem, homeDir, defaultDir));
+        super(new NioFileSystemView(fileSystem, defaultDir, homeDir));
         m_fileSystem = fileSystem;
     }
 

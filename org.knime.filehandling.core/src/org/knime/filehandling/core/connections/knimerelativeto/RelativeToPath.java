@@ -51,8 +51,6 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.knime.filehandling.core.connections.WorkflowAwarePath;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
@@ -78,9 +76,9 @@ public final class RelativeToPath extends UnixStylePath implements WorkflowAware
         super(fileSystem, first, more);
     }
 
-    public URI toKNIMEProtocolURI() {
+    URI toKNIMEProtocolURI() {
         try {
-
+            @SuppressWarnings("resource")
             final Type type = ((BaseRelativeToFileSystem)getFileSystem()).getType();
 
             switch (type) {
@@ -99,11 +97,13 @@ public final class RelativeToPath extends UnixStylePath implements WorkflowAware
     }
 
     private URI toWorkflowDataRelativeURI() throws URISyntaxException {
+        @SuppressWarnings("resource")
         final String path = getFileSystem().getSeparator() + "data" + toAbsolutePath().toString();
         return new URI("knime", "knime.workflow", path, null);
     }
 
     private URI toWorkflowRelativeURI() throws URISyntaxException {
+        @SuppressWarnings("resource")
         final String urlPath = getFileSystem().getSeparator()
             + getFileSystem().getWorkingDirectory().relativize(toAbsolutePath()).toString();
         return new URI("knime", "knime.workflow", urlPath, null);
@@ -112,16 +112,6 @@ public final class RelativeToPath extends UnixStylePath implements WorkflowAware
     private URI toMountpointRelativeURI() throws URISyntaxException {
         final String urlPath = toAbsolutePath().toString();
         return new URI("knime", "knime.mountpoint", urlPath, null);
-    }
-
-    /**
-     * Appends this path to the given base directory without file system specific separators.
-     *
-     * @param baseDir base directory to append this path to
-     * @return base directory with this path appended
-     */
-    public Path appendToBaseDir(final Path baseDir) {
-        return Paths.get(baseDir.toString(), m_pathParts.toArray(new String[0]));
     }
 
     @Override

@@ -102,7 +102,7 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     /**
      * Separator used between names in paths.
      */
-    protected static final String PATH_SEPARATOR = "/";
+    public static final String PATH_SEPARATOR = "/";
 
     private static final long CACHE_TTL = 0; // = disabled
 

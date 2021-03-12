@@ -44,32 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 24, 2020 (bjoern): created
+ *   Mar 12, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
+ * {@link FSConnection} for the Relative-to workflow file system. It is possible to create a connected or convenience
+ * file system, but the working directory is fixed. The location of the current workflow in the underyling local file
+ * system is determined using the KNIME {@link WorkflowContext}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class WorkflowDataRelativeFSConnection implements FSConnection {
+public class LocalRelativeToWorkflowFSConnection implements FSConnection {
 
     private final LocalRelativeToFileSystem m_fileSystem;
 
@@ -78,40 +80,44 @@ public final class WorkflowDataRelativeFSConnection implements FSConnection {
     /**
      * Constructor.
      *
+     * @param isConnected If true, a {@link FSCategory#CONNECTED} file system will be created, otherwise it will be
+     *            {@link FSCategory#RELATIVE}.
      */
-    public WorkflowDataRelativeFSConnection(final boolean isConnected) {
-
+    public LocalRelativeToWorkflowFSConnection(final boolean isConnected) {
         final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
-        final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
-
-        try {
-            m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, isConnected);
-        } catch (IOException ex) {
-            // should never happen
-            throw new UncheckedIOException(ex);
+        if (RelativeToUtil.isServerContext(workflowContext)) {
+            throw new UnsupportedOperationException(
+                "Unsupported temporary copy of workflow detected. Relative to does not support server execution.");
         }
 
-        m_browser = new RelativeToFileSystemBrowser(m_fileSystem);
+        final Path localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
+        final Path localWorkflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
+        m_fileSystem = createWorkflowRelativeFs(localMountpointRoot, localWorkflowLocation, isConnected);
+
+        // in the workflow-relative file system the working "dir" is the workflow, but it is not a directory,
+        // so we need to take the parent
+        final FSPath browsingHomeAndDefault = (FSPath)m_fileSystem.getWorkingDirectory().getParent();
+        m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
     }
 
-    private LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
-        final boolean isConnected) throws IOException {
+    private static LocalRelativeToFileSystem createWorkflowRelativeFs(final Path localMountpointRoot,
+        final Path workflowLocation, final boolean isConnected) {
 
-        final Path workflowDataDir = workflowLocation.resolve("data");
-        Files.createDirectories(workflowDataDir);
+        final String workingDir = LocalRelativeToFileSystemProvider
+            .localToRelativeToPathSeperator(localMountpointRoot.relativize(workflowLocation));
 
         final FSLocationSpec fsLocationSpec;
         if (isConnected) {
-            fsLocationSpec = BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+            fsLocationSpec = BaseRelativeToFileSystem.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
         } else {
-            fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+            fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
         }
 
-        final URI uri = URI.create(Type.WORKFLOW_DATA_RELATIVE.getSchemeAndHost());
+        final URI uri = URI.create(Type.WORKFLOW_RELATIVE.getSchemeAndHost());
         return new LocalRelativeToFileSystem(uri, //
-            workflowDataDir, //
-            Type.WORKFLOW_DATA_RELATIVE, //
-            BaseRelativeToFileSystem.PATH_SEPARATOR, //
+            localMountpointRoot, //
+            Type.WORKFLOW_RELATIVE, //
+            workingDir, //
             fsLocationSpec);
     }
 

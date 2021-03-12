@@ -50,10 +50,13 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
@@ -62,26 +65,28 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
+public final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
 
     /**
-     * A local path (from the default FS provider) that points to the folder of the current mountpoint.
+     * Where this file system is rooted in the local (platform default) file system.
      */
-    private final Path m_localMountpointDirectory;
+    private final Path m_localRoot;
 
     /**
      * Default constructor.
      *
      * @param uri URI without a path
-     * @param localMountpointRoot mountpoint root in the local file system
-     * @param type {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
+     * @param localRoot Where this file system is rooted in the local (platform default) file system.
+     * @param type The relative-to type of this file system (workflow, mountpoint, ...).
+     * @param workingDir Path (in this file system) that specifies the working directory.
      * @throws IOException
      */
+    @SuppressWarnings("resource")
     LocalRelativeToFileSystem(final URI uri, //
-        final Path localMountpointRoot, //
+        final Path localRoot, //
         final Type type, //
         final String workingDir, //
-        final FSLocationSpec fsLocationSpec) throws IOException {
+        final FSLocationSpec fsLocationSpec) {
 
         super(new LocalRelativeToFileSystemProvider(), //
             uri, //
@@ -89,12 +94,14 @@ final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
             workingDir, //
             fsLocationSpec);
 
-        m_localMountpointDirectory = localMountpointRoot;
+        CheckUtils.checkArgument(localRoot.getFileSystem() == FileSystems.getDefault(),
+            "The local root of a LocalRelativeToFileSystem must be a path in the platform default file system");
+        m_localRoot = localRoot.toAbsolutePath().normalize();
     }
 
     @Override
     public boolean isWorkflowDirectory(final RelativeToPath path) throws IOException {
-        return isLocalWorkflowDirectory(toAbsoluteLocalPath(path));
+        return isLocalWorkflowDirectory(toLocalPath(path));
     }
 
     @Override
@@ -102,7 +109,7 @@ final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
         if (!isPathAccessible(path)) {
             throw new NoSuchFileException(path.toString());
         } else {
-            return toAbsoluteLocalPath(path);
+            return toLocalPath(path);
         }
     }
 
@@ -112,10 +119,23 @@ final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
      * @param path a relative-to path inside relative-to file system
      * @return an absolute path in the local file system (default FS provider) that corresponds to this path.
      */
-    private Path toAbsoluteLocalPath(final RelativeToPath path) {
+    public Path toLocalPath(final RelativeToPath path) {
         final RelativeToPath absolutePath = (RelativeToPath)path.toAbsolutePath().normalize();
-        final Path realPath = absolutePath.appendToBaseDir(m_localMountpointDirectory);
-        return realPath;
+        return Paths.get(m_localRoot.toString(), absolutePath.stringStream().toArray(String[]::new));
+    }
+
+    /**
+     * @return where this file system is rooted in the local (platform default) file system.
+     */
+    public Path getLocalRoot() {
+        return m_localRoot;
+    }
+
+    /**
+     * @return where this file system's working directory is at in the local (platform default) file system.
+     */
+    public Path getLocalWorkingDir() {
+        return toLocalPath(getWorkingDirectory()).toAbsolutePath().normalize();
     }
 
     /**
@@ -133,13 +153,13 @@ final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
         } else if (isWorkflowDirectory(path)) {
             return true;
         } else {
-            return !Files.isDirectory(toAbsoluteLocalPath(path));
+            return !Files.isDirectory(toLocalPath(path));
         }
     }
 
     @Override
     protected boolean existsWithAccessibilityCheck(final RelativeToPath path) throws IOException {
-        final Path localPath = toAbsoluteLocalPath(path);
+        final Path localPath = toLocalPath(path);
         return isPathAccessible(path) && Files.exists(localPath);
     }
 
