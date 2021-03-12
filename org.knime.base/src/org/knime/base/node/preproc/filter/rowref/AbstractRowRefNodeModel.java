@@ -139,6 +139,9 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         throws Exception {
 
         final BufferedDataTable dataTable = inData[0];
+        if (dataTable.size() < 1) {
+            return m_isSplitter ? new BufferedDataTable[]{dataTable, dataTable} : new BufferedDataTable[]{dataTable};
+        }
         final String dataColName = m_dataTableCol.getColumnName();
         final boolean useDataRowKey = m_dataTableCol.useRowID();
         final DataTableSpec dataTableSpec = dataTable.getSpec();
