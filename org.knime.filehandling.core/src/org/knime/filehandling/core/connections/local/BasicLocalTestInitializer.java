@@ -76,9 +76,8 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
     /**
      * @param fsConnection The underlying connection.
      * @param localWorkingDir The working directory in the local file system (default FS provider).
-     * @throws IOException when something went wrong while creating the temporary test root folder.
      */
-    public BasicLocalTestInitializer(final FSConnection fsConnection, final Path localWorkingDir) throws IOException {
+    public BasicLocalTestInitializer(final FSConnection fsConnection, final Path localWorkingDir) {
         super(fsConnection);
         m_localWorkingDir = localWorkingDir;
     }
@@ -87,14 +86,12 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
     protected void afterTestCaseInternal() throws IOException {
         try {
             FSFiles.deleteRecursively(getLocalTestCaseScratchDir());
-        } catch (NoSuchFileException e) {
-            // ignore
+        } catch (NoSuchFileException e) { // NOSONAR can be ignored
         }
     }
 
-    @SuppressWarnings({"unchecked", "resource"})
     @Override
-    public P getTestCaseScratchDir() {
+    public final P getTestCaseScratchDir() {
         return toFSPath(getLocalTestCaseScratchDir());
     }
 
@@ -105,13 +102,20 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
         return m_localWorkingDir.resolve(Integer.toString(getTestCaseId()));
     }
 
-    protected Path getLocalWorkingDirectory() {
+    /**
+     * @return the working directory as a path from the platform default provider.
+     */
+    protected final Path getLocalWorkingDirectory() {
         return m_localWorkingDir;
     }
 
+    /**
+     *
+     * @param localPath A path from the platform default provider (which must also be accessible using the
+     *            {@link FSFileSystem}).
+     * @return an {@link FSPath} from the {@link FSFileSystem}, that maps to the given local path.
+     */
     protected abstract P toFSPath(final Path localPath);
-
-    // protected abstract Path toLocalPath(final FSPath path);
 
     @Override
     public P createFileWithContent(final String content, final String... pathComponents) throws IOException {

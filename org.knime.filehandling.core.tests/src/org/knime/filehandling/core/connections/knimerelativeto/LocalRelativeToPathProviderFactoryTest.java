@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.knimerelativeto.testing.LocalRelativeToTestUtil;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactoryTestBase;
 
 /**

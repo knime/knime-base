@@ -1,4 +1,4 @@
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.knimerelativeto.testing;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,11 +31,11 @@ import org.osgi.framework.FrameworkUtil;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
+ * @noinstantiate non-public API
  */
 public final class LocalRelativeToTestUtil {
 
     private LocalRelativeToTestUtil() {
-
     }
 
     /**
@@ -66,9 +66,17 @@ public final class LocalRelativeToTestUtil {
         }
     }
 
+    /**
+     * Creates a dummy workflow of the given name in the given parent dir.
+     *
+     * @param parentDir The directory in which to create the workflow directory.
+     * @param workflowName The name of the workflow directory to create.
+     * @return the path of the newly created workflow directory.
+     * @throws IOException
+     */
     public static Path createWorkflowDir(final Path parentDir, final String workflowName) throws IOException {
         final File dummyWorkflow = LocalRelativeToTestUtil.findInPlugin(LocalRelativeToTestUtil.DUMMY_WORKFLOW);
-        final Path workflowDir = parentDir.getFileSystem().getPath(parentDir.toString(), workflowName);
+        final Path workflowDir = parentDir.resolve(workflowName);
         FileUtil.copyDir(dummyWorkflow, workflowDir.toFile());
         return workflowDir;
     }
@@ -82,6 +90,15 @@ public final class LocalRelativeToTestUtil {
         return new File(FileLocator.toFileURL(url).getPath());
     }
 
+    /**
+     * Creates a {@link WorkflowManager} for the workflow in the given workflow directory.
+     *
+     * @param mountpointRoot
+     * @param currentWorkflowDirectory
+     * @param serverMode
+     * @return the newly created {@link WorkflowManager}.
+     * @throws IOException
+     */
     public static WorkflowManager getWorkflowManager(final File mountpointRoot, final Path currentWorkflowDirectory,
         final boolean serverMode) throws IOException {
         try {
@@ -125,25 +142,4 @@ public final class LocalRelativeToTestUtil {
     public static Path getDummyWorkflowPath() throws IOException {
         return findInPlugin(DUMMY_WORKFLOW).toPath();
     }
-
-    /**
-     * @param fs
-     * @return the local path that corresponds to the working directory of the given file system.
-     * @throws IOException
-     */
-    public static Path determineLocalWorkingDirectory(final LocalRelativeToFileSystem fs) throws IOException {
-        return determineLocalPath(fs, fs.getWorkingDirectory());
-    }
-
-    /**
-     * @param fs
-     * @param path
-     * @return the local path that corresponds to the given path in the given file system.
-     * @throws IOException
-     */
-    public static Path determineLocalPath(final LocalRelativeToFileSystem fs, final RelativeToPath path)
-        throws IOException {
-        return fs.toRealPathWithAccessibilityCheck(path);
-    }
-
 }

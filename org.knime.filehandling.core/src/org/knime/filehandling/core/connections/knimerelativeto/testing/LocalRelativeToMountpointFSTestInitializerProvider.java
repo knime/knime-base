@@ -43,51 +43,46 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.knimerelativeto.testing;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 
-import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
-import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSConnection;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * Test initializer provider for the local mountpoint relative file system.
+ * {@link FSTestInitializerProvider} for testing the Relative-To mountpoint file system. It will create a
+ * {@link FSCategory#CONNECTED} file system with a randomized working directory.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class LocalRelativeToMountpointFSTestInitializerProvider implements FSTestInitializerProvider {
+public final class LocalRelativeToMountpointFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
     private static final String FS_NAME = "knime-local-relative-mountpoint";
 
+    /**
+     * Constructor.
+     */
+    public LocalRelativeToMountpointFSTestInitializerProvider() {
+        super(FS_NAME, BaseRelativeToFileSystem.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC);
+    }
+
     @SuppressWarnings("resource")
     @Override
-    public FSTestInitializer setup(final Map<String, String> configuration) throws IOException {
-        final Path localMountPointRoot = Files.createTempDirectory("knime-relative-mountpoint-test");
+    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
+        throws IOException {
 
-        final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(localMountPointRoot);
-        final LocalRelativeToFSConnection fsConnection =
-            new LocalRelativeToFSConnection(Type.MOUNTPOINT_RELATIVE, true); //NOSONAR the connection needs to stay open
-        LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
-        LocalRelativeToTestUtil.clearDirectoryContents(localMountPointRoot);
-
-        return new LocalRelativeToFSTestInitializer(fsConnection, localMountPointRoot);
-    }
-
-    @Override
-    public String getFSType() {
-        return FS_NAME;
-    }
-
-    @Override
-    public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
-        return BaseRelativeToFileSystem.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
+        final String workingDir = generateRandomizedWorkingDir(BaseRelativeToFileSystem.PATH_SEPARATOR,
+            BaseRelativeToFileSystem.PATH_SEPARATOR);
+        final LocalRelativeToMountpointFSConnection fsConnection =
+            new LocalRelativeToMountpointFSConnection(workingDir); // NOSONAR must not be closed here
+        Files.createDirectories(fsConnection.getFileSystem().getWorkingDirectory());
+        return new LocalRelativeToFSTestInitializer(fsConnection);
     }
 }

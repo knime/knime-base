@@ -46,49 +46,44 @@
  * History
  *   Jul 1, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.knimerelativeto.testing;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
-import org.knime.filehandling.core.connections.local.BasicLocalTestInitializer;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
 
 /**
+ * It will create a {@link FSCategory#CONNECTED} file system with a randomized working directory. *
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class RelativeToWorkflowDataFSTestInitializer
-    extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
-
-    final Path m_localRoot;
+final class RelativeToWorkflowDataFSTestInitializer extends LocalRelativeToFSTestInitializer {
 
     /**
      * Creates a new instance.
      *
      * @param fsConnection
-     * @throws IOException
      */
-    RelativeToWorkflowDataFSTestInitializer(final WorkflowDataRelativeFSConnection fsConnection)
-        throws IOException {
-        super(fsConnection, LocalRelativeToTestUtil.determineLocalWorkingDirectory(fsConnection.getFileSystem()));
-        m_localRoot = LocalRelativeToTestUtil.determineLocalPath(getFileSystem(), getFileSystem().getRoot());
+    RelativeToWorkflowDataFSTestInitializer(final LocalRelativeToWorkflowDataFSConnection fsConnection) {
+        super(fsConnection);
     }
 
-    @Override
-    protected RelativeToPath toFSPath(final Path localPath) {
-        final Path relLocalPath = m_localRoot.relativize(localPath);
-
-        RelativeToPath toReturn = getFileSystem().getRoot();
-        for (Path localPathComp : relLocalPath) {
-            toReturn = (RelativeToPath)toReturn.resolve(localPathComp.toString());
-        }
-        return toReturn;
-    }
-
+    /**
+     * We override this method because we actually don't have to load any workflow.
+     */
     @Override
     protected void beforeTestCaseInternal() throws IOException {
         Files.createDirectories(getLocalTestCaseScratchDir());
     }
 
+    /**
+     * We override this method because we actually don't have to unload any workflow.
+     */
+    @SuppressWarnings("resource")
+    @Override
+    protected void afterTestCaseInternal() throws IOException {
+        LocalRelativeToTestUtil.clearDirectoryContents(getFileSystem().getLocalRoot());
+    }
 }

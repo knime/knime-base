@@ -43,80 +43,42 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.knimerelativeto.testing;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Map;
 
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.local.BasicLocalTestInitializer;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * Local mountpoint or workflow relative to file system initializer.
+ * {@link FSTestInitializerProvider} for testing the workflow data area. It will create a
+ * {@link FSCategory#CONNECTED} file system with a randomized working directory.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-class LocalRelativeToFSTestInitializer
-    extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
+public final class RelativeToWorkflowDataFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
-    private final Path m_localRoot;
-
-    private WorkflowManager m_workflowManager;
+    private static final String FS_NAME = "knime-relative-workflow-data";
 
     /**
-     * Default constructor.
-     *
-     * @param fsConnection the {@link FSConnection}
-     * @param localRoot the {@link Path} to the local root
-     *
-     * @throws IOException
+     * Constructor.
      */
-    LocalRelativeToFSTestInitializer(final FSConnection fsConnection, final Path localRoot) throws IOException {
-        super(fsConnection, //
-            LocalRelativeToTestUtil
-                .determineLocalWorkingDirectory((LocalRelativeToFileSystem)fsConnection.getFileSystem()));
-        m_localRoot = localRoot;
+    public RelativeToWorkflowDataFSTestInitializerProvider() {
+        super(FS_NAME, BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC);
     }
 
+    @SuppressWarnings("resource")
     @Override
-    protected void beforeTestCaseInternal() throws IOException {
-        // repopulate mountpoint with test fixture and load workflow
-        m_workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_localRoot);
-        Files.createDirectories(getLocalTestCaseScratchDir());
-    }
+    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
+        throws IOException {
 
-    @Override
-    protected Path getLocalTestCaseScratchDir() {
-        if (getFileSystem().isWorkflowRelativeFileSystem()) {
-            return getLocalWorkingDirectory().getParent().resolve(Integer.toString(getTestCaseId()));
-        } else {
-            return getLocalWorkingDirectory().resolve(Integer.toString(getTestCaseId()));
-        }
-    }
-
-    @Override
-    protected void afterTestCaseInternal() throws IOException {
-        try {
-            WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
-        } finally {
-            NodeContext.removeLastContext();
-        }
-
-        LocalRelativeToTestUtil.clearDirectoryContents(m_localRoot);
-    }
-
-    @Override
-    protected RelativeToPath toFSPath(final Path localPath) {
-        final Path relLocalPath = m_localRoot.relativize(localPath);
-
-        RelativeToPath toReturn = getFileSystem().getRoot();
-        for (Path localPathComp : relLocalPath) {
-            toReturn = (RelativeToPath)toReturn.resolve(localPathComp.toString());
-        }
-
-        return toReturn;
+        final String workingDir = generateRandomizedWorkingDir(BaseRelativeToFileSystem.PATH_SEPARATOR,
+            BaseRelativeToFileSystem.PATH_SEPARATOR);
+        return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(workingDir));
     }
 }

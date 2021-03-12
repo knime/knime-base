@@ -99,8 +99,7 @@ public class InputStreamTest extends AbstractParameterizedFSTest {
     @Test(expected = IOException.class)
     public void test_read_from_input_stream_from_directory() throws Exception {
         Path file = m_testInitializer.createFile("dir", "fileName");
-        try (InputStream inputStream = Files.newInputStream(file.getParent())) {
-            fail("IOException should have been thrown before");
-        }
+        Files.newInputStream(file.getParent()).read();
+        fail("IOException should have been thrown before");
     }
 }

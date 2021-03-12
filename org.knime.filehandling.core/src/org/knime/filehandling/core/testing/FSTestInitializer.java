@@ -130,8 +130,8 @@ public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> 
     public P createFile(String... pathComponents) throws IOException;
 
     /**
-     * Creates a file at the provided path destination, starting from the configured root directory, with the provided
-     * content.
+     * Creates a file at the provided path destination, with the provided content. The file is always
+     * created below the test case scratch dir.
      *
      * @param content content to be written to the file
      * @param pathComponents the path
