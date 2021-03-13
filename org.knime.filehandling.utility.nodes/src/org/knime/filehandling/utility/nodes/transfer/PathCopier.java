@@ -128,7 +128,7 @@ final class PathCopier {
         m_delete = delete;
         m_failOnUnsuccessfulDeletion = failOnDeletion;
         m_failIfSrcDoesNotExist = failIfSrcDoesNotExist;
-        m_failIfSrcDoesNotExistIdx = m_delete ? DELETE_COL_IDX + 1 : DELETE_COL_IDX;
+        m_failIfSrcDoesNotExistIdx = m_delete ? (DELETE_COL_IDX + 1) : DELETE_COL_IDX;
     }
 
     DataCell[][] transfer(final ExecutionContext exec, final TransferEntry entry)
@@ -147,7 +147,7 @@ final class PathCopier {
         throws FileNotFoundException {
         if (m_failIfSrcDoesNotExist) {
             throw new FileNotFoundException(
-                String.format("The specified file/folder '%s' does not exists", entry.getSource()));
+                String.format("The specified file/folder '%s' does not exist", entry.getSource()));
         } else {
             exec.setProgress(1);
             return new DataCell[][]{createSrcDoesNotExistRow(entry.getSource())};
