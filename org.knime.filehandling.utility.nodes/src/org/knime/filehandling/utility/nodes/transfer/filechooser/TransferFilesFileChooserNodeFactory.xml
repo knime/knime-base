@@ -154,7 +154,7 @@
 		<option name="Delete source files / folders">
 			If this option is checked all files which have been successfully copied to the destination folder
 			will be deleted in the source folder. The output contains an additional column indicating if the file has
-			been deleted (true) or not (false). <b>Note</b> Folders only get deleted when the Folder option is used.
+			been deleted (true) or not (false).
 		</option>
 		<option name="Fail on unsuccessful deletion">
 			If the 'Delete source files (move)' option is activated and something goes wrong during the deletion process

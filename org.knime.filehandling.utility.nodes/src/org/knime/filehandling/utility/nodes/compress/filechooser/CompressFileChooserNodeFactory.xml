@@ -189,7 +189,7 @@
 			</ul>
 		</option>
 		<option name="Compression">
-			Allows to selected the desired compression format.
+			Allows to select the desired compression format.
 		</option>
 		<option name="Source folder truncation">
 			Depending on the selected strategy the folder containing the files/folders to compress is being truncated

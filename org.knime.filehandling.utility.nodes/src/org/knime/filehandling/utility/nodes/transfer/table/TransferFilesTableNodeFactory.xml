@@ -27,11 +27,13 @@
 			</p>
 		</intro>
 		<option name="Source column">
-			Allows to selected the column containing the paths to the files/folders that must be copied/moved.
+			Allows to select the column containing the paths to the files/folders that must be copied/moved.
 		</option>
 		<option name="From table">
-			Allows to selected the column containing the destination, i.e., the new location and names of the 
-			files/folders to be copied/moved.
+			Allows to select the column containing the destination, i.e., the new location and names of the 
+			files/folders to be copied/moved. 
+			<br/>
+			<i>Note:</i> If the source references a file/folder the destination also has to be a file/folder.  
 		</option>
 		<option name="From file chooser">
 			This option allows you to specify a folder where you want to copy/move the (source) files/folders to.
@@ -66,22 +68,6 @@
 			Select if the folders of the selected output location should be created if they do not already exist. If
 			this option is unchecked, the node will fail if a folder does not exist.
 		</option>
-		<option name="If exists">
-			<ul>
-				<li>
-					<i>Overwrite:</i>
-					Will replace any existing file.
-				</li>
-				<li>
-					<i>Ignore:</i>
-					Will ignore if a file already exists and continues the copying process.
-				</li>
-				<li>
-					<i>Fail:</i>
-					Will issue an error during the node's execution (to prevent unintentional overwrite).
-				</li>
-			</ul>
-		</option>
 		<option name="Source folder truncation">
 			Depending on the selected strategy the folder containing the files/folders to copy/move is being truncated
 			differently, i.e., this option allows to modify the resulting (destination) folder structure. For the 
@@ -111,7 +97,7 @@
 		<option name="Delete source files / folders">
 			If this option is checked all files which have been successfully copied to the destination folder
 			will be deleted in the source folder. The output contains an additional column indicating if the file has
-			been deleted (true) or not (false). <b>Note</b> Folders only get deleted when the Folder option is used.
+			been deleted (true) or not (false).
 		</option>
 		<option name="Fail on unsuccessful deletion">
 			If the 'Delete source files (move)' option is activated and something goes wrong during the deletion process
