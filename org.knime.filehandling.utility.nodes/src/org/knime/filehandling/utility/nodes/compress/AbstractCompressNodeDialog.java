@@ -127,8 +127,8 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
 
         m_truncationPanel = new TruncationPanel("Source folder truncation", config.getTruncationSettings());
 
-        SettingsModelString compressionModel = m_config.getCompressionModel();
-        m_compressionSelection = new DialogComponentStringSelection(compressionModel, "Format",
+        final SettingsModelString compressionModel = m_config.getCompressionModel();
+        m_compressionSelection = new DialogComponentStringSelection(compressionModel, "Compression",
             Arrays.asList(AbstractCompressNodeConfig.COMPRESSIONS));
         compressionModel.addChangeListener(l -> updateLocation());
 
