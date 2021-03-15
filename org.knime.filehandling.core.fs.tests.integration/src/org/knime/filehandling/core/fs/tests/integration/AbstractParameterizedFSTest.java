@@ -74,6 +74,11 @@ import org.knime.filehandling.core.util.IOESupplier;
 @RunWith(Parameterized.class)
 public abstract class AbstractParameterizedFSTest {
 
+    /**
+     *
+     */
+    private static final String FORWARD_SLASH = "/";
+
     private static Collection<Object[]> allFileSystemTestInitializerProviders;
 
     private static boolean preferencesLoaded = false;
@@ -202,5 +207,23 @@ public abstract class AbstractParameterizedFSTest {
      */
     public FSFileSystem<?> getFileSystem() {
         return m_connection.getFileSystem();
+    }
+
+
+
+    /**
+     * Given the path converts it by replacing '/' with the separator used by the active file system (if necessary).
+     *
+     * @param path The path string with '/' as separator.
+     * @return The converted path string.
+     */
+    @SuppressWarnings("resource")
+    protected String fixSeparator(final String path) {
+        final String separator = m_connection.getFileSystem().getSeparator();
+        if (separator.equals(FORWARD_SLASH)) {
+            return path;
+        } else {
+            return path.replace(FORWARD_SLASH, separator);
+        }
     }
 }

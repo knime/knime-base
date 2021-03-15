@@ -66,8 +66,8 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testEndWith() {
-        final String that = "/abc/de/fg/de/";
-        final String other = "fg/de";
+        final String that = fixSeparator("/abc/de/fg/de/");
+        final String other = fixSeparator("fg/de");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -78,8 +78,8 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testNotEndWith() {
-        final String that = "/abc/de/fg/de/";
-        final String other = "qe/de";
+        final String that = fixSeparator("/abc/de/fg/de/");
+        final String other = fixSeparator("qe/de");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -90,8 +90,8 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testNotEndWithLongerPath() {
-        final String that = "qe/de";
-        final String other = "/abc/de/fg/de/";
+        final String that = fixSeparator("qe/de");
+        final String other = fixSeparator("/abc/de/fg/de/");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -102,7 +102,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testNotEndsWithEmptyPath() {
-        final String that = "ab/cd";
+        final String that = fixSeparator("ab/cd");
         final String other = "";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
@@ -114,8 +114,8 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testStartsWith() {
-        final String that = "/abc/de/fg/de/";
-        final String other = "/abc/de";
+        final String that = fixSeparator("/abc/de/fg/de/");
+        final String other = fixSeparator("/abc/de");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -126,8 +126,8 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testNotStartsWithLongerPath() {
-        final String that = "qe/de";
-        final String other = "/abc/de/fg/de/";
+        final String that = fixSeparator("qe/de");
+        final String other = fixSeparator("/abc/de/fg/de/");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -138,8 +138,8 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testAbsolutePathStartsWithRoot() {
-        final String that = "/qe/de";
-        final String other = "/";
+        final String that = fixSeparator("/qe/de");
+        final String other = fixSeparator("/");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -149,8 +149,8 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testRelativePathNotStartsWithRoot() {
-        final String that = "qe/de";
-        final String other = "/";
+        final String that = fixSeparator("qe/de");
+        final String other = fixSeparator("/");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -161,7 +161,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
     @Test
     public void testNotStartsWithEmptyPath() {
         final String that = "";
-        final String other = "ab/cd";
+        final String other = fixSeparator("ab/cd");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -172,8 +172,8 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testRootStartsAndEndsWithItself() {
-        final String that = "/";
-        final String other = "/";
+        final String that = fixSeparator("/");
+        final String other = fixSeparator("/");
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);
         final Path otherPath = fileSystem.getPath(other);
@@ -198,7 +198,7 @@ public class EndsStartsWithTest extends AbstractParameterizedFSTest {
 
     @Test
     public void testRootAndEmptyPathNotStartOrEndWithEachOther() {
-        final String that = "/";
+        final String that = fixSeparator("/");
         final String other = "";
         final FileSystem fileSystem = m_connection.getFileSystem();
         final Path path = fileSystem.getPath(that);

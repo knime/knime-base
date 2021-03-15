@@ -37,6 +37,7 @@
 #   microsoft-blobstorage
 #   microsoft-sharepoint
 #   ssh
+#   smb
 # test-fs = local
 
 ################## Test fixtures for workflow tests ##################
@@ -142,3 +143,10 @@ ssh.username = <USERNAME>
 ssh.password = <PASSWORD>
 # password and keyFile authentication are mutually exclusive
 # ssh.keyFile = <PATH-TO-PRIVATE-KEY>
+
+################ SMB #######################
+smb.workingDirPrefix = \\knime-filehandling-test
+smb.host = <HOST>
+smb.share = <SHARE-NAME>
+smb.username = <USERNAME>
+smb.password = <PASSWORD>

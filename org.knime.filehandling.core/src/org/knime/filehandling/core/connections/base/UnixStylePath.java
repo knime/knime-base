@@ -61,6 +61,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
@@ -152,7 +153,7 @@ public abstract class UnixStylePath extends FSPath {
             splitList.add("");
         } else {
 
-            Arrays.stream(pathString.split(m_pathSeparator)) //
+            Arrays.stream(pathString.split(Pattern.quote(m_pathSeparator))) //
                 .filter(c -> !c.isEmpty()) //
                 .forEach(splitList::add);
         }
@@ -601,6 +602,12 @@ public abstract class UnixStylePath extends FSPath {
     public String toString() {
         final String root = isAbsolute() ? m_pathSeparator : "";
         return root + String.join(m_pathSeparator, m_pathParts);
+    }
+
+    @Override
+    public String getURICompatiblePath() {
+        UnixStylePath absolute = (UnixStylePath)toAbsolutePath();
+        return "/" + String.join("/", absolute.m_pathParts);
     }
 
     /**
