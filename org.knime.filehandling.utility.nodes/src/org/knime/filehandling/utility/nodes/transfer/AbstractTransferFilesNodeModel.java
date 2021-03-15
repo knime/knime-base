@@ -226,7 +226,7 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
             .map(PortObject::getSpec)//
             .toArray(PortObjectSpec[]::new));
         final BufferedDataContainer container = exec.createDataContainer(outputSpec);
-        final PathCopier pathCopier = new PathCopier(m_config.getDestinationFileChooserModel().getFileOverwritePolicy(),
+        final PathCopier pathCopier = new PathCopier(m_config.getTransferPolicy(),
             m_config.getVerboseOutputModel().getBooleanValue(), m_config.getDeleteSourceFilesModel().getBooleanValue(),
             m_config.getFailOnDeletionModel().getBooleanValue(), m_config.failIfSourceDoesNotExist());
         try (final TransferIterator iter = getTransferIterator(inObjects)) {

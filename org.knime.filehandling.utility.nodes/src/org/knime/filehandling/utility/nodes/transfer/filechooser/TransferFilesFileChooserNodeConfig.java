@@ -48,15 +48,20 @@
  */
 package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
 import org.knime.filehandling.utility.nodes.compress.truncator.TruncationSettings;
 import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeConfig;
+import org.knime.filehandling.utility.nodes.transfer.policy.TransferPolicy;
 
 /**
  * Node configuration of the Transfer Files/Folder node.
@@ -103,6 +108,14 @@ final class TransferFilesFileChooserNodeConfig extends AbstractTransferFilesNode
     }
 
     @Override
+    protected void validateTransferPolicy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // backwards compatibility see AP-16363
+        if (settings.containsKey(CFG_TRANSFER_POLICY)) {
+            super.validateTransferPolicy(settings);
+        }
+    }
+
+    @Override
     protected void saveAdditionalSettingsForModel(final NodeSettingsWO settings) {
         m_sourceFileChooserModel.saveSettingsTo(settings);
     }
@@ -110,6 +123,49 @@ final class TransferFilesFileChooserNodeConfig extends AbstractTransferFilesNode
     @Override
     protected void loadSourceLocationSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_sourceFileChooserModel.loadSettingsFrom(settings);
+    }
+
+    @Override
+    protected void loadTransferPolicyInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // backwards compatibility see AP-16363
+        if (settings.containsKey(CFG_TRANSFER_POLICY)) {
+            super.loadTransferPolicyInModel(settings);
+        } else {
+            loadTransferPolicyBackwardsCompatible(settings);
+        }
+    }
+
+    private void loadTransferPolicyBackwardsCompatible(final NodeSettingsRO settings) throws InvalidSettingsException {
+        FileOverwritePolicy fileOverwritePolicy = loadPolicyInModel(settings.getNodeSettings("destination_location"));
+        final TransferPolicy transferPolicy;
+        switch (fileOverwritePolicy) {
+            case FAIL:
+                transferPolicy = TransferPolicy.FAIL;
+                break;
+            case OVERWRITE:
+                transferPolicy = TransferPolicy.OVERWRITE;
+                break;
+            case IGNORE:
+                transferPolicy = TransferPolicy.IGNORE;
+                break;
+            default:
+                throw new InvalidSettingsException(String
+                    .format("The file overwrite policy '%s' is not supported by this node.", fileOverwritePolicy));
+        }
+        setTransferPolicy(transferPolicy);
+    }
+
+    private static FileOverwritePolicy loadPolicyInModel(final NodeSettingsRO settings)
+        throws InvalidSettingsException {
+        final String policyText = settings.getString("if_path_exists");
+        return getPolicyFromText(policyText)
+            .orElseThrow(() -> new InvalidSettingsException("Unable to load the transfer policy."));
+    }
+
+    private static Optional<FileOverwritePolicy> getPolicyFromText(final String policyText) {
+        return Arrays.stream(FileOverwritePolicy.values())//
+            .filter(p -> p.getText().equals(policyText))//
+            .findAny();
     }
 
     @Override

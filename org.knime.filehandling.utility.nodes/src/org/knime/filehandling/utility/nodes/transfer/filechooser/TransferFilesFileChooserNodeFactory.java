@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
-import java.util.EnumSet;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
@@ -56,11 +55,8 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeFactory;
@@ -117,11 +113,7 @@ public final class TransferFilesFileChooserNodeFactory
             new SettingsModelReaderFileChooser("source_location", portsConfiguration,
                 AbstractTransferFilesNodeFactory.CONNECTION_SOURCE_PORT_GRP_NAME,
                 EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS)),
-            new SettingsModelWriterFileChooser("destination_location", portsConfiguration,
-                AbstractTransferFilesNodeFactory.CONNECTION_DESTINATION_PORT_GRP_NAME,
-                EnumConfig.create(FilterMode.FOLDER),
-                EnumConfig.create(FileOverwritePolicy.IGNORE, FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE),
-                EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE)));
+            getDestinationFileWriter(portsConfiguration));
     }
 
 }

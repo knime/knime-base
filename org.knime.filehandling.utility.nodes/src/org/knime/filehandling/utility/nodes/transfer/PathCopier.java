@@ -53,7 +53,6 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
@@ -69,9 +68,9 @@ import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.cell.MultiSimpleFSLocationCellFactory;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferEntry;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferPair;
+import org.knime.filehandling.utility.nodes.transfer.policy.TransferPolicy;
 import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
 /**
@@ -104,9 +103,7 @@ final class PathCopier {
 
     private final MultiSimpleFSLocationCellFactory m_destinationFSLocationCellFactory;
 
-    private final FileOverwritePolicy m_fileOverwritePolicy;
-
-    private final TransferFunction m_copyFunction;
+    private final TransferPolicy m_transferPolicy;
 
     private final boolean m_verbose;
 
@@ -118,12 +115,11 @@ final class PathCopier {
 
     private final int m_failIfSrcDoesNotExistIdx;
 
-    PathCopier(final FileOverwritePolicy overwritePolicy, final boolean verbose, final boolean delete,
+    PathCopier(final TransferPolicy transferPolicy, final boolean verbose, final boolean delete,
         final boolean failOnDeletion, final boolean failIfSrcDoesNotExist) {
         m_sourceFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();
         m_destinationFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();
-        m_fileOverwritePolicy = overwritePolicy;
-        m_copyFunction = getCopyFunction(m_fileOverwritePolicy);
+        m_transferPolicy = transferPolicy;
         m_verbose = verbose;
         m_delete = delete;
         m_failOnUnsuccessfulDeletion = failOnDeletion;
@@ -307,9 +303,9 @@ final class PathCopier {
     private FileStatus copyFile(final FSPath src, final FSPath dest) throws IOException {
         createDirectories(dest.getParent());
         try {
-            return m_copyFunction.apply(src, dest);
+            return m_transferPolicy.apply(src, dest);
         } catch (FileAlreadyExistsException e) {
-            if (m_fileOverwritePolicy == FileOverwritePolicy.FAIL) {
+            if (m_transferPolicy == TransferPolicy.FAIL) {
                 throw new IOException(
                     "Output file '" + dest + "' exists and must not be overwritten due to user settings.", e);
             }
@@ -342,25 +338,6 @@ final class PathCopier {
         return exists;
     }
 
-    /**
-     * Returns a {@link TransferFunction} based on the passed {@link FileOverwritePolicy}.
-     *
-     * @param fileOverWritePolicy the overwrite policy
-     * @return the {@link TransferFunction}
-     */
-    private static TransferFunction getCopyFunction(final FileOverwritePolicy fileOverwritePolicy) {
-        if (fileOverwritePolicy == FileOverwritePolicy.OVERWRITE) {
-            return getOverwriteCopyFunction();
-        } else if (fileOverwritePolicy == FileOverwritePolicy.FAIL) {
-            return getFailCopyFunction();
-        } else if (fileOverwritePolicy == FileOverwritePolicy.IGNORE) {
-            return getIgnoreCopyFunction();
-        } else {
-            throw new IllegalArgumentException(
-                String.format("Unsupported FileOverwritePolicy '%s' encountered.", fileOverwritePolicy));
-        }
-    }
-
     private static void addFailIfSrcDoesNotExistsCol(final DataCell[][] rows) {
         final DataCell existsFlag = BooleanCellFactory.create(true);
         for (int i = 0; i < rows.length; i++) {
@@ -383,63 +360,6 @@ final class PathCopier {
         }
         cells[m_failIfSrcDoesNotExistIdx] = BooleanCellFactory.create(false);
         return cells;
-    }
-
-    /**
-     * Returns the {@link TransferFunction} for the {@link FileOverwritePolicy#IGNORE}.
-     *
-     * @return the {@link TransferFunction} for the {@link FileOverwritePolicy#IGNORE}
-     */
-    private static TransferFunction getIgnoreCopyFunction() {
-        return new TransferFunction() {
-
-            @Override
-            public FileStatus apply(final Path src, final Path dest) throws IOException {
-                if (FSFiles.exists(dest)) {
-                    return FileStatus.UNMODIFIED;
-                } else {
-                    Files.copy(src, dest);
-                    return FileStatus.CREATED;
-                }
-            }
-        };
-    }
-
-    /**
-     * Returns the {@link TransferFunction} for the {@link FileOverwritePolicy#FAIL}.
-     *
-     * @return the {@link TransferFunction} for the {@link FileOverwritePolicy#FAIL}
-     */
-    private static TransferFunction getFailCopyFunction() {
-        return new TransferFunction() {
-
-            @Override
-            public FileStatus apply(final Path src, final Path dest) throws IOException {
-                if (FSFiles.exists(dest)) {
-                    throw new FileAlreadyExistsException(dest.toString());
-                }
-                Files.copy(src, dest);
-                return FileStatus.CREATED;
-            }
-        };
-    }
-
-    /**
-     * Returns the {@link TransferFunction} for the {@link FileOverwritePolicy#OVERWRITE}.
-     *
-     * @return the {@link TransferFunction} for the {@link FileOverwritePolicy#OVERWRITE}
-     */
-    private static TransferFunction getOverwriteCopyFunction() {
-        return new TransferFunction() {
-
-            @Override
-            public FileStatus apply(final Path src, final Path dest) throws IOException {
-                final FileStatus fileStatus = FSFiles.exists(dest) ? FileStatus.OVERWRITTEN : FileStatus.CREATED;
-                Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
-                return fileStatus;
-            }
-        };
-
     }
 
 }

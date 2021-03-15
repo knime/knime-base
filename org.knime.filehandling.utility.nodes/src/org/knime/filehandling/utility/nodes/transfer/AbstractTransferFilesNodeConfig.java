@@ -52,10 +52,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
 import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
 import org.knime.filehandling.utility.nodes.compress.truncator.TruncationSettings;
+import org.knime.filehandling.utility.nodes.transfer.policy.TransferPolicy;
 
 /**
  * Abstract node config of the Transfer Files/Folder node.
@@ -74,6 +76,9 @@ public abstract class AbstractTransferFilesNodeConfig {
     /** Config key for the verbose output. */
     protected static final String CFG_VERBOSE_OUTPUT = "verbose_output";
 
+    /** Config key for the transfer policy. */
+    protected static final String CFG_TRANSFER_POLICY = "transfer_policy";
+
     /** The file chooser model. */
     private final SettingsModelWriterFileChooser m_destinationFileChooserModel;
 
@@ -88,6 +93,9 @@ public abstract class AbstractTransferFilesNodeConfig {
     private final SettingsModelBoolean m_failOnDeletionModel =
         new SettingsModelBoolean(CFG_FAIL_ON_UNSUCCESSFUL_DELETION, false);
 
+    /** The transfer policy settings model. */
+    private final SettingsModelString m_transferPolicyModel;
+
     /** The verbose output settings model. */
     private final SettingsModelBoolean m_verboseOutputModel;
 
@@ -100,6 +108,21 @@ public abstract class AbstractTransferFilesNodeConfig {
         m_destinationFileChooserModel = destinationFileChooserSettings;
         m_truncationSettings = new TruncationSettings();
         m_verboseOutputModel = new SettingsModelBoolean(CFG_VERBOSE_OUTPUT, false);
+        m_transferPolicyModel = new SettingsModelString(CFG_TRANSFER_POLICY, TransferPolicy.getDefault().name()) {
+            @Override
+            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                super.validateSettingsForModel(settings);
+                // no need to catch NPE since the settings model never returns a null value
+                try {
+                    TransferPolicy.valueOf(settings.getString(getKey()));
+                } catch (final IllegalArgumentException e) {
+                    throw new InvalidSettingsException(
+                        String.format("There is no transfer policy associated with %s", settings.getString(getKey())),
+                        e);
+                }
+            }
+
+        };
     }
 
     /**
@@ -164,6 +187,33 @@ public abstract class AbstractTransferFilesNodeConfig {
     protected abstract boolean failIfSourceDoesNotExist();
 
     /**
+     * Returns the settings model storing the selected {@link TransferPolicy}.
+     *
+     * @return the settings model storing the selected {@link TransferPolicy}
+     */
+    final SettingsModelString getTransferPolicyModel() {
+        return m_transferPolicyModel;
+    }
+
+    /**
+     * Sets the {@link TransferPolicy} to the provided value.
+     *
+     * @param transferPolicy the {@link TransferPolicy} to set
+     */
+    protected final void setTransferPolicy(final TransferPolicy transferPolicy) {
+        m_transferPolicyModel.setStringValue(transferPolicy.name());
+    }
+
+    /**
+     * Returns the selected {@link TransferPolicy}.
+     *
+     * @return the selected {@link TransferPolicy}
+     */
+    final TransferPolicy getTransferPolicy() {
+        return TransferPolicy.valueOf(m_transferPolicyModel.getStringValue());
+    }
+
+    /**
      * Validates the given settings.
      *
      * @param settings the node settings
@@ -175,6 +225,7 @@ public abstract class AbstractTransferFilesNodeConfig {
         m_failOnDeletionModel.validateSettings(settings);
         validateTruncatePathOption(settings);
         validateVerboseOutput(settings);
+        validateTransferPolicy(settings);
         validateAdditionalSettingsForModel(settings);
     }
 
@@ -199,6 +250,16 @@ public abstract class AbstractTransferFilesNodeConfig {
     }
 
     /**
+     * Validates the transfer policy option.
+     *
+     * @param settings the settings to validate
+     * @throws InvalidSettingsException - If the transfer policy validation failed
+     */
+    protected void validateTransferPolicy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_transferPolicyModel.validateSettings(settings);
+    }
+
+    /**
      * Validates any additional settings introduced by extending classes.
      *
      * @param settings the settings to be validated
@@ -218,6 +279,7 @@ public abstract class AbstractTransferFilesNodeConfig {
         m_deleteSourceFilesModel.saveSettingsTo(settings);
         m_failOnDeletionModel.saveSettingsTo(settings);
         m_verboseOutputModel.saveSettingsTo(settings);
+        m_transferPolicyModel.saveSettingsTo(settings);
     }
 
     /**
@@ -251,6 +313,7 @@ public abstract class AbstractTransferFilesNodeConfig {
         m_failOnDeletionModel.loadSettingsFrom(settings);
         loadVerboseOutputInModel(settings);
         loadTruncatePathOptionsInModel(settings);
+        loadTransferPolicyInModel(settings);
     }
 
     /**
@@ -280,14 +343,23 @@ public abstract class AbstractTransferFilesNodeConfig {
     }
 
     /**
-     * Loads the truncation path options in the node model. It is ensure that this method is called after invoking
-     * {@link #loadAdditionalSettingsInModel(NodeSettingsRO)}.
+     * Loads the truncation path options in the node model. *
      *
      * @param settings the setting storing the options
      * @throws InvalidSettingsException - If the options cannot be loaded
      */
     protected void loadTruncatePathOptionsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_truncationSettings.loadSettingsForModel(settings);
+    }
+
+    /**
+     * Loads the transfer policy option in the node model.
+     *
+     * @param settings the setting storing the options
+     * @throws InvalidSettingsException - If the options cannot be loaded
+     */
+    protected void loadTransferPolicyInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_transferPolicyModel.loadSettingsFrom(settings);
     }
 
 }

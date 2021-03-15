@@ -62,12 +62,14 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.utility.nodes.compress.truncator.TruncationPanel;
+import org.knime.filehandling.utility.nodes.transfer.policy.TransferPolicy;
 
 /**
  * Abstract node dialog of the Transfer Files/Folder node.
@@ -88,6 +90,8 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
     private final DialogComponentBoolean m_failOnDeletion;
 
     private final DialogComponentBoolean m_verboseOutput;
+
+    private final DialogComponentButtonGroup m_transferPolicy;
 
     private final T m_config;
 
@@ -117,6 +121,9 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
         m_deleteSourceFilesCheckbox.getModel().addChangeListener(l -> updateFailOnDeletion());
 
         m_verboseOutput = new DialogComponentBoolean(m_config.getVerboseOutputModel(), "Verbose output");
+
+        m_transferPolicy =
+            new DialogComponentButtonGroup(m_config.getTransferPolicyModel(), null, false, TransferPolicy.values());
     }
 
     @Override
@@ -160,9 +167,14 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
         gbc.gridy++;
         panel.add(createDestinationPanel(), gbc);
         gbc.gridy++;
+        panel.add(getTransferPolicyPanel(), gbc);
+        gbc.gridy++;
+        panel.add(m_truncationPanel, gbc);
+        gbc.gridy++;
         panel.add(createOptionPanel(), gbc);
         gbc.fill = GridBagConstraints.BOTH;
-        gbc.weighty = 1.0;
+        gbc.weighty = 1;
+        gbc.gridy++;
         panel.add(new JPanel(), gbc);
 
         addTab("Settings", panel);
@@ -191,20 +203,11 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
      */
     private JPanel createOptionPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        final GridBagConstraints gbc = createAndInitGBC();
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
 
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.weighty = 0;
-        gbc.weightx = 1;
-        gbc.gridwidth = 2;
-        panel.add(m_truncationPanel, gbc);
-
+        final GridBagConstraints gbc = createAndInitGBC();
         gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
-        gbc.gridwidth = 1;
-        gbc.gridy++;
         panel.add(m_deleteSourceFilesCheckbox.getComponentPanel(), gbc);
 
         gbc.gridx++;
@@ -216,6 +219,29 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
 
         gbc.gridy++;
         addAdditionalOptions(panel, gbc);
+
+        gbc.gridy++;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth = 2;
+        panel.add(new JPanel(), gbc);
+
+        return panel;
+    }
+
+    private JPanel getTransferPolicyPanel() {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints gbc = createAndInitGBC();
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Transfer policy"));
+
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        panel.add(m_transferPolicy.getComponentPanel(), gbc);
+
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        gbc.gridx++;
+        panel.add(new JPanel(), gbc);
 
         return panel;
     }
@@ -261,7 +287,7 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.PAGE_START;
+        gbc.anchor = GridBagConstraints.LINE_START;
         gbc.weightx = 1;
         return gbc;
     }
@@ -274,6 +300,7 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_destinationFilePanel.saveSettingsTo(settings);
+        m_transferPolicy.saveSettingsTo(settings);
         m_truncationPanel.saveSettingsTo(settings);
         m_deleteSourceFilesCheckbox.saveSettingsTo(settings);
         m_failOnDeletion.saveSettingsTo(settings);
@@ -288,6 +315,7 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
         m_deleteSourceFilesCheckbox.loadSettingsFrom(settings, specs);
         m_failOnDeletion.loadSettingsFrom(settings, specs);
         m_destinationFilePanel.loadSettingsFrom(settings, specs);
+        m_transferPolicy.loadSettingsFrom(settings, specs);
         //update the checkbox after loading the settings
         updateFailOnDeletion();
     }

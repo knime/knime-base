@@ -48,7 +48,15 @@
  */
 package org.knime.filehandling.utility.nodes.transfer;
 
+import java.util.EnumSet;
+
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * Abstract factory for the Transfer Files/Folder node.
@@ -56,13 +64,27 @@ import org.knime.core.node.ConfigurableNodeFactory;
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  * @param <T> an instance of {@link AbstractTransferFilesNodeModel}
  */
-public abstract class AbstractTransferFilesNodeFactory<T extends AbstractTransferFilesNodeModel<? extends
-    AbstractTransferFilesNodeConfig>> extends ConfigurableNodeFactory<T> {
+public abstract class AbstractTransferFilesNodeFactory<T extends AbstractTransferFilesNodeModel<? extends AbstractTransferFilesNodeConfig>>
+    extends ConfigurableNodeFactory<T> {
 
     /** The name of the optional source connection input port group. */
     protected static final String CONNECTION_SOURCE_PORT_GRP_NAME = "Source File System Connection";
 
     /** The name of the optional destination connection input port group. */
     protected static final String CONNECTION_DESTINATION_PORT_GRP_NAME = "Destination File System Connection";
+
+    /**
+     * Returns the {@link SettingsModelWriterFileChooser} to specify the destination.
+     *
+     * @param portsConfiguration the {@link PortsConfiguration}
+     * @return the {@link SettingsModelWriterFileChooser} to specify the destination
+     */
+    protected static final SettingsModelWriterFileChooser
+        getDestinationFileWriter(final PortsConfiguration portsConfiguration) {
+        return new SettingsModelWriterFileChooser("destination_location", portsConfiguration,
+            AbstractTransferFilesNodeFactory.CONNECTION_DESTINATION_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
+            EnumConfig.create(FileOverwritePolicy.IGNORE),
+            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+    }
 
 }
