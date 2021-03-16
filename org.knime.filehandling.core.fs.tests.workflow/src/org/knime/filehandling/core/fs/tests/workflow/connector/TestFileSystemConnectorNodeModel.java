@@ -65,6 +65,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -91,6 +92,8 @@ import org.knime.filehandling.core.testing.FSTestInitializer;
  *
  */
 public class TestFileSystemConnectorNodeModel extends NodeModel {
+
+    private static final NodeLogger LOG = NodeLogger.getLogger(TestFileSystemConnectorNodeModel.class);
 
     private final TestFileSystemConnectorSettings m_settings = new TestFileSystemConnectorSettings();
 
@@ -210,10 +213,16 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
             if (targetFile.getParent() != null) {
                 Files.createDirectories(targetFile.getParent());
             }
-            Files.copy(localFixtureDir.resolve(relSrcFile), targetFile);
+
+            final Path srcFile = localFixtureDir.resolve(relSrcFile);
+            Files.copy(srcFile, targetFile);
+            LOG.debugWithFormat("Copied fixture from %s --> %s", srcFile, targetFile);
+
             currProgress += progressPerFile;
             exec.setProgress(currProgress);
         }
+
+        LOG.debugWithFormat("Copied %d fixture files", fixturesToUpload.size());
     }
 
     private static FSPath toRelativeTargetFile(final FSFileSystem<?> targetFs, final Path srcFile) {
