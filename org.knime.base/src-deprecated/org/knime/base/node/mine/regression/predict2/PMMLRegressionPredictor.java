@@ -277,7 +277,7 @@ public final class PMMLRegressionPredictor implements PMMLTablePredictor {
                 CheckUtils.checkSetting(columnSpec != null, "The column \"%s\" is in the model but not in given table.",
                     covariateName);
             }
-            CheckUtils.checkSetting(!isColumnNumeric(content, columnSpec),
+            CheckUtils.checkSetting(isColumnNumeric(content, columnSpec),
                 "The column \"%s\" is supposed to be numeric.", covariateName);
         }
     }
