@@ -59,7 +59,7 @@ import java.io.OutputStream;
  * @noinstantiate non-public API
  *
  */
-public final class FSOutputStream extends OutputStream {
+public class FSOutputStream extends OutputStream {
 
     private final OutputStream m_outputStream;
 

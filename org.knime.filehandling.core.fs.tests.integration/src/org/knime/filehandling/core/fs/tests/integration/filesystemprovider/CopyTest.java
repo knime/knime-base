@@ -57,6 +57,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -174,5 +175,19 @@ public class CopyTest extends AbstractParameterizedFSTest {
         final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
 
         Files.copy(dirA, dirB, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    @Test
+    public void test_copy_replace_may_update_attribute_times() throws Exception {
+        final Path src = m_testInitializer.createFileWithContent("a", "srcFile");
+        final Path tgt = m_testInitializer.createFileWithContent("b", "tgtFile");
+
+        final BasicFileAttributes beforeTgtAttributes = Files.readAttributes(tgt, BasicFileAttributes.class);
+        Thread.sleep(1000);
+        Files.copy(src, tgt, StandardCopyOption.REPLACE_EXISTING);
+        final BasicFileAttributes afterTgtAttributes = Files.readAttributes(tgt, BasicFileAttributes.class);
+
+        assertTrue(beforeTgtAttributes.creationTime().toMillis() <= afterTgtAttributes.creationTime().toMillis());
+        assertTrue(beforeTgtAttributes.lastModifiedTime().toMillis() <= afterTgtAttributes.lastModifiedTime().toMillis());
     }
 }

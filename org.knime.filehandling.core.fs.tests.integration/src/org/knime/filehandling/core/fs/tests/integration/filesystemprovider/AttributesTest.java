@@ -47,16 +47,20 @@ package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
@@ -97,6 +101,70 @@ public class AttributesTest extends AbstractParameterizedFSTest {
     }
 
     @Test
+    public void test_get_root_file_attributes() throws IOException {
+        final Path root = getFileSystem().getRootDirectories().iterator().next();
+
+        assertFalse(Files.isRegularFile(root));
+        assertTrue(Files.isDirectory(root));
+        assertFalse(Files.isHidden(root));
+
+        assertTimeInvariants(root);
+    }
+
+    public void test_time_invariants_on_root_children() throws Exception {
+        final Path root = getFileSystem().getRootDirectories().iterator().next();
+
+        try (Stream<Path> stream = Files.list(root)) {
+            stream.forEach(p -> {
+                try {
+                    assertTimeInvariants(p);
+                } catch (IOException e) { // NOSONAR
+                    throw new UncheckedIOException(e);
+                }
+            });
+        }
+
+    }
+
+    @Test
+    public void test_file_time_invariants() throws Exception {
+        final Path testFile = m_testInitializer.createFile("file");
+        assertTimeInvariants(testFile);
+    }
+
+    private static void assertTimeInvariants(final Path path) throws IOException {
+        final BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
+
+        assertNotNull(attrs.lastModifiedTime());
+        assertNotNull(attrs.creationTime());
+        assertNotNull(attrs.lastAccessTime());
+
+        assertTrue(attrs.creationTime().toMillis() <= attrs.lastModifiedTime().toMillis());
+        // some file systems will update the mtime when writing a file to a dir, without
+        // updating the access time
+        if (!attrs.isDirectory()) {
+            assertTrue(attrs.lastModifiedTime().toMillis() <= attrs.lastAccessTime().toMillis());
+        }
+    }
+
+    @Test
+    public void test_empty_folder_time_invariants() throws Exception {
+        final Path testFolder = m_testInitializer.makePath("myfolder");
+        Files.createDirectory(testFolder);
+        assertTimeInvariants(testFolder);
+    }
+
+    @Test
+    public void test_non_empty_folder_time_invariants() throws Exception {
+        final Path testFolder = m_testInitializer.makePath("folder");
+        final Path testFile = testFolder.resolve("file");
+        Files.createDirectory(testFolder);
+        Files.write(testFile, new byte[]{0}, StandardOpenOption.CREATE);
+
+        assertTimeInvariants(testFolder);
+    }
+
+    @Test
     public void test_get_attributes_of_non_existing_path() throws Exception {
         final Path testFile = m_testInitializer.makePath("non-existing-file");
         assertFalse(Files.isRegularFile(testFile));
@@ -116,7 +184,6 @@ public class AttributesTest extends AbstractParameterizedFSTest {
         assertTrue(attribs.isRegularFile());
         assertFalse(attribs.isDirectory());
         assertFalse(attribs.isOther());
-
     }
 
     @Test
@@ -140,13 +207,13 @@ public class AttributesTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_get_file_attributes_for_funny_file1() throws Exception {
-        final Path file =  m_testInitializer.makePath("X:\\AA\\B C\\ X~\\#\\doesnotexist?!");
+        final Path file = m_testInitializer.makePath("X:\\AA\\B C\\ X~\\#\\doesnotexist?!");
         Files.readAttributes(file, BasicFileAttributes.class);
     }
 
     @Test(expected = NoSuchFileException.class)
     public void test_get_file_attributes_for_funny_file2() throws Exception {
-        final Path file =  getFileSystem().getPath("X:\\AA\\B C\\ X~\\#\\doesnotexist?!");
+        final Path file = getFileSystem().getPath("X:\\AA\\B C\\ X~\\#\\doesnotexist?!");
         Files.readAttributes(file, BasicFileAttributes.class);
     }
 }
