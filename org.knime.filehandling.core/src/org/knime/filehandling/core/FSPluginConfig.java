@@ -80,7 +80,7 @@ public class FSPluginConfig {
      *
      * @return a new {@link FSPluginConfig} instance that holds the preferences
      */
-    public static FSPluginConfig load() {
+    public static synchronized FSPluginConfig load() {
         final boolean allowLocalFsAccessOnServer = Platform.getPreferencesService().getBoolean(
             FSPluginActivator.getDefault().getBundle().getSymbolicName(),
             KEY_ALLOW_LOCAL_FS_ACCESS_ON_SERVER,
