@@ -55,6 +55,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
 import org.junit.Test;
@@ -175,5 +176,20 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
         assertArrayEquals(file1Bytes, Files.readAllBytes(file1));
         assertTrue(Files.isRegularFile(file2));
         assertArrayEquals(file2Bytes, Files.readAllBytes(file2));
+    }
+
+    @Test
+    public void test_overwrite_updates_attribute_times() throws Exception {
+        final Path file = m_testInitializer.createFileWithContent("a", "file");
+
+        final BasicFileAttributes beforeTgtAttributes = Files.readAttributes(file, BasicFileAttributes.class);
+        Thread.sleep(1000);
+        try (OutputStream out = Files.newOutputStream(file, StandardOpenOption.TRUNCATE_EXISTING)) {
+            out.write(0);
+        }
+        final BasicFileAttributes afterTgtAttributes = Files.readAttributes(file, BasicFileAttributes.class);
+
+        assertTrue(beforeTgtAttributes.creationTime().toMillis() <= afterTgtAttributes.creationTime().toMillis());
+        assertTrue(beforeTgtAttributes.lastModifiedTime().toMillis() < afterTgtAttributes.lastModifiedTime().toMillis());
     }
 }

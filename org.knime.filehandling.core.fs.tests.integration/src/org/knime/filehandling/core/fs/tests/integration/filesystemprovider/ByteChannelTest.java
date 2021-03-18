@@ -46,10 +46,12 @@
 package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.channels.ByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
@@ -58,6 +60,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -93,7 +96,7 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
     }
 
     @Test
-    public void test_read_from_postition() throws Exception {
+    public void test_read_from_position() throws Exception {
         String testContent = "!!!This starts at byte number 3!";
         Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
 
@@ -318,5 +321,21 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
             channel.position(0);
             assertEquals("testwrite", readFromByteChannel(channel));
         }
+    }
+
+    @Test
+    public void test_overwrite_updates_attribute_times() throws Exception {
+        final Path file = m_testInitializer.createFileWithContent("a", "file");
+
+        final BasicFileAttributes beforeTgtAttributes = Files.readAttributes(file, BasicFileAttributes.class);
+        Thread.sleep(1000);
+        try (ByteChannel out =
+            Files.newByteChannel(file, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            out.write(ByteBuffer.wrap(new byte[]{0}));
+        }
+        final BasicFileAttributes afterTgtAttributes = Files.readAttributes(file, BasicFileAttributes.class);
+
+        assertTrue(beforeTgtAttributes.creationTime().toMillis() <= afterTgtAttributes.creationTime().toMillis());
+        assertTrue(beforeTgtAttributes.lastModifiedTime().toMillis() < afterTgtAttributes.lastModifiedTime().toMillis());
     }
 }

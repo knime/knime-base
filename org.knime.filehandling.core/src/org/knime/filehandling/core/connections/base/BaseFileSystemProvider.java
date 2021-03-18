@@ -184,7 +184,19 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             checkParentDirectoryExists(checkedPath);
         }
 
-        return new FSSeekableByteChannel(newByteChannelInternal(checkedPath, sanitizedOptions, attrs), m_fileSystem);
+        return new FSSeekableByteChannel(newByteChannelInternal(checkedPath, sanitizedOptions, attrs), m_fileSystem) {
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } finally {
+                    if (sanitizedOptions.contains(StandardOpenOption.APPEND)
+                        || sanitizedOptions.contains(StandardOpenOption.WRITE)) {
+                        getFileSystemInternal().removeFromAttributeCache(checkedPath);
+                    }
+                }
+            }
+        };
     }
 
     /**
@@ -413,6 +425,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         }
 
         copyInternal(checkedSource, checkedTarget, options);
+        getFileSystemInternal().removeFromAttributeCache(checkedTarget);
     }
 
     /**
@@ -457,7 +470,16 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         } catch (NoSuchFileException e) { // NOSONAR must be ignored here
         }
 
-        return new FSOutputStream(newOutputStreamInternal(checkedPath, validatedOpenOptions), getFileSystemInternal());
+        return new FSOutputStream(newOutputStreamInternal(checkedPath, validatedOpenOptions), getFileSystemInternal()) {
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } finally {
+                    getFileSystemInternal().removeFromAttributeCache(checkedPath);
+                }
+            }
+        };
     }
 
     /**

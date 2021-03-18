@@ -60,7 +60,7 @@ import java.nio.channels.SeekableByteChannel;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class FSSeekableByteChannel implements SeekableByteChannel {
+public class FSSeekableByteChannel implements SeekableByteChannel {
 
     private final SeekableByteChannel m_seekableByteChannel;
 

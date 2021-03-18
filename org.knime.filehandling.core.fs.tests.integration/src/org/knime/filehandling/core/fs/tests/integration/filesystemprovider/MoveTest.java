@@ -57,6 +57,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -132,6 +133,20 @@ public class MoveTest extends AbstractParameterizedFSTest {
         List<String> movedContent = Files.readAllLines(existingTarget);
         assertEquals(sourceContent, movedContent.get(0));
     }
+
+    @Test
+    public void test_move_file_to_already_existing_file_may_update_attribute_times() throws Exception {
+        final Path source = m_testInitializer.createFileWithContent("a", "src");
+        final Path existingTarget = m_testInitializer.createFileWithContent("b", "target");
+
+        final BasicFileAttributes beforeAttrs = Files.readAttributes(existingTarget, BasicFileAttributes.class);
+        Thread.sleep(1000);
+        Files.move(source, existingTarget, StandardCopyOption.REPLACE_EXISTING);
+        final BasicFileAttributes afterAttrs = Files.readAttributes(existingTarget, BasicFileAttributes.class);
+        assertTrue(beforeAttrs.creationTime().toMillis() <= afterAttrs.creationTime().toMillis());
+        assertTrue(beforeAttrs.lastModifiedTime().toMillis() <= afterAttrs.lastModifiedTime().toMillis());
+    }
+
 
     @Test(expected = NoSuchFileException.class)
     public void test_move_file_to_non_existing_directory_throws_exception() throws Exception {
