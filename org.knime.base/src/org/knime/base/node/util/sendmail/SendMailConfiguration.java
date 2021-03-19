@@ -647,7 +647,7 @@ final class SendMailConfiguration {
                 properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
                 // a third (and most transparent) option would be to use a different protocol:
                 protocol = "smtps";
-                /* note, protocol smptps doesn't work with default javax.mail bundle (1.4.0):
+                /* note, protocol smtps doesn't work with default javax.mail bundle (1.4.0):
                  * Unable to load class for provider: protocol=smtps; type=javax.mail.Provider$Type@2d0fc05b;
                  * class=org.apache.geronimo.javamail.transport.smtp.SMTPTSransport;
                  * vendor=Apache Software Foundation;version=1.0
@@ -660,18 +660,19 @@ final class SendMailConfiguration {
 
         // Make sure TLS is used. Available protocols can be obtained via:
         // SSLContext.getDefault().getSupportedSSLParameters().getProtocols()
-        properties.setProperty("mail.smtp.ssl.protocols", "TLSv1 TLSv1.1 TLSv1.2");
+        final String mail = "mail.";
+        properties.setProperty(mail + "smtp.ssl.protocols", "TLSv1 TLSv1.1 TLSv1.2");
 
-        properties.setProperty("mail." + protocol + ".host", getSmtpHost());
-        properties.setProperty("mail." + protocol + ".port", Integer.toString(getSmtpPort()));
-        properties.setProperty("mail." + protocol + ".auth", Boolean.toString(isUseAuthentication()));
+        properties.setProperty(mail + protocol + ".host", getSmtpHost());
+        properties.setProperty(mail + protocol + ".port", Integer.toString(getSmtpPort()));
+        properties.setProperty(mail + protocol + ".auth", Boolean.toString(isUseAuthentication()));
 
         /*
          * Use the string value of the timeouts, as some forum posts suggest there are bugs in older JavaMail versions
          * when setting the property with integers.
          */
-        properties.setProperty("mail." + protocol + ".connectiontimeout", String.valueOf(getSmptConnectionTimeout()));
-        properties.setProperty("mail." + protocol + ".timeout", String.valueOf(getSmptReadTimeout()));
+        properties.setProperty(mail + protocol + ".connectiontimeout", String.valueOf(getSmptConnectionTimeout()));
+        properties.setProperty(mail + protocol + ".timeout", String.valueOf(getSmptReadTimeout()));
 
         Session session = Session.getInstance(properties, null);
 
