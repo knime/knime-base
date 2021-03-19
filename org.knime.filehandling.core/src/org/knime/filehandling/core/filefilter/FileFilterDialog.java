@@ -68,7 +68,7 @@ import org.knime.core.node.KNIMEConstants;
  *
  * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  */
-public class FileFilterDialog extends JDialog {
+public final class FileFilterDialog extends JDialog {
 
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
@@ -128,7 +128,7 @@ public class FileFilterDialog extends JDialog {
         gc.gridy = 1;
         gc.insets = new Insets(0, 10, 10, 0);
         final JButton okButton = new JButton(OK_BUTTON_LABEL);
-        okButton.addActionListener((e) -> onOk());
+        okButton.addActionListener(e -> onOk());
         rootPanel.add(okButton, gc);
 
         gc.anchor = GridBagConstraints.LINE_START;
@@ -137,7 +137,7 @@ public class FileFilterDialog extends JDialog {
         gc.gridx = 1;
         gc.insets = new Insets(0, 5, 10, 10);
         final JButton cancelButton = new JButton(CLOSE_BUTTON_LABEL);
-        cancelButton.addActionListener((e) -> onCancel());
+        cancelButton.addActionListener(e -> onCancel());
         rootPanel.add(cancelButton, gc);
 
         setContentPane(rootPanel);
