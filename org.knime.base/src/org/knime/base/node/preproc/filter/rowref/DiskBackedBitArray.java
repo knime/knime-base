@@ -54,6 +54,7 @@ import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
 
 /**
@@ -65,11 +66,13 @@ import org.knime.core.util.FileUtil;
  */
 class DiskBackedBitArray implements AutoCloseable {
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DiskBackedBitArray.class);
+
     // the date format for formatting the names of temporary files
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
+    private final SimpleDateFormat m_dateFormat = new SimpleDateFormat("yyyyMMdd");
 
     // buffer size in byte
-    static int BUFFER_SIZE = 8192;
+    static final int BUFFER_SIZE = 8192;
 
     // the length / size of the array, i.e., the amount of bits it holds
     private final long m_length;
@@ -111,8 +114,7 @@ class DiskBackedBitArray implements AutoCloseable {
 
     private void lazyInit() throws IOException {
         m_buffer = new byte[BUFFER_SIZE];
-
-        final String fileName = "bit_array_" + DATE_FORMAT.format(new Date());
+        final String fileName = "bit_array_" + m_dateFormat.format(new Date());
         m_file = FileUtil.createTempFile(fileName, ".bin");
         m_file.deleteOnExit();
 
@@ -233,7 +235,7 @@ class DiskBackedBitArray implements AutoCloseable {
         checkStateBeforeAccess();
         final int bytePos = m_pos / 8;
         final int bitPos = m_pos % 8;
-        boolean result = (m_buffer[bytePos] & (1 << bitPos)) != 0;
+        boolean result = (m_buffer[bytePos] & (1 << bitPos)) != 0; // NOSONAR rule does not apply
         next();
         return result;
     }
@@ -273,6 +275,7 @@ class DiskBackedBitArray implements AutoCloseable {
             setPosition(pos);
             return sb.toString();
         } catch (IOException e) {
+            LOGGER.debug("Unable to create String represenation.", e);
             return (e.getMessage());
         }
     }
