@@ -233,7 +233,7 @@ final class SendMailConfiguration {
         try {
             String lastPortString = getLastUsedHistoryElement(getSmtpPortStringHistoryID());
             defaultPort = Integer.parseInt(lastPortString);
-        } catch (Exception e) {
+        } catch (Exception e) { // NOSONAR backwards compatible loading
             defaultPort = 25;
         }
         m_smtpHost = settings.getString("smtpHost", getLastUsedHistoryElement(getSmtpHostStringHistoryID()));
@@ -251,7 +251,7 @@ final class SendMailConfiguration {
         ConnectionSecurity connectionSecurity;
         try {
             connectionSecurity = ConnectionSecurity.valueOf(connectionSecurityS);
-        } catch (Exception e) {
+        } catch (Exception e) { // NOSONAR backwards compatible loading
             connectionSecurity = ConnectionSecurity.NONE;
         }
         m_connectionSecurity = connectionSecurity;
@@ -259,7 +259,7 @@ final class SendMailConfiguration {
         EMailFormat format;
         try {
             format = EMailFormat.valueOf(formatS);
-        } catch (Exception e) {
+        } catch (Exception e) { // NOSONAR backwards compatible loading
             format = EMailFormat.Text;
         }
         m_format = format;
@@ -267,7 +267,7 @@ final class SendMailConfiguration {
         EMailPriority priority;
         try {
             priority = EMailPriority.valueOf(priorityS);
-        } catch (Exception e) {
+        } catch (Exception e) { // NOSONAR backwards compatible loading
             priority = EMailPriority.Normal;
         }
         m_priority = priority;
@@ -775,7 +775,7 @@ final class SendMailConfiguration {
         } catch (MessagingException e) {
             if (e.getCause() instanceof SocketTimeoutException) {
                 String timeoutMessage = e.getMessage();
-                throw new InvalidSettingsException(timeoutMessage + ", try adjusting the smtp timeout settings");
+                throw new InvalidSettingsException(timeoutMessage + ", try adjusting the smtp timeout settings", e);
             } else {
                 throw new InvalidSettingsException("Error while communicating with the smtp server: " + e, e);
             }
