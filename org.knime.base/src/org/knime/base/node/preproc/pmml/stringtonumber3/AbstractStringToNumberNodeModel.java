@@ -92,17 +92,15 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  * @since 4.0
  */
 
-public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends NodeModel{
+public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends NodeModel {
 
     /**
      * The possible types that the string can be converted to.
      */
-    public static final DataType[] POSSIBLETYPES =
-        new DataType[]{DoubleCell.TYPE, IntCell.TYPE};
+    public static final DataType[] POSSIBLETYPES = new DataType[]{DoubleCell.TYPE, IntCell.TYPE};
 
     /* Node Logger of this class. */
-    private static final NodeLogger LOGGER =
-            NodeLogger.getLogger(AbstractStringToNumberNodeModel.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractStringToNumberNodeModel.class);
 
     /**
      * Key for the included columns in the NodeSettings.
@@ -153,8 +151,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     private boolean m_pmmlInEnabled;
 
     /**
-     * Constructor with one data inport, one data outport and an optional
-     * PMML inport and outport.
+     * Constructor with one data inport, one data outport and an optional PMML inport and outport.
+     *
      * @param inclCols SettingsModel for a ColumnFilter component
      */
     public AbstractStringToNumberNodeModel(final T inclCols) {
@@ -162,16 +160,15 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     }
 
     /**
-     * Constructor with one data inport, one data outport and an optional
-     * PMML inport and outport.
+     * Constructor with one data inport, one data outport and an optional PMML inport and outport.
+     *
      * @param pmmlInEnabled true if an optional PMML input port should be present
      * @param inclCols SettingsModel for a ColumnFilter component
      * @since 3.0
      */
     public AbstractStringToNumberNodeModel(final boolean pmmlInEnabled, final T inclCols) {
         super(pmmlInEnabled ? new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE_OPTIONAL}
-                                                : new PortType[]{BufferedDataTable.TYPE},
-                new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE});
+            : new PortType[]{BufferedDataTable.TYPE}, new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE});
         m_inclCols = inclCols;
         m_pmmlInEnabled = pmmlInEnabled;
     }
@@ -180,21 +177,18 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         // find indices to work on
         DataTableSpec dts = (DataTableSpec)inSpecs[0];
         int[] indices = findColumnIndices(dts);
-        ConverterFactory converterFac =
-                new ConverterFactory(indices, dts, m_parseType);
+        ConverterFactory converterFac = new ConverterFactory(indices, dts, m_parseType);
         ColumnRearranger colre = new ColumnRearranger(dts);
         colre.replace(converterFac, indices);
         DataTableSpec newspec = colre.createSpec();
 
         // create the PMML spec based on the optional incoming PMML spec
         PMMLPortObjectSpec pmmlSpec = m_pmmlInEnabled ? (PMMLPortObjectSpec)inSpecs[1] : null;
-        PMMLPortObjectSpecCreator pmmlSpecCreator
-                = new PMMLPortObjectSpecCreator(pmmlSpec, dts);
+        PMMLPortObjectSpecCreator pmmlSpecCreator = new PMMLPortObjectSpecCreator(pmmlSpec, dts);
 
         return new PortObjectSpec[]{newspec, pmmlSpecCreator.createSpec()};
     }
@@ -203,8 +197,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected PortObject[] execute(final PortObject[] inObjects,
-            final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         StringBuilder warnings = new StringBuilder();
         BufferedDataTable inData = (BufferedDataTable)inObjects[0];
         DataTableSpec inSpec = inData.getDataTableSpec();
@@ -214,12 +207,10 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
             resultTable = inData;
-            setWarningMessage("No columns selected,"
-                    + " returning input DataTable.");
+            setWarningMessage("No columns selected," + " returning input DataTable.");
         } else {
             int[] indices = findColumnIndices(inSpec);
-            ConverterFactory converterFac = new ConverterFactory(
-                    indices, inSpec, m_parseType);
+            ConverterFactory converterFac = new ConverterFactory(indices, inSpec, m_parseType);
             ColumnRearranger colre = new ColumnRearranger(inSpec);
             colre.replace(converterFac, indices);
 
@@ -237,22 +228,17 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
         // the optional PMML in port (can be null)
         PMMLPortObject inPMMLPort = m_pmmlInEnabled ? (PMMLPortObject)inObjects[1] : null;
-        PMMLStringConversionTranslator trans
-                = new PMMLStringConversionTranslator(
-                            Arrays.asList(getStoredInclCols(inSpec)), m_parseType,
-                            new DerivedFieldMapper(inPMMLPort));
+        PMMLStringConversionTranslator trans = new PMMLStringConversionTranslator(
+            Arrays.asList(getStoredInclCols(inSpec)), m_parseType, new DerivedFieldMapper(inPMMLPort));
 
-        PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(
-                inPMMLPort, inSpec);
-        PMMLPortObject outPMMLPort = new PMMLPortObject(
-               creator.createSpec(), inPMMLPort, inSpec);
+        PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(inPMMLPort, inSpec);
+        PMMLPortObject outPMMLPort = new PMMLPortObject(creator.createSpec(), inPMMLPort, inSpec);
         outPMMLPort.addGlobalTransformations(trans.exportToTransDict());
 
         return new PortObject[]{resultTable, outPMMLPort};
     }
 
-    private int[] findColumnIndices(final DataTableSpec spec)
-            throws InvalidSettingsException {
+    private int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
         final String[] inclCols = getStoredInclCols(spec);
         final StringBuilder warnings = new StringBuilder();
         if (inclCols.length == 0) {
@@ -271,7 +257,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     }
 
     private void getStringValueIndicies(final DataTableSpec spec, final String[] inclCols, final StringBuilder warnings,
-        Vector<Integer> indicesvec) throws InvalidSettingsException {
+        final Vector<Integer> indicesvec) throws InvalidSettingsException {
         if (isKeepAllSelected()) {
             for (DataColumnSpec cspec : spec) {
                 if (cspec.getType().isCompatible(StringValue.class)) {
@@ -286,25 +272,24 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     }
 
     private void getInclColIndicies(final DataTableSpec spec, final String[] inclCols, final StringBuilder warnings,
-        Vector<Integer> indicesvec, int i) throws InvalidSettingsException {
+        final Vector<Integer> indicesvec, final int i) throws InvalidSettingsException {
         int colIndex = spec.findColumnIndex(inclCols[i]);
         if (colIndex >= 0) {
             DataType type = spec.getColumnSpec(colIndex).getType();
             if (type.isCompatible(StringValue.class)) {
                 indicesvec.add(colIndex);
             } else {
-                warnings.append("Ignoring column \""
-                        + spec.getColumnSpec(colIndex).getName()
-                        + "\"\n");
+                warnings.append("Ignoring column \"" + spec.getColumnSpec(colIndex).getName() + "\"\n");
             }
         } else {
-            throw new InvalidSettingsException("Column \""
-                    + inclCols[i] + "\" not found.");
+            throw new InvalidSettingsException("Column \"" + inclCols[i] + "\" not found.");
         }
     }
 
     /**
-     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns which were previously of a compatible spec but not anymore.
+     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns
+     * which were previously of a compatible spec but not anymore.
+     *
      * @param inSpec the current DataTableSpec
      * @return a String array with the included columns
      */
@@ -327,14 +312,10 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inclCols.loadSettingsFrom(settings);
-        m_decimalSep =
-                settings.getString(CFG_DECIMALSEP, DEFAULT_DECIMAL_SEPARATOR);
-        m_thousandsSep =
-                settings.getString(CFG_THOUSANDSSEP,
-                        DEFAULT_THOUSANDS_SEPARATOR);
+        m_decimalSep = settings.getString(CFG_DECIMALSEP, DEFAULT_DECIMAL_SEPARATOR);
+        m_thousandsSep = settings.getString(CFG_THOUSANDSSEP, DEFAULT_THOUSANDS_SEPARATOR);
         m_parseType = settings.getDataType(CFG_PARSETYPE, POSSIBLETYPES[0]);
     }
 
@@ -353,25 +334,19 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inclCols.validateSettings(settings);
-        String decimalsep =
-                settings.getString(CFG_DECIMALSEP, DEFAULT_DECIMAL_SEPARATOR);
-        String thousandssep =
-                settings.getString(CFG_THOUSANDSSEP,
-                        DEFAULT_THOUSANDS_SEPARATOR);
+        String decimalsep = settings.getString(CFG_DECIMALSEP, DEFAULT_DECIMAL_SEPARATOR);
+        String thousandssep = settings.getString(CFG_THOUSANDSSEP, DEFAULT_THOUSANDS_SEPARATOR);
         if (decimalsep == null || thousandssep == null) {
             throw new InvalidSettingsException("Separators must not be null");
         }
         if (decimalsep.length() > 1 || thousandssep.length() > 1) {
-            throw new InvalidSettingsException(
-                    "Illegal separator length, expected a single character");
+            throw new InvalidSettingsException("Illegal separator length, expected a single character");
         }
 
         if (decimalsep.equals(thousandssep)) {
-            throw new InvalidSettingsException(
-                    "Decimal and thousands separator must not be the same.");
+            throw new InvalidSettingsException("Decimal and thousands separator must not be the same.");
         }
         DataType myType = settings.getDataType(CFG_PARSETYPE, POSSIBLETYPES[0]);
         boolean found = false;
@@ -390,9 +365,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // empty.
     }
 
@@ -400,9 +374,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // empty.
     }
 
@@ -446,8 +419,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
          * @param spec the original DataTableSpec.
          * @param type the {@link DataType} to convert to.
          */
-        ConverterFactory(final int[] colindices, final DataTableSpec spec,
-                final DataType type) {
+        ConverterFactory(final int[] colindices, final DataTableSpec spec, final DataType type) {
             m_colindices = colindices;
             m_spec = spec;
             m_type = type;
@@ -471,24 +443,17 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
                     }
                     try {
                         String corrected = s;
-                        if (m_thousandsSep != null
-                                && m_thousandsSep.length() > 0) {
+                        if (m_thousandsSep != null && m_thousandsSep.length() > 0) {
                             // remove thousands separator
-                            corrected = s.replaceAll(
-                                    Pattern.quote(m_thousandsSep),
-                                    "");
+                            corrected = s.replaceAll(Pattern.quote(m_thousandsSep), "");
                         }
                         if (!".".equals(m_decimalSep)) {
                             if (corrected.contains(".")) {
-                                throw new NumberFormatException(
-                                        "Invalid floating point number");
+                                throw new NumberFormatException("Invalid floating point number");
                             }
-                            if (m_decimalSep != null
-                                    && m_decimalSep.length() > 0) {
+                            if (m_decimalSep != null && m_decimalSep.length() > 0) {
                                 // replace custom separator with standard
-                                corrected =
-                                        corrected.replaceAll(Pattern
-                                                .quote(m_decimalSep), ".");
+                                corrected = corrected.replaceAll(Pattern.quote(m_decimalSep), ".");
                             }
                         }
 
@@ -503,11 +468,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
                         }
                     } catch (NumberFormatException e) {
                         if (m_parseErrorCount == 0) {
-                            m_error =
-                                    "'" + s + "' (RowKey: "
-                                            + row.getKey().toString()
-                                            + ", Position: " + m_colindices[i]
-                                            + ")";
+                            m_error = "'" + s + "' (RowKey: " + row.getKey().toString() + ", Position: "
+                                + m_colindices[i] + ")";
                             LOGGER.debug(e.getMessage());
                         }
                         m_parseErrorCount++;
@@ -525,25 +487,19 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
          */
         @Override
         public DataColumnSpec[] getColumnSpecs() {
-            DataColumnSpec[] newcolspecs =
-                    new DataColumnSpec[m_colindices.length];
+            DataColumnSpec[] newcolspecs = new DataColumnSpec[m_colindices.length];
             for (int i = 0; i < newcolspecs.length; i++) {
                 DataColumnSpec colspec = m_spec.getColumnSpec(m_colindices[i]);
                 DataColumnSpecCreator colspeccreator = null;
                 if (m_type.equals(DoubleCell.TYPE)) {
                     // change DataType to DoubleCell
-                    colspeccreator =
-                            new DataColumnSpecCreator(colspec.getName(),
-                                    DoubleCell.TYPE);
+                    colspeccreator = new DataColumnSpecCreator(colspec.getName(), DoubleCell.TYPE);
                 } else if (m_type.equals(IntCell.TYPE)) {
                     // change DataType to IntCell
-                    colspeccreator =
-                            new DataColumnSpecCreator(colspec.getName(),
-                                    IntCell.TYPE);
+                    colspeccreator = new DataColumnSpecCreator(colspec.getName(), IntCell.TYPE);
                 } else {
                     colspeccreator =
-                            new DataColumnSpecCreator("Invalid parse mode",
-                                    DataType.getMissingCell().getType());
+                        new DataColumnSpecCreator("Invalid parse mode", DataType.getMissingCell().getType());
                 }
                 newcolspecs[i] = colspeccreator.createSpec();
             }
@@ -552,30 +508,29 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
 
         /**
          * {@inheritDoc}
+         *
          * @deprecated
          */
         @Deprecated
         @Override
-        public void setProgress(final int curRowNr, final int rowCount,
-                final RowKey lastKey, final ExecutionMonitor exec) {
+        public void setProgress(final int curRowNr, final int rowCount, final RowKey lastKey,
+            final ExecutionMonitor exec) {
             exec.setProgress((double)curRowNr / (double)rowCount, "Converting");
         }
 
         /**
-         * Error messages that occur during execution , i.e.
-         * NumberFormatException.
+         * Error messages that occur during execution , i.e. NumberFormatException.
          *
          * @return error message
          */
         public String getErrorMessage() {
             switch (m_parseErrorCount) {
-            case 0:
-                return "";
-            case 1:
-                return "Could not parse cell with value " + m_error;
-            default:
-                return "Values in " + m_parseErrorCount
-                        + " cells could not be parsed, first error: " + m_error;
+                case 0:
+                    return "";
+                case 1:
+                    return "Could not parse cell with value " + m_error;
+                default:
+                    return "Values in " + m_parseErrorCount + " cells could not be parsed, first error: " + m_error;
             }
         }
 
