@@ -62,8 +62,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
@@ -98,6 +96,7 @@ import org.knime.core.node.util.ColumnFilterPanel;
  *
  * @author Tobias Koetter, University of Konstanz
  */
+@SuppressWarnings("deprecation")
 public class GroupByNodeDialog extends NodeDialogPane {
 
     /** The height of the default component. */
@@ -147,7 +146,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
     //used to now the implementation version of the node
     private final SettingsModelInteger m_version = GroupByNodeModel.createVersionModel();
 
-    private final JComboBox<TypeMatch> m_typeMatch = new JComboBox<TypeMatch>(TypeMatch.values());
+    private final JComboBox<TypeMatch> m_typeMatch = new JComboBox<>(TypeMatch.values());
 
     /** Constructor for class GroupByNodeDialog. */
     public GroupByNodeDialog() {
@@ -175,13 +174,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
         m_groupCol.setExcludeTitle(" Available column(s) ");
         //we are only interested in showing the invalid include columns
         m_groupCol.setShowInvalidIncludeColumns(true);
-        m_groupByCols.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                //remove all group columns from the aggregation column list
-                columnsChanged();
-            }
-        });
+        m_groupByCols.addChangeListener(e -> columnsChanged());
 
         final JPanel groupColPanel = new JPanel();
         groupColPanel.setLayout(new GridBagLayout());
@@ -210,7 +203,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
             m_tabs.addTab(PatternAggregationPanel.DEFAULT_TITLE, patternPanel);
         }
         if (showType) {
-           m_tabs.addTab(DataTypeAggregationPanel.DEFAULT_TITLE, createTypeBasedPanel());
+            m_tabs.addTab(DataTypeAggregationPanel.DEFAULT_TITLE, createTypeBasedPanel());
         }
 
         //calculate the component size
@@ -235,12 +228,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
         super.addTab("Settings", topBottomPanel);
 
         //add the  process in memory change listener
-        m_inMemory.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                inMemoryChanged();
-            }
-        });
+        m_inMemory.addChangeListener(e -> inMemoryChanged());
 
         //add description tab
         final Component descriptionTab = AggregationMethods.createDescriptionPane();
@@ -478,7 +466,8 @@ public class GroupByNodeDialog extends NodeDialogPane {
      *
      */
     protected final DialogComponentNumber createMaxNoneNumValsDialog(final String label, final String toolTip) {
-        final DialogComponentNumber diaComp = new DialogComponentNumber(m_maxUniqueValues, label, new Integer(1000), 5);
+        final DialogComponentNumber diaComp =
+            new DialogComponentNumber(m_maxUniqueValues, label, Integer.valueOf(1000), 5);
         setToolTipText(diaComp, toolTip);
         return diaComp;
     }
@@ -538,10 +527,10 @@ public class GroupByNodeDialog extends NodeDialogPane {
         gbc.fill = GridBagConstraints.NONE;
         ++gbc.gridx;
         // AP-7020: add the exact type match checkbox
-        typeBasedPanel.add(new JLabel("Type matching:"),gbc);
+        typeBasedPanel.add(new JLabel("Type matching:"), gbc);
         ++gbc.gridx;
         gbc.insets = new Insets(0, 10, 0, 3);
-        typeBasedPanel.add(m_typeMatch,gbc);
+        typeBasedPanel.add(m_typeMatch, gbc);
         return typeBasedPanel;
     }
 
@@ -612,7 +601,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        validateSettings(settings);
+        validateSettings();
         m_groupCol.saveSettingsTo(settings);
         m_maxUniqueValues.saveSettingsTo(settings);
         m_enableHilite.saveSettingsTo(settings);
@@ -629,7 +618,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
         m_typeMatch.getItemAt(m_typeMatch.getSelectedIndex()).saveSettingsTo(settings);
     }
 
-    private void validateSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
+    private void validateSettings() throws InvalidSettingsException {
         //check if the dialog contains invalid group columns
         final Set<String> invalidInclCols = m_groupCol.getInvalidIncludeColumns();
         if (invalidInclCols != null && !invalidInclCols.isEmpty()) {
