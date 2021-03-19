@@ -87,53 +87,55 @@ import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.ICredentials;
 import org.knime.core.util.FileUtil;
 
-/** Configuration proxy for the node.
+/**
+ * Configuration proxy for the node.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 final class SendMailConfiguration {
 
-    /** A system property that, if set, will disallow emails sent to recipients other than specified in a
-     * comma separate list. For instance-D{@value #PROPERTY_ALLOWED_RECIPIENT_DOMAINS}=foo.com,bar.org would allow only
-     * emails to be sent to foo.com and bar.org. If other recipients are specified the node will fail during execution.
-     * If this property is not specified or empty all domains are allowed.
+    /**
+     * A system property that, if set, will disallow emails sent to recipients other than specified in a comma separate
+     * list. For instance-D{@value #PROPERTY_ALLOWED_RECIPIENT_DOMAINS}=foo.com,bar.org would allow only emails to be
+     * sent to foo.com and bar.org. If other recipients are specified the node will fail during execution. If this
+     * property is not specified or empty all domains are allowed.
      */
     public static final String PROPERTY_ALLOWED_RECIPIENT_DOMAINS = "knime.sendmail.allowed_domains";
 
     private static final int DEFAULT_SMTP_CONNECTION_TIMEOUT = 2000;
-    private static final int DEFAULT_SMTP_READ_TIMEOUT = 30000;
 
+    private static final int DEFAULT_SMTP_READ_TIMEOUT = 30000;
 
     /** EMail format. */
     enum EMailFormat {
-        /** Ordinary text. */
-        Text,
-        /** Text w/ html tags. */
-        Html;
+            /** Ordinary text. */
+            Text,
+            /** Text w/ html tags. */
+            Html;
     }
 
     /** Connection Security. */
     enum ConnectionSecurity {
-        /** No security. */
-        NONE,
-        /** StartTLS. */
-        STARTTLS,
-        /** Via ssl. */
-        SSL
+            /** No security. */
+            NONE,
+            /** StartTLS. */
+            STARTTLS,
+            /** Via ssl. */
+            SSL
     }
 
     /** EMail priority. */
     enum EMailPriority {
-        /** Prio 1. */
-        Highest(1),
-        /** Prio 2. */
-        High(2),
-        /** Prio 3. */
-        Normal(3),
-        /** Prio 4. */
-        Low(4),
-        /** Prio 5. */
-        Lowest(5);
+            /** Prio 1. */
+            Highest(1),
+            /** Prio 2. */
+            High(2),
+            /** Prio 3. */
+            Normal(3),
+            /** Prio 4. */
+            Low(4),
+            /** Prio 5. */
+            Lowest(5);
 
         private final int m_priority;
 
@@ -148,27 +150,46 @@ final class SendMailConfiguration {
     }
 
     private String m_smtpHost;
+
     private int m_smtpPort;
+
     private boolean m_useAuthentication;
+
     private boolean m_useCredentials;
+
     private String m_credentialsId;
+
     private String m_smtpUser;
+
     private String m_smtpPassword;
+
     private ConnectionSecurity m_connectionSecurity = ConnectionSecurity.NONE;
+
     private EMailFormat m_format = EMailFormat.Text;
+
     private EMailPriority m_priority = EMailPriority.Normal;
+
     private String m_from;
+
     private String m_to;
+
     private String m_cc;
+
     private String m_bcc;
+
     private String m_subject;
+
     private String m_text;
+
     private URL[] m_attachedURLs = new URL[0];
 
     private int m_smtpConnectionTimeout = DEFAULT_SMTP_CONNECTION_TIMEOUT;
+
     private int m_smtpReadTimeout = DEFAULT_SMTP_READ_TIMEOUT;
 
-    /** Save to argument settings.
+    /**
+     * Save to argument settings.
+     *
      * @param settings ...
      */
     void saveConfiguration(final NodeSettingsWO settings) {
@@ -202,7 +223,9 @@ final class SendMailConfiguration {
         }
     }
 
-    /** Loader in dialog (with defaults).
+    /**
+     * Loader in dialog (with defaults).
+     *
      * @param settings ...
      */
     void loadConfigurationInDialog(final NodeSettingsRO settings) {
@@ -278,7 +301,9 @@ final class SendMailConfiguration {
         m_smtpReadTimeout = settings.getInt("smtpReadTimeout", DEFAULT_SMTP_READ_TIMEOUT);
     }
 
-    /** Load in model.
+    /**
+     * Load in model.
+     *
      * @param settings ..
      * @throws InvalidSettingsException ...
      */
@@ -422,8 +447,10 @@ final class SendMailConfiguration {
         return m_connectionSecurity;
     }
 
-    /** @param connectionSecurity the connectionSecurity to set
-     * @throws InvalidSettingsException if null */
+    /**
+     * @param connectionSecurity the connectionSecurity to set
+     * @throws InvalidSettingsException if null
+     */
     void setConnectionSecurity(final ConnectionSecurity connectionSecurity) throws InvalidSettingsException {
         if (connectionSecurity == null) {
             throw new InvalidSettingsException("connectionSecurity must not be null");
@@ -446,8 +473,10 @@ final class SendMailConfiguration {
         return m_format;
     }
 
-    /** @param format the format to set
-     * @throws InvalidSettingsException if null */
+    /**
+     * @param format the format to set
+     * @throws InvalidSettingsException if null
+     */
     void setFormat(final EMailFormat format) throws InvalidSettingsException {
         if (format == null) {
             throw new InvalidSettingsException("format must not be null");
@@ -460,8 +489,10 @@ final class SendMailConfiguration {
         return m_priority;
     }
 
-    /** @param priority the priority to set
-     * @throws InvalidSettingsException if null. */
+    /**
+     * @param priority the priority to set
+     * @throws InvalidSettingsException if null.
+     */
     void setPriority(final EMailPriority priority) throws InvalidSettingsException {
         if (priority == null) {
             throw new InvalidSettingsException("priority must not be null");
@@ -524,8 +555,10 @@ final class SendMailConfiguration {
         return m_attachedURLs;
     }
 
-    /** @param attachedURLs the attachedURLs to set
-     * @throws InvalidSettingsException if null or null elements. */
+    /**
+     * @param attachedURLs the attachedURLs to set
+     * @throws InvalidSettingsException if null or null elements.
+     */
     void setAttachedURLs(final URL[] attachedURLs) throws InvalidSettingsException {
         if (attachedURLs == null || Arrays.asList(attachedURLs).contains(null)) {
             throw new InvalidSettingsException("url list must not be null or contain null elements");
@@ -533,27 +566,33 @@ final class SendMailConfiguration {
         m_attachedURLs = attachedURLs;
     }
 
-    /**  Checks if settings are complete and recipient addresses are OK (according
-     * to {@link #PROPERTY_ALLOWED_RECIPIENT_DOMAINS}.
-     * @throws InvalidSettingsException Fails if not OK. */
+    /**
+     * Checks if settings are complete and recipient addresses are OK (according to
+     * {@link #PROPERTY_ALLOWED_RECIPIENT_DOMAINS}.
+     *
+     * @throws InvalidSettingsException Fails if not OK.
+     */
     void validateSettings() throws InvalidSettingsException {
         if (getSmtpHost() == null) {
             throw new InvalidSettingsException("No SMTP host specified");
         }
     }
 
-    /** Throws exception if the address list contains forbidden entries
-     * according to {@link #PROPERTY_ALLOWED_RECIPIENT_DOMAINS}.
+    /**
+     * Throws exception if the address list contains forbidden entries according to
+     * {@link #PROPERTY_ALLOWED_RECIPIENT_DOMAINS}.
+     *
      * @param addressString The non null string as entered in dialog (addresses separated by comma)
      * @return The list of addresses, passed through the validator.
      * @throws AddressException If parsing fails.
-     * @thorws InvalidSettingsException If domain not allowed. */
+     * @thorws InvalidSettingsException If domain not allowed.
+     */
     private InternetAddress[] parseAndValidateRecipients(final String addressString)
-            throws InvalidSettingsException, AddressException {
+        throws InvalidSettingsException, AddressException {
         String validDomainListString = System.getProperty(PROPERTY_ALLOWED_RECIPIENT_DOMAINS);
         InternetAddress[] addressArray = InternetAddress.parse(addressString, false);
-        String[] validDomains = StringUtils.isEmpty(validDomainListString)
-                ? new String[0] : validDomainListString.toLowerCase().split(",");
+        String[] validDomains =
+            StringUtils.isEmpty(validDomainListString) ? new String[0] : validDomainListString.toLowerCase().split(",");
         for (InternetAddress a : addressArray) {
             boolean isOK = validDomains.length == 0; // ok if domain list not specified
             final String address = a.getAddress().toLowerCase();
@@ -561,21 +600,23 @@ final class SendMailConfiguration {
                 isOK = isOK || address.endsWith(validDomain);
             }
             if (!isOK) {
-                throw new InvalidSettingsException(String.format("Recipient '%s' is not valid as the "
-                        +  "domain is not in the allowed list (system property %s=%s)", address,
-                        PROPERTY_ALLOWED_RECIPIENT_DOMAINS, validDomainListString));
+                throw new InvalidSettingsException(String.format(
+                    "Recipient '%s' is not valid as the " + "domain is not in the allowed list (system property %s=%s)",
+                    address, PROPERTY_ALLOWED_RECIPIENT_DOMAINS, validDomainListString));
             }
         }
         return addressArray;
     }
 
-    /** Send the mail.
+    /**
+     * Send the mail.
+     *
      * @throws MessagingException ... when sending fails, also authorization exceptions etc.
      * @throws IOException SSL problems or when copying remote URLs to temp local file.
      * @throws InvalidSettingsException on invalid referenced flow vars
      */
     void send(final FlowVariableProvider flowVarResolver, final CredentialsProvider credProvider)
-            throws MessagingException, IOException, InvalidSettingsException {
+        throws MessagingException, IOException, InvalidSettingsException {
         String flowVarCorrectedText;
         try {
             flowVarCorrectedText = FlowVariableResolver.parse(m_text, flowVarResolver);
@@ -748,7 +789,9 @@ final class SendMailConfiguration {
         }
     }
 
-    /** Read top most history element, e.g. for smtp host. Used to init defaults.
+    /**
+     * Read top most history element, e.g. for smtp host. Used to init defaults.
+     *
      * @param historyID ...
      * @return ...
      */
@@ -802,12 +845,14 @@ final class SendMailConfiguration {
 
     /** @return the smtp connection timeout */
     int getSmptConnectionTimeout() {
-        return m_smtpConnectionTimeout ;
+        return m_smtpConnectionTimeout;
     }
 
-    /** sets the smtp connection timeout
+    /**
+     * sets the smtp connection timeout
+     *
      * @param smtpConnectionTimeout the connection timeout
-     * */
+     */
     void setSmptConnectionTimeout(final int smtpConnectionTimeout) {
         m_smtpConnectionTimeout = smtpConnectionTimeout;
     }
@@ -817,9 +862,11 @@ final class SendMailConfiguration {
         return m_smtpReadTimeout;
     }
 
-    /** sets the smtp read timeout
+    /**
+     * sets the smtp read timeout
+     *
      * @param smtpReadTimeout the connection timeout
-     * */
+     */
     void setSmptReadTimeout(final int smtpReadTimeout) {
         m_smtpReadTimeout = smtpReadTimeout;
     }
