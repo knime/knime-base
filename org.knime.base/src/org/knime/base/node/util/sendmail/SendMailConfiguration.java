@@ -617,13 +617,63 @@ final class SendMailConfiguration {
      */
     void send(final FlowVariableProvider flowVarResolver, final CredentialsProvider credProvider)
         throws MessagingException, IOException, InvalidSettingsException {
-        String flowVarCorrectedText;
+        final String flowVarCorrectedText = getVarCorrectedText(flowVarResolver);
+        Properties properties = new Properties(System.getProperties());
+        final String protocol = addPropertiesAndGetProtocol(properties);
+
+        // Make sure TLS is used. Available protocols can be obtained via:
+        // SSLContext.getDefault().getSupportedSSLParameters().getProtocols()
+        addMailProtocol(properties, protocol);
+
+        final Session session = Session.getInstance(properties, null);
+        final MimeMessage message = initMessage(session);
+
+        // text or html message part
+        final Multipart mp = initMessageBody(flowVarCorrectedText);
+
+        send(credProvider, protocol, session, message, mp);
+    }
+
+    private void send(final CredentialsProvider credProvider, final String protocol, final Session session,
+        final MimeMessage message, final Multipart mp)
+        throws IOException, InvalidSettingsException, MessagingException {
+        List<File> tempDirs = new ArrayList<>();
+        Transport t = null;
+        ClassLoader oldContextClassLoader = Thread.currentThread().getContextClassLoader();
+        // make sure to set class loader to javax.mail - this has caused problems in the past, see bug 5316
+        Thread.currentThread().setContextClassLoader(Session.class.getClassLoader());
         try {
-            flowVarCorrectedText = FlowVariableResolver.parse(m_text, flowVarResolver);
+            for (URL url : getAttachedURLs()) {
+                addAttachments(mp, tempDirs, url);
+            }
+            t = sendMail(credProvider, protocol, session, message, mp);
+        } catch (MessagingException e) {
+            if (e.getCause() instanceof SocketTimeoutException) {
+                String timeoutMessage = e.getMessage();
+                throw new InvalidSettingsException(timeoutMessage + ", try adjusting the smtp timeout settings", e);
+            } else {
+                throw new InvalidSettingsException("Error while communicating with the smtp server: " + e, e);
+            }
+        } finally {
+            Thread.currentThread().setContextClassLoader(oldContextClassLoader);
+            for (File d : tempDirs) {
+                FileUtils.deleteQuietly(d);
+            }
+            if (t != null) {
+                t.close();
+            }
+        }
+    }
+
+    private String getVarCorrectedText(final FlowVariableProvider flowVarResolver) throws InvalidSettingsException {
+        try {
+            return FlowVariableResolver.parse(m_text, flowVarResolver);
         } catch (NoSuchElementException nse) {
             throw new InvalidSettingsException(nse.getMessage(), nse);
         }
-        Properties properties = new Properties(System.getProperties());
+    }
+
+    private String addPropertiesAndGetProtocol(final Properties properties) {
         String protocol = "smtp";
         switch (getConnectionSecurity()) {
             case NONE:
@@ -657,9 +707,10 @@ final class SendMailConfiguration {
                 break;
             default:
         }
+        return protocol;
+    }
 
-        // Make sure TLS is used. Available protocols can be obtained via:
-        // SSLContext.getDefault().getSupportedSSLParameters().getProtocols()
+    private void addMailProtocol(final Properties properties, final String protocol) {
         final String mail = "mail.";
         properties.setProperty(mail + "smtp.ssl.protocols", "TLSv1 TLSv1.1 TLSv1.2");
 
@@ -673,10 +724,12 @@ final class SendMailConfiguration {
          */
         properties.setProperty(mail + protocol + ".connectiontimeout", String.valueOf(getSmptConnectionTimeout()));
         properties.setProperty(mail + protocol + ".timeout", String.valueOf(getSmptReadTimeout()));
+    }
 
-        Session session = Session.getInstance(properties, null);
+    private MimeMessage initMessage(final Session session) throws MessagingException, InvalidSettingsException {
 
-        MimeMessage message = new MimeMessage(session);
+        final MimeMessage message = new MimeMessage(session);
+
         if (!StringUtils.isBlank(getFrom())) {
             message.setFrom(new InternetAddress(getFrom()));
         } else {
@@ -699,7 +752,10 @@ final class SendMailConfiguration {
         message.setSentDate(new Date()); // NOSONAR
         message.setSubject(getSubject(), StandardCharsets.UTF_8.name());
 
-        // text or html message part
+        return message;
+    }
+
+    private Multipart initMessageBody(final String flowVarCorrectedText) throws MessagingException {
         MimeBodyPart contentBody = new MimeBodyPart();
         String textType;
         switch (getFormat()) {
@@ -715,79 +771,64 @@ final class SendMailConfiguration {
         contentBody.setContent(flowVarCorrectedText, textType);
         Multipart mp = new MimeMultipart();
         mp.addBodyPart(contentBody);
+        return mp;
+    }
 
-        List<File> tempDirs = new ArrayList<File>();
-        Transport t = null;
-        ClassLoader oldContextClassLoader = Thread.currentThread().getContextClassLoader();
-        // make sure to set class loader to javax.mail - this has caused problems in the past, see bug 5316
-        Thread.currentThread().setContextClassLoader(Session.class.getClassLoader());
-        try {
-            for (URL url : getAttachedURLs()) {
-                MimeBodyPart filePart = new MimeBodyPart();
-                File file;
-                if ("file".equals(url.getProtocol())) {
-                    try {
-                        file = new File(url.toURI());
-                    } catch (URISyntaxException e) {
-                        throw new IOException("Invalid attachment: " + url, e);
-                    }
-                } else {
-                    File tempDir = FileUtil.createTempDir("send-mail-attachment");
-                    tempDirs.add(tempDir);
-                    try {
-                        file = new File(tempDir, FilenameUtils.getName(url.toURI().getSchemeSpecificPart()));
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
-                    FileUtils.copyURLToFile(url, file);
-                }
-                if (!file.canRead()) {
-                    throw new IOException("Unable to file attachment \"" + url + "\"");
-                }
-                filePart.attachFile(file);
-                String encodedFileName = MimeUtility.encodeText(file.getName());
-                filePart.setFileName(encodedFileName);
-                // java 7u7 is missing mimemtypes.default file:
-                // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7096063
-                // find mime type in this bundle (META-INF folder contains mime.types) and set it
-                filePart.setHeader("Content-Type", FileTypeMap.getDefaultFileTypeMap().getContentType(file));
-                mp.addBodyPart(filePart);
+    private static void addAttachments(final Multipart mp, final List<File> tempDirs, final URL url)
+        throws IOException, MessagingException {
+        MimeBodyPart filePart = new MimeBodyPart();
+        File file;
+        if ("file".equals(url.getProtocol())) {
+            try {
+                file = new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw new IOException("Invalid attachment: " + url, e);
             }
-
-            t = session.getTransport(protocol);
-            if (isUseAuthentication()) {
-                String user;
-                String pass;
-                if (isUseCredentials()) {
-                    ICredentials iCredentials = credProvider.get(getCredentialsId());
-                    user = iCredentials.getLogin();
-                    pass = iCredentials.getPassword();
-                } else {
-                    user = getSmtpUser();
-                    pass = getSmtpPassword();
-                }
-                t.connect(user, pass);
-            } else {
-                t.connect();
+        } else {
+            File tempDir = FileUtil.createTempDir("send-mail-attachment");
+            tempDirs.add(tempDir);
+            try {
+                file = new File(tempDir, FilenameUtils.getName(url.toURI().getSchemeSpecificPart()));
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
             }
-            message.setContent(mp);
-            t.sendMessage(message, message.getAllRecipients());
-        } catch (MessagingException e) {
-            if (e.getCause() instanceof SocketTimeoutException) {
-                String timeoutMessage = e.getMessage();
-                throw new InvalidSettingsException(timeoutMessage + ", try adjusting the smtp timeout settings", e);
-            } else {
-                throw new InvalidSettingsException("Error while communicating with the smtp server: " + e, e);
-            }
-        } finally {
-            Thread.currentThread().setContextClassLoader(oldContextClassLoader);
-            for (File d : tempDirs) {
-                FileUtils.deleteQuietly(d);
-            }
-            if (t != null) {
-                t.close();
-            }
+            FileUtils.copyURLToFile(url, file);
         }
+        if (!file.canRead()) {
+            throw new IOException("Unable to file attachment \"" + url + "\"");
+        }
+        filePart.attachFile(file);
+        String encodedFileName = MimeUtility.encodeText(file.getName());
+        filePart.setFileName(encodedFileName);
+        // java 7u7 is missing mimemtypes.default file:
+        // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7096063
+        // find mime type in this bundle (META-INF folder contains mime.types) and set it
+        filePart.setHeader("Content-Type", FileTypeMap.getDefaultFileTypeMap().getContentType(file));
+        mp.addBodyPart(filePart);
+    }
+
+    private Transport sendMail(final CredentialsProvider credProvider, final String protocol, final Session session,
+        final MimeMessage message, final Multipart mp) throws MessagingException {
+        Transport t;
+        t = session.getTransport(protocol);
+        if (isUseAuthentication()) {
+            String user;
+            String pass;
+            if (isUseCredentials()) {
+                ICredentials iCredentials = credProvider.get(getCredentialsId());
+                user = iCredentials.getLogin();
+                pass = iCredentials.getPassword();
+            } else {
+                user = getSmtpUser();
+                pass = getSmtpPassword();
+            }
+            t.connect(user, pass);
+        } else {
+            t.connect();
+        }
+        message.setContent(mp);
+        t.sendMessage(message, message.getAllRecipients());
+        return t;
     }
 
     /**
