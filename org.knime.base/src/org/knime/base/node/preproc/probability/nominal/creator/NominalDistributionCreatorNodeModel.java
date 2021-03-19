@@ -529,7 +529,7 @@ final class NominalDistributionCreatorNodeModel extends NodeModel {
             } catch (IllegalArgumentException e) {
                 if (m_invalidHandling == ExceptionHandling.FAIL) {
                     throw new IllegalArgumentException(
-                        "The distribution of row '" + row.getKey().getString() + "' is invalid: " + e.getMessage());
+                        "The distribution of row '" + row.getKey().getString() + "' is invalid: " + e.getMessage(), e);
                 } else {
                     // set the same warning only once
                     if (!m_hasInvalidDistribution) {
