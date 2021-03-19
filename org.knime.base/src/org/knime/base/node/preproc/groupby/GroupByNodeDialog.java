@@ -224,7 +224,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0;
         c.weighty = 0;
-        topBottomPanel.add(createAdvancedOptionsBox(), c);
+        topBottomPanel.add(createAdvancedOptionsBox(), c); // NOSONAR public API
         super.addTab("Settings", topBottomPanel);
 
         //add the  process in memory change listener
@@ -545,13 +545,13 @@ public class GroupByNodeDialog extends NodeDialogPane {
             m_enableHilite.loadSettingsFrom(settings);
             m_columnNamePolicy.loadSettingsFrom(settings);
         } catch (final InvalidSettingsException e) {
-            throw new NotConfigurableException(e.getMessage());
+            throw new NotConfigurableException(e.getMessage(), e);
         }
 
         try {
             //this option was introduced in Knime 2.0
             m_aggrColPanel.loadSettingsFrom(settings, spec);
-        } catch (final InvalidSettingsException e) {
+        } catch (final InvalidSettingsException e) { // NOSONAR backwards compatible loading
             final List<ColumnAggregator> columnMethods =
                 GroupByNodeModel.compGetColumnMethods(spec, m_groupByCols.getIncludeList(), settings);
             m_aggrColPanel.initialize(spec, columnMethods);
@@ -559,25 +559,25 @@ public class GroupByNodeDialog extends NodeDialogPane {
         try {
             m_patternAggrPanel.loadSettingsFrom(settings, spec);
             m_dataTypeAggrPanel.loadSettingsFrom(settings, spec);
-        } catch (InvalidSettingsException e) {
+        } catch (InvalidSettingsException e) { // NOSONAR backwards compatible loading
             //introduced in 2.11
         }
         try {
             //this option was introduced in Knime 2.0.3+
             m_retainOrder.loadSettingsFrom(settings);
-        } catch (final InvalidSettingsException e) {
+        } catch (final InvalidSettingsException e) { // NOSONAR backwards compatible loading
             m_retainOrder.setBooleanValue(false);
         }
         try {
             //this option was introduced in Knime 2.1.2+
             m_inMemory.loadSettingsFrom(settings);
-        } catch (final InvalidSettingsException e) {
+        } catch (final InvalidSettingsException e) { // NOSONAR backwards compatible loading
             m_inMemory.setBooleanValue(false);
         }
         // this option was introduced in Knime 2.4+
         try {
             m_valueDelimiter.loadSettingsFrom(settings);
-        } catch (final InvalidSettingsException e) {
+        } catch (final InvalidSettingsException e) { // NOSONAR backwards compatible loading
             m_valueDelimiter.setStringValue(GlobalSettings.STANDARD_DELIMITER);
         }
         m_groupCol.loadSettingsFrom(settings, new DataTableSpec[]{spec});
@@ -585,14 +585,14 @@ public class GroupByNodeDialog extends NodeDialogPane {
         try {
             // AP-7020: the default value false ensures backwards compatibility (KNIME 3.8)
             m_typeMatch.setSelectedItem(TypeMatch.loadSettingsFrom(settings));
-        } catch (InvalidSettingsException e1) {
+        } catch (InvalidSettingsException e1) { // NOSONAR backwards compatible loading
             m_typeMatch.setSelectedItem(TypeMatch.SUB_TYPE);
         }
         columnsChanged();
         try {
             m_version.loadSettingsFrom(settings);
         } catch (final InvalidSettingsException e) {
-            throw new NotConfigurableException(e.getMessage());
+            throw new NotConfigurableException(e.getMessage(), e);
         }
     }
 
