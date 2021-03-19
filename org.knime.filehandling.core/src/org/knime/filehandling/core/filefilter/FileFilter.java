@@ -60,6 +60,7 @@ import java.util.stream.Collectors;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
+import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
  * File Filter.
@@ -153,7 +154,7 @@ public class FileFilter implements Predicate<Path> {
          */
         @Override
         public boolean isDefault() {
-            return this.equals(WILDCARD);
+            return this == WILDCARD;
         }
     }
 
@@ -218,7 +219,7 @@ public class FileFilter implements Predicate<Path> {
         final FilterType filterMode = m_fileFilterSettings.getFilterType();
         final String filterExpression = m_fileFilterSettings.getFilterExpressionName();
         final String regexString =
-            filterMode.equals(FilterType.WILDCARD) ? wildcardToRegex(filterExpression, false) : filterExpression;
+            filterMode == FilterType.WILDCARD ? wildcardToRegex(filterExpression, false) : filterExpression;
         final Pattern regex = m_fileFilterSettings.isFilterCaseSensitiveName() ? Pattern.compile(regexString)
             : Pattern.compile(regexString, Pattern.CASE_INSENSITIVE);
         boolean accept = false;
@@ -260,58 +261,10 @@ public class FileFilter implements Predicate<Path> {
      * @return the corresponding regular expression
      */
     private static final String wildcardToRegex(final String wildcard, final boolean enableEscaping) {
-        // FIXME: This method is copied from org.knime.base.util.WildcardMatcher
-        // (we don't want to import org.knime.base)
-        // This needs to be replaced by a more convenient solutions
-        final StringBuilder buf = new StringBuilder(wildcard.length() + 20);
+        return WildcardToRegexUtil.wildcardToRegex(wildcard, enableEscaping);
 
-        for (int i = 0; i < wildcard.length(); i++) {
-            final char c = wildcard.charAt(i);
-            switch (c) {
-                case '*':
-                    if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
-                        buf.append('*');
-                    } else {
-                        buf.append(".*");
-                    }
-                    break;
-                case '?':
-                    if (enableEscaping && (i > 0) && (wildcard.charAt(i - 1) == '\\')) {
-                        buf.append('?');
-                    } else {
-                        buf.append(".");
-                    }
-                    break;
-                case '\\':
-                    if (enableEscaping) {
-                        buf.append(c);
-                        break;
-                    }
-                case '^':
-                case '$':
-                case '[':
-                case ']':
-                case '{':
-                case '}':
-                case '(':
-                case ')':
-                case '|':
-                case '+':
-                case '.':
-                    buf.append("\\");
-                    buf.append(c);
-                    break;
-                default:
-                    buf.append(c);
-            }
-        }
-
-        return buf.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean test(final Path path) {
         return Files.isRegularFile(path) && //
