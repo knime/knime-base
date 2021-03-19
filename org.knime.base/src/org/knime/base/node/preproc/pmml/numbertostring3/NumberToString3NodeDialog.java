@@ -51,8 +51,7 @@ import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
 
 /**
- * Dialog for the Number to String Node.
- * Lets the user choose the columns to use.
+ * Dialog for the Number to String Node. Lets the user choose the columns to use.
  *
  * @author cebron, University of Konstanz
  * @since 4.0
@@ -63,8 +62,9 @@ public class NumberToString3NodeDialog extends DefaultNodeSettingsPane {
      * Constructor.
      *
      */
-    @SuppressWarnings("unchecked")
     public NumberToString3NodeDialog() {
-        addDialogComponent(new DialogComponentColumnFilter2(NumberToString3NodeModel.createInclModel(), 0));
+        addDialogComponent(new DialogComponentColumnFilter2( // NOSONAR public API
+            NumberToString3NodeModel.createInclModel(), 0)//
+        );
     }
 }
