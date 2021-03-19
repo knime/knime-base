@@ -49,8 +49,8 @@ package org.knime.base.node.preproc.pmml.numbertostring3;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Vector;
 
+import org.knime.base.node.util.spec.TableSpecUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -75,15 +75,17 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.pmml.PMMLPortObject;
 
 /**
- * The NodeModel for the Number to String Node that converts numbers
- * to StringValues.
+ * The NodeModel for the Number to String Node that converts numbers to StringValues.
  *
  * @author Johannes Schweig
  * @param <T> SettingsModel for a ColumnFilter component
  * @since 4.0
  */
 
-public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> extends NodeModel{
+public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> extends NodeModel {
+
+    /** The filter value class. */
+    private static final Class<DoubleValue> VALUE_CLASS = DoubleValue.class;
 
     /**
      * Key for the included columns in the NodeSettings.
@@ -93,23 +95,22 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
     /** The included columns. */
     private final T m_inclCols;
 
-
     /**
-     * Constructor with one data inport, one data outport and an optional
-     * PMML inport and outport.
+     * Constructor with one data inport, one data outport and an optional PMML inport and outport.
+     *
      * @param pmmlInEnabled true if there should be an optional input port
      * @param inclCols SettingsModel for a ColumnFilter component
      * @since 3.0
      */
     public AbstractNumberToStringNodeModel(final boolean pmmlInEnabled, final T inclCols) {
-        super(pmmlInEnabled ? new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE_OPTIONAL} : new PortType[]{BufferedDataTable.TYPE},
-                new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE});
+        super(pmmlInEnabled ? new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE_OPTIONAL}
+            : new PortType[]{BufferedDataTable.TYPE}, new PortType[]{BufferedDataTable.TYPE, PMMLPortObject.TYPE});
         m_inclCols = inclCols;
     }
 
     /**
-     * Constructor with one data inport, one data outport and an optional
-     * PMML inport and outport.
+     * Constructor with one data inport, one data outport and an optional PMML inport and outport.
+     *
      * @param inclCols SettingsModel for a ColumnFilter component
      */
     public AbstractNumberToStringNodeModel(final T inclCols) {
@@ -117,58 +118,35 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
         m_inclCols = inclCols;
     }
 
-
-
     /**
      * Returns the indices of columns that the transformation should be applied to
+     *
      * @param spec the current DataTableSpec
      * @return an integer array with the column indices
      * @throws InvalidSettingsException
      */
-    protected int[] findColumnIndices(final DataTableSpec spec)
-            throws InvalidSettingsException {
-        String[] inclCols = getStoredInclCols(spec);
-        StringBuilder warnings = new StringBuilder();
+    protected int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
+        final String[] inclCols = getStoredInclCols(spec);
+        final StringBuilder warnings = new StringBuilder();
         if (inclCols.length == 0) {
             warnings.append("No columns selected");
         }
-        Vector<Integer> indicesvec = new Vector<Integer>();
+        final int[] indices;
         if (isKeepAllSelected()) {
-            for (DataColumnSpec cspec : spec) {
-                if (cspec.getType().isCompatible(DoubleValue.class)) {
-                    indicesvec.add(spec.findColumnIndex(cspec.getName()));
-                }
-            }
+            indices = TableSpecUtils.findAllCompatibleColumns(spec, VALUE_CLASS);
         } else {
-            for (int i = 0; i < inclCols.length; i++) {
-                int colIndex = spec.findColumnIndex(inclCols[i]);
-                if (colIndex >= 0) {
-                    DataType type = spec.getColumnSpec(colIndex).getType();
-                    if (type.isCompatible(DoubleValue.class)) {
-                        indicesvec.add(colIndex);
-                    } else {
-                        warnings.append("Ignoring column \""
-                                        + spec.getColumnSpec(colIndex).getName()
-                                        + "\"\n");
-                    }
-                } else {
-                    throw new InvalidSettingsException("Column \""
-                            + inclCols[i] + "\" not found.");
-                }
-            }
+            indices = TableSpecUtils.findCompatibleColumns(spec, inclCols, VALUE_CLASS, warnings::append);
         }
         if (warnings.length() > 0) {
             setWarningMessage(warnings.toString());
-        }
-        int[] indices = new int[indicesvec.size()];
-        for (int i = 0; i < indices.length; i++) {
-            indices[i] = indicesvec.get(i);
         }
         return indices;
     }
 
     /**
-     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns which were previously of a compatible spec but not anymore.
+     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns
+     * which were previously of a compatible spec but not anymore.
+     *
      * @param inSpec the current DataTableSpec
      * @return a String array with the included columns
      */
@@ -190,8 +168,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inclCols.loadSettingsFrom(settings);
     }
 
@@ -207,8 +184,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inclCols.validateSettings(settings);
     }
 
@@ -216,19 +192,18 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
     }
+
     /**
      * @return the included columns
      */
@@ -299,15 +274,12 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
          */
         @Override
         public DataColumnSpec[] getColumnSpecs() {
-            DataColumnSpec[] newcolspecs =
-                    new DataColumnSpec[m_colindices.length];
+            DataColumnSpec[] newcolspecs = new DataColumnSpec[m_colindices.length];
             for (int i = 0; i < newcolspecs.length; i++) {
                 DataColumnSpec colspec = m_spec.getColumnSpec(m_colindices[i]);
                 DataColumnSpecCreator colspeccreator = null;
                 // change DataType to StringCell
-                colspeccreator =
-                        new DataColumnSpecCreator(colspec.getName(),
-                                StringCell.TYPE);
+                colspeccreator = new DataColumnSpecCreator(colspec.getName(), StringCell.TYPE);
                 newcolspecs[i] = colspeccreator.createSpec();
             }
             return newcolspecs;
@@ -315,18 +287,18 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
 
         /**
          * {@inheritDoc}
+         *
          * @deprecated
          */
         @Deprecated
         @Override
-        public void setProgress(final int curRowNr, final int rowCount,
-                final RowKey lastKey, final ExecutionMonitor exec) {
+        public void setProgress(final int curRowNr, final int rowCount, final RowKey lastKey,
+            final ExecutionMonitor exec) {
             exec.setProgress((double)curRowNr / (double)rowCount, "Converting");
         }
 
         /**
-         * Error messages that occur during execution , i.e.
-         * NumberFormatException.
+         * Error messages that occur during execution , i.e. NumberFormatException.
          *
          * @return error message
          */

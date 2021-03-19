@@ -50,10 +50,10 @@ package org.knime.base.node.preproc.pmml.stringtonumber3;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Vector;
 import java.util.regex.Pattern;
 
 import org.knime.base.node.preproc.pmml.PMMLStringConversionTranslator;
+import org.knime.base.node.util.spec.TableSpecUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -93,6 +93,9 @@ import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
  */
 
 public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> extends NodeModel {
+
+    /** The filter value class. */
+    private static final Class<StringValue> VALUE_CLASS = StringValue.class;
 
     /**
      * The possible types that the string can be converted to.
@@ -244,46 +247,16 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
         if (inclCols.length == 0) {
             warnings.append("No columns selected");
         }
-        Vector<Integer> indicesvec = new Vector<Integer>();
-        getStringValueIndicies(spec, inclCols, warnings, indicesvec);
+        final int[] indices;
+        if (isKeepAllSelected()) {
+            indices = TableSpecUtils.findAllCompatibleColumns(spec, VALUE_CLASS);
+        } else {
+            indices = TableSpecUtils.findCompatibleColumns(spec, inclCols, VALUE_CLASS, warnings::append);
+        }
         if (warnings.length() > 0) {
             setWarningMessage(warnings.toString());
         }
-        int[] indices = new int[indicesvec.size()];
-        for (int i = 0; i < indices.length; i++) {
-            indices[i] = indicesvec.get(i);
-        }
         return indices;
-    }
-
-    private void getStringValueIndicies(final DataTableSpec spec, final String[] inclCols, final StringBuilder warnings,
-        final Vector<Integer> indicesvec) throws InvalidSettingsException {
-        if (isKeepAllSelected()) {
-            for (DataColumnSpec cspec : spec) {
-                if (cspec.getType().isCompatible(StringValue.class)) {
-                    indicesvec.add(spec.findColumnIndex(cspec.getName()));
-                }
-            }
-        } else {
-            for (int i = 0; i < inclCols.length; i++) {
-                getInclColIndicies(spec, inclCols, warnings, indicesvec, i);
-            }
-        }
-    }
-
-    private void getInclColIndicies(final DataTableSpec spec, final String[] inclCols, final StringBuilder warnings,
-        final Vector<Integer> indicesvec, final int i) throws InvalidSettingsException {
-        int colIndex = spec.findColumnIndex(inclCols[i]);
-        if (colIndex >= 0) {
-            DataType type = spec.getColumnSpec(colIndex).getType();
-            if (type.isCompatible(StringValue.class)) {
-                indicesvec.add(colIndex);
-            } else {
-                warnings.append("Ignoring column \"" + spec.getColumnSpec(colIndex).getName() + "\"\n");
-            }
-        } else {
-            throw new InvalidSettingsException("Column \"" + inclCols[i] + "\" not found.");
-        }
     }
 
     /**
