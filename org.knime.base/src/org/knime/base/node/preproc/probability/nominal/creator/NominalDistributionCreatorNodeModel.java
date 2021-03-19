@@ -395,11 +395,6 @@ final class NominalDistributionCreatorNodeModel extends NodeModel {
         // no op
     }
 
-    private static String[] getValues(final DataColumnSpec spec) {
-        final NominalDistributionValueMetaData metaData = NominalDistributionValueMetaData.extractFromSpec(spec);
-        return metaData.getValues().toArray(new String[0]);
-    }
-
     /**
      * Abstract implementation of a cell factory that appends a {@link NominalDistributionCell} column to a table.
      *
@@ -431,6 +426,12 @@ final class NominalDistributionCreatorNodeModel extends NodeModel {
                 m_hasWarning = true;
             }
         }
+
+        private String[] getValues(final DataColumnSpec spec) {
+            final NominalDistributionValueMetaData metaData = NominalDistributionValueMetaData.extractFromSpec(spec);
+            return metaData.getValues().toArray(new String[0]);
+        }
+
     }
 
     /**
@@ -515,11 +516,13 @@ final class NominalDistributionCreatorNodeModel extends NodeModel {
                         case ZERO:
                             setWarningIfNotSet(
                                 "At least one row contains a missing value. They have been treated as zeroes.");
-                            values[i++] = 0;
+                            values[i] = 0;
+                            i++;
                             continue;
                     }
                 }
-                values[i++] = ((DoubleValue)cell).getDoubleValue();
+                values[i] = ((DoubleValue)cell).getDoubleValue();
+                i++;
             }
             try {
                 return m_factory.createCell(values, m_epsilon);
