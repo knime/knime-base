@@ -100,7 +100,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     /**
      * The possible types that the string can be converted to.
      */
-    public static final DataType[] POSSIBLETYPES = new DataType[]{DoubleCell.TYPE, IntCell.TYPE};
+    public static final DataType[] POSSIBLETYPES = new DataType[]{DoubleCell.TYPE, IntCell.TYPE}; // NOSONAR public API
 
     /* Node Logger of this class. */
     private static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractStringToNumberNodeModel.class);
