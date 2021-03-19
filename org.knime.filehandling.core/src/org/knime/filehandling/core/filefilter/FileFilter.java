@@ -57,6 +57,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
@@ -67,6 +68,8 @@ import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
 public class FileFilter implements Predicate<Path> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(FileFilter.class);
 
     /**
      * FilterType enumeration used for {@link FileFilter}.
@@ -173,6 +176,7 @@ public class FileFilter implements Predicate<Path> {
         try {
             return !(m_fileFilterSettings.filterHiddenFiles() && Files.isHidden(path));
         } catch (final IOException ex) {
+            LOGGER.debug("Unable to dertermine if the file is hidden or not.", ex);
             return true;
         }
     }
