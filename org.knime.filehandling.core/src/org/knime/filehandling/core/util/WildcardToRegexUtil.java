@@ -110,7 +110,7 @@ public final class WildcardToRegexUtil {
                 case '|':
                 case '+':
                 case '.':
-                    buf.append("\\");
+                    buf.append('\\');
                     buf.append(c);
                     break;
                 default:
