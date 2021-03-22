@@ -48,7 +48,6 @@
 package org.knime.base.node.preproc.tablediff;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -524,9 +523,10 @@ final class TableDifferNodeModel extends NodeModel {
         long rowKeyNo = 0L;
 
         for (int[] pos : colMapping.values()) {
-            checkSpecDifferences(buf, rowKeyNo++, refSpec, pos[PORT_REFERENCE_TABLE], compSpec,
+            checkSpecDifferences(buf, rowKeyNo, refSpec, pos[PORT_REFERENCE_TABLE], compSpec,
                 pos[PORT_COMPARED_TABLE], confFailMode);
             exec.checkCanceled();
+            rowKeyNo++;
         }
         buf.close();
         return buf.getTable();
@@ -569,8 +569,6 @@ final class TableDifferNodeModel extends NodeModel {
             domainEquals = refDomain.equals(compDomain);
             typeEquals = refDataColSpec.getType().equals(compDataColSpec.getType());
         } else {
-            refDomain = null;
-            compDomain = null;
             specEquals = false;
             domainEquals = false;
             typeEquals = false;
@@ -618,15 +616,12 @@ final class TableDifferNodeModel extends NodeModel {
     }
 
     @Override
-    protected void loadInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File internDir, final ExecutionMonitor exec) {
         //no internals
-
     }
 
     @Override
-    protected void saveInternals(final File internDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File internDir, final ExecutionMonitor exec) {
         //no internals
     }
 

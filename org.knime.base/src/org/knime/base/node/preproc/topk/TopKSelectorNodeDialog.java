@@ -88,8 +88,6 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
     private final DynamicSorterPanel m_panel;
 
-    private final AdvancedSettingsNodeDialog m_advancedSettings;
-
     private final DialogComponentNumber m_kComp;
 
     private final DialogComponentStringSelection m_topkMode;
@@ -102,7 +100,6 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         super();
 
         m_settings = new TopKSelectorSettings();
-        m_advancedSettings = new AdvancedSettingsNodeDialog(m_settings);
 
         m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY);
 
@@ -113,7 +110,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
         super.addTab(TAB, createPanel());
 
-        super.addTab(TAB_ADVANCED_SETTINGS, m_advancedSettings.getPanel());
+        super.addTab(TAB_ADVANCED_SETTINGS, new AdvancedSettingsNodeDialog(m_settings).getPanel());
     }
 
     /**
@@ -137,7 +134,6 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         gbc.insets = new Insets(0, -9, 0, 0);
         p.add(m_topkMode.getComponentPanel(), gbc);
         ++gbc.gridx;
-        //        gbc.insets =  new Insets(0,0,0,0);
         p.add(m_kComp.getComponentPanel(), gbc);
         ++gbc.gridx;
         gbc.weightx = 1;

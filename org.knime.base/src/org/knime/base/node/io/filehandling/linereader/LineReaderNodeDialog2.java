@@ -84,7 +84,6 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.core.util.SettingsUtils;
@@ -128,31 +127,32 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
 
     private final LineMultiTableReadConfig m_config;
 
-    private final PathSettings m_pathSettings;
+    private final SettingsModelReaderFileChooser m_settingsModelReaderFileChooser;
 
     /**
      * Constructor.
      *
-     * @param pathSettings the {@link PathSettings}
+     * @param settingsModelFileChooser the {@link SettingsModelReaderFileChooser}
      * @param config the {@link DefaultMultiTableReadConfig}
      * @param multiReader the {@link MultiTableReadFactory}
      * @param productionPathProvider the {@link ProductionPathProvider}
      */
-    LineReaderNodeDialog2(final PathSettings pathSettings, final LineMultiTableReadConfig config,
+    LineReaderNodeDialog2(final SettingsModelReaderFileChooser settingsModelFileChooser,
+        final LineMultiTableReadConfig config,
         final MultiTableReadFactory<Path, LineReaderConfig2, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(multiReader, productionPathProvider, true);
 
-        final SettingsModelReaderFileChooser fileChooserModel = (SettingsModelReaderFileChooser)pathSettings;
+        m_settingsModelReaderFileChooser = settingsModelFileChooser;
+
         final FlowVariableModel sourceFvm = createFlowVariableModel(
             Stream.concat(Stream.of(SettingsUtils.CFG_SETTINGS_TAB),
-                Arrays.stream(fileChooserModel.getKeysForFSLocation())).toArray(String[]::new),
+                Arrays.stream(m_settingsModelReaderFileChooser.getKeysForFSLocation())).toArray(String[]::new),
             FSLocationSpecVariableType.INSTANCE);
 
         m_config = config;
-        m_pathSettings = pathSettings;
 
-        m_sourceFilePanel = new DialogComponentReaderFileChooser(fileChooserModel, "source_chooser", sourceFvm);
+        m_sourceFilePanel = new DialogComponentReaderFileChooser(m_settingsModelReaderFileChooser, "source_chooser", sourceFvm);
         m_sourceFilePanel.getSettingsModel().getFilterModeModel().addChangeListener(l -> failOnDiffSpecsListener());
 
         m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
@@ -450,7 +450,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
 
     @Override
     protected ReadPathAccessor createReadPathAccessor() {
-        return m_pathSettings.createReadPathAccessor();
+        return m_settingsModelReaderFileChooser.createReadPathAccessor();
     }
 
     @Override

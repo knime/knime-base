@@ -63,14 +63,10 @@ import org.knime.core.data.def.IntCell.IntCellFactory;
 /**
  * Contains unit tests for {@link HeapTopKUniqueRowsSelector}}
  *
- * @author lars.schweikardt
+ * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
 
 public class TopKUniqueRowTest {
-
-    private HeapTopKUniqueRowsSelector m_uniqueRowSelector;
-
-    private List<DataRow> m_input;
 
     private static int compareRows(final DataRow left, final DataRow right) {
 
@@ -95,14 +91,18 @@ public class TopKUniqueRowTest {
         return new HeapTopKUniqueRowsSelector(TopKUniqueRowTest::compareRows, topK);
     }
 
+    /**
+     * Test for k = 2 with ascending ordered input.
+     */
     @Test
     public void testTop2AscendingOrderedInput() {
 
-        m_uniqueRowSelector = createRowSelector(2);
-        m_input = createInputRows(1, 1, 2, 2, 3, 3);
+        final HeapTopKUniqueRowsSelector uniqueRowSelector = createRowSelector(2);
 
-        for (DataRow dataRow : m_input) {
-            m_uniqueRowSelector.consume(dataRow);
+        final List<DataRow> input = createInputRows(1, 1, 2, 2, 3, 3);
+
+        for (DataRow dataRow : input) {
+            uniqueRowSelector.consume(dataRow);
         }
 
         final List<DataRow> expectedOutput = new ArrayList<>();
@@ -112,17 +112,20 @@ public class TopKUniqueRowTest {
         expectedOutput.add(new DefaultRow(RowKey.createRowKey(4L), IntCellFactory.create(3)));
         expectedOutput.add(new DefaultRow(RowKey.createRowKey(5L), IntCellFactory.create(3)));
 
-        assertEquals(expectedOutput, new ArrayList<DataRow>(m_uniqueRowSelector.getTopK()));
+        assertEquals(expectedOutput, new ArrayList<DataRow>(uniqueRowSelector.getTopK()));
     }
 
+    /**
+     * Test for k = 2 with descending ordered input.
+     */
     @Test
     public void testTop2DescendingOrderedInput() {
 
-        m_uniqueRowSelector = createRowSelector(2);
-        m_input = createInputRows(4, 3, 3, 2, 2, 1, 1, 0);
+        final HeapTopKUniqueRowsSelector uniqueRowSelector = createRowSelector(2);
+        final List<DataRow> input = createInputRows(4, 3, 3, 2, 2, 1, 1, 0);
 
-        for (DataRow dataRow : m_input) {
-            m_uniqueRowSelector.consume(dataRow);
+        for (DataRow dataRow : input) {
+            uniqueRowSelector.consume(dataRow);
         }
 
         final List<DataRow> expectedOutput = new ArrayList<>();
@@ -131,17 +134,20 @@ public class TopKUniqueRowTest {
         expectedOutput.add(new DefaultRow(RowKey.createRowKey(2L), IntCellFactory.create(3)));
         expectedOutput.add(new DefaultRow(RowKey.createRowKey(0L), IntCellFactory.create(4)));
 
-        assertEquals(expectedOutput, new ArrayList<DataRow>(m_uniqueRowSelector.getTopK()));
+        assertEquals(expectedOutput, new ArrayList<DataRow>(uniqueRowSelector.getTopK()));
     }
 
+    /**
+     * Test for k = 2 with random ordered input.
+     */
     @Test
     public void testTop2RandomOrderedInput() {
 
-        m_uniqueRowSelector = createRowSelector(3);
-        m_input = createInputRows(0, 1, 2, 2, 1, 2, 1, 4);
+        final HeapTopKUniqueRowsSelector uniqueRowSelector = createRowSelector(3);
+        final List<DataRow> input = createInputRows(0, 1, 2, 2, 1, 2, 1, 4);
 
-        for (DataRow dataRow : m_input) {
-            m_uniqueRowSelector.consume(dataRow);
+        for (DataRow dataRow : input) {
+            uniqueRowSelector.consume(dataRow);
         }
 
         final List<DataRow> expectedOutput = new ArrayList<>();
@@ -154,17 +160,20 @@ public class TopKUniqueRowTest {
         expectedOutput.add(new DefaultRow(RowKey.createRowKey(5L), IntCellFactory.create(2)));
         expectedOutput.add(new DefaultRow(RowKey.createRowKey(7L), IntCellFactory.create(4)));
 
-        assertEquals(expectedOutput, new ArrayList<DataRow>(m_uniqueRowSelector.getTopK()));
+        assertEquals(expectedOutput, new ArrayList<DataRow>(uniqueRowSelector.getTopK()));
     }
 
+    /**
+     * Test for k = 1.
+     */
     @Test
     public void testTop1() {
 
-        m_uniqueRowSelector = createRowSelector(1);
-        m_input = createInputRows(0, 1, 2, 2, 1, 2, 1, 4, 4);
+        final HeapTopKUniqueRowsSelector uniqueRowSelector = createRowSelector(1);
+        final List<DataRow> input = createInputRows(0, 1, 2, 2, 1, 2, 1, 4, 4);
 
-        for (DataRow dataRow : m_input) {
-            m_uniqueRowSelector.consume(dataRow);
+        for (DataRow dataRow : input) {
+            uniqueRowSelector.consume(dataRow);
         }
 
         final List<DataRow> expectedOutput = new ArrayList<>();
@@ -172,7 +181,7 @@ public class TopKUniqueRowTest {
         expectedOutput.add(new DefaultRow(RowKey.createRowKey(7L), IntCellFactory.create(4)));
         expectedOutput.add(new DefaultRow(RowKey.createRowKey(8L), IntCellFactory.create(4)));
 
-        assertEquals(expectedOutput, new ArrayList<DataRow>(m_uniqueRowSelector.getTopK()));
+        assertEquals(expectedOutput, new ArrayList<DataRow>(uniqueRowSelector.getTopK()));
     }
 
 }
