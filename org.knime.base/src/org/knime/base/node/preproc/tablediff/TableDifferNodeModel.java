@@ -532,7 +532,6 @@ final class TableDifferNodeModel extends NodeModel {
         return buf.getTable();
     }
 
-
     /**
      * Checks if there are differences w.r.t. the data type, domain and position of the DataColumnSpecs.
      *

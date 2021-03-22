@@ -94,7 +94,6 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
     private final DialogComponentStringSelection m_topkMode;
 
-
     /**
      * Constructor.
      */
@@ -107,11 +106,10 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
         m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY);
 
-        m_kComp = new DialogComponentNumber(m_settings.getKModel(),"", 1);
+        m_kComp = new DialogComponentNumber(m_settings.getKModel(), "", 1);
 
-        m_topkMode = new DialogComponentStringSelection(m_settings.getTopKModeModel(), "", Stream.of(TopKMode.values())
-            .map(TopKMode::getText)
-            .collect(Collectors.toList()));
+        m_topkMode = new DialogComponentStringSelection(m_settings.getTopKModeModel(), "",
+            Stream.of(TopKMode.values()).map(TopKMode::getText).collect(Collectors.toList()));
 
         super.addTab(TAB, createPanel());
 
@@ -139,7 +137,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         gbc.insets = new Insets(0, -9, 0, 0);
         p.add(m_topkMode.getComponentPanel(), gbc);
         ++gbc.gridx;
-//        gbc.insets =  new Insets(0,0,0,0);
+        //        gbc.insets =  new Insets(0,0,0,0);
         p.add(m_kComp.getComponentPanel(), gbc);
         ++gbc.gridx;
         gbc.weightx = 1;

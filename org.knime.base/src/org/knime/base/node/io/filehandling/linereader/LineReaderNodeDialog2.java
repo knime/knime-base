@@ -138,8 +138,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
      * @param multiReader the {@link MultiTableReadFactory}
      * @param productionPathProvider the {@link ProductionPathProvider}
      */
-    LineReaderNodeDialog2(final PathSettings pathSettings,
-        final LineMultiTableReadConfig config,
+    LineReaderNodeDialog2(final PathSettings pathSettings, final LineMultiTableReadConfig config,
         final MultiTableReadFactory<Path, LineReaderConfig2, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
         super(multiReader, productionPathProvider, true);
