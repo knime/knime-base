@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filtermode;
 
+import java.util.Objects;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.Config;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderFilter.FilterType;
@@ -84,6 +86,9 @@ final class FilterOptionsSettings {
     /** Configuration key for the option to include hidden files. */
     private static final String CFG_INCLUDE_HIDDEN_FILES = "include_hidden_files";
 
+    /** Configuration key for the option to include non-regular files. */
+    private static final String CFG_INCLUDE_SPECIAL_FILES = "include_special_files";
+
     /** Configuration key for the option to filter folders by name in selected folder. */
     private static final String CFG_FOLDERS_FILTER_BY_NAME = "filter_folders_name";
 
@@ -101,6 +106,8 @@ final class FilterOptionsSettings {
 
     /** True, if hidden files should be included. */
     private boolean m_includeHiddenFiles = false;
+
+    private boolean m_includeSpecialFiles = true;
 
     /** True, if files should be filtered by extension. */
     private boolean m_filterFilesByExtension;
@@ -501,65 +508,33 @@ final class FilterOptionsSettings {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof FilterOptionsSettings)) {
-            return false;
+        if (obj instanceof FilterOptionsSettings) {
+            final FilterOptionsSettings other = (FilterOptionsSettings)obj;
+            return fileOptionsAreEqual(other) && folderOptionsAreEqual(other);
         }
-        final FilterOptionsSettings other = (FilterOptionsSettings)obj;
-        if (m_filesExtensionCaseSensitive != other.m_filesExtensionCaseSensitive) {
-            return false;
-        }
-        if (m_filesExtensionExpression == null) {
-            if (other.m_filesExtensionExpression != null) {
-                return false;
-            }
-        } else if (!m_filesExtensionExpression.equals(other.m_filesExtensionExpression)) {
-            return false;
-        }
-        if (m_filesNameCaseSensitive != other.m_filesNameCaseSensitive) {
-            return false;
-        }
-        if (m_filesNameExpression == null) {
-            if (other.m_filesNameExpression != null) {
-                return false;
-            }
-        } else if (!m_filesNameExpression.equals(other.m_filesNameExpression)) {
-            return false;
-        }
-        if (m_filesNameFilterType != other.m_filesNameFilterType) {
-            return false;
-        }
-        if (m_filterFilesByExtension != other.m_filterFilesByExtension) {
-            return false;
-        }
-        if (m_filterFilesByName != other.m_filterFilesByName) {
-            return false;
-        }
-        if (m_filterFoldersByName != other.m_filterFoldersByName) {
-            return false;
-        }
-        if (m_foldersNameCaseSensitive != other.m_foldersNameCaseSensitive) {
-            return false;
-        }
-        if (m_foldersNameExpression == null) {
-            if (other.m_foldersNameExpression != null) {
-                return false;
-            }
-        } else if (!m_foldersNameExpression.equals(other.m_foldersNameExpression)) {
-            return false;
-        }
-        if (m_foldersNameFilterType != other.m_foldersNameFilterType) {
-            return false;
-        }
-        if (m_includeHiddenFiles != other.m_includeHiddenFiles) {
-            return false;
-        }
-        if (m_includeSpecialFiles != other.m_includeSpecialFiles) {
-            return false;
-        }
-        if (m_includeHiddenFolders != other.m_includeHiddenFolders) {
-            return false;
-        }
-        return true;
+        return false;
+    }
+
+    @SuppressWarnings("squid:S1067")
+    private boolean fileOptionsAreEqual(final FilterOptionsSettings other) {
+        return m_includeHiddenFiles == other.m_includeHiddenFiles//
+            && m_includeSpecialFiles == other.m_includeSpecialFiles//
+            && m_filesNameCaseSensitive == other.m_filesNameCaseSensitive//
+            && m_filesNameFilterType == other.m_filesNameFilterType//
+            && m_filterFilesByExtension == other.m_filterFilesByExtension//
+            && m_filterFilesByName == other.m_filterFilesByName//
+            && m_filesExtensionCaseSensitive == other.m_filesExtensionCaseSensitive//
+            && Objects.equals(m_filesNameExpression, other.m_filesNameExpression)//
+            && Objects.equals(m_filesExtensionExpression, other.m_filesExtensionExpression);
+    }
+
+    @SuppressWarnings("squid:S1067")
+    private boolean folderOptionsAreEqual(final FilterOptionsSettings other) {
+        return m_foldersNameFilterType == other.m_foldersNameFilterType//
+                && m_includeHiddenFolders == other.m_includeHiddenFolders//
+                && m_filterFoldersByName == other.m_filterFoldersByName//
+                && m_foldersNameCaseSensitive == other.m_foldersNameCaseSensitive//
+                && Objects.equals(m_foldersNameExpression, other.m_foldersNameExpression);
     }
 
 }
