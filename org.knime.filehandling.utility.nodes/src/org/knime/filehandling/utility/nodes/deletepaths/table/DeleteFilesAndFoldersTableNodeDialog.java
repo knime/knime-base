@@ -76,7 +76,7 @@ final class DeleteFilesAndFoldersTableNodeDialog
 
     private final DialogComponentColumnNameSelection m_selectedColumnNameComponent;
 
-    private final DialogComponentBoolean m_abortIfFileNotExist;
+    private final DialogComponentBoolean m_failIfFileDoesNotExist;
 
     /**
      * Constructor.
@@ -91,8 +91,8 @@ final class DeleteFilesAndFoldersTableNodeDialog
             portsConfig.getInputPortLocation().get(DeleteFilesAndFoldersTableNodeFactory.TABLE_INPUT_PORT_GRP_NAME)[0],
             FSLocationValue.class);
 
-        m_abortIfFileNotExist =
-            new DialogComponentBoolean(getConfig().getAbortIfFileNotExistsModel(), "Abort if file does not exist");
+        m_failIfFileDoesNotExist =
+            new DialogComponentBoolean(getConfig().getFailIfFileNotExistsModel(), "Fail if file does not exist");
 
         createSettingsTab();
     }
@@ -109,14 +109,14 @@ final class DeleteFilesAndFoldersTableNodeDialog
 
     @Override
     protected Optional<JPanel> additionalOptions() {
-        return Optional.of(m_abortIfFileNotExist.getComponentPanel());
+        return Optional.of(m_failIfFileDoesNotExist.getComponentPanel());
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_selectedColumnNameComponent.saveSettingsTo(settings);
         super.saveSettingsTo(settings);
-        m_abortIfFileNotExist.saveSettingsTo(settings);
+        m_failIfFileDoesNotExist.saveSettingsTo(settings);
     }
 
     @Override
@@ -124,6 +124,6 @@ final class DeleteFilesAndFoldersTableNodeDialog
         throws NotConfigurableException {
         m_selectedColumnNameComponent.loadSettingsFrom(settings, specs);
         super.loadSettingsFrom(settings, specs);
-        m_abortIfFileNotExist.loadSettingsFrom(settings, specs);
+        m_failIfFileDoesNotExist.loadSettingsFrom(settings, specs);
     }
 }

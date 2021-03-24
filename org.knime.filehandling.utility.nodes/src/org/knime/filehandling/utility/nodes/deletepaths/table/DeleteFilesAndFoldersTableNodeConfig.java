@@ -64,16 +64,16 @@ final class DeleteFilesAndFoldersTableNodeConfig extends AbstractDeleteFilesAndF
 
     private static final String CFG_COLUMN_SELECTION = "column_selection";
 
-    private static final String CFG_ABORT_IF_FILE_NOT_EXIST = "abort_if_file_not_exist";
+    private static final String CFG_FAIL_IF_FILE_NOT_EXIST = "fail_if_file_does_not_exist";
 
     private final SettingsModelString m_columnSelection;
 
-    private final SettingsModelBoolean m_abortIfFileNotExist;
+    private final SettingsModelBoolean m_failIfFileDoesNotExist;
 
     DeleteFilesAndFoldersTableNodeConfig() {
         super();
         m_columnSelection = new SettingsModelString(CFG_COLUMN_SELECTION, null);
-        m_abortIfFileNotExist = new SettingsModelBoolean(CFG_ABORT_IF_FILE_NOT_EXIST, true);
+        m_failIfFileDoesNotExist = new SettingsModelBoolean(CFG_FAIL_IF_FILE_NOT_EXIST, true);
     }
 
     SettingsModelString getColumnSelection() {
@@ -81,32 +81,32 @@ final class DeleteFilesAndFoldersTableNodeConfig extends AbstractDeleteFilesAndF
     }
 
     @Override
-    protected boolean isAbortIfFileNotExist() {
-        return getAbortIfFileNotExistsModel().getBooleanValue();
+    protected boolean failIfFileDoesNotExist() {
+        return getFailIfFileNotExistsModel().getBooleanValue();
     }
 
-    SettingsModelBoolean getAbortIfFileNotExistsModel() {
-        return m_abortIfFileNotExist;
+    SettingsModelBoolean getFailIfFileNotExistsModel() {
+        return m_failIfFileDoesNotExist;
     }
 
     @Override
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         super.loadSettingsForModel(settings);
         m_columnSelection.loadSettingsFrom(settings);
-        m_abortIfFileNotExist.loadSettingsFrom(settings);
+        m_failIfFileDoesNotExist.loadSettingsFrom(settings);
     }
 
     @Override
     protected void saveSettingsForModel(final NodeSettingsWO settings) {
         super.saveSettingsForModel(settings);
         m_columnSelection.saveSettingsTo(settings);
-        m_abortIfFileNotExist.saveSettingsTo(settings);
+        m_failIfFileDoesNotExist.saveSettingsTo(settings);
     }
 
     @Override
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         super.validateSettingsForModel(settings);
         m_columnSelection.validateSettings(settings);
-        m_abortIfFileNotExist.validateSettings(settings);
+        m_failIfFileDoesNotExist.validateSettings(settings);
     }
 }

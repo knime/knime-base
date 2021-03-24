@@ -95,8 +95,8 @@
           </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
           <i>path flow variable.</i></a>
 		</option>
-		<option name="Abort if delete fails">
-			If this option is checked, the node will abort if one of the files could not be deleted. If it is unchecked
+		<option name="Fail if delete fails">
+			If this option is checked, the node will fail if one of the files could not be deleted. If it is unchecked
 			the output table will contain a column that indicates if a file/folder got successfully deleted or not.
 		</option>
 	</fullDescription>

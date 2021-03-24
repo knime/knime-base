@@ -52,6 +52,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * Abstract super class for the configuration of the "Delete Files/Folders" nodes.
@@ -66,25 +67,26 @@ public abstract class AbstractDeleteFilesAndFoldersNodeConfig {
     /** The destination file system connection port group name. */
     public static final String OUTPUT_PORT_GRP_NAME = "Output Port";
 
-    private static final String CFG_ABORT_IF_FAILS = "abort_if_delete_fails";
+    private static final String CFG_FAIL_IF_DELETE_FAILS = "fail_if_delete_fails";
 
-    private final SettingsModelBoolean m_abortIfFails = new SettingsModelBoolean(CFG_ABORT_IF_FAILS, true);
+    private final SettingsModelFailIfDeleteFails m_failIfDeleteFails =
+        new SettingsModelFailIfDeleteFails(CFG_FAIL_IF_DELETE_FAILS, true);
 
     /**
-     * Returns the {@link SettingsModelBoolean} for the isAbortedIfFails option.
+     * Returns the {@link SettingsModelBoolean} for the "Fail if delete fails" option.
      *
      * @return the {@link SettingsModelBoolean}
      */
-    protected final SettingsModelBoolean isAbortedIfFails() {
-        return m_abortIfFails;
+    protected final SettingsModelBoolean failIfDeleteFails() {
+        return m_failIfDeleteFails;
     }
 
     /**
-     * Returns a boolean for the istAbortIfFileNotExist option.
+     * Returns a boolean for the "Fail if file does not exist" option.
      *
      * @return a boolean whether this option is active or not
      */
-    protected abstract boolean isAbortIfFileNotExist();
+    protected abstract boolean failIfFileDoesNotExist();
 
     /**
      * Loads the settings for the model.
@@ -93,7 +95,7 @@ public abstract class AbstractDeleteFilesAndFoldersNodeConfig {
      * @throws InvalidSettingsException
      */
     protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_abortIfFails.loadSettingsFrom(settings);
+        m_failIfDeleteFails.loadSettingsFrom(settings);
     }
 
     /**
@@ -102,7 +104,7 @@ public abstract class AbstractDeleteFilesAndFoldersNodeConfig {
      * @param settings the {@link NodeSettingsWO}
      */
     protected void saveSettingsForModel(final NodeSettingsWO settings) {
-        m_abortIfFails.saveSettingsTo(settings);
+        m_failIfDeleteFails.saveSettingsTo(settings);
     }
 
     /**
@@ -112,6 +114,52 @@ public abstract class AbstractDeleteFilesAndFoldersNodeConfig {
      * @throws InvalidSettingsException
      */
     protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_abortIfFails.validateSettings(settings);
+        m_failIfDeleteFails.validateSettings(settings);
+    }
+
+    /**
+     * Ensures backwards compatibility as the old setting was renamed with AP-16391
+     *
+     * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+     */
+    private static class SettingsModelFailIfDeleteFails extends SettingsModelBoolean {
+
+        private static final String OLD_CONFIG_KEY = "abort_if_delete_fails";
+
+        /**
+         * Constructor.
+         *
+         * @param configName
+         * @param defaultValue
+         */
+        public SettingsModelFailIfDeleteFails(final String configName, final boolean defaultValue) {
+            super(configName, defaultValue);
+        }
+
+        @Override
+        protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs) {
+            if (settings.containsKey(getConfigName())) {
+                setBooleanValue(settings.getBoolean(getConfigName(), true));
+            } else {
+                setBooleanValue(settings.getBoolean(OLD_CONFIG_KEY, true));
+            }
+        }
+
+        @Override
+        protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(getConfigName())) {
+                setBooleanValue(settings.getBoolean(getConfigName()));
+            } else {
+                setBooleanValue(settings.getBoolean(OLD_CONFIG_KEY));
+            }
+        }
+
+        @Override
+        protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final String key = getConfigName();
+            if (settings.containsKey(key)) {
+                super.validateSettingsForModel(settings);
+            }
+        }
     }
 }

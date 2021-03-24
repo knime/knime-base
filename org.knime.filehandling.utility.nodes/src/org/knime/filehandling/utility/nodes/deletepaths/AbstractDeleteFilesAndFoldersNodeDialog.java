@@ -76,7 +76,7 @@ public abstract class AbstractDeleteFilesAndFoldersNodeDialog<C extends Abstract
 
     private final C m_config;
 
-    private final DialogComponentBoolean m_abortIfFails;
+    private final DialogComponentBoolean m_failIfDeleteFails;
 
     /**
      * Constructor.
@@ -85,7 +85,7 @@ public abstract class AbstractDeleteFilesAndFoldersNodeDialog<C extends Abstract
      */
     protected AbstractDeleteFilesAndFoldersNodeDialog(final C nodeConfig) {
         m_config = nodeConfig;
-        m_abortIfFails = new DialogComponentBoolean(m_config.isAbortedIfFails(), "Abort if delete fails");
+        m_failIfDeleteFails = new DialogComponentBoolean(m_config.failIfDeleteFails(), "Fail if delete fails");
     }
 
     /**
@@ -126,7 +126,7 @@ public abstract class AbstractDeleteFilesAndFoldersNodeDialog<C extends Abstract
         final GBCBuilder gbc = createAndInitGBC();
         final JPanel optionsPanel = new JPanel(new GridBagLayout());
         optionsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Options"));
-        optionsPanel.add(m_abortIfFails.getComponentPanel(), gbc.build());
+        optionsPanel.add(m_failIfDeleteFails.getComponentPanel(), gbc.build());
         if (additionalOptions().isPresent()) {
             optionsPanel.add(additionalOptions().get(), gbc.incY().build()); //NOSONAR
         }
@@ -160,12 +160,12 @@ public abstract class AbstractDeleteFilesAndFoldersNodeDialog<C extends Abstract
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_abortIfFails.saveSettingsTo(settings);
+        m_failIfDeleteFails.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        m_abortIfFails.loadSettingsFrom(settings, specs);
+        m_failIfDeleteFails.loadSettingsFrom(settings, specs);
     }
 }
