@@ -154,6 +154,8 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
     /** Total number of hidden files. */
     private int m_numberOfFilteredHiddenFiles;
 
+    private int m_numberOfFilteredSpecialFiles;
+
     /** Total number of hidden folders. */
     private int m_numberOfFilteredHiddenFolders;
 
@@ -204,6 +206,14 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
         } catch (final IOException ex) {
             return true;
         }
+    }
+
+    private boolean isSatisfiedSpecialFile(final BasicFileAttributes attributes) {
+        final boolean accept = m_filterOptionsSettings.isIncludeSpecialFiles() || attributes.isRegularFile();
+        if (!accept) {
+            ++m_numberOfFilteredSpecialFiles;
+        }
+        return accept;
     }
 
     private boolean isSatisfiedFolderHidden(final Path path, final boolean incCounter) {
@@ -288,6 +298,15 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
     }
 
     /**
+     * Returns the number of filtered special files.
+     *
+     * @return the number of filtered special files
+     */
+    public int getNumberOfFilteredSpecialFiles() {
+        return m_numberOfFilteredSpecialFiles;
+    }
+
+    /**
      * Returns the number of filtered hidden folders.
      *
      * @return the number of filtered hidden folders
@@ -329,8 +348,7 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
         if (attrs.isDirectory()) {
             return testFolder(path, true);
         }
-        return attrs.isRegularFile() && //
-            testFile(path);
+        return testFile(path, attrs);
     }
 
     private boolean testFolder(final Path path, final boolean incCounter) {
@@ -338,9 +356,10 @@ public final class FileAndFolderFilter implements BiPredicate<Path, BasicFileAtt
             isSatisfiedFolderName(path, incCounter);
     }
 
-    private boolean testFile(final Path path) {
-        return isSatisfiedFileHidden(path) && //
-            isSatisfiedFileExtension(path) && //
-            isSatisfiedFileName(path);
+    private boolean testFile(final Path path, final BasicFileAttributes attributes) {
+        return isSatisfiedFileHidden(path)//
+            && isSatisfiedSpecialFile(attributes)//
+            && isSatisfiedFileExtension(path)//
+            && isSatisfiedFileName(path);
     }
 }

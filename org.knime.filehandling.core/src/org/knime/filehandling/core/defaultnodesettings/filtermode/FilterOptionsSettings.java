@@ -183,6 +183,14 @@ final class FilterOptionsSettings {
         m_includeHiddenFiles = includeHiddenFiles;
     }
 
+    boolean isIncludeSpecialFiles() {
+        return m_includeSpecialFiles;
+    }
+
+    void setIncludeSpecialFiles(final boolean includeSpecialFiles) {
+        m_includeSpecialFiles = includeSpecialFiles;
+    }
+
     /**
      * @return the filterFilesByExtension
      */
@@ -365,6 +373,7 @@ final class FilterOptionsSettings {
         config.addBoolean(CFG_FILES_NAME_CASE_SENSITIVE, m_filesNameCaseSensitive);
         config.addString(CFG_FILES_NAME_FILTER_TYPE, m_filesNameFilterType.name());
         config.addBoolean(CFG_INCLUDE_HIDDEN_FILES, m_includeHiddenFiles);
+        config.addBoolean(CFG_INCLUDE_SPECIAL_FILES, m_includeSpecialFiles);
 
         config.addBoolean(CFG_FOLDERS_FILTER_BY_NAME, m_filterFoldersByName);
         config.addString(CFG_FOLDERS_NAME_EXPRESSION, m_foldersNameExpression);
@@ -388,6 +397,12 @@ final class FilterOptionsSettings {
         m_filesNameCaseSensitive = config.getBoolean(CFG_FILES_NAME_CASE_SENSITIVE);
         m_filesNameFilterType = FilterType.valueOf(config.getString(CFG_FILES_NAME_FILTER_TYPE));
         m_includeHiddenFiles = config.getBoolean(CFG_INCLUDE_HIDDEN_FILES);
+        if (config.containsKey(CFG_INCLUDE_SPECIAL_FILES)) {
+            m_includeSpecialFiles = config.getBoolean(CFG_INCLUDE_SPECIAL_FILES);
+        } else {
+            // the behavior prior to 4.3.3 was to filter out special files
+            m_includeSpecialFiles = false;
+        }
 
         m_filterFoldersByName = config.getBoolean(CFG_FOLDERS_FILTER_BY_NAME);
         m_foldersNameExpression = config.getString(CFG_FOLDERS_NAME_EXPRESSION);
@@ -412,6 +427,12 @@ final class FilterOptionsSettings {
         m_filesNameFilterType =
             FilterType.valueOf(config.getString(CFG_FILES_NAME_FILTER_TYPE, m_filesNameFilterType.name()));
         m_includeHiddenFiles = config.getBoolean(CFG_INCLUDE_HIDDEN_FILES, m_includeHiddenFiles);
+        if (config.containsKey(CFG_INCLUDE_SPECIAL_FILES)) {
+            m_includeSpecialFiles = config.getBoolean(CFG_INCLUDE_SPECIAL_FILES, true);
+        } else {
+            // the behavior prior to 4.3.3 was to filter out special files
+            m_includeSpecialFiles = false;
+        }
 
         m_filterFoldersByName = config.getBoolean(CFG_FOLDERS_FILTER_BY_NAME, m_filterFoldersByName);
         m_foldersNameExpression = config.getString(CFG_FOLDERS_NAME_EXPRESSION, m_foldersNameExpression);
@@ -439,6 +460,10 @@ final class FilterOptionsSettings {
             throw new InvalidSettingsException("'" + fileFilterMode + "' is not a valid filter mode.");
         }
         config.getBoolean(CFG_INCLUDE_HIDDEN_FILES);
+        if (config.containsKey(CFG_INCLUDE_SPECIAL_FILES)) {
+            // the option was introduced in 4.3.3
+            config.getBoolean(CFG_INCLUDE_SPECIAL_FILES);
+        }
 
         config.getBoolean(CFG_FOLDERS_FILTER_BY_NAME);
         config.getString(CFG_FOLDERS_NAME_EXPRESSION);
@@ -467,6 +492,7 @@ final class FilterOptionsSettings {
         result = prime * result + ((m_foldersNameFilterType == null) ? 0 : m_foldersNameFilterType.hashCode());
         result = prime * result + (m_includeHiddenFiles ? 1231 : 1237);
         result = prime * result + (m_includeHiddenFolders ? 1231 : 1237);
+        result = prime * result + (m_includeSpecialFiles ? 1231 : 1237);
         return result;
     }
 
@@ -525,6 +551,9 @@ final class FilterOptionsSettings {
             return false;
         }
         if (m_includeHiddenFiles != other.m_includeHiddenFiles) {
+            return false;
+        }
+        if (m_includeSpecialFiles != other.m_includeSpecialFiles) {
             return false;
         }
         if (m_includeHiddenFolders != other.m_includeHiddenFolders) {

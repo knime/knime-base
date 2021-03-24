@@ -108,6 +108,8 @@ final class FilterOptionsPanel extends JPanel {
     /** Check box to enable/disable hidden files inclusion */
     private final JCheckBox m_includeHiddenFiles;
 
+    private final JCheckBox m_includeSpecialFiles;
+
     /** Check box to enable/disable hidden folders inclusion */
     private final JCheckBox m_includeHiddenFolders;
 
@@ -197,6 +199,8 @@ final class FilterOptionsPanel extends JPanel {
         m_includeHiddenFiles.setSelected(true);
         m_includeHiddenFolders = new JCheckBox(INCLUDE_HIDDEN_FOLDERS_LABEL);
         m_includeHiddenFolders.setSelected(true);
+
+        m_includeSpecialFiles = new JCheckBox("Include special files (workflows etc.)");
 
         handleFilterFileExtensionCheckBoxUpdate();
         handleFilterFileNameCheckBoxUpdate();
@@ -306,6 +310,11 @@ final class FilterOptionsPanel extends JPanel {
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         m_filePanel.add(m_includeHiddenFiles, gbc);
+
+        // Special files settings
+        gbc.gridy++;
+        m_filePanel.add(m_includeSpecialFiles, gbc);
+
         gbc.gridy++;
         gbc.weighty = 1;
 
@@ -380,6 +389,7 @@ final class FilterOptionsPanel extends JPanel {
         fileFilterSettings.setFilesNameFilterType(FilterType.valueOf(m_fileNameFilterTypeModel.getStringValue()));
         fileFilterSettings.setFilesNameCaseSensitive(m_caseSensitiveFileName.isSelected());
         fileFilterSettings.setIncludeHiddenFiles(m_includeHiddenFiles.isSelected());
+        fileFilterSettings.setIncludeSpecialFiles(m_includeSpecialFiles.isSelected());
 
         fileFilterSettings.setFilterFoldersByName(m_filterByFolderName.isSelected());
         fileFilterSettings.setFoldersNameExpression(m_filterFolderNameTextField.getText());
@@ -404,6 +414,7 @@ final class FilterOptionsPanel extends JPanel {
         m_fileNameFilterTypeModel.setStringValue(fileFilterSettings.getFilesNameFilterType().toString());
         m_caseSensitiveFileName.setSelected(fileFilterSettings.isFilesNameCaseSensitive());
         m_includeHiddenFiles.setSelected(fileFilterSettings.isIncludeHiddenFiles());
+        m_includeSpecialFiles.setSelected(fileFilterSettings.isIncludeSpecialFiles());
 
         m_filterByFolderName.setSelected(fileFilterSettings.isFilterFoldersByName());
         m_filterFolderNameTextField.setText(fileFilterSettings.getFoldersNameExpression());
