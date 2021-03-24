@@ -213,11 +213,11 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
         if (m_filterMode == FilterMode.FILE) {
             CheckUtils.checkSetting(!rootPath.toString().trim().isEmpty(), "Please specify a file.");
-            CheckUtils.checkSetting(attr.isRegularFile(), "%s is not a regular file. Please specify a file.", rootPath);
-            m_fileFilterStatistic = new FileFilterStatistic(0, 0, 1, 0, 0, 0);
+            CheckUtils.checkSetting(!attr.isDirectory(), "%s is a folder. Please specify a file.", rootPath);
+            m_fileFilterStatistic = new FileFilterStatistic(0, 0, 0, 1, 0, 0, 0);
         } else if (m_filterMode == FilterMode.FOLDER) {
             checkIsFolder(rootPath, attr);
-            m_fileFilterStatistic = new FileFilterStatistic(0, 0, 0, 0, 0, 1);
+            m_fileFilterStatistic = new FileFilterStatistic(0, 0, 0, 0, 0, 0, 1);
         } else {
             throw new IllegalStateException("Unexpected filter mode in handleSingleCase: " + m_filterMode);
         }
