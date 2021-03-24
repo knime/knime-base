@@ -53,8 +53,8 @@
 			should
 			be deleted.
 		</option>
-		<option name="Abort if delete fails">
-			If this option is checked, the node will abort if
+		<option name="Fail if delete fails">
+			If this option is checked, the node will fail if
 			one of the files / folders could not be deleted i.e. it could not be
 			accessed. If it is unchecked
 			the output
@@ -63,8 +63,8 @@
 			got
 			successfully deleted or not.
 		</option>
-		<option name="Abort if file does not exist">
-			If this option is checked the node will abort if
+		<option name="Fail if file does not exist">
+			If this option is checked the node will fail if
 			one of the files / folders does not exist.
 		</option>
 	</fullDescription>
@@ -79,7 +79,7 @@
 		</dynInPort>
 		<outPort name="Output table" index="0">
 			Table containing the list of files/folders that have been deleted.
-			Based on abortion options, there are additional boolean columns
+			Based on the fail options, there are additional boolean columns
 			which indicates whether a deletion was successful or not and if a file
 			existed or not.
 		</outPort>

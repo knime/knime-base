@@ -234,17 +234,17 @@ public abstract class AbstractDeleteFilesAndFoldersNodeModel<C extends AbstractD
                 Files.delete(path);
             }
         } catch (NoSuchFileException e) {
-            if (m_config.isAbortIfFileNotExist()) {
+            if (m_config.failIfFileDoesNotExist()) {
                 LOGGER.debug("File couldn't be found", e);
                 throw new NoSuchFileException(e.getFile(), null, //NOSONAR as we throw the same exception and log it
                     "The file/directory couldn't be deleted since it was not found. "
-                        + "Execution was aborted due to user settings");
+                        + "Execution failed due to user settings");
             }
             successfullyDeleted = false;
         } catch (IOException e) {
-            if (m_config.isAbortedIfFails().getBooleanValue()) {
+            if (m_config.failIfDeleteFails().getBooleanValue()) {
                 throw new IOException(String
-                    .format("The file/directory '%s' couldn't be deleted and the execution was aborted due to user "
+                    .format("The file/directory '%s' couldn't be deleted and the execution failed due to user "
                         + "settings.", path),
                     e);
             }
@@ -267,11 +267,11 @@ public abstract class AbstractDeleteFilesAndFoldersNodeModel<C extends AbstractD
 
         columnSpecs.add(colCreator.createSpec());
 
-        if (!getConfig().isAbortedIfFails().getBooleanValue()) {
+        if (!getConfig().failIfDeleteFails().getBooleanValue()) {
             columnSpecs.add(new DataColumnSpecCreator("Deleted successfully", BooleanCellFactory.TYPE).createSpec());
         }
-        if (!getConfig().isAbortIfFileNotExist()) {
-            columnSpecs.add(new DataColumnSpecCreator("File exists", BooleanCellFactory.TYPE).createSpec());
+        if (!getConfig().failIfFileDoesNotExist()) {
+            columnSpecs.add(new DataColumnSpecCreator("File existed", BooleanCellFactory.TYPE).createSpec());
         }
 
         return new DataTableSpec(columnSpecs.stream().toArray(DataColumnSpec[]::new));
@@ -287,16 +287,16 @@ public abstract class AbstractDeleteFilesAndFoldersNodeModel<C extends AbstractD
      * @throws InterruptedException
      */
     private final void createRow(final RowOutput rowOutput, final SimpleFSLocationCell locationCell,
-        final boolean deleted, final boolean fileExists, final long rec) throws InterruptedException {
+        final boolean deleted, final boolean fileExisted, final long rec) throws InterruptedException {
         final List<DataCell> row = new ArrayList<>(3);
 
         row.add(locationCell);
 
-        if (!m_config.isAbortedIfFails().getBooleanValue()) {
+        if (!m_config.failIfDeleteFails().getBooleanValue()) {
             row.add(BooleanCellFactory.create(deleted));
         }
-        if (!m_config.isAbortIfFileNotExist()) {
-            row.add(BooleanCellFactory.create(fileExists));
+        if (!m_config.failIfFileDoesNotExist()) {
+            row.add(BooleanCellFactory.create(fileExisted));
         }
         rowOutput.push(new DefaultRow(RowKey.createRowKey(rec), row));
     }

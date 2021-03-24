@@ -92,7 +92,7 @@ final class DeleteFilesAndFoldersNodeConfig extends AbstractDeleteFilesAndFolder
     }
 
     @Override
-    protected boolean isAbortIfFileNotExist() {
+    protected boolean failIfFileDoesNotExist() {
         //Always returns true since the version of this node does not have this option
         return true;
     }
