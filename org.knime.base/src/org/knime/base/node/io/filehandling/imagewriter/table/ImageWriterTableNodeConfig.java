@@ -48,6 +48,19 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
+import java.util.EnumSet;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+
 /**
  * Node config of the image writer table node.
  *
@@ -55,6 +68,60 @@ package org.knime.base.node.io.filehandling.imagewriter.table;
  */
 final class ImageWriterTableNodeConfig {
 
-    // Nothing to do
+    private static final String CFG_FOLDER_CHOOSER = "output_location";
 
+    private static final String CFG_COLUMN_SELECTOR = "image_column";
+
+    private final SettingsModelWriterFileChooser m_folderChooserModel;
+
+    private final SettingsModelString m_colSelectionModel;
+
+    /**
+     * Creates a new image writer table node config.
+     *
+     * @param portsConfig {@link PortsConfiguration} initializes the SettingsModelWriterFileChooser
+     * @param connectionInputPortGrouptName initializes the SettingsModelWriterFileChooser
+     */
+    public ImageWriterTableNodeConfig(final PortsConfiguration portsConfig,
+        final String connectionInputPortGrouptName) {
+        m_folderChooserModel = new SettingsModelWriterFileChooser(CFG_FOLDER_CHOOSER, portsConfig,
+            connectionInputPortGrouptName, EnumConfig.create(FilterMode.FOLDER),
+            EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE),
+            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+
+        m_colSelectionModel = new SettingsModelString(CFG_COLUMN_SELECTOR, null);
+    }
+
+    /**
+     * Returns the {@link SettingsModelWriterFileChooser} storing the settings for a output location dialog component.
+     *
+     * @return {@link SettingsModelWriterFileChooser}
+     */
+    SettingsModelWriterFileChooser getFolderChooserModel() {
+        return m_folderChooserModel;
+    }
+
+    /**
+     * Returns the {@link SettingsModelString} storing the settings for a column selection dialog component.
+     *
+     * @return {@link SettingsModelWriterFileChooser}
+     */
+    SettingsModelString getColSelectModel() {
+        return m_colSelectionModel;
+    }
+
+    void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_folderChooserModel.loadSettingsFrom(settings);
+        m_colSelectionModel.loadSettingsFrom(settings);
+    }
+
+    void saveSettingsForModel(final NodeSettingsWO settings) {
+        m_folderChooserModel.saveSettingsTo(settings);
+        m_colSelectionModel.saveSettingsTo(settings);
+    }
+
+    void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_folderChooserModel.validateSettings(settings);
+        m_colSelectionModel.validateSettings(settings);
+    }
 }

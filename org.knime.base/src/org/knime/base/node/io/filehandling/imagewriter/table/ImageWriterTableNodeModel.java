@@ -56,6 +56,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -72,15 +73,20 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     private final int m_inputTableIdx;
 
+    private final ImageWriterTableNodeConfig m_nodeConfig;
+
     /**
      * Constructor.
      *
-     * @param config the {@link PortsConfiguration} to initialize the ImageWriterTableNodeModel
-     * @param inputTableIdx the index of the input table
+     * @param portsConfig {@link PortsConfiguration} initializes the ImageWriterTableNodeModel
+     * @param inputTableIdx identifying the table port index
+     * @param connectionInputPortGrouptName initializes the ImageWriterTableNodeConfig
      */
-    ImageWriterTableNodeModel(final PortsConfiguration config, final int inputTableIdx) {
-        super(config.getInputPorts(), config.getOutputPorts());
+    ImageWriterTableNodeModel(final PortsConfiguration portsConfig, final int inputTableIdx,
+        final String connectionInputPortGrouptName) {
+        super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_inputTableIdx = inputTableIdx;
+        m_nodeConfig = new ImageWriterTableNodeConfig(portsConfig, connectionInputPortGrouptName);
     }
 
     @Override
@@ -111,26 +117,26 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        // Nothing to do
+        m_nodeConfig.saveSettingsForModel(settings);
     }
 
     @Override
-    protected void validateSettings(final NodeSettingsRO settings) {
-        // Nothing to do
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_nodeConfig.validateSettingsForModel(settings);
     }
 
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) {
-        // Nothing to do
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_nodeConfig.loadSettingsForModel(settings);
+    }
+
+    private static ColumnRearranger createColumnRearranger(final DataTableSpec in) {
+        return new ColumnRearranger(in);
     }
 
     @Override
     protected void reset() {
         // Nothing to do
-    }
-
-    private static final ColumnRearranger createColumnRearranger(final DataTableSpec in) {
-        return new ColumnRearranger(in);
     }
 
 }

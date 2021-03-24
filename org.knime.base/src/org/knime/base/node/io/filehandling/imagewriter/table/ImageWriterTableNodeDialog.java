@@ -48,9 +48,26 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
+import java.awt.Component;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+
+import org.knime.core.data.image.ImageValue;
+import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
  * Node dialog of the image writer table node.
@@ -59,18 +76,92 @@ import org.knime.core.node.context.ports.PortsConfiguration;
  */
 final class ImageWriterTableNodeDialog extends NodeDialogPane {
 
+    private static final String FILE_HISTORY_ID = "image_table_reader_writer";
+
+    private final ImageWriterTableNodeConfig m_nodeConfig;
+
+    private final DialogComponentWriterFileChooser m_folderChooser;
+
+    private final DialogComponentColumnNameSelection m_colSelection;
+
     /**
-     * Constructor.
+     * Creates a new image writer table node dialog.
      *
-     * @param config - a {@link PortsConfiguration} to initialize the ImageWriterTableNodeDialog
+     * @param portsConfig {@link PortsConfiguration} initializes the ImageWriterTableNodeDialog
+     * @param dataTableInputPortGroupName initializes the DialogComponentColumnNameSelection
+     * @param connectionInputPortGrouptName initializes the ImageWriterTableNodeConfig
      */
-    protected ImageWriterTableNodeDialog(final PortsConfiguration config) {
-        // Nothing to do
+    @SuppressWarnings("unchecked")
+    protected ImageWriterTableNodeDialog(final PortsConfiguration portsConfig, final String dataTableInputPortGroupName,
+        final String connectionInputPortGrouptName) {
+        m_nodeConfig = new ImageWriterTableNodeConfig(portsConfig, connectionInputPortGrouptName);
+
+        final FlowVariableModel fvm = createFlowVariableModel(
+            m_nodeConfig.getFolderChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
+        m_folderChooser =
+            new DialogComponentWriterFileChooser(m_nodeConfig.getFolderChooserModel(), FILE_HISTORY_ID, fvm);
+
+        m_colSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getColSelectModel(), "Column",
+            portsConfig.getInputPortLocation().get(dataTableInputPortGroupName)[0], ImageValue.class);
+
+        addTab("Settings", createSettingsPanel());
+    }
+
+    private Component createSettingsPanel() {
+        final JPanel settingsPanel = new JPanel(new GridBagLayout());
+        final GBCBuilder gbcBuilder = new GBCBuilder(new Insets(5, 0, 5, 0));
+
+        settingsPanel.add(createColSelectionPanel(),
+            gbcBuilder.setX(0).setY(0).setWeightX(1.0).fillHorizontal().build());
+
+        settingsPanel.add(createOutputPanel(), gbcBuilder.incY().build());
+
+        settingsPanel.add(new JPanel(), gbcBuilder.incY().setWeightY(1.0).setWeightX(1.0).fillBoth().build());
+
+        return settingsPanel;
+    }
+
+    private Component createColSelectionPanel() {
+        final JPanel colSelectionPanel = new JPanel(new GridBagLayout());
+        final GBCBuilder gbcBuilder = new GBCBuilder();
+
+        colSelectionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Image"));
+
+        colSelectionPanel.add(m_colSelection.getComponentPanel(), gbcBuilder.anchorFirstLineStart().build());
+
+        colSelectionPanel.add(new JPanel(), gbcBuilder.incX().setWeightX(1.0).fillHorizontal().build());
+
+        return colSelectionPanel;
+    }
+
+    private Component createOutputPanel() {
+        final JPanel outputPanel = new JPanel(new GridBagLayout());
+        final GBCBuilder gbcBuilder = new GBCBuilder();
+
+        outputPanel
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output Location"));
+        outputPanel.add(m_folderChooser.getComponentPanel(),
+            gbcBuilder.anchorFirstLineStart().setWeightX(1.0).fillHorizontal().build());
+
+        return outputPanel;
     }
 
     @Override
-    protected final void saveSettingsTo(final NodeSettingsWO settings) {
-        // Nothing to do
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_colSelection.saveSettingsTo(settings);
+        m_folderChooser.saveSettingsTo(settings);
+    }
+
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_colSelection.loadSettingsFrom(settings, specs);
+        m_folderChooser.loadSettingsFrom(settings, specs);
+    }
+
+    @Override
+    public void onClose() {
+        m_folderChooser.onClose();
     }
 
 }
