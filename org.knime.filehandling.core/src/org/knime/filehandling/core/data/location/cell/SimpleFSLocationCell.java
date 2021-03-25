@@ -54,9 +54,11 @@ import java.util.Optional;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataCellDataInput;
 import org.knime.core.data.DataCellDataOutput;
+import org.knime.core.data.DataCellFactory;
 import org.knime.core.data.DataCellSerializer;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.convert.DataCellFactoryMethod;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 
@@ -78,6 +80,31 @@ public final class SimpleFSLocationCell extends DataCell implements FSLocationVa
 
     SimpleFSLocationCell(final FSLocation fsLocation) {
         m_fsLocation = fsLocation;
+    }
+
+    /**
+     * Only used for type mapping use the other factory classes.
+     * @see MultiSimpleFSLocationCellFactory
+     * @see SimpleFSLocationCellFactory
+     */
+    public static class Factory implements DataCellFactory {
+
+        /**
+         * Factory method used in the type mapping framework to create a new {@link SimpleFSLocationCell}.
+         *
+         * @param location {@link FSLocation} of the new cell
+         * @return {@link SimpleFSLocationCell} with the given {@link FSLocation}
+         */
+        @DataCellFactoryMethod(name = "FSLocation")
+        public SimpleFSLocationCell createCell(final FSLocation location) {
+            return new SimpleFSLocationCell(location);
+        }
+
+        @Override
+        public DataType getDataType() {
+            return TYPE;
+        }
+
     }
 
     @Override

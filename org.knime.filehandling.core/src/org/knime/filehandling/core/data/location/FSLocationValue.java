@@ -52,6 +52,7 @@ import javax.swing.Icon;
 
 import org.knime.core.data.DataValue;
 import org.knime.core.data.ExtensibleUtilityFactory;
+import org.knime.core.data.convert.DataValueAccessMethod;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.connections.FSLocation;
 
@@ -78,6 +79,7 @@ public interface FSLocationValue extends DataValue {
      *
      * @return the file system location
      */
+    @DataValueAccessMethod(name = "FSLocation")
     FSLocation getFSLocation();
 
     /** Implementations of the meta information of this value class. */
