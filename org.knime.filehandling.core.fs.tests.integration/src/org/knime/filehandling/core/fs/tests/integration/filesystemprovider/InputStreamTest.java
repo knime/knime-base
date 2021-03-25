@@ -102,4 +102,12 @@ public class InputStreamTest extends AbstractParameterizedFSTest {
         Files.newInputStream(file.getParent()).read();
         fail("IOException should have been thrown before");
     }
+
+    @Test
+    public void test_read_from_empty_file() throws Exception{
+        Path file = m_testInitializer.createFile("dir", "filename");
+        try (InputStream in = Files.newInputStream(file)) {
+            assertEquals(-1, in.read());
+        }
+    }
 }
