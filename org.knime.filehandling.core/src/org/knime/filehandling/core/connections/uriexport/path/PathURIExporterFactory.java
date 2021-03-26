@@ -44,70 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 16, 2021 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.pathtostring;
+package org.knime.filehandling.core.connections.uriexport.path;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.stream.IntStream;
+import java.net.URI;
 
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.location.FSPathProvider;
-import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * Utility class for the Path to String nodes.
+ * {@link URIExporterFactory} that maps {@link FSPath} path to a URI, which only contains the path in URI-compatible
+ * notation. For example a Windows path C:\Users\joe will be mapped to /C:/Users/joe (which is a valid URI). This is a
+ * singleton class whose only instance can be retrieved with {@link #getInstance()}.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
+ * @since 4.3
+ * @noreference non-public API
  */
-public final class PathToStringUtils {
+public final class PathURIExporterFactory extends NoConfigURIExporterFactory {
 
-    private PathToStringUtils() {
-        // hide constructor for utility class
+    /**
+     * Unique identifier of this exporter.
+     */
+    public static final URIExporterID ID = URIExporterIDs.PATH;
+
+    private static final BaseURIExporterMetaInfo META_INFO = new BaseURIExporterMetaInfo("Path", "Provides the path.");
+
+    private static final PathURIExporterFactory INSTANCE = new PathURIExporterFactory();
+
+    private PathURIExporterFactory() {
+        super(META_INFO, p -> new URI(null, null, p.getURICompatiblePath(), null));
     }
 
     /**
-     * Creates and returns a KNIME URL using the {@link URIExporter} with id {@link URIExporterIDs#LEGACY_KNIME_URL}.
-     *
-     * @param fsLocation the {@link FSLocation} to convert, must not be {@code null}
-     * @param factory the {@link FSPathProviderFactory}, must not be {@code null}
-     * @return the converted {@link FSLocation} string
+     * @return the only available instance of this class.
      */
-    @SuppressWarnings("resource") // we don't want to close FSConnection here
-    public static String fsLocationToString(final FSLocation fsLocation, final FSPathProviderFactory factory) {
-        try (final FSPathProvider pathProvider = factory.create(fsLocation)) {
-            final FSConnection fsConnection = pathProvider.getFSConnection();
-            final Map<URIExporterID, URIExporterFactory> uriExporters = fsConnection.getURIExporterFactories();
-            final URIExporter uriExporter =
-                ((NoConfigURIExporterFactory)uriExporters.get(URIExporterIDs.LEGACY_KNIME_URL)).getExporter();
-            final FSPath path = pathProvider.getPath();
-            return uriExporter.toUri(path).toString();
-        } catch (IOException | URISyntaxException e) {
-            throw new IllegalArgumentException(String.format("The path '%s' could not be converted to a KNIME URL: %s",
-                fsLocation.getPath(), e.getMessage()), e);
-        }
-    }
-
-    /**
-     * Splits a path into its individual names and returns it as an String array.
-     *
-     * @param path the path to split
-     * @return the array of strings computed by splitting this path
-     */
-    public static String[] split(final Path path) {
-        return IntStream.range(0, path.getNameCount())//
-            .mapToObj(path::getName)//
-            .map(Path::toString)//
-            .toArray(String[]::new);
+    public static PathURIExporterFactory getInstance() {
+        return INSTANCE;
     }
 }

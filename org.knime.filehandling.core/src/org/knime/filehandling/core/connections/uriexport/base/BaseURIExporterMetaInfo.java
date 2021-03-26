@@ -42,57 +42,46 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 17, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.uriexport;
+package org.knime.filehandling.core.connections.uriexport.base;
 
-import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.uriexport.URIExporterMetaInfo;
 
 /**
- * Unique URI exporter identifier.
+ * Base implementation of a {@link BaseURIExporterFactory} which stores a label and a description.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
  * @since 4.3
  * @noreference non-public API
+ * @noextend non-public API
  */
-public final class URIExporterID {
+public class BaseURIExporterMetaInfo implements URIExporterMetaInfo {
 
-    private final String m_id;
+    private final String m_label;
+
+    private final String m_description;
 
     /**
-     * Create a new URI exporter identifier.
+     * Constructor.
      *
-     * @param id the unique exporter identifier
+     * @param label The label to store.
+     * @param description The description to store.
      */
-    public URIExporterID(final String id) {
-        CheckUtils.checkArgumentNotNull(id, "ID of URIExporter must not be null");
-        m_id = id;
+    public BaseURIExporterMetaInfo(final String label, final String description) {
+        m_label = label;
+        m_description = description;
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((m_id == null) ? 0 : m_id.hashCode());
-        return result;
+    public String getLabel() {
+        return m_label;
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final URIExporterID other = (URIExporterID)obj;
-        return m_id.equals(other.m_id);
-    }
-
-    @Override
-    public String toString() {
-        return m_id;
+    public String getDescription() {
+        return m_description;
     }
 }

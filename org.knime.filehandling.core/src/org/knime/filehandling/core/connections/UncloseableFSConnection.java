@@ -51,8 +51,9 @@ package org.knime.filehandling.core.connections;
 import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
  * Wrapper for {@link FSConnection} that prevents closing the wrapped {@link FSConnection}.
@@ -100,13 +101,13 @@ class UncloseableFSConnection implements FSConnection {
     }
 
     @Override
-    public URIExporter getDefaultURIExporter() {
-        return m_wrapped.getDefaultURIExporter();
+    public NoConfigURIExporterFactory getDefaultURIExporterFactory() {
+        return m_wrapped.getDefaultURIExporterFactory();
     }
 
     @Override
-    public Map<URIExporterID, URIExporter> getURIExporters() {
-        return m_wrapped.getURIExporters();
+    public Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
+        return m_wrapped.getURIExporterFactories();
     }
 
     @Override

@@ -53,6 +53,7 @@ import java.awt.LayoutManager;
 import javax.swing.JPanel;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -60,25 +61,40 @@ import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * Abstract dialog panel for URIExporters.
+ * Abstract dialog panel that provides a UI to edit a {@link URIExporterConfig} inside a node dialog. The panel
+ * uses an underlying {@link URIExporterConfig} to load, save and validate settings.
+ *
+ * <p>
+ * To use the panel in a dialog the following methods need to be called:
+ * <ul>
+ * <li>{@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[]))} to load previously saved exporter settings (e.g. during
+ * {@link NodeDialogPane#loadSettingsFrom(NodeSettingsRO, PortObjectSpec[]))}.</li>
+ * <li>{@link #saveSettingsTo(NodeSettingsWO)} to save the current configuration of the panel (e.g. during
+ * {@link NodeDialogPane#saveSettingsTo(NodeSettingsWO)}</li>
+ * <li>{@link #onShown()} when the panel is starting to get displayed (e.g. in {@link NodeDialogPane#onOpen()}</li>
+ * <li>{@link #onUnshown()} is not being displayed anymore (e.g. in {@link NodeDialogPane#onClose()}</li>
+ * </ul>
+ * </p>
  *
  * @author Ayaz Ali Qureshi, KNIME GmbH
- * @param <T> The concrete {@link URIExporter} to display in the panel.
+ * @since 4.3
+ * @noreference non-public API
+ * @noextend non-public API
  */
-@SuppressWarnings("serial")
-public abstract class URIExporterPanel<T extends URIExporter> extends JPanel {
+@SuppressWarnings({"serial", "javadoc"})
+public abstract class URIExporterPanel extends JPanel {
 
-    private final T m_settings; // NOSONAR we are not using serialization
+    private final URIExporterConfig m_config; // NOSONAR we don't use Java serialization here
 
     /**
      * Create an instance of URIExporterPanel
      *
      * @param layout
-     * @param settings
+     * @param config
      */
-    public URIExporterPanel(final LayoutManager layout, final T settings) {
+    protected URIExporterPanel(final LayoutManager layout, final URIExporterConfig config) {
         super(layout);
-        m_settings = settings;
+        m_config = config;
     }
 
     /**
@@ -86,12 +102,12 @@ public abstract class URIExporterPanel<T extends URIExporter> extends JPanel {
      *
      * @return the settings
      */
-    public final T getSettings() {
-        return m_settings;
+    public URIExporterConfig getConfig() {
+        return m_config;
     }
 
     /**
-     * Override this method if some functionality is needed after loading settings
+     * Override this method if some functionality is needed .
      */
     protected void afterSettingsLoaded() {
         // do nothing, can be overriden
@@ -107,14 +123,14 @@ public abstract class URIExporterPanel<T extends URIExporter> extends JPanel {
     /**
      * Override this method if actions need to be performed when opening the dialog.
      */
-    public void onOpen() {
+    public void onShown() {
         // do nothing, can be overriden
     }
 
     /**
      * Override this method if actions need to be performed when closing the dialog.
      */
-    public void onClose() {
+    public void onUnshown() {
         // do nothing, can be overriden
     }
 
@@ -125,16 +141,17 @@ public abstract class URIExporterPanel<T extends URIExporter> extends JPanel {
      * @param specs
      * @throws NotConfigurableException
      */
-    public final void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+    public final void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
 
-        m_settings.loadSettingsForDialog(settings);
+        m_config.loadSettingsForPanel(settings);
         loadAdditionalSettingsFrom(settings, specs);
         afterSettingsLoaded();
     }
 
     /**
-     * Load additional settings, e.g. settings that must be loaded with a {@link DialogComponent}..
+     * Load additional settings, e.g. settings that must be loaded with a {@link DialogComponent}. This method is called
+     * by the panel after invoking {@link URIExporterConfig#loadSettingsForPanel(NodeSettingsRO)}.
      *
      * @param settings
      * @param specs
@@ -149,14 +166,16 @@ public abstract class URIExporterPanel<T extends URIExporter> extends JPanel {
      * @param settings
      * @throws InvalidSettingsException
      */
-    public final void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+    public final void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         beforeSettingsSaved();
-        m_settings.saveSettingsForDialog(settings);
+        m_config.validate();
+        m_config.saveSettingsForPanel(settings);
         saveAdditionalSettingsTo(settings);
     }
 
     /**
-     * Saves additional settings, e.g. settings that must be saved with a {@link DialogComponent}.
+     * Saves additional settings, e.g. settings that must be saved with a {@link DialogComponent}. This method is called
+     * by the panel after invoking {@link URIExporterConfig#saveSettingsForPanel(NodeSettingsWO))}.
      *
      * @param settings
      * @throws InvalidSettingsException

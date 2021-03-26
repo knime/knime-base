@@ -42,50 +42,41 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 19, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.uriexport;
+package org.knime.filehandling.core.connections.uriexport.base;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.knime.filehandling.core.connections.FSPath;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.URIExporterMetaInfo;
 
 /**
- * {@link URIExporter} implementation using ony the path.
+ * Base implementation of a {@link BaseURIExporterFactory} which holds a reference to a {@link BaseURIExporterMetaInfo}
+ * instance.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @since 4.3
+ * @noreference non-public API
+ * @noextend non-public API
  */
-public final class PathURIExporter extends NoSettingsURIExporter {
+public abstract class BaseURIExporterFactory implements URIExporterFactory {
+
+    private final BaseURIExporterMetaInfo m_metaInfo;
 
     /**
-     * Unique identifier of this exporter.
+     * Constructor.
+     *
+     * @param metaInfo Meta information about the factory.
      */
-    public static final URIExporterID ID = new URIExporterID("path");
-
-    private static final PathURIExporter INSTANCE = new PathURIExporter();
-
-    private PathURIExporter() {
-    }
-
-    /**
-     * @return singleton instance of this exporter
-     */
-    public static PathURIExporter getInstance() {
-        return INSTANCE;
+    protected BaseURIExporterFactory(final BaseURIExporterMetaInfo metaInfo) {
+        CheckUtils.checkArgumentNotNull(metaInfo, "URIExporterMetaInfo must not be null");
+        m_metaInfo = metaInfo;
     }
 
     @Override
-    public String getLabel() {
-        return "Path";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Provides the path.";
-    }
-
-    @Override
-    public URI toUri(final FSPath path) throws URISyntaxException {
-        return new URI(null, null, path.getURICompatiblePath(), null);
+    public final URIExporterMetaInfo getMetaInfo() {
+        return m_metaInfo;
     }
 }

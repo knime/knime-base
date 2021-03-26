@@ -42,61 +42,43 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 19, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.uriexport;
+package org.knime.filehandling.core.connections.uriexport.base;
 
-import java.util.function.Consumer;
+import java.awt.LayoutManager;
 
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
+import org.knime.filehandling.core.connections.uriexport.URIExporterPanel;
 
 /**
- * {@link URIExporter} implementation for URIExporters which require no settings.
+ * Base implementation of a {@link URIExporterPanel} which holds a reference to a {@link URIExporterConfig} instance.
  *
- * @author Ayaz Ali Qureshi, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @param <C> The actual subtype of {@link URIExporterConfig} to use for settings.
+ * @since 4.3
+ * @noreference non-public API
+ * @noextend non-public API
  */
-public abstract class NoSettingsURIExporter implements URIExporter {
+public abstract class BaseURIExporterPanel<C extends URIExporterConfig> extends URIExporterPanel {
 
-    @Override
-    public final void configureInModel(final PortObjectSpec[] specs,
-        final Consumer<StatusMessage> statusMessageConsumer) {
-        // nothing to do here
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Constructor.
+     *
+     * @param layout The layout manager to use for the panel.
+     * @param config A {@link URIExporterConfig} instance to use when loading, saving and validating settings.
+     */
+    protected BaseURIExporterPanel(final LayoutManager layout, final C config) {
+        super(layout, config);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public final void loadSettingsForDialog(final NodeSettingsRO settings) {
-        // nothing to do here
-    }
-
-    @Override
-    public final void loadSettingsForModel(final NodeSettingsRO settings) {
-        // nothing to do here
-    }
-
-    @Override
-    public final void validateSettings(final NodeSettingsRO settings) {
-        // nothing to do here
-    }
-
-    @Override
-    public final void validate() {
-        // nothing to do here
-    }
-
-    @Override
-    public final void saveSettingsForDialog(final NodeSettingsWO settings) {
-        // nothing to do here
-    }
-
-    @Override
-    public final void saveSettingsForModel(final NodeSettingsWO settings) {
-        // nothing to do here
-    }
-
-    @Override
-    public final NoSettingsURIExporterPanel getPanel() {
-        return new NoSettingsURIExporterPanel(this);
+    public C getConfig() {
+        return (C)super.getConfig();
     }
 }

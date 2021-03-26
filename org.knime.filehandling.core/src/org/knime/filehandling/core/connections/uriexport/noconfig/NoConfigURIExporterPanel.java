@@ -42,57 +42,60 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   2020-10-15 (Vyacheslav Soldatov): created
  */
-package org.knime.filehandling.core.connections.uriexport;
 
-import org.knime.core.node.util.CheckUtils;
+package org.knime.filehandling.core.connections.uriexport.noconfig;
+
+import java.awt.FlowLayout;
+
+import javax.swing.JLabel;
+
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.uriexport.URIExporterPanel;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterPanel;
 
 /**
- * Unique URI exporter identifier.
+ * {@link URIExporterPanel} implementation that does not allow to edit any settings. The panel displays are configurable
+ * message.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH
  * @since 4.3
  * @noreference non-public API
+ * @noextend non-public API
  */
-public final class URIExporterID {
+public class NoConfigURIExporterPanel extends BaseURIExporterPanel<EmptyURIExporterConfig> {
 
-    private final String m_id;
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Create a new URI exporter identifier.
-     *
-     * @param id the unique exporter identifier
+     * Constructor.
      */
-    public URIExporterID(final String id) {
-        CheckUtils.checkArgumentNotNull(id, "ID of URIExporter must not be null");
-        m_id = id;
+    public NoConfigURIExporterPanel() {
+        this("<html><i>Current URL format requires no settings.</i></html>");
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param msg A message to display.
+     */
+    public NoConfigURIExporterPanel(final String msg) {
+        super(new FlowLayout(FlowLayout.LEFT), EmptyURIExporterConfig.getInstance());
+        add(new JLabel(msg)); // NOSONAR it works and is the only good place to add the label
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((m_id == null) ? 0 : m_id.hashCode());
-        return result;
+    protected final void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) {
+        // nothing to do
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final URIExporterID other = (URIExporterID)obj;
-        return m_id.equals(other.m_id);
-    }
-
-    @Override
-    public String toString() {
-        return m_id;
+    protected final void saveAdditionalSettingsTo(final NodeSettingsWO settings) {
+        // nothing to do
     }
 }

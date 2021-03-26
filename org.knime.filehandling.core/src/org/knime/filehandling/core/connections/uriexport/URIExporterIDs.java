@@ -48,39 +48,49 @@
  */
 package org.knime.filehandling.core.connections.uriexport;
 
-import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.path.PathURIExporterFactory;
 
 /**
- * Declares IDs for of {@link URIExporter}s which are used by various file system implementations.
+ * Declares various {@link URIExporterID}s which are used across several file system implementations.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @since 4.3
+ * @noreference non-public API
  */
 public final class URIExporterIDs {
 
     /**
-     * ID of the default {@link URIExporter}. Every {@link FSConnection} provides this exporter.
+     * ID of the default {@link URIExporterFactory}. Every file system provides a default {@link URIExporterFactory},
+     * which must be a {@link NoConfigURIExporterFactory}.
      */
     public static final URIExporterID DEFAULT = new URIExporterID("default");
 
     /**
-     * ID of an {@link URIExporter} that maps to a URI, which contains the path in URI-compatible notation. Please see
-     * {@link PathURIExporter}. Every {@link FSConnection} provides this exporter.
+     * ID of a default {@link URIExporterFactory} that provides a URI which is compatible with the Apache Hadoop file
+     * system API. This exporter is available for all file systems provided by the KNIME Big Data Extensions, but
+     * potentially also by others. All connector nodes that are supposed to be connected to big data nodes must provide
+     * a {@link URIExporterFactory} for this ID and the factory must be a {@link NoConfigURIExporterFactory}.
+     */
+    public static final URIExporterID DEFAULT_HADOOP = new URIExporterID("default_hadoop");
+
+    /**
+     * ID of a {@link URIExporterFactory} that maps to a URI, which contains the path in URI-compatible notation. Please
+     * see {@link PathURIExporterFactory}. Every file system provides this exporter.
      */
     public static final URIExporterID PATH = new URIExporterID("knime-path");
 
     /**
-     * ID of an {@link URIExporter} that maps to legacy knime:// URLs (for example knime://knime.workflow/...). This
-     * {@link URIExporter} is available on several, but not all {@link FSConnection}s. This exporter is only available
-     * on certaub {@link FSConnection}s.
+     * ID of a {@link URIExporterFactory} that maps to legacy knime:// URLs (for example knime://knime.workflow/...).
+     * This exporter is only available on certain file systems.
      */
     public static final URIExporterID LEGACY_KNIME_URL = new URIExporterID("knime-legacy-url");
 
     /**
-     * ID of an {@link URIExporter} that provides a URI which is compatible with the Apache Hadoop file system API. This
-     * exporter is available for all file systems provided by KNIME big data extensions but potentially also by others.
-     * All connector nodes that are supposes to be connected to big data nodes must provide this {@link URIExporter}.
+     * ID of a {@link URIExporterFactory} that maps to file:// URLs (for example file:///home/user). This exporter is
+     * only available on certain file systems.
      */
-    public static final URIExporterID DEFAULT_HADOOP = new URIExporterID("default_hadoop");
+    public static final URIExporterID KNIME_FILE = new URIExporterID("knime-file-url");
 
     private URIExporterIDs() {
     }

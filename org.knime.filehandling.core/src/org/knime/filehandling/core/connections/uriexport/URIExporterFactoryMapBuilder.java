@@ -44,70 +44,71 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.utility.nodes.pathtostring;
+package org.knime.filehandling.core.connections.uriexport;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.IntStream;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.location.FSPathProvider;
-import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.path.PathURIExporterFactory;
 
 /**
- * Utility class for the Path to String nodes.
+ * Builder class to make it easier to correctly build the map for {@link FSConnection#getURIExporterFactories()}.
  *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
+ * @since 4.3
+ * @noreference non-public API
  */
-public final class PathToStringUtils {
+public class URIExporterFactoryMapBuilder {
 
-    private PathToStringUtils() {
-        // hide constructor for utility class
+    private final HashMap<URIExporterID, URIExporterFactory> m_exporters = new HashMap<>();
+
+    /**
+     * Creates a new instance.
+     */
+    public URIExporterFactoryMapBuilder() {
+        m_exporters.put(URIExporterIDs.PATH, PathURIExporterFactory.getInstance());
     }
 
     /**
-     * Creates and returns a KNIME URL using the {@link URIExporter} with id {@link URIExporterIDs#LEGACY_KNIME_URL}.
+     * Fluent API method to add an exporter factory.
      *
-     * @param fsLocation the {@link FSLocation} to convert, must not be {@code null}
-     * @param factory the {@link FSPathProviderFactory}, must not be {@code null}
-     * @return the converted {@link FSLocation} string
+     * @param id The ID under which to add the {@link URIExporter}.
+     * @param exporterFactory The {@link URIExporterFactory} to add.
+     * @return this builder object.
      */
-    @SuppressWarnings("resource") // we don't want to close FSConnection here
-    public static String fsLocationToString(final FSLocation fsLocation, final FSPathProviderFactory factory) {
-        try (final FSPathProvider pathProvider = factory.create(fsLocation)) {
-            final FSConnection fsConnection = pathProvider.getFSConnection();
-            final Map<URIExporterID, URIExporterFactory> uriExporters = fsConnection.getURIExporterFactories();
-            final URIExporter uriExporter =
-                ((NoConfigURIExporterFactory)uriExporters.get(URIExporterIDs.LEGACY_KNIME_URL)).getExporter();
-            final FSPath path = pathProvider.getPath();
-            return uriExporter.toUri(path).toString();
-        } catch (IOException | URISyntaxException e) {
-            throw new IllegalArgumentException(String.format("The path '%s' could not be converted to a KNIME URL: %s",
-                fsLocation.getPath(), e.getMessage()), e);
+    public URIExporterFactoryMapBuilder add(final URIExporterID id, final URIExporterFactory exporterFactory) {
+        CheckUtils.checkArgumentNotNull(exporterFactory, "URIExporterFactory must not be null");
+
+        final URIExporterFactory oldValue = m_exporters.putIfAbsent(id, exporterFactory);
+        if (oldValue != null) {
+            throw new IllegalStateException("There already is a URIExporter Factory with ID " + id.toString());
         }
+        return this;
     }
 
     /**
-     * Splits a path into its individual names and returns it as an String array.
+     * Finalizes this build into an immutable map.
      *
-     * @param path the path to split
-     * @return the array of strings computed by splitting this path
+     * @return an immutable map from {@link URIExporterID} to {@link URIExporterFactory}.
      */
-    public static String[] split(final Path path) {
-        return IntStream.range(0, path.getNameCount())//
-            .mapToObj(path::getName)//
-            .map(Path::toString)//
-            .toArray(String[]::new);
+    public Map<URIExporterID, URIExporterFactory> build() {
+        CheckUtils.checkArgument(m_exporters.get(URIExporterIDs.DEFAULT) != null,
+            "No default URIExporterFactory has been specified.");
+        CheckUtils.checkArgument(m_exporters.get(URIExporterIDs.DEFAULT) instanceof NoConfigURIExporterFactory,
+            "Default URIExporterFactory must be a NoConfigURIExporterFactory.");
+
+        if (m_exporters.containsKey(URIExporterIDs.DEFAULT_HADOOP)) {
+            CheckUtils.checkArgument(
+                m_exporters.get(URIExporterIDs.DEFAULT_HADOOP) instanceof NoConfigURIExporterFactory,
+                "Default Hadoop URIExporterFactory must be a NoConfigURIExporterFactory.");
+        }
+
+        return Collections.unmodifiableMap(m_exporters);
     }
 }
