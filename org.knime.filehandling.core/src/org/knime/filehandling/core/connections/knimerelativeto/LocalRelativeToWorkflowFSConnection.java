@@ -58,7 +58,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
@@ -132,7 +132,7 @@ public class LocalRelativeToWorkflowFSConnection implements FSConnection {
     }
 
     @Override
-    public Map<URIExporterID, URIExporter> getURIExporters() {
+    public Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
         return RelativeToUtil.RELATIVE_TO_URI_EXPORTERS;
     }
 }

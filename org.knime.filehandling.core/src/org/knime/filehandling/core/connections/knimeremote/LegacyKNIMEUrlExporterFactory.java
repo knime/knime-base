@@ -46,39 +46,29 @@
  * History
  *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.knimeremote;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
  * {@link URIExporter} that provides legacy knime:// URLs.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class LegacyKNIMEUrlExporter extends NoSettingsURIExporter {
+final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
 
-    static final LegacyKNIMEUrlExporter INSTANCE = new LegacyKNIMEUrlExporter();
+    private static final BaseURIExporterMetaInfo META_INFO =
+        new BaseURIExporterMetaInfo("knime:// URL", "Provides a knime:// URL");
 
-    private LegacyKNIMEUrlExporter() {
+    private static final LegacyKNIMEUrlExporterFactory INSTANCE = new LegacyKNIMEUrlExporterFactory();
+
+    private LegacyKNIMEUrlExporterFactory() {
+        super(META_INFO, p -> ((KNIMERemotePath)p).toKNIMEProtocolURI());
     }
 
-    @Override
-    public String getLabel() {
-        return "knime:// URL";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Provides a knime:// URL";
-    }
-
-    @Override
-    public URI toUri(final FSPath path) throws URISyntaxException {
-        return ((RelativeToPath)path).toKNIMEProtocolURI();
+    public static LegacyKNIMEUrlExporterFactory getInstance() {
+        return INSTANCE;
     }
 }

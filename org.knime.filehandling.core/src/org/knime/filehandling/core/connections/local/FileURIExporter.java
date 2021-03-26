@@ -45,46 +45,27 @@
  */
 package org.knime.filehandling.core.connections.local;
 
-import java.net.URI;
-
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
  * {@link URIExporter} implementation using file scheme.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-final class FileURIExporter extends NoSettingsURIExporter {
+final class FileURIExporter extends NoConfigURIExporterFactory {
 
-    static final URIExporterID ID = new URIExporterID("knime-file-url");
+    private static final BaseURIExporterMetaInfo META_INFO =
+        new BaseURIExporterMetaInfo("File URI", "Exports the path as file URI.");
 
-    static final FileURIExporter INSTANCE = new FileURIExporter();
+    private static final FileURIExporter INSTANCE = new FileURIExporter();
 
     private FileURIExporter() {
+        super(META_INFO, p -> ((LocalPath)p.toAbsolutePath()).getWrappedPath().toUri());
     }
 
-    /**
-     * @return singleton instance of this exporter
-     */
     public static FileURIExporter getInstance() {
         return INSTANCE;
-    }
-
-    @Override
-    public String getLabel() {
-        return "File URI";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Exports the path as file URI.";
-    }
-
-    @Override
-    public URI toUri(final FSPath path) {
-        return ((LocalPath)path.toAbsolutePath()).getWrappedPath().toUri();
     }
 }
