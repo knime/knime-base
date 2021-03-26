@@ -48,24 +48,19 @@
  */
 package org.knime.filehandling.utility.nodes.pathtourl;
 
-import java.awt.Component;
 import java.awt.GridBagLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 
-import org.apache.commons.lang3.StringUtils;
-import org.knime.core.node.defaultnodesettings.DialogComponentLabel;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -80,53 +75,60 @@ public class URIExporterSelectorPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private Map<URIExporterID, URIExporter> m_uriExportersMap; //NOSONAR
+    private final DefaultComboBoxModel<URIExporterComboboxItem> m_comboModel;
 
-    private final DefaultComboBoxModel<String> m_comboModel;
-
-    private final JComboBox<String> m_combobox;
+    private final JComboBox<URIExporterComboboxItem> m_combobox;
 
     private final JLabel m_uriSelectorLabel;
+
+    private final URIExporterChangeListener m_uriChangeListener; //NOSONAR
 
     private static final String URL_FORMAT_LABEL = "URL Format";
 
     private SettingsModelString m_selectedUriExporterModel; //NOSONAR
 
-    private final URIExporterChangeListener m_uriChangeListener; //NOSONAR
+    private static class URIExporterComboboxItem {
+
+        private URIExporterID m_id;
+
+        private String m_title;
+
+        URIExporterComboboxItem(final URIExporterID id, final String title) {
+            m_id = id;
+            m_title = title;
+        }
+
+        URIExporterID getId() {
+            return m_id;
+        }
+
+        @Override
+        public String toString() {
+            return m_title;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (obj != null && obj.getClass() == getClass()) {
+                URIExporterComboboxItem other = (URIExporterComboboxItem)obj;
+                return m_id.equals(other.m_id);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return m_id.hashCode();
+        }
+    }
 
     /**
      * Initialize components
      */
-    public URIExporterSelectorPanel() {
-
-        m_uriExportersMap =
-            Collections.singletonMap(URIExporterIDs.DEFAULT, new PathToUrlNodeConfig.DefaultURIExporter());
-
-        m_comboModel = new DefaultComboBoxModel<>(
-            m_uriExportersMap.keySet().stream().map(URIExporterID::toString).toArray(String[]::new));
+    public URIExporterSelectorPanel(final SettingsModelString uriExporterModel) {
+        m_selectedUriExporterModel = uriExporterModel;
+        m_comboModel = new DefaultComboBoxModel<>();
         m_combobox = new JComboBox<>(m_comboModel);
-        m_combobox.setRenderer(new DefaultListCellRenderer() {
-            private static final long serialVersionUID = 1L;
-
-            @SuppressWarnings("rawtypes")
-            @Override
-            public Component getListCellRendererComponent(final JList list, final Object value, final int index,
-                final boolean isSelected, final boolean cellHasFocus) {
-
-                if (isSelected) {
-                    setBackground(list.getSelectionBackground());
-                    setForeground(list.getSelectionForeground());
-                } else {
-                    setBackground(list.getBackground());
-                    setForeground(list.getForeground());
-                }
-
-                final URIExporterID selectedURIExportedId = new URIExporterID((String)value);
-                setText(m_uriExportersMap.get(selectedURIExportedId).getLabel());
-                return this;
-            }
-        });
-
         m_uriSelectorLabel = new JLabel(URL_FORMAT_LABEL);
         m_combobox.setFocusable(false);
         m_uriChangeListener = new URIExporterChangeListener();
@@ -154,55 +156,49 @@ public class URIExporterSelectorPanel extends JPanel {
 
     }
 
-    /**
-     * Removes the previous elements from combo box and add items from the incoming uriExporters map. Pre-selects item
-     * incase the settings are non-empty and updated the description label with the selected URI exporter description.
-     *
-     *
-     * @param uriExporters Map of URI Exporters
-     * @param selectedURIModel SettingsModel for selected URI Exporter
-     * @param selectedUriExporterDescComponent DialogComponentLabel displaying the description for selected URI Exporter
-     *
-     */
-    public void updateComponent(final Map<URIExporterID, URIExporter> uriExporters,
-        final SettingsModelString selectedURIModel, final DialogComponentLabel selectedUriExporterDescComponent) {
+    private static URIExporterComboboxItem toComboBoxItem(final URIExporterID id, final URIExporterFactory factory) {
+        if (id.equals(URIExporterIDs.DEFAULT)) {
+            return new URIExporterComboboxItem(id, "Default");
+        } else {
+            return new URIExporterComboboxItem(id, factory.getMetaInfo().getLabel());
+        }
+    }
+
+    void updateAvailableExporterFactories(final Map<URIExporterID, URIExporterFactory> exporterFactories) {
         m_combobox.removeItemListener(m_uriChangeListener);
         m_comboModel.removeAllElements();
-        m_selectedUriExporterModel = selectedURIModel;
-        m_uriExportersMap = uriExporters;
-        m_uriExportersMap.keySet().forEach(uriExportedId -> m_comboModel.addElement(uriExportedId.toString()));
-        if (!StringUtils.isEmpty(m_selectedUriExporterModel.getStringValue())) {
-            m_comboModel.setSelectedItem(m_selectedUriExporterModel.getStringValue());
+
+        for (Entry<URIExporterID, URIExporterFactory> entry : exporterFactories.entrySet()) {
+            final URIExporterComboboxItem curr = toComboBoxItem(entry.getKey(), entry.getValue());
+            m_comboModel.addElement(curr);
+            if (m_selectedUriExporterModel.getStringValue().equals(curr.getId().toString())) {
+                m_comboModel.setSelectedItem(curr);
+            }
         }
+
         m_combobox.addItemListener(m_uriChangeListener);
-
-        String uriExportDesc =
-            uriExporters.get(new URIExporterID((String)m_comboModel.getSelectedItem())).getDescription();
-        selectedUriExporterDescComponent.setText(uriExportDesc);
-
     }
 
     /**
-     * Returns the selected URI Exporter object
-     *
-     * @return URIExporter An instance of {@link URIExporter} object
-     */
-    public URIExporter getSelectedURIExporter() {
-        final URIExporterID selectedURIExportedId = new URIExporterID((String)m_comboModel.getSelectedItem());
-        return m_uriExportersMap.get(selectedURIExportedId);
-    }
-
-    /**
-     * Custom implementation of ItemListener, which updated the Settings model of selected URI Exporter
+     * Custom implementation of ItemListener, which updates the settings model of the selected URI Exporter
      */
     private final class URIExporterChangeListener implements ItemListener {
         @Override
         public void itemStateChanged(final ItemEvent event) {
             if (event.getStateChange() == ItemEvent.SELECTED) {
-                final URIExporterID selectedURIExportedId = new URIExporterID((String)event.getItem());
+                final URIExporterID selectedURIExportedId = ((URIExporterComboboxItem)event.getItem()).getId();
                 m_selectedUriExporterModel.setStringValue(selectedURIExportedId.toString());
             }
         }
     }
 
+    public void setSelectedItem(final URIExporterID uriExporterID) {
+        final URIExporterComboboxItem tmpItem = new URIExporterComboboxItem(uriExporterID, null);
+        int index = m_comboModel.getIndexOf(tmpItem);
+        if (index != -1) {
+            m_combobox.setSelectedIndex(index);
+        } else {
+            m_combobox.setSelectedItem(0);
+        }
+    }
 }
