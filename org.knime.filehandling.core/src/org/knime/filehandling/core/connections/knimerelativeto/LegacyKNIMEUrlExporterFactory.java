@@ -46,41 +46,29 @@
  * History
  *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.url;
+package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * Provides the underlying URI of a {@link URIPath}.
+ * {@link URIExporter} that provides legacy knime:// URLs.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class CustomUrlExporter extends NoSettingsURIExporter {
+final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
 
-    static final URIExporterID ID = new URIExporterID("knime-customurl");
+    private static final BaseURIExporterMetaInfo META_INFO =
+            new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
 
-    static final CustomUrlExporter INSTANCE = new CustomUrlExporter();
+    private static final LegacyKNIMEUrlExporterFactory INSTANCE = new LegacyKNIMEUrlExporterFactory();
 
-    private CustomUrlExporter() {
+    private LegacyKNIMEUrlExporterFactory() {
+        super(META_INFO, p -> ((RelativeToPath)p).toKNIMEProtocolURI());
     }
 
-    @Override
-    public String getLabel() {
-        return "Custom/KNIME URL";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Provides the Custom/KNIME URL";
-    }
-
-    @Override
-    public URI toUri(final FSPath path) throws URISyntaxException {
-        return ((URIPath) path).getURI();
+    public static LegacyKNIMEUrlExporterFactory getInstance() {
+        return INSTANCE;
     }
 }

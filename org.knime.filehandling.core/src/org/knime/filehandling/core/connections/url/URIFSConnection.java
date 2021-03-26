@@ -54,10 +54,10 @@ import java.util.Map;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactoryMapBuilder;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.connections.uriexport.URIExporterMapBuilder;
 
 /**
  * Creates a pseudo file system that allows to read user-provided URLs.
@@ -66,9 +66,9 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterMapBuilder;
  */
 public class URIFSConnection implements FSConnection {
 
-    private static final Map<URIExporterID, URIExporter> URI_EXPORTERS = new URIExporterMapBuilder() //
-            .add(URIExporterIDs.DEFAULT, CustomUrlExporter.INSTANCE) //
-            .add(CustomUrlExporter.ID, CustomUrlExporter.INSTANCE) //
+    private static final Map<URIExporterID, URIExporterFactory> URI_EXPORTERS = new URIExporterFactoryMapBuilder() //
+            .add(URIExporterIDs.DEFAULT, CustomURIExporterFactory.getInstance()) //
+            .add(CustomURIExporterFactory.ID, CustomURIExporterFactory.getInstance()) //
             .build();
 
     final URIFileSystem m_uriFileSystem;
@@ -93,7 +93,7 @@ public class URIFSConnection implements FSConnection {
     }
 
     @Override
-    public Map<URIExporterID, URIExporter> getURIExporters() {
+    public Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
         return URI_EXPORTERS;
     }
 }

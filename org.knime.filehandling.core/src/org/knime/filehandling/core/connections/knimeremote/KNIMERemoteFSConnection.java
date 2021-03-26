@@ -56,10 +56,10 @@ import java.util.Map;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactoryMapBuilder;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.connections.uriexport.URIExporterMapBuilder;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
@@ -71,9 +71,9 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  */
 public final class KNIMERemoteFSConnection implements FSConnection {
 
-    private static final Map<URIExporterID, URIExporter> URI_EXPORTERS = new URIExporterMapBuilder() //
-            .add(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporter.INSTANCE) //
-            .add(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporter.INSTANCE) //
+    private static final Map<URIExporterID, URIExporterFactory> URI_EXPORTER_FACTORIES = new URIExporterFactoryMapBuilder() //
+            .add(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getInstance()) //
+            .add(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getInstance()) //
             .build();
 
     private final KNIMERemoteFileSystem m_fileSystem;
@@ -109,7 +109,7 @@ public final class KNIMERemoteFSConnection implements FSConnection {
     }
 
     @Override
-    public Map<URIExporterID, URIExporter> getURIExporters() {
-        return URI_EXPORTERS;
+    public Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
+        return URI_EXPORTER_FACTORIES;
     }
 }

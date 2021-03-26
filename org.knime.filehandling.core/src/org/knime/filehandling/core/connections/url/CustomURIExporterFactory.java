@@ -44,41 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
+ *   Mar 16, 2021 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.knimeremote;
+package org.knime.filehandling.core.connections.url;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.uriexport.NoSettingsURIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * {@link URIExporter} that provides legacy knime:// URLs.
+ * URI Exporter Factory for Custom URIs
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  */
-final class LegacyKNIMEUrlExporter extends NoSettingsURIExporter {
+public final class CustomURIExporterFactory extends NoConfigURIExporterFactory {
 
-    static final LegacyKNIMEUrlExporter INSTANCE = new LegacyKNIMEUrlExporter();
+    static final URIExporterID ID = new URIExporterID("knime-customurl");
 
-    private LegacyKNIMEUrlExporter() {
+    private static final BaseURIExporterMetaInfo META_INFO =
+        new BaseURIExporterMetaInfo("Custom/KNIME URL", "Provides the Custom/KNIME URL");
+
+    static final CustomURIExporterFactory INSTANCE = new CustomURIExporterFactory();
+
+    private CustomURIExporterFactory() {
+        super(META_INFO, p -> ((URIPath)p).getURI());
     }
 
-    @Override
-    public String getLabel() {
-        return "knime:// URL";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Provides a knime:// URL";
-    }
-
-    @Override
-    public URI toUri(final FSPath path) throws URISyntaxException {
-        return ((KNIMERemotePath)path).toKNIMEProtocolURI();
+    public static CustomURIExporterFactory getInstance() {
+        return INSTANCE;
     }
 }
