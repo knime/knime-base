@@ -80,9 +80,9 @@ import org.knime.filehandling.utility.nodes.utils.FileStatus;
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class PathCopier {
+final class PathCopier2 {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(PathCopier.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(PathCopier2.class);
 
     private static final String ERROR_MESSAGE =
         "Something went wrong during the copying / moving process. See log for further details.";
@@ -115,7 +115,7 @@ final class PathCopier {
 
     private final int m_failIfSrcDoesNotExistIdx;
 
-    PathCopier(final TransferPolicy transferPolicy, final boolean verbose, final boolean delete,
+    PathCopier2(final TransferPolicy transferPolicy, final boolean verbose, final boolean delete,
         final boolean failOnDeletion, final boolean failIfSrcDoesNotExist) {
         m_sourceFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();
         m_destinationFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();

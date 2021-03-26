@@ -226,7 +226,7 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
             .map(PortObject::getSpec)//
             .toArray(PortObjectSpec[]::new));
         final BufferedDataContainer container = exec.createDataContainer(outputSpec);
-        final PathCopier pathCopier = new PathCopier(m_config.getTransferPolicy(),
+        final PathCopier2 pathCopier = new PathCopier2(m_config.getTransferPolicy(),
             m_config.getVerboseOutputModel().getBooleanValue(), m_config.getDeleteSourceFilesModel().getBooleanValue(),
             m_config.getFailOnDeletionModel().getBooleanValue(), m_config.failIfSourceDoesNotExist());
         try (final TransferIterator iter = getTransferIterator(inObjects)) {
@@ -258,7 +258,7 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
         throws IOException, InvalidSettingsException;
 
     private static long transfer(final ExecutionContext exec, final DataContainer container, long rowIdx,
-        final PathCopier pathCopier, final TransferEntry entry) throws IOException, CanceledExecutionException {
+        final PathCopier2 pathCopier, final TransferEntry entry) throws IOException, CanceledExecutionException {
         final DataCell[][] rows = pathCopier.transfer(exec, entry);
         for (final DataCell[] row : rows) {
             container.addRowToTable(new DefaultRow(RowKey.createRowKey(rowIdx), row));

@@ -44,45 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Aug 27, 2020 (lars.schweikardt): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.dialog.swingworker;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.Optional;
 
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.deletepaths.filechooser.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
+import org.knime.filehandling.utility.nodes.utils.PathHandlingUtils;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
+ * Swingworker to check whether a path ends with ".", "..", has no parent or is empty and returns a corresponding
+ * {@link StatusMessage}.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @deprecated since 4.3.3
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+@Deprecated
+public final class IncludeSourceFolderSwingWorker implements StatusMessageReporter {
 
-    @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        return map;
+    private final SettingsModelReaderFileChooser m_readerModel;
+
+    /**
+     * Constructor.
+     *
+     * @param readerModel the {@link SettingsModelReaderFileChooser}
+     */
+    public IncludeSourceFolderSwingWorker(final SettingsModelReaderFileChooser readerModel) {
+        m_readerModel = readerModel;
     }
 
+    @Override
+    public StatusMessage report() throws IOException, InvalidSettingsException {
+        return hasParentFolder().orElse(StatusMessageUtils.SUCCESS_MSG);
+    }
+
+    private Optional<StatusMessage> hasParentFolder() throws IOException, InvalidSettingsException {
+        try (final ReadPathAccessor readPathAccessor = m_readerModel.createReadPathAccessor()) {
+            final FSPath rootPath = readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
+
+            return PathHandlingUtils.isIncludeSourceFolderAvailable(rootPath)
+                ? Optional.of(StatusMessageUtils.SUCCESS_MSG)
+                : Optional.of(DefaultStatusMessage.mkError("%s", PathHandlingUtils.createErrorMessage(rootPath)));
+        } catch (final IOException | InvalidSettingsException e) { // NOSONAR we don't care about exceptions here
+            return Optional.empty();
+        }
+    }
 }

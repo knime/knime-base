@@ -44,56 +44,95 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 27, 2020 (lars.schweikardt): created
+ *   Oct 16, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.dialog.swingworker;
+package org.knime.filehandling.utility.nodes.compress;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.StatusMessageReporter;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
-import org.knime.filehandling.utility.nodes.utils.PathHandlingUtils;
 
 /**
- * Swingworker to check whether a path ends with ".",  "..", has no parent or is empty and returns a corresponding {@link StatusMessage}.
+ * The flatten hierarchy status reported.
  *
- * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @deprecated since 4.3.3
  */
+@Deprecated
+final class FlattenHierarchyStatusReporter implements StatusMessageReporter {
 
-public final class IncludeSourceFolderSwingWorker implements StatusMessageReporter {
+    private static final StatusMessage SUCCESS_MSG = DefaultStatusMessage.mkInfo("");
 
     private final SettingsModelReaderFileChooser m_readerModel;
 
-    /**
-     * Constructor.
-     *
-     * @param readerModel the {@link SettingsModelReaderFileChooser}
-     */
-    public IncludeSourceFolderSwingWorker(final SettingsModelReaderFileChooser readerModel) {
+    FlattenHierarchyStatusReporter(final SettingsModelReaderFileChooser readerModel) {
         m_readerModel = readerModel;
     }
 
     @Override
-    public StatusMessage report() throws IOException, InvalidSettingsException {
-        return hasParentFolder().orElse(StatusMessageUtils.SUCCESS_MSG);
+    public StatusMessage report() {
+        return canBeFlattened().orElse(SUCCESS_MSG);
     }
 
-    private Optional<StatusMessage> hasParentFolder() throws IOException, InvalidSettingsException {
+    private Optional<StatusMessage> canBeFlattened() {
         try (final ReadPathAccessor readPathAccessor = m_readerModel.createReadPathAccessor()) {
-            final FSPath rootPath = readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
-
-            return PathHandlingUtils.isIncludeSourceFolderAvailable(rootPath)
-                ? Optional.of(StatusMessageUtils.SUCCESS_MSG)
-                : Optional.of(DefaultStatusMessage.mkError("%s", PathHandlingUtils.createErrorMessage(rootPath)));
-        } catch (final IOException | InvalidSettingsException e) { // NOSONAR we don't care about exceptions here
+            final FSPath rootSourcePath = readPathAccessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
+            //Additional check, as an empty path is still a regular path
+            if (rootSourcePath.toString().length() != 0) {
+                final List<FSPath> sourcePaths = getSourcePaths(StatusMessageUtils.NO_OP_CONSUMER, readPathAccessor);
+                return checkNameCollisions(sourcePaths);
+            } else {
+                return Optional.empty();
+            }
+        } catch (final IOException | InvalidSettingsException | IllegalArgumentException e) { // NOSONAR we don't care about exceptions here
             return Optional.empty();
         }
     }
+
+    private static Optional<StatusMessage> checkNameCollisions(final List<FSPath> sourcePaths) {
+        final Map<String, String> entries = new HashMap<>();
+        for (final FSPath p : sourcePaths) {
+            final String fileName = p.getFileName().toString();
+            if (entries.containsKey(fileName)) {
+                return Optional.of(DefaultStatusMessage.mkError(CompressNodeModel.NAME_COLLISION_ERROR_TEMPLATE,
+                    p.toString(), entries.get(fileName)));
+            } else {
+                entries.put(fileName, p.toString());
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns the source paths from the {@link DialogComponentReaderFileChooser} based on the the {@link FilterMode}.
+     *
+     * @param consumerReader the consumer for the status messages
+     * @return the source paths of the {@link DialogComponentReaderFileChooser}
+     * @throws IOException
+     * @throws InvalidSettingsException
+     */
+    private List<FSPath> getSourcePaths(final Consumer<StatusMessage> consumerReader,
+        final ReadPathAccessor readPathAccessor) throws IOException, InvalidSettingsException {
+        if (m_readerModel.getFilterModeModel().getFilterMode() == FilterMode.FOLDER) {
+            return FSFiles.getFilePathsFromFolder(readPathAccessor.getRootPath(consumerReader));
+        } else {
+            return readPathAccessor.getFSPaths(consumerReader);
+        }
+    }
+
 }

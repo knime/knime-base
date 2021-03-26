@@ -125,6 +125,18 @@
             factory-class="org.knime.filehandling.utility.nodes.transfer.table.TransferFilesTableNodeFactory"
             hidden="false">
       </node>
+      <node
+            category-path="/io/f-f-util"
+            deprecated="true"
+            factory-class="org.knime.filehandling.utility.nodes.transfer.TransferFilesNodeFactory"
+            hidden="false">
+      </node>
+      <node
+            category-path="/io/f-f-util"
+            deprecated="true"
+            factory-class="org.knime.filehandling.utility.nodes.compress.CompressNodeFactory"
+            hidden="false">
+      </node>
    </extension>
    <extension
          point="org.knime.core.NodeFactoryClassMapper">

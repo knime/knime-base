@@ -44,45 +44,62 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 5, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   27 Aug 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.utility.nodes;
+package org.knime.filehandling.utility.nodes.compress;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
-import org.knime.core.node.MapNodeFactoryClassMapper;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.filehandling.utility.nodes.deletepaths.filechooser.DeleteFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory;
-import org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory;
-import org.knime.filehandling.utility.nodes.stringtopath.StringToPathNodeFactory;
-import org.knime.filehandling.utility.nodes.tempdir.CreateTempDir2NodeFactory;
+import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
- * Class mapping a couple of utility nodes, which were part of knime-base, to their new {@link NodeFactory} locations.
+ * Node Factory for the "Compress Files/Folder" node
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @deprecated since 4.3.3
  */
-public final class UtilityNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
+@Deprecated
+public final class CompressNodeFactory extends ConfigurableNodeFactory<CompressNodeModel> {
+
+    static final String CONNECTION_INPUT_FILE_PORT_GRP_NAME = "Source File System Connection";
+
+    static final String CONNECTION_OUTPUT_DIR_PORT_GRP_NAME = "Destination File System Connection";
 
     @Override
-    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
-        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
-        map.put("org.knime.base.node.io.filehandling.util.dir.CreateDirectory2NodeFactory",
-            CreateDirectory2NodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.tempdir.CreateTempDir2NodeFactory",
-            CreateTempDir2NodeFactory.class);
-        map.put("org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.deletepaths.DeleteFilesAndFoldersNodeFactory",
-            DeleteFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.listpaths.ListFilesAndFoldersNodeFactory",
-            ListFilesAndFoldersNodeFactory.class);
-        map.put("org.knime.base.node.io.filehandling.util.stringtopath.StringToPathNodeFactory",
-            StringToPathNodeFactory.class);
-        return map;
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
+        builder.addOptionalInputPortGroup(CONNECTION_INPUT_FILE_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+        builder.addOptionalInputPortGroup(CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, FileSystemPortObject.TYPE);
+
+        return Optional.of(builder);
     }
 
+    @Override
+    protected CompressNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new CompressNodeModel((creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return new CompressNodeDialog(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+    }
+
+    @Override
+    public NodeView<CompressNodeModel> createNodeView(final int viewIndex, final CompressNodeModel nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
 }
