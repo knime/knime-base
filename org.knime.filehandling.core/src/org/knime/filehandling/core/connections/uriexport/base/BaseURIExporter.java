@@ -42,57 +42,42 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 19, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.uriexport;
+package org.knime.filehandling.core.connections.uriexport.base;
 
-import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
 
 /**
- * Unique URI exporter identifier.
+ * Base implementation of a {@link URIExporter} which holds a reference to a {@link URIExporterConfig} instance, which
+ * stores the settings to be accessed by actual implementations when mapping paths to URIs.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @param <C> The actual subtype of {@link URIExporterConfig} to use for settings.
  * @since 4.3
  * @noreference non-public API
+ * @noextend non-public API
  */
-public final class URIExporterID {
+public abstract class BaseURIExporter<C extends URIExporterConfig> implements URIExporter {
 
-    private final String m_id;
+    private final C m_config;
 
     /**
-     * Create a new URI exporter identifier.
+     * Constructor.
      *
-     * @param id the unique exporter identifier
+     * @param config A properly initialized {@link URIExporterConfig} to use when mapping paths to URIs.
      */
-    public URIExporterID(final String id) {
-        CheckUtils.checkArgumentNotNull(id, "ID of URIExporter must not be null");
-        m_id = id;
+    protected BaseURIExporter(final C config) {
+        m_config = config;
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((m_id == null) ? 0 : m_id.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final URIExporterID other = (URIExporterID)obj;
-        return m_id.equals(other.m_id);
-    }
-
-    @Override
-    public String toString() {
-        return m_id;
+    /**
+     * @return the current configuration as a {@link URIExporterConfig} instance.
+     */
+    public final C getConfig() {
+        return m_config;
     }
 }

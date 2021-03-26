@@ -47,114 +47,27 @@ package org.knime.filehandling.core.connections.uriexport;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.function.Consumer;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
- * Interface describing a {@link FSPath} to {@link URI} exporter. Provides definition for utility methods in node model,
- * dialog lifecycle.
+ * Interface that allows to map an {@link FSPath} object to a {@link URI}. Not that this is intentionally a functional
+ * interface in order reduce boilerplate code for simple implementations.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @author Sascha Wolke, KNIME GmbH
- * @author Ayaz Ali Qureshi, KNIME GmbH
+ * @since 4.3
+ * @noreference non-public API
+ * @noimplement non-public API
  */
+@FunctionalInterface
 public interface URIExporter {
 
     /**
-     * Validates the provided specs against the settings and either provides warnings via the
-     * <b>statusMessageConsumer</b> if the issues are non fatal or throws an InvalidSettingsException if the current
-     * configuration and the provided specs make a successful execution impossible.
+     * Maps the given {@link FSPath} to a URI.
      *
-     * @param specs the input {@link PortObjectSpec specs} of the node
-     * @param statusMessageConsumer consumer for status messages e.g. warnings
-     * @throws InvalidSettingsException if the specs are not compatible with the settings
-     */
-    void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
-        throws InvalidSettingsException;
-
-    /**
-     * Loads settings from the given {@link NodeSettingsRO} (to be called by the dialog).
-     *
-     * @param settings Node settings to load from.
-     * @throws NotConfigurableException
-     */
-    void loadSettingsForDialog(final NodeSettingsRO settings) throws NotConfigurableException;
-
-    /**
-     * Loads settings from the given {@link NodeSettingsRO} (to be called by the node model).
-     *
-     * @param settings Node settings to load from.
-     * @throws InvalidSettingsException
-     */
-    void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Validates the settings in the given {@link NodeSettingsRO}.
-     *
-     * @param settings Node settings to validate.
-     * @throws InvalidSettingsException
-     */
-    void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Validates the current settings.
-     *
-     * @throws InvalidSettingsException
-     */
-    void validate() throws InvalidSettingsException;
-
-    /**
-     * Saves the settings (to be called by node dialog).
-     *
-     * @param settings Node settings to save to.
-     * @throws InvalidSettingsException
-     */
-    void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException;
-
-    /**
-     * Saves the settings (to be called by node model).
-     *
-     * @param settings Node settings to save to.
-     */
-    void saveSettingsForModel(final NodeSettingsWO settings);
-
-    /**
-     * Human readable label of this exporter.
-     *
-     * @return label representing this exporter
-     */
-    public String getLabel();
-
-    /**
-     * A short description that will be displayed as e.g. tool tip.
-     *
-     * @return short description of this exporter
-     */
-    public String getDescription();
-
-    /**
-     * Export the given path to a URI.
-     *
-     * @param path the path to export
-     * @return URI representation of the path
-     * @throws URISyntaxException on invalid URIs
+     * @param path The path to map.
+     * @return URI representation of the path.
+     * @throws URISyntaxException on invalid URIs.
      */
     public URI toUri(FSPath path) throws URISyntaxException;
-
-    /**
-     * Export the relevant Panel for each URIExporter. This panel will contain different settings required to setup
-     * different URIExporters
-     *
-     * @return URIExporterPanel of the URIExporter
-     */
-    public URIExporterPanel<? extends URIExporter> getPanel(); //NOSONAR rawTypes warning without generic type
-
-    public static final String CFG_URI_EXPORTER_SETTINGS = "uri_exporter_settings";
 }

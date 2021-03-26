@@ -42,57 +42,77 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 11, 2021 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.uriexport;
+package org.knime.filehandling.core.connections.uriexport.noconfig;
 
-import org.knime.core.node.util.CheckUtils;
+import java.util.function.Consumer;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
- * Unique URI exporter identifier.
+ * A stateless and immutable {@link URIExporterConfig} implementation that stores not settings at all. This class is a
+ * singleton and its only instance can be retrieved with {@link #getInstance()}.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  * @since 4.3
  * @noreference non-public API
  */
-public final class URIExporterID {
+public final class EmptyURIExporterConfig implements URIExporterConfig {
 
-    private final String m_id;
+    private static final EmptyURIExporterConfig SINGLETON_INSTANCE = new EmptyURIExporterConfig();
+
+    private EmptyURIExporterConfig() {
+    }
 
     /**
-     * Create a new URI exporter identifier.
-     *
-     * @param id the unique exporter identifier
+     * @return the only available instance of this class.
      */
-    public URIExporterID(final String id) {
-        CheckUtils.checkArgumentNotNull(id, "ID of URIExporter must not be null");
-        m_id = id;
+    public static EmptyURIExporterConfig getInstance() {
+        return SINGLETON_INSTANCE;
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((m_id == null) ? 0 : m_id.hashCode());
-        return result;
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+        //nothing to do here
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final URIExporterID other = (URIExporterID)obj;
-        return m_id.equals(other.m_id);
+    public void loadSettingsForPanel(final NodeSettingsRO settings) throws NotConfigurableException {
+        //nothing to do here
     }
 
     @Override
-    public String toString() {
-        return m_id;
+    public void loadSettingsForExporter(final NodeSettingsRO settings) throws InvalidSettingsException {
+        //nothing to do here
+    }
+
+    @Override
+    public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        //nothing to do here
+    }
+
+    @Override
+    public void validate() throws InvalidSettingsException {
+        //nothing to do here
+    }
+
+    @Override
+    public void saveSettingsForPanel(final NodeSettingsWO settings) throws InvalidSettingsException {
+        //nothing to do here
+    }
+
+    @Override
+    public void saveSettingsForExporter(final NodeSettingsWO settings) {
+        //nothing to do here
     }
 }

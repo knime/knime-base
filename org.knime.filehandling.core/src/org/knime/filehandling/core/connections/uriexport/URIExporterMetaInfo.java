@@ -42,57 +42,33 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 17, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.uriexport;
 
-import org.knime.core.node.util.CheckUtils;
-
 /**
- * Unique URI exporter identifier.
+ * Provides meta information about a particular {@link URIExporter}.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Bjoern Lohrmann, KNIME GmbH
  * @since 4.3
  * @noreference non-public API
+ * @noimplement non-public API
  */
-public final class URIExporterID {
-
-    private final String m_id;
+public interface URIExporterMetaInfo {
 
     /**
-     * Create a new URI exporter identifier.
+     * Human readable label of this exporter.
      *
-     * @param id the unique exporter identifier
+     * @return label representing this exporter
      */
-    public URIExporterID(final String id) {
-        CheckUtils.checkArgumentNotNull(id, "ID of URIExporter must not be null");
-        m_id = id;
-    }
+    String getLabel();
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((m_id == null) ? 0 : m_id.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final URIExporterID other = (URIExporterID)obj;
-        return m_id.equals(other.m_id);
-    }
-
-    @Override
-    public String toString() {
-        return m_id;
-    }
+    /**
+     * A short description that will be displayed as e.g. tool tip.
+     *
+     * @return short description of this exporter
+     */
+    String getDescription();
 }

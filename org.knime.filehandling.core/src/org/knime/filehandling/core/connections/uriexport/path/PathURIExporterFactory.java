@@ -42,57 +42,49 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 16, 2021 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.uriexport;
+package org.knime.filehandling.core.connections.uriexport.path;
 
-import org.knime.core.node.util.CheckUtils;
+import java.net.URI;
+
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * Unique URI exporter identifier.
+ * {@link URIExporterFactory} that maps {@link FSPath} path to a URI, which only contains the path in URI-compatible
+ * notation. For example a Windows path C:\Users\joe will be mapped to /C:/Users/joe (which is a valid URI). This is a
+ * singleton class whose only instance can be retrieved with {@link #getInstance()}.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  * @since 4.3
  * @noreference non-public API
  */
-public final class URIExporterID {
-
-    private final String m_id;
+public final class PathURIExporterFactory extends NoConfigURIExporterFactory {
 
     /**
-     * Create a new URI exporter identifier.
-     *
-     * @param id the unique exporter identifier
+     * Unique identifier of this exporter.
      */
-    public URIExporterID(final String id) {
-        CheckUtils.checkArgumentNotNull(id, "ID of URIExporter must not be null");
-        m_id = id;
+    public static final URIExporterID ID = URIExporterIDs.PATH;
+
+    private static final BaseURIExporterMetaInfo META_INFO = new BaseURIExporterMetaInfo("Path", "Provides the path.");
+
+    private static final PathURIExporterFactory INSTANCE = new PathURIExporterFactory();
+
+    private PathURIExporterFactory() {
+        super(META_INFO, p -> new URI(null, null, p.getURICompatiblePath(), null));
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((m_id == null) ? 0 : m_id.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final URIExporterID other = (URIExporterID)obj;
-        return m_id.equals(other.m_id);
-    }
-
-    @Override
-    public String toString() {
-        return m_id;
+    /**
+     * @return the only available instance of this class.
+     */
+    public static PathURIExporterFactory getInstance() {
+        return INSTANCE;
     }
 }

@@ -42,57 +42,73 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
 package org.knime.filehandling.core.connections.uriexport;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.path.PathURIExporterFactory;
 
 /**
- * Unique URI exporter identifier.
+ * Builder class to make it easier to correctly build the map for {@link FSConnection#getURIExporterFactories()}.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  * @since 4.3
  * @noreference non-public API
  */
-public final class URIExporterID {
+public class URIExporterFactoryMapBuilder {
 
-    private final String m_id;
+    private final HashMap<URIExporterID, URIExporterFactory> m_exporters = new HashMap<>();
 
     /**
-     * Create a new URI exporter identifier.
-     *
-     * @param id the unique exporter identifier
+     * Creates a new instance.
      */
-    public URIExporterID(final String id) {
-        CheckUtils.checkArgumentNotNull(id, "ID of URIExporter must not be null");
-        m_id = id;
+    public URIExporterFactoryMapBuilder() {
+        m_exporters.put(URIExporterIDs.PATH, PathURIExporterFactory.getInstance());
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((m_id == null) ? 0 : m_id.hashCode());
-        return result;
+    /**
+     * Fluent API method to add an exporter factory.
+     *
+     * @param id The ID under which to add the {@link URIExporter}.
+     * @param exporterFactory The {@link URIExporterFactory} to add.
+     * @return this builder object.
+     */
+    public URIExporterFactoryMapBuilder add(final URIExporterID id, final URIExporterFactory exporterFactory) {
+        CheckUtils.checkArgumentNotNull(exporterFactory, "URIExporterFactory must not be null");
+
+        final URIExporterFactory oldValue = m_exporters.putIfAbsent(id, exporterFactory);
+        if (oldValue != null) {
+            throw new IllegalStateException("There already is a URIExporter Factory with ID " + id.toString());
+        }
+        return this;
     }
 
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final URIExporterID other = (URIExporterID)obj;
-        return m_id.equals(other.m_id);
-    }
+    /**
+     * Finalizes this build into an immutable map.
+     *
+     * @return an immutable map from {@link URIExporterID} to {@link URIExporterFactory}.
+     */
+    public Map<URIExporterID, URIExporterFactory> build() {
+        CheckUtils.checkArgument(m_exporters.get(URIExporterIDs.DEFAULT) != null,
+            "No default URIExporterFactory has been specified.");
+        CheckUtils.checkArgument(m_exporters.get(URIExporterIDs.DEFAULT) instanceof NoConfigURIExporterFactory,
+            "Default URIExporterFactory must be a NoConfigURIExporterFactory.");
 
-    @Override
-    public String toString() {
-        return m_id;
+        if (m_exporters.containsKey(URIExporterIDs.DEFAULT_HADOOP)) {
+            CheckUtils.checkArgument(
+                m_exporters.get(URIExporterIDs.DEFAULT_HADOOP) instanceof NoConfigURIExporterFactory,
+                "Default Hadoop URIExporterFactory must be a NoConfigURIExporterFactory.");
+        }
+
+        return Collections.unmodifiableMap(m_exporters);
     }
 }

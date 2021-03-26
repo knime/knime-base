@@ -58,8 +58,10 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
  * Utility class for the Path to String nodes.
@@ -83,8 +85,9 @@ public final class PathToStringUtils {
     public static String fsLocationToString(final FSLocation fsLocation, final FSPathProviderFactory factory) {
         try (final FSPathProvider pathProvider = factory.create(fsLocation)) {
             final FSConnection fsConnection = pathProvider.getFSConnection();
-            final Map<URIExporterID, URIExporter> uriExporters = fsConnection.getURIExporters();
-            final URIExporter uriExporter = uriExporters.get(URIExporterIDs.LEGACY_KNIME_URL);
+            final Map<URIExporterID, URIExporterFactory> uriExporters = fsConnection.getURIExporterFactories();
+            final URIExporter uriExporter =
+                ((NoConfigURIExporterFactory)uriExporters.get(URIExporterIDs.LEGACY_KNIME_URL)).getExporter();
             final FSPath path = pathProvider.getPath();
             return uriExporter.toUri(path).toString();
         } catch (IOException | URISyntaxException e) {

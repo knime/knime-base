@@ -44,56 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
+ *   Mar 17, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.uriexport;
+package org.knime.filehandling.core.connections.uriexport.noconfig;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
 
 /**
- * Builder class to make it easier to correctly build the map for {@link FSConnection#getURIExporters()}.
+ * {@link URIExporterFactory} to extend when the {@link URIExporter} requires no settings at all.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @since 4.3
+ * @noreference non-public API
+ * @noextend non-public API
  */
-public class URIExporterMapBuilder {
+public class NoConfigURIExporterFactory extends BaseURIExporterFactory {
 
-    private final HashMap<URIExporterID, URIExporter> m_exporters = new HashMap<>();
+    private final URIExporter m_exporter;
 
     /**
-     * Creates a new instance.
+     * Constructor.
+     *
+     * @param metaInfo Meta information about the factory (description, etc).
+     * @param exporter The {@link URIExporter} instance to return when {@link #getExporter()} is called.
      */
-    public URIExporterMapBuilder() {
-        m_exporters.put(URIExporterIDs.PATH, PathURIExporter.getInstance());
+    protected NoConfigURIExporterFactory(final BaseURIExporterMetaInfo metaInfo, final URIExporter exporter) {
+        super(metaInfo);
+        m_exporter = exporter;
+    }
+
+    @Override
+    public final NoConfigURIExporterPanel createPanel(final URIExporterConfig settings) {
+        return createPanel();
     }
 
     /**
-     * Fluent API method to add an exporter.
-     *
-     * @param id The ID under which to add the {@link URIExporter}.
-     * @param exporter The {@link URIExporter} to add.
-     * @return this builder object.
+     * @return an empty panel that allows to not edit any settings.
      */
-    public URIExporterMapBuilder add(final URIExporterID id, final URIExporter exporter) {
-        final URIExporter oldValue = m_exporters.putIfAbsent(id, exporter);
-        if (oldValue != null) {
-            throw new IllegalStateException("There already is a URIExporter with ID " + id.toString());
-        }
-        return this;
+    @SuppressWarnings("static-method")
+    public final NoConfigURIExporterPanel createPanel() { // NOSONAR not static because it will always be accessed through an instance.
+        return new NoConfigURIExporterPanel();
+    }
+
+    @Override
+    public final EmptyURIExporterConfig initConfig() {
+        return EmptyURIExporterConfig.getInstance();
+    }
+
+    @Override
+    public final URIExporter createExporter(final URIExporterConfig settings) {
+        return getExporter();
     }
 
     /**
-     * Finalizes this build into an immutable map.
-     *
-     * @return an immutable map from {@link URIExporterID} to {@link URIExporter}.
+     * @return the {@link URIExporter} instance to map paths to URIs.
      */
-    public Map<URIExporterID, URIExporter> build() {
-        CheckUtils.checkArgument(m_exporters.get(URIExporterIDs.DEFAULT) != null,
-            "No default URI exporter has been specified.");
-        return Collections.unmodifiableMap(m_exporters);
+    public final URIExporter getExporter() {
+        return m_exporter;
     }
 }

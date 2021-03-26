@@ -44,41 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   2020-10-15 (Vyacheslav Soldatov): created
+ *   Mar 3, 2021 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-
 package org.knime.filehandling.core.connections.uriexport;
 
-import java.awt.FlowLayout;
-
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.uriexport.noconfig.EmptyURIExporterConfig;
 
 /**
- * Implementation of URIExporterPanel dialog panel for NoSettingsURIExporters.
+ * Factory class to create {@link URIExporterConfig}, {@link URIExporter} and {@link URIExporterPanel} instances.
  *
- * @author Ayaz Ali Qureshi, KNIME GmbH
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
+ * @since 4.3
+ * @noreference non-public API
+ * @noimplement non-public API
  */
-@SuppressWarnings("serial")
-public class NoSettingsURIExporterPanel extends URIExporterPanel<NoSettingsURIExporter> {
+public interface URIExporterFactory {
 
     /**
-     * Creates a new instance.
+     * Creates a new {@link URIExporterPanel} instance that loads and saves its settings through the given config.
      *
-     * @param settings NoSettingsURIExporter
+     * @param config The {@link URIExporterConfig} instance that the panel will use to load and save settings.
+     * @return URIExporterPanel
      */
-    public NoSettingsURIExporterPanel(final NoSettingsURIExporter settings) {
-        super(new FlowLayout(), settings);
-    }
+    URIExporterPanel createPanel(URIExporterConfig config);
 
-    @Override
-    protected final void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs) {
-        // nothing to do
-    }
+    /**
+     * Creates an new {@link URIExporter} instance that consumes the settings of the given config.
+     *
+     * @param config A {@link URIExporterConfig} instance that holds the exporter's settings. It is the responsibililty
+     *            of the caller to properly initialize the config (see Javadoc of {@link URIExporterConfig}).
+     * @return URIExporter A new {@link URIExporter} that operates based on the given config.
+     */
+    URIExporter createExporter(URIExporterConfig config);
 
-    @Override
-    protected final void saveAdditionalSettingsTo(final NodeSettingsWO settings) {
-        // nothing to do
-    }
+    /**
+     * Provides a {@link URIExporterConfig} instance that is initialized with defaults values. Note that implementations
+     * are allowed to always return the same instance if the concrete {@link URIExporterConfig} implementation is
+     * stateless and immutable (see {@link EmptyURIExporterConfig}). Otherwise implementations must always return a new
+     * instance.
+     *
+     * @return a new {@link URIExporterConfig} instance that is initialized with defaults values.
+     */
+    URIExporterConfig initConfig();
+
+    /**
+     * @return meta information about this exporter, such as a description.
+     */
+    URIExporterMetaInfo getMetaInfo();
 }
