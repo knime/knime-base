@@ -53,9 +53,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -67,7 +67,6 @@ import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.uri.URIDataCell;
 import org.knime.core.data.uri.UriCellFactory;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -76,7 +75,6 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -88,6 +86,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
@@ -113,7 +112,7 @@ public class PathToUrlNodeModel extends NodeModel {
         super(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
         m_config = nodeSettings;
         m_dataTablePortIndex = nodeSettings.getDataTablePortIndex();
-        m_fileSystemPortIndex = nodeSettings.getFileSystemPortIndex();
+        m_fileSystemPortIndex = nodeSettings.getFileSystemConnectionPortIndex();
     }
 
     @Override
@@ -130,30 +129,30 @@ public class PathToUrlNodeModel extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_config.saveSettingsTo(settings);
+        m_config.saveSettingsForModel(settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.validateSettings(settings);
+        m_config.validateSettingsForModel(settings);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.loadValidatedSettingsFrom(settings);
+        m_config.loadValidatedSettingsForModel(settings);
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
-        if (m_config.getSelectedColNameStringVal() == null) {
+        if (StringUtils.isEmpty(m_config.getPathColumnName())) {
             autoGuess(inSpecs);
         }
 
         // validate the settings
         validateSettings(inSpecs);
 
-        final int pathColIndx = inputTableSpec.findColumnIndex(m_config.getStringValOfSelectedColumnNameModel());
+        final int pathColIndx = inputTableSpec.findColumnIndex(m_config.getPathColumnName());
         final DataColumnSpec pathColumnSpec = inputTableSpec.getColumnSpec(pathColIndx);
         Optional<String> warningMsg = FSLocationColumnUtils.validateFSLocationColumn(pathColumnSpec,
             m_fileSystemPortIndex >= 0 ? (FileSystemPortObjectSpec)inSpecs[m_fileSystemPortIndex] : null);
@@ -176,7 +175,7 @@ public class PathToUrlNodeModel extends NodeModel {
 
     private void validateSettings(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
-        final String pathColName = m_config.getSelectedColNameStringVal();
+        final String pathColName = m_config.getPathColumnName();
         final int pathColumnIdx = inSpec.findColumnIndex(pathColName);
 
         // check column existence
@@ -189,20 +188,19 @@ public class PathToUrlNodeModel extends NodeModel {
                 String.format("The selected column '%s' has the wrong type", pathColName));
         }
 
-        if (m_config.getselectedUriExporterStringVal() == null
-            || m_config.getselectedUriExporterStringVal().trim().isEmpty()) {
+        if (m_config.getURIExporterID() == null) {
             throw new InvalidSettingsException("The selected URL format is invalid");
         }
 
-        if (m_config.isGenerateColAppendMode()) {
+        if (m_config.shouldAppendColumn()) {
             // Is column name empty?
-            if (m_config.getAppendColNameStringVal() == null || m_config.getAppendColNameStringVal().trim().isEmpty()) {
+            if (m_config.getAppendColumnName() == null || m_config.getAppendColumnName().trim().isEmpty()) {
                 throw new InvalidSettingsException("The name of the column to create cannot be empty");
             }
-            if (inSpec.containsName(m_config.getAppendColNameStringVal())) {
+            if (inSpec.containsName(m_config.getAppendColumnName())) {
                 setWarningMessage(
                     String.format("The name of the column to create is already taken, using '%s' instead.",
-                        getUniqueColumnName(inSpec, m_config.getAppendColNameStringVal())));
+                        getUniqueColumnName(inSpec, m_config.getAppendColumnName())));
             }
         }
     }
@@ -210,30 +208,31 @@ public class PathToUrlNodeModel extends NodeModel {
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
 
-        final PortObjectSpec[] inSpecs = Arrays.stream(inObjects)//
-            .map(PortObject::getSpec)//
-            .toArray(PortObjectSpec[]::new);
-
-        final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
-        final int pathColIndx = inputTableSpec.findColumnIndex(m_config.getSelectedColNameStringVal());
-        final DataColumnSpec pathColumnSpec = inputTableSpec.getColumnSpec(pathColIndx);
-
-        //check if the column spec matches the connected files-system
-        Optional<String> warningMsg = FSLocationColumnUtils.validateFSLocationColumn(pathColumnSpec,
-            m_fileSystemPortIndex >= 0 ? (FileSystemPortObjectSpec)inSpecs[m_fileSystemPortIndex] : null);
-        warningMsg.ifPresent(this::setWarningMessage);
-
-        try (FSConnection fsConnection = m_fileSystemPortIndex >= 0
-            ? FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, m_fileSystemPortIndex).orElse(null) : null) {
-
-            try (final PathToUrlCellFactory factory = new PathToUrlCellFactory(getNewColumnSpec(inputTableSpec),
-                pathColIndx, fsConnection, m_config.getselectedUriExporterStringVal(), m_config.getUriExporterNodeSettingsRO(), exec)) {
-                final BufferedDataTable outputBufferTable =
-                    exec.createColumnRearrangeTable((BufferedDataTable)inObjects[m_dataTablePortIndex],
-                        createColumnRearranger(inputTableSpec, factory), exec);
-                return new PortObject[]{outputBufferTable};
-            }
-        }
+//        final PortObjectSpec[] inSpecs = Arrays.stream(inObjects)//
+//            .map(PortObject::getSpec)//
+//            .toArray(PortObjectSpec[]::new);
+//
+//        final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
+//        final int pathColIndx = inputTableSpec.findColumnIndex(m_config.getSelectedColNameStringVal());
+//        final DataColumnSpec pathColumnSpec = inputTableSpec.getColumnSpec(pathColIndx);
+//
+//        //check if the column spec matches the connected files-system
+//        Optional<String> warningMsg = FSLocationColumnUtils.validateFSLocationColumn(pathColumnSpec,
+//            m_fileSystemPortIndex >= 0 ? (FileSystemPortObjectSpec)inSpecs[m_fileSystemPortIndex] : null);
+//        warningMsg.ifPresent(this::setWarningMessage);
+//
+//        try (FSConnection fsConnection = m_fileSystemPortIndex >= 0
+//            ? FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, m_fileSystemPortIndex).orElse(null) : null) {
+//
+//            try (final PathToUrlCellFactory factory = new PathToUrlCellFactory(getNewColumnSpec(inputTableSpec),
+//                pathColIndx, fsConnection, m_config.getselectedUriExporterStringVal(), m_config.getUriExporterNodeSettingsRO(), exec)) {
+//                final BufferedDataTable outputBufferTable =
+//                    exec.createColumnRearrangeTable((BufferedDataTable)inObjects[m_dataTablePortIndex],
+//                        createColumnRearranger(inputTableSpec, factory), exec);
+//                return new PortObject[]{outputBufferTable};
+//            }
+//        }
+        throw new Exception("Not implemented");
     }
 
     /**
@@ -244,23 +243,23 @@ public class PathToUrlNodeModel extends NodeModel {
      */
     private void autoGuess(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_dataTablePortIndex];
-        m_config.setSelectedColNameStringVal(inputTableSpec.stream()//
+        m_config.getPathColumnNameModel().setStringValue(inputTableSpec.stream()//
             .filter(dcs -> dcs.getType().isCompatible(FSLocationValue.class))//
             .map(DataColumnSpec::getName)//
             .findFirst()//
             .orElseThrow(() -> new InvalidSettingsException("No applicable column available"))//
         );
-        setWarningMessage(String.format("Auto-guessed column to convert '%s'", m_config.getSelectedColNameStringVal()));
+        setWarningMessage(String.format("Auto-guessed column to convert '%s'", m_config.getPathColumnName()));
 
-        if (!m_config.isGenerateColAppendMode()) {
-            m_config.setReplaceColNameStringVal(inputTableSpec.stream()//
+        if (!m_config.shouldAppendColumn()) {
+            m_config.getReplaceColumnNameModel().setStringValue(inputTableSpec.stream()//
                 .filter(dcs -> dcs.getType().isCompatible(StringValue.class))//
                 .map(DataColumnSpec::getName)//
                 .findFirst()//
                 .orElseThrow(() -> new InvalidSettingsException("No applicable column available"))//
             );
             setWarningMessage(
-                String.format("Auto-guessed column to replace '%s'", m_config.getReplaceColNameStringVal()));
+                String.format("Auto-guessed column to replace '%s'", m_config.getReplaceColColumnName()));
         }
     }
 
@@ -275,8 +274,8 @@ public class PathToUrlNodeModel extends NodeModel {
 
         final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         // Either replace or append a column depending on users choice
-        if (!m_config.isGenerateColAppendMode()) {
-            rearranger.replace(factory, m_config.getReplaceColNameStringVal());
+        if (!m_config.shouldAppendColumn()) {
+            rearranger.replace(factory, m_config.getReplaceColColumnName());
         } else {
             rearranger.append(factory);
         }
@@ -291,8 +290,8 @@ public class PathToUrlNodeModel extends NodeModel {
      */
     private DataColumnSpec getNewColumnSpec(final DataTableSpec inSpec) {
 
-        final String columnName = !m_config.isGenerateColAppendMode() ? m_config.getReplaceColNameStringVal()
-            : getUniqueColumnName(inSpec, m_config.getAppendColNameStringVal());
+        final String columnName = !m_config.shouldAppendColumn() ? m_config.getReplaceColColumnName()
+            : getUniqueColumnName(inSpec, m_config.getAppendColumnName());
         return new DataColumnSpecCreator(columnName, URIDataCell.TYPE).createSpec();
     }
 
@@ -402,18 +401,19 @@ public class PathToUrlNodeModel extends NodeModel {
          *
          * @throws IOException Throws an IOException when the selected URIExporter is not supported by the File system
          * @throws URISyntaxException Throws an URISyntaxException when URI exporter is unable to convert the path
-         * @throws NotConfigurableException Exception thrown if unable to load URIExporter settings
          * @throws InvalidSettingsException Exception thrown if unable to validate URIExporter settings
          */
         private DataCell convertPathCellToURI(final FSPathProviderFactory fsPathProviderFactory,
             final FSLocation fsLocation)
-            throws IOException, NotConfigurableException, URISyntaxException, InvalidSettingsException {
+            throws IOException, URISyntaxException, InvalidSettingsException {
             DataCell uriCell;
             try (FSPathProvider pathProvider = fsPathProviderFactory.create(fsLocation)) {
                 FSPath path = pathProvider.getPath();
 
-                final URIExporter uriExporter = pathProvider.getFSConnection()
-                    .getURIExporter(new URIExporterID(m_selectedUriExporterId), m_settingsRO);
+                final URIExporterFactory exporterFactory =
+                    pathProvider.getFSConnection().getURIExporterFactory(new URIExporterID(m_selectedUriExporterId));
+
+                final URIExporter uriExporter = exporterFactory.createExporter(null); // FIXME
                 URI newCellURI = uriExporter.toUri(path);
                 uriCell = UriCellFactory.create(newCellURI.toString());
             }
