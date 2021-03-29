@@ -90,4 +90,22 @@ final class TableSourceGroup implements SourceGroup<Table> {
         return m_tables.size();
     }
 
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof TableSourceGroup) {
+            final TableSourceGroup other = (TableSourceGroup)obj;
+            return m_tables.equals(other.m_tables);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return m_tables.hashCode();
+    }
+
 }

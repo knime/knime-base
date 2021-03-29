@@ -50,14 +50,11 @@ package org.knime.filehandling.core.node.table.reader;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.knime.filehandling.core.node.table.reader.TRFTestingUtils.mockProductionPath;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -293,22 +290,6 @@ public class DefaultStagedMultiTableReadTest {
     @Test
     public void testGetRawSpec() {
         assertEquals(RAW_SPEC, m_testInstance.getRawSpec());
-    }
-
-    private SourceGroup<String> stubSourceGroup(final String... items) {
-        when(m_sourceGroup.size()).thenReturn(items.length);
-        when(m_sourceGroup.stream()).thenReturn(Arrays.stream(items));
-        return m_sourceGroup;
-    }
-
-    /**
-     * Tests the implementation of {@link StagedMultiTableRead#isValidFor(SourceGroup)}.
-     */
-    @Test
-    public void testIsValidFor() {
-        assertTrue(m_testInstance.isValidFor(stubSourceGroup(PATH1, PATH2)));
-        assertFalse(m_testInstance.isValidFor(stubSourceGroup(PATH1)));
-        assertFalse(m_testInstance.isValidFor(stubSourceGroup(PATH1, "unknown")));
     }
 
 }

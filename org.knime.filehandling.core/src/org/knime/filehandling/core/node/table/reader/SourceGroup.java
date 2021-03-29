@@ -52,7 +52,8 @@ import java.util.stream.Stream;
 
 /**
  * A SourceGroup represents the inputs to a read process.<br>
- * It consists of an ID that can be used to distinguish SourceGroups and a number of source items to read from.
+ * It consists of an ID that can be used to distinguish SourceGroups and a number of source items to read from.<br>
+ * Implementing classes must also implement {@link Object#equals(Object)} (and therefore {@link Object#hashCode()} too).
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <I> the type of source items

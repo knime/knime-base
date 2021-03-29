@@ -84,6 +84,8 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>, T> {
 
     private StagedMultiTableRead<I, T> m_currentMultiRead;
 
+    private SourceGroup<I> m_currentSourceGroup;
+
     private static <T> void fillRowOutput(final MultiTableRead<T> multiTableRead, final RowOutput output,
         final ExecutionContext exec) throws Exception {
         final FileStoreFactory fsFactory = FileStoreFactory.createFileStoreFactory(exec);
@@ -129,6 +131,7 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>, T> {
         } else {
             m_currentMultiRead = m_multiTableReadFactory.create(sourceGroup, config, exec);
         }
+        m_currentSourceGroup = sourceGroup;
         return m_currentMultiRead;
     }
 
@@ -201,7 +204,7 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>, T> {
 
     private StagedMultiTableRead<I, T> getMultiRead(final SourceGroup<I> sourceGroup,
         final MultiTableReadConfig<C, T> config, final ExecutionContext exec) throws IOException {
-        if (m_currentMultiRead == null || !m_currentMultiRead.isValidFor(sourceGroup)) {
+        if (m_currentMultiRead == null || !m_currentSourceGroup.equals(sourceGroup)) {
             return createMultiRead(sourceGroup, config, exec);
         } else {
             return m_currentMultiRead;

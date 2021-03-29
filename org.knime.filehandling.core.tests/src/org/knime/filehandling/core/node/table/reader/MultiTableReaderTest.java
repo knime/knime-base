@@ -189,7 +189,6 @@ public class MultiTableReaderTest {
         stubMultiReads(false);
         m_testInstance.createTableSpec(m_sourceGroup, m_multiReadConfig);
         verify(m_multiTableReadFactory).create(eq(m_sourceGroup), eq(m_multiReadConfig), any());
-        when(m_stagedMultiTableRead.isValidFor(any())).thenReturn(true);
         m_testInstance.fillRowOutput(m_sourceGroup, m_multiReadConfig, m_rowOutput, m_exec);
         verify(m_multiTableReadFactory, never()).createFromConfig(any(), any());
         verify(m_multiTableReadFactory).create(eq(m_sourceGroup), eq(m_multiReadConfig), any());
@@ -204,7 +203,6 @@ public class MultiTableReaderTest {
     public void testFillRowOutputWithCallingCreateSpecFirstInvalidPathsUnconfigured() throws Exception {
         stubMultiReads(false);
         m_testInstance.createTableSpec(m_sourceGroup, m_multiReadConfig);
-        when(m_stagedMultiTableRead.isValidFor(any())).thenReturn(false);
         m_testInstance.fillRowOutput(m_sourceGroup, m_multiReadConfig, m_rowOutput, m_exec);
         verify(m_multiTableReadFactory, never()).createFromConfig(any(), any());
         verify(m_multiTableReadFactory, times(2)).create(eq(m_sourceGroup),
@@ -221,7 +219,6 @@ public class MultiTableReaderTest {
         stubMultiReads(true);
         m_testInstance.createTableSpec(m_sourceGroup, m_multiReadConfig);
         verify(m_multiTableReadFactory).createFromConfig(m_sourceGroup, m_multiReadConfig);
-        when(m_stagedMultiTableRead.isValidFor(m_sourceGroup)).thenReturn(false);
         when(m_multiTableReadFactory.createFromConfig(m_sourceGroup, m_multiReadConfig))
             .thenReturn(m_stagedMultiTableRead);
         m_testInstance.fillRowOutput(m_sourceGroup, m_multiReadConfig, m_rowOutput, m_exec);

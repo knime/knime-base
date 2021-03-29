@@ -54,11 +54,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 /**
  * Default implementation of a {@link SourceGroup}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <I> the type of source items
+ * @param <I> the type of source items (must implement {@link Object#equals(Object)} and {@link Object#hashCode()})
  * @noinstantiate non-public API
  * @noreference non-public API
  */
@@ -97,6 +99,28 @@ public final class DefaultSourceGroup<I> implements SourceGroup<I> {
     @Override
     public int size() {
         return m_items.size();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof DefaultSourceGroup) {
+            @SuppressWarnings("unchecked") // we check that obj is of type DefaultSourceGroup
+            final DefaultSourceGroup<I> other = (DefaultSourceGroup<I>)obj;
+            return this.m_id.equals(other.m_id) && m_items.equals(other.m_items);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()//
+            .append(m_id)//
+            .append(m_items)//
+            .toHashCode();
     }
 
 }

@@ -195,13 +195,4 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
     public RawSpec<T> getRawSpec() {
         return m_rawSpec;
     }
-
-    @Override
-    public boolean isValidFor(final SourceGroup<I> sourceGroup) {
-        return sourceGroup.size() == m_individualSpecs.size() && containsAll(m_individualSpecs.keySet(), sourceGroup);
-    }
-
-    private static <I> boolean containsAll(final Set<I> keys, final SourceGroup<I> sourceGroup) {
-        return sourceGroup.stream().allMatch(keys::contains);
-    }
 }

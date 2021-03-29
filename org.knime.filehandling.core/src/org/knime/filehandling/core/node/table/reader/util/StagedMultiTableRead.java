@@ -64,6 +64,11 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
  */
 public interface StagedMultiTableRead<I, T> {
 
+    // TODO get rid if the I generic and the SourceGroup parameters. This interface shouldn't know about this stuff.
+    // This is only here because in Streaming we want to reuse the same StagedMultiTableRead we used for creating the spec
+    // however, this actually violates the contract because it can only work if we are in the same copy of a node within
+    // the same JVM. A better approach is to recreate the StagedMultiTableRead from the config
+
     /**
      * Creates a {@link MultiTableRead} that uses the default settings i.e. the default type mapping, no filtering, no
      * renaming and no reordering.<br>
@@ -93,13 +98,5 @@ public interface StagedMultiTableRead<I, T> {
      * @return the raw {@link ReaderTableSpec} i.e. before type mapping, column filtering or reordering
      */
     RawSpec<T> getRawSpec();
-
-    /**
-     * Checks if the provided <b>items</b> match the items used to instantiate this MultiTableRead.
-     *
-     * @param sourceGroup the {@link SourceGroup} to read from
-     * @return {@code true} if the provided {@link SourceGroup} was used to create this {@link StagedMultiTableRead}
-     */
-    boolean isValidFor(final SourceGroup<I> sourceGroup);
 
 }
