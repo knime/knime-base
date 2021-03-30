@@ -44,91 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 15, 2020 (Tobias): created
+ *   Mar 29, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.filehandling.core.node.table.reader.ftrf;
 
-import java.io.IOException;
-import java.util.NoSuchElementException;
+import java.util.List;
 import java.util.function.Function;
 
-import org.knime.core.data.DataRow;
-import org.knime.core.node.NodeLogger;
-import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.util.CheckedExceptionFunction;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
- * Represents a {@link Read} of {@link RandomAccessible} as {@link DataRow} via a provided {@link Function rowMapper}.
- * Errors are reported to a {@link PreviewExecutionMonitor}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
- * @param <V> the type representing values
- * @noreference non-public API
- * @noextend non-public API
- * @noinstantiate non-public API
  */
-public final class IndividualTablePreviewRowIterator<I, V> extends PreviewRowIterator {
+class StagedMultiFastTableRead<I, T> implements StagedMultiTableRead<I, T> {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(IndividualTablePreviewRowIterator.class);
+    private final RawSpec<T> m_rawSpec;
 
-    private final Read<I, V> m_read;
+    private final List<FtrfSourceTuple<T>> m_sourceTuples;
 
-    private final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> m_rowMapper;
+    private final Function<TableTransformation<T>, TableSpecConfig<T>> m_tableSpecConfigFactory;
 
-    private DataRow m_next;
-
-    /**
-     * Constructor.
-     *
-     * @param read the {@link Read} to use
-     * @param rowMapper the row mapper
-     */
-    public IndividualTablePreviewRowIterator(final Read<I, V> read,
-        final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> rowMapper) {
-        m_rowMapper = rowMapper;
-        m_read = read;
+    StagedMultiFastTableRead(final RawSpec<T> rawSpec, final List<FtrfSourceTuple<T>> sourceTuples,
+        final Function<TableTransformation<T>, TableSpecConfig<T>> tableSpecConfigFactory) {
+        m_rawSpec = rawSpec;
+        m_sourceTuples = sourceTuples;
+        m_tableSpecConfigFactory = tableSpecConfigFactory;
     }
 
     @Override
-    public DataRow next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
-        final DataRow next = m_next;
-        m_next = null;
-        return next;
+    public MultiTableRead<T> withoutTransformation(final SourceGroup<I> sourceGroup) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
-    public boolean hasNext() {
-        if (m_next != null) {
-            return true;
-        }
-        return fetchNext();
-    }
-
-    private boolean fetchNext() {
-        try {
-            final RandomAccessible<V> next = m_read.next();
-            m_next = next == null ? null : m_rowMapper.apply(next);
-        } catch (Exception e) {
-            throw new PreviewIteratorException(e.getMessage(), e);
-        }
-        return m_next != null;
+    public MultiTableRead<T> withTransformation(final SourceGroup<I> sourceGroup,
+        final TableTransformation<T> tableTransformation) {
+        final TableSpecConfig<T> tableSpecConfig = m_tableSpecConfigFactory.apply(tableTransformation);
+        return new MultiFastTableRead<>(tableSpecConfig, m_sourceTuples);
     }
 
     @Override
-    public void close() {
-        try {
-            m_read.close();
-        } catch (IOException ex) {
-            // then don't close it
-            LOGGER.debug("Failed to close read.", ex);
-        }
+    public RawSpec<T> getRawSpec() {
+        return m_rawSpec;
     }
 
 }

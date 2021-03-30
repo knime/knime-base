@@ -44,91 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 15, 2020 (Tobias): created
+ *   Mar 26, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.base.node.io.filehandling.csv.reader.api;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.NoSuchElementException;
-import java.util.function.Function;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import org.knime.core.data.DataRow;
-import org.knime.core.node.NodeLogger;
-import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
-import org.knime.filehandling.core.node.table.reader.read.Read;
-import org.knime.filehandling.core.util.CheckedExceptionFunction;
+import org.knime.core.columnar.ColumnarSchema;
+import org.knime.core.columnar.batch.SequentialBatchReadable;
+import org.knime.core.columnar.filter.ColumnSelection;
+
+import com.univocity.parsers.csv.CsvParserSettings;
 
 /**
- * Represents a {@link Read} of {@link RandomAccessible} as {@link DataRow} via a provided {@link Function rowMapper}.
- * Errors are reported to a {@link PreviewExecutionMonitor}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
- * @param <V> the type representing values
- * @noreference non-public API
- * @noextend non-public API
- * @noinstantiate non-public API
  */
-public final class IndividualTablePreviewRowIterator<I, V> extends PreviewRowIterator {
+final class CsvBatchReadable implements SequentialBatchReadable {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(IndividualTablePreviewRowIterator.class);
+    // TODO make FSPath once in file handling plugin
+    private final Path m_path;
 
-    private final Read<I, V> m_read;
+    private final ColumnarSchema m_schema;
 
-    private final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> m_rowMapper;
+    private final CsvParserSettings m_settings;
 
-    private DataRow m_next;
+    private final int m_batchSize;
 
-    /**
-     * Constructor.
-     *
-     * @param read the {@link Read} to use
-     * @param rowMapper the row mapper
-     */
-    public IndividualTablePreviewRowIterator(final Read<I, V> read,
-        final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> rowMapper) {
-        m_rowMapper = rowMapper;
-        m_read = read;
+    CsvBatchReadable(final Path path, final CsvParserSettings settings, final ColumnarSchema schema,
+        final int batchSize) {
+        m_path = path;
+        m_schema = schema;
+        m_settings = settings;
+        m_batchSize = batchSize;
     }
+
+    // TODO support for Theobald Reader. InputStreamProvider?
 
     @Override
-    public DataRow next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
-        final DataRow next = m_next;
-        m_next = null;
-        return next;
+    public void close() throws IOException {
+        // nothing to close (right now)
     }
 
+    @SuppressWarnings("resource") // the caller has to close the batch reader once they are done
     @Override
-    public boolean hasNext() {
-        if (m_next != null) {
-            return true;
-        }
-        return fetchNext();
-    }
-
-    private boolean fetchNext() {
+    public CsvBatchReader createReader(final ColumnSelection selection) {
         try {
-            final RandomAccessible<V> next = m_read.next();
-            m_next = next == null ? null : m_rowMapper.apply(next);
-        } catch (Exception e) {
-            throw new PreviewIteratorException(e.getMessage(), e);
-        }
-        return m_next != null;
-    }
-
-    @Override
-    public void close() {
-        try {
-            m_read.close();
+            final BufferedReader reader = Files.newBufferedReader(m_path);// NOSONAR, managed by CSVBatchReader
+            return new CsvBatchReader(reader, m_settings, selection, m_batchSize);
         } catch (IOException ex) {
-            // then don't close it
-            LOGGER.debug("Failed to close read.", ex);
+            throw new IllegalStateException("An IOException occurred when opening the reader.", ex);
         }
+    }
+
+    @Override
+    public ColumnarSchema getSchema() {
+        return m_schema;
     }
 
 }

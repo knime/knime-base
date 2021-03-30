@@ -100,7 +100,7 @@ public final class TableTransformationUtils {
     }
 
     /**
-     * Returns the {@link ColumnTransformation} of the columns that are candidate for the output.<br>
+     * Returns the {@link ColumnTransformation} of the columns that are candidates for the output.<br>
      * Whether a column is a candidate depends on the {@link ColumnFilterMode}. If a column is only in the union of all
      * input tables, and {@link TableTransformation#getColumnFilterMode()} returns {@link ColumnFilterMode#INTERSECTION}
      * then this column is not a candidate and consequently not part of the output stream.

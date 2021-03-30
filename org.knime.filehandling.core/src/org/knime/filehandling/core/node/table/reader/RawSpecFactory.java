@@ -69,8 +69,10 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> The type used to identify external data types
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-final class RawSpecFactory<T> {
+public final class RawSpecFactory<T> {
 
     private final TypeHierarchy<T, T> m_typeHierarchy;
 
@@ -79,11 +81,11 @@ final class RawSpecFactory<T> {
      *
      * @param typeHierarchy for merging specs
      */
-    RawSpecFactory(final TypeHierarchy<T, T> typeHierarchy) {
+    public RawSpecFactory(final TypeHierarchy<T, T> typeHierarchy) {
         m_typeHierarchy = typeHierarchy;
     }
 
-    RawSpec<T> create(final Collection<TypedReaderTableSpec<T>> specs) {
+    public RawSpec<T> create(final Collection<TypedReaderTableSpec<T>> specs) {
         final LinkedHashMap<String, TypeResolver<T, T>> typeResolvers = new LinkedHashMap<>();
         final Set<String> commonNames = specs.iterator().next().stream()//
                 .map(MultiTableUtils::getNameAfterInit)//

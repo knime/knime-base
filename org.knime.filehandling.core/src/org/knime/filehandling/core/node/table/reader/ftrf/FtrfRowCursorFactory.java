@@ -44,55 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 13, 2020 (Tobias): created
+ *   Mar 29, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader;
+package org.knime.filehandling.core.node.table.reader.ftrf;
 
-import java.io.IOException;
+import static java.util.stream.Collectors.toList;
 
-import org.knime.core.columnar.batch.SequentialBatchReadable;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.v2.RowCursor;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.util.IndexMapperFactory;
 
 /**
- * A row-wise reader for data in table format.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item to read from
- * @param <C> the type of the {@link ReaderSpecificConfig}
- * @param <T> the type used to identify individual data types
- * @param <V> the type of tokens a row read in consists of
- * @noreference non-public API
- * @noimplement non-public API
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> {
+final class FtrfRowCursorFactory<T> {
 
-    SequentialBatchReadable readContent(final I item, final TableReadConfig<C> config, TypedReaderTableSpec<T> spec) throws IOException;
+    private final TableTransformation<T> m_tableTransformation;
 
-    /**
-     * Creates a read object that can be used to read the table in an input item row by row.
-     *
-     * @param item of the table
-     * @param config for reading the table
-     * @return a {@link Read} that reads from an input item using the provided {@link TableReadConfig config}
-     * @throws IOException if creating the read fails due to IO problems
-     */
-    // TODO add separate parameter for doing pushdown e.g. filtering
-    Read<I, V> read(I item, TableReadConfig<C> config) throws IOException;
+    private final DataTableSpec m_specWithOriginalNames;
 
-    /**
-     * Reads the spec of the table stored at the input item. Note that the spec should not be filtered i.e. any
-     * column filter should be ignored.
-     *
-     * @param item to read from
-     * @param config specifying the read settings
-     * @param exec the execution monitor
-     * @return a {@link TypedReaderTableSpec} representing the data stored in <b>source</b>
-     * @throws IOException if reading fails due to IO problems
-     */
-    TypedReaderTableSpec<T> readSpec(I item, TableReadConfig<C> config, ExecutionMonitor exec) throws IOException;
+    private final IndexMapperFactory m_indexMapperFactory;
+
+    FtrfRowCursorFactory(final TableTransformation<T> tableTransformation, final TableReadConfig<?> config) {
+        m_tableTransformation = tableTransformation;
+        // TODO don't forget to implement skipping empty columns
+        m_specWithOriginalNames = new DataTableSpec(TableTransformationUtils.getCandidates(tableTransformation)//
+            .filter(ColumnTransformation::keep)//
+            .sorted()//
+            .map(FtrfRowCursorFactory::toDataColumnSpec)//
+            .toArray(DataColumnSpec[]::new));
+        m_indexMapperFactory = new IndexMapperFactory(//
+            m_specWithOriginalNames.stream()//
+                .map(DataColumnSpec::getName)//
+                .collect(toList())//
+            , config);
+    }
+
+    private static DataColumnSpec toDataColumnSpec(final ColumnTransformation<?> columnTransformation) {
+        return new DataColumnSpecCreator(columnTransformation.getOriginalName(),
+            columnTransformation.getProductionPath().getConverterFactory().getDestinationType()).createSpec();
+    }
+
+    RowCursor create(final FtrfSourceTuple<T> sourceTuple) {
+        final TypedReaderTableSpec<T> spec = sourceTuple.getSpec();
+
+    }
 
 }
