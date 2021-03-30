@@ -210,5 +210,6 @@ final class StringToPathVariableNodeDialog extends NodeDialogPane {
         m_filter.loadConfiguration(config, getAvailableFlowVariables(StringType.INSTANCE));
         m_fileSystemComponent.loadSettingsFrom(settings, specs);
         m_abortOnMissingFileComponent.loadSettingsFrom(settings, specs);
+        m_variableSuffixComponent.loadSettingsFrom(settings, specs);
     }
 }
