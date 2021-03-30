@@ -86,6 +86,7 @@ import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
@@ -167,14 +168,16 @@ final class CSVWriter2NodeModel extends NodeModel {
                 final OutputStreamWriter writer = new OutputStreamWriter(outStream, m_writerConfig.getCharSet());
                 CSVWriter2 tableWriter = new CSVWriter2(writer, m_writerConfig);) {
 
-            final boolean realyAppending = m_writerConfig.isFileAppended() && !isNewFile;
-            final boolean realySkipColumnHeader = m_writerConfig.skipColumnHeaderOnAppend() && !isNewFile;
+            final boolean reallyAppending = m_writerConfig.isFileAppended() && !isNewFile;
+            final boolean reallySkipColumnHeader =
+                m_writerConfig.getFileChooserModel().getFileOverwritePolicy() == FileOverwritePolicy.APPEND
+                    && m_writerConfig.skipColumnHeaderOnAppend() && !isNewFile;
 
             final List<String> commentLines =
-                m_writerConfig.getCommentConfig().getCommentHeader(input.getDataTableSpec().getName(), realyAppending);
+                m_writerConfig.getCommentConfig().getCommentHeader(input.getDataTableSpec().getName(), reallyAppending);
             tableWriter.writeLines(commentLines);
 
-            if (m_writerConfig.writeColumnHeader() && !realySkipColumnHeader) {
+            if (m_writerConfig.writeColumnHeader() && !reallySkipColumnHeader) {
                 tableWriter.writeColumnHeader(input.getDataTableSpec());
             }
 
