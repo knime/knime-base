@@ -50,8 +50,14 @@ package org.knime.filehandling.core.node.table.reader.ftrf;
 
 import java.util.List;
 
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.MissingCell;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.RowContainer;
 import org.knime.core.data.v2.RowCursor;
 import org.knime.core.data.v2.RowRead;
@@ -69,17 +75,17 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class MultiFastTableRead<T> implements MultiTableRead<T> {
+class FtrfMultiTableRead<T> implements MultiTableRead<T> {
 
     private final TableSpecConfig<T> m_tableSpecConfig;
 
-    private final List<FtrfBatchReadable<T>> m_sourceTuples;
+    private final List<ReaderTable<T>> m_tables;
 
     private final FtrfRowCursorFactory<T> m_rowCursorFactory;
 
-    MultiFastTableRead(final TableSpecConfig<T> tableSpecConfig, final List<FtrfBatchReadable<T>> sourceTuples) {
+    FtrfMultiTableRead(final TableSpecConfig<T> tableSpecConfig, final List<ReaderTable<T>> sourceTuples) {
         m_tableSpecConfig = tableSpecConfig;
-        m_sourceTuples = sourceTuples;
+        m_tables = sourceTuples;
         m_rowCursorFactory = new FtrfRowCursorFactory<>(tableSpecConfig.getTableTransformation());
     }
 
@@ -93,17 +99,20 @@ class MultiFastTableRead<T> implements MultiTableRead<T> {
         return m_tableSpecConfig;
     }
 
+    @SuppressWarnings("resource") // the PreviewRowIterator takes care of closing the cursor
     @Override
     public PreviewRowIterator createPreviewIterator() {
-        // TODO Auto-generated method stub
-        return null;
+        return new RowCursorPreviewRowIterator(createConcatenatedRowCursor());
     }
 
     @Override
     public void fillRowOutput(final RowOutput output, final ExecutionMonitor exec, final FileStoreFactory fsFactory)
         throws Exception {
-        // TODO Auto-generated method stub
-
+        try (final RowCursor concatenated = createConcatenatedRowCursor()) {
+            while (concatenated.canForward()) {
+                output.push(toRow(concatenated.forward()));
+            }
+        }
     }
 
     public BufferedDataTable readTable(final ExecutionContext exec) {
@@ -132,17 +141,63 @@ class MultiFastTableRead<T> implements MultiTableRead<T> {
         }
     }
 
-
     private RowCursor createConcatenatedRowCursor() {
-        final RowCursor[] cursors = m_sourceTuples.stream()//
-                .map(m_rowCursorFactory::create)//
-                .toArray(RowCursor[]::new);
+        final RowCursor[] cursors = m_tables.stream()//
+            .map(m_rowCursorFactory::create)//
+            .toArray(RowCursor[]::new);
         return concatenate(cursors);
     }
 
-    private RowCursor concatenate(final RowCursor[] cursors) {
+    private static RowCursor concatenate(final RowCursor[] cursors) {
         // TODO utility function on row cursor level
         return null;
+    }
+
+    // TODO this feels like it should be in a utility class that provides compatibility between the old and the new data API
+    private static DataRow toRow(final RowRead rowRead) {
+        final RowKey rowKey = new RowKey(rowRead.getRowKey().getString());
+        final DataCell[] cells = toCells(rowRead);
+        return new DefaultRow(rowKey, cells);
+    }
+
+    private static DataCell[] toCells(final RowRead rowRead) {
+        final DataCell[] cells = new DataCell[rowRead.getNumColumns()];
+        for (int i = 0; i < cells.length; i++) {
+            if (rowRead.isMissing(i)) {
+                cells[i] = new MissingCell("missing");
+            } else {
+                final ReadValue value = rowRead.getValue(i);
+                cells[i] = value.getDataCell();
+            }
+        }
+        return cells;
+    }
+
+    private static final class RowCursorPreviewRowIterator extends PreviewRowIterator {
+
+        private final RowCursor m_cursor;
+
+        RowCursorPreviewRowIterator(final RowCursor cursor) {
+            m_cursor = cursor;
+        }
+
+        @Override
+        public void close() {
+            m_cursor.close();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return m_cursor.canForward();
+        }
+
+        @Override
+        public DataRow next() {
+            final RowRead rowRead = m_cursor.forward();
+            final DataRow row = toRow(rowRead);
+            return row;
+        }
+
     }
 
 }

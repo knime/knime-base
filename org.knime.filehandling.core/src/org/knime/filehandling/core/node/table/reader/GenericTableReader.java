@@ -50,10 +50,10 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
 
+import org.knime.core.columnar.batch.SequentialBatchReadable;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.ftrf.FtrfBatchReadable;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
@@ -70,8 +70,8 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  */
 public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> {
 
-    FtrfBatchReadable<T> readContent(final I item, final TableReadConfig<C> config,
-        ExecutionMonitor specCalculationMonitor) throws IOException;
+    SequentialBatchReadable readContent(final I item, final TableReadConfig<C> config,
+        TypedReaderTableSpec<T> spec);
 
     /**
      * Creates a read object that can be used to read the table in an input item row by row.

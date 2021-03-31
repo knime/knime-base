@@ -52,7 +52,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.v2.RowCursor;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.ftrf.IndexMapFactory.IndexMap;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
@@ -71,7 +70,7 @@ final class FtrfRowCursorFactory<T> {
 
     private final IndexMapFactory m_indexMapFactory;
 
-    FtrfRowCursorFactory(final TableTransformation<T> tableTransformation, final TableReadConfig<?> config) {
+    FtrfRowCursorFactory(final TableTransformation<T> tableTransformation) {
         m_tableTransformation = tableTransformation;
         // TODO don't forget to implement skipping empty columns
         m_specWithOriginalNames = new DataTableSpec(TableTransformationUtils.getCandidates(tableTransformation)//
@@ -87,7 +86,7 @@ final class FtrfRowCursorFactory<T> {
             columnTransformation.getProductionPath().getConverterFactory().getDestinationType()).createSpec();
     }
 
-    RowCursor create(final FtrfBatchReadable<T> sourceTuple) {
+    RowCursor create(final ReaderTable<T> sourceTuple) {
         final TypedReaderTableSpec<T> spec = sourceTuple.getSpec();
         // TODO
         return null;
@@ -95,6 +94,8 @@ final class FtrfRowCursorFactory<T> {
 
     private RowCursor align(final RowCursor cursor, final TypedReaderTableSpec<T> spec) {
         final IndexMap indexMap = m_indexMapFactory.createIndexMap(spec);
+        // TODO
+        return null;
     }
 
 }

@@ -48,30 +48,55 @@
  */
 package org.knime.filehandling.core.node.table.reader.ftrf;
 
-import org.knime.core.columnar.batch.SequentialBatchReadable;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
+import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class FtrfSourceTuple<T> {
+class FtrfStagedMultiTableRead<I, T> implements StagedMultiTableRead<I, T> {
 
-    private final SequentialBatchReadable m_batchReadable;
+    private final RawSpec<T> m_rawSpec;
 
-    private final TypedReaderTableSpec<T> m_spec;
+    private final List<ReaderTable<T>> m_batchReadables;
 
-    FtrfSourceTuple(final SequentialBatchReadable batchReadable, final TypedReaderTableSpec<T> spec) {
-        m_batchReadable = batchReadable;
-        m_spec = spec;
+    private final Function<TableTransformation<T>, TableSpecConfig<T>> m_tableSpecConfigFactory;
+
+    private final Supplier<TableTransformation<T>> m_defaultTransformationSupplier;
+
+    FtrfStagedMultiTableRead(final RawSpec<T> rawSpec, final List<ReaderTable<T>> batchReadables,
+        final Function<TableTransformation<T>, TableSpecConfig<T>> tableSpecConfigFactory,
+        final Supplier<TableTransformation<T>> defaultTransformationSupplier) {
+        m_rawSpec = rawSpec;
+        m_batchReadables = batchReadables;
+        m_tableSpecConfigFactory = tableSpecConfigFactory;
+        m_defaultTransformationSupplier = defaultTransformationSupplier;
     }
 
-    SequentialBatchReadable getBatchReadable() {
-        return m_batchReadable;
+    @Override
+    public MultiTableRead<T> withoutTransformation(final SourceGroup<I> sourceGroup) {
+        return withTransformation(sourceGroup, m_defaultTransformationSupplier.get());
     }
 
-    TypedReaderTableSpec<T> getSpec() {
-        return m_spec;
+    @Override
+    public MultiTableRead<T> withTransformation(final SourceGroup<I> sourceGroup,
+        final TableTransformation<T> tableTransformation) {
+        final TableSpecConfig<T> tableSpecConfig = m_tableSpecConfigFactory.apply(tableTransformation);
+        return new FtrfMultiTableRead<>(tableSpecConfig, m_batchReadables);
+    }
+
+    @Override
+    public RawSpec<T> getRawSpec() {
+        return m_rawSpec;
     }
 
 }

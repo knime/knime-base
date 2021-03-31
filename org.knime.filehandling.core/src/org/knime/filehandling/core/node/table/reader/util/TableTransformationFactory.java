@@ -63,6 +63,8 @@ import org.knime.filehandling.core.node.table.reader.selector.TableTransformatio
  */
 public interface TableTransformationFactory<T> {
 
+    // TODO remove this interface if it isn't used for dependency injection anymore (there is only a single implementation)
+
     /**
      * Creates a {@link TableTransformation} by adapting {@link TableTransformation existingModel} to the new
      * {@link RawSpec}.
@@ -72,8 +74,8 @@ public interface TableTransformationFactory<T> {
      * @param existingTransformation to adapt
      * @return anversion of {@link TableTransformation existingModel} that is adapted to {@link RawSpec newRawSpec}
      */
-    TableTransformation<T> createFromExisting(final RawSpec<T> newRawSpec,
-        MultiTableReadConfig<?, ?> config, final TableTransformation<T> existingTransformation);
+    TableTransformation<T> createFromExisting(final RawSpec<T> newRawSpec, MultiTableReadConfig<?, ?> config,
+        final TableTransformation<T> existingTransformation);
 
     /**
      * Creates a new {@link TableTransformation} based on the provided {@link RawSpec} and {@link MultiTableReadConfig

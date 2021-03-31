@@ -182,10 +182,8 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
 
     private Map<I, TypedReaderTableSpec<T>> getIndividualSpecs(final SourceGroup<I> sourceGroup,
         final TableSpecConfig<T> tableSpecConfig) {
-
         final TableTransformation<T> transformationModel = tableSpecConfig.getTableTransformation();
         final Map<String, T> typeMap = extractNameToTypeMap(transformationModel);
-
         return sourceGroup.stream()//
             .collect(Collectors.toMap(//
                 Function.identity() //

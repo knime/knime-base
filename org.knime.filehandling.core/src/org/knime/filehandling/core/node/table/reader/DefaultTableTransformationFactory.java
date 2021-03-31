@@ -99,7 +99,7 @@ import org.knime.filehandling.core.node.table.reader.util.TableTransformationFac
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DefaultTableTransformationFactory<T> implements TableTransformationFactory<T> {
+public final class DefaultTableTransformationFactory<T> implements TableTransformationFactory<T> {
 
     private static final String ENFORCE_TYPES_ERROR =
         "The column '%s' can't be converted to the configured data type '%s'. "
@@ -107,7 +107,7 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
 
     private final ProductionPathProvider<T> m_prodPathProvider;
 
-    DefaultTableTransformationFactory(final ProductionPathProvider<T> productionPathProvider) {
+    public DefaultTableTransformationFactory(final ProductionPathProvider<T> productionPathProvider) {
         m_prodPathProvider = productionPathProvider;
     }
 
