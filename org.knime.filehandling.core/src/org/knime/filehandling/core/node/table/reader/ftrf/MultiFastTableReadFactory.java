@@ -49,10 +49,14 @@
 package org.knime.filehandling.core.node.table.reader.ftrf;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
@@ -62,10 +66,10 @@ import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
@@ -91,23 +95,35 @@ final class MultiFastTableReadFactory<I, C extends ReaderSpecificConfig<C>, T>
     @Override
     public StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup, final MultiTableReadConfig<C, T> config,
         final ExecutionMonitor exec) throws IOException {
-        final List<FtrfSourceTuple<T>> sourceTuples = readIndividualSpecs(sourceGroup, config, exec);
-        final RawSpec<T> rawSpec =
-            m_rawSpecFactory.create(sourceTuples.stream().map(FtrfSourceTuple::getSpec).collect(toList()));
-        return new StagedMultiFastTableRead<>(rawSpec, sourceTuples);
+        final Map<I, FtrfBatchReadable<T>> batchReadables = readIndividualSpecs(sourceGroup, config, exec);
+        final Map<I, TypedReaderTableSpec<T>> specs = batchReadables.entrySet().stream().collect(//
+            toMap(//
+                Entry::getKey, e -> e.getValue().getSpec(), //
+                (i, j) -> i, //
+                LinkedHashMap::new)//
+            );
+        final RawSpec<T> rawSpec = m_rawSpecFactory.create(specs.values());
+        return new StagedMultiFastTableRead<>(rawSpec, align(batchReadables.values(), rawSpec),
+            t -> DefaultTableSpecConfig.createFromTransformationModel(sourceGroup.getID(), config.getConfigID(), specs,
+                t));
     }
 
-    private List<FtrfSourceTuple<T>> readIndividualSpecs(final SourceGroup<I> sourceGroup,
+    private static <T> List<FtrfBatchReadable<T>> align(final Collection<FtrfBatchReadable<T>> batchReadables,
+        final RawSpec<T> rawSpec) {
+        final FtrfBatchReadableAligner<T> unifier = new FtrfBatchReadableAligner<>(rawSpec.getUnion());
+        return batchReadables.stream()//
+            .map(unifier::align)//
+            .collect(toList());
+    }
+
+    private Map<I, FtrfBatchReadable<T>> readIndividualSpecs(final SourceGroup<I> sourceGroup,
         final MultiTableReadConfig<C, T> config, final ExecutionMonitor exec) throws IOException {
-        final List<FtrfSourceTuple<T>> sourceTuples = new ArrayList<>(sourceGroup.size());
+        final Map<I, FtrfBatchReadable<T>> sourceTuples = new LinkedHashMap<>(sourceGroup.size());
         for (I item : sourceGroup) {
             TableReadConfig<C> tableReadConfig = config.getTableReadConfig();
-            final TypedReaderTableSpec<T> spec = MultiTableUtils.assignNamesIfMissing(
-                m_reader.readSpec(item, tableReadConfig, exec.createSubProgress(1.0 / sourceGroup.size())));
-            // TODO this feels like something the reader could give us directly
-            final FtrfSourceTuple<T> sourceTuple =
-                new FtrfSourceTuple<>(m_reader.readContent(item, tableReadConfig, spec), spec);
-            sourceTuples.add(sourceTuple);
+            @SuppressWarnings("resource") // the readables are managed by the downstream reads
+            FtrfBatchReadable<T> batchReadable = m_reader.readContent(item, tableReadConfig, exec);
+            sourceTuples.put(item, batchReadable);
         }
         return sourceTuples;
     }

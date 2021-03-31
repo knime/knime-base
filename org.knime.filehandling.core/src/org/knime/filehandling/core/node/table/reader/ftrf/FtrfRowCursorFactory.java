@@ -48,18 +48,16 @@
  */
 package org.knime.filehandling.core.node.table.reader.ftrf;
 
-import static java.util.stream.Collectors.toList;
-
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.v2.RowCursor;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.IndexMapFactory.IndexMap;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.util.IndexMapperFactory;
 
 /**
  *
@@ -71,7 +69,7 @@ final class FtrfRowCursorFactory<T> {
 
     private final DataTableSpec m_specWithOriginalNames;
 
-    private final IndexMapperFactory m_indexMapperFactory;
+    private final IndexMapFactory m_indexMapFactory;
 
     FtrfRowCursorFactory(final TableTransformation<T> tableTransformation, final TableReadConfig<?> config) {
         m_tableTransformation = tableTransformation;
@@ -81,11 +79,7 @@ final class FtrfRowCursorFactory<T> {
             .sorted()//
             .map(FtrfRowCursorFactory::toDataColumnSpec)//
             .toArray(DataColumnSpec[]::new));
-        m_indexMapperFactory = new IndexMapperFactory(//
-            m_specWithOriginalNames.stream()//
-                .map(DataColumnSpec::getName)//
-                .collect(toList())//
-            , config);
+        m_indexMapFactory = new IndexMapFactory(tableTransformation.getRawSpec().getUnion());
     }
 
     private static DataColumnSpec toDataColumnSpec(final ColumnTransformation<?> columnTransformation) {
@@ -93,9 +87,14 @@ final class FtrfRowCursorFactory<T> {
             columnTransformation.getProductionPath().getConverterFactory().getDestinationType()).createSpec();
     }
 
-    RowCursor create(final FtrfSourceTuple<T> sourceTuple) {
+    RowCursor create(final FtrfBatchReadable<T> sourceTuple) {
         final TypedReaderTableSpec<T> spec = sourceTuple.getSpec();
+        // TODO
+        return null;
+    }
 
+    private RowCursor align(final RowCursor cursor, final TypedReaderTableSpec<T> spec) {
+        final IndexMap indexMap = m_indexMapFactory.createIndexMap(spec);
     }
 
 }

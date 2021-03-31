@@ -73,11 +73,11 @@ class MultiFastTableRead<T> implements MultiTableRead<T> {
 
     private final TableSpecConfig<T> m_tableSpecConfig;
 
-    private final List<FtrfSourceTuple<T>> m_sourceTuples;
+    private final List<FtrfBatchReadable<T>> m_sourceTuples;
 
     private final FtrfRowCursorFactory<T> m_rowCursorFactory;
 
-    MultiFastTableRead(final TableSpecConfig<T> tableSpecConfig, final List<FtrfSourceTuple<T>> sourceTuples) {
+    MultiFastTableRead(final TableSpecConfig<T> tableSpecConfig, final List<FtrfBatchReadable<T>> sourceTuples) {
         m_tableSpecConfig = tableSpecConfig;
         m_sourceTuples = sourceTuples;
         m_rowCursorFactory = new FtrfRowCursorFactory<>(tableSpecConfig.getTableTransformation());
@@ -123,7 +123,7 @@ class MultiFastTableRead<T> implements MultiTableRead<T> {
         }
     }
 
-    private void fillFrom(final RowWriteCursor writeCursor, final RowCursor readCursor) {
+    private static void fillFrom(final RowWriteCursor writeCursor, final RowCursor readCursor) {
         while (readCursor.canForward()) {
             assert writeCursor.canForward();
             final RowWrite rowWrite = writeCursor.forward();

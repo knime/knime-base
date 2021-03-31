@@ -66,14 +66,14 @@ class StagedMultiFastTableRead<I, T> implements StagedMultiTableRead<I, T> {
 
     private final RawSpec<T> m_rawSpec;
 
-    private final List<FtrfSourceTuple<T>> m_sourceTuples;
+    private final List<FtrfBatchReadable<T>> m_batchReadables;
 
     private final Function<TableTransformation<T>, TableSpecConfig<T>> m_tableSpecConfigFactory;
 
-    StagedMultiFastTableRead(final RawSpec<T> rawSpec, final List<FtrfSourceTuple<T>> sourceTuples,
+    StagedMultiFastTableRead(final RawSpec<T> rawSpec, final List<FtrfBatchReadable<T>> batchReadables,
         final Function<TableTransformation<T>, TableSpecConfig<T>> tableSpecConfigFactory) {
         m_rawSpec = rawSpec;
-        m_sourceTuples = sourceTuples;
+        m_batchReadables = batchReadables;
         m_tableSpecConfigFactory = tableSpecConfigFactory;
     }
 
@@ -87,7 +87,7 @@ class StagedMultiFastTableRead<I, T> implements StagedMultiTableRead<I, T> {
     public MultiTableRead<T> withTransformation(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> tableTransformation) {
         final TableSpecConfig<T> tableSpecConfig = m_tableSpecConfigFactory.apply(tableTransformation);
-        return new MultiFastTableRead<>(tableSpecConfig, m_sourceTuples);
+        return new MultiFastTableRead<>(tableSpecConfig, m_batchReadables);
     }
 
     @Override
