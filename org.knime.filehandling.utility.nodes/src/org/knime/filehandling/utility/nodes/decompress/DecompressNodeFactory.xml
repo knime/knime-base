@@ -35,6 +35,7 @@
 				<li>.tar.bz2</li>
 				<li>.cpio</li>
 				<li>.ar</li>
+				<li>.gz / .gzip</li>
 			</ul>
 			</p>
 		</intro>

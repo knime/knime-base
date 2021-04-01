@@ -81,9 +81,6 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils
  */
 final class DecompressStatusMessageReporter implements StatusMessageReporter {
 
-    private static final String[] FILE_EXTENSIONS =
-        new String[]{"zip", ".jar", ".tar", ".tar.gz", ".tar.bz2", ".cpio", ".ar"};
-
     private static final StatusMessage INVALID_SOURCE = DefaultStatusMessage.mkError("Invalid source path.");
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DecompressStatusMessageReporter.class);
@@ -124,7 +121,7 @@ final class DecompressStatusMessageReporter implements StatusMessageReporter {
                     return INVALID_SOURCE;
                 }
                 final String rootPathSourceLower = rootPathSource.toString().toLowerCase();
-                if ((Arrays.stream(FILE_EXTENSIONS).noneMatch(rootPathSourceLower::endsWith))) {
+                if ((Arrays.stream(DecompressNodeConfig.FILE_EXTENSIONS).noneMatch(rootPathSourceLower::endsWith))) {
                     return DefaultStatusMessage.mkError("Invalid source file extension .%s",
                         FilenameUtils.getExtension(rootPathSource.getFileName().toString()));
                 }
