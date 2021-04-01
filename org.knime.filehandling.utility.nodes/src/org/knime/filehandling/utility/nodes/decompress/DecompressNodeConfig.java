@@ -51,6 +51,7 @@ package org.knime.filehandling.utility.nodes.decompress;
 import java.util.EnumSet;
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -79,16 +80,18 @@ final class DecompressNodeConfig {
 
     private static final String BZ2_EXTENSION = "bz2";
 
-    private static final String GZ_EXTENSION = "gz";
+    private static final String GZIP_EXTENSION = "gzip";
 
-    private static final String[] FILE_EXTENSIONS = new String[]{//
+    static final String[] FILE_EXTENSIONS = new String[]{//
         "." + ArchiveStreamFactory.ZIP, //
         "." + ArchiveStreamFactory.JAR, //
         "." + ArchiveStreamFactory.TAR, //
-        "." + ArchiveStreamFactory.TAR + "." + GZ_EXTENSION, //
+        "." + ArchiveStreamFactory.TAR + "." + CompressorStreamFactory.GZIP, //
         "." + ArchiveStreamFactory.TAR + "." + BZ2_EXTENSION, //
         "." + ArchiveStreamFactory.CPIO, //
-        "." + ArchiveStreamFactory.AR};
+        "." + ArchiveStreamFactory.AR, //
+        "." + CompressorStreamFactory.GZIP,//
+        "." + GZIP_EXTENSION};
 
     /**
      * Constructor
