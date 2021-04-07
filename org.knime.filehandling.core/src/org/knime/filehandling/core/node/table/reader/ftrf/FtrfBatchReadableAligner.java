@@ -83,7 +83,7 @@ final class FtrfBatchReadableAligner<T> {
         final IndexMap indexMap = m_indexMapFactory.createIndexMap(spec);
         final AlignedSequentialBatchReadable aligned = new AlignedSequentialBatchReadable(indexMap, individualTable.getBatchReadable());
         // TODO use union to "fill up" the columns missing in the individualTable spec
-        return new ReaderTable<>(m_union, aligned);
+        return null;
     }
 
     private static class AlignedSequentialBatchReadable implements SequentialBatchReadable {
