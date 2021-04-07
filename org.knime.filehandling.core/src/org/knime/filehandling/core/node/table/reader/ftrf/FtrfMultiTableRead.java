@@ -194,8 +194,7 @@ class FtrfMultiTableRead<T> implements MultiTableRead<T> {
         @Override
         public DataRow next() {
             final RowRead rowRead = m_cursor.forward();
-            final DataRow row = toRow(rowRead);
-            return row;
+            return toRow(rowRead);
         }
 
     }
