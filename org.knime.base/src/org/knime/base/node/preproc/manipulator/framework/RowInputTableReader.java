@@ -52,8 +52,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.table.Table;
+import org.knime.core.columnar.batch.SequentialBatchReadable;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -71,18 +73,18 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-public final class RowInputTableReader implements GenericTableReader<Table, TableManipulatorConfig, DataType, DataValue> {
+public final class RowInputTableReader
+    implements GenericTableReader<Table, TableManipulatorConfig, DataType, DataValue> {
 
     @Override
     public Read<Table, DataValue> read(final Table path, final TableReadConfig<TableManipulatorConfig> config)
-            throws IOException {
+        throws IOException {
         return new TableRead(path, config);
     }
 
-
     @Override
-    public TypedReaderTableSpec<DataType> readSpec(final Table rowInput, final TableReadConfig<TableManipulatorConfig> config,
-        final ExecutionMonitor exec) throws IOException {
+    public TypedReaderTableSpec<DataType> readSpec(final Table rowInput,
+        final TableReadConfig<TableManipulatorConfig> config, final ExecutionMonitor exec) throws IOException {
         final List<TypedReaderColumnSpec<DataType>> columnSpecs = new ArrayList<>();
         final DataTableSpec spec = rowInput.getDataTableSpec();
         for (final DataColumnSpec colSpec : spec) {
@@ -90,4 +92,11 @@ public final class RowInputTableReader implements GenericTableReader<Table, Tabl
         }
         return new TypedReaderTableSpec<>(columnSpecs);
     }
+
+    @Override
+    public SequentialBatchReadable readContent(final Table item, final TableReadConfig<TableManipulatorConfig> config,
+        final TypedReaderTableSpec<DataType> spec) {
+        throw new NotImplementedException("The Table Manipulator is not compatible with Fast Tables.");
+    }
+
 }
