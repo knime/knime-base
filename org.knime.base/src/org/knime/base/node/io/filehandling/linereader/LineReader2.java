@@ -55,19 +55,12 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.knime.core.columnar.batch.SequentialBatchReadable;
-import org.knime.core.columnar.data.DataSpec;
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.SequentialBatchReadableAdapter;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess.DefaultObjectAccess;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccessFactory;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
@@ -127,28 +120,7 @@ final class LineReader2 implements TableReader<LineReaderConfig2, Class<?>, Stri
     @Override
     public SequentialBatchReadable readContent(final Path item, final TableReadConfig<LineReaderConfig2> config,
         final TypedReaderTableSpec<Class<?>> spec) {
-        return new SequentialBatchReadableAdapter<Path, LineReaderConfig2, Class<?>, String>(item, config, spec, this,
-            1024, LineReaderValueAccessFactory.INSTANCE);
+        return new LineSequentialBatchReadable(item, config, 1024);
     }
 
-    private enum LineReaderValueAccessFactory implements ValueAccessFactory<Class<?>> {
-            INSTANCE;
-
-        @Override
-        public ValueAccess createValueAccess(final Class<?> type) {
-            checkType(type);
-            return new DefaultObjectAccess<>(String.class, Function.identity());
-        }
-
-        private static void checkType(final Class<?> type) {
-            CheckUtils.checkArgument(type == String.class, "The line reader only reads Strings.");
-        }
-
-        @Override
-        public DataSpec getDataSpec(final Class<?> type) {
-            checkType(type);
-            return DataSpec.stringSpec();
-        }
-
-    }
 }
