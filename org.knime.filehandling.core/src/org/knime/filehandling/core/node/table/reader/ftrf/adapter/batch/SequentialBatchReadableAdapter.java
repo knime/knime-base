@@ -46,7 +46,7 @@
  * History
  *   Apr 6, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.ftrf.adapter;
+package org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,8 +68,14 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
+ * Adapts the old {@link GenericTableReader} API to {@link SequentialBatchReadable} by wrapping the {@link Read}
+ * instances provided by {@link GenericTableReader#read(Object, TableReadConfig)}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <I> the type of items the reader operates on
+ * @param <C> the type of {@link ReaderSpecificConfig} the reader uses
+ * @param <T> the type used to identify external data types
+ * @param <V> the type of values/tokens read by the reader
  */
 public final class SequentialBatchReadableAdapter<I, C extends ReaderSpecificConfig<C>, T, V>
     implements SequentialBatchReadable {
@@ -88,8 +94,8 @@ public final class SequentialBatchReadableAdapter<I, C extends ReaderSpecificCon
 
     private final int m_batchSize;
 
-    public SequentialBatchReadableAdapter(final I item, final TableReadConfig<C> config, final TypedReaderTableSpec<T> spec,
-        final GenericTableReader<I, C, T, V> reader, final int batchSize,
+    public SequentialBatchReadableAdapter(final I item, final TableReadConfig<C> config,
+        final TypedReaderTableSpec<T> spec, final GenericTableReader<I, C, T, V> reader, final int batchSize,
         final ValueAccessFactory<T> valueAccessFactory) {
         m_item = item;
         m_config = config;
@@ -161,9 +167,7 @@ public final class SequentialBatchReadableAdapter<I, C extends ReaderSpecificCon
             return adapters;
         }
 
-
     }
-
 
     private static final class ColumnarSchemaAdapter implements ColumnarSchema {
 

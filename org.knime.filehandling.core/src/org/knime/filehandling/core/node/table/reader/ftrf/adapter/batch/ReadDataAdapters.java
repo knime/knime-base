@@ -46,7 +46,7 @@
  * History
  *   Apr 6, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.ftrf.adapter;
+package org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -65,11 +65,11 @@ import org.knime.core.columnar.data.NullableReadData;
 import org.knime.core.columnar.data.ObjectData.ObjectReadData;
 import org.knime.core.columnar.data.StringData.StringReadData;
 import org.knime.core.columnar.data.ZonedDateTimeData.ZonedDateTimeReadData;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess.BooleanAccess;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess.DoubleAccess;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess.IntAccess;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess.LongAccess;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess.ObjectAccess;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccess.BooleanAccess;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccess.DoubleAccess;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccess.IntAccess;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccess.LongAccess;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccess.ObjectAccess;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 
 /**

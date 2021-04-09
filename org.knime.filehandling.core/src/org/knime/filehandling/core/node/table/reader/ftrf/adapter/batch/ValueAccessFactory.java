@@ -46,79 +46,17 @@
  * History
  *   Apr 6, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.ftrf.adapter;
+package org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch;
 
-import java.util.function.Function;
+import org.knime.core.columnar.data.DataSpec;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface ValueAccess {
+public interface ValueAccessFactory<T> {
 
-    Class<?> getReturnType();
+    ValueAccess createValueAccess(final T type);
 
-    public interface IntAccess<V> extends ValueAccess {
-
-        int getInt(V value);
-
-        @Override
-        default Class<?> getReturnType() {
-            return int.class;
-        }
-    }
-
-    public interface DoubleAccess<V> extends ValueAccess {
-        double getDouble(V value);
-
-        @Override
-        default Class<?> getReturnType() {
-            return double.class;
-        }
-    }
-
-    public interface LongAccess<V> extends ValueAccess {
-        long getLong(V value);
-
-        @Override
-        default Class<?> getReturnType() {
-            return long.class;
-        }
-    }
-
-    public interface BooleanAccess<V> extends ValueAccess {
-        boolean getBoolean(V value);
-
-        @Override
-        default Class<?> getReturnType() {
-            return boolean.class;
-        }
-    }
-
-    public interface ObjectAccess<O, V> extends ValueAccess {
-        O getObject(V value);
-
-        @Override
-        Class<O> getReturnType();
-    }
-
-    public static final class DefaultObjectAccess<O, V> implements ObjectAccess<O, V> {
-        private final Function<V, O> m_function;
-        private final Class<O> m_returnType;
-
-        public DefaultObjectAccess(final Class<O> returnType, final Function<V, O> function) {
-            m_returnType = returnType;
-            m_function = function;
-        }
-
-        @Override
-        public Class<O> getReturnType() {
-            return m_returnType;
-        }
-
-        @Override
-        public O getObject(final V value) {
-            return m_function.apply(value);
-        }
-    }
+    DataSpec getDataSpec(final T type);
 }
