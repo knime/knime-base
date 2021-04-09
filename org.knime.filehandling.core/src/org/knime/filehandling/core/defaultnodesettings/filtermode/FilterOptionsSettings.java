@@ -59,8 +59,10 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderF
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
+ * @noinstantiate non-public API
+ * @noreference non-public API
  */
-final class FilterOptionsSettings {
+public final class FilterOptionsSettings {
 
     /** Configuration key for the option to filter files by extension in selected folder. */
     private static final String CFG_FILES_FILTER_BY_EXTENSION = "filter_files_extension";
@@ -104,6 +106,8 @@ final class FilterOptionsSettings {
     /** Configuration key for the option to include hidden folders. */
     private static final String CFG_INCLUDE_HIDDEN_FOLDERS = "include_hidden_folders";
 
+    private static final String CFG_FOLLOW_LINKS = "follow_links";
+
     /** True, if hidden files should be included. */
     private boolean m_includeHiddenFiles = false;
 
@@ -144,6 +148,8 @@ final class FilterOptionsSettings {
 
     /** Mode used to filter folders (e.g. regex or wildcard). */
     private FilterType m_foldersNameFilterType = DEFAULT_FILTER;
+
+    private boolean m_followLinks = true;
 
     /** The default filter. */
     private static final FilterType DEFAULT_FILTER = FilterType.WILDCARD;
@@ -194,7 +200,10 @@ final class FilterOptionsSettings {
         return m_includeSpecialFiles;
     }
 
-    void setIncludeSpecialFiles(final boolean includeSpecialFiles) {
+    /**
+     * @param includeSpecialFiles  true if special files (e.g. symbolic links and workflows) should be included
+     */
+    public void setIncludeSpecialFiles(final boolean includeSpecialFiles) {
         m_includeSpecialFiles = includeSpecialFiles;
     }
 
@@ -367,6 +376,20 @@ final class FilterOptionsSettings {
     }
 
     /**
+     * @return true if links should be followed
+     */
+    public boolean isFollowLinks() {
+        return m_followLinks;
+    }
+
+    /**
+     * @param followLinks  true if links should be followed
+     */
+    public void setFollowLinks(final boolean followLinks) {
+        m_followLinks = followLinks;
+    }
+
+    /**
      * Saves the the file filter settings to the given {@link Config}.
      *
      * @param config the configuration to save to
@@ -387,6 +410,7 @@ final class FilterOptionsSettings {
         config.addBoolean(CFG_FOLDERS_NAME_CASE_SENSITIVE, m_foldersNameCaseSensitive);
         config.addString(CFG_FOLDERS_NAME_FILTER_TYPE, m_foldersNameFilterType.name());
         config.addBoolean(CFG_INCLUDE_HIDDEN_FOLDERS, m_includeHiddenFolders);
+        config.addBoolean(CFG_FOLLOW_LINKS, m_followLinks);
     }
 
     /**
@@ -416,6 +440,12 @@ final class FilterOptionsSettings {
         m_foldersNameCaseSensitive = config.getBoolean(CFG_FOLDERS_NAME_CASE_SENSITIVE);
         m_foldersNameFilterType = FilterType.valueOf(config.getString(CFG_FOLDERS_NAME_FILTER_TYPE));
         m_includeHiddenFolders = config.getBoolean(CFG_INCLUDE_HIDDEN_FOLDERS);
+        if (config.containsKey(CFG_FOLLOW_LINKS)) {
+            m_followLinks = config.getBoolean(CFG_FOLLOW_LINKS);
+        } else {
+            // the behavior prior to 4.3.3 was to not follow links
+            m_followLinks = false;
+        }
     }
 
     /**
@@ -447,6 +477,12 @@ final class FilterOptionsSettings {
         m_foldersNameFilterType =
             FilterType.valueOf(config.getString(CFG_FOLDERS_NAME_FILTER_TYPE, m_foldersNameFilterType.name()));
         m_includeHiddenFolders = config.getBoolean(CFG_INCLUDE_HIDDEN_FOLDERS, m_includeHiddenFolders);
+        if (config.containsKey(CFG_FOLLOW_LINKS)) {
+            m_followLinks = config.getBoolean(CFG_FOLLOW_LINKS, true);
+        } else {
+            // the behavior prior to 4.3.3 was to not follow links
+            m_followLinks = false;
+        }
     }
 
     /**
@@ -480,6 +516,10 @@ final class FilterOptionsSettings {
             throw new InvalidSettingsException("'" + folderFilterMode + "' is not a valid filter mode.");
         }
         config.getBoolean(CFG_INCLUDE_HIDDEN_FOLDERS);
+        if (config.containsKey(CFG_FOLLOW_LINKS)) {
+            // the option was introduced in 4.3.3
+            config.getBoolean(CFG_FOLLOW_LINKS);
+        }
     }
 
     @Override
@@ -500,6 +540,7 @@ final class FilterOptionsSettings {
         result = prime * result + (m_includeHiddenFiles ? 1231 : 1237);
         result = prime * result + (m_includeHiddenFolders ? 1231 : 1237);
         result = prime * result + (m_includeSpecialFiles ? 1231 : 1237);
+        result = prime * result + (m_followLinks ? 1231 : 1237);
         return result;
     }
 
@@ -531,6 +572,7 @@ final class FilterOptionsSettings {
     @SuppressWarnings("squid:S1067")
     private boolean folderOptionsAreEqual(final FilterOptionsSettings other) {
         return m_foldersNameFilterType == other.m_foldersNameFilterType//
+                && m_followLinks == other.m_followLinks//
                 && m_includeHiddenFolders == other.m_includeHiddenFolders//
                 && m_filterFoldersByName == other.m_filterFoldersByName//
                 && m_foldersNameCaseSensitive == other.m_foldersNameCaseSensitive//

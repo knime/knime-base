@@ -209,6 +209,15 @@ public final class SettingsModelFilterMode extends SettingsModel {
     }
 
     /**
+     * Indicates whether links should be followed when walking the file tree.
+     *
+     * @return true if links should be followed when walking the file tree
+     */
+    public boolean isFollowLinks() {
+        return m_filterOptionsSettings.isFollowLinks();
+    }
+
+    /**
      * @param includeSubfolders the includeSubfolders to set
      */
     public void setIncludeSubfolders(final boolean includeSubfolders) {

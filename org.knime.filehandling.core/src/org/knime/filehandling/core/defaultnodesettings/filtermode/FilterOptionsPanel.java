@@ -122,6 +122,8 @@ final class FilterOptionsPanel extends JPanel {
     /** Check box to enable/disable filtering by folder name */
     private final JCheckBox m_filterByFolderName;
 
+    private final JCheckBox m_followLinks;
+
     /** Label for file filter panel */
     private static final String FILE_FILTER_PANEL_LABEL = "File filter options";
 
@@ -199,6 +201,9 @@ final class FilterOptionsPanel extends JPanel {
         m_includeHiddenFiles.setSelected(true);
         m_includeHiddenFolders = new JCheckBox(INCLUDE_HIDDEN_FOLDERS_LABEL);
         m_includeHiddenFolders.setSelected(true);
+
+        m_followLinks = new JCheckBox("Follow links");
+        m_followLinks.setSelected(true);
 
         m_includeSpecialFiles = new JCheckBox("Include special files (workflows etc.)");
 
@@ -357,6 +362,8 @@ final class FilterOptionsPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         m_folderPanel.add(m_includeHiddenFolders, gbc);
         gbc.gridy++;
+        m_folderPanel.add(m_followLinks, gbc);
+        gbc.gridy++;
         gbc.weighty = 1;
 
         // Dummy label to keep other components at the top
@@ -396,6 +403,7 @@ final class FilterOptionsPanel extends JPanel {
         fileFilterSettings.setFoldersNameFilterMode(FilterType.valueOf(m_folderNameFilterTypeModel.getStringValue()));
         fileFilterSettings.setFoldersNameCaseSensitive(m_caseSensitiveFolderName.isSelected());
         fileFilterSettings.setIncludeHiddenFolders(m_includeHiddenFolders.isSelected());
+        fileFilterSettings.setFollowLinks(m_followLinks.isSelected());
 
         return fileFilterSettings;
     }
@@ -421,5 +429,6 @@ final class FilterOptionsPanel extends JPanel {
         m_folderNameFilterTypeModel.setStringValue(fileFilterSettings.getFoldersNameFilterType().toString());
         m_caseSensitiveFolderName.setSelected(fileFilterSettings.isFoldersNameCaseSensitive());
         m_includeHiddenFolders.setSelected(fileFilterSettings.isIncludeHiddenFolders());
+        m_followLinks.setSelected(fileFilterSettings.isFollowLinks());
     }
 }

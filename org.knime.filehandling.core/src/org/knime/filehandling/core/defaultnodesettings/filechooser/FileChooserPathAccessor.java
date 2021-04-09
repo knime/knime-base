@@ -57,6 +57,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -239,8 +240,10 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         checkIsFolder(rootPath, attrs);
         final FilterVisitor visitor = createVisitor(rootPath);
         final boolean includeSubfolders = m_settings.getFilterModeModel().isIncludeSubfolders();
-        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), includeSubfolders ? Integer.MAX_VALUE : 1,
-            visitor);
+        final boolean followLinks = m_settings.getFilterModeModel().isFollowLinks();
+        final Set<FileVisitOption> linkOptions =
+            followLinks ? EnumSet.of(FileVisitOption.FOLLOW_LINKS) : EnumSet.noneOf(FileVisitOption.class);
+        Files.walkFileTree(rootPath, linkOptions, includeSubfolders ? Integer.MAX_VALUE : 1, visitor);
         m_fileFilterStatistic = visitor.getFileFilterStatistic();
         final List<?> paths = visitor.getPaths();
         @SuppressWarnings("unchecked") // we know it better
@@ -256,14 +259,15 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private FilterVisitor createVisitor(final Path rootPath) {
         final SettingsModelFilterMode settings = m_settings.getFilterModeModel();
         final boolean includeSubfolders = settings.isIncludeSubfolders();
+        final boolean followLinks = settings.isFollowLinks();
         final FileAndFolderFilter filter = new FileAndFolderFilter(rootPath, settings.getFilterOptionsSettings());
         switch (m_filterMode) {
             case FILES_AND_FOLDERS:
-                return new FilterVisitor(filter, true, true, includeSubfolders);
+                return new FilterVisitor(filter, true, true, includeSubfolders, followLinks);
             case FILES_IN_FOLDERS:
-                return new FilterVisitor(filter, true, false, includeSubfolders);
+                return new FilterVisitor(filter, true, false, includeSubfolders, followLinks);
             case FOLDERS:
-                return new FilterVisitor(filter, false, true, includeSubfolders);
+                return new FilterVisitor(filter, false, true, includeSubfolders, followLinks);
             case FOLDER:
             case FILE:
                 throw new IllegalStateException(
