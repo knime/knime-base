@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -56,6 +57,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.FileFilterStatistic;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderFilter;
@@ -66,7 +68,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.FileAndFolderF
  * The accepted files/folders can be retrieved via the getPaths() method, after traversal completes. Whether files
  * and/or folders should be included in the paths can be specified via the corresponding constructor arguments. The
  * FileVisitor keeps track of the number of visited files and folders, as well as the number of filtered out files and
- * folders. The {@link FileFilterStatistic} can be retrieved via the getFileFilterStatistic() method.
+ * folders. The {@link FileFilterStatistic} can be retrieved via the getFileFilterStatistic() method.<br>
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -79,6 +81,8 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
     private final boolean m_includeFolders;
 
     private final boolean m_includeSubfolders;
+
+    private final boolean m_followLinks;
 
     private final List<Path> m_paths = new ArrayList<>();
 
@@ -94,19 +98,20 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
      * @param includeFolders whether folders should be added to the paths returned by getPaths()
      */
     FilterVisitor(final FileAndFolderFilter filter, final boolean includeFiles, final boolean includeFolders,
-        final boolean includeSubfolders) {
+        final boolean includeSubfolders, final boolean followLinks) {
         m_filter = filter;
         m_includeFiles = includeFiles;
         m_includeFolders = includeFolders;
         m_includeSubfolders = includeSubfolders;
+        m_followLinks = followLinks;
     }
 
     @Override
     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
         final FileVisitResult result = super.visitFile(file, attrs);
-        // also called for directories (if max depth is hit by Files.walkFileTree) for these directories pre
+        // also called for directories (if max depth is hit by Files.walkFileTree) for these directories
         // #preVisitDirectory is not being invoked
-        if (!attrs.isDirectory() && m_filter.testFolderName(file.getParent())) {
+        if (!linkAwareIsDirectory(file, attrs) && m_filter.testFolderName(file.getParent())) {
             m_visitedFiles++;
             if (m_includeFiles && m_filter.test(file, attrs)) {
                 m_paths.add(file);
@@ -120,6 +125,20 @@ final class FilterVisitor extends SimpleFileVisitor<Path> {
             // we only care for files and folders
         }
         return result;
+    }
+
+    private boolean linkAwareIsDirectory(final Path file, final BasicFileAttributes attrs)
+        throws AccessDeniedException {
+        if (!m_followLinks && attrs.isSymbolicLink()) {
+            // if links aren't followed, then attrs.isDirectory returns false for a directory symlink
+            // however, we don't ever want a directory symlink to be treated as a file, so we follow the link to see if
+            // it points to a file or directory. Note that we don't walk the directory, we just check if the symlink
+            // points to one. The main reason for this is that Files.newInput/OutputStream only works for symlinks to
+            // files and throws an exception for directories.
+            return FSFiles.isDirectory(file);
+        } else {
+            return attrs.isDirectory();
+        }
     }
 
     @Override
