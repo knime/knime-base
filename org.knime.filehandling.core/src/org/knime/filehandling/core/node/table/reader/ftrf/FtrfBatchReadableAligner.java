@@ -61,6 +61,7 @@ import org.knime.core.columnar.data.VoidData.VoidReadData;
 import org.knime.core.columnar.filter.ColumnSelection;
 import org.knime.core.columnar.filter.FilteredColumnSelection;
 import org.knime.filehandling.core.node.table.reader.ftrf.IndexMapFactory.IndexMap;
+import org.knime.filehandling.core.node.table.reader.ftrf.table.SourcedReaderTable;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -78,10 +79,9 @@ final class FtrfBatchReadableAligner<T> {
         m_union = union;
     }
 
-    ReaderTable<T> align(final ReaderTable<T> individualTable) {
+    SourcedReaderTable<T> align(final SourcedReaderTable<T> individualTable) {
         final TypedReaderTableSpec<T> spec = individualTable.getSpec();
         final IndexMap indexMap = m_indexMapFactory.createIndexMap(spec);
-        final AlignedSequentialBatchReadable aligned = new AlignedSequentialBatchReadable(indexMap, individualTable.getBatchReadable());
         // TODO use union to "fill up" the columns missing in the individualTable spec
         return null;
     }

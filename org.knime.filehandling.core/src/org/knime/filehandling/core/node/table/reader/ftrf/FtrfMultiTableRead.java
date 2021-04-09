@@ -69,6 +69,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.table.SourcedReaderTable;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 
 /**
@@ -79,11 +80,11 @@ class FtrfMultiTableRead<T> implements MultiTableRead<T> {
 
     private final TableSpecConfig<T> m_tableSpecConfig;
 
-    private final List<ReaderTable<T>> m_tables;
+    private final List<SourcedReaderTable<T>> m_tables;
 
     private final FtrfRowCursorFactory<T> m_rowCursorFactory;
 
-    FtrfMultiTableRead(final TableSpecConfig<T> tableSpecConfig, final List<ReaderTable<T>> sourceTuples) {
+    FtrfMultiTableRead(final TableSpecConfig<T> tableSpecConfig, final List<SourcedReaderTable<T>> sourceTuples) {
         m_tableSpecConfig = tableSpecConfig;
         m_tables = sourceTuples;
         m_rowCursorFactory = new FtrfRowCursorFactory<>(tableSpecConfig.getTableTransformation());

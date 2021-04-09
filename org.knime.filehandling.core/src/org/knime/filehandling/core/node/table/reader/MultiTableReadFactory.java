@@ -97,7 +97,9 @@ public interface MultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T> 
      * @param sourceGroup the {@link SourceGroup} to read from
      * @param config user provided {@link MultiTableReadConfig}
      * @return a {@link MultiTableRead} for reading the tables from the given items
+     * @throws IOException
      */
-    StagedMultiTableRead<I, T> createFromConfig(SourceGroup<I> sourceGroup, MultiTableReadConfig<C, T> config);
+    StagedMultiTableRead<I, T> createFromConfig(SourceGroup<I> sourceGroup, MultiTableReadConfig<C, T> config)
+        throws IOException;
 
 }

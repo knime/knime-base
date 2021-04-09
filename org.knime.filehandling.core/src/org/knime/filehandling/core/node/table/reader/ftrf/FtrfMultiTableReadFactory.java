@@ -72,6 +72,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.table.SourcedReaderTable;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -123,8 +124,8 @@ final class FtrfMultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T>
 
     private StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup,
         final Map<I, TypedReaderTableSpec<T>> specs, final RawSpec<T> rawSpec,
-        final MultiTableReadConfig<C, T> config) {
-        final List<ReaderTable<T>> tables = toTables(specs, config.getTableReadConfig());
+        final MultiTableReadConfig<C, T> config) throws IOException {
+        final List<SourcedReaderTable<T>> tables = toTables(specs, config.getTableReadConfig());
         final Supplier<TableTransformation<T>> defaultTransformationSupplier =
             createDefaultTransformationSupplier(sourceGroup, config, rawSpec);
         return new FtrfStagedMultiTableRead<>(rawSpec, tables, t -> DefaultTableSpecConfig
@@ -132,16 +133,16 @@ final class FtrfMultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T>
             defaultTransformationSupplier);
     }
 
-    private List<ReaderTable<T>> toTables(final Map<I, TypedReaderTableSpec<T>> specs,
-        final TableReadConfig<C> config) {
+    private List<SourcedReaderTable<T>> toTables(final Map<I, TypedReaderTableSpec<T>> specs,
+        final TableReadConfig<C> config) throws IOException {
         // TODO virtually align tables so that all have the same columns (except for type) in the same order as union
         // TODO This will make it easy to do pushdown of the column selection later on
-        final List<ReaderTable<T>> tables = new ArrayList<>();
+        final List<SourcedReaderTable<T>> tables = new ArrayList<>();
         for (Entry<I, TypedReaderTableSpec<T>> entry : specs.entrySet()) {
             final TypedReaderTableSpec<T> spec = entry.getValue();
             final I item = entry.getKey();
             final SequentialBatchReadable readable = m_reader.readContent(item, config, spec);
-            tables.add(new ReaderTable<>(spec, readable, item.toString()));
+            tables.add(new SourcedReaderTable<>(spec, readable, item.toString()));
         }
         return tables;
     }
@@ -163,7 +164,7 @@ final class FtrfMultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T>
 
     @Override
     public StagedMultiTableRead<I, T> createFromConfig(final SourceGroup<I> sourceGroup,
-        final MultiTableReadConfig<C, T> config) {
+        final MultiTableReadConfig<C, T> config) throws IOException {
         CheckUtils.checkArgument(config.hasTableSpecConfig(), "No TableSpecConfig available");
         CheckUtils.checkArgument(config.isConfiguredWith(MultiTableUtils.transformToString(sourceGroup)),
             "The config has not been created with the provided SourceGroup.");

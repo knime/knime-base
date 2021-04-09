@@ -53,6 +53,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.v2.RowCursor;
 import org.knime.filehandling.core.node.table.reader.ftrf.IndexMapFactory.IndexMap;
+import org.knime.filehandling.core.node.table.reader.ftrf.table.SourcedReaderTable;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
@@ -86,7 +87,7 @@ final class FtrfRowCursorFactory<T> {
             columnTransformation.getProductionPath().getConverterFactory().getDestinationType()).createSpec();
     }
 
-    RowCursor create(final ReaderTable<T> sourceTuple) {
+    RowCursor create(final SourcedReaderTable<T> sourceTuple) {
         final TypedReaderTableSpec<T> spec = sourceTuple.getSpec();
         // TODO
         return null;

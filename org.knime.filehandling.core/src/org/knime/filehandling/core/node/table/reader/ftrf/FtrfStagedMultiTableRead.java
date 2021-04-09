@@ -54,6 +54,7 @@ import java.util.function.Supplier;
 
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.table.SourcedReaderTable;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
@@ -67,13 +68,13 @@ class FtrfStagedMultiTableRead<I, T> implements StagedMultiTableRead<I, T> {
 
     private final RawSpec<T> m_rawSpec;
 
-    private final List<ReaderTable<T>> m_batchReadables;
+    private final List<SourcedReaderTable<T>> m_batchReadables;
 
     private final Function<TableTransformation<T>, TableSpecConfig<T>> m_tableSpecConfigFactory;
 
     private final Supplier<TableTransformation<T>> m_defaultTransformationSupplier;
 
-    FtrfStagedMultiTableRead(final RawSpec<T> rawSpec, final List<ReaderTable<T>> batchReadables,
+    FtrfStagedMultiTableRead(final RawSpec<T> rawSpec, final List<SourcedReaderTable<T>> batchReadables,
         final Function<TableTransformation<T>, TableSpecConfig<T>> tableSpecConfigFactory,
         final Supplier<TableTransformation<T>> defaultTransformationSupplier) {
         m_rawSpec = rawSpec;

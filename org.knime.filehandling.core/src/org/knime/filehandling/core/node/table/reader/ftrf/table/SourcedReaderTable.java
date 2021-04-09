@@ -46,7 +46,7 @@
  * History
  *   Mar 29, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.ftrf;
+package org.knime.filehandling.core.node.table.reader.ftrf.table;
 
 import java.io.IOException;
 
@@ -61,22 +61,22 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ReaderTable<T> {
+public final class SourcedReaderTable<T> {
 
     private final SequentialBatchReadable m_batchReadable;
 
     private final TypedReaderTableSpec<T> m_spec;
 
-    ReaderTable(final TypedReaderTableSpec<T> spec, final SequentialBatchReadable batchReadable, final String source) {
+    public SourcedReaderTable(final TypedReaderTableSpec<T> spec, final SequentialBatchReadable batchReadable, final String source) {
         m_batchReadable = new SourcedSequentialBatchReadable(batchReadable, source);
         m_spec = spec;
     }
 
-    SequentialBatchReadable getBatchReadable() {
+    public SequentialBatchReadable getBatchReadable() {
         return m_batchReadable;
     }
 
-    TypedReaderTableSpec<T> getSpec() {
+    public TypedReaderTableSpec<T> getSpec() {
         return m_spec;
     }
 
