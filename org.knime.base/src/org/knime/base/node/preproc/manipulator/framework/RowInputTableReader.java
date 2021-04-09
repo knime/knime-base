@@ -51,11 +51,13 @@ package org.knime.base.node.preproc.manipulator.framework;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.table.Table;
 import org.knime.core.columnar.batch.SequentialBatchReadable;
+import org.knime.core.columnar.data.DataSpec;
+import org.knime.core.columnar.data.ObjectData;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -64,6 +66,10 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.SequentialBatchReadableAdapter;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccess.DefaultObjectAccess;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.ValueAccessFactory;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -96,7 +102,24 @@ public final class RowInputTableReader
     @Override
     public SequentialBatchReadable readContent(final Table item, final TableReadConfig<TableManipulatorConfig> config,
         final TypedReaderTableSpec<DataType> spec) {
-        throw new NotImplementedException("The Table Manipulator is not compatible with Fast Tables.");
+        return new SequentialBatchReadableAdapter<>(item, config, spec, this, 1024,
+            DataCellValueAccessFactory.INSTANCE);
+    }
+
+    private enum DataCellValueAccessFactory implements ValueAccessFactory<DataType> {
+            INSTANCE;
+
+        @Override
+        public ValueAccess createValueAccess(final DataType type) {
+            return new DefaultObjectAccess<>(DataValue.class, Function.identity());
+        }
+
+        @Override
+        public DataSpec getDataSpec(final DataType type) {
+            // Will cause an NPE if passed directly to Arrow
+            return new ObjectData.GenericObjectDataSpec<DataValue>(null, false);
+        }
+
     }
 
 }
