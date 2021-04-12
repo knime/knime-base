@@ -58,7 +58,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
 
-import org.knime.core.columnar.batch.SequentialBatchReadable;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformationFactory;
@@ -72,6 +71,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
 import org.knime.filehandling.core.node.table.reader.ftrf.table.SourcedReaderTable;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
@@ -141,8 +141,8 @@ final class FtrfMultiTableReadFactory<I, C extends ReaderSpecificConfig<C>, T>
         for (Entry<I, TypedReaderTableSpec<T>> entry : specs.entrySet()) {
             final TypedReaderTableSpec<T> spec = entry.getValue();
             final I item = entry.getKey();
-            final SequentialBatchReadable readable = m_reader.readContent(item, config, spec);
-            tables.add(new SourcedReaderTable<>(spec, readable, item.toString()));
+            final RowAccessible rowAccessible = m_reader.readContent(item, config, spec);
+            tables.add(new SourcedReaderTable<>(spec, rowAccessible, item.toString()));
         }
         return tables;
     }

@@ -44,20 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 9, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 12, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.ftrf.requapi;
+package org.knime.filehandling.core.node.table.reader.ftrf.adapter.cursor;
+
+import java.util.function.Supplier;
 
 import org.knime.core.columnar.ColumnarSchema;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.Cursor;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowReadAccess;
+import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface RowAccessible extends AutoCloseable {
+public final class ReadBasedRowAccessible<I, C extends ReaderSpecificConfig<C>, T, V> implements RowAccessible {
 
-    ColumnarSchema getSchema();
+    private final Supplier<Read<I, V>> m_readSupplier;
 
-    // TODO pushdown?
-    Cursor<RowReadAccess> cursor();
+    private final ReadAccessAdapterFactory<V> m_accessAdapterFactory;
+
+    // we don't use TypedReaderTableSpec here because DataSpecs (currently) aren't easily serialized
+    private final ColumnarSchema m_schema;
+
+    public ReadBasedRowAccessible(final Supplier<Read<I, V>> readSupplier, final ColumnarSchema schema,
+        final ReadAccessAdapterFactory<V> accessAdapterFactory) {
+        m_readSupplier = readSupplier;
+        m_schema = schema;
+        m_accessAdapterFactory = accessAdapterFactory;
+    }
+
+    @Override
+    public void close() throws Exception {
+        // nothing to close
+    }
+
+    @Override
+    public ColumnarSchema getSchema() {
+        return m_schema;
+    }
+
+    @SuppressWarnings("resource") // the Read is closed by the RowReadAccessCursorAdapter
+    @Override
+    public Cursor<RowReadAccess> cursor() {
+        final Read<I, V> read = m_readSupplier.get();
+        return new RowReadAccessCursorAdapter<>(read, m_accessAdapterFactory);
+    }
+
 }

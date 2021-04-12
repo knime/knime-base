@@ -44,20 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 9, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 12, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.ftrf.requapi;
+package org.knime.filehandling.core.node.table.reader.ftrf.adapter.rowaccessible;
 
-import org.knime.core.columnar.ColumnarSchema;
+import org.knime.core.columnar.batch.SequentialBatchReadable;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface RowAccessible extends AutoCloseable {
+public final class RowAccessibles {
 
-    ColumnarSchema getSchema();
+    private RowAccessibles() {
+        // static utility class
+    }
 
-    // TODO pushdown?
-    Cursor<RowReadAccess> cursor();
+    public static RowAccessible adapt(final SequentialBatchReadable batchReadable) {
+        // TODO find the piece of code in core that does the transition
+        return null;
+    }
 }

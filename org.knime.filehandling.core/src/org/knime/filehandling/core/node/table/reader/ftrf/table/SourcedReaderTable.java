@@ -51,10 +51,9 @@ package org.knime.filehandling.core.node.table.reader.ftrf.table;
 import java.io.IOException;
 
 import org.knime.core.columnar.ColumnarSchema;
-import org.knime.core.columnar.batch.ReadBatch;
-import org.knime.core.columnar.batch.SequentialBatchReadable;
-import org.knime.core.columnar.batch.SequentialBatchReader;
-import org.knime.core.columnar.filter.ColumnSelection;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.Cursor;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowReadAccess;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -63,16 +62,16 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  */
 public final class SourcedReaderTable<T> {
 
-    private final SequentialBatchReadable m_batchReadable;
+    private final RowAccessible m_batchReadable;
 
     private final TypedReaderTableSpec<T> m_spec;
 
-    public SourcedReaderTable(final TypedReaderTableSpec<T> spec, final SequentialBatchReadable batchReadable, final String source) {
-        m_batchReadable = new SourcedSequentialBatchReadable(batchReadable, source);
+    public SourcedReaderTable(final TypedReaderTableSpec<T> spec, final RowAccessible batchReadable, final String source) {
+        m_batchReadable = new SourceAwareRandomAccessible(batchReadable, source);
         m_spec = spec;
     }
 
-    public SequentialBatchReadable getBatchReadable() {
+    public RowAccessible getRowAccessible() {
         return m_batchReadable;
     }
 
@@ -119,13 +118,13 @@ public final class SourcedReaderTable<T> {
         }
     }
 
-    private static final class SourcedSequentialBatchReadable implements SequentialBatchReadable {
+    private static final class SourceAwareRandomAccessible implements RowAccessible {
 
-        private final SequentialBatchReadable m_delegate;
+        private final RowAccessible m_delegate;
 
         private final String m_source;
 
-        SourcedSequentialBatchReadable(final SequentialBatchReadable delegate, final String source) {
+        SourceAwareRandomAccessible(final RowAccessible delegate, final String source) {
             m_delegate = delegate;
             m_source = source;
         }
@@ -136,7 +135,7 @@ public final class SourcedReaderTable<T> {
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() throws Exception { // TODO handle as well?
             try {
                 m_delegate.close();
             } catch (IOException ex) {
@@ -154,42 +153,39 @@ public final class SourcedReaderTable<T> {
             return new SourceRuntimeException(ex.getMessage(), m_source, ex);
         }
 
-        @SuppressWarnings("resource")// the SourcedSequentialBatchReader has to close its delegate when it is closed
-        @Override
-        public SequentialBatchReader createReader(final ColumnSelection selection) {
-            return new SourcedSequentialBatchReader(m_delegate.createReader(selection));
-        }
 
-        private final class SourcedSequentialBatchReader implements SequentialBatchReader {
+        private final class SourceAwareRowReadAccessCursor implements Cursor<RowReadAccess> {
 
-            private final SequentialBatchReader m_delegateReader;
+            private final Cursor<RowReadAccess> m_delegateReader;
 
-            SourcedSequentialBatchReader(final SequentialBatchReader delegateReader) {
-                m_delegateReader = delegateReader;
+            SourceAwareRowReadAccessCursor(final Cursor<RowReadAccess> delegateCursor) {
+                m_delegateReader = delegateCursor;
             }
 
             @Override
-            public void close() throws IOException {
+            public void close() {
                 try {
                     m_delegateReader.close();
-                } catch (IOException ex) {
-                    throw wrapIOException(ex);
                 } catch (RuntimeException ex) {
                     throw wrapRuntimeException(ex);
                 }
             }
 
             @Override
-            public ReadBatch readRetained() throws IOException {
+            public RowReadAccess forward() {
                 try {
-                return m_delegateReader.readRetained();
-                } catch (IOException ex) {
-                    throw wrapIOException(ex);
+                    return m_delegateReader.forward();
                 } catch (RuntimeException ex) {
                     throw wrapRuntimeException(ex);
                 }
             }
 
+        }
+
+        @SuppressWarnings("resource")// the delegate cursor is closed by the SourceAwareRowReadAccessCursor
+        @Override
+        public Cursor<RowReadAccess> cursor() {
+            return new SourceAwareRowReadAccessCursor(m_delegate.cursor());
         }
 
     }

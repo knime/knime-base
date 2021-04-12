@@ -50,10 +50,10 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
 
-import org.knime.core.columnar.batch.SequentialBatchReadable;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
@@ -70,7 +70,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  */
 public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> {
 
-    SequentialBatchReadable readContent(final I item, final TableReadConfig<C> config,
+    RowAccessible readContent(final I item, final TableReadConfig<C> config,
         TypedReaderTableSpec<T> spec) throws IOException;
 
     /**

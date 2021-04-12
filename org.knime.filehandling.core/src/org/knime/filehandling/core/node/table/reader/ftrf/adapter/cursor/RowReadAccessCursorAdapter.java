@@ -71,7 +71,7 @@ public final class RowReadAccessCursorAdapter<V> implements Cursor<RowReadAccess
 
     private final ReadAccessAdapterFactory<V> m_accessAdapterFactory;
 
-    RowReadAccessCursorAdapter(final Read<?, V> read, final ReadAccessAdapterFactory<V> accessAdapterFactory) {
+    public RowReadAccessCursorAdapter(final Read<?, V> read, final ReadAccessAdapterFactory<V> accessAdapterFactory) {
         m_read = read;
         m_rowAccess = new RowReadAccessAdapter();
         m_accessAdapterFactory = accessAdapterFactory;
