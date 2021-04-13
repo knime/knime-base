@@ -55,7 +55,7 @@ import java.util.function.Function;
 
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.table.Table;
-import org.knime.core.columnar.batch.SequentialBatchReadable;
+import org.knime.core.columnar.ColumnarSchema;
 import org.knime.core.columnar.data.DataSpec;
 import org.knime.core.columnar.data.ObjectData;
 import org.knime.core.data.DataColumnSpec;
@@ -66,10 +66,13 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.SequentialBatchReadableAdapter;
 import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccess;
-import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccessFactory;
 import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccess.DefaultObjectAccess;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch.ValueAccessFactory;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.cursor.ReadAccessAdapter;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.cursor.ReadAccessAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.cursor.ReadBasedRowAccessible;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -100,10 +103,33 @@ public final class RowInputTableReader
     }
 
     @Override
-    public SequentialBatchReadable readContent(final Table item, final TableReadConfig<TableManipulatorConfig> config,
+    public RowAccessible readContent(final Table item, final TableReadConfig<TableManipulatorConfig> config,
         final TypedReaderTableSpec<DataType> spec) {
-        return new SequentialBatchReadableAdapter<>(item, config, spec, this, 1024,
-            DataCellValueAccessFactory.INSTANCE);
+        /* TODO ideally this will boil down to a very simple adapter that just wraps the row input.
+         Requirements for that are:
+         1. Cursor is moved to org.knime.core.columnar (Marc's ticket)
+         2. The canForward method is removed (could be worked around via buffering) (also Marc's ticket)
+         3. DataValues are a special kind of ReadAccess (Christian's vision)
+         4. There is a DataSpec for DataValues that doesn't require knowledge of their serialization
+            (IMO the schema of a RowAccessible might be something else than a ColumnarSchema since ColumnarSchema
+            is already on a physical level
+        */
+        return new ReadBasedRowAccessible(() -> read(item, config), extractSchema(spec), DataValueAccessFactory.INSTANCE);
+    }
+
+    private ColumnarSchema extractSchema(final TypedReaderTableSpec<DataType> spec) {
+
+    }
+
+    private enum DataValueAccessFactory implements ReadAccessAdapterFactory<DataValue> {
+            INSTANCE;
+
+        @Override
+        public ReadAccessAdapter<DataValue> createAdapter(final DataValue value) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
     }
 
     private enum DataCellValueAccessFactory implements ValueAccessFactory<DataType> {

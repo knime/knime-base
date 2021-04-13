@@ -57,10 +57,11 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.knime.core.columnar.batch.SequentialBatchReadable;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.ftrf.adapter.rowaccessible.RowAccessibles;
+import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
@@ -117,10 +118,11 @@ final class LineReader2 implements TableReader<LineReaderConfig2, Class<?>, Stri
         return firstLine;
     }
 
+    @SuppressWarnings("resource") // the LineSequentialBatchReadable is closed by the RowAccessible
     @Override
-    public SequentialBatchReadable readContent(final Path item, final TableReadConfig<LineReaderConfig2> config,
+    public RowAccessible readContent(final Path item, final TableReadConfig<LineReaderConfig2> config,
         final TypedReaderTableSpec<Class<?>> spec) {
-        return new LineSequentialBatchReadable(item, config, 1024);
+        return RowAccessibles.adapt(new LineSequentialBatchReadable(item, config, 1024));
     }
 
 }
