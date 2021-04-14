@@ -66,6 +66,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelectio
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FolderStatusMessageReporter;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -95,8 +96,8 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
 
         final FlowVariableModel fvm = createFlowVariableModel(
             m_nodeConfig.getFolderChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_folderChooser =
-            new DialogComponentWriterFileChooser(m_nodeConfig.getFolderChooserModel(), FILE_HISTORY_ID, fvm);
+        m_folderChooser = new DialogComponentWriterFileChooser(m_nodeConfig.getFolderChooserModel(), FILE_HISTORY_ID,
+            fvm, FolderStatusMessageReporter::new);
 
         m_colSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getColSelectModel(), "Column",
             inputTableIdx, ImageValue.class);

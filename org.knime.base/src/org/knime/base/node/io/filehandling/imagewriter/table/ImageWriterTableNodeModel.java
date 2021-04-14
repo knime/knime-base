@@ -94,7 +94,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  */
 final class ImageWriterTableNodeModel extends NodeModel {
 
-    private static final String DATA_TABLE_OUTPUT_COLUM_NAME = "Output Path";
+    private static final String DATA_TABLE_OUTPUT_COLUMN_NAME = "Output Location";
 
     private final int m_inputTableIdx;
 
@@ -127,14 +127,23 @@ final class ImageWriterTableNodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec dataTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
+        final String selectedImgCol = m_colSelectModel.getStringValue();
+
+        if (selectedImgCol == null) {
+            autoGuess(dataTableSpec);
+        }
+
+        final int imgColIdx = dataTableSpec.findColumnIndex(selectedImgCol);
+        if (imgColIdx < 0) {
+            throw new InvalidSettingsException(
+                String.format("The selected column '%s' is not part of the input", m_colSelectModel.getStringValue()));
+        }
 
         m_nodeConfig.getFolderChooserModel().configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
-        final int imgColIdx = dataTableSpec.findColumnIndex(m_colSelectModel.getStringValue());
-
         final ImageColumnsToFilesCellFactory imageColumnsToFilesCellFactory = new ImageColumnsToFilesCellFactory(
-            getNewColumnsSpec(), imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), null);
+            getNewColumnsSpec(dataTableSpec), imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), null);
 
         final ColumnRearranger c = createColumnRearranger(dataTableSpec, imageColumnsToFilesCellFactory);
         final DataTableSpec inputTableSpec = c.createSpec();
@@ -156,10 +165,9 @@ final class ImageWriterTableNodeModel extends NodeModel {
             final int imgColIdx = dataTableSpec.findColumnIndex(m_colSelectModel.getStringValue());
 
             final ImageColumnsToFilesCellFactory imageColumnsToFilesCellFactory = new ImageColumnsToFilesCellFactory(
-                getNewColumnsSpec(), imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), outputPath);
+                getNewColumnsSpec(dataTableSpec), imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), outputPath);
 
-            final ColumnRearranger c = createColumnRearranger((DataTableSpec)inObjects[m_inputTableIdx].getSpec(),
-                imageColumnsToFilesCellFactory);
+            final ColumnRearranger c = createColumnRearranger(dataTableSpec, imageColumnsToFilesCellFactory);
             final BufferedDataTable out = exec.createColumnRearrangeTable(inputDataTable, c, exec);
 
             if (imageColumnsToFilesCellFactory.getMissingCellCount() > 0) {
@@ -191,18 +199,35 @@ final class ImageWriterTableNodeModel extends NodeModel {
         }
     }
 
-    private DataColumnSpec[] getNewColumnsSpec() {
+    private DataColumnSpec[] getNewColumnsSpec(final DataTableSpec spec) {
         final FSLocationSpec location = m_folderChooserModel.getLocation();
 
         final FSLocationValueMetaData metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
             location.getFileSystemSpecifier().orElse(null));
 
+        final String newColName = spec.containsName(DATA_TABLE_OUTPUT_COLUMN_NAME)
+                ? DataTableSpec.getUniqueColumnName(spec, DATA_TABLE_OUTPUT_COLUMN_NAME)
+                : DATA_TABLE_OUTPUT_COLUMN_NAME;
+
         final DataColumnSpecCreator fsLocationSpec =
-            new DataColumnSpecCreator(DATA_TABLE_OUTPUT_COLUM_NAME, SimpleFSLocationCellFactory.TYPE);
+            new DataColumnSpecCreator(newColName, SimpleFSLocationCellFactory.TYPE);
 
         fsLocationSpec.addMetaData(metaData, true);
 
         return new DataColumnSpec[]{fsLocationSpec.createSpec()};
+    }
+
+    private void autoGuess(final DataTableSpec spec) throws InvalidSettingsException {
+        final String guessedColumn = spec.stream()//
+                .filter(s -> s.getType().isCompatible(ImageValue.class))//
+                .map(DataColumnSpec::getName)//
+                .findFirst()//
+                .orElseThrow(() -> new InvalidSettingsException("No applicable image column available"));
+
+        m_colSelectModel.setStringValue(guessedColumn);
+
+        setWarningMessage(
+            String.format("Auto-guessed image column '%s'", m_colSelectModel.getStringValue()));
     }
 
     @Override
