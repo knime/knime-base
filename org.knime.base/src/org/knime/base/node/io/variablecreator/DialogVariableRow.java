@@ -46,13 +46,14 @@
  * History
  *   12.04.2021 (jl): created
  */
-package org.knime.base.node.flowvariable.create;
+package org.knime.base.node.io.variablecreator;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
@@ -70,14 +71,14 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.apache.commons.lang.WordUtils;
-import org.knime.base.node.flowvariable.create.VariableTable.Type;
+import org.knime.base.node.io.variablecreator.VariableTable.Type;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.core.util.Pair;
 
 /**
  * Represents a row in the dialog (panel).
  *
- * @author Jannik Löscher
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
 final class DialogVariableRow {
 
@@ -126,6 +127,9 @@ final class DialogVariableRow {
     /** The panel containing both {@link #m_up},{@link #m_down} and {@link #m_delete}. */
     private final JPanel m_buttonBox;
 
+    /** Whether this row is currently deleted. (Used to prevent checks triggered by removing components.) */
+    private boolean m_isDeleting;
+
     /**
      * Creates a new row in the panel of the dialog
      *
@@ -135,9 +139,20 @@ final class DialogVariableRow {
     DialogVariableRow(final VariableCreatorNodeDialog parent, final boolean loading) {
         m_parent = parent;
         m_index = m_parent.getRows().size();
+        m_isDeleting = false;
 
         // initialize objects but not values
-        m_typeSelection = new JComboBox<>(Type.values());
+        m_typeSelection = new JComboBox<>(Type.values()) {
+            private static final long serialVersionUID = -5078958064144519774L;
+
+            @Override
+            public void setPopupVisible(final boolean visible) {
+                super.setPopupVisible(visible);
+                if (!visible && !m_isDeleting) { // when closing
+                    checkTypeBox(false);
+                }
+            }
+        };
         m_typeSelectionHint = new JLabel();
         m_typeBox = new JPanel();
         m_nameInput = new JTextField();
@@ -175,6 +190,14 @@ final class DialogVariableRow {
     }
 
     /**
+     * Selects all the text in the name input field and grabs the focus
+     */
+    void selectName() {
+        m_nameInput.selectAll();
+        m_nameInput.requestFocusInWindow();
+    }
+
+    /**
      * @return the name defined in this row
      */
     String getName() {
@@ -185,6 +208,7 @@ final class DialogVariableRow {
      * Removes this row (from its parent).
      */
     void removeRow() {
+        m_isDeleting = true;
         m_parent.getVars().removeRow(m_index);
         m_parent.getRows().remove(m_index);
 
@@ -258,17 +282,16 @@ final class DialogVariableRow {
     }
 
     /**
-     * Sets a warning for a hint label and updates the error hints accordingly.
+     * Sets a Info for a hint label and updates the error hints accordingly.
      *
      * @param hint the hint to edit
      * @param text the text to set
      */
-    private void setWarning(final JLabel hint, final String text) {
+    private void setInfo(final JLabel hint, final String text) {
         m_parent.getErrorHints().remove(hint);
-        hint.setForeground(Color.ORANGE);
         hint.setText(text);
-        hint.setIcon(SharedIcons.WARNING_YELLOW.get());
-        hint.setToolTipText("Warning: " + text);
+        hint.setIcon(SharedIcons.INFO_BALLOON.get());
+        hint.setToolTipText("Info: " + text);
     }
 
     /**
@@ -279,7 +302,6 @@ final class DialogVariableRow {
      */
     private void setError(final JLabel hint, final String text) {
         m_parent.getErrorHints().add(hint);
-        hint.setForeground(Color.RED);
         hint.setText(text);
         hint.setIcon(SharedIcons.ERROR.get());
         hint.setToolTipText("Error: " + text);
@@ -292,7 +314,6 @@ final class DialogVariableRow {
      */
     private void clearHint(final JLabel hint) {
         m_parent.getErrorHints().remove(hint);
-        hint.setForeground(Color.BLACK);
         hint.setText(" ");
         hint.setIcon(null);
         hint.setToolTipText(null);
@@ -308,7 +329,7 @@ final class DialogVariableRow {
         panel.setLayout(new GridBagLayout());
 
         m_typeSelection.setSelectedItem(m_parent.getVars().getType(m_index));
-        m_typeSelection.addActionListener(a -> checkTypeBox());
+        m_typeSelection.addActionListener(a -> checkTypeBox(true));
         m_typeSelection.setRenderer(new TypeRenderer());
 
         clearHint(m_typeSelectionHint);
@@ -323,9 +344,9 @@ final class DialogVariableRow {
         VariableCreatorNodeDialog.setPreferredWidth(panel, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
         VariableCreatorNodeDialog.setPreferredWidth(m_typeSelection, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
         VariableCreatorNodeDialog.setPreferredWidth(m_typeSelectionHint, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(panel, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(m_typeSelection, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(m_typeSelectionHint, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(panel, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(m_typeSelection, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(m_typeSelectionHint, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
 
         return panel;
     }
@@ -339,7 +360,11 @@ final class DialogVariableRow {
         JPanel panel = m_nameBox;
         panel.setLayout(new GridBagLayout());
 
-        m_nameInput.setText(m_parent.getVars().getName(m_index));
+        if (m_parent.getVars().getName(m_index).isEmpty()) {
+            m_nameInput.setText(VariableTable.DEFAULT_NAME_PREFIX + '_' + (m_index + 1));
+        } else {
+            m_nameInput.setText(m_parent.getVars().getName(m_index));
+        }
         m_nameInput.getDocument().addDocumentListener(new DocumentListener() {
             /** The value that was preset before the current change. */
             private String m_oldValue = m_nameInput.getText();
@@ -368,6 +393,13 @@ final class DialogVariableRow {
                 m_oldValue = m_nameInput.getText();
             }
         });
+        m_nameInput.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(final FocusEvent e) {
+                super.focusGained(e);
+                m_nameInput.selectAll();
+            }
+        });
 
         clearHint(m_nameInputHint);
 
@@ -376,6 +408,8 @@ final class DialogVariableRow {
 
         final GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1.0;
         c.gridx = 0;
 
         panel.add(m_nameInput, c);
@@ -384,9 +418,9 @@ final class DialogVariableRow {
         VariableCreatorNodeDialog.setPreferredWidth(panel, VariableCreatorNodeDialog.COL_NAME_WIDTH);
         VariableCreatorNodeDialog.setPreferredWidth(m_nameInput, VariableCreatorNodeDialog.COL_NAME_WIDTH);
         VariableCreatorNodeDialog.setPreferredWidth(m_nameInputHint, VariableCreatorNodeDialog.COL_NAME_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(panel, VariableCreatorNodeDialog.COL_NAME_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(m_nameInput, VariableCreatorNodeDialog.COL_NAME_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(m_nameInputHint, VariableCreatorNodeDialog.COL_NAME_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(panel, VariableCreatorNodeDialog.COL_NAME_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(m_nameInput, VariableCreatorNodeDialog.COL_NAME_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(m_nameInputHint, VariableCreatorNodeDialog.COL_NAME_WIDTH);
 
         panel.revalidate();
         panel.repaint();
@@ -421,6 +455,13 @@ final class DialogVariableRow {
                 // styled documents (which we are not)
             }
         });
+        m_valueInput.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(final FocusEvent e) {
+                super.focusGained(e);
+                m_valueInput.selectAll();
+            }
+        });
 
         clearHint(m_valueInputHint);
 
@@ -429,6 +470,8 @@ final class DialogVariableRow {
 
         final GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 1.0;
         c.gridx = 0;
 
         panel.add(m_valueInput, c);
@@ -437,9 +480,9 @@ final class DialogVariableRow {
         VariableCreatorNodeDialog.setPreferredWidth(panel, VariableCreatorNodeDialog.COL_VAL_WIDTH);
         VariableCreatorNodeDialog.setPreferredWidth(m_valueInput, VariableCreatorNodeDialog.COL_VAL_WIDTH);
         VariableCreatorNodeDialog.setPreferredWidth(m_valueInputHint, VariableCreatorNodeDialog.COL_VAL_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(panel, VariableCreatorNodeDialog.COL_VAL_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(m_valueInput, VariableCreatorNodeDialog.COL_VAL_WIDTH);
-        VariableCreatorNodeDialog.setMaxWidth(m_valueInputHint, VariableCreatorNodeDialog.COL_VAL_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(panel, VariableCreatorNodeDialog.COL_VAL_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(m_valueInput, VariableCreatorNodeDialog.COL_VAL_WIDTH);
+        VariableCreatorNodeDialog.setMinWidth(m_valueInputHint, VariableCreatorNodeDialog.COL_VAL_WIDTH);
 
         return panel;
     }
@@ -484,12 +527,27 @@ final class DialogVariableRow {
 
     /**
      * Updates the variable table and validates the value input box.
+     * 
+     * @param popupMayBeOpen if the popup of the combo box may still be open when this is fired. This can be the case if
+     *            the user is cycling through the options using the keyboard.
      */
-    private void checkTypeBox() {
-        final Type type = (Type)m_typeSelection.getSelectedItem();
-        m_parent.getVars().setType(m_index, type);
+    private void checkTypeBox(final boolean popupMayBeOpen) {
+        final Type newType = (Type)m_typeSelection.getSelectedItem();
+        final Type oldType = m_parent.getVars().getType(m_index);
+        if (oldType == newType) {
+            return;
+        }
+
+        m_parent.getVars().setType(m_index, newType);
         checkNameInputBox(m_nameInput.getText().trim());
+        // only update if the default value is an exact match to prevent loosing data from the user
+        if (m_valueInput.getText().equals(oldType.getDefaultStringValue())) {
+            m_valueInput.setText(newType.getDefaultStringValue());
+        }
         checkValueInputBox();
+        if (!popupMayBeOpen) {
+            m_valueInput.requestFocusInWindow();
+        }
     }
 
     /**
@@ -576,7 +634,7 @@ final class DialogVariableRow {
         }
         if (noError) {
             if (messageStr.isPresent()) {
-                setWarning(m_nameInputHint, messageStr.get());
+                setInfo(m_nameInputHint, messageStr.get());
             } else {
                 clearHint(m_nameInputHint);
             }
@@ -594,7 +652,7 @@ final class DialogVariableRow {
         final Optional<String> hintMsg = updateResult.getSecond();
         if (updateResult.getFirst().booleanValue()) {
             if (hintMsg.isPresent()) {
-                setWarning(m_valueInputHint, hintMsg.get());
+                setInfo(m_valueInputHint, hintMsg.get());
             } else {
                 clearHint(m_valueInputHint);
             }
@@ -631,7 +689,7 @@ final class DialogVariableRow {
      * <a href="https://docs.oracle.com/javase/tutorial/uiswing/components/combobox.html#renderer"> Combo Box Renderer
      * Tutorial</a>.
      *
-     * @author Jannik Löscher
+     * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
      */
     private static final class TypeRenderer extends JLabel implements ListCellRenderer<Type> {
 
