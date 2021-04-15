@@ -2367,6 +2367,12 @@
             factory-class="org.knime.base.node.io.filehandling.csv.reader.simple.SimpleFileReaderNodeFactory"
             hidden="false">
       </node>
+      <node
+            category-path="/flowcontrol/variables"
+            deprecated="false"
+            factory-class="org.knime.base.node.flowvariable.create.VariableCreatorNodeFactory"
+            hidden="false">
+      </node>
    </extension>
    <extension
          name="deprecated nodes without category"
