@@ -46,14 +46,12 @@
  * History
  *   06.04.2021 (jl): created
  */
-package org.knime.base.node.flowvariable.create;
+package org.knime.base.node.io.variablecreator;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Optional;
 
-import org.knime.base.node.flowvariable.create.VariableTable.Type;
-import org.knime.core.node.CanceledExecutionException;
+import org.knime.base.node.io.variablecreator.VariableTable.Type;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -71,7 +69,7 @@ import org.knime.core.util.Pair;
 /**
  * The {@link NodeModel} for the “Create Variables” node
  *
- * @author Jannik Löscher
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
 final class VariableCreatorNodeModel extends NodeModel {
 
@@ -222,7 +220,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_table.validatevariablesFromSettings(settings);
+        VariableTable.validatevariablesFromSettings(settings);
     }
 
     /**
@@ -249,8 +247,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to do here
     }
 
@@ -260,8 +257,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // nothing to do here
     }
 

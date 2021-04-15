@@ -46,7 +46,7 @@
  * History
  *   06.04.2021 (jl): created
  */
-package org.knime.base.node.flowvariable.create;
+package org.knime.base.node.io.variablecreator;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -70,11 +70,14 @@ import org.knime.core.util.Pair;
 
 /**
  * A representation of the variables set by the user. The state of this table is always valid (except for unset (empty)
- * names while creating entries.
+ * names while creating entries).
  *
- * @author Jannik Löscher
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
 final class VariableTable {
+
+    /** Contains the default name that is automatically used. */
+    static final String DEFAULT_NAME_PREFIX = "variable";
 
     /** Contains the key that is used for the variables as a whole. */
     private static final String SETTINGS_KEY = "variables";
@@ -109,20 +112,19 @@ final class VariableTable {
     /**
      * Represents a type as it is saved in the table with the type object and the save representation attached.
      *
-     * @author Jannik Löscher
+     * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
      */
     enum Type {
-
             /** The representation of {@link org.knime.core.node.workflow.VariableType.StringType}. */
-            STRING(VariableType.StringType.INSTANCE, "str"),
+            STRING(VariableType.StringType.INSTANCE, "str", ""),
             /** The representation of {@link org.knime.core.node.workflow.VariableType.IntType}. */
-            INTEGER(VariableType.IntType.INSTANCE, "int"),
+            INTEGER(VariableType.IntType.INSTANCE, "int", "0"),
             /** The representation of {@link org.knime.core.node.workflow.VariableType.LongType}. */
-            LONG(VariableType.LongType.INSTANCE, "long"),
+            LONG(VariableType.LongType.INSTANCE, "long", "0"),
             /** The representation of {@link org.knime.core.node.workflow.VariableType.DoubleType}. */
-            DOUBLE(VariableType.DoubleType.INSTANCE, "double"),
+            DOUBLE(VariableType.DoubleType.INSTANCE, "double", "0.0"),
             /** The representation of {@link org.knime.core.node.workflow.VariableType.BooleanType}. */
-            BOOLEAN(VariableType.BooleanType.INSTANCE, "bool");
+            BOOLEAN(VariableType.BooleanType.INSTANCE, "bool", "false");
 
         /** The associated variable type. */
         final VariableType<?> m_type;
@@ -130,15 +132,20 @@ final class VariableTable {
         /** The representation that is used when saving. */
         final String m_strRepresentation;
 
+        /** The default value as a string. */
+        final String m_defaultStringValue;
+
         /**
          * Constructs a new type-string association.
          *
          * @param type the variable type
          * @param strRepresentation the string representation used in settings
+         * @param defaultStringValue the string representation of the default value
          */
-        Type(final VariableType<?> type, final String strRepresentation) {
+        Type(final VariableType<?> type, final String strRepresentation, final String defaultStringValue) {
             m_type = Objects.requireNonNull(type);
             m_strRepresentation = Objects.requireNonNull(strRepresentation);
+            m_defaultStringValue = Objects.requireNonNull(defaultStringValue);
         }
 
         /**
@@ -153,6 +160,13 @@ final class VariableTable {
          */
         String getStrRepresentation() {
             return m_strRepresentation;
+        }
+
+        /**
+         * @return the string representation of the default value
+         */
+        public String getDefaultStringValue() {
+            return m_defaultStringValue;
         }
 
         /**
@@ -240,7 +254,7 @@ final class VariableTable {
      * @param column the number of the column
      * @return the name of the column of an empty string if that is not given
      */
-    String getColumnName(final int column) {
+    static String getColumnName(final int column) {
         if (column >= 0 && column < COL_NAMES.length) {
             return COL_NAMES[column];
         } else {
@@ -366,10 +380,10 @@ final class VariableTable {
         if (name.trim().isEmpty()) {
             return new Pair<>(Boolean.FALSE, Optional.of("Name is empty"));
         } else {
-            if (m_externalVariables.containsKey(name)) {
+            final var externalVaraible = m_externalVariables.get(name);
+            if (externalVaraible != null) {
                 // Will only get overridden if the name and the type are the same
-                if (m_externalVariables.get(name).getVariableType()
-                    .equals(m_variableTypes.get(row).getVariableType())) {
+                if (externalVaraible.getVariableType().equals(m_variableTypes.get(row).getVariableType())) {
                     return new Pair<>(Boolean.TRUE, Optional.of(MSG_NAME_EXTERNAL_OVERRIDES));
                 } else {
                     return new Pair<>(Boolean.TRUE, Optional.of(MSG_NAME_EXTERNAL_CONFLICT));
@@ -533,7 +547,7 @@ final class VariableTable {
      *         right side being a string describing errors (or remarks if the left side is present)
      */
     private static Pair<Optional<Object>, Optional<String>> checkVariableValueStringToBoolean(final String value) {
-        return new Pair<>(Optional.of(Boolean.parseBoolean(value)),
+        return new Pair<>(Optional.of(Boolean.valueOf(value)),
             value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false") ? Optional.empty()
                 : Optional.of("Value is effectively “false”"));
     }
@@ -545,7 +559,7 @@ final class VariableTable {
      * @throws InvalidSettingsException
      * @throws InvalidSettingsException if the settings could not be parsed
      */
-    void validatevariablesFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    static void validatevariablesFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         final NodeSettingsRO tableSettings = settings.getNodeSettings(SETTINGS_KEY);
         final String[] typeStrings = tableSettings.getStringArray(SETTINGS_COL_TYPE);
         final String[] nameStrings = tableSettings.getStringArray(SETTINGS_COL_NAME);

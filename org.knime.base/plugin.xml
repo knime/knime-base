@@ -1694,7 +1694,12 @@
             >
       </node>
       <node
+            category-path="/io/io-other"
+            factory-class="org.knime.base.node.io.variablecreator.VariableCreatorNodeFactory"
             after="org.knime.base.node.io.tablecreator.TableCreator2NodeFactory"
+            >
+      </node>
+      <node
             factory-class="org.knime.base.node.util.sampledata.SampleDataNodeFactory"
             category-path="/io/io-other"
             />
@@ -2368,17 +2373,11 @@
             hidden="false">
       </node>
 	  <node
-            category-path="/io/read"
-            deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.csv.reader.FileReaderNodeFactory"
-            hidden="false">
-      </node>
-      <node
-            category-path="/flowcontrol/variables"
-            deprecated="false"
-            factory-class="org.knime.base.node.flowvariable.create.VariableCreatorNodeFactory"
-            hidden="false">
-      </node>
+             category-path="/io/read"
+             deprecated="false"
+             factory-class="org.knime.base.node.io.filehandling.csv.reader.FileReaderNodeFactory"
+             hidden="false">
+       </node>
    </extension>
    <extension
          name="deprecated nodes without category"

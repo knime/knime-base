@@ -46,7 +46,7 @@
  * History
  *   06.04.2021 (jl): created
  */
-package org.knime.base.node.flowvariable.create;
+package org.knime.base.node.io.variablecreator;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -55,7 +55,7 @@ import org.knime.core.node.NodeView;
 /**
  * The factory for the VariableCreatorNode.
  *
- * @author Jannik Löscher
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
 public final class VariableCreatorNodeFactory extends NodeFactory<VariableCreatorNodeModel> {
 

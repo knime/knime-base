@@ -46,7 +46,7 @@
  * History
  *   06.04.2021 (jl): created
  */
-package org.knime.base.node.flowvariable.create;
+package org.knime.base.node.io.variablecreator;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -60,12 +60,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.knime.base.node.flowvariable.create.VariableTable.Type;
+import org.knime.base.node.io.variablecreator.VariableTable.Type;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -77,7 +78,7 @@ import org.knime.core.node.util.SharedIcons;
 /**
  * Represents the dialog that is opened to edit the create variable node.
  *
- * @author Jannik Löscher
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
 final class VariableCreatorNodeDialog extends NodeDialogPane {
 
@@ -98,6 +99,9 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
      * row.
      */
     private static final int COL_PADDING_LEFT_RIGHT = 2;
+
+    /** The padding of the table's border. */
+    private static final int COL_PADDING_OUTER = 10;
 
     /** The internal representation of the variables. */
     private final VariableTable m_vars;
@@ -130,7 +134,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.gridx = 0;
         gbc.gridy = gridY;
-        gbc.insets = new Insets(0, 0, insetsBottom, COL_PADDING_LEFT_RIGHT);
+        gbc.insets = new Insets(0, COL_PADDING_OUTER, insetsBottom, COL_PADDING_LEFT_RIGHT);
 
         return gbc;
     }
@@ -143,7 +147,9 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
     static GridBagConstraints getNameColumnConstraints(final int gridY, final int insetsBottom) {
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 1;
+        gbc.weightx = 1.0;
         gbc.gridy = gridY;
         gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, insetsBottom, COL_PADDING_LEFT_RIGHT);
 
@@ -158,7 +164,9 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
     static GridBagConstraints getValueColumnConstraints(final int gridY, final int insetsBottom) {
         final GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 2;
+        gbc.weightx = 1.0;
         gbc.gridy = gridY;
         gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, insetsBottom, COL_PADDING_LEFT_RIGHT);
 
@@ -174,7 +182,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.gridx = 3;
         gbc.gridy = gridY;
-        gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, 0, 0);
+        gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, 0, COL_PADDING_OUTER);
 
         return gbc;
     }
@@ -189,7 +197,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 3;
         gbc.gridy = gridY;
-        gbc.insets = new Insets(0, 2, 0, 0);
+        gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, 0, COL_PADDING_OUTER);
 
         return gbc;
     }
@@ -233,7 +241,20 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
     VariableCreatorNodeDialog() {
         m_vars = new VariableTable(getAvailableFlowVariables(Type.getAllTypes()));
 
-        addTab("Create and Define Variables", initVariableCreationPane());
+        // align table at the top in a hacky way
+        final var outerPanel = new JPanel(new GridBagLayout());
+        final var constraints = new GridBagConstraints();
+        constraints.gridx = constraints.gridy = 0;
+        constraints.insets = new Insets(COL_PADDING_OUTER, 0, COL_PADDING_OUTER, 0);
+        constraints.fill = GridBagConstraints.BOTH;
+        outerPanel.add(initVariableCreationPane(), constraints);
+
+        constraints.insets = new Insets(0, 0, 0, 0);
+        constraints.gridy++;
+        constraints.weightx = constraints.weighty = 1.0;
+        outerPanel.add(Box.createGlue(), constraints);
+
+        addTab("Create and Define Variables", outerPanel);
     }
 
     /**
@@ -302,11 +323,11 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         m_panel.setLayout(m_layout);
 
         // add the heading
-        final JLabel typeHeading = new JLabel(m_vars.getColumnName(VariableTable.COL_TYPE_INDEX));
+        final JLabel typeHeading = new JLabel(VariableTable.getColumnName(VariableTable.COL_TYPE_INDEX));
         setPreferredWidth(typeHeading, COL_TYPE_WIDTH);
-        final JLabel nameHeading = new JLabel(m_vars.getColumnName(VariableTable.COL_NAME_INDEX));
+        final JLabel nameHeading = new JLabel(VariableTable.getColumnName(VariableTable.COL_NAME_INDEX));
         setPreferredWidth(nameHeading, COL_NAME_WIDTH);
-        final JLabel valHeading = new JLabel(m_vars.getColumnName(VariableTable.COL_VAL_INDEX));
+        final JLabel valHeading = new JLabel(VariableTable.getColumnName(VariableTable.COL_VAL_INDEX));
         setPreferredWidth(valHeading, COL_VAL_WIDTH);
         m_panel.add(typeHeading, getTypeColumnConstraints(0, COL_HEADER_PADDING_BOTTOM));
         m_panel.add(nameHeading, getNameColumnConstraints(0, COL_HEADER_PADDING_BOTTOM));
@@ -327,12 +348,6 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         addButton.addActionListener(a -> addRow(false));
         m_panel.add(addButton, getAddButtonConstraints(m_rows.size() + 1));
 
-        // ensure that the user is not confused by an empty layout.
-        // there may be an better way of doing that (maybe just a label with “No variables defined”
-        if (m_rows.isEmpty()) {
-            addRow(false);
-        }
-
         m_panel.revalidate();
         m_panel.repaint();
 
@@ -352,6 +367,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
             if (m_rows.size() > 1) {
                 m_rows.get(m_rows.size() - 2).updateMoveButtions();
             }
+            m_rows.get(m_rows.size() - 1).selectName();
             m_panel.revalidate();
             m_panel.repaint();
         }
@@ -385,13 +401,23 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         try {
-            m_vars.validatevariablesFromSettings(settings);
+            VariableTable.validatevariablesFromSettings(settings);
             m_vars.loadVariablesFromSettings(settings);
         } catch (InvalidSettingsException e) { // NOSONAR: the implementation guide states the object shall be reset to default if the values are invalid
             m_vars.reset();
         }
         m_vars.setExternalVariables(getAvailableFlowVariables(Type.getAllTypes()));
         initVariableCreationPane();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onOpen() {
+        if (m_rows.isEmpty()) {
+            m_addButton.doClick();
+        }
     }
 
 }
