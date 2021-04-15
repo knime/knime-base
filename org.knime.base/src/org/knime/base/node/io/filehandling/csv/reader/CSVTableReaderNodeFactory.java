@@ -91,8 +91,10 @@ public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeF
         final NodeCreationConfiguration creationConfig,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> readFactory,
         final ProductionPathProvider<Class<?>> productionPathProvider) {
+        final boolean isDragNDrop = creationConfig.getURLConfig().isPresent();
+
         return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),
-            readFactory, productionPathProvider);
+            readFactory, productionPathProvider, isDragNDrop);
     }
 
     @Override

@@ -212,7 +212,23 @@ public abstract class AbstractCSVTableReaderNodeDialog
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings, final CSVMultiTableReadConfig config,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles) {
-        super(multiReader, productionPathProvider, allowsReadingMultipleFiles);
+        this(pathSettings, config, multiReader, productionPathProvider, allowsReadingMultipleFiles, false);
+    }
+
+    /**
+     * Create new CsvTableReader dialog.
+     *
+     * @param pathSettings the path settings
+     * @param config the config
+     * @param multiReader the multi reader
+     * @param productionPathProvider provides the default {@link ProductionPath} for a specific column type
+     * @param allowsReadingMultipleFiles {@code true} if the reader allows reading multiple files at once
+     * @param isDragNDrop flag which indicates if the dialog was created via to drag and drop
+     */
+    protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings, final CSVMultiTableReadConfig config,
+        final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
+        final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles, final boolean isDragNDrop) {
+        super(multiReader, productionPathProvider, allowsReadingMultipleFiles, isDragNDrop);
         init(pathSettings); //NOSONAR
         m_pathSettings = pathSettings;
 
@@ -916,6 +932,10 @@ public abstract class AbstractCSVTableReaderNodeDialog
         controlSpinner(m_skipFirstRowsChecker, m_skipFirstRowsSpinner);
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
         controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner);
+
+        if(isDragNDrop()) {
+            startFormatAutoDetection();
+        }
 
         return m_config;
     }

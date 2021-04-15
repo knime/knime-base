@@ -95,6 +95,8 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
 
     private boolean m_ignoreEvents = false;
 
+    private boolean m_isDragNDrop;
+
     /**
      * Constructor.
      *
@@ -104,6 +106,20 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      */
     public AbstractTableReaderNodeDialog(final MultiTableReadFactory<I, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
+        this(readFactory, productionPathProvider, allowsMultipleFiles, false);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param readFactory the {@link MultiTableReadFactory} to use for reading
+     * @param productionPathProvider provides the default production paths for every external type
+     * @param allowsMultipleFiles whether the reader supports reading tables from multiple files at once
+     * @param isDragNDrop flag which indicates if the dialog was created due to drag and drop
+     */
+    public AbstractTableReaderNodeDialog(final MultiTableReadFactory<I, C, T> readFactory,
+        final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles,
+        final boolean isDragNDrop) {
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
         m_previewModel = previewModel;
@@ -232,6 +248,15 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
         return m_disableIOComponents;
     }
 
+    /**
+     * Indicates whether the dialog was created via drag and drop or not
+     *
+     * @return flag which indicates whether the dialog was created via drag and drop or not
+     */
+    protected boolean isDragNDrop() {
+        return m_isDragNDrop;
+    }
+
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_specTransformer.commitChanges();
@@ -247,7 +272,8 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
             m_coordinator.load(config.getTableSpecConfig().getTableTransformation());
         }
         ignoreEvents(false);
-        refreshPreview(true);
+        refreshPreview(!m_isDragNDrop);
+        m_isDragNDrop = false;
     }
 
     /**

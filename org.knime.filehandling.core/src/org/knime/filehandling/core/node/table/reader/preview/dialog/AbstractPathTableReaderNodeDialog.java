@@ -71,13 +71,28 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
     extends AbstractTableReaderNodeDialog<Path, C, T> {
 
     /**
+     * Constructor.
+     *
      * @param readFactory
      * @param productionPathProvider
      * @param allowsMultipleFiles
      */
     protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<Path, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
-        super(readFactory, productionPathProvider, allowsMultipleFiles);
+        this(readFactory, productionPathProvider, allowsMultipleFiles, allowsMultipleFiles);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param readFactory
+     * @param productionPathProvider
+     * @param allowsMultipleFiles
+     * @param isDragNDrop
+     */
+    protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<Path, C, T> readFactory,
+        final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles, final boolean isDragNDrop) {
+        super(readFactory, productionPathProvider, allowsMultipleFiles, isDragNDrop);
     }
 
     @SuppressWarnings("resource") // the ReadPathAccessor is managed by the adapter
