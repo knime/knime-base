@@ -46,7 +46,7 @@
  * History
  *   26 Nov 2020 (lars.schweikardt): created
  */
-package org.knime.base.node.io.filehandling.streams;
+package org.knime.filehandling.core.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,7 +56,6 @@ import java.util.zip.ZipException;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSFiles;
-import org.knime.filehandling.core.util.FileCompressionUtils;
 
 import com.google.common.io.CountingInputStream;
 

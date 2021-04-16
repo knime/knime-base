@@ -57,13 +57,13 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.regex.Pattern;
 
-import org.knime.base.node.io.filehandling.streams.CompressionAwareCountingInputStream;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleUtils;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.util.BomEncodingUtils;
+import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
 
 /**
  * Class for the line reader which implements {@link Read}.

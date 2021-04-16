@@ -61,7 +61,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
-import org.knime.base.node.io.filehandling.streams.CompressionAwareCountingInputStream;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -77,6 +76,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeFocusabl
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 import org.knime.filehandling.core.util.BomEncodingUtils;
+import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
 
 import com.univocity.parsers.common.TextParsingException;
 import com.univocity.parsers.csv.CsvParser;
