@@ -46,17 +46,26 @@
  * History
  *   Mar 23, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.utility.nodes.pathtourl;
+package org.knime.filehandling.utility.nodes.pathtouri;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 
 /**
+ * Concrete implementation of the {@link AbstractURIExporterHelper} to assist in the node model.
  *
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class URIExporterModelHelper extends AbstractURIExporterHelper {
+final class URIExporterModelHelper extends AbstractURIExporterHelper {
+
+    private NodeSettingsRO m_nodeSettings;
 
     URIExporterModelHelper(final SettingsModelString selectedColumn, //
         final SettingsModelString selectedUriExporterModel, //
@@ -66,17 +75,22 @@ class URIExporterModelHelper extends AbstractURIExporterHelper {
         super(selectedColumn, selectedUriExporterModel, fileSystemPortIndex, dataTablePortIndex);
     }
 
-    @Override
-    protected void init() {
-        //FIXME
-    }
-
     public void saveSettingsTo(final NodeSettingsWO settings) {
+        if (m_nodeSettings != null) {
+            m_nodeSettings.copyTo(settings);
+        }
     }
 
     @Override
-    void loadSettingsFrom(final NodeSettingsRO exporterConfig) {
-        // TODO Auto-generated method stub
+    void loadSettingsFrom(final NodeSettingsRO exporterConfig) throws InvalidSettingsException {
+        //store a local copy so that settings can be loaded
+        m_nodeSettings = exporterConfig;
+    }
 
+    URIExporter createExporter(final FSConnection connection) throws InvalidSettingsException {
+        final URIExporterFactory factory = connection.getURIExporterFactory(getSelectedExporterId());
+        final URIExporterConfig config = factory.initConfig();
+        config.loadSettingsForExporter(m_nodeSettings);
+        return factory.createExporter(config);
     }
 }

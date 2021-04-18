@@ -73,7 +73,7 @@ public final class PathURIExporterFactory extends NoConfigURIExporterFactory {
      */
     public static final URIExporterID ID = URIExporterIDs.PATH;
 
-    private static final BaseURIExporterMetaInfo META_INFO = new BaseURIExporterMetaInfo("Path", "Provides the path.");
+    private static final BaseURIExporterMetaInfo META_INFO = new BaseURIExporterMetaInfo("Path", "Generates a URI that contains the path.");
 
     private static final PathURIExporterFactory INSTANCE = new PathURIExporterFactory();
 

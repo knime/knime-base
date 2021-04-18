@@ -46,51 +46,45 @@
  * History
  *   Mar 19, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.utility.nodes.pathtourl;
+package org.knime.filehandling.utility.nodes.pathtouri;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterMetaInfo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterPanel;
-import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 
 /**
+ * Concrete implementation of the {@link AbstractURIExporterHelper} to assist in the node dialog.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIExporterDialogHelper extends AbstractURIExporterHelper {
+final class URIExporterDialogHelper extends AbstractURIExporterHelper {
 
     private final Map<URIExporterID, URIExporterFactory> m_availableExporterFactories;
 
     private final Map<URIExporterID, URIExporterConfig> m_exporterConfigs;
 
     private final Map<URIExporterID, URIExporterPanel> m_exporterPanels;
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(URIExporterDialogHelper.class);
 
     URIExporterDialogHelper(final SettingsModelString selectedColumn, //
         final SettingsModelString selectedUriExporterModel, //
@@ -103,12 +97,6 @@ public class URIExporterDialogHelper extends AbstractURIExporterHelper {
         m_exporterPanels = new HashMap<>();
     }
 
-    @Override
-    public void init() {
-        initAvailableExporterFactories();
-        initExporterConfigsAndPanels();
-    }
-
     private void initExporterConfigsAndPanels() {
         m_exporterConfigs.clear();
         m_exporterPanels.clear();
@@ -116,24 +104,27 @@ public class URIExporterDialogHelper extends AbstractURIExporterHelper {
         for (Entry<URIExporterID, URIExporterFactory> entry : m_availableExporterFactories.entrySet()) {
             final URIExporterConfig config = entry.getValue().initConfig();
             final URIExporterPanel panel = entry.getValue().createPanel(config);
-            loadDefaultConfigViaPanel(config, panel);
+            loadDefaultConfigViaPanel(entry.getValue(), panel);
             m_exporterConfigs.put(entry.getKey(), config);
             m_exporterPanels.put(entry.getKey(), panel);
         }
     }
 
-    private void loadDefaultConfigViaPanel(final URIExporterConfig config, final URIExporterPanel panel) {
+    private void loadDefaultConfigViaPanel(final URIExporterFactory factory, final URIExporterPanel panel) {
         final NodeSettings toLoad = new NodeSettings("defaults");
         // save default values if there is nothing to load. This is so we can load the exporter config
         // through DialogComponents in the exporter panel.
-        config.saveSettingsForExporter(toLoad);
+        final URIExporterConfig tmpDefaultConfig = factory.initConfig();
+        tmpDefaultConfig.saveSettingsForExporter(toLoad);
         try {
+            // this loads the default values into the panel and its underlying URIExporterConfig object
             panel.loadSettingsFrom(toLoad, m_portObjectSpecs);
         } catch (NotConfigurableException e) {
             throw new IllegalStateException("URIExporterPanel failed to load default settings. This is a bug.", e);
         }
     }
 
+    @SuppressWarnings("resource")
     private void initAvailableExporterFactories() {
         m_availableExporterFactories.clear();
 
@@ -185,65 +176,21 @@ public class URIExporterDialogHelper extends AbstractURIExporterHelper {
         return commonIDs;
     }
 
-    /**
-     * Returns a list of FSConnections’s based on either the connected FSPortObject or initializing FSConnections based
-     * on the column spec
-     *
-     * @param specs PortObjectSpec array
-     * @param pathColumnSpec A DataColumnSpec object for the Path column
-     * @return A list of FSConnection’s
-     * @throws InvalidSettingsException Throws exception if FSConnection cannot be initialized
-     */
-    @SuppressWarnings("resource")
-    private List<FSConnection> getListOfConnections() {
-        if (getFileSystemPortObjectSpec() != null) {
-            return Collections.singletonList(getFileSystemPortObjectSpec().getFileSystemConnection().get()); // NOSONAR we check before
-        } else {
-            return getConvenienceConnections();
-        }
-    }
-
-    private List<FSConnection> getConvenienceConnections() {
-        //use path column meta data to ad-hoc instantiate FSConnections
-        final DataColumnSpec pathColSpec = getPathColumnSpec();
-        final Set<DefaultFSLocationSpec> setOflocationSpecs =
-            pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class) //
-                .orElseThrow(IllegalStateException::new) //
-                .getFSLocationSpecs();
-
-        return setOflocationSpecs.stream() //
-            .map(URIExporterDialogHelper::createPseudoConnection) //
-            .collect(Collectors.toList());
-    }
-
-    /**
-     * Creates a pseudo convenience FSConnection objects using fake paths by properties from FSLocationSpec parameter.
-     * In case of CUSTOM_URL use a placeholder URL, since only the URI Exporters are used the provided URL is
-     * inconsequential.
-     *
-     * @param locationSpec Instance of FSLocationSpec
-     * @return Optional<FSConnection> An object of FSConnection
-     */
-    private static FSConnection createPseudoConnection(final FSLocationSpec locationSpec) {
-
-        final Optional<String> fileSysSpecifier = locationSpec.getFileSystemSpecifier();
-        final String fakePathStringVal =
-            locationSpec.getFSCategory() == FSCategory.CUSTOM_URL ? "https://www.knime.com/" : ".";
-        final FSLocation fakeFSLocation =
-            new FSLocation(locationSpec.getFSCategory(), fileSysSpecifier.orElse(null), fakePathStringVal);
-
-        return FileSystemHelper.retrieveFSConnection(Optional.empty(), fakeFSLocation).get(); // NOSONAR
-    }
-
     @Override
     void loadSettingsFrom(final NodeSettingsRO settings) {
+        initAvailableExporterFactories();
+        initExporterConfigsAndPanels();
+
         final URIExporterID selectedID = new URIExporterID(m_selectedExporterID.getStringValue());
 
         if (settings.getChildCount() > 0 && isAvailable(selectedID)) {
             try {
                 m_exporterPanels.get(selectedID).loadSettingsFrom(settings, m_portObjectSpecs);
-            } catch (NotConfigurableException e) {
-                // FIXME settings did not apply, set error msg (maybe? not sure yet)
+            } catch (NotConfigurableException ex) {
+                LOGGER.warn(String.format("Unable to load saved settings for the URL format %s, reverting to defaults.",
+                    selectedID), ex);
+                loadDefaultConfigViaPanel(m_availableExporterFactories.get(selectedID),
+                    m_exporterPanels.get(selectedID));
             }
         }
     }
@@ -262,15 +209,15 @@ public class URIExporterDialogHelper extends AbstractURIExporterHelper {
         return m_availableExporterFactories;
     }
 
-    URIExporterPanel getExporterPanel(final URIExporterID exporterID) {
-        return m_exporterPanels.get(exporterID);
+    Map<URIExporterID, URIExporterPanel> getAvailableExporterPanels() {
+        return m_exporterPanels;
     }
 
-    public boolean isAvailable(final URIExporterID exporterID) {
+    boolean isAvailable(final URIExporterID exporterID) {
         return m_availableExporterFactories.containsKey(exporterID);
     }
 
-    public URIExporterMetaInfo getExporterMetaInfo(final URIExporterID exporterID) {
+    URIExporterMetaInfo getExporterMetaInfo(final URIExporterID exporterID) {
         return m_availableExporterFactories.get(exporterID).getMetaInfo();
     }
 
