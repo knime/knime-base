@@ -103,6 +103,8 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
 
     private boolean m_ignoreEvents = false;
 
+    private boolean m_isDragNDrop;
+
     /**
      * Constructor.
      *
@@ -110,9 +112,23 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
      * @param productionPathProvider provides the default production paths for every external type
      * @param allowsMultipleFiles whether the reader supports reading tables from multiple files at once
      */
-    @SuppressWarnings("unchecked")
     public AbstractTableReaderNodeDialog(final MultiTableReadFactory<C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
+        this(readFactory, productionPathProvider, allowsMultipleFiles, false);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param readFactory the {@link MultiTableReadFactory} to use for reading
+     * @param productionPathProvider provides the default production paths for every external type
+     * @param allowsMultipleFiles whether the reader supports reading tables from multiple files at once
+     * @param isDragNDrop flag which indicates if the dialog was created due to drag and drop
+     */
+    @SuppressWarnings("unchecked")
+    public AbstractTableReaderNodeDialog(final MultiTableReadFactory<C, T> readFactory,
+        final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles,
+        final boolean isDragNDrop) {
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
         m_previewModel = previewModel;
@@ -123,6 +139,7 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
         m_specTransformer = new TableTransformationPanel(transformationModel,
             t -> productionPathProvider.getAvailableProductionPaths((T)t), allowsMultipleFiles);
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
+        m_isDragNDrop = isDragNDrop;
     }
 
     /**
@@ -241,6 +258,15 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
     protected boolean areIOComponentsDisabled() {
         return m_disableIOComponents;
     }
+    
+    /**
+     * Indicates whether the dialog was created via drag and drop or not
+     * 
+     * @return flag which indicates whether the dialog was created via drag and drop or not
+     */
+    protected boolean isDragNDrop() {
+        return m_isDragNDrop;
+    }
 
     /**
      * Method to load the preview from the stored {@link DefaultTableSpecConfig}.
@@ -264,7 +290,8 @@ public abstract class AbstractTableReaderNodeDialog<C extends ReaderSpecificConf
         setPreviewEnabled(false);
         loadSettings(settings, specs);
         ignoreEvents(false);
-        refreshPreview(true);
+        refreshPreview(!m_isDragNDrop);
+        m_isDragNDrop = false;
     }
 
     /**

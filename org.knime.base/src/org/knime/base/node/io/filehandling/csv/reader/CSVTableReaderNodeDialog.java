@@ -95,8 +95,8 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
-        final ProductionPathProvider<Class<?>> productionPathProvider) {
-        super(fileChooserModel, config, multiReader, productionPathProvider, true);
+        final ProductionPathProvider<Class<?>> productionPathProvider, final boolean isDragNDrop) {
+        super(fileChooserModel, config, multiReader, productionPathProvider, true, isDragNDrop);
     }
 
     private JPanel createFilePanel() {

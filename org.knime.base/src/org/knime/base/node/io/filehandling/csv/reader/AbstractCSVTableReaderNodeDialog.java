@@ -208,7 +208,25 @@ public abstract class AbstractCSVTableReaderNodeDialog
         final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
         final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles) {
-        super(multiReader, productionPathProvider, allowsReadingMultipleFiles);
+        this(pathSettings, config, multiReader, productionPathProvider, allowsReadingMultipleFiles, false);
+    }
+
+    /**
+     * Create new CsvTableReader dialog.
+     *
+     * @param pathSettings the path settings
+     * @param config the config
+     * @param multiReader the multi reader
+     * @param productionPathProvider provides the default {@link ProductionPath} for a specific column type
+     * @param allowsReadingMultipleFiles {@code true} if the reader allows reading multiple files at once
+     * @param isDragNDrop flag which indicates if the dialog was created via to drag and drop
+     */
+    protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings,
+        final DefaultMultiTableReadConfig<CSVTableReaderConfig, DefaultTableReadConfig<CSVTableReaderConfig>> config,
+        final MultiTableReadFactory<CSVTableReaderConfig, Class<?>> multiReader,
+        final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles,
+        final boolean isDragNDrop) {
+        super(multiReader, productionPathProvider, allowsReadingMultipleFiles, isDragNDrop);
         init(pathSettings);
         m_pathSettings = pathSettings;
 
@@ -884,6 +902,10 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         if (m_config.hasTableSpecConfig()) {
             loadFromTableSpecConfig(m_config.getTableSpecConfig());
+        }
+
+        if(isDragNDrop()) {
+            startFormatAutoDetection();
         }
     }
 
