@@ -46,7 +46,7 @@
  * History
  *   Dec 22, 2020 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.pathtourl;
+package org.knime.filehandling.utility.nodes.pathtouri;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -55,6 +55,7 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
@@ -64,7 +65,7 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
  *
  * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  */
-public class PathToUrlNodeConfig {
+final class PathToUriNodeConfig {
 
     static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
 
@@ -76,13 +77,15 @@ public class PathToUrlNodeConfig {
 
     private static final String CFG_URL_FORMAT = "url_format";
 
-    private static final String CFG_APPEND_COLUMN = "generate_settings";
+    private static final String CFG_GENERATED_COLUMN_MODE = "generated_column_mode";
 
-    private static final String CFG_APPEND_COLUMN_NAME = "append_column";
-
-    private static final String CFG_REPLACE_COLUMN_NAME = "replace_column";
+    private static final String CFG_APPENDED_COLUMN_NAME = "appended_column_name";
 
     private static final String CFG_URL_FORMAT_SETTINGS = "url_format_settings";
+
+    private static final String CFG_FAIL_IF_PATH_NOT_EXISTS = "fail_if_path_not_exists";
+
+    private static final String CFG_FAIL_ON_MISSING_VALS = "fail_on_missing_values";
 
     private final int m_dataTablePortIndex;
 
@@ -90,13 +93,15 @@ public class PathToUrlNodeConfig {
 
     private final SettingsModelString m_pathColumnNameModel;
 
+    private final SettingsModelBoolean m_failIfPathNotExists;
+
+    private final SettingsModelBoolean m_failOnMissingValues;
+
     private final SettingsModelString m_uriExporterModel;
 
-    private final SettingsModelBoolean m_appendColumnModel;
+    private final SettingsModelString m_generatedColumnMode;
 
-    private final SettingsModelString m_appendColumnNameModel;
-
-    private final SettingsModelString m_replaceColumnNameModel;
+    private final SettingsModelString m_appendedColumnName;
 
     private final URIExporterDialogHelper m_exporterDialogHelper;
 
@@ -107,20 +112,22 @@ public class PathToUrlNodeConfig {
      *
      * @param portsConfig An object of PortsConfiguration Class
      */
-    public PathToUrlNodeConfig(final PortsConfiguration portsConfig) {
+    public PathToUriNodeConfig(final PortsConfiguration portsConfig) {
         m_dataTablePortIndex =
-            getFirstPortIndexInGroup(portsConfig, PathToUrlNodeConfig.DATA_TABLE_INPUT_PORT_GRP_NAME);
+            getFirstPortIndexInGroup(portsConfig, PathToUriNodeConfig.DATA_TABLE_INPUT_PORT_GRP_NAME);
         m_fileSystemConnectionPortIndex =
-            getFirstPortIndexInGroup(portsConfig, PathToUrlNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME);
+            getFirstPortIndexInGroup(portsConfig, PathToUriNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME);
 
         m_pathColumnNameModel = new SettingsModelString(CFG_COLUMN, "");
 
-        m_uriExporterModel =
-            new SettingsModelString(CFG_URL_FORMAT, URIExporterIDs.DEFAULT.toString());
+        m_failIfPathNotExists = new SettingsModelBoolean(CFG_FAIL_IF_PATH_NOT_EXISTS, true);
+        m_failOnMissingValues = new SettingsModelBoolean(CFG_FAIL_ON_MISSING_VALS, true);
 
-        m_appendColumnModel = new SettingsModelBoolean(CFG_APPEND_COLUMN, true);
-        m_appendColumnNameModel = new SettingsModelString(CFG_APPEND_COLUMN_NAME, "URL");
-        m_replaceColumnNameModel = new SettingsModelString(CFG_REPLACE_COLUMN_NAME, "");
+        m_uriExporterModel = new SettingsModelString(CFG_URL_FORMAT, URIExporterIDs.DEFAULT.toString());
+
+        m_generatedColumnMode =
+            new SettingsModelString(CFG_GENERATED_COLUMN_MODE, GenerateColumnMode.APPEND_NEW.getActionCommand());
+        m_appendedColumnName = new SettingsModelString(CFG_APPENDED_COLUMN_NAME, "URI");
 
         m_exporterDialogHelper = new URIExporterDialogHelper(m_pathColumnNameModel, //
             m_uriExporterModel, //
@@ -132,13 +139,12 @@ public class PathToUrlNodeConfig {
             m_fileSystemConnectionPortIndex, //
             m_dataTablePortIndex);
 
-
-        m_appendColumnModel.addChangeListener(e -> updateEnabledness());
+        m_generatedColumnMode.addChangeListener(e -> updateEnabledness());
     }
 
     private void updateEnabledness() {
-        m_appendColumnNameModel.setEnabled(m_appendColumnModel.getBooleanValue());
-        m_replaceColumnNameModel.setEnabled(!m_appendColumnModel.getBooleanValue());
+        m_appendedColumnName.setEnabled(
+            m_generatedColumnMode.getStringValue().equals(GenerateColumnMode.APPEND_NEW.getActionCommand()));
     }
 
     int getDataTablePortIndex() {
@@ -148,6 +154,7 @@ public class PathToUrlNodeConfig {
     int getFileSystemConnectionPortIndex() {
         return m_fileSystemConnectionPortIndex;
     }
+
     private static int getFirstPortIndexInGroup(final PortsConfiguration portsConfig, final String portGroupName) {
         final int[] portsInGroup = portsConfig.getInputPortLocation().get(portGroupName);
         if (portsInGroup != null && portGroupName.length() > 0) {
@@ -173,38 +180,52 @@ public class PathToUrlNodeConfig {
         return new URIExporterID(m_uriExporterModel.getStringValue());
     }
 
-    SettingsModelString getAppendColumnNameModel() {
-        return m_appendColumnNameModel;
+    SettingsModelString getAppendedColumnNameModel() {
+        return m_appendedColumnName;
     }
 
-    SettingsModelString getReplaceColumnNameModel() {
-        return m_replaceColumnNameModel;
+    String getAppendedColumnName() {
+        return m_appendedColumnName.getStringValue();
     }
 
-    SettingsModelBoolean getAppendColumnModel() {
-        return m_appendColumnModel;
+    SettingsModelString getGeneratedColumnModeModel() {
+        return m_generatedColumnMode;
     }
 
-    String getAppendColumnName() {
-        return m_appendColumnNameModel.getStringValue();
+    GenerateColumnMode getGeneratedColumnMode() {
+        if (m_generatedColumnMode.getStringValue().equals(GenerateColumnMode.APPEND_NEW.getActionCommand())) {
+            return GenerateColumnMode.APPEND_NEW;
+        } else {
+            return GenerateColumnMode.REPLACE_SELECTED;
+        }
     }
 
-    String getReplaceColColumnName() {
-        return m_replaceColumnNameModel.getStringValue();
+    boolean shouldAppendColumn() {
+        return getGeneratedColumnMode() == GenerateColumnMode.APPEND_NEW;
     }
 
-    /**
-     * Implements save settings on each individual settings model
-     *
-     * @param settings Incoming NodeSettingsWO object from NodeModel
-     */
-    void saveSettingsForModel(final NodeSettingsWO settings) {
-        m_pathColumnNameModel.saveSettingsTo(settings);
-        m_uriExporterModel.saveSettingsTo(settings);
-        m_appendColumnModel.saveSettingsTo(settings);
-        m_appendColumnNameModel.saveSettingsTo(settings);
-        m_replaceColumnNameModel.saveSettingsTo(settings);
-        m_exporterModelHelper.saveSettingsTo(settings.addNodeSettings(CFG_URL_FORMAT_SETTINGS));
+    SettingsModelBoolean getFailIfPathNotExistsModel() {
+        return m_failIfPathNotExists;
+    }
+
+    boolean failIfPathNotExists() {
+        return m_failIfPathNotExists.getBooleanValue();
+    }
+
+    SettingsModelBoolean getFailOnMissingValuesModel() {
+        return m_failOnMissingValues;
+    }
+
+    boolean failOnMissingValues() {
+        return m_failOnMissingValues.getBooleanValue();
+    }
+
+    URIExporterDialogHelper getExporterDialogHelper() {
+        return m_exporterDialogHelper;
+    }
+
+    URIExporterModelHelper getExporterModelHelper() {
+        return m_exporterModelHelper;
     }
 
     /**
@@ -214,50 +235,96 @@ public class PathToUrlNodeConfig {
      */
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_pathColumnNameModel.validateSettings(settings);
+        m_failIfPathNotExists.validateSettings(settings);
+        m_failOnMissingValues.validateSettings(settings);
         m_uriExporterModel.validateSettings(settings);
-        m_appendColumnModel.validateSettings(settings);
-        m_appendColumnNameModel.validateSettings(settings);
-        m_replaceColumnNameModel.validateSettings(settings);
+        m_generatedColumnMode.validateSettings(settings);
+        m_appendedColumnName.validateSettings(settings);
 
         if (!settings.containsKey(CFG_URL_FORMAT_SETTINGS)) {
             throw new InvalidSettingsException(String.format("Settings key %s not found", CFG_URL_FORMAT_SETTINGS));
         }
     }
 
-    /**
-     * Implements load validated settings on each individual settings model
-     *
-     * @param settings Incoming NodeSettingsRO object from NodeModel
-     */
     void loadValidatedSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_pathColumnNameModel.loadSettingsFrom(settings);
+        m_failIfPathNotExists.loadSettingsFrom(settings);
+        m_failOnMissingValues.loadSettingsFrom(settings);
         m_uriExporterModel.loadSettingsFrom(settings);
-        m_appendColumnModel.loadSettingsFrom(settings);
-        m_appendColumnNameModel.loadSettingsFrom(settings);
-        m_replaceColumnNameModel.loadSettingsFrom(settings);
+        m_generatedColumnMode.loadSettingsFrom(settings);
+        m_appendedColumnName.loadSettingsFrom(settings);
         m_exporterModelHelper.loadSettingsFrom(settings.getNodeSettings(CFG_URL_FORMAT_SETTINGS));
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws InvalidSettingsException {
 
+        m_failIfPathNotExists.loadSettingsFrom(settings);
+        m_failOnMissingValues.loadSettingsFrom(settings);
         m_uriExporterModel.loadSettingsFrom(settings);
-        m_appendColumnModel.loadSettingsFrom(settings);
+
         m_exporterDialogHelper.setPortObjectSpecs(specs);
+        // we validate the settings, overwriting invalid values (so we can open the dialog),
+        m_exporterDialogHelper.validate(m -> {}, true);
         m_exporterDialogHelper.loadSettingsFrom(settings.getNodeSettings(CFG_URL_FORMAT_SETTINGS));
     }
 
-    void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+    void saveSettingsForModel(final NodeSettingsWO settings) {
+        m_pathColumnNameModel.saveSettingsTo(settings);
+        m_failIfPathNotExists.saveSettingsTo(settings);
+        m_failOnMissingValues.saveSettingsTo(settings);
         m_uriExporterModel.saveSettingsTo(settings);
-        m_appendColumnModel.saveSettingsTo(settings);
+        m_generatedColumnMode.saveSettingsTo(settings);
+        m_appendedColumnName.saveSettingsTo(settings);
+        m_exporterModelHelper.saveSettingsTo(settings.addNodeSettings(CFG_URL_FORMAT_SETTINGS));
+    }
+
+    void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_failIfPathNotExists.saveSettingsTo(settings);
+        m_failOnMissingValues.saveSettingsTo(settings);
+        m_uriExporterModel.saveSettingsTo(settings);
         m_exporterDialogHelper.saveSettingsTo(settings.addNodeSettings(CFG_URL_FORMAT_SETTINGS));
     }
 
-    boolean shouldAppendColumn() {
-        return m_appendColumnModel.getBooleanValue();
-    }
+    /**
+     * Options used to decide whether the newly generated column should replace selected column or should be appended as
+     * new.
+     *
+     * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+     */
+    enum GenerateColumnMode implements ButtonGroupEnumInterface {
 
-    URIExporterDialogHelper getExporterDialogHelper() {
-        return m_exporterDialogHelper;
+            APPEND_NEW("Append column:"), //
+
+            REPLACE_SELECTED("Replace selected column");
+
+        private static final String TOOLTIP =
+            "Choose whether a new column should be appended with the given name or the selected one be replaced.";
+
+        private final String m_text;
+
+        GenerateColumnMode(final String text) {
+            this.m_text = text;
+        }
+
+        @Override
+        public String getText() {
+            return m_text;
+        }
+
+        @Override
+        public String getActionCommand() {
+            return name();
+        }
+
+        @Override
+        public String getToolTip() {
+            return TOOLTIP;
+        }
+
+        @Override
+        public boolean isDefault() {
+            return this == APPEND_NEW;
+        }
     }
 }

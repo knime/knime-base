@@ -46,110 +46,92 @@
  * History
  *   Dec 22, 2020 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.pathtourl;
+package org.knime.filehandling.utility.nodes.pathtouri;
 
-import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.GridBagLayout;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.event.ChangeListener;
 
-import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.filehandling.utility.nodes.pathtouri.PathToUriNodeConfig.GenerateColumnMode;
 
 /**
+ * Node dialog of the Path to URI node.
  *
  * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  */
-public class PathToUrlNodeDialog extends NodeDialogPane {
+final class PathToUriNodeDialog extends NodeDialogPane {
 
-    private final PathToUrlNodeConfig m_config;
+    private final PathToUriNodeConfig m_config;
 
     private final DialogComponentColumnNameSelection m_pathColumnName;
 
-    private final DialogComponentString m_appendColumnName;
+    private final DialogComponentBoolean m_failIfPathNotExists;
 
-    private final DialogComponentColumnNameSelection m_replaceColumnName;
+    private final DialogComponentBoolean m_failOnMissingValues;
 
-    private final URIExporterSelectorPanel m_uriExporterSelectorPanel;
+    private final DialogComponentButtonGroup m_generatedColumnModeComponent;
 
-    private final ChangeListener m_pathColumnListener = (e) -> {
+    private final DialogComponentString m_appendedColumnNameComponent;
+
+    private final URIExporterComboBox m_uriExporterCombo;
+
+    private final ChangeListener m_pathColumnListener = e -> {
             refreshExporterPanels();
             displayCurrentExporterPanel();
     };
 
-    private final ChangeListener m_exporterSelectionListener = (e) -> {
+    private final ChangeListener m_exporterSelectionListener = e -> {
         displayCurrentExporterPanel();
     };
 
-    private final JPanel m_exporterPanelParent;
+    private final URIExporterPanelParent m_exporterPanelParent;
 
     private JLabel m_exporterDescription;
-
-    private final JRadioButton m_appendColumnRadio;
-
-    private final JRadioButton m_replaceColumnRadio;
-
-    private static final String SELECTED_COLUMN_LABEL = "Path Column: ";
 
     /**
      * Initialize component and attach appropriate event listeners
      *
      * @param portsConfig PortsConfiguration object
-     * @param nodeConfig {@link PathToUrlNodeConfig} object
+     * @param nodeConfig {@link PathToUriNodeConfig} object
      */
     @SuppressWarnings("unchecked")
-    public PathToUrlNodeDialog(final PortsConfiguration portsConfig, final PathToUrlNodeConfig nodeConfig) {
+    public PathToUriNodeDialog(final PortsConfiguration portsConfig, final PathToUriNodeConfig nodeConfig) {
         m_config = nodeConfig;
 
-        m_uriExporterSelectorPanel = new URIExporterSelectorPanel(m_config.getURIExporterModel());
         m_pathColumnName = new DialogComponentColumnNameSelection(nodeConfig.getPathColumnNameModel(),
-            SELECTED_COLUMN_LABEL, m_config.getDataTablePortIndex(), FSLocationValue.class);
+            "", m_config.getDataTablePortIndex(), FSLocationValue.class);
+        m_failIfPathNotExists = new DialogComponentBoolean(nodeConfig.getFailIfPathNotExistsModel(), "Fail if file/folder does not exist");
+        m_failOnMissingValues = new DialogComponentBoolean(nodeConfig.getFailOnMissingValuesModel(), "Fail on missing values");
 
-        m_appendColumnName = new DialogComponentString(nodeConfig.getAppendColumnNameModel(), "", true, 25);
-        m_replaceColumnName = new DialogComponentColumnNameSelection(nodeConfig.getReplaceColumnNameModel(), "",
-            m_config.getDataTablePortIndex(), false, StringValue.class);
-        m_appendColumnRadio = new JRadioButton("Append Column: ");
-        m_replaceColumnRadio = new JRadioButton("Replace Column: ");
-        final ButtonGroup buttonGrp = new ButtonGroup();
-        buttonGrp.add(m_appendColumnRadio);
-        buttonGrp.add(m_replaceColumnRadio);
+        m_appendedColumnNameComponent =
+            new DialogComponentString(nodeConfig.getAppendedColumnNameModel(), "", true, 30);
+        m_generatedColumnModeComponent = new DialogComponentButtonGroup(nodeConfig.getGeneratedColumnModeModel(), null,
+            true, GenerateColumnMode.values());
 
-        m_exporterDescription = new JLabel("");
-        m_exporterPanelParent = new JPanel(new CardLayout());
-        m_exporterPanelParent.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "URL Format Settings"));
+        m_uriExporterCombo = new URIExporterComboBox(m_config.getURIExporterModel());
+        m_exporterDescription = new JLabel("-");
+        m_exporterPanelParent = new URIExporterPanelParent();
 
         addTab("Settings", createSettingsDialog());
-        wireUIEvents();
-    }
-
-    private void wireUIEvents() {
-        m_appendColumnRadio.addActionListener(l -> toggleColumnAppendAndReplace());
-        m_replaceColumnRadio.addActionListener(l -> toggleColumnAppendAndReplace());
-    }
-
-
-    private void toggleColumnAppendAndReplace() {
-        m_config.getAppendColumnModel().setBooleanValue(m_appendColumnRadio.isSelected());
     }
 
     /**
@@ -157,104 +139,87 @@ public class PathToUrlNodeDialog extends NodeDialogPane {
      */
     private void refreshExporterPanels() {
         final URIExporterDialogHelper dialogHelper = m_config.getExporterDialogHelper();
-        final Map<URIExporterID, URIExporterFactory> availableFactories = dialogHelper.getAvailableExporterFactories();
-
-        m_uriExporterSelectorPanel.updateAvailableExporterFactories(availableFactories);
-
-        m_exporterPanelParent.removeAll();
-        for (URIExporterID exporterID : availableFactories.keySet()) {
-            final String cardName = "exporter-" + exporterID.toString();
-            m_exporterPanelParent.add(dialogHelper.getExporterPanel(exporterID), cardName);
-        }
-
-        m_exporterPanelParent.add(new InvalidURIExporterPanel(), "invalid");
+        m_uriExporterCombo.updateAvailableExporterFactories(dialogHelper.getAvailableExporterFactories());
+        m_exporterPanelParent.updateAvailableExporterPanels(dialogHelper.getAvailableExporterPanels());
     }
 
     private void displayCurrentExporterPanel() {
         final URIExporterDialogHelper dialogHelper = m_config.getExporterDialogHelper();
         final URIExporterID currExporter = m_config.getURIExporterID();
 
-        final String exporterPanelCardName;
         final String exporterDescription;
-
         if (dialogHelper.isAvailable(currExporter)) {
-            exporterPanelCardName = "exporter-" + m_config.getURIExporterID().toString();
             exporterDescription = dialogHelper.getExporterMetaInfo(currExporter).getDescription();
         } else {
-            exporterPanelCardName = "invalid";
             exporterDescription = "";
         }
 
-
-        final CardLayout cardLayout = (CardLayout)m_exporterPanelParent.getLayout();
-        cardLayout.show(m_exporterPanelParent, exporterPanelCardName);
-
-        m_exporterDescription.setText(exporterDescription);
+        m_exporterDescription.setText(String.format("<html><i>%s</i></html>", exporterDescription));
+        m_exporterPanelParent.showExporterPanel(currExporter);
     }
 
     private Component createSettingsDialog() {
         final JPanel p = new JPanel(new GridBagLayout());
-
         final GBCBuilder gbc =
-            new GBCBuilder().resetPos().setWeightX(1).setWeightY(0).anchorFirstLineStart().fillNone();
+            new GBCBuilder().resetPos().setWeightX(0).setWeightY(0).anchorWest().fillNone().insets(5, 5, 0, 5);
+        p.add(new JLabel("Input column: "), gbc.build());
 
+        gbc.incX();
         p.add(m_pathColumnName.getComponentPanel(), gbc.build());
 
-        gbc.setWeightY(1).incY();
+        gbc.resetX().incY().setWidth(2);
+        p.add(m_failIfPathNotExists.getComponentPanel(), gbc.build());
 
-        p.add(createURIExporterSelectorSettings(), gbc.build());
+        gbc.incY();
+        p.add(m_failOnMissingValues.getComponentPanel(), gbc.build());
 
-        gbc.incY().fillHorizontal();
+        gbc.resetX().incY().setWeightX(1).fillHorizontal().setWidth(2);
+        p.add(createOutputColumnPanel(), gbc.build());
 
-        p.add(createOutputSettings(), gbc.build());
-
-        gbc.incY().fillBoth();
-
-        p.add(m_exporterPanelParent, gbc.build());
-
-        p.add(Box.createGlue());
+        gbc.resetX().incY().setWeightY(1).fillBoth();
+        p.add(createUrlFormatPanel(), gbc.build());
 
         return p;
     }
 
-    private Component createOutputSettings() {
-
+    private Component createUrlFormatPanel() {
         final JPanel p = new JPanel(new GridBagLayout());
-        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output"));
-
-        final GBCBuilder gbc = new GBCBuilder().resetPos().setWeightX(0).setWeightY(0).anchorLineStart().fillNone();
-
-        gbc.insetLeft(0).insets(0, 0, 0, -30);
-        p.add(m_appendColumnRadio, gbc.build());
-
-        gbc.setWeightX(1).incX().insets(0, -30, 0, 0);
-        p.add(m_appendColumnName.getComponentPanel(), gbc.build());
-
-        gbc.setWeightY(1).incY().resetX().insets(0, 0, 0, -30);
-        p.add(m_replaceColumnRadio, gbc.build());
-
-        gbc.incX().insets(0, -30, 0, 0);
-        p.add(m_replaceColumnName.getComponentPanel(), gbc.build());
-
-        p.add(Box.createGlue());
-
-        return p;
-    }
-
-    private Component createURIExporterSelectorSettings() {
-
-        final JPanel p = new JPanel(new GridBagLayout());
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "URI Format"));
 
         final GBCBuilder gbc =
-            new GBCBuilder().resetPos().setWeightX(0).setWeightY(1).anchorLineStart().fillHorizontal();
+            new GBCBuilder().resetPos().anchorWest().fillNone().insets(5, 5, 0, 5);
 
-        //the label is embedded within this JPanel component
-        p.add(m_uriExporterSelectorPanel, gbc.build());
+        p.add(new JLabel("Format: "), gbc.build());
 
-        gbc.setWeightX(0).resetX().setWeightY(1).incY().fillNone();
+        gbc.incX();
+        p.add(m_uriExporterCombo, gbc.build());
+
+        gbc.incX().setWeightX(1).fillBoth();
         p.add(m_exporterDescription, gbc.build());
 
-        p.add(Box.createGlue(), gbc.build());
+        gbc.resetX().incY().setWeightX(0).fillNone().insetTop(20);
+        p.add(new JLabel("Settings: "), gbc.build());
+
+        gbc.resetX().incY().weight(1, 1).fillBoth().setWidth(3).insetTop(5);
+        p.add(m_exporterPanelParent, gbc.build());
+
+        return p;
+    }
+
+    private JPanel createOutputColumnPanel() {
+        final JPanel p = new JPanel(new GridBagLayout());
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output column"));
+
+        GBCBuilder gbc =
+            new GBCBuilder().resetX().resetY().setWeightX(0).setWeightY(0).fillNone().anchorFirstLineStart();
+        gbc = gbc.insets(5, 5, 0, 0);
+        p.add(m_generatedColumnModeComponent.getComponentPanel(), gbc.build());
+
+        gbc = gbc.insets(5, 0, 0, 0).incX();
+        p.add(m_appendedColumnNameComponent.getComponentPanel(), gbc.build());
+
+        gbc = gbc.insets(5, 0, 0, 0).incX().setWeightX(1).fillHorizontal();
+        p.add(Box.createHorizontalGlue(), gbc.build());
 
         return p;
     }
@@ -264,8 +229,8 @@ public class PathToUrlNodeDialog extends NodeDialogPane {
         m_config.saveSettingsForDialog(settings);
 
         m_pathColumnName.saveSettingsTo(settings);
-        m_appendColumnName.saveSettingsTo(settings);
-        m_replaceColumnName.saveSettingsTo(settings);
+        m_generatedColumnModeComponent.saveSettingsTo(settings);
+        m_appendedColumnNameComponent.saveSettingsTo(settings);
     }
 
     @Override
@@ -274,8 +239,8 @@ public class PathToUrlNodeDialog extends NodeDialogPane {
 
         try {
             m_pathColumnName.loadSettingsFrom(settings, specs);
-            m_replaceColumnName.loadSettingsFrom(settings, specs);
-            m_appendColumnName.loadSettingsFrom(settings, specs);
+            m_generatedColumnModeComponent.loadSettingsFrom(settings, specs);
+            m_appendedColumnNameComponent.loadSettingsFrom(settings, specs);
             m_config.loadSettingsForDialog(settings, specs);
 
             settingsLoaded();
@@ -286,9 +251,7 @@ public class PathToUrlNodeDialog extends NodeDialogPane {
 
     private void settingsLoaded() {
         //select relevant radio buttons
-        m_appendColumnRadio.setSelected(m_config.shouldAppendColumn());
-        m_replaceColumnRadio.setSelected(!m_config.shouldAppendColumn());
-        m_uriExporterSelectorPanel.setSelectedItem(m_config.getURIExporterID());
+        m_uriExporterCombo.setSelectedItem(m_config.getURIExporterID());
     }
 
     @Override

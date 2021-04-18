@@ -46,7 +46,7 @@
  * History
  *   Dec 22, 2020 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.pathtourl;
+package org.knime.filehandling.utility.nodes.pathtouri;
 
 import java.util.Optional;
 
@@ -64,28 +64,28 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  *
  * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  */
-public class PathToUrlNodeFactory extends ConfigurableNodeFactory<PathToUrlNodeModel> {
+public final class PathToUriNodeFactory extends ConfigurableNodeFactory<PathToUriNodeModel> {
 
     @Override
-    public PathToUrlNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+    public PathToUriNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
         final PortsConfiguration portsConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new PathToUrlNodeModel(portsConfig, createSettings(portsConfig));
+        return new PathToUriNodeModel(portsConfig, createSettings(portsConfig));
     }
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(PathToUrlNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME,
+        builder.addOptionalInputPortGroup(PathToUriNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME,
             FileSystemPortObject.TYPE);
-        builder.addFixedInputPortGroup(PathToUrlNodeConfig.DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
-        builder.addFixedOutputPortGroup(PathToUrlNodeConfig.DATA_TABLE_OUTPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
+        builder.addFixedInputPortGroup(PathToUriNodeConfig.DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
+        builder.addFixedOutputPortGroup(PathToUriNodeConfig.DATA_TABLE_OUTPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
         return Optional.of(builder);
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         final PortsConfiguration portsConfiguration = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new PathToUrlNodeDialog(portsConfiguration, createSettings(portsConfiguration));
+        return new PathToUriNodeDialog(portsConfiguration, createSettings(portsConfiguration));
     }
 
     @Override
@@ -94,7 +94,7 @@ public class PathToUrlNodeFactory extends ConfigurableNodeFactory<PathToUrlNodeM
     }
 
     @Override
-    public NodeView<PathToUrlNodeModel> createNodeView(final int viewIndex, final PathToUrlNodeModel nodeModel) {
+    public NodeView<PathToUriNodeModel> createNodeView(final int viewIndex, final PathToUriNodeModel nodeModel) {
         return null;
     }
 
@@ -110,7 +110,7 @@ public class PathToUrlNodeFactory extends ConfigurableNodeFactory<PathToUrlNodeM
      *
      * @return An PathToUrlNodeConfig object
      */
-    private static PathToUrlNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
-        return new PathToUrlNodeConfig(portsConfiguration);
+    private static PathToUriNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
+        return new PathToUriNodeConfig(portsConfiguration);
     }
 }
