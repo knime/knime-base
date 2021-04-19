@@ -148,6 +148,15 @@ public interface MountPointFileSystemAccess {
     void deployWorkflow(File source, URI target, boolean overwrite, boolean attemptOpen) throws IOException;
 
     /**
+     * Turns a workflow-URI into a local workflow directory
+     *
+     * @param uri an uri referencing a workflow
+     * @return the file representing the local workflow directory
+     * @throws IOException
+     */
+    File toLocalWorkflowDir(URI uri) throws IOException;
+
+    /**
      * Checks whether a file at the given URI location is readable.
      *
      * @param uri the location of the file

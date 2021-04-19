@@ -353,7 +353,9 @@ public final class SettingsModelFilterMode extends SettingsModel {
             /** Multiple folders */
             FOLDERS("Folders", FileSelectionMode.DIRECTORIES_ONLY, true),
             /** Multiple files and folders */
-            FILES_AND_FOLDERS("Files and folders", FileSelectionMode.DIRECTORIES_ONLY, true);
+            FILES_AND_FOLDERS("Files and folders", FileSelectionMode.DIRECTORIES_ONLY, true),
+            /** Only one workflow */
+            WORKFLOW("Workflow", FileSelectionMode.FILES_AND_DIRECTORIES, false);
 
         private final String m_label;
 

@@ -189,4 +189,10 @@ final class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERe
         final KNIMERemotePath checkedPath = checkCastAndAbsolutizePath(dest);
         MountPointFileSystemAccessService.instance().deployWorkflow(source, checkedPath.toKNIMEProtocolURI(), overwrite, attemptOpen);
     }
+
+    @Override
+    public File toLocalWorkflowDir(final Path path) throws IOException {
+        final KNIMERemotePath checkedPath = checkCastAndAbsolutizePath(path);
+        return MountPointFileSystemAccessService.instance().toLocalWorkflowDir(checkedPath.toKNIMEProtocolURI());
+    }
 }

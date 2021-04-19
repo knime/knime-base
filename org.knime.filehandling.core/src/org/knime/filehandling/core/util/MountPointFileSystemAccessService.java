@@ -246,6 +246,17 @@ public final class MountPointFileSystemAccessService {
     }
 
     /**
+     * Turns a workflow-URI into a local workflow directory
+     *
+     * @param uri an uri referencing a workflow
+     * @return the file representing the local workflow directory
+     * @throws IOException
+     */
+    public File toLocalWorkflowDir(final URI uri) throws IOException {
+        return getProvider().toLocalWorkflowDir(uri);
+    }
+
+    /**
      * Checks whether a file at the given URI location is readable.
      *
      * @param uri the location of the file

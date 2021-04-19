@@ -97,6 +97,19 @@ final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemPr
         return context.getMountpointURI().get().getAuthority();
     }
 
+    @Override
+    public File toLocalWorkflowDir(final Path src) throws IOException {
+        final Path absoluteSrc = src.toAbsolutePath().normalize();
+        String currentMountpoint = getCurrentMountpoint();
+        URI uri;
+        try {
+            uri = new URI("knime", currentMountpoint, absoluteSrc.toString(), null);
+            return MountPointFileSystemAccessService.instance().toLocalWorkflowDir(uri);
+        } catch (URISyntaxException ex) {
+            throw new IOException(ex);
+        }
+    }
+
     /**
      * Converts a given local file system path into a path string using virtual relative-to path separators.
      *

@@ -77,4 +77,13 @@ public interface WorkflowAware {
     void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
         throws IOException;
 
+    /**
+     * Turns a workflow path into a local workflow directory.
+     *
+     * @param path the orginal workflow path
+     * @return a file representing the local workflow directory
+     * @throws IOException
+     */
+    File toLocalWorkflowDir(Path path) throws IOException;
+
 }
