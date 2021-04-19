@@ -79,7 +79,7 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
      */
     protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<Path, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
-        this(readFactory, productionPathProvider, allowsMultipleFiles, allowsMultipleFiles);
+        this(readFactory, productionPathProvider, allowsMultipleFiles, false);
     }
 
     /**

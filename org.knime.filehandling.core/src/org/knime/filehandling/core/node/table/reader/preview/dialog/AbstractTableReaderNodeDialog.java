@@ -129,6 +129,7 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
             analysisComponentModel, previewModel, this::getConfig, this::createItemAccessor);
         m_specTransformer = new TableTransformationPanel(transformationModel, allowsMultipleFiles);
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
+        m_isDragNDrop = isDragNDrop;
     }
 
     /**
