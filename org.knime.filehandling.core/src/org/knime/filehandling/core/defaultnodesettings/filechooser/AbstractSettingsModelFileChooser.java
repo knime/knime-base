@@ -140,7 +140,8 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
      *            FilterModes}
      * @param convenienceFS the {@link Set} of {@link FSCategory convenience file systems} that should be available if
      *            no file system port is present
-     * @param fileExtensions the supported file extensions
+     * @param fileExtensions the supported file extensions (won't have an effect if {@link FilterMode#WORKFLOW} is
+     *            chosen!)
      */
     protected AbstractSettingsModelFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,

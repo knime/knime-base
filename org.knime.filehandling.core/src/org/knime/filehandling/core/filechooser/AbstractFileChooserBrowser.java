@@ -54,6 +54,8 @@ import java.awt.Component;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -68,6 +70,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.util.AbstractJFileChooserBrowser;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.util.SimpleFileFilter;
+import org.knime.filehandling.core.connections.WorkflowAwarePath;
 
 /**
  * An abstract file system browser that uses the {@link JFileChooser} but allows sub-classes to provide, e.g., custom
@@ -81,6 +84,8 @@ import org.knime.core.util.SimpleFileFilter;
  * @noextend non-public API
  */
 public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
+
+    private static final String[] WORKFLOW_FILTER = new String[0];
 
     @Override
     public String openDialogAndGetSelectedFileName(final FileSelectionMode fileSelectionMode,
@@ -96,6 +101,13 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public String openDialogAndGetSelectedWorkflow(final DialogType dialogType, final Component parent,
+        final String selectedFile) {
+        return openDialogAndGetSelectedFileName(FileSelectionMode.FILES_ONLY, dialogType, parent, null,
+            selectedFile, WORKFLOW_FILTER);
     }
 
     private String processUserSelection(final FileSelectionMode fileSelectionMode, final DialogType dialogType,
@@ -187,12 +199,18 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
     private static void setupFilters(final DialogType dialogType, final String[] suffixes,
         final JFileChooser fileChooser) {
         fileChooser.setAcceptAllFileFilterUsed(true);
-        if (suffixes == null || suffixes.length == 0) {
+        if (suffixes != WORKFLOW_FILTER && (suffixes == null || suffixes.length == 0)) {
             return;
         }
-        final List<SimpleFileFilter> filters = createFiltersFromSuffixes(suffixes);
-        for (final SimpleFileFilter filter : filters) {
-            fileChooser.addChoosableFileFilter(filter);
+
+        final List<FileFilter> filters;
+        if (suffixes == WORKFLOW_FILTER) {
+            filters = Arrays.asList(createWorkflowFilter());
+        } else {
+            filters = createFiltersFromSuffixes(suffixes);
+            for (final FileFilter filter : filters) {
+                fileChooser.addChoosableFileFilter(filter);
+            }
         }
         if (!filters.isEmpty()) {
             fileChooser.setFileFilter(filters.get(0));
@@ -201,6 +219,37 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
                 fileChooser.setAcceptAllFileFilterUsed(false);
             }
         }
+    }
+
+    /*
+     * File filter for workflows only.
+     */
+    private static FileFilter createWorkflowFilter() {
+        return new FileFilter() { // NOSONAR
+
+            @Override
+            public boolean accept(final File f) {
+                if (f.isDirectory()) {
+                    return true;
+                }
+                Path path = f.toPath();
+                if (path instanceof WorkflowAwarePath) {
+                    try {
+                        return ((WorkflowAwarePath)path).isWorkflow();
+                    } catch (IOException ex) { // NOSONAR
+                        return false;
+                    }
+                } else {
+                    return f.getName().toLowerCase().endsWith("knwf");
+                }
+            }
+
+            @Override
+            public String getDescription() {
+                return "Workflow";
+            }
+
+        };
     }
 
     /**
@@ -219,7 +268,7 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
         return new File(file.getParentFile(), file.getName().concat(fileExtension));
     }
 
-    private static List<SimpleFileFilter> createFiltersFromSuffixes(final String... extensions) {
+    private static List<FileFilter> createFiltersFromSuffixes(final String... extensions) {
 
         // collect individual extensions
         final List<String> splitSuffixes = Arrays.stream(extensions)//

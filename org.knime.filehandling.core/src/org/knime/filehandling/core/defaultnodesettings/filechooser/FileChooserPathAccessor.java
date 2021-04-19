@@ -200,7 +200,8 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
         throws IOException, InvalidSettingsException {
         final FSPath rootPath = getRootPath(statusMessageConsumer);
 
-        if (m_filterMode == FilterMode.FILE || m_filterMode == FilterMode.FOLDER) {
+        if (m_filterMode == FilterMode.FILE || m_filterMode == FilterMode.FOLDER
+            || m_filterMode == FilterMode.WORKFLOW) {
             return handleSinglePath(rootPath);
         } else {
             List<FSPath> fsPaths = walkFileTree(rootPath);
@@ -211,7 +212,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
 
     private List<FSPath> handleSinglePath(final FSPath rootPath) throws IOException, InvalidSettingsException {
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
-        if (m_filterMode == FilterMode.FILE) {
+        if (m_filterMode == FilterMode.FILE || m_filterMode == FilterMode.WORKFLOW) {
             CheckUtils.checkSetting(!rootPath.toString().trim().isEmpty(), "Please specify a file.");
             CheckUtils.checkSetting(!attr.isDirectory(), "%s is a folder. Please specify a file.", rootPath);
             m_fileFilterStatistic = new FileFilterStatistic(0, 0, 0, 1, 0, 0, 0);
@@ -281,7 +282,14 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     @Override
     public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
-        final String errorSuffix = m_filterMode == FilterMode.FILE ? "file" : "folder";
+        final String errorSuffix;
+        if (m_filterMode == FilterMode.FILE) {
+            errorSuffix = "file";
+        } else if (m_filterMode == FilterMode.WORKFLOW) {
+            errorSuffix = "workflow";
+        } else {
+            errorSuffix = "folder";
+        }
         CheckUtils.checkSetting(!m_rootLocation.getPath().trim().isEmpty(),
             String.format(AbstractSettingsModelFileChooser.NO_LOCATION_ERROR, errorSuffix));
         final FSPath rootPath = getOutputPath(statusMessageConsumer);

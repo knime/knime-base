@@ -93,7 +93,7 @@ import org.knime.filehandling.core.util.IOESupplier;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class FileSelectionDialog {
+public class FileSelectionDialog {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(FileSelectionDialog.class);
 
@@ -356,6 +356,27 @@ public final class FileSelectionDialog {
         m_fileSelectionComboBox.setEnabled(enabled);
     }
 
+    /**
+     * Open a dialog to select a file. Can be overwritten by sub-classes open a different kind of dialog.
+     *
+     * Method is called from awt's event dispatch thread!
+     *
+     * @param currentlySelected the currently selected file
+     * @param fsBrowser access to the available {@link FileSystemBrowser} instance
+     * @param fileSelectionMode
+     * @param dialogType
+     * @param parent
+     * @param defaultFileExtension
+     * @param fileExtensions
+     * @return path to the selected file
+     */
+    protected String openDialogAndGetFile(final FileSystemBrowser fsBrowser, final FileSelectionMode fileSelectionMode,
+        final DialogType dialogType, final Component parent, final String defaultFileExtension,
+        final String currentlySelected, final String[] fileExtensions) {
+        return fsBrowser.openDialogAndGetSelectedFileName(fileSelectionMode, dialogType, parent, defaultFileExtension,
+            currentlySelected, fileExtensions);
+    }
+
     private class OpenBrowserSwingWorker extends SwingWorkerWithContext<FSConnection, Void> {
 
         @Override
@@ -373,8 +394,8 @@ public final class FileSelectionDialog {
                 final FileSystemBrowser fsBrowser = fsConnection.getFileSystemBrowser();
                 final String[] fileExtensions =
                     m_fileSelectionMode != FileSelectionMode.DIRECTORIES_ONLY ? m_fileExtensions : null;
-                final String selectedInBrowser = fsBrowser.openDialogAndGetSelectedFileName(m_fileSelectionMode,
-                    m_dialogType, m_panel, getDefaultFileExtension(), currentlySelected, fileExtensions);
+                final String selectedInBrowser = openDialogAndGetFile(fsBrowser, m_fileSelectionMode, m_dialogType,
+                    m_panel, getDefaultFileExtension(), currentlySelected, fileExtensions);
                 // selectedInBrowser is null if browsing was canceled via the cancel button or closing the browser
                 if (selectedInBrowser != null && !Objects.equals(currentlySelected, selectedInBrowser)) {
                     m_fileSelectionComboBox.setSelectedItem(selectedInBrowser);

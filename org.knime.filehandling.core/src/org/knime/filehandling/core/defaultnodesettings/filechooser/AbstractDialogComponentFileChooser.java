@@ -74,6 +74,7 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
+import org.knime.filehandling.core.defaultnodesettings.fileselection.WorkflowSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.DialogComponentFilterMode;
@@ -186,8 +187,12 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         m_filterMode = new DialogComponentFilterMode(model.getFilterModeModel(), false);
         Set<FileSystemBrowser.FileSelectionMode> supportedModes =
             model.getFileSystemConfiguration().getSupportedFileSelectionModes();
-        m_fileSelection = new FileSelectionDialog(historyID, 10, model::getConnection, dialogType,
-            supportedModes.iterator().next(), model.getFileExtensions());
+        if (model.getFilterMode() == FilterMode.WORKFLOW) {
+            m_fileSelection = new WorkflowSelectionDialog(historyID, 10, model::getConnection, dialogType);
+        } else {
+            m_fileSelection = new FileSelectionDialog(historyID, 10, model::getConnection, dialogType,
+                supportedModes.iterator().next(), model.getFileExtensions());
+        }
         hookUpListeners();
         layout(model.supportsMultipleFilterModes());
     }
