@@ -77,13 +77,14 @@ final class ImageWriterTableNodeConfig {
     private final SettingsModelString m_colSelectionModel;
 
     /**
-     * Creates a new image writer table node config.
+     * Constructor.
      *
-     * @param portsConfig {@link PortsConfiguration} initializes the SettingsModelWriterFileChooser
-     * @param connectionInputPortGrouptName initializes the SettingsModelWriterFileChooser
+     * @param portsConfig
+     * @param connectionInputPortGrouptName
      */
     public ImageWriterTableNodeConfig(final PortsConfiguration portsConfig,
         final String connectionInputPortGrouptName) {
+
         m_folderChooserModel = new SettingsModelWriterFileChooser(CFG_FOLDER_CHOOSER, portsConfig,
             connectionInputPortGrouptName, EnumConfig.create(FilterMode.FOLDER),
             EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE),
@@ -92,20 +93,10 @@ final class ImageWriterTableNodeConfig {
         m_colSelectionModel = new SettingsModelString(CFG_COLUMN_SELECTOR, null);
     }
 
-    /**
-     * Returns the {@link SettingsModelWriterFileChooser} storing the settings for a output location dialog component.
-     *
-     * @return {@link SettingsModelWriterFileChooser}
-     */
     SettingsModelWriterFileChooser getFolderChooserModel() {
         return m_folderChooserModel;
     }
 
-    /**
-     * Returns the {@link SettingsModelString} storing the settings for a column selection dialog component.
-     *
-     * @return {@link SettingsModelWriterFileChooser}
-     */
     SettingsModelString getColSelectModel() {
         return m_colSelectionModel;
     }
@@ -124,4 +115,5 @@ final class ImageWriterTableNodeConfig {
         m_folderChooserModel.validateSettings(settings);
         m_colSelectionModel.validateSettings(settings);
     }
+
 }

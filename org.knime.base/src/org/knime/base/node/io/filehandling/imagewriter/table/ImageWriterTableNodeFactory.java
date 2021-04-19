@@ -81,17 +81,13 @@ public final class ImageWriterTableNodeFactory extends ConfigurableNodeFactory<I
 
     @Override
     protected ImageWriterTableNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        final Map<String, int[]> inputPortLocation = portConfig.getInputPortLocation();
-        final int inputTableIdx = inputPortLocation.get(DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
-        return new ImageWriterTableNodeModel(portConfig, inputTableIdx, DATA_TABLE_INPUT_PORT_GRP_NAME);
+        return new ImageWriterTableNodeModel(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new),
+            createNodeConfig(creationConfig), getDataTableInputIdx(creationConfig));
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new ImageWriterTableNodeDialog(portConfig, DATA_TABLE_INPUT_PORT_GRP_NAME,
-            CONNECTION_INPUT_PORT_GRP_NAME);
+        return new ImageWriterTableNodeDialog(createNodeConfig(creationConfig), getDataTableInputIdx(creationConfig));
     }
 
     @Override
@@ -108,6 +104,17 @@ public final class ImageWriterTableNodeFactory extends ConfigurableNodeFactory<I
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static ImageWriterTableNodeConfig createNodeConfig(final NodeCreationConfiguration creationConfig) {
+        final PortsConfiguration portConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+        return new ImageWriterTableNodeConfig(portConfig, CONNECTION_INPUT_PORT_GRP_NAME);
+    }
+
+    private static int getDataTableInputIdx(final NodeCreationConfiguration creationConfig) {
+        final PortsConfiguration portConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+        final Map<String, int[]> inputPortLocation = portConfig.getInputPortLocation();
+        return inputPortLocation.get(DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
     }
 
 }

@@ -62,7 +62,6 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
@@ -85,16 +84,14 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
     private final DialogComponentColumnNameSelection m_colSelection;
 
     /**
-     * Creates a new image writer table node dialog.
+     * Constructor.
      *
-     * @param portsConfig {@link PortsConfiguration} initializes the ImageWriterTableNodeDialog
-     * @param dataTableInputPortGroupName initializes the DialogComponentColumnNameSelection
-     * @param connectionInputPortGrouptName initializes the ImageWriterTableNodeConfig
+     * @param nodeConfig
+     * @param inputTableIdx index of data table input port group name
      */
     @SuppressWarnings("unchecked")
-    protected ImageWriterTableNodeDialog(final PortsConfiguration portsConfig, final String dataTableInputPortGroupName,
-        final String connectionInputPortGrouptName) {
-        m_nodeConfig = new ImageWriterTableNodeConfig(portsConfig, connectionInputPortGrouptName);
+    ImageWriterTableNodeDialog(final ImageWriterTableNodeConfig nodeConfig, final int inputTableIdx) {
+        m_nodeConfig = nodeConfig;
 
         final FlowVariableModel fvm = createFlowVariableModel(
             m_nodeConfig.getFolderChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
@@ -102,7 +99,7 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
             new DialogComponentWriterFileChooser(m_nodeConfig.getFolderChooserModel(), FILE_HISTORY_ID, fvm);
 
         m_colSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getColSelectModel(), "Column",
-            portsConfig.getInputPortLocation().get(dataTableInputPortGroupName)[0], ImageValue.class);
+            inputTableIdx, ImageValue.class);
 
         addTab("Settings", createSettingsPanel());
     }
@@ -138,8 +135,7 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         final JPanel outputPanel = new JPanel(new GridBagLayout());
         final GBCBuilder gbcBuilder = new GBCBuilder();
 
-        outputPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output Location"));
+        outputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output Location"));
         outputPanel.add(m_folderChooser.getComponentPanel(),
             gbcBuilder.anchorFirstLineStart().setWeightX(1.0).fillHorizontal().build());
 
