@@ -59,6 +59,8 @@ import java.util.OptionalLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.core.node.ExecutionMonitor;
@@ -197,7 +199,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      */
     private static final class CsvRead implements Read<Path, String> {
 
-        /** */
+        private static final Pattern INDEX_EXTRACTION_PATTERN =
+            Pattern.compile("Index (\\d+) out of bounds for length \\d+");
+
         private static final NodeLogger LOGGER = NodeLogger.getLogger(CsvRead.class);
 
         /** a parser used to parse the file */
@@ -305,11 +309,16 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         }
 
         private static int extractErrorIndex(final Throwable cause) {
-            try {
-                return Integer.parseInt(cause.getMessage());
-            } catch (NumberFormatException ex) {
-                return -1;
+            final String message = cause.getMessage();
+            final Matcher matcher = INDEX_EXTRACTION_PATTERN.matcher(message);
+            if (matcher.find()) {
+                try {
+                    return Integer.parseInt(matcher.group(1));
+                } catch (NumberFormatException ex) {
+                    LOGGER.debug("Can't parse the matched number.", ex);
+                }
             }
+            return -1;
         }
 
         @Override
