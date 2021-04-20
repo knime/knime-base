@@ -54,6 +54,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
@@ -72,9 +73,13 @@ final class ImageWriterTableNodeConfig {
 
     private static final String CFG_COLUMN_SELECTOR = "image_column";
 
+    private static final String CFG_REMOVE_IMG_COLUMN = "remove_image_column";
+
     private final SettingsModelWriterFileChooser m_folderChooserModel;
 
     private final SettingsModelString m_colSelectionModel;
+
+    private final SettingsModelBoolean m_removeImgColModel;
 
     /**
      * Constructor.
@@ -91,6 +96,8 @@ final class ImageWriterTableNodeConfig {
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
 
         m_colSelectionModel = new SettingsModelString(CFG_COLUMN_SELECTOR, null);
+
+        m_removeImgColModel = new SettingsModelBoolean(CFG_REMOVE_IMG_COLUMN, false);
     }
 
     SettingsModelWriterFileChooser getFolderChooserModel() {
@@ -101,19 +108,26 @@ final class ImageWriterTableNodeConfig {
         return m_colSelectionModel;
     }
 
+    SettingsModelBoolean getRemoveImgColModel() {
+        return m_removeImgColModel;
+    }
+
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_folderChooserModel.loadSettingsFrom(settings);
         m_colSelectionModel.loadSettingsFrom(settings);
+        m_removeImgColModel.loadSettingsFrom(settings);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_folderChooserModel.saveSettingsTo(settings);
         m_colSelectionModel.saveSettingsTo(settings);
+        m_removeImgColModel.saveSettingsTo(settings);
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_folderChooserModel.validateSettings(settings);
         m_colSelectionModel.validateSettings(settings);
+        m_removeImgColModel.validateSettings(settings);
     }
 
 }

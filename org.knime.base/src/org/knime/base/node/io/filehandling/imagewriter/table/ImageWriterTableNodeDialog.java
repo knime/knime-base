@@ -62,6 +62,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
@@ -84,6 +85,8 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
 
     private final DialogComponentColumnNameSelection m_colSelection;
 
+    private final DialogComponentBoolean m_removeImgCol;
+
     /**
      * Constructor.
      *
@@ -101,6 +104,8 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
 
         m_colSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getColSelectModel(), "Column",
             inputTableIdx, ImageValue.class);
+
+        m_removeImgCol = new DialogComponentBoolean(m_nodeConfig.getRemoveImgColModel(), "Remove image column");
 
         addTab("Settings", createSettingsPanel());
     }
@@ -125,7 +130,10 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
 
         colSelectionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Image"));
 
-        colSelectionPanel.add(m_colSelection.getComponentPanel(), gbcBuilder.anchorFirstLineStart().build());
+        colSelectionPanel.add(m_colSelection.getComponentPanel(),
+            gbcBuilder.anchorFirstLineStart().setX(0).setY(0).build());
+
+        colSelectionPanel.add(m_removeImgCol.getComponentPanel(), gbcBuilder.incY().insetLeft(-3).build());
 
         colSelectionPanel.add(new JPanel(), gbcBuilder.incX().setWeightX(1.0).fillHorizontal().build());
 
@@ -137,8 +145,9 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         final GBCBuilder gbcBuilder = new GBCBuilder();
 
         outputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output Location"));
+
         outputPanel.add(m_folderChooser.getComponentPanel(),
-            gbcBuilder.anchorFirstLineStart().setWeightX(1.0).fillHorizontal().build());
+            gbcBuilder.anchorFirstLineStart().insetLeft(5).insetRight(5).setWeightX(1.0).fillHorizontal().build());
 
         return outputPanel;
     }
@@ -146,6 +155,7 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_colSelection.saveSettingsTo(settings);
+        m_removeImgCol.saveSettingsTo(settings);
         m_folderChooser.saveSettingsTo(settings);
     }
 
@@ -153,6 +163,7 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_colSelection.loadSettingsFrom(settings, specs);
+        m_removeImgCol.loadSettingsFrom(settings, specs);
         m_folderChooser.loadSettingsFrom(settings, specs);
     }
 

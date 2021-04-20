@@ -71,6 +71,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -104,6 +105,8 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     private final SettingsModelString m_colSelectModel;
 
+    private final SettingsModelBoolean m_dropImgColModel;
+
     private final NodeModelStatusConsumer m_statusConsumer;
 
     /**
@@ -121,6 +124,7 @@ final class ImageWriterTableNodeModel extends NodeModel {
         m_nodeConfig = nodeConfig;
         m_folderChooserModel = m_nodeConfig.getFolderChooserModel();
         m_colSelectModel = m_nodeConfig.getColSelectModel();
+        m_dropImgColModel = m_nodeConfig.getRemoveImgColModel();
         m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
     }
 
@@ -180,10 +184,15 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     }
 
-    private static ColumnRearranger createColumnRearranger(final DataTableSpec in,
+    private ColumnRearranger createColumnRearranger(final DataTableSpec in,
         final ImageColumnsToFilesCellFactory factory) {
+
         final ColumnRearranger c = new ColumnRearranger(in);
         c.append(factory);
+
+        if (m_dropImgColModel.getBooleanValue()) {
+            c.remove(m_colSelectModel.getStringValue());
+        }
 
         return c;
     }
@@ -206,8 +215,7 @@ final class ImageWriterTableNodeModel extends NodeModel {
             location.getFileSystemSpecifier().orElse(null));
 
         final String newColName = spec.containsName(DATA_TABLE_OUTPUT_COLUMN_NAME)
-                ? DataTableSpec.getUniqueColumnName(spec, DATA_TABLE_OUTPUT_COLUMN_NAME)
-                : DATA_TABLE_OUTPUT_COLUMN_NAME;
+            ? DataTableSpec.getUniqueColumnName(spec, DATA_TABLE_OUTPUT_COLUMN_NAME) : DATA_TABLE_OUTPUT_COLUMN_NAME;
 
         final DataColumnSpecCreator fsLocationSpec =
             new DataColumnSpecCreator(newColName, SimpleFSLocationCellFactory.TYPE);
@@ -219,15 +227,14 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     private void autoGuess(final DataTableSpec spec) throws InvalidSettingsException {
         final String guessedColumn = spec.stream()//
-                .filter(s -> s.getType().isCompatible(ImageValue.class))//
-                .map(DataColumnSpec::getName)//
-                .findFirst()//
-                .orElseThrow(() -> new InvalidSettingsException("No applicable image column available"));
+            .filter(s -> s.getType().isCompatible(ImageValue.class))//
+            .map(DataColumnSpec::getName)//
+            .findFirst()//
+            .orElseThrow(() -> new InvalidSettingsException("No applicable image column available"));
 
         m_colSelectModel.setStringValue(guessedColumn);
 
-        setWarningMessage(
-            String.format("Auto-guessed image column '%s'", m_colSelectModel.getStringValue()));
+        setWarningMessage(String.format("Auto-guessed image column '%s'", m_colSelectModel.getStringValue()));
     }
 
     @Override

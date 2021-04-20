@@ -59,6 +59,9 @@
 			Note: The default file systems listed above can't be selected if a file
 			system is provided via the input port.
 		</option>
+		<option name="Remove image column">
+			If checked the column containing the images is removed from the output table.
+		</option>
 		<option name="Folder">
 			Enter a path to a folder. The required syntax of a path
 			depends on the chosen file system, such as &quot;C:\path\to\folder&quot; (Local
