@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.imagewriter.table;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.EnumSet;
 
@@ -62,6 +63,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.data.image.ImageValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -216,13 +219,16 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
         final String newColName = spec.containsName(DATA_TABLE_OUTPUT_COLUMN_NAME)
             ? DataTableSpec.getUniqueColumnName(spec, DATA_TABLE_OUTPUT_COLUMN_NAME) : DATA_TABLE_OUTPUT_COLUMN_NAME;
-
         final DataColumnSpecCreator fsLocationSpec =
             new DataColumnSpecCreator(newColName, SimpleFSLocationCellFactory.TYPE);
 
+        final String statusCol =
+            spec.containsName("Status") ? DataTableSpec.getUniqueColumnName(spec, "Status") : "Status";
+        final DataColumnSpecCreator statusColumnSpec = new DataColumnSpecCreator(statusCol, StringCell.TYPE);
+
         fsLocationSpec.addMetaData(metaData, true);
 
-        return new DataColumnSpec[]{fsLocationSpec.createSpec()};
+        return new DataColumnSpec[]{fsLocationSpec.createSpec(), statusColumnSpec.createSpec()};
     }
 
     private void autoGuess(final DataTableSpec spec) throws InvalidSettingsException {
@@ -306,7 +312,7 @@ final class ImageWriterTableNodeModel extends NodeModel {
             if (imageCell.isMissing()) {
                 m_missingCellCount++;
                 m_rowIdx++;
-                return new DataCell[]{MISSING_IMAGE_VALUE_CELL};
+                return new DataCell[]{MISSING_IMAGE_VALUE_CELL, MISSING_IMAGE_VALUE_CELL};
             }
 
             final ImageValue imgValue = (ImageValue)imageCell;
@@ -314,28 +320,39 @@ final class ImageWriterTableNodeModel extends NodeModel {
                 (FSPath)m_outputPath.resolve("FILE_" + m_rowIdx + "." + imgValue.getImageExtension());
             m_rowIdx++;
 
-            writeImage(imgValue, imgPath);
-
-            return new DataCell[]{m_multiFSLocationCellFactory.createCell(imgPath.toFSLocation())};
+            final String fileStatus = writeImage(imgValue, imgPath);
+            return new DataCell[]{m_multiFSLocationCellFactory.createCell(imgPath.toFSLocation()),
+                StringCellFactory.create(fileStatus)};
         }
 
-        private void writeImage(final ImageValue imgValue, final FSPath imgPath) {
+        private String writeImage(final ImageValue imgValue, final FSPath imgPath) {
+            String status;
+
+            try {
+                status = FSFiles.exists(imgPath) ? "overwritten" : "created";
+            } catch (AccessDeniedException accessDeniedException) {
+                throw new IllegalStateException(
+                    String.format("An AccessDeniedException occured while writing '%s'", imgPath.toString()),
+                    accessDeniedException);
+            }
+
             try (final OutputStream outputStream =
                 FSFiles.newOutputStream(imgPath, m_overwritePolicy.getOpenOptions())) {
                 imgValue.getImageContent().save(outputStream);
-            } catch (FileAlreadyExistsException fileAlreadyExistsException) {
+            }  catch (FileAlreadyExistsException fileAlreadyExistsException) {
                 if (m_overwritePolicy == FileOverwritePolicy.FAIL) {
                     throw new IllegalStateException(
                         String.format("The file '%s' already exists and must not be overwritten", imgPath.toString()),
                         fileAlreadyExistsException);
                 } else if (m_overwritePolicy == FileOverwritePolicy.IGNORE) {
-                    // Do nothing - continue write process
+                    status = "unmodified";
                 }
             } catch (IOException writeImageException) {
                 throw new IllegalStateException(
                     String.format("An IOException occured while writing '%s'", imgPath.toString()),
                     writeImageException);
             }
+            return status;
         }
 
         private int getMissingCellCount() {
