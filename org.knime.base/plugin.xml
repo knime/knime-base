@@ -2363,7 +2363,7 @@
       </node>
       <node
             category-path="/io/read"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.base.node.io.filehandling.csv.reader.simple.SimpleFileReaderNodeFactory"
             hidden="false">
       </node>

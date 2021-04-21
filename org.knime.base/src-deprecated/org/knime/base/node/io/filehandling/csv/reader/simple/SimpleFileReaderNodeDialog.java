@@ -70,7 +70,9 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * Node dialog for the simple file reader node.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @deprecated
  */
+@Deprecated
 final class SimpleFileReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     private PathAwareFileHistoryPanel m_filePanel;

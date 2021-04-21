@@ -94,7 +94,9 @@ import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
  * Wrapper class for {@link FilesHistoryPanel} that implements {@link PathSettings}.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @deprecated
  */
+@Deprecated
 final class PathAwareFileHistoryPanel implements PathSettings {
 
     private FilesHistoryPanel m_filePanel;

@@ -63,7 +63,9 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPath
  * Node factory for the simple file reader node.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @deprecated
  */
+@Deprecated
 public final class SimpleFileReaderNodeFactory extends AbstractCSVTableReaderNodeFactory {//NOSONAR
 
     @Override
