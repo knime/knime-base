@@ -52,6 +52,7 @@ import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -164,6 +165,22 @@ final class Decompressor {
                 throw new InvalidSettingsException(
                     String.format("The specified destination folder %s does not exist.", destinationPath));
             }
+        } else {
+            checkDestinationIsDirectory(destinationPath);
+        }
+    }
+
+    /**
+     * Checks if the destination path is a directory.
+     *
+     * @param destinationPath the destination {@link FSPath}
+     * @throws AccessDeniedException if access is denied
+     * @throws InvalidSettingsException if destinationPath is not a directory
+     */
+    private static void checkDestinationIsDirectory(final FSPath destinationPath)
+        throws AccessDeniedException, InvalidSettingsException {
+        if(!FSFiles.isDirectory(destinationPath)) {
+            throw new InvalidSettingsException(String.format("The specified path '%s' does not point to a folder", destinationPath));
         }
     }
 
