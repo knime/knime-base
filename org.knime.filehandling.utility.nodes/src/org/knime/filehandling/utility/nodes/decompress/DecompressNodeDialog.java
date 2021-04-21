@@ -61,11 +61,9 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusSwingWorker;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -89,8 +87,7 @@ final class DecompressNodeDialog extends NodeDialogPane {
         final FlowVariableModel writeFvm = createFlowVariableModel(
             m_config.getOutputDirChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
         m_outputDirChooserPanel =
-            new DialogComponentWriterFileChooser(m_config.getOutputDirChooserModel(), FILE_HISTORY_ID, writeFvm,
-                s -> new DecompressStatusMessageReporter(s, m_config.getInputFileChooserModel().createClone()));
+            new DialogComponentWriterFileChooser(m_config.getOutputDirChooserModel(), FILE_HISTORY_ID, writeFvm);
 
         final FlowVariableModel readFvm = createFlowVariableModel(
             m_config.getInputFileChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
