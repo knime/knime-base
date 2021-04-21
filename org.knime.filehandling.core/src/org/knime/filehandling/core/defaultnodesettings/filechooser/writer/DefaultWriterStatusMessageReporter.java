@@ -78,6 +78,10 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
 
     private static final String FOLDER = "folder";
 
+    private static final String FILE = "file";
+
+    private static final String PATH_DOES_NOT_POINT_TO = "The specified path '%s' does not point to a %s";
+
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultWriterStatusMessageReporter.class);
 
     private final SettingsModelWriterFileChooser m_settings;
@@ -129,13 +133,40 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
             case APPEND:
                 return createAppendHandler();
             case FAIL:
-                return DefaultWriterStatusMessageReporter::createFailStatusMsg;
+                return this::createFailStatusMessage;
             case IGNORE:
-                return (p, a) -> StatusMessageUtils.SUCCESS_MSG;
+                return this::createIgnoreStatusMessage;
             case OVERWRITE:
                 return this::createOverwriteStatusMsg;
             default:
                 throw new IllegalStateException("Unknown overwrite policy: " + m_settings.getFileOverwritePolicy());
+        }
+    }
+
+    private StatusMessage createFailStatusMessage(final Path path, final BasicFileAttributes attrs) {
+        final FileSelectionMode fileSelectionMode = getFileSelectionMode();
+        switch (fileSelectionMode) {
+            case DIRECTORIES_ONLY:
+                return attrs.isDirectory() ? createFailStatusMessage(path, true) : createPathDoesNotPointToStatusMessage(path, true);
+            case FILES_AND_DIRECTORIES:
+                return createFailStatusMessage(path, attrs.isDirectory());
+            case FILES_ONLY:
+                return attrs.isRegularFile() ? createFailStatusMessage(path, false) : createPathDoesNotPointToStatusMessage(path, false);
+            default:
+                throw new IllegalStateException("Unknown file selection mode: " + fileSelectionMode);
+        }
+    }
+
+    private static StatusMessage createFailStatusMessage(final Path path, final boolean isFolder) {
+        return DefaultStatusMessage.mkError("There already exists a %s with the specified path '%s'.",
+            isFolder ? FOLDER : FILE, path);
+    }
+
+    private StatusMessage createIgnoreStatusMessage(final Path path, final BasicFileAttributes attrs) {
+        if(getFileSelectionMode() == FileSelectionMode.DIRECTORIES_ONLY && !attrs.isDirectory()) {
+            return createPathDoesNotPointToStatusMessage(path, true);
+        } else {
+            return StatusMessageUtils.SUCCESS_MSG;
         }
     }
 
@@ -178,34 +209,33 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
             if (m_successPredicate.test(attrs)) {
                 return StatusMessageUtils.SUCCESS_MSG;
             } else {
-                return DefaultStatusMessage.mkError("The specified path '%s' does not point to a %s", path,
+                return DefaultStatusMessage.mkError(PATH_DOES_NOT_POINT_TO, path,
                     m_expectedEntity);
             }
         }
 
     }
 
-    private static StatusMessage createFailStatusMsg(final Path path, final BasicFileAttributes attrs) {
-        return DefaultStatusMessage.mkError("There already exists a %s with the specified path '%s'.",
-            attrs.isDirectory() ? FOLDER : "file", path);
-    }
-
     private StatusMessage createOverwriteStatusMsg(final Path path, final BasicFileAttributes attrs) {
         switch (getFileSelectionMode()) {
             case DIRECTORIES_ONLY:
-                return attrs.isDirectory() ? mkOverwriteWarning(path, attrs) : createFailStatusMsg(path, attrs);
+                return attrs.isDirectory() ? mkOverwriteWarning(path, attrs) : createPathDoesNotPointToStatusMessage(path, true);
             case FILES_AND_DIRECTORIES:
                 return mkOverwriteWarning(path, attrs);
             case FILES_ONLY:
-                return attrs.isRegularFile() ? mkOverwriteWarning(path, attrs) : createFailStatusMsg(path, attrs);
+                return attrs.isRegularFile() ? mkOverwriteWarning(path, attrs) : createPathDoesNotPointToStatusMessage(path, false);
             default:
                 throw new IllegalStateException("Unknown file selection mode: " + getFileSelectionMode());
         }
     }
 
+    private static StatusMessage createPathDoesNotPointToStatusMessage(final Path path, final boolean folderExpected) {
+        return DefaultStatusMessage.mkError(PATH_DOES_NOT_POINT_TO, path, folderExpected ? FOLDER : FILE);
+    }
+
     private static StatusMessage mkOverwriteWarning(final Path path, final BasicFileAttributes attrs) {
         return DefaultStatusMessage.mkWarning(
             "There exists a %s with the specified path '%s' that will be overwritten.",
-            attrs.isDirectory() ? FOLDER : "file", path);
+            attrs.isDirectory() ? FOLDER : FILE, path);
     }
 }

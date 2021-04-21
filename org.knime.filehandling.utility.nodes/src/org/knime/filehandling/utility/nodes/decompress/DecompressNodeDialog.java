@@ -86,8 +86,7 @@ final class DecompressNodeDialog extends NodeDialogPane {
         final FlowVariableModel writeFvm = createFlowVariableModel(
             m_config.getOutputDirChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
         m_outputDirChooserPanel =
-            new DialogComponentWriterFileChooser(m_config.getOutputDirChooserModel(), FILE_HISTORY_ID, writeFvm,
-                s -> new DecompressStatusMessageReporter(s, m_config.getInputFileChooserModel().createClone()));
+            new DialogComponentWriterFileChooser(m_config.getOutputDirChooserModel(), FILE_HISTORY_ID, writeFvm);
 
         final FlowVariableModel readFvm = createFlowVariableModel(
             m_config.getInputFileChooserModel().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
