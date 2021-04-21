@@ -106,9 +106,13 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     private final SettingsModelWriterFileChooser m_folderChooserModel;
 
-    private final SettingsModelString m_colSelectModel;
+    private final SettingsModelString m_imgColSelectModel;
 
-    private final SettingsModelBoolean m_dropImgColModel;
+    private final SettingsModelBoolean m_removeImgColModel;
+
+    private final SettingsModelString m_userDefinedOutputFileName;
+
+    private final SettingsModelString m_filenameColSelectionModel;
 
     private final NodeModelStatusConsumer m_statusConsumer;
 
@@ -126,31 +130,41 @@ final class ImageWriterTableNodeModel extends NodeModel {
         m_inputTableIdx = inputTableIdx;
         m_nodeConfig = nodeConfig;
         m_folderChooserModel = m_nodeConfig.getFolderChooserModel();
-        m_colSelectModel = m_nodeConfig.getColSelectModel();
-        m_dropImgColModel = m_nodeConfig.getRemoveImgColModel();
+        m_imgColSelectModel = m_nodeConfig.getImgColSelectionModel();
+        m_removeImgColModel = m_nodeConfig.getRemoveImgColModel();
+        m_userDefinedOutputFileName = m_nodeConfig.getUserDefinedOutputFilenameModel();
+        m_filenameColSelectionModel = m_nodeConfig.getFilenameColSelectionModel();
         m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec dataTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
-        final String selectedImgCol = m_colSelectModel.getStringValue();
+        String selectedImgCol = m_imgColSelectModel.getStringValue();
+        final String selectedFilenameCol = m_filenameColSelectionModel.getStringValue();
 
         if (selectedImgCol == null) {
-            autoGuess(dataTableSpec);
+            selectedImgCol = autoGuess(dataTableSpec);
         }
 
         final int imgColIdx = dataTableSpec.findColumnIndex(selectedImgCol);
         if (imgColIdx < 0) {
             throw new InvalidSettingsException(
-                String.format("The selected column '%s' is not part of the input", m_colSelectModel.getStringValue()));
+                String.format("The selected image column '%s' is not part of the input", selectedImgCol));
+        }
+
+        final boolean isFileNameColumnSelected = !m_nodeConfig.isGenerateFilenameRadioSelected();
+        final int filenameColIdx = dataTableSpec.findColumnIndex(selectedFilenameCol);
+        if (isFileNameColumnSelected && filenameColIdx < 0) {
+            throw new InvalidSettingsException(
+                String.format("The selected image naming column '%s' is not part of the input", selectedFilenameCol));
         }
 
         m_nodeConfig.getFolderChooserModel().configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
         final ImageColumnsToFilesCellFactory imageColumnsToFilesCellFactory = new ImageColumnsToFilesCellFactory(
-            getNewColumnsSpec(dataTableSpec), imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), null);
+            getNewColumnsSpec(dataTableSpec), imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), null, null);
 
         final ColumnRearranger c = createColumnRearranger(dataTableSpec, imageColumnsToFilesCellFactory);
         final DataTableSpec inputTableSpec = c.createSpec();
@@ -169,10 +183,18 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
             createOutputDirIfRequired(outputPath);
 
-            final int imgColIdx = dataTableSpec.findColumnIndex(m_colSelectModel.getStringValue());
+            final int imgColIdx = dataTableSpec.findColumnIndex(m_imgColSelectModel.getStringValue());
 
-            final ImageColumnsToFilesCellFactory imageColumnsToFilesCellFactory = new ImageColumnsToFilesCellFactory(
-                getNewColumnsSpec(dataTableSpec), imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), outputPath);
+            final ImageColumnsToFilesCellFactory imageColumnsToFilesCellFactory;
+            if (m_nodeConfig.isGenerateFilenameRadioSelected()) {
+                final String generatedFilenamePattern = m_userDefinedOutputFileName.getStringValue();
+                imageColumnsToFilesCellFactory = new ImageColumnsToFilesCellFactory(getNewColumnsSpec(dataTableSpec),
+                    imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), outputPath, generatedFilenamePattern);
+            } else {
+                final int filenameColIdx = dataTableSpec.findColumnIndex(m_filenameColSelectionModel.getStringValue());
+                imageColumnsToFilesCellFactory = new ImageColumnsToFilesCellFactory(getNewColumnsSpec(dataTableSpec),
+                    imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), outputPath, filenameColIdx);
+            }
 
             final ColumnRearranger c = createColumnRearranger(dataTableSpec, imageColumnsToFilesCellFactory);
             final BufferedDataTable out = exec.createColumnRearrangeTable(inputDataTable, c, exec);
@@ -193,8 +215,8 @@ final class ImageWriterTableNodeModel extends NodeModel {
         final ColumnRearranger c = new ColumnRearranger(in);
         c.append(factory);
 
-        if (m_dropImgColModel.getBooleanValue()) {
-            c.remove(m_colSelectModel.getStringValue());
+        if (m_removeImgColModel.getBooleanValue()) {
+            c.remove(m_imgColSelectModel.getStringValue());
         }
 
         return c;
@@ -231,16 +253,18 @@ final class ImageWriterTableNodeModel extends NodeModel {
         return new DataColumnSpec[]{fsLocationSpec.createSpec(), statusColumnSpec.createSpec()};
     }
 
-    private void autoGuess(final DataTableSpec spec) throws InvalidSettingsException {
+    private String autoGuess(final DataTableSpec spec) throws InvalidSettingsException {
         final String guessedColumn = spec.stream()//
             .filter(s -> s.getType().isCompatible(ImageValue.class))//
             .map(DataColumnSpec::getName)//
             .findFirst()//
             .orElseThrow(() -> new InvalidSettingsException("No applicable image column available"));
 
-        m_colSelectModel.setStringValue(guessedColumn);
+        m_imgColSelectModel.setStringValue(guessedColumn);
 
-        setWarningMessage(String.format("Auto-guessed image column '%s'", m_colSelectModel.getStringValue()));
+        setWarningMessage(String.format("Auto-guessed image column '%s'", guessedColumn));
+
+        return guessedColumn;
     }
 
     @Override
@@ -295,14 +319,48 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
         private static final MissingCell MISSING_IMAGE_VALUE_CELL = new MissingCell("Missing image value");
 
+        private final String m_generatedFilenamePattern;
+
+        private final int m_filenameColIdx;
+
         private ImageColumnsToFilesCellFactory(final DataColumnSpec[] columnSpec, final int imgColIdx,
-            final FileOverwritePolicy overwritePolicy, final FSPath outputPath) {
+            final FileOverwritePolicy overwritePolicy, final FSPath outputPath, final String generatedFilenamePattern,
+            final int filenameColIdx) {
             super(columnSpec);
             m_imgColIdx = imgColIdx;
             m_outputPath = outputPath;
             m_overwritePolicy = overwritePolicy;
-
             m_multiFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();
+            m_generatedFilenamePattern = generatedFilenamePattern;
+            m_filenameColIdx = filenameColIdx;
+        }
+
+        /**
+         * Constructor. Image file name is determined by naming column.
+         *
+         * @param columnSpec
+         * @param imgColIdx
+         * @param overwritePolicy
+         * @param outputPath
+         * @param filenameColIdx
+         */
+        ImageColumnsToFilesCellFactory(final DataColumnSpec[] columnSpec, final int imgColIdx,
+            final FileOverwritePolicy overwritePolicy, final FSPath outputPath, final int filenameColIdx) {
+            this(columnSpec, imgColIdx, overwritePolicy, outputPath, null, filenameColIdx);
+        }
+
+        /**
+         * Constructor. Image file name is determined by user defined file name pattern.
+         *
+         * @param columnSpec
+         * @param imgColIdx
+         * @param overwritePolicy
+         * @param outputPath
+         * @param generatedFilenamePattern
+         */
+        ImageColumnsToFilesCellFactory(final DataColumnSpec[] columnSpec, final int imgColIdx,
+            final FileOverwritePolicy overwritePolicy, final FSPath outputPath, final String generatedFilenamePattern) {
+            this(columnSpec, imgColIdx, overwritePolicy, outputPath, generatedFilenamePattern, -1);
         }
 
         @Override
@@ -317,12 +375,22 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
             final ImageValue imgValue = (ImageValue)imageCell;
             final FSPath imgPath =
-                (FSPath)m_outputPath.resolve("FILE_" + m_rowIdx + "." + imgValue.getImageExtension());
+                (FSPath)m_outputPath.resolve(getOutputFilename(row) + "." + imgValue.getImageExtension());
             m_rowIdx++;
 
             final String fileStatus = writeImage(imgValue, imgPath);
             return new DataCell[]{m_multiFSLocationCellFactory.createCell(imgPath.toFSLocation()),
                 StringCellFactory.create(fileStatus)};
+        }
+
+        private String getOutputFilename(final DataRow row) {
+            // -1 indicates file name is generated by user pattern
+            if (m_filenameColIdx != -1) {
+                final StringCell outputFilenameDataCell = (StringCell)row.getCell(m_filenameColIdx);
+                return outputFilenameDataCell.getStringValue();
+            } else {
+                return m_generatedFilenamePattern.replace("?", Integer.toString(m_rowIdx));
+            }
         }
 
         private String writeImage(final ImageValue imgValue, final FSPath imgPath) {
@@ -339,7 +407,7 @@ final class ImageWriterTableNodeModel extends NodeModel {
             try (final OutputStream outputStream =
                 FSFiles.newOutputStream(imgPath, m_overwritePolicy.getOpenOptions())) {
                 imgValue.getImageContent().save(outputStream);
-            }  catch (FileAlreadyExistsException fileAlreadyExistsException) {
+            } catch (FileAlreadyExistsException fileAlreadyExistsException) {
                 if (m_overwritePolicy == FileOverwritePolicy.FAIL) {
                     throw new IllegalStateException(
                         String.format("The file '%s' already exists and must not be overwritten", imgPath.toString()),

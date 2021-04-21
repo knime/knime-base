@@ -53,8 +53,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
+import org.knime.core.data.StringValue;
 import org.knime.core.data.image.ImageValue;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -64,6 +67,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
@@ -83,9 +87,17 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
 
     private final DialogComponentWriterFileChooser m_folderChooser;
 
-    private final DialogComponentColumnNameSelection m_colSelection;
+    private final DialogComponentColumnNameSelection m_imgColSelection;
 
     private final DialogComponentBoolean m_removeImgCol;
+
+    private final DialogComponentString m_userDefinedOutputFilename;
+
+    private final DialogComponentColumnNameSelection m_filenameColSelection;
+
+    private final JRadioButton m_generateFilenameRadio;
+
+    private final JRadioButton m_colFilenameRadio;
 
     /**
      * Constructor.
@@ -102,10 +114,22 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         m_folderChooser = new DialogComponentWriterFileChooser(m_nodeConfig.getFolderChooserModel(), FILE_HISTORY_ID,
             fvm, FolderStatusMessageReporter::new);
 
-        m_colSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getColSelectModel(), "Column",
+        m_imgColSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getImgColSelectionModel(), "Column",
             inputTableIdx, ImageValue.class);
 
         m_removeImgCol = new DialogComponentBoolean(m_nodeConfig.getRemoveImgColModel(), "Remove image column");
+
+        final ButtonGroup buttonGrp = new ButtonGroup();
+        m_generateFilenameRadio = new JRadioButton("Generate");
+        m_colFilenameRadio = new JRadioButton("From column");
+        buttonGrp.add(m_generateFilenameRadio);
+        buttonGrp.add(m_colFilenameRadio);
+
+        m_userDefinedOutputFilename =
+            new DialogComponentString(m_nodeConfig.getUserDefinedOutputFilenameModel(), "", true, 25);
+
+        m_filenameColSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getFilenameColSelectionModel(), "",
+            inputTableIdx, false, StringValue.class);
 
         addTab("Settings", createSettingsPanel());
     }
@@ -114,23 +138,24 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         final JPanel settingsPanel = new JPanel(new GridBagLayout());
         final GBCBuilder gbcBuilder = new GBCBuilder(new Insets(5, 0, 5, 0));
 
-        settingsPanel.add(createColSelectionPanel(),
-            gbcBuilder.setX(0).setY(0).setWeightX(1.0).fillHorizontal().build());
+        settingsPanel.add(createImgPanel(), gbcBuilder.setX(0).setY(0).setWeightX(1.0).fillHorizontal().build());
 
-        settingsPanel.add(createOutputPanel(), gbcBuilder.incY().build());
+        settingsPanel.add(createFileNamePanel(), gbcBuilder.incY().build());
+
+        settingsPanel.add(createOutputLocationPanel(), gbcBuilder.incY().build());
 
         settingsPanel.add(new JPanel(), gbcBuilder.incY().setWeightY(1.0).setWeightX(1.0).fillBoth().build());
 
         return settingsPanel;
     }
 
-    private Component createColSelectionPanel() {
+    private Component createImgPanel() {
         final JPanel colSelectionPanel = new JPanel(new GridBagLayout());
         final GBCBuilder gbcBuilder = new GBCBuilder();
 
         colSelectionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Image"));
 
-        colSelectionPanel.add(m_colSelection.getComponentPanel(),
+        colSelectionPanel.add(m_imgColSelection.getComponentPanel(),
             gbcBuilder.anchorFirstLineStart().setX(0).setY(0).build());
 
         colSelectionPanel.add(m_removeImgCol.getComponentPanel(), gbcBuilder.incY().insetLeft(-3).build());
@@ -140,7 +165,27 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         return colSelectionPanel;
     }
 
-    private Component createOutputPanel() {
+    private Component createFileNamePanel() {
+        final JPanel fileNamePanel = new JPanel(new GridBagLayout());
+        final GBCBuilder gbcBuilder = new GBCBuilder();
+        fileNamePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File names"));
+
+        fileNamePanel.add(m_generateFilenameRadio, gbcBuilder.anchorLineStart().setX(0).setY(0).build());
+        fileNamePanel.add(m_userDefinedOutputFilename.getComponentPanel(), gbcBuilder.incX().build());
+        fileNamePanel.add(new JPanel(), gbcBuilder.incX().setWeightX(1.0).fillHorizontal().build());
+
+        fileNamePanel.add(m_colFilenameRadio,
+            gbcBuilder.anchorLineStart().setX(0).setWeightX(0).incY().fillNone().build());
+        fileNamePanel.add(m_filenameColSelection.getComponentPanel(), gbcBuilder.incX().build());
+        fileNamePanel.add(new JPanel(), gbcBuilder.incX().setWeightX(1.0).fillHorizontal().build());
+
+        m_generateFilenameRadio.addActionListener(l -> toggleGenerateMode());
+        m_colFilenameRadio.addActionListener(l -> toggleGenerateMode());
+
+        return fileNamePanel;
+    }
+
+    private Component createOutputLocationPanel() {
         final JPanel outputPanel = new JPanel(new GridBagLayout());
         final GBCBuilder gbcBuilder = new GBCBuilder();
 
@@ -152,18 +197,31 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         return outputPanel;
     }
 
+    private void toggleGenerateMode() {
+        m_filenameColSelection.getModel().setEnabled(m_colFilenameRadio.isSelected());
+        m_userDefinedOutputFilename.getModel().setEnabled(m_generateFilenameRadio.isSelected());
+    }
+
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_colSelection.saveSettingsTo(settings);
+        m_imgColSelection.saveSettingsTo(settings);
         m_removeImgCol.saveSettingsTo(settings);
+        m_userDefinedOutputFilename.saveSettingsTo(settings);
+        m_filenameColSelection.saveSettingsTo(settings);
+        m_nodeConfig.saveFileNameRadioSelectionForDialog(settings, m_generateFilenameRadio.isSelected());
         m_folderChooser.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        m_colSelection.loadSettingsFrom(settings, specs);
+        m_imgColSelection.loadSettingsFrom(settings, specs);
         m_removeImgCol.loadSettingsFrom(settings, specs);
+        m_userDefinedOutputFilename.loadSettingsFrom(settings, specs);
+        m_filenameColSelection.loadSettingsFrom(settings, specs);
+        m_nodeConfig.loadFileNameRadioSelectionForDialog(settings);
+        m_generateFilenameRadio.setSelected(m_nodeConfig.isGenerateFilenameRadioSelected());
+        m_colFilenameRadio.setSelected(!m_nodeConfig.isGenerateFilenameRadioSelected());
         m_folderChooser.loadSettingsFrom(settings, specs);
     }
 

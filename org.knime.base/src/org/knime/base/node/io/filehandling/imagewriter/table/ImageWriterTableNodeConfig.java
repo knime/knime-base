@@ -49,6 +49,8 @@
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
 import java.util.EnumSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -69,17 +71,32 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class ImageWriterTableNodeConfig {
 
-    private static final String CFG_FOLDER_CHOOSER = "output_location";
+    private static final String CFG_OUTPUT_LOCATION = "output_location";
 
-    private static final String CFG_COLUMN_SELECTOR = "image_column";
+    private static final String CFG_IMG_COLUMN_NAME = "image_column";
 
     private static final String CFG_REMOVE_IMG_COLUMN = "remove_image_column";
 
+    private static final String CFG_USER_DEFINED_OUTPUT_FILENAME_NAME = "filename_pattern";
+
+    private static final String CFG_OUTPUT_FILENAME_COLUMN_NAME = "filename_column";
+
+    private static final String CFG_FILENAME_RADIO_SELECTION = "filename_radio_selection";
+
     private final SettingsModelWriterFileChooser m_folderChooserModel;
 
-    private final SettingsModelString m_colSelectionModel;
+    private final SettingsModelString m_imgColSelectionModel;
 
     private final SettingsModelBoolean m_removeImgColModel;
+
+    private final SettingsModelString m_userDefinedOutputFilenameModel;
+
+    private final SettingsModelString m_filenameColSelectionModel;
+
+    private boolean m_isGenerateFilenameRadio;
+
+    // Allows one instance of ?, file extension will be automatically detected, no spaces are allowed in filenames.
+    private static final Pattern CFG_USER_DEFINED_FILENAME_PATTERN = Pattern.compile("^[\\w,.-]*\\?{1}[\\w,.-]*$");
 
     /**
      * Constructor.
@@ -89,45 +106,112 @@ final class ImageWriterTableNodeConfig {
      */
     public ImageWriterTableNodeConfig(final PortsConfiguration portsConfig,
         final String connectionInputPortGrouptName) {
-
-        m_folderChooserModel = new SettingsModelWriterFileChooser(CFG_FOLDER_CHOOSER, portsConfig,
+        m_folderChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
             connectionInputPortGrouptName, EnumConfig.create(FilterMode.FOLDER),
             EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE),
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
 
-        m_colSelectionModel = new SettingsModelString(CFG_COLUMN_SELECTOR, null);
+        m_imgColSelectionModel = new SettingsModelString(CFG_IMG_COLUMN_NAME, null);
 
         m_removeImgColModel = new SettingsModelBoolean(CFG_REMOVE_IMG_COLUMN, false);
+
+        m_userDefinedOutputFilenameModel = new SettingsModelString(CFG_USER_DEFINED_OUTPUT_FILENAME_NAME, "File_?") {
+
+            @Override
+            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                super.validateSettingsForModel(settings);
+                if (!isValidUserDefinedFilename(settings.getString(CFG_USER_DEFINED_OUTPUT_FILENAME_NAME))) {
+                    throw new InvalidSettingsException("The file name pattern is not valid.");
+                }
+            }
+        };
+
+        m_filenameColSelectionModel = new SettingsModelString(CFG_OUTPUT_FILENAME_COLUMN_NAME, null);
+
+        m_isGenerateFilenameRadio = true;
+        m_userDefinedOutputFilenameModel.setEnabled(m_isGenerateFilenameRadio);
+        m_filenameColSelectionModel.setEnabled(!m_isGenerateFilenameRadio);
     }
 
     SettingsModelWriterFileChooser getFolderChooserModel() {
         return m_folderChooserModel;
     }
 
-    SettingsModelString getColSelectModel() {
-        return m_colSelectionModel;
+    SettingsModelString getImgColSelectionModel() {
+        return m_imgColSelectionModel;
     }
 
     SettingsModelBoolean getRemoveImgColModel() {
         return m_removeImgColModel;
     }
 
+    SettingsModelString getUserDefinedOutputFilenameModel() {
+        return m_userDefinedOutputFilenameModel;
+    }
+
+    SettingsModelString getFilenameColSelectionModel() {
+        return m_filenameColSelectionModel;
+    }
+
+    private void setGenerateFilenameRadio(final boolean generateFileNameRadio) {
+        m_isGenerateFilenameRadio = generateFileNameRadio;
+    }
+
+    boolean isGenerateFilenameRadioSelected() {
+        return m_isGenerateFilenameRadio;
+    }
+
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_folderChooserModel.loadSettingsFrom(settings);
-        m_colSelectionModel.loadSettingsFrom(settings);
+        m_imgColSelectionModel.loadSettingsFrom(settings);
         m_removeImgColModel.loadSettingsFrom(settings);
+
+        setGenerateFilenameRadio(settings.getBoolean(CFG_FILENAME_RADIO_SELECTION));
+        m_userDefinedOutputFilenameModel.loadSettingsFrom(settings);
+        m_filenameColSelectionModel.loadSettingsFrom(settings);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_folderChooserModel.saveSettingsTo(settings);
-        m_colSelectionModel.saveSettingsTo(settings);
+        m_imgColSelectionModel.saveSettingsTo(settings);
         m_removeImgColModel.saveSettingsTo(settings);
+
+        saveFileNameRadioSelectionToSettings(settings);
+        m_userDefinedOutputFilenameModel.saveSettingsTo(settings);
+        m_filenameColSelectionModel.saveSettingsTo(settings);
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_folderChooserModel.validateSettings(settings);
-        m_colSelectionModel.validateSettings(settings);
+        m_imgColSelectionModel.validateSettings(settings);
         m_removeImgColModel.validateSettings(settings);
+
+        settings.getBoolean(CFG_FILENAME_RADIO_SELECTION);
+        m_userDefinedOutputFilenameModel.validateSettings(settings);
+        m_filenameColSelectionModel.validateSettings(settings);
     }
 
+    void saveFileNameRadioSelectionForDialog(final NodeSettingsWO settings, final boolean generateFileNameRadio) {
+        setGenerateFilenameRadio(generateFileNameRadio);
+        saveFileNameRadioSelectionToSettings(settings);
+    }
+
+    void loadFileNameRadioSelectionForDialog(final NodeSettingsRO settings) {
+        setGenerateFilenameRadio(settings.getBoolean(CFG_FILENAME_RADIO_SELECTION, true));
+    }
+
+    private void saveFileNameRadioSelectionToSettings(final NodeSettingsWO settings) {
+        settings.addBoolean(CFG_FILENAME_RADIO_SELECTION, isGenerateFilenameRadioSelected());
+    }
+
+    /**
+     * Returns bool if enclosed string matches the regex for valid file name
+     *
+     * @param String A string value of the user input field
+     * @return true or false value
+     */
+    private static boolean isValidUserDefinedFilename(final String incomingFilename) {
+        final Matcher regexPatternMatcher = CFG_USER_DEFINED_FILENAME_PATTERN.matcher(incomingFilename);
+        return regexPatternMatcher.matches();
+    }
 }
