@@ -14,12 +14,11 @@
             <i> For further information about file handling in general see the 
             </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
 			<p>
-			  Reads CSV files. Use this node if the workflow is used in a server
-			  or batch environment and the input files structure change between
-			  different invocations. In particular, this includes a variable number
-			  of input columns. Upon execution, the node will scan the input file
-			  to determine number and types of the columns and output a table with
-			  the auto-guessed structure.  
+			 Reads CSV files. To auto-guess the structure of the file click the Autodetect format button. 
+			 If you encounter problems with incorrect guessed data types disable the Limit data rows scanned option in the Advanced Settings tab. 
+			 If the input file structure changes between different invocations, enable the Support changing file schemas option in the Advanced Settings tab. 
+			 For further details see the KNIME File Handling Guide 
+			 <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide</i></a>.
 	        </p>
 	        <p>
 	          <b>Note:</b> If you find that this node can't read your file, try the <b>File Reader</b> node. It offers more options for reading complex files.
