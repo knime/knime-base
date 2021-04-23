@@ -213,8 +213,10 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private List<FSPath> handleSinglePath(final FSPath rootPath) throws IOException, InvalidSettingsException {
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
         if (m_filterMode == FilterMode.FILE || m_filterMode == FilterMode.WORKFLOW) {
-            CheckUtils.checkSetting(!rootPath.toString().trim().isEmpty(), "Please specify a file.");
-            CheckUtils.checkSetting(!attr.isDirectory(), "%s is a folder. Please specify a file.", rootPath);
+            String workflowOrFile = m_filterMode == FilterMode.FILE ? "file" : "workflow";
+            CheckUtils.checkSetting(!rootPath.toString().trim().isEmpty(), "Please specify a " + workflowOrFile + ".");
+            CheckUtils.checkSetting(!attr.isDirectory(), "%s is a folder. Please specify a " + workflowOrFile + ".",
+                rootPath);
             m_fileFilterStatistic = new FileFilterStatistic(0, 0, 0, 1, 0, 0, 0);
         } else if (m_filterMode == FilterMode.FOLDER) {
             checkIsFolder(rootPath, attr);

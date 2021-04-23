@@ -393,6 +393,8 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         final FilterMode filterMode = getSettingsModel().getFilterMode();
         if (filterMode == FilterMode.FILE) {
             return "File";
+        } else if (filterMode == FilterMode.WORKFLOW) {
+            return "Workflow";
         } else {
             return "Folder";
         }
