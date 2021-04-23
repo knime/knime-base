@@ -168,9 +168,9 @@ public abstract class URIExporterPanel extends JPanel {
      */
     public final void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         beforeSettingsSaved();
-        m_config.validate();
         m_config.saveSettingsForPanel(settings);
         saveAdditionalSettingsTo(settings);
+        m_config.validate();
     }
 
     /**

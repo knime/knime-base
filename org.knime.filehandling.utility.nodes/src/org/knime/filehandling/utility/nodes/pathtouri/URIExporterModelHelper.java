@@ -91,6 +91,7 @@ final class URIExporterModelHelper extends AbstractURIExporterHelper {
         final URIExporterFactory factory = connection.getURIExporterFactory(getSelectedExporterId());
         final URIExporterConfig config = factory.initConfig();
         config.loadSettingsForExporter(m_nodeSettings);
+        config.validate();
         return factory.createExporter(config);
     }
 }
