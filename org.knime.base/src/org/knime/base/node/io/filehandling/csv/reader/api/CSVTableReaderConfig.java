@@ -202,6 +202,11 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      * @param lineSeparator the line separator used
      */
     public void setLineSeparator(final String lineSeparator) {
+        // AP-15964: CsvFormat#setLineSeparator with String#length == 1 changes the normalized new line char causing
+        // different behavior when calling this method several times with varying lineSeperators
+        if (lineSeparator.length() == 2) {
+            getFormat().setNormalizedNewline('\n');
+        }
         getFormat().setLineSeparator(lineSeparator);
     }
 
