@@ -286,11 +286,12 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                 LOGGER.debug(e.getMessage(), e);
                 final Throwable cause = e.getCause();
                 if (cause instanceof ArrayIndexOutOfBoundsException) {
+                    final String message = cause.getMessage();
                     //Exception handling in case maxCharsPerCol or maxCols are exceeded like in the AbstractParser
-                    final int index = extractErrorIndex(cause);
+                    final int index = extractErrorIndex(message);
                     // for some reason when running in non-debug mode the memory limit per column exception often
                     // contains a null message
-                    if (index == m_csvParserSettings.getMaxCharsPerColumn() || e.getCause().getMessage() == null) {
+                    if (index == m_csvParserSettings.getMaxCharsPerColumn() || message == null) {
                         throw new IOException("Memory limit per column exceeded. Please adapt the according setting.", e);
                     } else if (index == m_csvParserSettings.getMaxColumns()) {
                         throw new IOException("Number of parsed columns exceeds the defined limit ("
@@ -308,14 +309,15 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             return row == null ? null : RandomAccessibleUtils.createFromArrayUnsafe(row);
         }
 
-        private static int extractErrorIndex(final Throwable cause) {
-            final String message = cause.getMessage();
-            final Matcher matcher = INDEX_EXTRACTION_PATTERN.matcher(message);
-            if (matcher.find()) {
-                try {
-                    return Integer.parseInt(matcher.group(1));
-                } catch (NumberFormatException ex) {
-                    LOGGER.debug("Can't parse the matched number.", ex);
+        private static int extractErrorIndex(final String message) {
+            if (message != null) {
+                final Matcher matcher = INDEX_EXTRACTION_PATTERN.matcher(message);
+                if (matcher.find()) {
+                    try {
+                        return Integer.parseInt(matcher.group(1));
+                    } catch (NumberFormatException ex) {
+                        LOGGER.debug("Can't parse the matched number.", ex);
+                    }
                 }
             }
             return -1;
