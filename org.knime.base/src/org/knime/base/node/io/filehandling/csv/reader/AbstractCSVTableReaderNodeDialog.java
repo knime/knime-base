@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.FlowLayout;
@@ -227,7 +228,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings, final CSVMultiTableReadConfig config,
         final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
-        final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles, final boolean isDragNDrop) {
+        final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles,
+        final boolean isDragNDrop) {
         super(multiReader, productionPathProvider, allowsReadingMultipleFiles, isDragNDrop);
         init(pathSettings); //NOSONAR
         m_pathSettings = pathSettings;
@@ -323,6 +325,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         m_config = config;
         registerPreviewChangeListeners(); //NOSONAR
+        registerRowDelListener();
         hookUpNumberFormatWithColumnDelimiter();
     }
 
@@ -434,6 +437,10 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_encodingPanel.addChangeListener(changeListener);
 
         m_numberFormatDialog.registerDocumentListener(documentListener);
+    }
+
+    private void registerRowDelListener() {
+        m_rowDelimiterField.getDocument().addDocumentListener(new RowDelimiterValidationListener());
     }
 
     private void hookUpNumberFormatWithColumnDelimiter() {
@@ -868,12 +875,18 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
     /**
      * Fill in the setting values in {@link CSVTableReaderConfig} using values from dialog.
+     *
+     * @throws InvalidSettingsException if a setting could not be saved
      */
-    private void saveCsvSettings() {
+    private void saveCsvSettings() throws InvalidSettingsException {
         CSVTableReaderConfig csvReaderConfig = m_config.getTableReadConfig().getReaderSpecificConfig();
 
         csvReaderConfig.setDelimiter(EscapeUtils.unescape(m_colDelimiterField.getText()));
         csvReaderConfig.useLineBreakRowDelimiter(m_useLineBreakRowDelimiter.isSelected());
+
+        if (!validateRowDel()) {
+            throw new InvalidSettingsException("The row delimiter must be a single character or '\\r\\n'");
+        }
         csvReaderConfig.setLineSeparator(EscapeUtils.unescape(m_rowDelimiterField.getText()));
 
         csvReaderConfig.setQuote(m_quoteField.getText());
@@ -898,6 +911,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
         csvReaderConfig.setAutoDetectionBufferSize(m_autoDetectionBufferSize);
 
         m_numberFormatDialog.save(csvReaderConfig);
+    }
+
+    private boolean validateRowDel() {
+        final String rowDel = EscapeUtils.unescape(m_rowDelimiterField.getText());
+        return rowDel.length() == 1 || rowDel.equals("\r\n");
     }
 
     /**
@@ -933,7 +951,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
         controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner);
 
-        if(isDragNDrop()) {
+        if (isDragNDrop()) {
             startFormatAutoDetection();
         }
 
@@ -1152,4 +1170,42 @@ public abstract class AbstractCSVTableReaderNodeDialog
         cancelFormatAutoDetection();
         super.onClose();
     }
+
+    private final class RowDelimiterValidationListener implements DocumentListener {
+
+        private final Color m_defaultForeground = m_rowDelimiterField.getForeground();
+
+        private final Color m_defaultBackground = m_rowDelimiterField.getBackground();
+
+        @Override
+        public void removeUpdate(final DocumentEvent e) {
+            validate();
+        }
+
+        @Override
+        public void insertUpdate(final DocumentEvent e) {
+            validate();
+        }
+
+        @Override
+        public void changedUpdate(final DocumentEvent e) {
+            validate();
+        }
+
+        private void validate() {
+            if (m_rowDelimiterField.getText().isEmpty()) {
+                setForeAndBackground(m_defaultForeground, Color.RED);
+            } else if (!validateRowDel()) {
+                setForeAndBackground(Color.RED, m_defaultBackground);
+            } else {
+                setForeAndBackground(m_defaultForeground, m_defaultBackground);
+            }
+        }
+
+        private void setForeAndBackground(final Color foreground, final Color background) {
+            m_rowDelimiterField.setForeground(foreground);
+            m_rowDelimiterField.setBackground(background);
+        }
+    }
+
 }
