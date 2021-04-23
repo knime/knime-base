@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -60,6 +61,7 @@ import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.CustomURLSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecHandler;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.LocalSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
@@ -82,19 +84,8 @@ public final class FileSystemChooserUtils {
         // static utility class
     }
 
-    private static EnumSet<FSCategory> createDefaultCategories(final PortsConfiguration portsConfig,
-        final String fileSystemPortIdentifier) {
-        if (hasFSPort(portsConfig, fileSystemPortIdentifier)) {
-            final EnumSet<FSCategory> categories = EnumSet.allOf(FSCategory.class);
-            categories.remove(FSCategory.CONNECTED);
-            return categories;
-        } else {
-            return EnumSet.of(FSCategory.CONNECTED);
-        }
-    }
-
     private static boolean hasFSPort(final PortsConfiguration portsConfig, final String fileSystemPortIdentifier) {
-        return portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) == null;
+        return portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) != null;
     }
 
     /**
@@ -109,43 +100,37 @@ public final class FileSystemChooserUtils {
     public static <L extends FSLocationSpec> FileSystemConfiguration<L> createConfig(
         final PortsConfiguration portsConfig, final String fileSystemPortIdentifier,
         final FSLocationSpecHandler<L> locationHandler, final Set<FSCategory> convenienceFS) {
-        final EnumSet<FSCategory> categories = EnumSet.copyOf(convenienceFS);
-        categories.add(FSCategory.CONNECTED);
-        final EnumSet<FSCategory> defaultCategories = createDefaultCategories(portsConfig, fileSystemPortIdentifier);
-        categories.retainAll(defaultCategories);
-        return createConfigInternal(portsConfig, fileSystemPortIdentifier, locationHandler, categories);
+        final FileSystemSpecificConfig[] specificConfigs =
+            createSpecificConfigs(convenienceFS, portsConfig, fileSystemPortIdentifier);
+        return new FileSystemConfiguration<>(locationHandler, specificConfigs);
     }
 
-    /**
-     * Creates a {@link FileSystemConfiguration} for the provided parameters.
-     *
-     * @param <L> the type of {@link FSLocationSpec} the config should store
-     * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
-     * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
-     * @param locationHandler the {@link FSLocationSpecHandler} to be used
-     * @param convenienceFS the convenience file systems that should be active in the config (provided there is no
-     *            connected file system)
-     * @return a fresh {@link FileSystemConfiguration}
-     */
-    public static <L extends FSLocationSpec> FileSystemConfiguration<L> createConfig(
-        final PortsConfiguration portsConfig, final String fileSystemPortIdentifier,
-        final FSLocationSpecHandler<L> locationHandler, final FSCategory[] convenienceFS) {
-        final EnumSet<FSCategory> categories = EnumSet.of(FSCategory.CONNECTED, convenienceFS);
-        final EnumSet<FSCategory> defaultCategories = createDefaultCategories(portsConfig, fileSystemPortIdentifier);
-        categories.retainAll(defaultCategories);
-        return createConfigInternal(portsConfig, fileSystemPortIdentifier, locationHandler, categories);
+    private static FileSystemSpecificConfig[] createSpecificConfigs(final Set<FSCategory> convenienceFS,
+        final PortsConfiguration portsConfig, final String portId) {
+        final boolean hasPort = hasFSPort(portsConfig, portId);
+        final EnumSet<FSCategory> convenienceWithoutConnected = EnumSet.copyOf(convenienceFS);
+        convenienceWithoutConnected.remove(FSCategory.CONNECTED);
+        final Stream<FileSystemSpecificConfig> convenienceConfigs =
+                convenienceWithoutConnected.stream().map(c -> createConvenienceConfig(c, !hasPort));
+        return Stream.concat(convenienceConfigs//
+            , Stream.of(new ConnectedFileSystemSpecificConfig(hasPort, portsConfig, portId)))//
+            .toArray(FileSystemSpecificConfig[]::new);
     }
 
-    private static <L extends FSLocationSpec> FileSystemConfiguration<L> createConfigInternal(
-        final PortsConfiguration portsConfig, final String fileSystemPortIdentifier,
-        final FSLocationSpecHandler<L> locationHandler, final Set<FSCategory> fsCategories) {
-        return new FileSystemConfiguration<>(locationHandler, //
-            new LocalSpecificConfig(fsCategories.contains(FSCategory.LOCAL)), //
-            new RelativeToSpecificConfig(fsCategories.contains(FSCategory.RELATIVE)), //
-            new MountpointSpecificConfig(fsCategories.contains(FSCategory.MOUNTPOINT)), //
-            new CustomURLSpecificConfig(fsCategories.contains(FSCategory.CUSTOM_URL)), //
-            new ConnectedFileSystemSpecificConfig(fsCategories.contains(FSCategory.CONNECTED), portsConfig,
-                fileSystemPortIdentifier));
+    private static FileSystemSpecificConfig createConvenienceConfig(final FSCategory category, final boolean active) {
+        switch (category) {
+            case CUSTOM_URL:
+                return new CustomURLSpecificConfig(active);
+            case LOCAL:
+                return new LocalSpecificConfig(active);
+            case MOUNTPOINT:
+                return new MountpointSpecificConfig(active);
+            case RELATIVE:
+                return new RelativeToSpecificConfig(active);
+            default:
+                throw new IllegalArgumentException("Unsupported FSCategory: " + category);
+
+        }
     }
 
     /**
