@@ -141,8 +141,9 @@ final class PathToUriCellFactory extends SingleCellFactory implements Closeable 
 
             return convertPathCellToURI(pathProvider.getFSConnection(), fsPath);
         } catch (InvalidSettingsException e) {
-            throw new UrlConversionException(String.format("Failed to load URL format settings when converting %s: %s",
-                fsLocation.toString(), e.getMessage()), e);
+            throw new UrlConversionException(String.format("Failure at row %s: %s", //
+                row.getKey(), //
+                e.getMessage()), e);
         } catch (URISyntaxException e) {
             throw new UrlConversionException(
                 String.format("Failed convert %s to a URL: %s", fsLocation.toString(), e.getMessage()), e);
