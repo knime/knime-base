@@ -309,7 +309,7 @@ public class DBAutoBinner extends AutoBinner {
                 names.add(discBin.getBinValue());
                 boolean leftOpen;
                 boolean rightOpen;
-                int closure = discBin.getInterval().xgetClosure().enumValue().intValue();
+                int closure = discBin.getInterval().getClosure().intValue();
                 /*
                  *static final int INT_OPEN_CLOSED = 1;
                  *static final int INT_OPEN_OPEN = 2;

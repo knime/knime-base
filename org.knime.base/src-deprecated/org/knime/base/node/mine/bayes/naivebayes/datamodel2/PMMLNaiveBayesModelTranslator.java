@@ -52,14 +52,14 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.CharEncoding;
 import org.apache.xmlbeans.SchemaType;
-import org.apache.xmlbeans.impl.util.Base64;
 import org.dmg.pmml.ExtensionDocument.Extension;
 import org.dmg.pmml.PMMLDocument;
 import org.dmg.pmml.PMMLDocument.PMML;
@@ -166,7 +166,7 @@ public class PMMLNaiveBayesModelTranslator implements PMMLTranslator {
           out = new ObjectOutputStream(bos);
           out.writeObject(fieldValue);
           byte[] bytes = bos.toByteArray();
-          final String valString = new String(Base64.encode(bytes), CharEncoding.UTF_8);
+          final String valString = Base64.getEncoder().encodeToString(bytes);
           setStringExtension(extension, fieldName, valString);
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -198,7 +198,7 @@ public class PMMLNaiveBayesModelTranslator implements PMMLTranslator {
         ObjectInput in = null;
         try {
             final String valString = getStringExtension(extensionMap, fieldName);
-            final byte[] bytes = Base64.decode(valString.getBytes(CharEncoding.UTF_8));
+            final byte[] bytes = Base64.getDecoder().decode(valString.getBytes(StandardCharsets.UTF_8));
             bis = new ByteArrayInputStream(bytes);
           in = new ObjectInputStream(bis);
           return in.readObject();
