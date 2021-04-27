@@ -48,7 +48,7 @@
  */
 package org.knime.filehandling.core.node.table.reader.ftrf.adapter.batch;
 
-import org.knime.core.columnar.data.DataSpec;
+import org.knime.core.table.schema.DataSpec;
 
 /**
  *

@@ -51,8 +51,8 @@ package org.knime.filehandling.core.node.table.reader.ftrf.requapi;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.knime.core.columnar.ColumnarSchema;
-import org.knime.core.columnar.data.DataSpec;
+import org.knime.core.table.schema.ColumnarSchema;
+import org.knime.core.table.schema.DataSpec;
 
 /**
  *

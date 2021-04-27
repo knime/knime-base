@@ -50,17 +50,8 @@ package org.knime.filehandling.core.node.table.reader.ftrf.adapter.cursor;
 
 import java.util.function.Function;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.LongCell;
-import org.knime.core.data.v2.access.BooleanAccess.BooleanReadAccess;
-import org.knime.core.data.v2.access.DoubleAccess.DoubleReadAccess;
-import org.knime.core.data.v2.access.IntAccess.IntReadAccess;
-import org.knime.core.data.v2.access.LongAccess.LongReadAccess;
-import org.knime.core.data.v2.access.ObjectAccess.ObjectReadAccess;
-import org.knime.core.data.v2.access.ReadAccess;
+import org.knime.core.table.access.ObjectAccess.ObjectReadAccess;
+import org.knime.core.table.access.ReadAccess;
 
 /**
  *
@@ -69,106 +60,6 @@ import org.knime.core.data.v2.access.ReadAccess;
 public interface ReadAccessAdapter<V> extends ReadAccess {
 
     void setValue(final V value);
-
-    interface DefaultedDoubleReadAccess extends DoubleReadAccess {
-        @Override
-        default double getCenterOfGravity() {
-            return getDoubleValue();
-        }
-
-        @Override
-        default double getImaginaryValue() {
-            return 0;
-        }
-
-        @Override
-        default double getCore() {
-            return getDoubleValue();
-        }
-
-        @Override
-        default double getMaxCore() {
-            return getDoubleValue();
-        }
-
-        @Override
-        default double getMaxSupport() {
-            return getDoubleValue();
-        }
-
-        @Override
-        default double getMinCore() {
-            return getDoubleValue();
-        }
-
-        @Override
-        default double getRealValue() {
-            return getDoubleValue();
-        }
-
-        @Override
-        default double getMinSupport() {
-            return getDoubleValue();
-        }
-
-        @Override
-        default DataCell getDataCell() {
-            return new DoubleCell(getDoubleValue());
-        }
-    }
-
-    interface DoubleReadAccessAdapter<V> extends ReadAccessAdapter<V>, DefaultedDoubleReadAccess {
-
-    }
-
-    interface IntReadAccessAdapter<V> extends ReadAccessAdapter<V>, DefaultedDoubleReadAccess, IntReadAccess {
-        @Override
-        default double getDoubleValue() {
-            return getIntValue();
-        }
-
-        @Override
-        default DataCell getDataCell() {
-            return new IntCell(getIntValue());
-        }
-    }
-
-    interface LongReadAccessAdapter<V> extends ReadAccessAdapter<V>, DefaultedDoubleReadAccess, LongReadAccess {
-
-        @Override
-        default double getDoubleValue() {
-            return getLongValue();
-        }
-
-        @Override
-        default DataCell getDataCell() {
-            return new LongCell(getLongValue());
-        }
-    }
-
-    interface BooleanReadAccessAdapter<V> extends ReadAccessAdapter<V>, DefaultedDoubleReadAccess, BooleanReadAccess {
-
-        @Override
-        default double getDoubleValue() {
-            return getIntValue();
-        }
-
-        @Override
-        default int getIntValue() {
-            return getBooleanValue() ? 1 : 0;
-        }
-
-        @Override
-        default long getLongValue() {
-            return getIntValue();
-        }
-
-        @Override
-        default DataCell getDataCell() {
-            return BooleanCellFactory.create(getBooleanValue());
-        }
-
-    }
 
     interface ObjectReadAccessAdapter<V, O> extends ReadAccessAdapter<V>, ObjectReadAccess<O> {
 

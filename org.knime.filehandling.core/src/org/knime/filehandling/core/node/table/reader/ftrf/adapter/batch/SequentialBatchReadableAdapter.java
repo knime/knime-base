@@ -52,13 +52,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.knime.core.columnar.ColumnarSchema;
 import org.knime.core.columnar.batch.ReadBatch;
 import org.knime.core.columnar.batch.SequentialBatchReadable;
 import org.knime.core.columnar.batch.SequentialBatchReader;
-import org.knime.core.columnar.data.DataSpec;
 import org.knime.core.columnar.data.NullableReadData;
 import org.knime.core.columnar.filter.ColumnSelection;
+import org.knime.core.table.schema.ColumnarSchema;
+import org.knime.core.table.schema.DataSpec;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
@@ -120,7 +120,7 @@ public final class SequentialBatchReadableAdapter<I, C extends ReaderSpecificCon
     }
 
     @Override
-    public SequentialBatchReader createReader(final ColumnSelection selection) {
+    public SequentialBatchReader createSequentialReader(final ColumnSelection selection) {
         try {
             return new SequentialBatchReaderAdapter(m_reader.read(m_item, m_config), selection);
         } catch (IOException ex) {
@@ -145,7 +145,7 @@ public final class SequentialBatchReadableAdapter<I, C extends ReaderSpecificCon
         }
 
         @Override
-        public ReadBatch readRetained() throws IOException {
+        public ReadBatch forward() throws IOException {
             final List<RandomAccessible<V>> batch = new ArrayList<>();
             for (int i = 0; i < m_batchSize; i++) {
                 final RandomAccessible<V> next = m_read.next();

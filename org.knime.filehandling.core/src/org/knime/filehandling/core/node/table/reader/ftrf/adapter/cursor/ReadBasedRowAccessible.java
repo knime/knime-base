@@ -50,11 +50,11 @@ package org.knime.filehandling.core.node.table.reader.ftrf.adapter.cursor;
 
 import java.util.function.Supplier;
 
-import org.knime.core.columnar.ColumnarSchema;
+import org.knime.core.table.access.ReadAccessRow;
+import org.knime.core.table.access.RowAccessible;
+import org.knime.core.table.cursor.Cursor;
+import org.knime.core.table.schema.ColumnarSchema;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.ftrf.requapi.Cursor;
-import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
-import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowReadAccess;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
@@ -78,7 +78,7 @@ public final class ReadBasedRowAccessible<I, C extends ReaderSpecificConfig<C>, 
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         // nothing to close
     }
 
@@ -89,9 +89,10 @@ public final class ReadBasedRowAccessible<I, C extends ReaderSpecificConfig<C>, 
 
     @SuppressWarnings("resource") // the Read is closed by the RowReadAccessCursorAdapter
     @Override
-    public Cursor<RowReadAccess> cursor() {
+    public Cursor<ReadAccessRow> createCursor() {
         final Read<I, V> read = m_readSupplier.get();
         return new RowReadAccessCursorAdapter<>(read, m_accessAdapterFactory);
     }
+
 
 }

@@ -52,9 +52,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
-import org.knime.core.data.v2.access.ReadAccess;
-import org.knime.filehandling.core.node.table.reader.ftrf.requapi.Cursor;
-import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowReadAccess;
+import org.knime.core.table.access.ReadAccess;
+import org.knime.core.table.access.ReadAccessRow;
+import org.knime.core.table.cursor.Cursor;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
@@ -63,7 +63,7 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of values used
  */
-public final class RowReadAccessCursorAdapter<V> implements Cursor<RowReadAccess> {
+public final class RowReadAccessCursorAdapter<V> implements Cursor<ReadAccessRow> {
 
     private final Read<?, V> m_read;
 
@@ -78,7 +78,7 @@ public final class RowReadAccessCursorAdapter<V> implements Cursor<RowReadAccess
     }
 
     @Override
-    public RowReadAccess forward() {
+    public ReadAccessRow forward() {
         final RandomAccessible<V> next = readNext();
         if (next == null) {
             return null;
@@ -108,7 +108,7 @@ public final class RowReadAccessCursorAdapter<V> implements Cursor<RowReadAccess
         }
     }
 
-    private final class RowReadAccessAdapter implements RowReadAccess {
+    private final class RowReadAccessAdapter implements ReadAccessRow {
 
         private final ArrayList<ReadAccessAdapter<V>> m_accessAdapters = new ArrayList<>();
 

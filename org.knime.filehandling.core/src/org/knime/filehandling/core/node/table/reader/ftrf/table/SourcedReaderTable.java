@@ -50,10 +50,9 @@ package org.knime.filehandling.core.node.table.reader.ftrf.table;
 
 import java.io.IOException;
 
-import org.knime.core.columnar.ColumnarSchema;
-import org.knime.filehandling.core.node.table.reader.ftrf.requapi.Cursor;
-import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowAccessible;
-import org.knime.filehandling.core.node.table.reader.ftrf.requapi.RowReadAccess;
+import org.knime.core.table.access.RowAccessible;
+import org.knime.core.table.cursor.Cursor;
+import org.knime.core.table.schema.ColumnarSchema;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
@@ -135,7 +134,7 @@ public final class SourcedReaderTable<T> {
         }
 
         @Override
-        public void close() throws Exception { // TODO handle as well?
+        public void close() { // TODO handle as well?
             try {
                 m_delegate.close();
             } catch (IOException ex) {
