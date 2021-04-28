@@ -12,9 +12,9 @@ import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
 import org.knime.core.data.v2.WriteValue;
-import org.knime.core.data.v2.access.ObjectAccess.DurationAccessSpec;
-import org.knime.core.data.v2.access.ObjectAccess.ObjectReadAccess;
-import org.knime.core.data.v2.access.ObjectAccess.ObjectWriteAccess;
+import org.knime.core.table.access.DurationAccess.DurationReadAccess;
+import org.knime.core.table.access.DurationAccess.DurationWriteAccess;
+import org.knime.core.table.schema.DurationDataSpec;
 
 /**
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link DurationCell}.
@@ -23,24 +23,24 @@ import org.knime.core.data.v2.access.ObjectAccess.ObjectWriteAccess;
  * @since 4.3
  */
 public final class DurationValueFactory
-    implements ValueFactory<ObjectReadAccess<Duration>, ObjectWriteAccess<Duration>> {
+    implements ValueFactory<DurationReadAccess, DurationWriteAccess> {
 
     /** A stateless instance of {@link DurationValueFactory} */
     public static final DurationValueFactory INSTANCE = new DurationValueFactory();
 
     @Override
-    public DurationReadValue createReadValue(final ObjectReadAccess<Duration> access) {
+    public DurationReadValue createReadValue(final DurationReadAccess access) {
         return new DefaultDurationReadValue(access);
     }
 
     @Override
-    public DurationWriteValue createWriteValue(final ObjectWriteAccess<Duration> access) {
+    public DurationWriteValue createWriteValue(final DurationWriteAccess access) {
         return new DefaultDurationWriteValue(access);
     }
 
     @Override
-    public DurationAccessSpec getSpec() {
-        return DurationAccessSpec.INSTANCE;
+    public DurationDataSpec getSpec() {
+        return DurationDataSpec.INSTANCE;
     }
 
     /**
@@ -62,48 +62,51 @@ public final class DurationValueFactory
          * @param duration the duration to set
          */
         void setDuration(Duration duration);
+
     }
 
     private static final class DefaultDurationReadValue implements DurationReadValue {
 
-        private final ObjectReadAccess<Duration> m_access;
+        private final DurationReadAccess m_access;
 
-        private DefaultDurationReadValue(final ObjectReadAccess<Duration> access) {
+        private DefaultDurationReadValue(final DurationReadAccess access) {
             m_access = access;
         }
 
         @Override
         public DataCell getDataCell() {
-            return DurationCellFactory.create(m_access.getObject());
+            return DurationCellFactory.create(m_access.getDurationValue());
         }
 
         @Override
         public Duration getDuration() {
-            return m_access.getObject();
+            return m_access.getDurationValue();
         }
 
         @Override
         public String getStringValue() {
-            return m_access.getObject().toString();
+            return m_access.getDurationValue().toString();
         }
+
     }
 
     private static final class DefaultDurationWriteValue implements DurationWriteValue {
 
-        private final ObjectWriteAccess<Duration> m_access;
+        private final DurationWriteAccess m_access;
 
-        private DefaultDurationWriteValue(final ObjectWriteAccess<Duration> access) {
+        private DefaultDurationWriteValue(final DurationWriteAccess access) {
             m_access = access;
         }
 
         @Override
         public void setValue(final DurationValue value) {
-            m_access.setObject(value.getDuration());
+            m_access.setDurationValue(value.getDuration());
         }
 
         @Override
         public void setDuration(final Duration duration) {
-            m_access.setObject(duration);
+            m_access.setDurationValue(duration);
         }
+
     }
 }

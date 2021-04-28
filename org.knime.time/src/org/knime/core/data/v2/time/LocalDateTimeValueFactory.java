@@ -12,9 +12,9 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
 import org.knime.core.data.v2.WriteValue;
-import org.knime.core.data.v2.access.ObjectAccess.LocalDateTimeAccessSpec;
-import org.knime.core.data.v2.access.ObjectAccess.ObjectReadAccess;
-import org.knime.core.data.v2.access.ObjectAccess.ObjectWriteAccess;
+import org.knime.core.table.access.LocalDateTimeAccess.LocalDateTimeReadAccess;
+import org.knime.core.table.access.LocalDateTimeAccess.LocalDateTimeWriteAccess;
+import org.knime.core.table.schema.LocalDateTimeDataSpec;
 
 /**
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link LocalDateTimeCell}.
@@ -23,24 +23,24 @@ import org.knime.core.data.v2.access.ObjectAccess.ObjectWriteAccess;
  * @since 4.3
  */
 public final class LocalDateTimeValueFactory
-    implements ValueFactory<ObjectReadAccess<LocalDateTime>, ObjectWriteAccess<LocalDateTime>> {
+    implements ValueFactory<LocalDateTimeReadAccess, LocalDateTimeWriteAccess> {
 
     /** A stateless instance of {@link LocalDateTimeValueFactory} */
     public static final LocalDateTimeValueFactory INSTANCE = new LocalDateTimeValueFactory();
 
     @Override
-    public LocalDateTimeReadValue createReadValue(final ObjectReadAccess<LocalDateTime> access) {
+    public LocalDateTimeReadValue createReadValue(final LocalDateTimeReadAccess access) {
         return new DefaultLocalDateTimeReadValue(access);
     }
 
     @Override
-    public LocalDateTimeWriteValue createWriteValue(final ObjectWriteAccess<LocalDateTime> access) {
+    public LocalDateTimeWriteValue createWriteValue(final LocalDateTimeWriteAccess access) {
         return new DefaultLocalDateTimeWriteValue(access);
     }
 
     @Override
-    public LocalDateTimeAccessSpec getSpec() {
-        return LocalDateTimeAccessSpec.INSTANCE;
+    public LocalDateTimeDataSpec getSpec() {
+        return LocalDateTimeDataSpec.INSTANCE;
     }
 
     /**
@@ -62,48 +62,51 @@ public final class LocalDateTimeValueFactory
          * @param dateTime the date and time to set
          */
         void setLocalDateTime(LocalDateTime dateTime);
+
     }
 
     private static final class DefaultLocalDateTimeReadValue implements LocalDateTimeReadValue {
 
-        private final ObjectReadAccess<LocalDateTime> m_access;
+        private final LocalDateTimeReadAccess m_access;
 
-        private DefaultLocalDateTimeReadValue(final ObjectReadAccess<LocalDateTime> access) {
+        private DefaultLocalDateTimeReadValue(final LocalDateTimeReadAccess access) {
             m_access = access;
         }
 
         @Override
         public DataCell getDataCell() {
-            return LocalDateTimeCellFactory.create(m_access.getObject());
+            return LocalDateTimeCellFactory.create(m_access.getLocalDateTimeValue());
         }
 
         @Override
         public LocalDateTime getLocalDateTime() {
-            return m_access.getObject();
+            return m_access.getLocalDateTimeValue();
         }
 
         @Override
         public String getStringValue() {
-            return m_access.getObject().toString();
+            return m_access.getLocalDateTimeValue().toString();
         }
+
     }
 
     private static final class DefaultLocalDateTimeWriteValue implements LocalDateTimeWriteValue {
 
-        private final ObjectWriteAccess<LocalDateTime> m_access;
+        private final LocalDateTimeWriteAccess m_access;
 
-        private DefaultLocalDateTimeWriteValue(final ObjectWriteAccess<LocalDateTime> access) {
+        private DefaultLocalDateTimeWriteValue(final LocalDateTimeWriteAccess access) {
             m_access = access;
         }
 
         @Override
         public void setValue(final LocalDateTimeValue value) {
-            m_access.setObject(value.getLocalDateTime());
+            m_access.setLocalDateTimeValue(value.getLocalDateTime());
         }
 
         @Override
         public void setLocalDateTime(final LocalDateTime dateTime) {
-            m_access.setObject(dateTime);
+            m_access.setLocalDateTimeValue(dateTime);
         }
+
     }
 }

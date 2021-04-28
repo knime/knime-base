@@ -12,9 +12,9 @@ import org.knime.core.data.time.localtime.LocalTimeValue;
 import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
 import org.knime.core.data.v2.WriteValue;
-import org.knime.core.data.v2.access.ObjectAccess.LocalTimeAccessSpec;
-import org.knime.core.data.v2.access.ObjectAccess.ObjectReadAccess;
-import org.knime.core.data.v2.access.ObjectAccess.ObjectWriteAccess;
+import org.knime.core.table.access.LocalTimeAccess.LocalTimeReadAccess;
+import org.knime.core.table.access.LocalTimeAccess.LocalTimeWriteAccess;
+import org.knime.core.table.schema.LocalTimeDataSpec;
 
 /**
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link LocalTimeCell}.
@@ -22,25 +22,24 @@ import org.knime.core.data.v2.access.ObjectAccess.ObjectWriteAccess;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @since 4.3
  */
-public final class LocalTimeValueFactory
-    implements ValueFactory<ObjectReadAccess<LocalTime>, ObjectWriteAccess<LocalTime>> {
+public final class LocalTimeValueFactory implements ValueFactory<LocalTimeReadAccess, LocalTimeWriteAccess> {
 
     /** A stateless instance of {@link LocalTimeValueFactory} */
     public static final LocalTimeValueFactory INSTANCE = new LocalTimeValueFactory();
 
     @Override
-    public LocalTimeReadValue createReadValue(final ObjectReadAccess<LocalTime> access) {
+    public LocalTimeReadValue createReadValue(final LocalTimeReadAccess access) {
         return new DefaultLocalTimeReadValue(access);
     }
 
     @Override
-    public LocalTimeWriteValue createWriteValue(final ObjectWriteAccess<LocalTime> access) {
+    public LocalTimeWriteValue createWriteValue(final LocalTimeWriteAccess access) {
         return new DefaultLocalTimeWriteValue(access);
     }
 
     @Override
-    public LocalTimeAccessSpec getSpec() {
-        return LocalTimeAccessSpec.INSTANCE;
+    public LocalTimeDataSpec getSpec() {
+        return LocalTimeDataSpec.INSTANCE;
     }
 
     /**
@@ -62,48 +61,51 @@ public final class LocalTimeValueFactory
          * @param time the time to set
          */
         void setLocalTime(LocalTime time);
+
     }
 
     private static final class DefaultLocalTimeReadValue implements LocalTimeReadValue {
 
-        private final ObjectReadAccess<LocalTime> m_access;
+        private final LocalTimeReadAccess m_access;
 
-        private DefaultLocalTimeReadValue(final ObjectReadAccess<LocalTime> access) {
+        private DefaultLocalTimeReadValue(final LocalTimeReadAccess access) {
             m_access = access;
         }
 
         @Override
         public DataCell getDataCell() {
-            return LocalTimeCellFactory.create(m_access.getObject());
+            return LocalTimeCellFactory.create(m_access.getLocalTimeValue());
         }
 
         @Override
         public LocalTime getLocalTime() {
-            return m_access.getObject();
+            return m_access.getLocalTimeValue();
         }
 
         @Override
         public String getStringValue() {
-            return m_access.getObject().toString();
+            return m_access.getLocalTimeValue().toString();
         }
+
     }
 
     private static final class DefaultLocalTimeWriteValue implements LocalTimeWriteValue {
 
-        private final ObjectWriteAccess<LocalTime> m_access;
+        private final LocalTimeWriteAccess m_access;
 
-        private DefaultLocalTimeWriteValue(final ObjectWriteAccess<LocalTime> access) {
+        private DefaultLocalTimeWriteValue(final LocalTimeWriteAccess access) {
             m_access = access;
         }
 
         @Override
         public void setValue(final LocalTimeValue value) {
-            m_access.setObject(value.getLocalTime());
+            m_access.setLocalTimeValue(value.getLocalTime());
         }
 
         @Override
         public void setLocalTime(final LocalTime time) {
-            m_access.setObject(time);
+            m_access.setLocalTimeValue(time);
         }
+
     }
 }
