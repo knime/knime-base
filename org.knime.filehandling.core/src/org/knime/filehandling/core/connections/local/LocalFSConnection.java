@@ -48,17 +48,10 @@
  */
 package org.knime.filehandling.core.connections.local;
 
-import java.util.Map;
-
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactoryMapBuilder;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
@@ -66,25 +59,12 @@ import org.knime.filehandling.core.filechooser.NioFileSystemView;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalFSConnection implements FSConnection {
-
-    private static final String WORKSPACE_PATH = System.getProperty("user.home");
-
-    private static final Map<URIExporterID, URIExporterFactory> URI_EXPORTERS = new URIExporterFactoryMapBuilder() //
-        .add(URIExporterIDs.DEFAULT, FileURIExporter.getInstance()) //
-        .add(URIExporterIDs.DEFAULT_HADOOP, FileURIExporter.getInstance()) //
-        .add(URIExporterIDs.KNIME_FILE, FileURIExporter.getInstance()) //
-        .build();
+class LocalFSConnection implements FSConnection {
 
     private final LocalFileSystem m_fileSystem;
 
-    public LocalFSConnection() {
-        this(WORKSPACE_PATH, LocalFileSystem.CONVENIENCE_FS_LOCATION_SPEC);
-    }
-
-    public LocalFSConnection(final String workingDir, final FSLocationSpec fsLocationSpec) {
-        final LocalFileSystemProvider provider = new LocalFileSystemProvider();
-        m_fileSystem = provider.getOrCreateFileSystem(workingDir, fsLocationSpec);
+    LocalFSConnection(final LocalFSConnectionConfig config) {
+        m_fileSystem = new LocalFileSystem(new LocalFileSystemProvider(), config);
     }
 
     @Override
@@ -99,10 +79,5 @@ public class LocalFSConnection implements FSConnection {
         } else {
             return new LocalFileSystemBrowser(m_fileSystem);
         }
-    }
-
-    @Override
-    public Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
-        return URI_EXPORTERS;
     }
 }

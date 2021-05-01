@@ -51,13 +51,13 @@ package org.knime.filehandling.core.connections.location;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
-import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
@@ -111,7 +111,7 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
         final FSCategory category = FSCategory.valueOf(fsLocationSpec.getFileSystemCategory());
         switch (category) {
             case LOCAL:
-                return new DefaultFSPathProviderFactory(new LocalFSConnection());
+                return new DefaultFSPathProviderFactory(DefaultFSConnectionFactory.createLocalFSConnection());
             case RELATIVE:
                 return new DefaultFSPathProviderFactory(createRelativeToFSConnection(fsLocationSpec));
             case MOUNTPOINT:

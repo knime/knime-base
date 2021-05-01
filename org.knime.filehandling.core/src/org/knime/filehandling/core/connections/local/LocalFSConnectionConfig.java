@@ -44,38 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 17, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   May 2, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.local;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
- * Implementation of a local file system test initializer.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author bjoern
  */
-class LocalFSTestInitializer extends BasicLocalTestInitializer<LocalPath, LocalFileSystem> {
+public class LocalFSConnectionConfig extends BaseFSConnectionConfig {
 
-    /**
-     * Creates a new instance with a test root folder in the systems temporary directory.
-     *
-     * @throws IOException
-     */
-    public LocalFSTestInitializer(final LocalFSConnection fsConnection) throws IOException {
-        super(fsConnection, ((LocalPath)fsConnection.getFileSystem().getWorkingDirectory()).getWrappedPath());
+    private static final String WORKSPACE_PATH = System.getProperty("user.home");
+
+    public LocalFSConnectionConfig() {
+        super(WORKSPACE_PATH, false);
     }
 
-    @Override
-    protected void beforeTestCaseInternal() throws IOException {
-        Files.createDirectories(getLocalTestCaseScratchDir());
-    }
-
-    @SuppressWarnings("resource")
-    @Override
-    protected LocalPath toFSPath(final Path localPath) {
-        return getFileSystem().getPath(localPath.toString());
+    public LocalFSConnectionConfig(final String workingDirectory) {
+        super(workingDirectory, true);
     }
 }

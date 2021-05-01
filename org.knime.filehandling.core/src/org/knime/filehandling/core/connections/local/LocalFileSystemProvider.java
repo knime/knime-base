@@ -57,7 +57,6 @@ import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.LinkOption;
@@ -73,7 +72,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.FSFileSystemProvider;
-import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSSeekableByteChannel;
 import org.knime.filehandling.core.connections.base.RelativizingPathIterator;
 
@@ -85,43 +83,18 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
     static final String PATH_FROM_DIFFERENT_PROVIDER_MESSAGE = "Path is from a different provider";
 
-    static final String KEY_WORKING_DIR = "workingDir";
-
-    static final String KEY_IS_CONNECTED_FS = "isConnectedFs";
-
     private static final FileSystemProvider PLATFORM_DEFAULT_PROVIDER = FileSystems.getDefault().provider();
 
     private LocalFileSystem m_fileSystem;
 
     @Override
     public synchronized LocalFileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        if (m_fileSystem != null) {
-            throw new FileSystemAlreadyExistsException();
-        }
-
-        final String workingDir = (String)env.get(KEY_WORKING_DIR);
-        final boolean isConnectedFs = (Boolean)env.get(KEY_IS_CONNECTED_FS);
-
-        if (isConnectedFs) {
-            return getOrCreateFileSystem(workingDir, LocalFileSystem.CONNECTED_FS_LOCATION_SPEC);
-        } else {
-            return getOrCreateFileSystem(workingDir, LocalFileSystem.CONVENIENCE_FS_LOCATION_SPEC);
-        }
+        // file system always exists, so we throw FileSystemAlreadyExistsException
+        throw new FileSystemAlreadyExistsException();
     }
 
-    /**
-     * Gets or creates a new local {@link FileSystem}.
-     *
-     * @param workingDir
-     * @param fsLocationSpec
-     * @return a file system
-     */
-    public synchronized LocalFileSystem getOrCreateFileSystem(final String workingDir, final FSLocationSpec fsLocationSpec) {
-        if (m_fileSystem == null) {
-            m_fileSystem = new LocalFileSystem(this, workingDir, fsLocationSpec);
-        }
-
-        return m_fileSystem;
+    void setFileSystem(final LocalFileSystem localFileSystem) {
+        m_fileSystem = localFileSystem;
     }
 
     @Override

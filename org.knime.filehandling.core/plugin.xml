@@ -82,4 +82,10 @@
             extension="org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType$FSLocationSpecVariableTypeExtension">
       </VariableType>
    </extension>
+   <extension
+         point="org.knime.filehandling.core.FSDescriptorProvider">
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.connections.local.LocalFSDescriptorProvider">
+      </FSDescriptorProvider>
+   </extension>
 </plugin>

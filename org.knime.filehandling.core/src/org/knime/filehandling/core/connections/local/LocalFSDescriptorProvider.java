@@ -44,38 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 17, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Apr 30, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.local;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.FileSystems;
+
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
 /**
- * Implementation of a local file system test initializer.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author bjoern
  */
-class LocalFSTestInitializer extends BasicLocalTestInitializer<LocalPath, LocalFileSystem> {
-
-    /**
-     * Creates a new instance with a test root folder in the systems temporary directory.
-     *
-     * @throws IOException
-     */
-    public LocalFSTestInitializer(final LocalFSConnection fsConnection) throws IOException {
-        super(fsConnection, ((LocalPath)fsConnection.getFileSystem().getWorkingDirectory()).getWrappedPath());
-    }
-
-    @Override
-    protected void beforeTestCaseInternal() throws IOException {
-        Files.createDirectories(getLocalTestCaseScratchDir());
-    }
-
-    @SuppressWarnings("resource")
-    @Override
-    protected LocalPath toFSPath(final Path localPath) {
-        return getFileSystem().getPath(localPath.toString());
+public class LocalFSDescriptorProvider extends BaseFSDescriptorProvider {
+    public LocalFSDescriptorProvider() {
+        super(FSType.LOCAL_FS, //
+            new BaseFSDescriptor.Builder() //
+                .withSeparator(FileSystems.getDefault().getSeparator()) //
+                .withConnectionFactory(LocalFSConnection::new) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, FileURIExporter.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT_HADOOP, FileURIExporter.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.KNIME_FILE, FileURIExporter.getInstance()) //
+                .withTestInitializerProvider(new LocalFSTestInitializerProvider()) //
+                .build());
     }
 }

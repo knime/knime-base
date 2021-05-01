@@ -72,33 +72,41 @@ import org.knime.filehandling.core.connections.meta.FSType;
  *
  * @author bjoern
  */
-public class LocalFileSystem extends FSFileSystem<LocalPath> {
+final class LocalFileSystem extends FSFileSystem<LocalPath> {
 
     private static final FileSystem PLATFORM_DEFAULT_FS = FileSystems.getDefault();
-
 
     /**
      * The file system type of the local file system.
      */
-    public static final  FSType FS_TYPE = FSType.LOCAL_FS;
+    static final  FSType FS_TYPE = FSType.LOCAL_FS;
 
     private static final URI BASE_URI = URI.create(FS_TYPE.getTypeId() + ":///");
 
     /**
      * The {@link FSLocationSpec} for the local convenience file system.
      */
-    public static final FSLocationSpec CONVENIENCE_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.LOCAL);
+    static final FSLocationSpec CONVENIENCE_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.LOCAL);
 
     /**
      * The {@link FSLocationSpec} for the local convenience file system.
      */
-    public static final FSLocationSpec CONNECTED_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.CONNECTED, FS_TYPE.getTypeId());
+    static final FSLocationSpec CONNECTED_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.CONNECTED, FS_TYPE.getTypeId());
 
     private final LocalFileSystemProvider m_provider;
 
-    LocalFileSystem(final LocalFileSystemProvider provider, final String workingDir, final FSLocationSpec fsLocationSpec) {
-        super(BASE_URI, fsLocationSpec, workingDir);
+    LocalFileSystem(final LocalFileSystemProvider provider, final LocalFSConnectionConfig config) {
+        super(BASE_URI, createFSLocationSpec(config), config.getWorkingDirectory());
+        provider.setFileSystem(this); // NOSONAR this is safe to do here
         m_provider = provider;
+    }
+
+    private static FSLocationSpec createFSLocationSpec(final LocalFSConnectionConfig config) {
+        if(config.isConnectedFileSystem()) {
+            return CONNECTED_FS_LOCATION_SPEC;
+        } else {
+            return CONVENIENCE_FS_LOCATION_SPEC;
+        }
     }
 
     @Override

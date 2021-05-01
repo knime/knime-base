@@ -55,6 +55,7 @@ import java.util.Optional;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -63,7 +64,6 @@ import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMo
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
-import org.knime.filehandling.core.connections.local.LocalFSConnection;
 import org.knime.filehandling.core.connections.url.URIFSConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
@@ -94,7 +94,7 @@ public final class FileSystemHelper {
         final FileSystemChoice choice = settings.getFileSystemChoice();
         switch (choice.getType()) {
             case LOCAL_FS:
-                return new LocalFSConnection();
+                return DefaultFSConnectionFactory.createLocalFSConnection();
             case CUSTOM_URL_FS:
                 final URI uri = URI.create(settings.getPathOrURL().replace(" ", "%20"));
                 return new URIFSConnection(uri, timeoutInMillis);
@@ -139,7 +139,7 @@ public final class FileSystemHelper {
                 checkMountpointCanCreateConnection(location, connection);
                 return Optional.of(new KNIMERemoteFSConnection(connection, false));
             case LOCAL:
-                return Optional.of(new LocalFSConnection());
+                return Optional.of(DefaultFSConnectionFactory.createLocalFSConnection());
             default:
                 throw new IllegalArgumentException("Unknown file system choice: " + category);
 

@@ -62,14 +62,14 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class LocalFSTestInitializerProvider implements FSTestInitializerProvider {
+class LocalFSTestInitializerProvider implements FSTestInitializerProvider {
 
     @SuppressWarnings("resource")
     @Override
     public LocalFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
-        final Path workingDir = Files.createTempDirectory("knime-localfs-test");
+        final Path workingDir = Files.createTempDirectory("knime-localfs-test").toAbsolutePath();
         final LocalFSConnection fsConn =
-            new LocalFSConnection(workingDir.toString(), LocalFileSystem.CONNECTED_FS_LOCATION_SPEC);
+            new LocalFSConnection(new LocalFSConnectionConfig(workingDir.toString()));
         return new LocalFSTestInitializer(fsConn);
     }
 

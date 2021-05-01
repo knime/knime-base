@@ -64,7 +64,7 @@ import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
+class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
 
     /**
      *

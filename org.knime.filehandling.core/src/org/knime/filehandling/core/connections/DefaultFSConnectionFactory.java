@@ -48,6 +48,12 @@
  */
 package org.knime.filehandling.core.connections;
 
+import java.io.IOException;
+
+import org.knime.filehandling.core.connections.local.LocalFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
+
 /**
  *
  * @author Bjoern Lohrmann, KNIME GmbH
@@ -57,4 +63,25 @@ public final class DefaultFSConnectionFactory {
     private DefaultFSConnectionFactory() {
     }
 
+    public static FSConnection createLocalFSConnection() {
+        try {
+            return FSDescriptorRegistry.getFSDescriptor(FSType.LOCAL_FS) // NOSONAR connection closed later
+                .orElseThrow(() -> new IllegalStateException("Local file system is not registered")) //
+                .<LocalFSConnectionConfig> getConnectionFactory() //
+                .createConnection(new LocalFSConnectionConfig());
+        } catch (IOException ex) {
+            throw new IllegalStateException("IOException thrown where it should never happen", ex);
+        }
+    }
+
+    public static FSConnection createLocalFSConnection(final String workingDir) {
+        try {
+            return FSDescriptorRegistry.getFSDescriptor(FSType.LOCAL_FS) // NOSONAR connection closed later
+                .orElseThrow(() -> new IllegalStateException("Local file system is not registered")) //
+                .<LocalFSConnectionConfig> getConnectionFactory() //
+                .createConnection(new LocalFSConnectionConfig(workingDir));
+        } catch (IOException ex) {
+            throw new IllegalStateException("IOException thrown where it should never happen", ex);
+        }
+    }
 }

@@ -64,7 +64,7 @@ import org.knime.filehandling.core.connections.FSPath;
 /**
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalPath extends FSPath {
+class LocalPath extends FSPath {
 
     private final LocalFileSystem m_fileSystem;
 
