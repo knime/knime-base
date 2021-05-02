@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.connections.knimeremote;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Collections;
 
@@ -57,6 +58,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
@@ -65,54 +67,45 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  */
 final class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
 
-    private static final String PATH_SEPARATOR = "/";
+    static final FSType FS_TYPE = FSType.MOUNTPOINT;
 
-    private final URI m_mountpoint;
+    static final String SEPARATOR = "/";
 
-    private final KNIMERemotePath m_workingDirectory;
+    private final KNIMERemoteFSConnectionConfig m_config;
 
-    /**
-     * @param baseLocation
-     * @param isConnectedFs
-     */
-    KNIMERemoteFileSystem(final URI baseLocation, final boolean isConnectedFs) {
+    KNIMERemoteFileSystem(final KNIMERemoteFSConnectionConfig config) {
         super(new KNIMERemoteFileSystemProvider(), //
-            baseLocation, //
             0, //
-            PATH_SEPARATOR, //
-            createFSLocationSpec(isConnectedFs, baseLocation));
+            config.getWorkingDirectory(), //
+            createFSLocationSpec(config));
 
-        m_mountpoint = baseLocation;
-        m_workingDirectory = getPath(PATH_SEPARATOR);
+        m_config = config;
     }
 
-    private static FSLocationSpec createFSLocationSpec(final boolean isConnectedFs, final URI baseLocation) {
-        final FSCategory category = isConnectedFs ? FSCategory.CONNECTED : FSCategory.MOUNTPOINT;
-        final String specifier = baseLocation.getHost();
+    private static FSLocationSpec createFSLocationSpec(final KNIMERemoteFSConnectionConfig config) {
+        final FSCategory category;
+        final String specifier;
+
+        if (config.isConnectedFileSystem()) {
+            category = FSCategory.CONNECTED;
+            specifier = String.format("%s:%s", FS_TYPE.getTypeId(), config.getMountpoint());
+        } else {
+            category = FSCategory.MOUNTPOINT;
+            specifier = config.getMountpoint();
+        }
         return new DefaultFSLocationSpec(category, specifier);
     }
 
     @Override
     public String getSeparator() {
-        return PATH_SEPARATOR;
+        return SEPARATOR;
     }
 
-    @Override
-    public KNIMERemotePath getWorkingDirectory() {
-        return m_workingDirectory;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Iterable<Path> getRootDirectories() {
         return Collections.singletonList(new KNIMERemotePath(this, URI.create(UnixStylePathUtil.SEPARATOR)));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public KNIMERemotePath getPath(final String first, final String... more) {
         return new KNIMERemotePath(this, first, more);
@@ -123,8 +116,16 @@ final class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
      *
      * @return the mount point of this remote KNIME file system
      */
-    public String getMountpoint() {
-        return m_mountpoint.getHost();
+    String getMountpoint() {
+        return m_config.getMountpoint();
+    }
+
+    URI getKNIMEProtocolURL() {
+        try {
+            return new URI("knime", m_config.getMountpoint(), null, null);
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Illegal mountpoint: " + m_config.getMountpoint(), ex);
+        }
     }
 
     /**
@@ -134,12 +135,9 @@ final class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
      */
     public KNIMERemotePath getDefaultDirectory() {
         return new KNIMERemotePath(this,
-            MountPointFileSystemAccessService.instance().getDefaultDirectory(m_mountpoint));
+            MountPointFileSystemAccessService.instance().getDefaultDirectory(getKNIMEProtocolURL()));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void prepareClose() {
         //Nothing to do.

@@ -87,5 +87,8 @@
       <FSDescriptorProvider
             class="org.knime.filehandling.core.connections.local.LocalFSDescriptorProvider">
       </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSDescriptorProvider">
+      </FSDescriptorProvider>
    </extension>
 </plugin>

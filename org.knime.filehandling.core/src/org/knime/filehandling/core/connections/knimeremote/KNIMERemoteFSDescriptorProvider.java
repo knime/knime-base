@@ -44,49 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 30, 2020 (bjoern): created
+ *   Apr 30, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.util.Set;
-
-import org.knime.filehandling.core.connections.base.TempFileSeekableByteChannel;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
 /**
- * Seekable channel implementation for the KNIME remote file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class KNIMERemoteTempFileSeekableChannel extends TempFileSeekableByteChannel<KNIMERemotePath> {
-
-    /**
-     * Constructs an {@link TempFileSeekableByteChannel} for an {@link URIPath}.
-     *
-     * @param file the file for the channel
-     * @param options the open options
-     * @throws IOException if an I/O Error occurred
-     */
-    public KNIMERemoteTempFileSeekableChannel(final KNIMERemotePath file, final Set<? extends OpenOption> options) throws IOException {
-        super(file, options);
+public class KNIMERemoteFSDescriptorProvider extends BaseFSDescriptorProvider {
+    public KNIMERemoteFSDescriptorProvider() {
+        super(FSType.MOUNTPOINT, //
+            new BaseFSDescriptor.Builder() //
+                .withSeparator(KNIMERemoteFileSystem.SEPARATOR) //
+                .withConnectionFactory(KNIMERemoteFSConnection::new) //
+                .withIsWorkflowAware(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getInstance()) //
+                .build());
     }
-
-    @Override
-    public void copyFromRemote(final KNIMERemotePath remoteFile, final Path tempFile) throws IOException {
-        Files.copy(remoteFile, tempFile);
-
-    }
-
-    @Override
-    public void copyToRemote(final KNIMERemotePath remoteFile, final Path tempFile) throws IOException {
-        try (final OutputStream out = new BufferedOutputStream(Files.newOutputStream(remoteFile))) {
-            Files.copy(tempFile, out);
-        }
-    }
-
 }

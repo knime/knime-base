@@ -64,7 +64,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public final class KNIMERemotePath extends UnixStylePath implements WorkflowAwarePath {
+final class KNIMERemotePath extends UnixStylePath implements WorkflowAwarePath {
 
     /**
      * Constructs a {@code KNIMERemotePath} from a path string, or a sequence of strings that when joined form a path

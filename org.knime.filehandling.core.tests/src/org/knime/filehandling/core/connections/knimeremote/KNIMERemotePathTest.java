@@ -63,7 +63,7 @@ public class KNIMERemotePathTest {
     @Before
     public void setup() {
         m_fsProvider = new KNIMERemoteFileSystemProvider();
-        m_fs = new KNIMERemoteFileSystem(URI.create("knime://LOCAL"), false);
+        m_fs = new KNIMERemoteFileSystem(new KNIMERemoteFSConnectionConfig("LOCAL"));
     }
 
     @Test

@@ -44,49 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 30, 2020 (bjoern): created
+ *   May 2, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.util.Set;
-
-import org.knime.filehandling.core.connections.base.TempFileSeekableByteChannel;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
- * Seekable channel implementation for the KNIME remote file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class KNIMERemoteTempFileSeekableChannel extends TempFileSeekableByteChannel<KNIMERemotePath> {
+public final class KNIMERemoteFSConnectionConfig extends BaseFSConnectionConfig {
 
-    /**
-     * Constructs an {@link TempFileSeekableByteChannel} for an {@link URIPath}.
-     *
-     * @param file the file for the channel
-     * @param options the open options
-     * @throws IOException if an I/O Error occurred
-     */
-    public KNIMERemoteTempFileSeekableChannel(final KNIMERemotePath file, final Set<? extends OpenOption> options) throws IOException {
-        super(file, options);
+    private final String m_mountpoint;
+
+    public KNIMERemoteFSConnectionConfig(final String mountpoint) {
+        super(KNIMERemoteFileSystem.SEPARATOR, false);
+        m_mountpoint = mountpoint;
     }
 
-    @Override
-    public void copyFromRemote(final KNIMERemotePath remoteFile, final Path tempFile) throws IOException {
-        Files.copy(remoteFile, tempFile);
-
+    KNIMERemoteFSConnectionConfig(final String workingDirectory, final String mountpoint) {
+        super(workingDirectory, true);
+        m_mountpoint = mountpoint;
     }
 
-    @Override
-    public void copyToRemote(final KNIMERemotePath remoteFile, final Path tempFile) throws IOException {
-        try (final OutputStream out = new BufferedOutputStream(Files.newOutputStream(remoteFile))) {
-            Files.copy(tempFile, out);
-        }
+    String getMountpoint() {
+        return m_mountpoint;
     }
-
 }

@@ -50,17 +50,10 @@ package org.knime.filehandling.core.connections.knimeremote;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URI;
-import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactoryMapBuilder;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
@@ -71,21 +64,15 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  */
 public final class KNIMERemoteFSConnection implements FSConnection {
 
-    private static final Map<URIExporterID, URIExporterFactory> URI_EXPORTER_FACTORIES = new URIExporterFactoryMapBuilder() //
-            .add(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getInstance()) //
-            .add(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getInstance()) //
-            .build();
-
     private final KNIMERemoteFileSystem m_fileSystem;
 
     private final KNIMERemoteFileSystemBrowser m_browser;
 
-    public KNIMERemoteFSConnection(final KNIMEConnection connection, final boolean isConnected) {
-        final URI remoteFsKey = URI.create(connection.getSchemeAndHost());
-        m_fileSystem = new KNIMERemoteFileSystem(remoteFsKey, isConnected);
+    public KNIMERemoteFSConnection(final KNIMERemoteFSConnectionConfig config) {
+        m_fileSystem = new KNIMERemoteFileSystem(config);
 
         try {
-            boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(remoteFsKey);
+            boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(m_fileSystem.getKNIMEProtocolURL());
             if (isReadable) {
                 final KNIMERemoteFileSystemView fsView = new KNIMERemoteFileSystemView(m_fileSystem);
                 m_browser = new KNIMERemoteFileSystemBrowser(fsView);
@@ -106,10 +93,5 @@ public final class KNIMERemoteFSConnection implements FSConnection {
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
         return m_browser;
-    }
-
-    @Override
-    public Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
-        return URI_EXPORTER_FACTORIES;
     }
 }

@@ -64,6 +64,7 @@ import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMo
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
+import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnectionConfig;
 import org.knime.filehandling.core.connections.url.URIFSConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
@@ -99,10 +100,9 @@ public final class FileSystemHelper {
                 final URI uri = URI.create(settings.getPathOrURL().replace(" ", "%20"));
                 return new URIFSConnection(uri, timeoutInMillis);
             case KNIME_MOUNTPOINT:
-                final String knimeFileSystem = settings.getKnimeMountpointFileSystem();
-                final KNIMEConnection connection =
-                    KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
-                return new KNIMERemoteFSConnection(connection, false);
+                final String mountpoint = settings.getKnimeMountpointFileSystem();
+                final KNIMERemoteFSConnectionConfig conf = new KNIMERemoteFSConnectionConfig(mountpoint);
+                return new KNIMERemoteFSConnection(conf);
             case KNIME_FS:
                 final Type type = KNIMEConnection.connectionTypeForHost(settings.getKNIMEFileSystem());
                 return getRelativeToConnection(type);
@@ -137,7 +137,7 @@ public final class FileSystemHelper {
             case MOUNTPOINT:
                 final KNIMEConnection connection = extractMountpoint(location);
                 checkMountpointCanCreateConnection(location, connection);
-                return Optional.of(new KNIMERemoteFSConnection(connection, false));
+                return Optional.of(new KNIMERemoteFSConnection(new KNIMERemoteFSConnectionConfig(connection.getId())));
             case LOCAL:
                 return Optional.of(DefaultFSConnectionFactory.createLocalFSConnection());
             default:
