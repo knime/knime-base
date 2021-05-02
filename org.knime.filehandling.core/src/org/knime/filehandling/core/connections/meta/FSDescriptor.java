@@ -48,10 +48,12 @@
  */
 package org.knime.filehandling.core.connections.meta;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
  *
@@ -68,4 +70,6 @@ public interface FSDescriptor {
     Set<URIExporterID> getURIExporters();
 
     URIExporterFactory getURIExporterFactory(final URIExporterID exporterId);
+
+    Optional<FSTestInitializerProvider> getFSTestInitializerProvider();
 }

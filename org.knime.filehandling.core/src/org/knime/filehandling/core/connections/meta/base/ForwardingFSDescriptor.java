@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.meta.base;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.filehandling.core.connections.meta.FSCapabilities;
@@ -58,6 +59,7 @@ import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
  *
@@ -109,4 +111,8 @@ public class ForwardingFSDescriptor implements FSDescriptor {
         return getTargetDescriptor().getURIExporterFactory(exporterId);
     }
 
+    @Override
+    public Optional<FSTestInitializerProvider> getFSTestInitializerProvider() {
+        return getTargetDescriptor().getFSTestInitializerProvider();
+    }
 }

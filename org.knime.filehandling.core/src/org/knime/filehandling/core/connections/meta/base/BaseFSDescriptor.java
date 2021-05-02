@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.connections.meta.base;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +61,7 @@ import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactoryMapBuilder;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
  * @author Bjoern Lohrmann, KNIME GmbH
@@ -74,15 +76,19 @@ public final class BaseFSDescriptor implements FSDescriptor {
 
     private final Map<URIExporterID, URIExporterFactory> m_uriExporterFactories;
 
+    private final FSTestInitializerProvider m_testInitializerProvider;
+
     BaseFSDescriptor(final FSConnectionFactory<?> connectionFactory, //
         final String separator, //
         final FSCapabilities capabilities, //
-        final Map<URIExporterID, URIExporterFactory> uriExporterFactories) {
+        final Map<URIExporterID, URIExporterFactory> uriExporterFactories, //
+        final FSTestInitializerProvider testInitializerProvider) {
 
         m_connectionFactory = connectionFactory;
         m_separator = separator;
         m_capabilities = capabilities;
         m_uriExporterFactories = uriExporterFactories;
+        m_testInitializerProvider = testInitializerProvider;
     }
 
     @Override
@@ -110,6 +116,11 @@ public final class BaseFSDescriptor implements FSDescriptor {
         return m_uriExporterFactories.get(exporterId);
     }
 
+    @Override
+    public Optional<FSTestInitializerProvider> getFSTestInitializerProvider() {
+        return Optional.ofNullable(m_testInitializerProvider);
+    }
+
     public static class Builder {
 
         private String m_separator = "/";
@@ -119,6 +130,8 @@ public final class BaseFSDescriptor implements FSDescriptor {
         private BaseFSCapabilities.Builder m_capabilitiesBuilder = new BaseFSCapabilities.Builder();
 
         private URIExporterFactoryMapBuilder m_uriExporterMapBuilder = new URIExporterFactoryMapBuilder();
+
+        private FSTestInitializerProvider m_testInitializerProvider = null;
 
         public Builder withSeparator(final String separator) {
             m_separator = separator;
@@ -206,6 +219,11 @@ public final class BaseFSDescriptor implements FSDescriptor {
             };
         }
 
+        public Builder withTestInitializerProvider(final FSTestInitializerProvider testInitializerProvider) {
+            m_testInitializerProvider = testInitializerProvider;
+            return this;
+        }
+
         public FSDescriptor build() {
             CheckUtils.checkArgument(StringUtils.isNotBlank(m_separator), "Separator must not be blank");
             CheckUtils.checkArgumentNotNull(m_connectionFactory, "Connection factory must not be null");
@@ -213,7 +231,8 @@ public final class BaseFSDescriptor implements FSDescriptor {
             return new BaseFSDescriptor(m_connectionFactory, //
                 m_separator, //
                 m_capabilitiesBuilder.build(), //
-                m_uriExporterMapBuilder.build());
+                m_uriExporterMapBuilder.build(),
+                m_testInitializerProvider);
         }
     }
 }

@@ -67,12 +67,10 @@ import org.knime.filehandling.core.connections.FSPath;
  * {@link FSTestInitializer} is only meant to be instantiated from corresponding {@link FSTestInitializerProvider}.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
- * @param <P> The concrete path type of the file system.
- * @param <F> The concrete file system type.
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> {
+public interface FSTestInitializer {
 
     /**
      * Hook called before each test case, allowing each implementation to modify the initializer before each test case.
@@ -110,7 +108,7 @@ public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> 
      *
      * @return the underlying file system
      */
-    public F getFileSystem();
+    public FSFileSystem<?> getFileSystem();
 
     /**
      * Returns a directory in the underlying {@link FSFileSystem} which is supposed to be used by all integration tests
@@ -118,7 +116,7 @@ public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> 
      *
      * @return the scratch directory to be used by all integration tests to store and read their data.
      */
-    public P getTestCaseScratchDir();
+    public FSPath getTestCaseScratchDir();
 
     /**
      * Creates a file with the provided path, starting from the configured root directory.
@@ -127,7 +125,7 @@ public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> 
      * @return the path to the created file
      * @throws IOException
      */
-    public P createFile(String... pathComponents) throws IOException;
+    public FSPath createFile(String... pathComponents) throws IOException;
 
     /**
      * Creates a file at the provided path destination, with the provided content. The file is always
@@ -138,7 +136,7 @@ public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> 
      * @return the path to the created file
      * @throws IOException
      */
-    public P createFileWithContent(String content, String... pathComponents) throws IOException;
+    public FSPath createFileWithContent(String content, String... pathComponents) throws IOException;
 
     /**
      * Creates a {@link Path} object for the given name components. The returned path is absolute and has the path from
@@ -147,6 +145,6 @@ public interface FSTestInitializer<P extends FSPath, F extends FSFileSystem<P>> 
      * @param pathComponents The path components of the path to create.
      * @return a {@link Path} object for the given name components.
      */
-    public P makePath(final String... pathComponents);
+    public FSPath makePath(final String... pathComponents);
 
 }

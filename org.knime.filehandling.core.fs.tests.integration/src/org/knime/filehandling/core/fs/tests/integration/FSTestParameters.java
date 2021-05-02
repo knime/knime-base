@@ -89,7 +89,7 @@ public class FSTestParameters {
 
         for (int i = 0; i < numberOfFS; i++) {
             final String fsType = testInitializerKeys.get(i);
-            final IOESupplier<FSTestInitializer<?,?>> initializerSupplier =
+            final IOESupplier<FSTestInitializer> initializerSupplier =
                 () -> manager.createInitializer(fsType, testConfig.getSettingsForFSType(fsType));
 
             fsTestInitializers[i][0] = fsType;
@@ -111,18 +111,18 @@ public class FSTestParameters {
         return testInitializerKeys;
     }
 
-    private static class CachingSupplier implements IOESupplier<FSTestInitializer<?,?>> {
+    private static class CachingSupplier implements IOESupplier<FSTestInitializer> {
 
-        private FSTestInitializer<?,?> m_toSupply;
+        private FSTestInitializer m_toSupply;
 
-        private final IOESupplier<FSTestInitializer<?,?>> m_newInstanceSupplier;
+        private final IOESupplier<FSTestInitializer> m_newInstanceSupplier;
 
-        CachingSupplier(final IOESupplier<FSTestInitializer<?,?>> newInstanceSupplier) {
+        CachingSupplier(final IOESupplier<FSTestInitializer> newInstanceSupplier) {
             m_newInstanceSupplier = newInstanceSupplier;
         }
 
         @Override
-        public synchronized FSTestInitializer<?,?> get() throws IOException {
+        public synchronized FSTestInitializer get() throws IOException {
             if (m_toSupply == null) {
                 m_toSupply = m_newInstanceSupplier.get();
             }

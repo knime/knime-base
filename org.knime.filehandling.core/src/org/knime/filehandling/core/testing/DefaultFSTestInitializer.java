@@ -66,7 +66,7 @@ import org.knime.filehandling.core.connections.FSPath;
  * @noextend non-public API
  */
 public abstract class DefaultFSTestInitializer<P extends FSPath, F extends FSFileSystem<P>>
-    implements FSTestInitializer<P, F> {
+    implements FSTestInitializer {
 
     private final FSConnection m_fsConnection;
 
@@ -135,6 +135,9 @@ public abstract class DefaultFSTestInitializer<P extends FSPath, F extends FSFil
      * @throws IOException
      */
     protected abstract void afterTestCaseInternal() throws IOException;
+
+    @Override
+    public abstract P createFileWithContent(String content, String... pathComponents) throws IOException;
 
     @Override
     public P createFile(final String... pathComponents) throws IOException {

@@ -52,14 +52,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IExtensionRegistry;
-import org.eclipse.core.runtime.Platform;
-import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
@@ -69,59 +69,18 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class FSTestInitializerManager {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(FSTestInitializerManager.class);
-
-    /** The id of the FS test initializer provider extension point. */
-    public static final String EXT_POINT_ID = "org.knime.filehandling.FSTestInitializerProvider";
-
-    /** The attribute of the extension point. */
-    public static final String EXT_POINT_ATTR_DF = "ProviderClass";
+public final class FSTestInitializerManager {
 
     private static FSTestInitializerManager instance;
 
     private final Map<String, FSTestInitializerProvider> m_providers = new HashMap<>();
 
     private FSTestInitializerManager() {
-        try {
-            final IExtensionRegistry registry = Platform.getExtensionRegistry();
-            final IExtensionPoint point = registry.getExtensionPoint(EXT_POINT_ID);
-            if (point == null) {
-                LOGGER.error("Invalid extension point: " + EXT_POINT_ID);
-                throw new IllegalStateException("ACTIVATION ERROR: --> Invalid extension point: " + EXT_POINT_ID);
+        for (FSType fsType : FSTypeRegistry.getFSTypes()) {
+            final Optional<FSDescriptor> descriptor = FSDescriptorRegistry.getFSDescriptor(fsType);
+            if (descriptor.isPresent() && descriptor.get().getFSTestInitializerProvider().isPresent()) {
+                m_providers.put(fsType.getTypeId(), descriptor.get().getFSTestInitializerProvider().get()); // NOSONAR checked above, thanks sonar...
             }
-            for (final IConfigurationElement elem : point.getConfigurationElements()) {
-                final String operator = elem.getAttribute(EXT_POINT_ATTR_DF);
-                final String decl = elem.getDeclaringExtension().getUniqueIdentifier();
-
-                if ((operator == null) || operator.isEmpty()) {
-                    LOGGER.error("The extension '" + decl + "' doesn't provide the required attribute '"
-                        + EXT_POINT_ATTR_DF + "'");
-                    LOGGER.error("Extension " + decl + " ignored.");
-                    continue;
-                }
-                try {
-                    final FSTestInitializerProvider extension =
-                        (FSTestInitializerProvider)elem.createExecutableExtension(EXT_POINT_ATTR_DF);
-                    final String type = extension.getFSType();
-
-                    if (m_providers.containsKey(type)) {
-                        throw new IllegalStateException(
-                            String.format("The fs-type '%s' has already been registered", type));
-                    }
-
-                    m_providers.put(type, extension);
-                } catch (final Throwable t) {
-                    LOGGER.error("Problems during initialization of provider operator (with id '" + operator + "'.)",
-                        t);
-                    if (decl != null) {
-                        LOGGER.error("Extension " + decl + " ignored.", t);
-                    }
-                }
-            }
-        } catch (final Exception e) {
-            LOGGER.error("Exception while registering aggregation operator extensions", e);
         }
     }
 

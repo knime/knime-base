@@ -141,7 +141,7 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
 
         exec.getProgressMonitor().setProgress(0, String.format("Connecting to file system %s", fsType));
 
-        final FSTestInitializer<?,?> initializer =
+        final FSTestInitializer initializer =
             FSTestInitializerManager.instance().createInitializer(fsType, testConfig.getSettingsForFSType(fsType));
 
         Files.createDirectories(initializer.getFileSystem().getWorkingDirectory());
@@ -170,7 +170,7 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
 
     }
 
-    private static void deleteWorkingDirOnConnectionClose(final FSTestInitializer<?, ?> initializer) {
+    private static void deleteWorkingDirOnConnectionClose(final FSTestInitializer initializer) {
         final FSFileSystem<FSPath> fs = (FSFileSystem<FSPath>)initializer.getFileSystem();
         initializer.getFileSystem().registerCloseable(() -> {
             FSFiles.deleteRecursively(fs.getWorkingDirectory());

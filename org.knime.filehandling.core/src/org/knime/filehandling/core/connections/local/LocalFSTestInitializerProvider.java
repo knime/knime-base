@@ -54,6 +54,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
@@ -73,8 +74,8 @@ public class LocalFSTestInitializerProvider implements FSTestInitializerProvider
     }
 
     @Override
-    public String getFSType() {
-        return LocalFileSystem.FS_TYPE.getTypeId();
+    public FSType getFSType() {
+        return FSType.LOCAL_FS;
     }
 
     @Override

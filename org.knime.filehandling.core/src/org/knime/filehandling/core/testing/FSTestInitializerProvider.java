@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.meta.FSType;
 
 /**
  * The interface backing an extension point which allows any file system implementation to register a provider needed
@@ -40,7 +41,7 @@ public interface FSTestInitializerProvider {
      *
      * @return the file system type
      */
-    public String getFSType();
+    public FSType getFSType();
 
     /**
      * Creates the {@link FSLocationSpec} of the file system that would be created by {@link #setup(Map)}.
