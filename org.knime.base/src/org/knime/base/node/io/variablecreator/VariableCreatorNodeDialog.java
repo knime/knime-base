@@ -401,7 +401,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         try {
-            VariableTable.validatevariablesFromSettings(settings);
+            VariableTable.validateVariablesFromSettings(settings);
             m_vars.loadVariablesFromSettings(settings);
         } catch (InvalidSettingsException e) { // NOSONAR: the implementation guide states the object shall be reset to default if the values are invalid
             m_vars.reset();

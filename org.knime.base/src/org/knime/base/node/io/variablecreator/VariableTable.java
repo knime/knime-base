@@ -380,10 +380,10 @@ final class VariableTable {
         if (name.trim().isEmpty()) {
             return new Pair<>(Boolean.FALSE, Optional.of("Name is empty"));
         } else {
-            final var externalVaraible = m_externalVariables.get(name);
-            if (externalVaraible != null) {
+            final var externalVariable = m_externalVariables.get(name);
+            if (externalVariable != null) {
                 // Will only get overridden if the name and the type are the same
-                if (externalVaraible.getVariableType().equals(m_variableTypes.get(row).getVariableType())) {
+                if (externalVariable.getVariableType().equals(m_variableTypes.get(row).getVariableType())) {
                     return new Pair<>(Boolean.TRUE, Optional.of(MSG_NAME_EXTERNAL_OVERRIDES));
                 } else {
                     return new Pair<>(Boolean.TRUE, Optional.of(MSG_NAME_EXTERNAL_CONFLICT));
@@ -553,13 +553,13 @@ final class VariableTable {
     }
 
     /**
-     * Check weather the given settings are correctly formatted.
+     * Check whether the given settings are correctly formatted.
      *
      * @param settings the settings to be checked
      * @throws InvalidSettingsException
      * @throws InvalidSettingsException if the settings could not be parsed
      */
-    static void validatevariablesFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    static void validateVariablesFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         final NodeSettingsRO tableSettings = settings.getNodeSettings(SETTINGS_KEY);
         final String[] typeStrings = tableSettings.getStringArray(SETTINGS_COL_TYPE);
         final String[] nameStrings = tableSettings.getStringArray(SETTINGS_COL_NAME);
@@ -599,7 +599,7 @@ final class VariableTable {
 
     /**
      * Tries to load defined variables from the settings. These should be checked beforehand with
-     * {@link #validatevariablesFromSettings(NodeSettingsRO)}.
+     * {@link #validateVariablesFromSettings(NodeSettingsRO)}.
      *
      * @param settings the settings to read from
      * @throws InvalidSettingsException if the settings could not be parsed

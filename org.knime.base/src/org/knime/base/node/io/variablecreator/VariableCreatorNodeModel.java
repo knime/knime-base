@@ -76,9 +76,6 @@ final class VariableCreatorNodeModel extends NodeModel {
     /** A table containing the settings of this model, i.e. the variables, their name and value. */
     private final VariableTable m_table = new VariableTable(getAvailableFlowVariables(Type.getAllTypes()));
 
-    /** The warning message regarding variables from the “Inport”. */
-    private String m_warningMsg = null;
-
     /**
      * Create the node model for the "Variable Creator" node
      */
@@ -91,12 +88,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        // it is a stack so we have to push  the variables in opposite order
-        m_warningMsg = getNameWarningMessage();
-        for (int i = m_table.getRowCount() - 1; i >= 0; i--) {
-            pushVariable(i);
-        }
-        setWarningMessage(m_warningMsg);
+        pushVariablesAndSetWarning();
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
     }
 
@@ -105,9 +97,17 @@ final class VariableCreatorNodeModel extends NodeModel {
      */
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        // the warning should still be present after execution
-        setWarningMessage(m_warningMsg);
+        pushVariablesAndSetWarning();
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
+    }
+
+    private void pushVariablesAndSetWarning() {
+        if (m_table.getRowCount() == 0) {
+            setWarningMessage("No new variables defined");
+        } else {
+            pushVariables();
+            setWarningMessage(getNameWarningMessage());
+        }
     }
 
     /**
@@ -116,7 +116,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      * @return the warning message. <code>null</code> if there is no warning.
      */
     private String getNameWarningMessage() {
-        m_table.setExternalVariables(getAvailableFlowVariables(Type.getAllTypes()));
+        m_table.setExternalVariables(getAvailableInputFlowVariables(Type.getAllTypes()));
         // the name cannot be empty in this case
         boolean foundOverride = false;
         boolean foundConflict = false;
@@ -183,27 +183,33 @@ final class VariableCreatorNodeModel extends NodeModel {
      *
      * @param row the row of the variable to push
      */
-    private void pushVariable(final int row) {
-        final Type type = m_table.getType(row);
-        switch (type) {
-            case STRING:
-                pushFlowVariable(m_table.getName(row), VariableType.StringType.INSTANCE, (String)m_table.getValue(row));
-                break;
-            case INTEGER:
-                pushFlowVariable(m_table.getName(row), VariableType.IntType.INSTANCE, (Integer)m_table.getValue(row));
-                break;
-            case LONG:
-                pushFlowVariable(m_table.getName(row), VariableType.LongType.INSTANCE, (Long)m_table.getValue(row));
-                break;
-            case DOUBLE:
-                pushFlowVariable(m_table.getName(row), VariableType.DoubleType.INSTANCE, (Double)m_table.getValue(row));
-                break;
-            case BOOLEAN:
-                pushFlowVariable(m_table.getName(row), VariableType.BooleanType.INSTANCE,
-                    (Boolean)m_table.getValue(row));
-                break;
-            default:
-                throw new IllegalStateException("Unknown variable type: " + type);
+    private void pushVariables() {
+        // it is a stack so we have to push  the variables in opposite order
+        for (int row = m_table.getRowCount() - 1; row >= 0; row--) {
+            final Type type = m_table.getType(row);
+            switch (type) {
+                case STRING:
+                    pushFlowVariable(m_table.getName(row), VariableType.StringType.INSTANCE,
+                        (String)m_table.getValue(row));
+                    break;
+                case INTEGER:
+                    pushFlowVariable(m_table.getName(row), VariableType.IntType.INSTANCE,
+                        (Integer)m_table.getValue(row));
+                    break;
+                case LONG:
+                    pushFlowVariable(m_table.getName(row), VariableType.LongType.INSTANCE, (Long)m_table.getValue(row));
+                    break;
+                case DOUBLE:
+                    pushFlowVariable(m_table.getName(row), VariableType.DoubleType.INSTANCE,
+                        (Double)m_table.getValue(row));
+                    break;
+                case BOOLEAN:
+                    pushFlowVariable(m_table.getName(row), VariableType.BooleanType.INSTANCE,
+                        (Boolean)m_table.getValue(row));
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown variable type: " + type);
+            }
         }
     }
 
@@ -220,7 +226,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        VariableTable.validatevariablesFromSettings(settings);
+        VariableTable.validateVariablesFromSettings(settings);
     }
 
     /**
