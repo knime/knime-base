@@ -115,8 +115,8 @@ class Joiner3Settings {
      * Conjunctive or disjunctive join mode.
      */
     enum CompositionMode implements ButtonGroupEnumInterface {
-        MATCH_ALL("Match all", "Join rows when all join attributes match (logical and)."),
-        MATCH_ANY("Match any", "Join rows when at least one join attribute matches (logical or).");
+        MATCH_ALL("all of the following", "Join rows when all join attributes match (logical and)."),
+        MATCH_ANY("any of the following", "Join rows when at least one join attribute matches (logical or).");
 
         private String m_label;
         private String m_tooltip;
@@ -135,7 +135,8 @@ class Joiner3Settings {
     enum RowKeyFactory implements ButtonGroupEnumInterface {
             /** Output rows may be provided in any order. */
             CONCATENATE("Concatenate original row keys with separator",
-                "For instance, when selecting separator \"_\", a row joining rows with keys Row0 and Row1 is assigned key Row0_Row1.",
+                "For instance, when selecting separator \"_\", "
+                    + "a row joining rows with keys Row0 and Row1 is assigned key Row0_Row1.",
                 JoinSpecification::createConcatRowKeysFactory),
             SEQUENTIAL("Assign new row keys sequentially",
                 "Output rows are assigned sequential row keys, e.g., Row0, Row1, etc. ",
@@ -147,7 +148,8 @@ class Joiner3Settings {
 
         private final Function<String, BiFunction<DataRow, DataRow, RowKey>> m_factoryCreator;
 
-        RowKeyFactory(final String label, final String tooltip, final Function<String, BiFunction<DataRow, DataRow, RowKey>> factoryCreator) {
+        RowKeyFactory(final String label, final String tooltip,
+            final Function<String, BiFunction<DataRow, DataRow, RowKey>> factoryCreator) {
             m_label = label;
             m_tooltip = tooltip;
             m_factoryCreator = factoryCreator;
@@ -190,7 +192,8 @@ class Joiner3Settings {
             /** Output rows may be provided in any order. */
             ARBITRARY("Arbitrary output order (may vary randomly)", "The output can vary depending on the currently "
                     + "available amount of main memory. This means that identical input can produce different output"
-                    + " orders on consecutive executions.", org.knime.core.data.join.JoinSpecification.OutputRowOrder.ARBITRARY),
+                    + " orders on consecutive executions.",
+                    org.knime.core.data.join.JoinSpecification.OutputRowOrder.ARBITRARY),
             LEFT_RIGHT("Sort by row offset in left table, then right table",
                 "<html>Rows are output in three blocks:        "
                     + "<ol>                                    "
@@ -199,12 +202,17 @@ class Joiner3Settings {
                     + "<li>unmatched rows from right table</li>"
                     + "</ol>                                   "
                     + "Each block is sorted by row offset in the left table, breaking ties using the "
-                    + "row offset in the right table.", org.knime.core.data.join.JoinSpecification.OutputRowOrder.LEFT_RIGHT);
+                    + "row offset in the right table.",
+                    org.knime.core.data.join.JoinSpecification.OutputRowOrder.LEFT_RIGHT);
 
         private final String m_label;
+
         private final String m_tooltip;
+
         private final org.knime.core.data.join.JoinSpecification.OutputRowOrder m_outputRowOrder;
-        OutputRowOrder(final String label, final String tooltip, final org.knime.core.data.join.JoinSpecification.OutputRowOrder outputRowOrder) {
+
+        OutputRowOrder(final String label, final String tooltip,
+            final org.knime.core.data.join.JoinSpecification.OutputRowOrder outputRowOrder) {
             m_label = label;
             m_tooltip = tooltip;
             m_outputRowOrder = outputRowOrder;
@@ -221,31 +229,50 @@ class Joiner3Settings {
     }
 
     // join conditions
-    final SettingsModelStringArray m_leftJoiningColumnsModel = new SettingsModelStringArray("leftTableJoinPredicate", new String[0]);
-    final SettingsModelStringArray m_rightJoiningColumnsModel = new SettingsModelStringArray("rightTableJoinPredicate", new String[0]);
-    final SettingsModelString m_compositionModeModel = new SettingsModelString("compositionMode", CompositionMode.MATCH_ALL.name());
+    final SettingsModelStringArray m_leftJoiningColumnsModel =
+        new SettingsModelStringArray("leftTableJoinPredicate", new String[0]);
+
+    final SettingsModelStringArray m_rightJoiningColumnsModel =
+        new SettingsModelStringArray("rightTableJoinPredicate", new String[0]);
+
+    final SettingsModelString m_compositionModeModel =
+        new SettingsModelString("compositionMode", CompositionMode.MATCH_ALL.name());
 
     // include in output: matches, left unmatched, right unmatched
     final SettingsModelBoolean m_includeMatchesModel = new SettingsModelBoolean("includeMatchesInOutput", true);
-    final SettingsModelBoolean m_includeLeftUnmatchedModel = new SettingsModelBoolean("includeLeftUnmatchedInOutput", false);
-    final SettingsModelBoolean m_includeRightUnmatchedModel = new SettingsModelBoolean("includeRightUnmatchedInOutput", false);
+
+    final SettingsModelBoolean m_includeLeftUnmatchedModel =
+        new SettingsModelBoolean("includeLeftUnmatchedInOutput", false);
+
+    final SettingsModelBoolean m_includeRightUnmatchedModel =
+        new SettingsModelBoolean("includeRightUnmatchedInOutput", false);
 
     // output options
     final SettingsModelBoolean m_mergeJoinColumnsModel = new SettingsModelBoolean("mergeJoinColumns", false);
-    final SettingsModelBoolean m_outputUnmatchedRowsToSeparatePortsModel = new SettingsModelBoolean("outputUnmatchedRowsToSeparatePorts", false);
+
+    final SettingsModelBoolean m_outputUnmatchedRowsToSeparatePortsModel =
+        new SettingsModelBoolean("outputUnmatchedRowsToSeparatePorts", false);
+
     final SettingsModelBoolean m_enableHilitingModel = new SettingsModelBoolean("enableHiliting", false);
 
     // row keys
-    final SettingsModelString m_rowKeyFactoryModel = new SettingsModelString("rowKeyFactory", RowKeyFactory.CONCATENATE.name());
+    final SettingsModelString m_rowKeyFactoryModel =
+        new SettingsModelString("rowKeyFactory", RowKeyFactory.CONCATENATE.name());
+
     final SettingsModelString m_rowKeySeparatorModel = new SettingsModelString("rowKeySeparator", "_");
 
     // include columns and column name disambiguation
-    final SettingsModelString m_columnDisambiguationModel = new SettingsModelString("duplicateHandling", ColumnNameDisambiguation.APPEND_SUFFIX.name());
+    final SettingsModelString m_columnDisambiguationModel =
+        new SettingsModelString("duplicateHandling", ColumnNameDisambiguation.APPEND_SUFFIX.name());
+
     final SettingsModelString m_columnNameSuffixModel = new SettingsModelString("suffix", " (right)");
 
     // performance
-    final SettingsModelString m_outputRowOrderModel = new SettingsModelString("outputRowOrder", OutputRowOrder.ARBITRARY.name());
-    final SettingsModelIntegerBounded m_maxOpenFilesModel = new SettingsModelIntegerBounded("maxOpenFiles", 200, 3, Integer.MAX_VALUE);
+    final SettingsModelString m_outputRowOrderModel =
+        new SettingsModelString("outputRowOrder", OutputRowOrder.ARBITRARY.name());
+
+    final SettingsModelIntegerBounded m_maxOpenFilesModel =
+        new SettingsModelIntegerBounded("maxOpenFiles", 200, 3, Integer.MAX_VALUE);
 
     final List<SettingsModel> m_settings = new ArrayList<>();
 
@@ -293,7 +320,8 @@ class Joiner3Settings {
      * @param spec the input spec
      * @throws InvalidSettingsException
      */
-    void loadSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec[] spec) throws InvalidSettingsException {
+    void loadSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec[] spec)
+        throws InvalidSettingsException {
         loadSettings(settings);
         m_leftColSelectConfig.loadConfigurationInDialog(settings, spec[0]);
         m_rightColSelectConfig.loadConfigurationInDialog(settings, spec[1]);

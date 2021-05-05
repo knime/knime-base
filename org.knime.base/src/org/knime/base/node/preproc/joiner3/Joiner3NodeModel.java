@@ -65,11 +65,11 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.join.JoinImplementation;
 import org.knime.core.data.join.JoinSpecification;
 import org.knime.core.data.join.JoinSpecification.InputTable;
 import org.knime.core.data.join.JoinTableSettings;
-import org.knime.core.data.join.JoinerFactory.JoinAlgorithm;
+import org.knime.core.data.join.implementation.JoinImplementation;
+import org.knime.core.data.join.implementation.JoinerFactory.JoinAlgorithm;
 import org.knime.core.data.join.results.JoinResult;
 import org.knime.core.data.join.results.JoinResult.OutputCombined;
 import org.knime.core.data.join.results.JoinResult.OutputSplit;
@@ -208,7 +208,8 @@ class Joiner3NodeModel extends NodeModel {
             .outputRowOrder(m_settings.getOutputRowOrder())
             .retainMatched(m_settings.isIncludeMatches())
             .mergeJoinColumns(m_settings.isMergeJoinColumns()).columnNameDisambiguator(columnNameDisambiguator)
-            .rowKeyFactory(rowKeysFactory).build();
+            .rowKeyFactory(rowKeysFactory)
+            .build();
     }
 
     /**

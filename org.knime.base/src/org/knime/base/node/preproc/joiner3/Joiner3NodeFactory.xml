@@ -17,10 +17,11 @@
 				Row keys can be compared to row keys or regular columns, in which case the row key will be interpreted 
 				as a string value. 
                 <br/>
+                <b>Match all:</b> If selected, two rows must agree in all selected join columns to be matched.<br/>
+                <b>Match any:</b> If selected, two rows must agree in at least one selected join column to be matched.
             </option>
             <option name="Include in output">
-                Controls which rows are included in the join result. The join mode corresponding to the selected
-                settings, e.g., inner join, outer join, or antijoin, is displayed for convenience. <br/>
+                Select which rows are included in the join result. <br/>
                 <b>Matching rows:</b> If selected, the joined rows are included in the output.
                 Deactivating this can be used to find only the rows that do not have a join partner in the other table. 
                 <br/>
@@ -32,7 +33,7 @@
                  For example, including only right unmatched rows corresponds to a right antijoin in database terms.
             </option>        
             <option name="Output options">
-                Controls the format in which the join result is output and whether hiliting is enabled.  
+                Select the format in which the join results are output and whether hiliting is enabled.  
                 <br/>
                 <b>Output unmatched rows to separate ports:</b>
                 If selected, the node will produce three output tables instead of one. The top output port contains

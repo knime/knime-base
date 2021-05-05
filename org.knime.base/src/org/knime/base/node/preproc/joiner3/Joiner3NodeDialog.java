@@ -72,6 +72,7 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeListener;
 
 import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguation;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.CompositionMode;
 import org.knime.base.node.preproc.joiner3.Joiner3Settings.RowKeyFactory;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -102,6 +103,7 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
     // join conditions
     private ColumnPairsSelectionPanel m_columnPairs;
+    private final DialogComponentButtonGroup m_compositionMode;
 
     // include in output
     private final DialogComponentBoolean m_includeMatchingRows;
@@ -134,6 +136,9 @@ class Joiner3NodeDialog extends NodeDialogPane {
      * @param settings
      */
     Joiner3NodeDialog() {
+
+        m_compositionMode = new DialogComponentButtonGroup(m_settings.m_compositionModeModel, "Composition mode",
+            true, Joiner3Settings.CompositionMode.values());
 
         // include in output
         m_includeMatchingRows =
@@ -281,6 +286,17 @@ class Joiner3NodeDialog extends NodeDialogPane {
                 }
             }
         };
+
+
+        // two elements in one row: button for concat and field for separator
+        JPanel compositionMode = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        compositionMode.add(new JLabel("Match  "));
+        compositionMode.add(m_compositionMode.getButton(CompositionMode.MATCH_ALL.name()));
+        compositionMode.add(m_compositionMode.getButton(CompositionMode.MATCH_ANY.name()));
+        p.add(compositionMode);
+
+        c.gridy++;
+
         JScrollPane scrollPane = new JScrollPane(m_columnPairs);
         m_columnPairs.setBackground(Color.white);
 
