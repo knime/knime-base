@@ -141,18 +141,31 @@ class Joiner3NodeDialog extends NodeDialogPane {
             true, Joiner3Settings.CompositionMode.values());
 
         // include in output
-        m_includeMatchingRows =
-            new DialogComponentBoolean(m_settings.m_includeMatchesModel, "Matching rows");
+        m_includeMatchingRows = new DialogComponentBoolean(m_settings.m_includeMatchesModel, "Matching rows");
+        m_includeMatchingRows.setToolTipText("Include rows that agree on the selected column pairs.");
+
         m_includeLeftUnmatchedRows =
             new DialogComponentBoolean(m_settings.m_includeLeftUnmatchedModel, "Left unmatched rows");
+        m_includeLeftUnmatchedRows.setToolTipText(
+            "Include rows from the left input table for which no matching row in the right input table is found.");
+
         m_includeRightUnmatchedRows =
             new DialogComponentBoolean(m_settings.m_includeRightUnmatchedModel, "Right unmatched rows");
+        m_includeRightUnmatchedRows.setToolTipText(
+                "Include rows from the right input table for which no matching row in the left input table is found.");
 
         // output options
         m_outputUnmatchedRowsToSeparatePorts = new DialogComponentBoolean(
             m_settings.m_outputUnmatchedRowsToSeparatePortsModel, "Output unmatched rows to separate ports");
+        m_outputUnmatchedRowsToSeparatePorts
+            .setToolTipText("Use the other two output ports to output unmatched rows separately from matched rows.");
+
         m_mergeJoinColumns = new DialogComponentBoolean(m_settings.m_mergeJoinColumnsModel, "Merge join columns");
+        m_mergeJoinColumns
+            .setToolTipText("Combine join columns with identical values into one column (see node description).");
+
         m_hilitingEnabled = new DialogComponentBoolean(m_settings.m_enableHilitingModel, "Hiliting enabled");
+        m_hilitingEnabled.setToolTipText("Track which output rows have been produced by which input rows.");
 
         // row keys
         m_rowKeyFactory = new DialogComponentButtonGroup(m_settings.m_rowKeyFactoryModel, "Row keys of the output rows",
@@ -290,7 +303,7 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
         // two elements in one row: button for concat and field for separator
         JPanel compositionMode = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        compositionMode.add(new JLabel("Match  "));
+        compositionMode.add(new JLabel("  Match "));
         compositionMode.add(m_compositionMode.getButton(CompositionMode.MATCH_ALL.name()));
         compositionMode.add(m_compositionMode.getButton(CompositionMode.MATCH_ANY.name()));
         p.add(compositionMode);
