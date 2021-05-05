@@ -74,13 +74,38 @@ import org.knime.core.util.Pair;
 final class VariableCreatorNodeModel extends NodeModel {
 
     /** A table containing the settings of this model, i.e. the variables, their name and value. */
-    private final VariableTable m_table = new VariableTable(getAvailableFlowVariables(Type.getAllTypes()));
+    private final VariableTable m_table;
 
     /**
      * Create the node model for the "Variable Creator" node
      */
     VariableCreatorNodeModel() {
         super(new PortType[0], new PortType[]{FlowVariablePortObject.TYPE});
+        m_table = new VariableTable(getAvailableFlowVariables(Type.getAllTypes()));
+        addDefaultValue();
+    }
+
+    /**
+     * Adds a default value
+     */
+    private void addDefaultValue() {
+        m_table.addRow();
+        final var resultType = m_table.setType(0, Type.STRING);
+        final var resultName = m_table.setName(0, VariableTable.DEFAULT_NAME_PREFIX + '_' + 1);
+        final var resultValue = m_table.setValue(0, Type.STRING.getDefaultStringValue());
+
+        if (!resultType.getFirst().booleanValue()) {
+            throw new IllegalStateException(
+                "Could not initialize default variable type: " + resultType.getSecond().orElse("(Unknown error!)"));
+        }
+        if (!resultName.getFirst().booleanValue()) {
+            throw new IllegalStateException(
+                "Could not initialize default variable name: " + resultName.getSecond().orElse("(Unknown error!)"));
+        }
+        if (!resultValue.getFirst().booleanValue()) {
+            throw new IllegalStateException(
+                "Could not initialize default variable value: " + resultValue.getSecond().orElse("(Unknown error!)"));
+        }
     }
 
     /**

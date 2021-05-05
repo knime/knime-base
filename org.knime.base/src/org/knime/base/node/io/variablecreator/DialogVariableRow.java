@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.variablecreator;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -59,6 +60,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -67,6 +69,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -100,6 +103,12 @@ final class DialogVariableRow {
     /** The input field for choosing a name. */
     private final JTextField m_nameInput;
 
+    /** The default border of the name input field. */
+    private final Border m_nameInputDefaultBorder;
+
+    /** The error border of the name input field. */
+    private final Border m_nameInputErrorBorder;
+
     /** The error/warning hint for the name input field. */
     private final JLabel m_nameInputHint;
 
@@ -127,9 +136,6 @@ final class DialogVariableRow {
     /** The panel containing both {@link #m_up},{@link #m_down} and {@link #m_delete}. */
     private final JPanel m_buttonBox;
 
-    /** Whether this row is currently deleted. (Used to prevent checks triggered by removing components.) */
-    private boolean m_isDeleting;
-
     /**
      * Creates a new row in the panel of the dialog
      *
@@ -139,7 +145,6 @@ final class DialogVariableRow {
     DialogVariableRow(final VariableCreatorNodeDialog parent, final boolean loading) {
         m_parent = parent;
         m_index = m_parent.getRows().size();
-        m_isDeleting = false;
 
         // initialize objects but not values
         m_typeSelection = new JComboBox<>(Type.values()) {
@@ -148,7 +153,7 @@ final class DialogVariableRow {
             @Override
             public void setPopupVisible(final boolean visible) {
                 super.setPopupVisible(visible);
-                if (!visible && !m_isDeleting) { // when closing
+                if (!visible) { // when closing
                     checkTypeBox(false);
                 }
             }
@@ -156,6 +161,8 @@ final class DialogVariableRow {
         m_typeSelectionHint = new JLabel();
         m_typeBox = new JPanel();
         m_nameInput = new JTextField();
+        m_nameInputDefaultBorder = m_nameInput.getBorder();
+        m_nameInputErrorBorder = BorderFactory.createLineBorder(Color.RED, 2);
         m_nameInputHint = new JLabel();
         m_nameBox = new JPanel();
         m_valueInput = new JTextField();
@@ -183,9 +190,12 @@ final class DialogVariableRow {
         // we create this in reverse order to ensure correct checks
         final JPanel value = makeValueInputBox();
         final JPanel name = makeNameInputBox();
-        parentPanel.add(makeTypeSelectionBox(), VariableCreatorNodeDialog.getTypeColumnConstraints(m_index + 1, 0));
-        parentPanel.add(name, VariableCreatorNodeDialog.getNameColumnConstraints(m_index + 1, 0));
-        parentPanel.add(value, VariableCreatorNodeDialog.getValueColumnConstraints(m_index + 1, 0));
+        parentPanel.add(makeTypeSelectionBox(), VariableCreatorNodeDialog.getTypeColumnConstraints(m_index + 1,
+            VariableCreatorNodeDialog.COL_PADDING_INNER));
+        parentPanel.add(name, VariableCreatorNodeDialog.getNameColumnConstraints(m_index + 1,
+            VariableCreatorNodeDialog.COL_PADDING_INNER));
+        parentPanel.add(value, VariableCreatorNodeDialog.getValueColumnConstraints(m_index + 1,
+            VariableCreatorNodeDialog.COL_PADDING_INNER));
         parentPanel.add(makeButtons(), VariableCreatorNodeDialog.getButtonsColumnConstraints(m_index + 1));
     }
 
@@ -208,8 +218,6 @@ final class DialogVariableRow {
      * Removes this row (from its parent).
      */
     void removeRow() {
-        m_isDeleting = true;
-        m_parent.getVars().removeRow(m_index);
         m_parent.getRows().remove(m_index);
 
         final JPanel parentPanel = m_parent.getGUIPanel();
@@ -218,13 +226,19 @@ final class DialogVariableRow {
         parentPanel.remove(m_valueBox);
         parentPanel.remove(m_buttonBox);
 
-        for (int i = m_index; i < m_parent.getRows().size(); i++) {
+        m_parent.getVars().removeRow(m_index);
+
+        final int numRows = m_parent.getRows().size();
+        for (int i = m_index; i < numRows; i++) {
             final DialogVariableRow after = m_parent.getRows().get(i);
             after.m_index = i;
             after.setRowInLayout(i);
         }
+        if (numRows == 0) {
+            m_parent.setAddHintVisible(true);
+        }
         m_parent.getLayout().setConstraints(m_parent.getAddButton(),
-            VariableCreatorNodeDialog.getAddButtonConstraints(m_parent.getRows().size() + 1));
+            VariableCreatorNodeDialog.getAddButtonConstraints(numRows + 1));
 
         m_parent.getErrorHints().remove(m_typeSelectionHint);
         m_parent.getErrorHints().remove(m_nameInputHint);
@@ -275,9 +289,12 @@ final class DialogVariableRow {
     private void setRowInLayout(final int row) {
         final GridBagLayout parentLayout = m_parent.getLayout();
         final int destination = row + 1; // we need to skip the header
-        parentLayout.setConstraints(m_typeBox, VariableCreatorNodeDialog.getTypeColumnConstraints(destination, 0));
-        parentLayout.setConstraints(m_nameBox, VariableCreatorNodeDialog.getNameColumnConstraints(destination, 0));
-        parentLayout.setConstraints(m_valueBox, VariableCreatorNodeDialog.getValueColumnConstraints(destination, 0));
+        parentLayout.setConstraints(m_typeBox, VariableCreatorNodeDialog.getTypeColumnConstraints(destination,
+            VariableCreatorNodeDialog.COL_PADDING_INNER));
+        parentLayout.setConstraints(m_nameBox, VariableCreatorNodeDialog.getNameColumnConstraints(destination,
+            VariableCreatorNodeDialog.COL_PADDING_INNER));
+        parentLayout.setConstraints(m_valueBox, VariableCreatorNodeDialog.getValueColumnConstraints(destination,
+            VariableCreatorNodeDialog.COL_PADDING_INNER));
         parentLayout.setConstraints(m_buttonBox, VariableCreatorNodeDialog.getButtonsColumnConstraints(destination));
     }
 
@@ -527,7 +544,7 @@ final class DialogVariableRow {
 
     /**
      * Updates the variable table and validates the value input box.
-     * 
+     *
      * @param popupMayBeOpen if the popup of the combo box may still be open when this is fired. This can be the case if
      *            the user is cycling through the options using the keyboard.
      */
@@ -601,9 +618,10 @@ final class DialogVariableRow {
             }
             final Set<DialogVariableRow> alreadyUsing = m_parent.getUsedNames().get(newValue);
             if (alreadyUsing.size() == 1) {
-                final JLabel remaining = alreadyUsing.iterator().next().m_nameInputHint;
+                final var remaining = alreadyUsing.iterator().next();
                 alreadyUsing.add(this);
-                setError(remaining, "Name conflict");
+                setError(remaining.m_nameInputHint, "Name conflict");
+                remaining.m_nameInput.setBorder(m_nameInputErrorBorder);
             } else {
                 alreadyUsing.add(this);
             }
@@ -623,14 +641,21 @@ final class DialogVariableRow {
             m_parent.getVars().checkVariableNameExternal(m_index, newValue);
         Optional<String> messageStr = updateResult.getSecond();
         boolean noError = updateResult.getFirst();
+        boolean setBorder = false;
         // this ignores only a warning and overrides it with the error if it occurs
         if (noError && m_parent.getUsedNames().containsKey(newValue)
             && !m_parent.getUsedNames().get(newValue).isEmpty()) {
             final Set<DialogVariableRow> alreadyUsing = m_parent.getUsedNames().get(newValue);
             if (alreadyUsing.size() > 1 || !alreadyUsing.contains(this)) {
                 noError = false;
+                setBorder = true;
                 messageStr = Optional.of("Name conflict");
             }
+        }
+        if (setBorder) {
+            m_nameInput.setBorder(m_nameInputErrorBorder);
+        } else {
+            m_nameInput.setBorder(m_nameInputDefaultBorder);
         }
         if (noError) {
             if (messageStr.isPresent()) {

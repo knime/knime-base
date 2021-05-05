@@ -565,7 +565,8 @@ final class VariableTable {
         final String[] nameStrings = tableSettings.getStringArray(SETTINGS_COL_NAME);
         final String[] valStrings = tableSettings.getStringArray(SETTINGS_COL_VAL);
         CheckUtils.checkSetting(typeStrings.length == nameStrings.length && nameStrings.length == valStrings.length,
-            "The amount of variable types, names and values must be equal!");
+            "The amount of variable types (%d), names (%d) and values (%d) must be equal!", typeStrings.length,
+            nameStrings.length, valStrings.length);
         final Set<String> usedNames = new HashSet<>();
 
         for (int i = 0; i < typeStrings.length; i++) {

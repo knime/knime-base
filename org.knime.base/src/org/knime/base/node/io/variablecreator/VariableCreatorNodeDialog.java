@@ -65,6 +65,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import org.knime.base.node.io.variablecreator.VariableTable.Type;
 import org.knime.core.node.InvalidSettingsException;
@@ -83,7 +84,7 @@ import org.knime.core.node.util.SharedIcons;
 final class VariableCreatorNodeDialog extends NodeDialogPane {
 
     /** The width of the type column. */
-    static final int COL_TYPE_WIDTH = 100;
+    static final int COL_TYPE_WIDTH = 110;
 
     /** The width of the name column. */
     static final int COL_NAME_WIDTH = 150;
@@ -95,13 +96,12 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
     private static final int COL_HEADER_PADDING_BOTTOM = 5;
 
     /**
-     * The left (as long as it is not to the far left) and right (as long as it is not to the far right) padding of each
-     * row.
+     * The inner padding of a column cell.
      */
-    private static final int COL_PADDING_LEFT_RIGHT = 2;
+    static final int COL_PADDING_INNER = 2;
 
     /** The padding of the table's border. */
-    private static final int COL_PADDING_OUTER = 10;
+    private static final int TAB_PADDING = 10;
 
     /** The internal representation of the variables. */
     private final VariableTable m_vars;
@@ -124,6 +124,9 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
     /** The “add” button. */
     private final JButton m_addButton = new JButton();
 
+    /** The label informing the user that they should add a variable */
+    private final JLabel m_addHint = new JLabel("No variables defined.");
+
     /**
      * @param gridY the y position in the grid, the type column shall have
      * @param insetsBottom the bottom padding for the element this constrains are applied to
@@ -134,7 +137,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.gridx = 0;
         gbc.gridy = gridY;
-        gbc.insets = new Insets(0, COL_PADDING_OUTER, insetsBottom, COL_PADDING_LEFT_RIGHT);
+        gbc.insets = new Insets(COL_PADDING_INNER, 0, insetsBottom, COL_PADDING_INNER);
 
         return gbc;
     }
@@ -151,7 +154,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         gbc.gridx = 1;
         gbc.weightx = 1.0;
         gbc.gridy = gridY;
-        gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, insetsBottom, COL_PADDING_LEFT_RIGHT);
+        gbc.insets = new Insets(COL_PADDING_INNER, COL_PADDING_INNER, insetsBottom, COL_PADDING_INNER);
 
         return gbc;
     }
@@ -168,7 +171,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         gbc.gridx = 2;
         gbc.weightx = 1.0;
         gbc.gridy = gridY;
-        gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, insetsBottom, COL_PADDING_LEFT_RIGHT);
+        gbc.insets = new Insets(COL_PADDING_INNER, COL_PADDING_INNER, insetsBottom, COL_PADDING_INNER);
 
         return gbc;
     }
@@ -182,7 +185,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.gridx = 3;
         gbc.gridy = gridY;
-        gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, 0, COL_PADDING_OUTER);
+        gbc.insets = new Insets(COL_PADDING_INNER, COL_PADDING_INNER, COL_PADDING_INNER, 0);
 
         return gbc;
     }
@@ -197,7 +200,24 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 3;
         gbc.gridy = gridY;
-        gbc.insets = new Insets(0, COL_PADDING_LEFT_RIGHT, 0, COL_PADDING_OUTER);
+        gbc.insets = new Insets(COL_PADDING_INNER, COL_PADDING_INNER, COL_PADDING_INNER, 0);
+
+        return gbc;
+    }
+
+    /**
+     * @return the {@link GridBagConstraints} that position the “add some variables” hint in the second row spread over
+     *         the first three columns.
+     */
+    static GridBagConstraints getAddHintConstraints() {
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 3;
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(0, COL_PADDING_INNER, COL_PADDING_INNER, COL_PADDING_INNER);
 
         return gbc;
     }
@@ -245,7 +265,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         final var outerPanel = new JPanel(new GridBagLayout());
         final var constraints = new GridBagConstraints();
         constraints.gridx = constraints.gridy = 0;
-        constraints.insets = new Insets(COL_PADDING_OUTER, 0, COL_PADDING_OUTER, 0);
+        constraints.insets = new Insets(TAB_PADDING, TAB_PADDING, TAB_PADDING, TAB_PADDING);
         constraints.fill = GridBagConstraints.BOTH;
         outerPanel.add(initVariableCreationPane(), constraints);
 
@@ -300,6 +320,13 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
     }
 
     /**
+     * @param visible whether the hint to add new variables should be visible
+     */
+    void setAddHintVisible(final boolean visible) {
+        m_addHint.setVisible(visible);
+    }
+
+    /**
      * @return the rows in this dialog
      */
     List<DialogVariableRow> getRows() {
@@ -341,6 +368,9 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
             m_rows.get(m_rows.size() - 1).updateMoveButtions();
         }
 
+        m_addHint.setHorizontalAlignment(SwingConstants.CENTER);
+        m_panel.add(m_addHint, getAddHintConstraints());
+
         JButton addButton = m_addButton;
         addButton.setText("Add");
         addButton.setToolTipText("Add a new variable");
@@ -361,6 +391,7 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
      */
     void addRow(final boolean loading) {
         m_rows.add(new DialogVariableRow(this, loading));
+        setAddHintVisible(false);
         if (!loading) {
             m_layout.setConstraints(m_addButton, getAddButtonConstraints(m_rows.size() + 1));
             m_rows.get(m_rows.size() - 1).updateMoveButtions();
@@ -408,16 +439,6 @@ final class VariableCreatorNodeDialog extends NodeDialogPane {
         }
         m_vars.setExternalVariables(getAvailableFlowVariables(Type.getAllTypes()));
         initVariableCreationPane();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onOpen() {
-        if (m_rows.isEmpty()) {
-            m_addButton.doClick();
-        }
     }
 
 }
