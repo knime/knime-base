@@ -4,7 +4,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1
 	http://knime.org/node/v4.1.xsd">
-	<name>Image Writer Table LS</name>
+	<name>Image Writer (Table)</name>
 	<shortDescription>Writes all images from a specific column to a directory.</shortDescription>
 	<fullDescription>
 		<intro>
@@ -154,7 +154,8 @@
 		</dynInPort>
 		<outPort name="Output Table" index="0">
 			Input table plus additional
-			path to saved images.
+			path to saved images plus
+			the corresponding write status (created, unmodified, overwritten).
 		</outPort>
 	</ports>
 </knimeNode>

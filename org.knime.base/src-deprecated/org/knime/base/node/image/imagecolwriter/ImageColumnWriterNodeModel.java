@@ -82,7 +82,10 @@ import org.knime.core.util.PathUtils;
  *
  * @author Thorsten Meinl, University of Konstanz
  * @author Sebastian Peter, University of Konstanz
+ *
+ * @deprecated replaced by ImageWriterTableNode
  */
+@Deprecated
 public class ImageColumnWriterNodeModel extends NodeModel {
     private final SettingsModelString m_imageColumn = new SettingsModelString(
             "imageColumn", null);
@@ -100,9 +103,6 @@ public class ImageColumnWriterNodeModel extends NodeModel {
         super(1, 0);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
@@ -140,9 +140,6 @@ public class ImageColumnWriterNodeModel extends NodeModel {
         return new DataTableSpec[0];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
@@ -218,27 +215,18 @@ public class ImageColumnWriterNodeModel extends NodeModel {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir,
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_imageColumn.saveSettingsTo(settings);
@@ -246,9 +234,6 @@ public class ImageColumnWriterNodeModel extends NodeModel {
         m_overwrite.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
@@ -257,9 +242,6 @@ public class ImageColumnWriterNodeModel extends NodeModel {
         m_overwrite.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
@@ -268,9 +250,6 @@ public class ImageColumnWriterNodeModel extends NodeModel {
         m_overwrite.loadSettingsFrom(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
     }

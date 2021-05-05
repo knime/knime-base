@@ -61,6 +61,8 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingCell;
+import org.knime.core.data.MissingValue;
+import org.knime.core.data.MissingValueException;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.StringCell;
@@ -78,6 +80,10 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.StreamableFunction;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
@@ -185,16 +191,8 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
             final int imgColIdx = dataTableSpec.findColumnIndex(m_imgColSelectModel.getStringValue());
 
-            final ImageColumnsToFilesCellFactory imageColumnsToFilesCellFactory;
-            if (m_nodeConfig.isGenerateFilenameRadioSelected()) {
-                final String generatedFilenamePattern = m_userDefinedOutputFileName.getStringValue();
-                imageColumnsToFilesCellFactory = new ImageColumnsToFilesCellFactory(getNewColumnsSpec(dataTableSpec),
-                    imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), outputPath, generatedFilenamePattern);
-            } else {
-                final int filenameColIdx = dataTableSpec.findColumnIndex(m_filenameColSelectionModel.getStringValue());
-                imageColumnsToFilesCellFactory = new ImageColumnsToFilesCellFactory(getNewColumnsSpec(dataTableSpec),
-                    imgColIdx, m_folderChooserModel.getFileOverwritePolicy(), outputPath, filenameColIdx);
-            }
+            final ImageColumnsToFilesCellFactory imageColumnsToFilesCellFactory =
+                createImageColumnsToFilesCellFactory(dataTableSpec, imgColIdx, outputPath);
 
             final ColumnRearranger c = createColumnRearranger(dataTableSpec, imageColumnsToFilesCellFactory);
             final BufferedDataTable out = exec.createColumnRearrangeTable(inputDataTable, c, exec);
@@ -207,6 +205,22 @@ final class ImageWriterTableNodeModel extends NodeModel {
             return new BufferedDataTable[]{out};
         }
 
+    }
+
+    private ImageColumnsToFilesCellFactory createImageColumnsToFilesCellFactory(final DataTableSpec dataTableSpec,
+        final int imgColIdx, final FSPath outputPath) {
+        final DataColumnSpec[] newColumnsSpec = getNewColumnsSpec(dataTableSpec);
+        final FileOverwritePolicy fileOverwritePolicy = m_folderChooserModel.getFileOverwritePolicy();
+
+        if (m_nodeConfig.isGenerateFilenameRadioSelected()) {
+            final String generatedFilenamePattern = m_userDefinedOutputFileName.getStringValue();
+            return new ImageColumnsToFilesCellFactory(newColumnsSpec, imgColIdx,
+                fileOverwritePolicy, outputPath, generatedFilenamePattern);
+        } else {
+            final int filenameColIdx = dataTableSpec.findColumnIndex(m_filenameColSelectionModel.getStringValue());
+            return new ImageColumnsToFilesCellFactory(newColumnsSpec, imgColIdx,
+                fileOverwritePolicy, outputPath, filenameColIdx);
+        }
     }
 
     private ColumnRearranger createColumnRearranger(final DataTableSpec in,
@@ -265,6 +279,56 @@ final class ImageWriterTableNodeModel extends NodeModel {
         setWarningMessage(String.format("Auto-guessed image column '%s'", guessedColumn));
 
         return guessedColumn;
+    }
+
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        final InputPortRole[] inputPortRoles = super.getInputPortRoles();
+        inputPortRoles[m_inputTableIdx] = InputPortRole.NONDISTRIBUTED_STREAMABLE;
+        return inputPortRoles;
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+
+        final DataTableSpec dataTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
+        final int imgColIdx = dataTableSpec.findColumnIndex(m_imgColSelectModel.getStringValue());
+        final WritePathAccessor writePathAccessor = m_folderChooserModel.createWritePathAccessor(); //NOSONAR
+
+        final FSPath outputPath = writePathAccessor.getOutputPath(m_statusConsumer);
+
+        final ImageColumnsToFilesCellFactory imageColumnsToFilesCellFactory =
+            createImageColumnsToFilesCellFactory(dataTableSpec, imgColIdx, outputPath);
+
+        final StreamableFunction wrappedFunction =
+            createColumnRearranger(dataTableSpec, imageColumnsToFilesCellFactory).createStreamableFunction();
+
+        return new StreamableFunction(m_inputTableIdx, 0) {
+
+            @Override
+            public void init(final ExecutionContext ctx) throws Exception {
+                createOutputDirIfRequired(outputPath);
+                wrappedFunction.init(ctx);
+            }
+
+            @Override
+            public void finish() {
+                wrappedFunction.finish();
+                try {
+                    writePathAccessor.close();
+                } catch (IOException ex) {
+                    throw new IllegalStateException("An IOException occured while closing the WritePathAccessor.", ex);
+                }
+            }
+
+            @Override
+            public DataRow compute(final DataRow input) throws Exception {
+                return wrappedFunction.compute(input);
+            }
+        };
+
     }
 
     @Override
@@ -386,7 +450,14 @@ final class ImageWriterTableNodeModel extends NodeModel {
         private String getOutputFilename(final DataRow row) {
             // -1 indicates file name is generated by user pattern
             if (m_filenameColIdx != -1) {
+
+                if (row.getCell(m_filenameColIdx).isMissing()) {
+                    throw new MissingValueException((MissingValue)row.getCell(m_filenameColIdx),
+                        "Missing values are not supported for image names");
+                }
+
                 final StringCell outputFilenameDataCell = (StringCell)row.getCell(m_filenameColIdx);
+
                 return outputFilenameDataCell.getStringValue();
             } else {
                 return m_generatedFilenamePattern.replace("?", Integer.toString(m_rowIdx));

@@ -72,7 +72,10 @@ import org.knime.core.util.FileUtil;
  *
  * @author Thorsten Meinl, University of Konstanz
  * @author Sebastian Peter, University of Konstanz
+ *
+ * @deprecated replaced by ImageWriterTableNode
  */
+@Deprecated
 public class ImageColumnWriterNodeDialogeColumn extends DefaultNodeSettingsPane {
     @SuppressWarnings("unchecked")
     private final DialogComponentColumnNameSelection m_imageColumn =

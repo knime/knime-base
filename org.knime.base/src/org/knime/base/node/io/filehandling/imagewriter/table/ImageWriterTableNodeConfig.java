@@ -57,6 +57,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
@@ -81,7 +82,7 @@ final class ImageWriterTableNodeConfig {
 
     private static final String CFG_OUTPUT_FILENAME_COLUMN_NAME = "filename_column";
 
-    private static final String CFG_FILENAME_RADIO_SELECTION = "filename_radio_selection";
+    private static final String CFG_GENERATE_FILE_NAMES = "generate_file_names";
 
     private final SettingsModelWriterFileChooser m_folderChooserModel;
 
@@ -126,7 +127,7 @@ final class ImageWriterTableNodeConfig {
             }
         };
 
-        m_filenameColSelectionModel = new SettingsModelString(CFG_OUTPUT_FILENAME_COLUMN_NAME, null);
+        m_filenameColSelectionModel = new SettingsModelColumnName(CFG_OUTPUT_FILENAME_COLUMN_NAME, null);
 
         m_isGenerateFilenameRadio = true;
         m_userDefinedOutputFilenameModel.setEnabled(m_isGenerateFilenameRadio);
@@ -166,7 +167,7 @@ final class ImageWriterTableNodeConfig {
         m_imgColSelectionModel.loadSettingsFrom(settings);
         m_removeImgColModel.loadSettingsFrom(settings);
 
-        setGenerateFilenameRadio(settings.getBoolean(CFG_FILENAME_RADIO_SELECTION));
+        setGenerateFilenameRadio(settings.getBoolean(CFG_GENERATE_FILE_NAMES));
         m_userDefinedOutputFilenameModel.loadSettingsFrom(settings);
         m_filenameColSelectionModel.loadSettingsFrom(settings);
     }
@@ -186,7 +187,7 @@ final class ImageWriterTableNodeConfig {
         m_imgColSelectionModel.validateSettings(settings);
         m_removeImgColModel.validateSettings(settings);
 
-        settings.getBoolean(CFG_FILENAME_RADIO_SELECTION);
+        settings.getBoolean(CFG_GENERATE_FILE_NAMES);
         m_userDefinedOutputFilenameModel.validateSettings(settings);
         m_filenameColSelectionModel.validateSettings(settings);
     }
@@ -197,11 +198,11 @@ final class ImageWriterTableNodeConfig {
     }
 
     void loadFileNameRadioSelectionForDialog(final NodeSettingsRO settings) {
-        setGenerateFilenameRadio(settings.getBoolean(CFG_FILENAME_RADIO_SELECTION, true));
+        setGenerateFilenameRadio(settings.getBoolean(CFG_GENERATE_FILE_NAMES, true));
     }
 
     private void saveFileNameRadioSelectionToSettings(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_FILENAME_RADIO_SELECTION, isGenerateFilenameRadioSelected());
+        settings.addBoolean(CFG_GENERATE_FILE_NAMES, isGenerateFilenameRadioSelected());
     }
 
     /**

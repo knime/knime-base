@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode type="Sink" icon="./img_writer_16.png">
+<knimeNode type="Sink" icon="./img_writer_16.png" deprecated="true">
     <name>Image Writer (Table Column)</name>
     <shortDescription>Writes all in a column images to a directory.</shortDescription>
     <fullDescription>

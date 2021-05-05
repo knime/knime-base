@@ -206,9 +206,9 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_imgColSelection.saveSettingsTo(settings);
         m_removeImgCol.saveSettingsTo(settings);
+        m_nodeConfig.saveFileNameRadioSelectionForDialog(settings, m_generateFilenameRadio.isSelected());
         m_userDefinedOutputFilename.saveSettingsTo(settings);
         m_filenameColSelection.saveSettingsTo(settings);
-        m_nodeConfig.saveFileNameRadioSelectionForDialog(settings, m_generateFilenameRadio.isSelected());
         m_folderChooser.saveSettingsTo(settings);
     }
 
@@ -217,9 +217,9 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         m_imgColSelection.loadSettingsFrom(settings, specs);
         m_removeImgCol.loadSettingsFrom(settings, specs);
+        m_nodeConfig.loadFileNameRadioSelectionForDialog(settings);
         m_userDefinedOutputFilename.loadSettingsFrom(settings, specs);
         m_filenameColSelection.loadSettingsFrom(settings, specs);
-        m_nodeConfig.loadFileNameRadioSelectionForDialog(settings);
         m_generateFilenameRadio.setSelected(m_nodeConfig.isGenerateFilenameRadioSelected());
         m_colFilenameRadio.setSelected(!m_nodeConfig.isGenerateFilenameRadioSelected());
         m_folderChooser.loadSettingsFrom(settings, specs);

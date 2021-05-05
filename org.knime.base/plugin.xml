@@ -1255,8 +1255,8 @@
       <node
             after="org.knime.base.node.io.filehandling.imagewriter.ImagePortWriterNodeFactory"
             category-path="/io/write"
-            factory-class="org.knime.base.node.image.imagecolwriter.ImageColumnWriterNodeFactory"
-            >
+            deprecated="true"
+            factory-class="org.knime.base.node.image.imagecolwriter.ImageColumnWriterNodeFactory">
       </node>
       <node
             after="org.knime.base.node.io.filehandling.imagewriter.ImagePortWriterNodeFactory"

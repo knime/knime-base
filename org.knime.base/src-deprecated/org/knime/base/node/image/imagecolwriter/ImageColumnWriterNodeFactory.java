@@ -56,44 +56,33 @@ import org.knime.core.node.NodeView;
  *
  * @author Thorsten Meinl, University of Konstanz
  * @author Sebastian Peter, University of Konstanz
+ *
+ * @deprecated replaced by ImageWriterTableNode
  */
+@Deprecated
 public class ImageColumnWriterNodeFactory extends NodeFactory<ImageColumnWriterNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
     public ImageColumnWriterNodeModel createNodeModel() {
         return new ImageColumnWriterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<ImageColumnWriterNodeModel> createNodeView(final int viewIndex,
             final ImageColumnWriterNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
         return new ImageColumnWriterNodeDialogeColumn();
