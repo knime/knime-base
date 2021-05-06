@@ -193,25 +193,6 @@ public final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
         return toLocalPath(getWorkingDirectory()).toAbsolutePath().normalize();
     }
 
-    /**
-     * Check if given path represent a regular file. Workflow directories are files, with the exception of the current
-     * workflow dir and a workflow relative path.
-     *
-     * @param path relative-to path to check
-     * @return {@code true} if path is a normal file or a workflow directory
-     * @throws IOException
-     */
-    @Override
-    protected boolean isRegularFile(final RelativeToPath path) throws IOException {
-        if (!isPathAccessible(path)) {
-            throw new NoSuchFileException(path.toString()); // not allowed
-        } else if (isWorkflowDirectory(path)) {
-            return true;
-        } else {
-            return !Files.isDirectory(toLocalPath(path));
-        }
-    }
-
     @Override
     protected boolean existsWithAccessibilityCheck(final RelativeToPath path) throws IOException {
         final Path localPath = toLocalPath(path);

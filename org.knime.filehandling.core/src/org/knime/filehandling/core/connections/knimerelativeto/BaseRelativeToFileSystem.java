@@ -267,17 +267,6 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
     protected abstract Path toRealPathWithAccessibilityCheck(final RelativeToPath path) throws IOException;
 
     /**
-     * Check if given relative-to path represent a regular file. Workflow directories are files, with the exception of
-     * the current workflow directory and a workflow relative path.
-     *
-     * @param path relative-to file system path to check
-     * @return {@code true} if path is a normal file or a workflow directory
-     * @throws IOException
-     */
-    // TODO remove? It's only used in tests
-    protected abstract boolean isRegularFile(final RelativeToPath path) throws IOException;
-
-    /**
      * Check if the given relative-to path exists and is accessible.
      *
      * @param path relative-to path to check

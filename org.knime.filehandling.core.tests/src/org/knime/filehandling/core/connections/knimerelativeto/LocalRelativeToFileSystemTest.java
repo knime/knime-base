@@ -165,30 +165,6 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
     }
 
     @Test
-    public void isRegularFileWorkflowRelative() throws IOException {
-        final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
-        assertFalse(fs.isRegularFile(fs.getPath("/")));
-        assertTrue(fs.isRegularFile(fs.getPath("/current-workflow")));
-        assertTrue(fs.isRegularFile(fs.getPath("/other-workflow")));
-    }
-
-    @Test
-    public void isRegularFileMountpointRelative() throws IOException {
-        final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
-        assertFalse(fs.isRegularFile(fs.getPath("/")));
-        assertTrue(fs.isRegularFile(fs.getPath("/current-workflow")));
-        assertTrue(fs.isRegularFile(fs.getPath("/other-workflow")));
-
-        final RelativeToPath filePath = fs.getPath("/some-file.txt");
-        Files.createFile(filePath);
-        assertTrue(fs.isRegularFile(filePath));
-
-        final RelativeToPath directoryPath = fs.getPath("/some-directory");
-        Files.createDirectory(directoryPath);
-        assertFalse(fs.isRegularFile(directoryPath));
-    }
-
-    @Test
     public void equalsOnDifferentFS() throws IOException {
         final String filename = "/some-dir/some-file.txt";
         final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
