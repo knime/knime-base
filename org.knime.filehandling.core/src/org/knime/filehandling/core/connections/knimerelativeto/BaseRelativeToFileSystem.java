@@ -53,6 +53,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Optional;
 
 import org.apache.commons.io.FilenameUtils;
 import org.knime.core.node.workflow.WorkflowPersistor;
@@ -60,6 +61,7 @@ import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.meta.FSType;
 
@@ -129,10 +131,9 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
         final RelativeTo type,
         final String workingDir,
         final FSLocationSpec fsLocationSpec) {
-
         super(fileSystemProvider, //
             CACHE_TTL, //
-            workingDir,
+            workingDir, //
             fsLocationSpec);
 
         m_type = type;
@@ -195,6 +196,16 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      * @throws IOException
      */
     public abstract boolean isWorkflowDirectory(final RelativeToPath path) throws IOException;
+
+    /**
+     * Returns which kind of entity (workflow, component, workflow group, meta node or data) the provided path points
+     * to.
+     *
+     * @param path for which to get the type of entity
+     * @return the type of entity at the provided path or {@link Optional#empty()} if the path doesn't point to anything
+     * @throws IOException if I/O problems occur
+     */
+    protected abstract Optional<WorkflowAwareErrorHandling.Entity> getEntity(final RelativeToPath path) throws IOException;
 
     /**
      * Validates if the given local file system path is a workflow, component or meta node directory.
@@ -263,6 +274,7 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
      * @return {@code true} if path is a normal file or a workflow directory
      * @throws IOException
      */
+    // TODO remove? It's only used in tests
     protected abstract boolean isRegularFile(final RelativeToPath path) throws IOException;
 
     /**

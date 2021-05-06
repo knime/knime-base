@@ -329,7 +329,7 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         try {
             Files.newInputStream(path);
         } catch (final IOException e) {
-            assertEquals(path.toString()  + " points to/into a workflow. Cannot read data from a workflow.", e.getMessage());
+            assertEquals(path.toString() + ": Only reading data items is supported (not workflows, components, workflow groups, etc)", e.getMessage());
             throw e;
         }
     }
@@ -341,7 +341,7 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         try {
             Files.newOutputStream(path);
         } catch (final IOException e) {
-            assertEquals(path.toString()  + " points to/into a workflow. Cannot write data to a workflow", e.getMessage());
+            assertEquals(path.toString()  + ": Only writing to data items is supported (not workflows, components, workflow groups, etc)", e.getMessage());
             throw e;
         }
     }

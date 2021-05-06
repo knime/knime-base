@@ -49,15 +49,22 @@
 package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.MetaNodeTemplateInformation;
+import org.knime.core.node.workflow.WorkflowPersistor;
+import org.knime.core.util.workflowalizer.MetadataConfig;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Entity;
 
 /**
  * Local KNIME relative to File System implementation.
@@ -107,6 +114,57 @@ public final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
             throw new NoSuchFileException(path.toString());
         } else {
             return toLocalPath(path);
+        }
+    }
+
+    @Override
+    protected Optional<Entity> getEntity(final RelativeToPath path) throws IOException {
+        // throws NoSuchFileException if it points into a workflow
+        final Path localPath = toRealPathWithAccessibilityCheck(path);
+        if (!Files.exists(localPath)) {
+            return Optional.empty();
+        } else if (!Files.isDirectory(localPath)) {
+            return Optional.of(Entity.DATA);
+        } else {
+            // directories can be either workflows, meta nodes, components or workflow groups
+            if (hasWorkflowFile(localPath)) {
+                if (hasTemplateFile(localPath)) {
+                    final Entity entity = getTemplateEntity(localPath);
+                    return Optional.of(entity);
+                } else {
+                    return Optional.of(Entity.WORKFLOW);
+                }
+            } else {
+                return Optional.of(Entity.WORKFLOW_GROUP);
+            }
+        }
+    }
+
+    private static Entity getTemplateEntity(final Path localPath) throws IOException {
+        if (isComponent(localPath.resolve(WorkflowPersistor.TEMPLATE_FILE))) {
+            return Entity.COMPONENT;
+        } else {
+            return Entity.METANODE;
+        }
+    }
+
+    private static boolean hasTemplateFile(final Path localPath) {
+        return Files.exists(localPath.resolve(WorkflowPersistor.TEMPLATE_FILE));
+    }
+
+    private static boolean hasWorkflowFile(final Path localPath) {
+        return Files.exists(localPath.resolve(WorkflowPersistor.WORKFLOW_FILE));
+    }
+
+    private static boolean isComponent(final Path pathToTemplateFile) throws IOException {
+        assert pathToTemplateFile.endsWith(WorkflowPersistor.TEMPLATE_FILE);
+        final MetadataConfig c = new MetadataConfig("ignored");
+        try (final InputStream s = Files.newInputStream(pathToTemplateFile)) {
+            c.load(s);
+            return c.getConfigBase("workflow_template_information").getString("templateType")
+                    .equals(MetaNodeTemplateInformation.TemplateType.SubNode.toString());
+        } catch (InvalidSettingsException ex) {
+            throw new IOException("Invalid template.knime file.", ex);
         }
     }
 
