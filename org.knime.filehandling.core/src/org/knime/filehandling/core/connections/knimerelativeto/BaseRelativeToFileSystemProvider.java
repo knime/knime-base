@@ -62,9 +62,13 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.node.workflow.WorkflowPersistor;
+import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling;
+import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Entity;
+import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Operation;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 
@@ -79,16 +83,14 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
 public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToFileSystem>
     extends BaseFileSystemProvider<RelativeToPath, F> {
 
+    @SuppressWarnings("resource") // the file system has to stay open for further use
     private Path toRealPathWithAccessibilityCheck(final RelativeToPath path) throws IOException {
         return getFileSystemInternal().toRealPathWithAccessibilityCheck(path);
     }
 
     @Override
     protected InputStream newInputStreamInternal(final RelativeToPath path, final OpenOption... options) throws IOException {
-        if (getFileSystemInternal().isPartOfWorkflow(path)) {
-            throw new IOException(path.toString()  + " points to/into a workflow. Cannot read data from a workflow.");
-        }
-
+        checkSupport(path, Operation.NEW_INPUT_STREAM);
         return Files.newInputStream(toRealPathWithAccessibilityCheck(path), options);
     }
 
@@ -97,24 +99,32 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
         return getFileSystemInternal().isPartOfWorkflow(path);
     }
 
+    private void checkSupport(final RelativeToPath path, final Operation operation) throws IOException {
+        final Optional<Entity> entity = getEntity(path);
+        // an empty entity means there is nothing at the provided path and we let the caller handle this case
+        if (entity.isPresent()) {
+            entity.get().checkSupport(path.toString(), operation);
+        }
+    }
+
+    @SuppressWarnings("resource")// the file system has to stay open for further use
+    private Optional<Entity> getEntity(final RelativeToPath path) throws IOException {
+        return getFileSystemInternal().getEntity(path);
+    }
+
     @Override
     protected OutputStream newOutputStreamInternal(final RelativeToPath path, final OpenOption... options) throws IOException {
-        if (isPartOfWorkflow(path)) {
-            throw new IOException(path.toString()  + " points to/into a workflow. Cannot write data to a workflow");
-        }
-
+        checkSupport(path, Operation.NEW_OUTPUT_STREAM);
         return Files.newOutputStream(toRealPathWithAccessibilityCheck(path), options);
     }
 
     @Override
     protected Iterator<RelativeToPath> createPathIterator(final RelativeToPath path, final Filter<? super Path> filter) throws IOException {
-        if (isPartOfWorkflow(path)) {
-            throw new IOException(path.toString()  + " points to/into a workflow. Cannot list folder contents in a workflow");
-        }
-
+        checkSupport(path, Operation.LIST_FOLDER_CONTENT);
         return new RelativeToPathIterator(path, toRealPathWithAccessibilityCheck(path), filter);
     }
 
+    @SuppressWarnings("resource") // the file system has to stay open for further use
     @Override
     protected boolean exists(final RelativeToPath path) throws IOException {
         return getFileSystemInternal().existsWithAccessibilityCheck(path);
@@ -132,22 +142,14 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     @Override
     protected SeekableByteChannel newByteChannelInternal(final RelativeToPath path,
         final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-
-        if (isPartOfWorkflow(path)) {
-            throw new IOException(path.toString()  + " points to/into a workflow. Workflows cannot be opened for reading/writing");
-        }
-
+        checkSupport(path, Operation.NEW_INPUT_STREAM);
         return Files.newByteChannel(toRealPathWithAccessibilityCheck(path), options);
     }
 
     @Override
     protected void createDirectoryInternal(final RelativeToPath dir, final FileAttribute<?>... attrs)
         throws IOException {
-
-        if (isPartOfWorkflow(dir)) {
-            throw new IOException(dir.toString()  + " points to/into a workflow. Cannot create a directory there.");
-        }
-
+        checkSupport(dir, Operation.CREATE_FOLDER);
         Files.createDirectory(toRealPathWithAccessibilityCheck(checkCastAndAbsolutizePath(dir)), attrs);
     }
 
@@ -191,6 +193,7 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
         return !path.isRoot() && path.getFileName().toString().equals(WorkflowPersistor.METAINFO_FILE);
     }
 
+    @SuppressWarnings("resource")// the file system has to stay open for further use
     @Override
     protected void checkAccessInternal(final RelativeToPath path, final AccessMode... modes) throws IOException {
         // The exists method is called by the calling method so we don't need to check if we are inside of a workflow
@@ -207,7 +210,7 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     protected BaseFileAttributes fetchAttributesInternal(final RelativeToPath path, final Class<?> type) throws IOException {
         final boolean isWorkflow = isWorkflow(path);
         if (isPartOfWorkflow(path) && !isWorkflow) {
-        	throw new IOException(path.toString()  + " points into a workflow. Cannot access what is inside a workflow.");
+            throw WorkflowAwareErrorHandling.createAccessInsideWorkflowException(path.toString());
         }
 
         if (type == BasicFileAttributes.class) {
