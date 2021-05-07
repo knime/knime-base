@@ -63,7 +63,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.convert.datacell.JavaToDataCellConverter;
 import org.knime.core.data.convert.datacell.JavaToDataCellConverterFactory;
-import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
+import org.knime.core.data.convert.datacell.OriginAwareJavaToDataCellConverterRegistry;
 import org.knime.core.data.convert.java.DataCellToJavaConverter;
 import org.knime.core.data.convert.java.DataCellToJavaConverterFactory;
 import org.knime.core.data.convert.java.DataCellToJavaConverterRegistry;
@@ -76,12 +76,14 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.convert.util.SerializeUtil;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
 import org.knime.core.node.config.base.ConfigBaseRO;
 import org.knime.core.node.config.base.ConfigBaseWO;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
@@ -92,6 +94,8 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.Production
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
 public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, DataValueReadAdapter> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DataTypeProducerRegistry.class);
 
     private static final String CELL_VALUE_PRODUCER_IDENTITY_FACTORY = "CELL_VALUE_PRODUCER_IDENTITY_FACTORY";
 
@@ -128,9 +132,15 @@ public final class DataTypeProducerRegistry extends ProducerRegistry<DataType, D
             if (CELL_CONVERTER_IDENTITY_FACTORY.equals(id)) {
                 return new IdentityCellConverterFactory(sourceType);
             } else {
-                JavaToDataCellConverterFactory<?> converterFactory = JavaToDataCellConverterRegistry.getInstance()
-                    .getFactory(id).orElseThrow(() -> new InvalidSettingsException(
-                        String.format("Can't load JavaToDataCellConverter with key '%s'.", key)));
+                final List<JavaToDataCellConverterFactory<?>> converterFactoriesForId =
+                    OriginAwareJavaToDataCellConverterRegistry.INSTANCE.getConverterFactoriesByIdentifier(id);
+                CheckUtils.checkSetting(!converterFactoriesForId.isEmpty(),
+                    "No JavaToDataCellConverterFactory with the id '%s' is known. Are you missing an extension?", id);
+                if (converterFactoriesForId.size() > 1) {
+                    LOGGER.warnWithFormat(
+                        "There are multiple converters with the id '%s' registered. Taking the first.", id);
+                }
+                JavaToDataCellConverterFactory<?> converterFactory = converterFactoriesForId.get(0);
                 converterFactory.loadAdditionalConfig(settings.getConfig(key + "_converter_config"));
                 return converterFactory;
             }

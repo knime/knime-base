@@ -48,25 +48,42 @@
  */
 package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
+import java.util.List;
+
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterFactory;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
+import org.knime.core.data.convert.datacell.OriginAwareJavaToDataCellConverterRegistry;
+import org.knime.core.data.convert.map.CellValueProducerFactory;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.convert.util.SerializeUtil;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.base.ConfigBaseRO;
 import org.knime.core.node.config.base.ConfigBaseWO;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Default implementation of a {@link ProductionPathSerializer} that delegates to
- * {@link SerializeUtil#loadProductionPath(ConfigBaseRO, ProducerRegistry, String)} and
- * {@link SerializeUtil#storeProductionPath(ProductionPath, ConfigBaseWO, String)}.
+ * Default implementation of a {@link ProductionPathSerializer} that uses {@link OriginAwareJavaToDataCellConverterRegistry}
+ * for loading production paths and delegates to
+ * {@link SerializeUtil#storeProductionPath(ProductionPath, ConfigBaseWO, String)} for storing them.
+ *
+ * The loading is customized because the {@link JavaToDataCellConverterRegistry} used by
+ * {@link SerializeUtil#loadProductionPath(ConfigBaseRO, ProducerRegistry, String)} overwrites any existing converter if
+ * their is an ID clash. Consequently, it is possible that a community extension can overwrite a converter provided by
+ * KNIME. In order to remedy this, we use {@link OriginAwareJavaToDataCellConverterRegistry}, which holds a list of
+ * converters for any ID. This list is ordered and favors converters provided by KNIME. Ideally the list would only hold
+ * a single element but if it doesn't, then we print a warning into the log.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DefaultProductionPathSerializer implements ProductionPathSerializer {
 
-    private ProducerRegistry<?, ?> m_registry;
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultProductionPathSerializer.class);
+
+    private final ProducerRegistry<?, ?> m_registry;
 
     /**
      * Constructor.
@@ -80,13 +97,38 @@ public final class DefaultProductionPathSerializer implements ProductionPathSeri
     @Override
     public ProductionPath loadProductionPath(final NodeSettingsRO config, final String key)
         throws InvalidSettingsException {
-        return SerializeUtil.loadProductionPath(config, m_registry, key).orElseThrow(
-            () -> new InvalidSettingsException(String.format("No production path associated with key <%s>", key)));
+        // The JavaToDataCellConverterRegistry used by SerializeUtil overwrites any existing converter if
+        // there is an ID clash. Therefore we introduced SecureJavaToDataCellConverterRegistry, that does not
+        // overwrite but instead stores a list that is ordered by origin, so that converters provided by KNIME
+        // are favored. This is by no means perfect but it prevents core converters being overwritten by community
+        // extensions
+        final JavaToDataCellConverterFactory<?> converter = loadConverterFactory(config, key + "_converter");
+        final CellValueProducerFactory<?, ?, ?, ?> producer =
+            SerializeUtil.loadConverterFactory(config, m_registry, key + "_producer")//
+                .orElseThrow(() -> new InvalidSettingsException("Unknown CellValueProducerFactory."));
+        return new ProductionPath(producer, converter);
+    }
+
+    private static JavaToDataCellConverterFactory<?> loadConverterFactory(final ConfigBaseRO config, final String key)
+        throws InvalidSettingsException {
+        final String id = config.getString(key);
+        final List<JavaToDataCellConverterFactory<?>> factories =
+            OriginAwareJavaToDataCellConverterRegistry.INSTANCE.getConverterFactoriesByIdentifier(id);
+        CheckUtils.checkSetting(!factories.isEmpty(),
+            "No JavaToDataCellConverterFactory with the id '%s' is known. Are you missing an extension?", id);
+        if (factories.size() > 1) {
+            LOGGER.warnWithFormat(
+                "There are multiple JavaToDataCellConverterFactories with the id '%s' registered. Taking the first.",
+                id);
+        }
+        return factories.get(0);
     }
 
     @Override
     public void saveProductionPath(final ProductionPath productionPath, final NodeSettingsWO settings,
         final String key) {
+        // storing is independent of the JavaToDataCellConverterRegistry and we can therefore use
+        // the default
         SerializeUtil.storeProductionPath(productionPath, settings, key);
     }
 
