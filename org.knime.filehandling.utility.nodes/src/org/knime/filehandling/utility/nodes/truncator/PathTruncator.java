@@ -46,46 +46,13 @@
  * History
  *   Feb 22, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.truncator.impl;
-
-import java.nio.file.Path;
-
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncationException;
+package org.knime.filehandling.utility.nodes.truncator;
 
 /**
- * Truncates everything before the source folder, i.e., for a given base folder = "/foo/bar" and a path =
- * "/foo/bar/subfolder/file.txt" the truncated string has the form "bar/subfolder/file.txt" (bar/file.txt flattend). In
- * case that base folder is null an exception is implies that the paths parent is the root of the file system.
+ * A path truncator is the combination of a {@link PathToStringTruncator} and {@link PathToStringArrayTruncator}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class KeepSourceFolderTruncator extends AbstractPathTruncator {
-
-    /**
-     * Constructor.
-     *
-     * @param flattenHierarchy flag indicating whether or not to flatten the hierarchy
-     */
-    public KeepSourceFolderTruncator(final boolean flattenHierarchy) {
-        super(flattenHierarchy);
-    }
-
-    @Override
-    protected Path truncatePath(final Path baseFolder, final Path path) {
-        if (baseFolder == null) {
-            throw new TruncationException("The base folder cannot be null", TruncatePathOption.KEEP_SRC_FOLDER);
-        }
-        final Path normBaseFolder = baseFolder.normalize();
-        Path normPath = path.normalize();
-        if (flattenHierarchy() && !isSamePath(normPath, normBaseFolder)) {
-            normPath = normPath.getFileName();
-            normPath = normBaseFolder.resolve(normPath);
-        }
-        if (normBaseFolder.getParent() != null) {
-            normPath = normBaseFolder.getParent().relativize(normPath);
-        }
-        return relativizeAgainstRoot(normPath);
-    }
+public interface PathTruncator extends PathToStringTruncator, PathToStringArrayTruncator {
 
 }

@@ -46,42 +46,57 @@
  * History
  *   Feb 22, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.truncator.impl;
+package org.knime.filehandling.utility.nodes.truncator.impl;
 
 import java.nio.file.Path;
 
+import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
+import org.knime.filehandling.utility.nodes.truncator.PathTruncator;
+import org.knime.filehandling.utility.nodes.utils.PathHandlingUtils;
+
 /**
- * Bascially does not truncate the path at all, i.e., for a given base folder = "/foo/bar" and a path =
- * "/foo/bar/subfolder/file.txt" the truncated string has the form "foo/bar/subfolder/file.txt" (foo/bar/file.txt
- * flattened).
+ * Abstract implementation of an {@link PathTruncator}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class KeepFullPathTruncator extends AbstractPathTruncator {
+abstract class AbstractPathTruncator implements PathTruncator {
 
     /**
      * Constructor.
-     *
-     * @param flattenHierarchy flag indicating whether or not to flatten the hierarchy
      */
-    public KeepFullPathTruncator(final boolean flattenHierarchy) {
-        super(flattenHierarchy);
+    AbstractPathTruncator() {
+    }
+
+    protected static Path makeAbsoluteNormalized(final Path baseFolder) {
+        if (baseFolder == null) {
+            return baseFolder;
+        } else {
+            return baseFolder.toAbsolutePath().normalize();
+        }
+    }
+
+    private Path truncatePath(final Path path) {
+        final Path truncatedPath = truncate(path);
+        return PathHandlingUtils.makeRelative(truncatedPath);
     }
 
     @Override
-    protected Path truncatePath(final Path baseFolder, final Path path) {
-        final Path normPath;
-        if (flattenHierarchy() && !isSamePath(path, baseFolder)) {
-            final Path fileName = path.normalize().getFileName();
-            if (baseFolder != null) {
-                normPath = baseFolder.normalize().resolve(fileName);
-            } else {
-                normPath = fileName;
-            }
-        } else {
-            normPath = path.normalize();
-        }
-        return relativizeAgainstRoot(normPath);
+    public final String getTruncatedString(final Path path) {
+        return truncatePath(path).toString();
     }
+
+    @Override
+    public final String[] getTruncatedStringArray(final Path path) {
+        final Path truncatedPath = truncatePath(path);
+        return PathToStringUtils.split(truncatedPath);
+    }
+
+    /**
+     * Creates the truncated path.
+     *
+     * @param path cannot be null
+     * @return the truncated path
+     */
+    protected abstract Path truncate(final Path path);
 
 }

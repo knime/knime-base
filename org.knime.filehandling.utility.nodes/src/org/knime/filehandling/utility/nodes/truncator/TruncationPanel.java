@@ -46,12 +46,13 @@
  * History
  *   Mar 2, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.truncator;
+package org.knime.filehandling.utility.nodes.truncator;
 
 import java.awt.Component;
 import java.awt.GridBagLayout;
 import java.util.EnumMap;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -71,61 +72,120 @@ import org.knime.filehandling.core.util.GBCBuilder;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class TruncationPanel extends JPanel {
+public class TruncationPanel {
 
-    private static final long serialVersionUID = 2344967748302207348L;
+    private final EnumMap<TruncatePathOption, JRadioButton> m_truncationMap;
 
-    private final transient EnumMap<TruncatePathOption, JRadioButton> m_truncateMap;
+    private final DialogComponentString m_folderTruncationPrefix;
 
-    private final transient DialogComponentString m_truncateRegex;
+    private final TruncationSettings m_truncationSettings;
 
-    private final transient TruncationSettings m_truncationSettings;
+    private final String m_borderTitle;
+
+    private JPanel m_panel;
 
     /**
-     * Constructor.
+     * Creates the panel with a title border if the provided string is not {@code null}.
      *
-     * @param titleBorder the title border
+     * @param borderTitle the title border, null if no border should be created
      * @param truncationSettings the {@link TruncationSettings}
+     * @param labels function to map an {@link TruncatePathOption} to its name/label in the dialog
      */
-    public TruncationPanel(final String titleBorder, final TruncationSettings truncationSettings) {
-        super(new GridBagLayout());
+    public TruncationPanel(final String borderTitle, final TruncationSettings truncationSettings,
+        final Function<TruncatePathOption, String> labels) {
         m_truncationSettings = truncationSettings;
-        m_truncateRegex = new DialogComponentString(truncationSettings.getTruncateRegexModel(), null, true, 15);
-        m_truncateMap = new EnumMap<>(TruncatePathOption.class);
-        final ButtonGroup grp = new ButtonGroup();
+        m_folderTruncationPrefix =
+            new DialogComponentString(truncationSettings.getFolderTruncateModel(), null, true, 15);
+        m_truncationMap = new EnumMap<>(TruncatePathOption.class);
+        m_borderTitle = borderTitle;
         for (final TruncatePathOption opt : TruncatePathOption.values()) {
-            final JRadioButton btn = new JRadioButton(opt.getLabel());
-            btn.addActionListener(l -> toggleRegexField());
-            m_truncateMap.put(opt, btn);
-            grp.add(btn);
+            final JRadioButton btn = new JRadioButton(labels.apply(opt));
+            m_truncationMap.put(opt, btn);
         }
-
-        setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), titleBorder));
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
-        add(m_truncateMap.get(TruncatePathOption.KEEP_FULL_PATH), gbc.build());
-        add(m_truncateMap.get(TruncatePathOption.KEEP_SRC_FOLDER), gbc.incX().build());
-        add(m_truncateMap.get(TruncatePathOption.TRUNCATE_SRC_FOLDER), gbc.resetX().incY().build());
-        add(getRegexPanel(), gbc.incX().build());
-        add(new JPanel(), gbc.setWeightX(1).setWidth(2).fillHorizontal().build());
     }
 
-    private void toggleRegexField() {
-        m_truncateRegex.getModel().setEnabled(m_truncateMap.get(TruncatePathOption.TRUNCATE_REGEX).isSelected());
+    /**
+     * Returns the panel.
+     *
+     * @return the panel
+     */
+    public JPanel getPanel() {
+        if (m_panel == null) {
+            m_panel = new JPanel(new GridBagLayout());
+            if (m_borderTitle != null) {
+                m_panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), m_borderTitle));
+            }
+            final GBCBuilder gbc = fillPanel(m_panel, new ButtonGroup(),
+                new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone());
+            m_panel.add(new JPanel(), gbc.incY().setWeightX(1).setWidth(2).fillHorizontal().build());
+
+        }
+        return m_panel;
     }
 
-    private Component getRegexPanel() {
+    /**
+     * Adds the components allowing to select the {@link TruncatePathOption}s.
+     *
+     * @param panel the panel to be filled
+     * @param buttonGroup the button group
+     * @param gbc the {@link GBCBuilder}
+     * @return the final state of the {@link GBCBuilder}
+     */
+    protected GBCBuilder fillPanel(final JPanel panel, final ButtonGroup buttonGroup, GBCBuilder gbc) {
+        for (JRadioButton btn : m_truncationMap.values()) {
+            btn.addActionListener(l -> togglePrefixField());
+            buttonGroup.add(btn);
+        }
+        panel.add(m_truncationMap.get(TruncatePathOption.RELATIVE), gbc.build());
+        gbc = gbc.incY();
+        panel.add(m_truncationMap.get(TruncatePathOption.KEEP), gbc.build());
+        gbc = gbc.incY();
+        panel.add(getPrefixPanel(), gbc.build());
+        return gbc;
+    }
+
+    /**
+     * Toggles the prefix field.
+     */
+    protected void togglePrefixField() {
+        enablePrefix(m_truncationMap.get(TruncatePathOption.REMOVE_FOLDER_PREFIX).isSelected());
+    }
+
+    /**
+     * Returns the truncation settings.
+     *
+     * @return the {@link TruncationSettings}
+     */
+    protected final TruncationSettings getSettings() {
+        return m_truncationSettings;
+    }
+
+    /**
+     * Sets the enabled status of the folder truncation prefix model.
+     *
+     * @param enable {@code true} if the folder truncation prefix model should be enabled, false otherwise
+     */
+    protected final void enablePrefix(final boolean enable) {
+        m_folderTruncationPrefix.getModel().setEnabled(enable);
+    }
+
+    private Component getPrefixPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0).fillNone();
-        panel.add(m_truncateMap.get(TruncatePathOption.TRUNCATE_REGEX), gbc.build());
-        panel.add(m_truncateRegex.getComponentPanel(), gbc.incX().build());
+        panel.add(m_truncationMap.get(TruncatePathOption.REMOVE_FOLDER_PREFIX), gbc.build());
+        panel.add(m_folderTruncationPrefix.getComponentPanel(), gbc.incX().build());
         return panel;
     }
 
-    @Override
+    /**
+     * Sets the enable status of this panel.
+     *
+     * @param enabled {@code true} if the panel should be enabled, false otherwise
+     */
     public void setEnabled(final boolean enabled) {
-        m_truncateMap.values()//
+        m_truncationMap.values()//
             .forEach(b -> b.setEnabled(enabled));
-        m_truncateRegex.getModel().setEnabled(enabled);
+        m_folderTruncationPrefix.getModel().setEnabled(enabled);
     }
 
     /**
@@ -137,21 +197,20 @@ public final class TruncationPanel extends JPanel {
     public void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_truncationSettings.setTruncatePathOption(getTruncateOption());
         m_truncationSettings.saveSettingsForDialog(settings);
-        m_truncateRegex.saveSettingsTo(settings);
+        m_folderTruncationPrefix.saveSettingsTo(settings);
     }
 
     /**
      * Returns the selected {@link TruncatePathOption}.
      *
      * @return the selected {@link TruncationException}
-     * @throws InvalidSettingsException - If the user has entered wrong values
      */
-    private TruncatePathOption getTruncateOption() throws InvalidSettingsException {
-        return m_truncateMap.entrySet().stream()//
+    private TruncatePathOption getTruncateOption() {
+        return m_truncationMap.entrySet().stream()//
             .filter(e -> e.getValue().isSelected())//
             .map(Entry::getKey)//
             .findFirst()//
-            .orElseThrow(() -> new InvalidSettingsException("Please select one of the truncate options"));
+            .orElse(TruncatePathOption.getDefault());
     }
 
     /**
@@ -165,16 +224,18 @@ public final class TruncationPanel extends JPanel {
     public void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_truncationSettings.loadSettingsForDialog(settings);
-        m_truncateRegex.loadSettingsFrom(settings, specs);
-        selectTruncateOption();
-        toggleRegexField();
+        m_folderTruncationPrefix.loadSettingsFrom(settings, specs);
+        selectOption();
+        togglePrefixField();
     }
 
-    private void selectTruncateOption() {
+    /**
+     * Sets the truncation path option according to the stored value.
+     */
+    protected void selectOption() {
         final TruncatePathOption truncatePathOption = m_truncationSettings.getTruncatePathOption();
-        m_truncateMap.entrySet().stream()//
+        m_truncationMap.entrySet().stream()//
             .forEachOrdered(e -> e.getValue().setSelected(e.getKey() == truncatePathOption));
-        toggleRegexField();
     }
 
 }

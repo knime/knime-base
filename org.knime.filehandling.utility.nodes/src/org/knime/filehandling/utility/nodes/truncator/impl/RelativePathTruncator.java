@@ -44,41 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 22, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Apr 1, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.truncator;
+package org.knime.filehandling.utility.nodes.truncator.impl;
+
+import java.nio.file.Path;
+
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.utility.nodes.truncator.TruncatePathOption;
+import org.knime.filehandling.utility.nodes.truncator.TruncationException;
 
 /**
- * An exception thrown by a {@link PathTruncator}.
+ * Depending on its initialization this truncator either removes truncates either the whole base folder or everything up
+ * to the base folder itself.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class TruncationException extends RuntimeException {
+public final class RelativePathTruncator extends AbstractPathTruncator {
 
-    private static final long serialVersionUID = 4381197951605844043L;
-
-    private final TruncatePathOption m_truncatePathOption;
+    final Path m_baseFolder;
 
     /**
-     * Constructs a new runtime exception with the specified detail message. The cause is not initialized, and may
-     * subsequently be initialized by a call to {@link #initCause}.
+     * Constructor. The base folder defines the common prefix of all paths that need to be truncated.
      *
-     * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()}
-     *            method.
-     * @param truncatePathOption the option causing the exception
+     * @param baseFolder the base folder, i.e., the common prefix of all paths that have to be truncated
+     * @param filterMode depending on the filter mode either the base folder itself will also be truncated or everything
+     *            up to the base folder itself
      */
-    public TruncationException(final String message, final TruncatePathOption truncatePathOption) {
-        super(message);
-        m_truncatePathOption = truncatePathOption;
+    public RelativePathTruncator(final Path baseFolder, final FilterMode filterMode) {
+        m_baseFolder = getBaseFolder(baseFolder, filterMode);
     }
 
-    /**
-     * Returns the {@link TruncatePathOption} causing this exception.
-     *
-     * @return the {@link TruncatePathOption} causing this exception
-     */
-    public TruncatePathOption getTruncatePathOption() {
-        return m_truncatePathOption;
+    private static Path getBaseFolder(final Path baseFolder, final FilterMode filterMode) {
+        final Path absNorm = makeAbsoluteNormalized(baseFolder);
+        switch (filterMode) {
+            case FILE:
+            case FOLDER:
+                return absNorm.getParent();
+            case FILES_IN_FOLDERS:
+                return absNorm;
+            default:
+                throw new IllegalArgumentException(
+                    String.format("The filter mode '%s' is not supported", filterMode.getText()));
+        }
+    }
+
+    @Override
+    protected Path truncate(final Path path) {
+        final Path absNormPath = makeAbsoluteNormalized(path);
+        if (absNormPath.equals(m_baseFolder)) {
+            throw new TruncationException(
+                String.format("Removing the source folder from itself is prohibited ('%s')", path.toString()),
+                TruncatePathOption.RELATIVE);
+        }
+        if (m_baseFolder != null) {
+            return m_baseFolder.relativize(absNormPath);
+        } else {
+            return absNormPath;
+        }
     }
 
 }

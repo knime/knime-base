@@ -44,53 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 22, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Feb 11, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.truncator.impl;
+package org.knime.filehandling.utility.nodes.truncator;
 
 import java.nio.file.Path;
 
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncationException;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.util.TriFunction;
+import org.knime.filehandling.utility.nodes.truncator.impl.FolderPrefixPathTruncator;
+import org.knime.filehandling.utility.nodes.truncator.impl.KeepPathTruncator;
+import org.knime.filehandling.utility.nodes.truncator.impl.RelativePathTruncator;
 
 /**
- * Truncates the source folder, i.e., for a given base folder = "/foo/bar" and a path = "/foo/bar/subfolder/file.txt"
- * the truncated string has the form "subfolder/file.txt" (file.txt flattend). In case that base folder and path are
- * equal an exception is thrown as this would result in an empty string.
+ * Enum encoding various options to truncate a path.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class SourceFolderTruncator extends AbstractPathTruncator {
+public enum TruncatePathOption {
+
+        /** Option signaling that the resulting path has to be relative to the provided base path. */
+        RELATIVE((path, prefix, filterMode) -> new RelativePathTruncator(path, filterMode)),
+
+        /** Option signaling that the absolute normalized path has to be returned. */
+        KEEP((path, prefix, filterMode) -> new KeepPathTruncator()),
+
+        /** Option signaling that the given folder prefix has to be removed. */
+        REMOVE_FOLDER_PREFIX(FolderPrefixPathTruncator::new);
+
+    /** Function to create the associated {@link PathTruncator}. */
+    private final TriFunction<Path, String, FilterMode, PathTruncator> m_pathTruncatorFactory;
 
     /**
      * Constructor.
      *
-     * @param flattenHierarchy flag indicating whether or not to flatten the hierarchy
+     * @param pathTruncatorFactory the factory instantiating the associated {@link PathTruncator}
      */
-    public SourceFolderTruncator(final boolean flattenHierarchy) {
-        super(flattenHierarchy);
+    private TruncatePathOption(final TriFunction<Path, String, FilterMode, PathTruncator> pathTruncatorFactory) {
+        m_pathTruncatorFactory = pathTruncatorFactory;
     }
 
-    @Override
-    protected Path truncatePath(final Path baseFolder, final Path path) {
-        if (isSamePath(path, baseFolder)) {
-            throw new TruncationException(
-                String.format("Removing the source folder from itself is prohibited ('%s')", path.toString()),
-                TruncatePathOption.TRUNCATE_SRC_FOLDER);
-        }
-        Path normBaseFolder = baseFolder == null ? null : baseFolder.normalize();
-        Path normPath = path.normalize();
-        if (flattenHierarchy()) {
-            normPath = normPath.getFileName();
-            if (normBaseFolder != null) {
-                normPath = normBaseFolder.resolve(normPath);
-            }
-        }
-        if (normBaseFolder != null) {
-            return normBaseFolder.relativize(normPath);
-        } else {
-            return relativizeAgainstRoot(normPath);
-        }
+    /**
+     * Returns the default {@link TruncatePathOption}.
+     *
+     * @return the default {@link TruncatePathOption}
+     */
+    public static TruncatePathOption getDefault() {
+        return RELATIVE;
+    }
+
+    /**
+     * Creates the {@link PathTruncator} associated with this {@link TruncatePathOption}.
+     *
+     * @param basePath the base file/folder, i.e., the path specifying the prefix that has to be truncated
+     * @param folderPrefix only required for {@link TruncatePathOption#REMOVE_FOLDER_PREFIX}
+     * @param filterMode the {@link FilterMode} specifying the base path is a file or folder and the internals for
+     *            various {@link PathTruncator}s
+     * @return the associated {@link PathTruncator}
+     */
+    public PathTruncator createPathTruncator(final Path basePath, final String folderPrefix,
+        final FilterMode filterMode) {
+        return m_pathTruncatorFactory.apply(basePath, folderPrefix, filterMode);
     }
 
 }

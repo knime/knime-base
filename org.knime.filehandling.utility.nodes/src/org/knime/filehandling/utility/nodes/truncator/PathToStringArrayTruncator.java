@@ -44,79 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 22, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Apr 13, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.truncator.impl;
+package org.knime.filehandling.utility.nodes.truncator;
 
 import java.nio.file.Path;
 
-import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
-import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
-
 /**
+ * A path to string array truncator modifies a given path and returns its components as an String array.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-abstract class AbstractPathTruncator implements PathTruncator {
-
-    private final boolean m_flattenHierarchy;
-
-    /**
-     * Constructor.
-     *
-     * @param flattenHierarchy flag indicating whether or not to flatten the hierarchy
-     */
-    AbstractPathTruncator(final boolean flattenHierarchy) {
-        m_flattenHierarchy = flattenHierarchy;
-    }
-
-    final boolean flattenHierarchy() {
-        return m_flattenHierarchy;
-    }
-
-    @Override
-    public final String truncate(final Path baseFolder, final Path path) {
-        return truncatePath(baseFolder, path).toString();
-    }
-
-    @Override
-    public final String[] getTruncatedStringArray(final Path baseFolder, final Path path) {
-        final Path p = truncatePath(baseFolder, path);
-        return PathToStringUtils.split(p);
-    }
+@FunctionalInterface
+public interface PathToStringArrayTruncator { //NOSONAR descriptive names are more important
 
     /**
      * Creates the truncated path.
      *
-     * @param baseFolder the base folder which can be null
      * @param path cannot be null and starts with the <b>baseFolder</b>
-     * @return the truncated path
+     * @return the truncated path as a string
      */
-    protected abstract Path truncatePath(final Path baseFolder, final Path path);
+    String[] getTruncatedStringArray(final Path path);
 
-    /**
-     * Checks whether two paths are the same or not.
-     *
-     * @param path the path to compare
-     * @param other the path to compare to
-     * @return true if the paths are the same
-     */
-    static boolean isSamePath(Path path, Path other) {
-        if (path == null) {
-            if (other == null) {
-                return true;
-            }
-            path = other;
-            other = null;
-        }
-        return path.normalize().toAbsolutePath().equals(other == null ? null : other.normalize().toAbsolutePath());
-    }
-
-    static Path relativizeAgainstRoot(final Path path) {
-        if (path.isAbsolute()) {
-            return path.getRoot().relativize(path);
-        } else {
-            return path;
-        }
-    }
 }

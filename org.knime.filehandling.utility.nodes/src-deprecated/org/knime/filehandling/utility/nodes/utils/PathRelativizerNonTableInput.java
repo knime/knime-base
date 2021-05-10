@@ -44,86 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 1, 2020 (lars.schweikardt): created
+ *   Sep 3, 2020 (lars.schweikardt): created
  */
 package org.knime.filehandling.utility.nodes.utils;
 
 import java.nio.file.Path;
-import java.util.regex.Pattern;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.utility.nodes.truncator.TruncatePathOption;
 
 /**
- * Utility class providing methods to handle different tasks related to paths.
+ * The {@link PathRelativizer} for non table input nodes relativizes a path based on the {@link FilterMode} and whether
+ * the includeParentFolder is checked or not and returns a relativized string representation of a file {@link Path}
+ * based on a root {@link Path}.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  * @noreference non-public API
+ * @noinstantiate This class is not intended to be instantiated by clients.
+ * @deprecated replaced by {@link TruncatePathOption#createPathTruncator(boolean, String)}
  */
-public final class PathHandlingUtils {
+@Deprecated
+public final class PathRelativizerNonTableInput implements PathRelativizer {
 
-    private static final Pattern POINT_PATTERN = Pattern.compile(".*\\.{1,2}(\\/|\\\\){0,1}$");
+    private final boolean m_includeParentFolder;
 
-    private PathHandlingUtils() {
-        // static utility class
-    }
+    private final Path m_rootPath;
 
-    /**
-     * Checks whether the path ends with ".", "..", has no parent or is empty as well as the passed {@link FilterMode}.
-     *
-     * @param rootPath the passed {@link FSPath} to be checked
-     * @return true if the path does not end with ".", "..", has parent or is not empty and not a file, false otherwise
-     */
-    public static boolean isIncludeSourceFolderAvailable(final FSPath rootPath) {
-        final Path absoluteRootPath = rootPath.toAbsolutePath();
-        final Path root = absoluteRootPath.getRoot();
-        final String path = absoluteRootPath.toString();
+    private final FilterMode m_filterMode;
 
-        return !(path.isEmpty() || root == null || root.equals(absoluteRootPath)
-            || POINT_PATTERN.matcher(path).matches());
-    }
+    private final boolean m_flattenHierarchy;
 
     /**
-     * Creates error message in case include source folder is not possible.
+     * Constructor.
      *
-     * @param path the {@link Path} which can not be included.
-     * @return the error message for the node dialog
-     */
-    public static String createErrorMessage(final Path path) {
-        return String.format("The source folder '%s' can not be included.", path);
-    }
-
-    /**
-     * Checks the settings in terms of {@link FilterMode},the includeSourceFolder flag and a path and throws a
-     * {@link InvalidSettingsException} in case the source folder can not be included.
-     *
+     * @param rootPath the root path
+     * @param includeParentFolder flag indicating whether or not the parent folder of the rootPath has to be included
+     *            when applying the operation
      * @param filterMode the {@link FilterMode}
-     * @param includeSourceFolder the flag whether the option is checked or not
-     * @param rootPath the {@link Path} to check
-     * @throws InvalidSettingsException
+     * @param flattenHierarchy flag indicating whether or not the hierarchy has to be flattened
      */
-    public static void checkSettingsIncludeSourceFolder(final FilterMode filterMode, final boolean includeSourceFolder,
-        final FSPath rootPath) throws InvalidSettingsException {
-        if (filterMode != FilterMode.FILE && includeSourceFolder) {
-            CheckUtils.checkSetting(isIncludeSourceFolderAvailable(rootPath),
-                PathHandlingUtils.createErrorMessage(rootPath), rootPath);
-        }
+    public PathRelativizerNonTableInput(final Path rootPath, final boolean includeParentFolder,
+        final FilterMode filterMode, final boolean flattenHierarchy) {
+        m_rootPath = rootPath.toAbsolutePath().normalize();
+        m_includeParentFolder = includeParentFolder;
+        m_filterMode = filterMode;
+        m_flattenHierarchy = flattenHierarchy;
     }
 
-    /**
-     * Relativizes the given path against the root in case it is not already relative.
-     *
-     * @param path the path to relativize
-     * @return the relativized path
-     */
-    public static Path makeRelative(final Path path) {
-        if (path.isAbsolute()) {
-            return path.getRoot().relativize(path);
+    @Override
+    public String apply(final Path sourceFilePath) {
+        if (m_filterMode == FilterMode.FILE) {
+            return m_rootPath.getFileName().toString();
         } else {
-            return path;
+            final Path sourcePath;
+            if (m_flattenHierarchy) {
+                sourcePath = m_rootPath.resolve(sourceFilePath.getFileName());
+            } else {
+                sourcePath = sourceFilePath.toAbsolutePath().normalize();
+            }
+            if (m_includeParentFolder) {
+                return m_rootPath.getParent() == null ? m_rootPath.getRoot().relativize(sourcePath).toString()
+                    : m_rootPath.getParent().relativize(sourcePath).toString();
+            } else {
+                return m_rootPath.relativize(sourcePath).toString();
+            }
         }
     }
 }

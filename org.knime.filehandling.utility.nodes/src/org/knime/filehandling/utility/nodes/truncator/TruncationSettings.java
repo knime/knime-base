@@ -46,37 +46,43 @@
  * History
  *   Mar 9, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.truncator;
+package org.knime.filehandling.utility.nodes.truncator;
+
+import java.nio.file.Path;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * Settings storing all information to truncate a path.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class TruncationSettings {
+public class TruncationSettings {
 
     private TruncatePathOption m_truncatePathOption;
 
-    private final SettingsModelString m_truncateRegex;
+    private final SettingsModelString m_folderTruncateString;
 
-    private static final String CFG_TRUNCATE_PATH_OPTION = "source_folder_truncation";
+    private static final String CFG_TRUNCATE_FOLDER_PREFIX = "folder_prefix";
 
-    private static final String CFG_TRUNCATE_REGEX = "truncate_regex";
+    private static final String DEFAULT_FOLDER_PREFIX = "<folder prefix>";
 
-    private static final String DEFAULT_REGEX = ".*";
+    private final String m_truncateOptionConfigKey;
 
     /**
      * Constructor.
+     *
+     * @param truncateOptionConfigKey the config key used to store the selected {@link TruncatePathOption}
      */
-    public TruncationSettings() {
+    public TruncationSettings(final String truncateOptionConfigKey) {
+        m_truncateOptionConfigKey = truncateOptionConfigKey;
         m_truncatePathOption = TruncatePathOption.getDefault();
-        m_truncateRegex = new SettingsModelString(CFG_TRUNCATE_REGEX, DEFAULT_REGEX) {
+        m_folderTruncateString = new SettingsModelString(CFG_TRUNCATE_FOLDER_PREFIX, DEFAULT_FOLDER_PREFIX) {
 
             @Override
             protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -92,11 +98,14 @@ public final class TruncationSettings {
     /**
      * Returns the {@link PathTruncator}.
      *
-     * @param flattenHierarchy flag indicating whether or not to flatten the hierarchy
+     * @param basePath the base file/folder, i.e., the path specifying the prefix that has to be truncated
+     * @param filterMode the {@link FilterMode} specifying the base path is a file or folder and the internals for
+     *            various {@link PathTruncator}s
      * @return the {@link PathTruncator}
      */
-    public PathTruncator getPathTruncator(final boolean flattenHierarchy) {
-        return m_truncatePathOption.createPathTruncator(flattenHierarchy, getTruncateRegexModel().getStringValue());
+    public PathTruncator getPathTruncator(final Path basePath, final FilterMode filterMode) {
+        return m_truncatePathOption.createPathTruncator(basePath, getFolderTruncateModel().getStringValue(),
+            filterMode);
     }
 
     /**
@@ -104,16 +113,21 @@ public final class TruncationSettings {
      *
      * @param truncatePathOption the option to set
      */
-    public final void setTruncatePathOption(final TruncatePathOption truncatePathOption) {
+    final void setTruncatePathOption(final TruncatePathOption truncatePathOption) {
         m_truncatePathOption = truncatePathOption;
     }
 
-    TruncatePathOption getTruncatePathOption() {
+    /**
+     * Returns the stored truncation path option.
+     *
+     * @return the stored {@link TruncatePathOption}
+     */
+    public final TruncatePathOption getTruncatePathOption() {
         return m_truncatePathOption;
     }
 
-    SettingsModelString getTruncateRegexModel() {
-        return m_truncateRegex;
+    SettingsModelString getFolderTruncateModel() {
+        return m_folderTruncateString;
     }
 
     /**
@@ -123,8 +137,8 @@ public final class TruncationSettings {
      * @throws InvalidSettingsException if the value(s) in the settings object are invalid.
      */
     public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        TruncatePathOption.valueOf(settings.getString(CFG_TRUNCATE_PATH_OPTION));
-        m_truncateRegex.validateSettings(settings);
+        TruncatePathOption.valueOf(settings.getString(m_truncateOptionConfigKey));
+        m_folderTruncateString.validateSettings(settings);
     }
 
     /**
@@ -134,7 +148,7 @@ public final class TruncationSettings {
      */
     public void saveSettingsForModel(final NodeSettingsWO settings) {
         saveSettingsForDialog(settings);
-        m_truncateRegex.saveSettingsTo(settings);
+        m_folderTruncateString.saveSettingsTo(settings);
     }
 
     /**
@@ -144,8 +158,8 @@ public final class TruncationSettings {
      * @throws InvalidSettingsException if load fails.
      */
     public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        setTruncatePathOption(TruncatePathOption.valueOf(settings.getString(CFG_TRUNCATE_PATH_OPTION)));
-        m_truncateRegex.loadSettingsFrom(settings);
+        setTruncatePathOption(TruncatePathOption.valueOf(settings.getString(m_truncateOptionConfigKey)));
+        m_folderTruncateString.loadSettingsFrom(settings);
     }
 
     /**
@@ -154,7 +168,7 @@ public final class TruncationSettings {
      * @param settings the settings to read from
      */
     public void saveSettingsForDialog(final NodeSettingsWO settings) {
-        settings.addString(CFG_TRUNCATE_PATH_OPTION, getTruncatePathOption().name());
+        settings.addString(m_truncateOptionConfigKey, getTruncatePathOption().name());
     }
 
     /**
@@ -164,7 +178,7 @@ public final class TruncationSettings {
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings) {
         setTruncatePathOption(TruncatePathOption
-            .valueOf(settings.getString(CFG_TRUNCATE_PATH_OPTION, TruncatePathOption.getDefault().name())));
+            .valueOf(settings.getString(m_truncateOptionConfigKey, TruncatePathOption.getDefault().name())));
     }
 
 }

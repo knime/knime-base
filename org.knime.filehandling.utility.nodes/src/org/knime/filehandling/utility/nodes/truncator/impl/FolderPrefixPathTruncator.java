@@ -44,37 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 22, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Apr 15, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.truncator;
+package org.knime.filehandling.utility.nodes.truncator.impl;
 
 import java.nio.file.Path;
 
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+
 /**
- * A path truncator accepts two paths, whereby the <b>path</b> cannot be null and starts with the <b>baseFolder</b> if
- * the latter is not null itself and returns the String (array) representation of the truncated path.
+ * This truncator allows to remove a provided prefix from the path to truncate. The prefix has to specify a folder and
+ * in case it does not match the original path is being returned.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public interface PathTruncator { // NOSONAR
+public final class FolderPrefixPathTruncator extends AbstractPathTruncator {
+
+    private final Path m_baseFolder;
+
+    private final Path m_prefixPath;
 
     /**
-     * Creates the truncated path.
+     * Constructor.
      *
-     * @param baseFolder the base folder which can be null
-     * @param path cannot be null and starts with the <b>baseFolder</b>
-     * @return the truncated path as a string
+     * @param basePath the base path
+     * @param folderPrefix the folder prefix to be removed
+     * @param filterMode the {@link FilterMode}
      */
-    String truncate(final Path baseFolder, final Path path);
+    public FolderPrefixPathTruncator(final Path basePath, final String folderPrefix, final FilterMode filterMode) {
+        if (filterMode == FilterMode.FILE) {
+            m_baseFolder = basePath.getParent();
+        } else {
+            m_baseFolder = basePath;
+        }
+        m_prefixPath = getPrefixPath(m_baseFolder, folderPrefix);
+    }
 
-    /**
-     * Creates the truncated path.
-     *
-     * @param baseFolder the base folder which can be null
-     * @param path cannot be null and starts with the <b>baseFolder</b>
-     * @return the truncated path as a string
-     */
-    // FIXME: Rename this method (AP-16364)
-    String[] getTruncatedStringArray(final Path baseFolder, final Path path);
+    @SuppressWarnings("resource")
+    private static Path getPrefixPath(final Path folder, final String folderPrefix) {
+        final Path prefixPath = folder.getFileSystem().getPath(folderPrefix);
+        if (folder.startsWith(prefixPath)) {
+            return prefixPath;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    protected Path truncate(final Path path) {
+        if (m_prefixPath != null) {
+            return m_prefixPath.relativize(path).normalize();
+        } else {
+            return path.normalize();
+        }
+    }
 
 }
