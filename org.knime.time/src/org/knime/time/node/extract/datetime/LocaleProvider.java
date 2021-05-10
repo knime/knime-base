@@ -44,47 +44,74 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 19, 2017 (marcel): created
+ *   May 11, 2021 (Mark Ortmann): created
  */
 package org.knime.time.node.extract.datetime;
 
-import javax.swing.JPanel;
-
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * @author Marcel Wiedenmann, KNIME.com, Konstanz, Germany
+ * Providers for locales for Java v.8 and v.11.
+ *
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class ExtractDateTimeFieldsNodeDialog extends AbstractExtractDateTimeFieldsNodeDialog {
+enum LocaleProvider {
 
-    private final DialogComponentBoolean m_mapLocales;
+        JAVA_8(Arrays.stream(Locale.getAvailableLocales())//
+            // with java 11 new Locales without region are available that need to be filtered plus since we use the
+            // languageTag to save and load the Locales we cannot load Locales that have a variant, e.g., no_NO_NY != no_NO
+            .filter(l -> ExtractDateTimeFieldsNodeModel.LOCALE_MAPPING.containsKey(l.toLanguageTag()) //
+                || (!l.getCountry().isEmpty()//
+                    && l.getVariant().isEmpty()))//
+            .sorted(Comparator.comparing(Locale::toString))//
+            .toArray(Locale[]::new), Locale::toLanguageTag),
 
-    ExtractDateTimeFieldsNodeDialog() {
-        super(LocaleProvider.JAVA_8);
-        m_mapLocales = new DialogComponentBoolean(ExtractDateTimeFieldsNodeModel.createMapLocalesModel(),
-            "Map locales without region");
-        super.initPanel();
+        JAVA_11(Arrays.stream(Locale.getAvailableLocales())//
+            .filter(l -> !l.getCountry().isEmpty())//
+            .sorted(Comparator.comparing(Locale::toLanguageTag))//
+            .toArray(Locale[]::new), Locale::toString);
+
+    private final Locale[] m_locales;
+
+    private final Function<Locale, String> m_localeToString;
+
+    private LocaleProvider(final Locale[] locales, final Function<Locale, String> localeToString) {
+        m_locales = locales;
+        m_localeToString = localeToString;
     }
 
-    @Override
-    void extendLocalePanel(final JPanel localePanel) {
-        localePanel.add(m_mapLocales.getComponentPanel());
+    /**
+     * Returns the Locales that can be selected by the user.
+     *
+     * @return the selectable locales
+     */
+    Locale[] getLocales() {
+        return m_locales;
     }
 
-    @Override
-    void saveAdditionalSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_mapLocales.saveSettingsTo(settings);
+    /**
+     * Converts a locale to the string that is used to save it.
+     *
+     * @param locale the locale to be converted
+     * @return the string representation of this locale
+     */
+    String localeToString(final Locale locale) {
+        return m_localeToString.apply(locale);
     }
 
-    @Override
-    void loadAdditionalSettings(final NodeSettingsRO settings, final DataTableSpec[] specs)
-        throws NotConfigurableException {
-        m_mapLocales.loadSettingsFrom(settings, specs);
+    /**
+     * Inverses the transformation done via {@link #localeToString(Locale)}.
+     *
+     * @param string the string representation of a Locale
+     * @return the Locale associated with the given string
+     */
+    Optional<Locale> stringToLocale(final String string) {
+        return Arrays.stream(getLocales())//
+            .filter(l -> localeToString(l).equals(string))//
+            .findFirst();
     }
-
 }

@@ -44,47 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 19, 2017 (marcel): created
+ *   May 12, 2021 (Mark Ortmann): created
  */
 package org.knime.time.node.extract.datetime;
 
 import javax.swing.JPanel;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 
 /**
- * @author Marcel Wiedenmann, KNIME.com, Konstanz, Germany
+ * Dialog of the extract date and time fields node.
+ *
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class ExtractDateTimeFieldsNodeDialog extends AbstractExtractDateTimeFieldsNodeDialog {
+final class ExtractDateTimeFieldsNodeDialog2 extends AbstractExtractDateTimeFieldsNodeDialog {
 
-    private final DialogComponentBoolean m_mapLocales;
-
-    ExtractDateTimeFieldsNodeDialog() {
-        super(LocaleProvider.JAVA_8);
-        m_mapLocales = new DialogComponentBoolean(ExtractDateTimeFieldsNodeModel.createMapLocalesModel(),
-            "Map locales without region");
-        super.initPanel();
+    ExtractDateTimeFieldsNodeDialog2() {
+        super(LocaleProvider.JAVA_11);
+        initPanel();
     }
 
     @Override
     void extendLocalePanel(final JPanel localePanel) {
-        localePanel.add(m_mapLocales.getComponentPanel());
+        // nothing to do
     }
 
     @Override
-    void saveAdditionalSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_mapLocales.saveSettingsTo(settings);
+    void saveAdditionalSettings(final NodeSettingsWO settings) {
+        // nothing to do
     }
 
     @Override
-    void loadAdditionalSettings(final NodeSettingsRO settings, final DataTableSpec[] specs)
-        throws NotConfigurableException {
-        m_mapLocales.loadSettingsFrom(settings, specs);
+    void loadAdditionalSettings(final NodeSettingsRO settings, final DataTableSpec[] specs) {
+        // nothing to do
     }
 
 }

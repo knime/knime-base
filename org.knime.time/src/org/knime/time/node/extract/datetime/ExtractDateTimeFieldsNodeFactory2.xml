@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode type="Manipulator" icon="extractdatetime.png" deprecated="true">
+<knimeNode type="Manipulator" icon="extractdatetime.png">
 	<name>Extract Date&amp;Time Fields</name>
 	<shortDescription>
 		Extracts date and/or time fields from date&amp;time
@@ -102,16 +102,6 @@
 				output strings (month, day of week, time zone offset) and takes care
 				of local calendrical characteristics (week and day of week
 				numbering).
-			</option>
-			<option name="Map locales without region">With Java >= v.9 the default locale provider changed
-			from <i>COMPAT (fka JRE)</i> to <i>CLDR</i> causing that locales without a region, e.g., <i>en</i> or 
-			<i>de</i> produce differnt results than before. If the option is selected all these locales will be
-			automatically mapped to the corresponding locale containing a region. <b>Note:</b> In a few cases a mapping
-			does not exists and therefore the results will be different. 
-			<br/>
-			If it is mandatory to ensure that the results stay the same please adapt the <i>knime.ini</i> and add the 
-			following entry <tt>-Djava.locale.providers=COMPAT,CLDR,SPI</tt> below the <i>-vmargs</i> entry. However,
-			this is not recommended.
 			</option>
 		</tab>
 	</fullDescription>

@@ -75,8 +75,13 @@
       </node>
       <node
             category-path="/applications/timeseries/transform"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.extract.datetime.ExtractDateTimeFieldsNodeFactory">
+      </node>
+      <node
+            category-path="/applications/timeseries/transform"
+            deprecated="false"
+            factory-class="org.knime.time.node.extract.datetime.ExtractDateTimeFieldsNodeFactory2">
       </node>
       <node
             category-path="/applications/timeseries/manipulate"

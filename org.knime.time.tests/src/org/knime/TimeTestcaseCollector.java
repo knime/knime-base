@@ -1,6 +1,5 @@
 /*
  * ------------------------------------------------------------------------
- *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -44,47 +43,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 19, 2017 (marcel): created
+ *   20.11.2010 (meinl): created
  */
-package org.knime.time.node.extract.datetime;
+package org.knime;
 
-import javax.swing.JPanel;
+import org.junit.runner.RunWith;
+import org.junit.runners.AllTests;
+import org.knime.testing.core.AbstractTestcaseCollector;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import junit.framework.JUnit4TestAdapter;
+import junit.framework.TestSuite;
 
 /**
- * @author Marcel Wiedenmann, KNIME.com, Konstanz, Germany
+ *
+ * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-final class ExtractDateTimeFieldsNodeDialog extends AbstractExtractDateTimeFieldsNodeDialog {
+@RunWith(AllTests.class)
+public class TimeTestcaseCollector extends AbstractTestcaseCollector {
+    /**
+     * This is called via the JUnit framework in order to collect all testcases.
+     *
+     * @return a test suite with all testcases
+     *
+     * @throws Exception if something goes wrong
+     */
+    public static TestSuite suite() throws Exception {
+        final TestSuite suite = new TestSuite();
 
-    private final DialogComponentBoolean m_mapLocales;
+        for (Class<?> testClass : new TimeTestcaseCollector().getUnittestsClasses()) {
+            suite.addTest(new JUnit4TestAdapter(testClass));
+        }
 
-    ExtractDateTimeFieldsNodeDialog() {
-        super(LocaleProvider.JAVA_8);
-        m_mapLocales = new DialogComponentBoolean(ExtractDateTimeFieldsNodeModel.createMapLocalesModel(),
-            "Map locales without region");
-        super.initPanel();
+        return suite;
     }
-
-    @Override
-    void extendLocalePanel(final JPanel localePanel) {
-        localePanel.add(m_mapLocales.getComponentPanel());
-    }
-
-    @Override
-    void saveAdditionalSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_mapLocales.saveSettingsTo(settings);
-    }
-
-    @Override
-    void loadAdditionalSettings(final NodeSettingsRO settings, final DataTableSpec[] specs)
-        throws NotConfigurableException {
-        m_mapLocales.loadSettingsFrom(settings, specs);
-    }
-
 }

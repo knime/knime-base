@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -43,37 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20.11.2010 (meinl): created
+ *   Apr 19, 2017 (marcel): created
  */
-package org.knime.base;
+package org.knime.time.node.extract.datetime;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.AllTests;
-import org.knime.testing.core.AbstractTestcaseCollector;
-
-import junit.framework.JUnit4TestAdapter;
-import junit.framework.TestSuite;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @author Marcel Wiedenmann, KNIME.com, Konstanz, Germany
  */
-@RunWith(AllTests.class)
-public class TimeTestcaseCollector extends AbstractTestcaseCollector {
-    /**
-     * This is called via the JUnit framework in order to collect all testcases.
-     *
-     * @return a test suite with all testcases
-     *
-     * @throws Exception if something goes wrong
-     */
-    public static TestSuite suite() throws Exception {
-        final TestSuite suite = new TestSuite();
+public final class ExtractDateTimeFieldsNodeFactory2 extends NodeFactory<ExtractDateTimeFieldsNodeModel2> {
 
-        for (Class<?> testClass : new TimeTestcaseCollector().getUnittestsClasses()) {
-            suite.addTest(new JUnit4TestAdapter(testClass));
-        }
+    @Override
+    public ExtractDateTimeFieldsNodeModel2 createNodeModel() {
+        return new ExtractDateTimeFieldsNodeModel2();
+    }
 
-        return suite;
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    @Override
+    public NodeView<ExtractDateTimeFieldsNodeModel2> createNodeView(final int viewIndex,
+        final ExtractDateTimeFieldsNodeModel2 nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new ExtractDateTimeFieldsNodeDialog2();
     }
 }

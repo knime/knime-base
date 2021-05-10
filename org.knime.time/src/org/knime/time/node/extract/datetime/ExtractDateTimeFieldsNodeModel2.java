@@ -44,47 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 19, 2017 (marcel): created
+ *   May 12, 2021 (Mark Ortmann): created
  */
 package org.knime.time.node.extract.datetime;
 
-import javax.swing.JPanel;
+import java.util.Locale;
+import java.util.Optional;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
- * @author Marcel Wiedenmann, KNIME.com, Konstanz, Germany
+ * The extract date and time fields node model.
+ *
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class ExtractDateTimeFieldsNodeDialog extends AbstractExtractDateTimeFieldsNodeDialog {
+final class ExtractDateTimeFieldsNodeModel2 extends AbstractExtractDateTimeFieldsNodeModel {
 
-    private final DialogComponentBoolean m_mapLocales;
-
-    ExtractDateTimeFieldsNodeDialog() {
-        super(LocaleProvider.JAVA_8);
-        m_mapLocales = new DialogComponentBoolean(ExtractDateTimeFieldsNodeModel.createMapLocalesModel(),
-            "Map locales without region");
-        super.initPanel();
+    ExtractDateTimeFieldsNodeModel2() {
+        super(LocaleProvider.JAVA_11.localeToString(Locale.getDefault()));
     }
 
     @Override
-    void extendLocalePanel(final JPanel localePanel) {
-        localePanel.add(m_mapLocales.getComponentPanel());
+    Optional<Locale> getLocale(final String selectedLocale) {
+        return LocaleProvider.JAVA_11.stringToLocale(selectedLocale);
     }
 
     @Override
-    void saveAdditionalSettings(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_mapLocales.saveSettingsTo(settings);
+    void saveLocale(final NodeSettingsWO settings, final SettingsModelString localeModel) {
+        localeModel.saveSettingsTo(settings);
     }
 
     @Override
-    void loadAdditionalSettings(final NodeSettingsRO settings, final DataTableSpec[] specs)
-        throws NotConfigurableException {
-        m_mapLocales.loadSettingsFrom(settings, specs);
+    void validateLocale(final NodeSettingsRO settings, final SettingsModelString localeModel)
+        throws InvalidSettingsException {
+        localeModel.validateSettings(settings);
+        final String locale = settings.getString(localeModel.getKey());
+        if (getLocale(locale).isEmpty()) {
+            throw new InvalidSettingsException(
+                String.format("The string %s does not reference a valid locale.", locale));
+        }
     }
 
+    @Override
+    void loadLocale(final NodeSettingsRO settings, final SettingsModelString localeModel)
+        throws InvalidSettingsException {
+        localeModel.loadSettingsFrom(settings);
+    }
 }
