@@ -56,10 +56,11 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
 
 /**
+ * Configuration of the "Compress Files/Folder (Table)" node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class CompressTableNodeConfig extends AbstractCompressNodeConfig {
+final class CompressTableNodeConfig extends AbstractCompressNodeConfig<TableTruncationSettings> {
 
     private static final String CFG_INPUT_COLUMN = "source_column";
 
@@ -71,7 +72,7 @@ final class CompressTableNodeConfig extends AbstractCompressNodeConfig {
      * @param portsConfig
      */
     protected CompressTableNodeConfig(final PortsConfiguration portsConfig) {
-        super(portsConfig);
+        super(portsConfig, new TableTruncationSettings(CFG_TRUNCATE_OPTION));
         m_pathColModel = new SettingsModelString(CFG_INPUT_COLUMN, null);
     }
 

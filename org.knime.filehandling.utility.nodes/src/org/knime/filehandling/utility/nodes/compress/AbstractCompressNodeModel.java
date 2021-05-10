@@ -87,8 +87,8 @@ import org.knime.filehandling.utility.nodes.compress.archiver.ArchiveEntryCreato
 import org.knime.filehandling.utility.nodes.compress.archiver.ArchiveEntryFactory;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressEntry;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
-import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncationException;
+import org.knime.filehandling.utility.nodes.compress.iterator.CompressPair;
+import org.knime.filehandling.utility.nodes.truncator.TruncationException;
 
 /**
  * Node Model for the "Compress Files/Folder" node
@@ -97,7 +97,7 @@ import org.knime.filehandling.utility.nodes.compress.truncator.TruncationExcepti
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  * @param <T> an instance of {@link AbstractCompressNodeConfig}
  */
-public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeConfig> extends NodeModel {
+public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeConfig<?>> extends NodeModel {
 
     /**
      * The template string for the name collision error. It requires two strings, i.e., the paths to the files causing
@@ -164,7 +164,8 @@ public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeCo
 
     private void compress(final PortObject[] inData, final ExecutionContext exec)
         throws IOException, InvalidSettingsException, CanceledExecutionException {
-        try (final CompressIterator filesToCompress = getFilesToCompress(inData, m_config.includeEmptyFolders())) {
+        try (final CompressIterator filesToCompress =
+            getFilesToCompress(inData, m_config.includeEmptyFoldersModel().getBooleanValue())) {
             try (final WritePathAccessor writeAccessor =
                 m_config.getTargetFileChooserModel().createWritePathAccessor()) {
                 final FSPath outputPath = writeAccessor.getOutputPath(m_statusConsumer);
@@ -235,11 +236,9 @@ public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeCo
             final long numOfFiles = filesToCompress.size();
 
             final Map<String, String> createdEntries = new HashMap<>();
-            final PathTruncator pathTruncator = m_config.getPathTruncator();
             while (filesToCompress.hasNext()) {
                 final ExecutionContext subExec = exec.createSubExecutionContext(1d / numOfFiles);
-                compress(subExec, pathTruncator, outputLocation, filesToCompress.next(), archiveStream, entryCreator,
-                    createdEntries);
+                compress(subExec, outputLocation, filesToCompress.next(), archiveStream, entryCreator, createdEntries);
             }
         } catch (ArchiveException e) {
             throw new IllegalArgumentException("Unsupported archive type", e);
@@ -258,74 +257,43 @@ public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeCo
         return archiver;
     }
 
-    private void compress(final ExecutionContext exec, final PathTruncator pathTruncator,
-        final FSLocation outputLocation, final CompressEntry compressEntry, final ArchiveOutputStream archiveStream,
+    private void compress(final ExecutionContext exec, final FSLocation outputLocation,
+        final CompressEntry compressEntry, final ArchiveOutputStream archiveStream,
         final ArchiveEntryCreator entryCreator, final Map<String, String> createdEntries)
         throws CanceledExecutionException, IOException, InvalidSettingsException {
-        List<FSPath> pathsToCompress = compressEntry.getPaths();
-        if (!pathsToCompress.isEmpty()) {
-            final Path baseFolder = compressEntry.getBaseFolder().orElseGet(() -> null);
+        try {
+            List<CompressPair> pathsToCompress = compressEntry.getPaths();
             int fileCounter = 1;
             final double numOfFiles = pathsToCompress.size();
-            for (final FSPath pathToCompress : pathsToCompress) {
+            for (final CompressPair pathToCompress : pathsToCompress) {
                 exec.setProgress((fileCounter / numOfFiles), () -> ("Compressing file: " + pathToCompress.toString()));
                 exec.checkCanceled();
-                if (!pathToCompress.toFSLocation().equals(outputLocation)) {
-                    compress(pathTruncator, archiveStream, entryCreator, createdEntries, pathsToCompress, baseFolder,
-                        pathToCompress);
+                if (!pathToCompress.getPathToCompress().toFSLocation().equals(outputLocation)) {
+                    addEntry(archiveStream, entryCreator, createdEntries, pathToCompress);
                 } else {
                     setWarningMessage(String.format("Skipping the compression of '%s' as this is the archive itself",
-                        pathToCompress.toString()));
+                        pathToCompress.getPathToCompress().toString()));
                 }
                 fileCounter++;
             }
-        } else {
-            // can only be empty if the entry was created from a folder and therefore the base folder is always present
-            compressEntry.getBaseFolder().ifPresent(
-                p -> setWarningMessage(String.format("'%s' does not contain any files/folders to compress", p)));
-        }
-    }
-
-    private void compress(final PathTruncator pathTruncator, final ArchiveOutputStream archiveStream,
-        final ArchiveEntryCreator entryCreator, final Map<String, String> createdEntries,
-        final List<FSPath> pathsToCompress, final Path baseFolder, final FSPath pathToCompress)
-        throws IOException, InvalidSettingsException {
-        try {
-            final String entryName = pathTruncator.truncate(baseFolder, pathToCompress);
-            addEntry(archiveStream, entryCreator, createdEntries, pathToCompress, entryName);
         } catch (final TruncationException e) {
-            switch (e.getTruncatePathOption()) {
-                case KEEP_SRC_FOLDER:
-                    throw new InvalidSettingsException(String.format(
-                        "The file '%s' is not located within any folder. Please change the truncation option.",
-                        pathToCompress.toString()), e);
-                case TRUNCATE_REGEX:
-                    throw new InvalidSettingsException(String.format(
-                        "%s Please adapt the regular expression or uncheck the include empty folders option.",
-                        e.getMessage()), e);
-                case TRUNCATE_SRC_FOLDER:
-                    if (pathsToCompress.size() == 1 && baseFolder != null) {
-                        setWarningMessage(String.format("'%s' does not contain any files/folders to compress",
-                            baseFolder.toString()));
-                    }
-                    break;
-                default:
-                    throw e;
-            }
+            throw new InvalidSettingsException(e);
         }
     }
 
     private static void addEntry(final ArchiveOutputStream archiveStream, final ArchiveEntryCreator entryCreator,
-        final Map<String, String> createdEntries, final FSPath pathToCompress, final String entryName)
-        throws IOException {
-        if (!createdEntries.containsKey(entryName)) {
-            final ArchiveEntry archiveEntry = entryCreator.apply(pathToCompress, entryName); //NOSONAR no expansion
-            createArchiveEntry(archiveStream, pathToCompress, archiveEntry);
+        final Map<String, String> createdEntries, final CompressPair pathToCompress) throws IOException {
+        final FSPath path = pathToCompress.getPathToCompress();
+        final String archiveEntryName = pathToCompress.getArchiveEntryName();
+        if (!createdEntries.containsKey(archiveEntryName)) {
+            entryCreator.validate(path, archiveEntryName);
+            final ArchiveEntry archiveEntry = entryCreator.apply(path, archiveEntryName); //NOSONAR no expansion
+            createArchiveEntry(archiveStream, path, archiveEntry);
         } else {
             throw new IllegalArgumentException(
-                String.format(NAME_COLLISION_ERROR_TEMPLATE, createdEntries.get(entryName), pathToCompress.toString()));
+                String.format(NAME_COLLISION_ERROR_TEMPLATE, createdEntries.get(archiveEntryName), path.toString()));
         }
-        createdEntries.put(entryName, pathToCompress.toString());
+        createdEntries.put(archiveEntryName, path.toString());
     }
 
     private static void createArchiveEntry(final ArchiveOutputStream archiveStream, final Path fileToCompress,

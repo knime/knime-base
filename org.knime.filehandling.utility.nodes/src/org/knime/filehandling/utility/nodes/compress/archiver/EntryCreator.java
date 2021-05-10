@@ -51,6 +51,7 @@ package org.knime.filehandling.utility.nodes.compress.archiver;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
@@ -68,6 +69,9 @@ import org.knime.filehandling.core.connections.FSFiles;
  */
 abstract class EntryCreator implements ArchiveEntryCreator {
 
+    private static final Pattern ILLEGAL_ARCHIVE_NAMES =
+        Pattern.compile("^([a-zA-Z]+:|\\/|\\\\).*|.*\\.{1,2}[\\\\\\\\\\\\/].*");
+
     @SuppressWarnings("resource")
     @Override
     public ArchiveEntry apply(final Path p, final String entryName) throws IOException {
@@ -82,6 +86,18 @@ abstract class EntryCreator implements ArchiveEntryCreator {
             newEntryName = entryName;
         }
         return createEntry(p, newEntryName);
+    }
+
+    @Override
+    public final void validate(final Path path, final String entryName) {
+        if (entryName.isEmpty()) {
+            throw new IllegalArgumentException("The archive entry name cannot be empty");
+        }
+        if (ILLEGAL_ARCHIVE_NAMES.matcher(entryName).matches()) {
+            throw new IllegalArgumentException(
+                String.format("The archive entry name '%s' associated with '%s' results in an illegal/insecure archive",
+                    entryName, path.toString()));
+        }
     }
 
     long getSize(final Path p) throws IOException {

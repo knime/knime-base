@@ -44,57 +44,78 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 1, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Apr 19, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.utility.nodes.compress.table;
 
-import java.util.NoSuchElementException;
-
-import org.knime.core.node.BufferedDataTable;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.utility.nodes.compress.iterator.CompressEntry;
-import org.knime.filehandling.utility.nodes.compress.iterator.CompressFileFolderEntry;
-import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
-import org.knime.filehandling.utility.nodes.utils.iterators.FsCellColumnIterator;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
 
 /**
- * An instance of {@link CompressIterator} processing a {@link BufferedDataTable} containing a path column.
+ * Extends the TruncationSettings by a field that specifies the column containing the archive entry names.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class CompressTableIterator implements CompressIterator {
+final class TableTruncationSettings extends TruncationSettings {
 
-    private final FsCellColumnIterator m_iterator;
+    private static final String CFG_ENTRY_NAME_DEFINED_BY_TABLE = "from_table";
 
-    private final boolean m_includeEmptyFolders;
+    private static final String CFG_ENTRY_COLUMN = "entry_name_column";
 
-    CompressTableIterator(final BufferedDataTable table, final int pathColIdx, final FSConnection connection,
-        final boolean includeEmptyFolders) {
-        m_iterator = new FsCellColumnIterator(table, pathColIdx, connection);
-        m_includeEmptyFolders = includeEmptyFolders;
+    private boolean m_entryNameDefinedByTableCol;
+
+    private final SettingsModelString m_entryNameColModel;
+
+    TableTruncationSettings(final String truncateOptionConfigKey) {
+        super(truncateOptionConfigKey);
+        m_entryNameColModel = new SettingsModelString(CFG_ENTRY_COLUMN, null);
+    }
+
+    boolean entryNameDefinedByTableColumn() {
+        return m_entryNameDefinedByTableCol;
+    }
+
+    void entryNameDefinedByTableColumn(final boolean entryNameDefinedByTableCol) {
+        m_entryNameDefinedByTableCol = entryNameDefinedByTableCol;
+    }
+
+    SettingsModelString getEntryNameColModel() {
+        return m_entryNameColModel;
     }
 
     @Override
-    public boolean hasNext() {
-        return m_iterator.hasNext();
+    public void loadSettingsForDialog(final NodeSettingsRO settings) {
+        super.loadSettingsForDialog(settings);
+        m_entryNameDefinedByTableCol = settings.getBoolean(CFG_ENTRY_NAME_DEFINED_BY_TABLE, false);
     }
 
     @Override
-    public CompressEntry next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
-        return new CompressFileFolderEntry(m_iterator.next(), m_includeEmptyFolders);
+    public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        super.loadSettingsForModel(settings);
+        m_entryNameDefinedByTableCol = settings.getBoolean(CFG_ENTRY_NAME_DEFINED_BY_TABLE);
+        m_entryNameColModel.loadSettingsFrom(settings);
     }
 
     @Override
-    public void close() {
-        m_iterator.close();
+    public void saveSettingsForDialog(final NodeSettingsWO settings) {
+        settings.addBoolean(CFG_ENTRY_NAME_DEFINED_BY_TABLE, m_entryNameDefinedByTableCol);
+        super.saveSettingsForDialog(settings);
     }
 
     @Override
-    public long size() {
-        return m_iterator.size();
+    public void saveSettingsForModel(final NodeSettingsWO settings) {
+        super.saveSettingsForModel(settings);
+        settings.addBoolean(CFG_ENTRY_NAME_DEFINED_BY_TABLE, m_entryNameDefinedByTableCol);
+        m_entryNameColModel.saveSettingsTo(settings);
     }
 
+    @Override
+    public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        super.validateSettingsForModel(settings);
+        settings.containsKey(CFG_ENTRY_NAME_DEFINED_BY_TABLE);
+        m_entryNameColModel.validateSettings(settings);
+    }
 }

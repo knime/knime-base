@@ -44,72 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 28, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Apr 13, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.utility.nodes.compress.table;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Path;
 
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ConfigurableNodeFactory;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.port.FileSystemPortObject;
-import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.util.CheckedExceptionFunction;
+import org.knime.filehandling.utility.nodes.compress.iterator.CompressEntry;
+import org.knime.filehandling.utility.nodes.compress.iterator.CompressFileFolderEntry;
+import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
+import org.knime.filehandling.utility.nodes.truncator.PathToStringTruncator;
+import org.knime.filehandling.utility.nodes.utils.iterators.FsCellColumnIterator;
 
 /**
- * Node Factory for the "Compress Files/Folder (Table)" node.
+ * Abstract implementation of a {@link CompressIterator} that processed an input table.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class CompressTableNodeFactory extends ConfigurableNodeFactory<CompressTableNodeModel> {
+abstract class AbstractCompressTableIterator implements CompressIterator {
 
-    private static final String TABLE_INPUT_FILE_PORT_GRP_NAME = "Input Table";
+    private final FsCellColumnIterator m_fsCellIterator;
 
-    @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(AbstractCompressNodeConfig.CONNECTION_INPUT_FILE_PORT_GRP_NAME,
-            FileSystemPortObject.TYPE);
-        builder.addFixedInputPortGroup(TABLE_INPUT_FILE_PORT_GRP_NAME, BufferedDataTable.TYPE);
-        builder.addOptionalInputPortGroup(AbstractCompressNodeConfig.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME,
-            FileSystemPortObject.TYPE);
-        return Optional.of(builder);
+    private final boolean m_includeEmptyFolders;
+
+    /**
+     * Constructor.
+     *
+     * @param table the input table
+     * @param pathColIdx the column containing the paths that need to be compressed
+     * @param connection the {@link FSConnection}
+     * @param includeEmptyFolders flag indicating whether or not empty folder should be compressed
+     */
+    AbstractCompressTableIterator(final BufferedDataTable table, final int pathColIdx, final FSConnection connection,
+        final boolean includeEmptyFolders) {
+        m_fsCellIterator = new FsCellColumnIterator(table, pathColIdx, connection);
+        m_includeEmptyFolders = includeEmptyFolders;
     }
 
     @Override
-    protected CompressTableNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portsConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new CompressTableNodeModel(portsConfig, getTablePortIdx(portsConfig));
+    public final long size() {
+        return m_fsCellIterator.size();
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portsConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new CompressTableNodeDialog(portsConfig, new CompressTableNodeConfig(portsConfig),
-            getTablePortIdx(portsConfig));
+    public final boolean hasNext() {
+        return m_fsCellIterator.hasNext();
+    }
+
+    final CompressEntry
+        createEntry(final CheckedExceptionFunction<Path, PathToStringTruncator, IOException> truncatorFac) {
+        return new CompressFileFolderEntry(m_fsCellIterator.next(), m_includeEmptyFolders, truncatorFac);
     }
 
     @Override
-    public NodeView<CompressTableNodeModel> createNodeView(final int viewIndex,
-        final CompressTableNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    private static final int getTablePortIdx(final PortsConfiguration portsConfig) {
-        return portsConfig.getInputPortLocation().get(CompressTableNodeFactory.TABLE_INPUT_FILE_PORT_GRP_NAME)[0];
+    public void close() {
+        m_fsCellIterator.close();
     }
 
 }

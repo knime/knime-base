@@ -53,20 +53,21 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncationSettings;
+import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
 
 /**
- * Node configuration of the "Compress Files/Folder" node.
+ * Abstract configuration of the "Compress Files/Folder" node.
  *
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @param <T> an instance of {@link TruncationSettings}
  */
-public abstract class AbstractCompressNodeConfig {
+public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
 
     /** The source file system connection port group name. */
     public static final String CONNECTION_INPUT_FILE_PORT_GRP_NAME = "Source File System Connection";
@@ -74,12 +75,13 @@ public abstract class AbstractCompressNodeConfig {
     /** The destination file system connection port group name. */
     public static final String CONNECTION_OUTPUT_DIR_PORT_GRP_NAME = "Destination File System Connection";
 
+    /** Config key for the TruncationSettings. */
+    protected static final String CFG_TRUNCATE_OPTION = "archive_entry_name_mode";
+
     static final String INVALID_EXTENSION_ERROR =
         "Invalid destination file extension. Please find the valid extensions in the node description.";
 
     private static final String CFG_OUTPUT_LOCATION = "destination_location";
-
-    private static final String CFG_FLATTEN_FOLDER = "flatten_folder";
 
     private static final String CFG_INCLUDE_EMPTY_FOLDERS = "include_empty_folders";
 
@@ -89,11 +91,9 @@ public abstract class AbstractCompressNodeConfig {
 
     private final SettingsModelString m_compressionModel;
 
-    private final TruncationSettings m_truncationSettings;
+    private final T m_truncationSettings;
 
-    private boolean m_flattenFolder;
-
-    private boolean m_includeEmptyFolders;
+    private final SettingsModelBoolean m_includeEmptyFolders;
 
     static final String BZ2_EXTENSION = "bz2";
 
@@ -111,64 +111,26 @@ public abstract class AbstractCompressNodeConfig {
     private static final String DEFAULT_COMPRESSION = COMPRESSIONS[0];
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param portsConfig {@link PortsConfiguration} of the node
+     * @param truncationSettings the {@link TruncationSettings}
      */
-    protected AbstractCompressNodeConfig(final PortsConfiguration portsConfig) {
+    protected AbstractCompressNodeConfig(final PortsConfiguration portsConfig, final T truncationSettings) {
         m_destinationFileChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
             CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, EnumConfig.create(FilterMode.FILE),
             EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), COMPRESSIONS);
         m_compressionModel = new SettingsModelString(CFG_COMPRESSION, DEFAULT_COMPRESSION);
-        m_truncationSettings = new TruncationSettings();
-        m_flattenFolder = false;
-        m_includeEmptyFolders = true;
-    }
-
-    final void loadSettingsForDialog(final NodeSettingsRO settings) {
-        includeEmptyFolders(settings.getBoolean(CFG_INCLUDE_EMPTY_FOLDERS, false));
-        flattenFolder(settings.getBoolean(CFG_FLATTEN_FOLDER, false));
-    }
-
-    final void saveSettingsForDialog(final NodeSettingsWO settings) {
-        saveNonSettingModelParameters(settings);
-    }
-
-    private void saveFlattenFolder(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_FLATTEN_FOLDER, flattenFolder());
-    }
-
-    private void saveSkipFolders(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_INCLUDE_EMPTY_FOLDERS, includeEmptyFolders());
+        m_truncationSettings = truncationSettings;
+        m_includeEmptyFolders = new SettingsModelBoolean(CFG_INCLUDE_EMPTY_FOLDERS, true);
     }
 
     final void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        validateAdditionalSettingsForModel(settings);
         m_destinationFileChooserModel.validateSettings(settings);
         m_compressionModel.validateSettings(settings);
-        validateFlattenFolder(settings);
-        validateTruncatePathOption(settings);
-        validateAdditionalSettingsForModel(settings);
-    }
-
-    /**
-     * Validates the flatten folder option.
-     *
-     * @param settings the settings to validate
-     * @throws InvalidSettingsException - If the flatten folder option validation failed
-     */
-    protected void validateFlattenFolder(final NodeSettingsRO settings) throws InvalidSettingsException {
-        settings.getBoolean(CFG_FLATTEN_FOLDER);
-    }
-
-    /**
-     * Validates the truncate options.
-     *
-     * @param settings the settings to validate
-     * @throws InvalidSettingsException - If the truncate options validation failed
-     */
-    protected void validateTruncatePathOption(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_truncationSettings.validateSettingsForModel(settings);
-        settings.getBoolean(CFG_INCLUDE_EMPTY_FOLDERS);
+        m_includeEmptyFolders.validateSettings(settings);
     }
 
     /**
@@ -180,23 +142,11 @@ public abstract class AbstractCompressNodeConfig {
     protected abstract void validateAdditionalSettingsForModel(NodeSettingsRO settings) throws InvalidSettingsException;
 
     final void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        loadAdditionalSettingsForModel(settings);
         m_destinationFileChooserModel.loadSettingsFrom(settings);
         m_compressionModel.loadSettingsFrom(settings);
-        flattenFolder(loadFlattenFolderForModel(settings));
-        loadAdditionalSettingsForModel(settings);
-        // this method has to be called after #loadAdditionalSettingsForModel due to backwards compatibility
-        loadTruncatePathOptionInModel(settings);
-    }
-
-    /**
-     * Loads and returns the flatten folder flag.
-     *
-     * @param settings the setting storing the flatten folder flag
-     * @return the flatten folder flag stored in the settings
-     * @throws InvalidSettingsException - If the option cannot be loaded
-     */
-    protected boolean loadFlattenFolderForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return settings.getBoolean(CFG_FLATTEN_FOLDER);
+        m_truncationSettings.loadSettingsForModel(settings);
+        m_includeEmptyFolders.loadSettingsFrom(settings);
     }
 
     /**
@@ -207,24 +157,12 @@ public abstract class AbstractCompressNodeConfig {
      */
     protected abstract void loadAdditionalSettingsForModel(NodeSettingsRO settings) throws InvalidSettingsException;
 
-    /**
-     * Loads the truncation path options in the node model. It is ensure that this method is called after invoking
-     * {@link #loadAdditionalSettingsForModel(NodeSettingsRO)}.
-     *
-     * @param settings the setting storing the options
-     * @throws InvalidSettingsException - If the options cannot be loaded
-     */
-    protected void loadTruncatePathOptionInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_truncationSettings.loadSettingsForModel(settings);
-        includeEmptyFolders(settings.getBoolean(CFG_INCLUDE_EMPTY_FOLDERS));
-    }
-
     final void saveSettingsForModel(final NodeSettingsWO settings) {
-        saveNonSettingModelParameters(settings);
+        saveAdditionalSettingsForModel(settings);
         m_destinationFileChooserModel.saveSettingsTo(settings);
         m_compressionModel.saveSettingsTo(settings);
         m_truncationSettings.saveSettingsForModel(settings);
-        saveAdditionalSettingsForModel(settings);
+        m_includeEmptyFolders.saveSettingsTo(settings);
     }
 
     /**
@@ -233,11 +171,6 @@ public abstract class AbstractCompressNodeConfig {
      * @param settings the settings to save the options to
      */
     protected abstract void saveAdditionalSettingsForModel(NodeSettingsWO settings);
-
-    private void saveNonSettingModelParameters(final NodeSettingsWO settings) {
-        saveFlattenFolder(settings);
-        saveSkipFolders(settings);
-    }
 
     /**
      * Returns the {@link SettingsModelWriterFileChooser} used to select where to save the archive file.
@@ -258,53 +191,21 @@ public abstract class AbstractCompressNodeConfig {
     }
 
     /**
-     * Returns the {@link TruncationSettings}.
+     * Returns the truncation settings.
      *
-     * @return the {@link TruncationSettings}
+     * @return the truncation settings
      */
-    protected final TruncationSettings getTruncationSettings() {
+    public final T getTruncationSettings() {
         return m_truncationSettings;
     }
 
     /**
-     * Sets the flag indicating whether or not to flatten the folder during compression.
+     * Returns the {@link SettingsModelBoolean} storing the include empty folders flag.
      *
-     * @param flattenFolder {@code true} if the folder has to be flattened during compression and {@code false}
-     *            otherwise
+     * @return the {@link SettingsModelBoolean} storing the include empty folders flag
      */
-    final void flattenFolder(final boolean flattenFolder) {
-        m_flattenFolder = flattenFolder;
-    }
-
-    /**
-     * Returns the flag deciding whether or not to flatten the folder during compression.
-     *
-     * @return {code true} if the folder has to be flattened during compression and {@code false} otherwise
-     */
-    final boolean flattenFolder() {
-        return m_flattenFolder;
-    }
-
-    /**
-     * Sets the include empty folders option.
-     *
-     * @param includeEmptyFolders {@code true} if empty folders shall be included and {@code false} otherwise
-     */
-    protected final void includeEmptyFolders(final boolean includeEmptyFolders) {
-        m_includeEmptyFolders = includeEmptyFolders;
-    }
-
-    final boolean includeEmptyFolders() {
+    final SettingsModelBoolean includeEmptyFoldersModel() {
         return m_includeEmptyFolders;
-    }
-
-    /**
-     * Returns the {@link PathTruncator}.
-     *
-     * @return the {@link PathTruncator}
-     */
-    final PathTruncator getPathTruncator() {
-        return m_truncationSettings.getPathTruncator(flattenFolder());
     }
 
 }

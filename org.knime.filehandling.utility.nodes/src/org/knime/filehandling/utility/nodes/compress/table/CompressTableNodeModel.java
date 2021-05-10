@@ -54,6 +54,8 @@ import java.util.Optional;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.StringValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.ports.PortsConfiguration;
@@ -71,6 +73,7 @@ import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeModel;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
 
 /**
+ * NodeModel of the "Compress Files/Folder (Table)" node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
@@ -83,12 +86,13 @@ final class CompressTableNodeModel extends AbstractCompressNodeModel<CompressTab
     /**
      * Constructor.
      *
-     * @param portsConfig
+     * @param portsConfig the ports configuration
+     * @param inputTableIdx the index of the input table
      */
-    CompressTableNodeModel(final PortsConfiguration portsConfig) {
+    CompressTableNodeModel(final PortsConfiguration portsConfig, final int inputTableIdx) {
         super(portsConfig, new CompressTableNodeConfig(portsConfig));
         final Map<String, int[]> inputPortLocation = portsConfig.getInputPortLocation();
-        m_inputTableIdx = inputPortLocation.get(CompressTableNodeFactory.TABLE_INPUT_FILE_PORT_GRP_NAME)[0];
+        m_inputTableIdx = inputTableIdx;
         m_inputConnectionIdx =
             Optional.ofNullable(inputPortLocation.get(AbstractCompressNodeConfig.CONNECTION_INPUT_FILE_PORT_GRP_NAME))//
                 .map(a -> a[0])//
@@ -97,39 +101,63 @@ final class CompressTableNodeModel extends AbstractCompressNodeModel<CompressTab
 
     @Override
     protected void doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final SettingsModelString pathColModel = getConfig().getPathColModel();
-        if (pathColModel.getStringValue() == null) {
-            autoGuess(inSpecs);
-            setWarningMessage(
-                String.format("Auto-guessed column containing file/folder paths '%s'", pathColModel.getStringValue()));
-        }
-        validateSettings(inSpecs, pathColModel);
+        autoGuess(inSpecs);
+        validateSettings(inSpecs);
     }
 
     private void autoGuess(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
-        getConfig().getPathColModel().setStringValue(inputTableSpec.stream()//
-            .filter(dcs -> dcs.getType().isCompatible(FSLocationValue.class))//
-            .map(DataColumnSpec::getName)//
-            .findFirst()//
-            .orElseThrow(() -> new InvalidSettingsException("No applicable column available"))//
-        );
+        final SettingsModelString pathColModel = getConfig().getPathColModel();
+        if (pathColModel.getStringValue() == null) {
+            final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
+            getConfig().getPathColModel().setStringValue(inputTableSpec.stream()//
+                .filter(dcs -> dcs.getType().isCompatible(FSLocationValue.class))//
+                .map(DataColumnSpec::getName)//
+                .findFirst()//
+                .orElseThrow(() -> new InvalidSettingsException("No applicable column available"))//
+            );
+            setWarningMessage(
+                String.format("Auto-guessed column containing file/folder paths '%s'", pathColModel.getStringValue()));
+        }
     }
 
-    private void validateSettings(final PortObjectSpec[] inSpecs, final SettingsModelString pathColModel)
-        throws InvalidSettingsException {
+    private void validateSettings(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
-        final String pathColName = pathColModel.getStringValue();
-        final int colIndex = inSpec.findColumnIndex(pathColName);
+        validatePathColumn(inSpecs, inSpec);
+        validateEntryNameColumn(inSpec);
+    }
+
+    private void validatePathColumn(final PortObjectSpec[] inSpecs, final DataTableSpec inSpec)
+        throws InvalidSettingsException {
+        final String pathCol = getConfig().getPathColModel().getStringValue();
+        final int pathColIndex = inSpec.findColumnIndex(pathCol);
 
         // check column existence
-        CheckUtils.checkSetting(colIndex >= 0, "The selected column '%s' is not part of the input", pathColName);
+        CheckUtils.checkSetting(pathColIndex >= 0, "The selected column '%s' is not part of the input", pathCol);
 
         // validate the selected column
-        final DataColumnSpec pathColSpec = inSpec.getColumnSpec(colIndex);
+        final DataColumnSpec pathColSpec = inSpec.getColumnSpec(pathColIndex);
         final Optional<String> warningMsg = FSLocationColumnUtils.validateFSLocationColumn(pathColSpec,
             m_inputConnectionIdx >= 0 ? (FileSystemPortObjectSpec)inSpecs[m_inputConnectionIdx] : null);
         warningMsg.ifPresent(this::setWarningMessage);
+    }
+
+    private void validateEntryNameColumn(final DataTableSpec inSpec) throws InvalidSettingsException {
+        final TableTruncationSettings config = getConfig().getTruncationSettings();
+        if (config.entryNameDefinedByTableColumn()) {
+            final String entryNameCol = config.getEntryNameColModel().getStringValue();
+            CheckUtils.checkSettingNotNull(entryNameCol, "Please select the column containing the archive entry names");
+            final int entryNameColIndex = inSpec.findColumnIndex(entryNameCol);
+
+            // check column existence
+            CheckUtils.checkSetting(entryNameColIndex >= 0, "The selected column '%s' is not part of the input",
+                entryNameCol);
+
+            final DataType entryNameColType = inSpec.getColumnSpec(entryNameColIndex).getType();
+            CheckUtils.checkSetting(
+                entryNameColType.isCompatible(StringValue.class)
+                    || entryNameColType.isCompatible(FSLocationValue.class),
+                "The selected column '%s' has the wrong type.", entryNameCol);
+        }
     }
 
     @SuppressWarnings("resource")
@@ -137,9 +165,17 @@ final class CompressTableNodeModel extends AbstractCompressNodeModel<CompressTab
     protected CompressIterator getFilesToCompress(final PortObject[] inData, final boolean includeEmptyFolders)
         throws IOException, InvalidSettingsException {
         final BufferedDataTable table = (BufferedDataTable)inData[m_inputTableIdx];
-        return new CompressTableIterator(table,
-            table.getSpec().findColumnIndex(getConfig().getPathColModel().getStringValue()), getFSConnection(inData),
-            includeEmptyFolders);
+        final CompressTableNodeConfig config = getConfig();
+        final TableTruncationSettings truncationSettings = config.getTruncationSettings();
+        final int pathColIdx = table.getSpec().findColumnIndex(config.getPathColModel().getStringValue());
+        final FSConnection fsConnection = getFSConnection(inData);
+        if (truncationSettings.entryNameDefinedByTableColumn()) {
+            return new MappedCompressTableIterator(table, pathColIdx, fsConnection, includeEmptyFolders,
+                table.getSpec().findColumnIndex(truncationSettings.getEntryNameColModel().getStringValue()));
+        } else {
+            return new TruncatedCompressTableIterator(truncationSettings, table, pathColIdx, fsConnection,
+                includeEmptyFolders);
+        }
     }
 
     private FSConnection getFSConnection(final PortObject[] inData) {

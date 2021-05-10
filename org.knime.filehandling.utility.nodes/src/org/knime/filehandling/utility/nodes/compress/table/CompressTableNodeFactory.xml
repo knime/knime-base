@@ -114,38 +114,34 @@
 				</li>
 			</ul>
 		</option>
+		<option name="Archive entry name mode">
+			This mode determines what the folder structure looks like when you de-compress the archive.
+			<ul>
+				<li><i>Relative source path:</i>
+					This mode ensures that when de-compressing the archive solely the selected source file/folder and
+					its content will be created.
+				</li>
+				<li><i>Absolute source path:</i>
+					This mode ensures that when de-compressing the archive the selected source file/folder, its content
+					as well as the folders containing the selected source will be created. Note that those
+					additional folders don't contain any other files/folders other than those to be compressed.
+				</li>
+				<li><i>Remove leading folder prefix from source path:</i>
+					This mode behaves similar to the absolute source path option, except that the specified
+					folder prefix is being ignored, i.e., the folders matching the prefix will not be created when
+					de-compressing the archive.
+				</li>
+				<li><i>From table column:</i>
+					This mode ensure that the archive entry name matches the one specified by the selected column, in
+					other words, when de-compressing the archive the created folder structure will coincide with the
+					one specified by the selected column.
+				</li>
+			</ul>
+			<b>Note:</b> The last two modes might create invalid archive entry names, i.e., entry names resulting
+			in archives that would not be de-compressible. In these cases the node will fail.
+		</option>
 		<option name="Compression">
 			Allows to select the desired compression format.
-		</option>
-		<option name="Source folder truncation">
-			Depending on the selected strategy the folder containing the files/folders to compress is being truncated
-			differently, i.e., the folder structure in the resulting archive is being modified. For the remainder assume
-			that <tt>folder/other/</tt> is the selected folder and it contains the file 
-			<tt>folder/other/subfolder/file.txt</tt>
-			<ul>
-				<li><b>Keep full path:</b>
-					This selection ensures that the folder's path is not being truncated, i.e., the archive will contain
-					the entry <tt>folder/other/subfolder/file.txt</tt> (<tt>folder/other/file.txt</tt> if <i>flatten 
-					folder</i> is selected).
-				</li>
-				<li><b>Keep source folder only:</b>
-					This selection ensures that anything preceding the source folder's name is being truncated,
-					i.e., the archive will contain the entry <tt>other/subfolder/file.txt</tt> (<tt>other/file.txt</tt> 
-					if <i>flatten folder</i> is selected).
-				</li>
-				<li><b>Truncate full path:</b>
-					This selection ensures that the folder's path is being fully truncated, i.e., the archive will
-					contain the entry <tt>subfolder/file.txt</tt> (<tt>file.txt</tt> if <i>flatten folder</i> is 
-					selected).
-				</li>
-				<li><b>Truncate:</b>
-					This selection truncates the first occurrence in the folder's path matching the regular expression,
-					i.e., the archive will contain the entry <tt>folder/subfolder/file.txt</tt>
-					(<tt>folder/file.txt</tt> if <i>flatten folder</i> is selected) given the regular expression 
-					<tt>other.*</tt>.
-				</li>
-			</ul> 
-			If it is not possible to apply the selected truncation strategy the node will fail during execution.
 		</option>
 		<option name="Flatten folder">
 			This option allows to specify where the files are located if multiple files have to be compressed. If

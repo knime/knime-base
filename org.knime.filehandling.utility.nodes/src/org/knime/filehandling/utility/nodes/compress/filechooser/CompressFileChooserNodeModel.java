@@ -54,6 +54,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeModel;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
 
@@ -81,7 +82,9 @@ final class CompressFileChooserNodeModel extends AbstractCompressNodeModel<Compr
     @Override
     protected CompressIterator getFilesToCompress(final PortObject[] inData, final boolean includeEmptyFolders)
         throws IOException, InvalidSettingsException {
-        return new CompressFileChooserIterator(getConfig().getInputLocationChooserModel(), getStatusConsumer(),
+        final CompressFileChooserNodeConfig cfg = getConfig();
+        SettingsModelReaderFileChooser fileChooser = cfg.getInputLocationChooserModel();
+        return new CompressFileChooserIterator(cfg.getTruncationSettings(), fileChooser, getStatusConsumer(),
             includeEmptyFolders);
     }
 

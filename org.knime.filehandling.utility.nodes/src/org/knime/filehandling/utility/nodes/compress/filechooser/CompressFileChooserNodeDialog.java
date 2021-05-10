@@ -51,7 +51,6 @@ package org.knime.filehandling.utility.nodes.compress.filechooser;
 import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import org.knime.core.node.FlowVariableModel;
@@ -67,6 +66,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeDialog;
+import org.knime.filehandling.utility.nodes.truncator.TruncationPanel;
 
 /**
  * Implements the dialog of the "Compress Files/Folder" no table input node.
@@ -79,9 +79,9 @@ final class CompressFileChooserNodeDialog extends AbstractCompressNodeDialog<Com
 
     private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
 
-    CompressFileChooserNodeDialog(final PortsConfiguration portsConfig) {
-        super(portsConfig, new CompressFileChooserNodeConfig(portsConfig));
-        final CompressFileChooserNodeConfig config = getConfig();
+    CompressFileChooserNodeDialog(final PortsConfiguration portsConfig, final CompressFileChooserNodeConfig config) {
+        super(portsConfig, config, new TruncationPanel(ARCHIVE_OPTION_TITLE, config.getTruncationSettings(),
+            AbstractCompressNodeDialog::getTruncatePathOptionLabel));
         final SettingsModelReaderFileChooser sourceLocationChooserModel = config.getInputLocationChooserModel();
         final FlowVariableModel readFvm =
             createFlowVariableModel(sourceLocationChooserModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
@@ -95,19 +95,7 @@ final class CompressFileChooserNodeDialog extends AbstractCompressNodeDialog<Com
 
     private void toggleArchiveOptions() {
         if (!isLoading()) {
-            final JCheckBox flattenHierarchy = getFlattenHierarchyCheckBox();
-            final JCheckBox includeEmptyFolders = getIncludeEmptyFoldersCheckBox();
-            final FilterMode filterMode = m_inputFileChooserPanel.getSettingsModel().getFilterMode();
-            if (filterMode == FilterMode.FILE) {
-                flattenHierarchy.setEnabled(false);
-                includeEmptyFolders.setEnabled(false);
-            } else if (filterMode == FilterMode.FILES_IN_FOLDERS) {
-                flattenHierarchy.setEnabled(true);
-                includeEmptyFolders.setEnabled(false);
-            } else if (filterMode == FilterMode.FOLDER) {
-                flattenHierarchy.setEnabled(true);
-                includeEmptyFolders.setEnabled(true);
-            }
+            enableEmptyFolderDialog(m_inputFileChooserPanel.getSettingsModel().getFilterMode() == FilterMode.FOLDER);
         }
     }
 

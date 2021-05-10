@@ -44,30 +44,49 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 28, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Apr 12, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.compress.archiver;
+package org.knime.filehandling.utility.nodes.compress.iterator;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
+import org.knime.filehandling.core.connections.FSPath;
 
 /**
- * A {@link CheckedExceptionBiFunction} that allows to create an {@link ArchiveEntry} from a given {@link Path} and
- * entry name.
+ * A pair consisting of an archive name and a path that needs to be compressed.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public interface ArchiveEntryCreator extends CheckedExceptionBiFunction<Path, String, ArchiveEntry, IOException> {
+public final class CompressPair {
+
+    private final String m_archiveEntryName;
+
+    private final FSPath m_pathToCompress;
 
     /**
-     * Validates that an archive can be created provided the given parameters.
+     * Constructor.
      *
-     * @param path the path to validate
-     * @param entryName the entry name to validate
+     * @param archiveEntryName the archive entry name
+     * @param pathToCompress the path to compress
      */
-    void validate(Path path, String entryName);
+    public CompressPair(final String archiveEntryName, final FSPath pathToCompress) {
+        m_archiveEntryName = archiveEntryName;
+        m_pathToCompress = pathToCompress;
+    }
 
+    /**
+     * Returns the archive entry name.
+     *
+     * @return the archive entry name
+     */
+    public String getArchiveEntryName() {
+        return m_archiveEntryName;
+    }
+
+    /**
+     * Returns the path to compress
+     *
+     * @return the path to compress
+     */
+    public FSPath getPathToCompress() {
+        return m_pathToCompress;
+    }
 }

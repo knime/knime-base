@@ -49,23 +49,27 @@
 package org.knime.filehandling.utility.nodes.compress.iterator;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.util.CheckedExceptionFunction;
+import org.knime.filehandling.utility.nodes.truncator.PathToStringTruncator;
 
 /**
- * A {@link CompressEntry} for file or folder entries. If this class is being constructed with a path to a file the base
- * folder will be set to the files parent, otherwise all files and empty folders within that folder will be calculated
- * and returned when invoking {@link #getPaths()}.
+ * A {@link PathToStringTruncator} for file or folder entries. If this class is being constructed with a path to a file
+ * the base folder will be set to the files parent, otherwise all files and empty folders within that folder will be
+ * calculated and returned when invoking {@link #getPaths()}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 public final class CompressFileFolderEntry implements CompressEntry {
+
+    private final CheckedExceptionFunction<Path, PathToStringTruncator, IOException> m_truncatorFac;
 
     private final FSPath m_base;
 
@@ -77,29 +81,30 @@ public final class CompressFileFolderEntry implements CompressEntry {
      * @param path can either specify a file or a folder
      * @param includeEmptyFolders flag indicating whether or not empty folders should be included when compiling the
      *            {@link #getPaths()} list.
+     * @param truncatorFac factory allowing to create a {@link PathToStringTruncator}
      */
-    public CompressFileFolderEntry(final FSPath path, final boolean includeEmptyFolders) {
+    public CompressFileFolderEntry(final FSPath path, final boolean includeEmptyFolders,
+        final CheckedExceptionFunction<Path, PathToStringTruncator, IOException> truncatorFac) {
+        m_truncatorFac = truncatorFac;
         m_base = path;
         m_includeEmptyFolders = includeEmptyFolders;
     }
 
     @Override
-    public List<FSPath> getPaths() throws IOException {
+    public List<CompressPair> getPaths() throws IOException {
+        final PathToStringTruncator truncator = m_truncatorFac.apply(m_base);
         final List<FSPath> paths = new ArrayList<>();
-        Files.walkFileTree(m_base, new FileAndEmptyFoldersCollector(paths, m_includeEmptyFolders));
-        if (m_includeEmptyFolders && paths.isEmpty()) {
-            paths.add(m_base);
-        }
-        FSFiles.sortPathsLexicographically(paths);
-        return paths;
-    }
-
-    @Override
-    public Optional<FSPath> getBaseFolder() throws AccessDeniedException {
         if (!FSFiles.isDirectory(m_base)) {
-            return Optional.ofNullable((FSPath)m_base.getParent());
+            return Collections.singletonList(new CompressPair(truncator.getTruncatedString(m_base), m_base));
         } else {
-            return Optional.of(m_base);
+            FSFiles.walkFileTree(m_base, new FileAndEmptyFoldersCollector(paths, m_includeEmptyFolders));
+            if (m_includeEmptyFolders && paths.isEmpty()) {
+                paths.add(m_base);
+            }
+            FSFiles.sortPathsLexicographically(paths);
+            return paths.stream()//
+                .map(p -> new CompressPair(truncator.getTruncatedString(p), p))//
+                .collect(Collectors.toList());
         }
     }
 

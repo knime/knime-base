@@ -50,33 +50,20 @@ package org.knime.filehandling.utility.nodes.compress.iterator;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
-
-import org.knime.filehandling.core.connections.FSPath;
 
 /**
- * A compress entry consists of a path to a base folder and a list of paths that have to be compressed. It must be
- * ensured that all paths that need to be compressed are contained in the base folder, i.e., the base folder name is the
- * prefix for all these paths.
+ * A compress entry encapsulates a list of {@link CompressPair}s that must be compressed.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 public interface CompressEntry {
 
     /**
-     * Returns the folder containing all files returned by {@link #getPaths()}.
+     * Returns the list of {@link CompressPair}s that have to be compressed.
      *
-     * @return the folder containing all the files returned by {@link #getPaths()}
-     * @throws IOException - If something went wrong while accessing the base folder
-     */
-    Optional<FSPath> getBaseFolder() throws IOException;
-
-    /**
-     * Returns the list of paths that have to be compressed.
-     *
-     * @return the paths that have to be compressed
+     * @return the {@link CompressPair}s that have to be compressed
      * @throws IOException - If something went wrong while compiling this list
      */
-    List<FSPath> getPaths() throws IOException;
+    List<CompressPair> getPaths() throws IOException;
 
 }

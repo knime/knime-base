@@ -49,9 +49,9 @@
 package org.knime.filehandling.utility.nodes.compress.filechooser;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -63,6 +63,9 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressEntry;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressFileFolderEntry;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
+import org.knime.filehandling.utility.nodes.compress.iterator.CompressPair;
+import org.knime.filehandling.utility.nodes.truncator.PathTruncator;
+import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
 
 /**
  * A {@link CompressIterator} with exactly one entry provided by the {@link SettingsModelReaderFileChooser}.
@@ -71,73 +74,80 @@ import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
  */
 final class CompressFileChooserIterator implements CompressIterator {
 
-    private final FilterMode m_filterMode;
-
     private final ReadPathAccessor m_accessor;
 
-    private final FSPath m_base;
+    private final Iterator<? extends CompressEntry> m_entryIter;
 
-    private final List<FSPath> m_paths;
+    private final long m_size;
 
-    private final boolean m_includeEmptyFolders;
-
-    private boolean m_hasNext;
-
-    CompressFileChooserIterator(final SettingsModelReaderFileChooser fileChooser,
-        final Consumer<StatusMessage> statusMessageConsumer, final boolean includeEmptyFolders)
-        throws IOException, InvalidSettingsException {
-        m_filterMode = fileChooser.getFilterMode();
+    CompressFileChooserIterator(final TruncationSettings truncationSettings,
+        final SettingsModelReaderFileChooser fileChooser, final Consumer<StatusMessage> statusMessageConsumer,
+        final boolean includeEmptyFolders) throws IOException, InvalidSettingsException {
         m_accessor = fileChooser.createReadPathAccessor();
+        final FSPath source;
+        final List<FSPath> sourcePaths;
         try {
-            m_base = m_accessor.getRootPath(statusMessageConsumer);
-            m_paths = m_accessor.getFSPaths(statusMessageConsumer);
+            source = m_accessor.getRootPath(statusMessageConsumer);
+            sourcePaths = m_accessor.getFSPaths(statusMessageConsumer);
         } catch (final IOException | InvalidSettingsException e) {
             m_accessor.close();
             throw e;
         }
-        m_hasNext = true;
-        m_includeEmptyFolders = includeEmptyFolders;
+
+        m_entryIter =
+            initEntryIter(truncationSettings, includeEmptyFolders, source, sourcePaths, fileChooser.getFilterMode());
+        m_size = sourcePaths.size();
+    }
+
+    private static Iterator<? extends CompressEntry> initEntryIter(final TruncationSettings truncationSettings,
+        final boolean includeEmptyFolders, final FSPath source, final List<FSPath> sourcePaths,
+        final FilterMode filterMode) {
+        if (filterMode == FilterMode.FILES_IN_FOLDERS) {
+            final PathTruncator truncator = truncationSettings.getPathTruncator(source, filterMode);
+            return sourcePaths.stream()//
+                .map(p -> new CompressFileEntry(truncator.getTruncatedString(p), p))//
+                .iterator();
+        } else if (filterMode == FilterMode.FILE || filterMode == FilterMode.FOLDER) {
+            return Collections.singletonList(new CompressFileFolderEntry(source, includeEmptyFolders,
+                p -> truncationSettings.getPathTruncator(p, filterMode))).iterator();
+        } else {
+            throw new IllegalArgumentException(
+                String.format("The selected filter mode %s is not supported.", filterMode.getText()));
+        }
     }
 
     @Override
     public boolean hasNext() {
-        return m_hasNext;
+        return m_entryIter.hasNext();
     }
 
     @Override
     public CompressEntry next() {
-        if (!m_hasNext) {
-            throw new NoSuchElementException();
-        }
-        m_hasNext = false;
-        if (m_filterMode == FilterMode.FOLDER) {
-            return new CompressFileFolderEntry(m_base, m_includeEmptyFolders);
-        } else {
-            return new CompressEntry() {
-
-                @Override
-                public Optional<FSPath> getBaseFolder() {
-                    if (m_filterMode == FilterMode.FILE) {
-                        return Optional.ofNullable((FSPath)m_base.getParent());
-                    }
-                    return Optional.of(m_base);
-                }
-
-                @Override
-                public List<FSPath> getPaths() {
-                    return m_paths;
-                }
-            };
-        }
+        return m_entryIter.next();
     }
 
     @Override
     public long size() {
-        return 1l;
+        return m_size;
     }
 
     @Override
     public void close() throws IOException {
         m_accessor.close();
+    }
+
+    private static class CompressFileEntry implements CompressEntry {
+
+        private final CompressPair m_compressPair;
+
+        CompressFileEntry(final String archiveEntryName, final FSPath pathToCompress) {
+            m_compressPair = new CompressPair(archiveEntryName, pathToCompress);
+        }
+
+        @Override
+        public List<CompressPair> getPaths() throws IOException {
+            return Collections.singletonList(m_compressPair);
+        }
+
     }
 }

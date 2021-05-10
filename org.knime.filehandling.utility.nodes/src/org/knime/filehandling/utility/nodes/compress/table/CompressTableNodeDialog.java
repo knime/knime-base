@@ -65,22 +65,22 @@ import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeDialog;
 
 /**
+ * Dialog of the "Compress Files/Folder (Table)" node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public class CompressTableNodeDialog extends AbstractCompressNodeDialog<CompressTableNodeConfig> {
+final class CompressTableNodeDialog extends AbstractCompressNodeDialog<CompressTableNodeConfig> {
 
     private final DialogComponentColumnNameSelection m_inputColSelection;
 
-    /**
-     * @param portsConfig
-     */
     @SuppressWarnings("unchecked")
-    public CompressTableNodeDialog(final PortsConfiguration portsConfig) {
-        super(portsConfig, new CompressTableNodeConfig(portsConfig));
-        m_inputColSelection = new DialogComponentColumnNameSelection(getConfig().getPathColModel(), "Source column",
-            portsConfig.getInputPortLocation().get(CompressTableNodeFactory.TABLE_INPUT_FILE_PORT_GRP_NAME)[0],
-            FSLocationValue.class);
+    CompressTableNodeDialog(final PortsConfiguration portsConfig, final CompressTableNodeConfig config,
+        final int tablePortIdx) {
+        super(portsConfig, config, new TableTruncationPanel(ARCHIVE_OPTION_TITLE, config.getTruncationSettings(),
+            AbstractCompressNodeDialog::getTruncatePathOptionLabel, tablePortIdx));
+        m_inputColSelection = new DialogComponentColumnNameSelection(config.getPathColModel(), "Source column",
+            tablePortIdx, FSLocationValue.class);
+
         createSettingsTab();
     }
 
@@ -100,11 +100,13 @@ public class CompressTableNodeDialog extends AbstractCompressNodeDialog<Compress
         throws NotConfigurableException {
         m_inputColSelection.loadSettingsFrom(settings, specs);
         super.loadSettings(settings, specs);
+        getConfig().getTruncationSettings().loadSettingsForDialog(settings);
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_inputColSelection.saveSettingsTo(settings);
         super.saveSettingsTo(settings);
+        getConfig().getTruncationSettings().saveSettingsForDialog(settings);
     }
 }

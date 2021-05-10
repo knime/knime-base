@@ -54,6 +54,7 @@ import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
 
@@ -83,8 +84,8 @@ public final class CompressFileChooserNodeFactory extends ConfigurableNodeFactor
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CompressFileChooserNodeDialog(
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
+        final PortsConfiguration portsConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+        return new CompressFileChooserNodeDialog(portsConfig, new CompressFileChooserNodeConfig(portsConfig));
     }
 
     @Override

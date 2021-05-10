@@ -56,28 +56,21 @@ import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncatePathOption;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncationSettings;
+import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
 
 /**
  * Implements the configuration of the "Compress Files/Folder" no table input node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig {
+final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig<TruncationSettings> {
 
     private static final String CFG_INPUT_LOCATION = "source_location";
 
     private final SettingsModelReaderFileChooser m_inputLocationChooserModel;
 
-    // Config used pre 4.2.3
-    private static final String CFG_INCLUDE_SELECTED_FOLDER = "include_selected_source_folder";
-
-    // Config used pre 4.2.3
-    private static final String CFG_FLATTEN_HIERARCHY = "flatten_hierarchy";
-
     CompressFileChooserNodeConfig(final PortsConfiguration portsConfig) {
-        super(portsConfig);
+        super(portsConfig, new TruncationSettings(CFG_TRUNCATE_OPTION));
         m_inputLocationChooserModel = new SettingsModelReaderFileChooser(CFG_INPUT_LOCATION, portsConfig,
             AbstractCompressNodeConfig.CONNECTION_INPUT_FILE_PORT_GRP_NAME,
             EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS));
@@ -94,28 +87,8 @@ final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig {
     }
 
     @Override
-    protected void validateFlattenFolder(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // backwards compatibility see AP-16264
-        if (settings.containsKey(CFG_FLATTEN_HIERARCHY)) {
-            settings.getBoolean(CFG_FLATTEN_HIERARCHY);
-        } else {
-            super.validateFlattenFolder(settings);
-        }
-    }
-
-    @Override
     protected void validateAdditionalSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inputLocationChooserModel.validateSettings(settings);
-    }
-
-    @Override
-    protected boolean loadFlattenFolderForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // backwards compatibility see AP-16264
-        if (settings.containsKey(CFG_FLATTEN_HIERARCHY)) {
-            return settings.getBoolean(CFG_FLATTEN_HIERARCHY);
-        } else {
-            return super.loadFlattenFolderForModel(settings);
-        }
     }
 
     @Override
@@ -126,33 +99,6 @@ final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig {
     @Override
     protected void saveAdditionalSettingsForModel(final NodeSettingsWO settings) {
         m_inputLocationChooserModel.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void validateTruncatePathOption(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // backwards compatibility see AP-15932
-        if (settings.containsKey(CFG_INCLUDE_SELECTED_FOLDER)) {
-            settings.getBoolean(CFG_INCLUDE_SELECTED_FOLDER);
-        } else {
-            super.validateTruncatePathOption(settings);
-        }
-    }
-
-    @Override
-    protected void loadTruncatePathOptionInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // backwards compatibility see AP-15932
-        if (settings.containsKey(CFG_INCLUDE_SELECTED_FOLDER)) {
-            final TruncationSettings truncationSettings = getTruncationSettings();
-            if (m_inputLocationChooserModel.getFilterMode() != FilterMode.FILE
-                && settings.getBoolean(CFG_INCLUDE_SELECTED_FOLDER)) {
-                truncationSettings.setTruncatePathOption(TruncatePathOption.KEEP_SRC_FOLDER);
-            } else {
-                truncationSettings.setTruncatePathOption(TruncatePathOption.TRUNCATE_SRC_FOLDER);
-            }
-            includeEmptyFolders(true);
-        } else {
-            super.loadTruncatePathOptionInModel(settings);
-        }
     }
 
 }

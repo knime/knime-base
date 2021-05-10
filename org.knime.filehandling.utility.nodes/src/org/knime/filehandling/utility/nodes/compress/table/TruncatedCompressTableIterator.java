@@ -44,72 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 28, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Feb 1, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.utility.nodes.compress.table;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Path;
 
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ConfigurableNodeFactory;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.port.FileSystemPortObject;
-import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFiles;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.utility.nodes.compress.iterator.CompressEntry;
+import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
+import org.knime.filehandling.utility.nodes.truncator.PathToStringTruncator;
+import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
 
 /**
- * Node Factory for the "Compress Files/Folder (Table)" node.
+ * An instance of {@link CompressIterator} processing a {@link BufferedDataTable} containing a path column.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class CompressTableNodeFactory extends ConfigurableNodeFactory<CompressTableNodeModel> {
+final class TruncatedCompressTableIterator extends AbstractCompressTableIterator {
 
-    private static final String TABLE_INPUT_FILE_PORT_GRP_NAME = "Input Table";
+    private final TruncationSettings m_truncationSettings;
 
-    @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(AbstractCompressNodeConfig.CONNECTION_INPUT_FILE_PORT_GRP_NAME,
-            FileSystemPortObject.TYPE);
-        builder.addFixedInputPortGroup(TABLE_INPUT_FILE_PORT_GRP_NAME, BufferedDataTable.TYPE);
-        builder.addOptionalInputPortGroup(AbstractCompressNodeConfig.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME,
-            FileSystemPortObject.TYPE);
-        return Optional.of(builder);
+    TruncatedCompressTableIterator(final TruncationSettings truncationSettings, final BufferedDataTable table,
+        final int pathColIdx, final FSConnection connection, final boolean includeEmptyFolders) {
+        super(table, pathColIdx, connection, includeEmptyFolders);
+        m_truncationSettings = truncationSettings;
     }
 
     @Override
-    protected CompressTableNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portsConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new CompressTableNodeModel(portsConfig, getTablePortIdx(portsConfig));
+    public CompressEntry next() { // NOSONAR the createEntry call throws a NoSuchElementException
+        return createEntry(this::getPathTruncator);
     }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portsConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new CompressTableNodeDialog(portsConfig, new CompressTableNodeConfig(portsConfig),
-            getTablePortIdx(portsConfig));
-    }
-
-    @Override
-    public NodeView<CompressTableNodeModel> createNodeView(final int viewIndex,
-        final CompressTableNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    private static final int getTablePortIdx(final PortsConfiguration portsConfig) {
-        return portsConfig.getInputPortLocation().get(CompressTableNodeFactory.TABLE_INPUT_FILE_PORT_GRP_NAME)[0];
+    private PathToStringTruncator getPathTruncator(final Path basePath) throws IOException {
+        final FilterMode filterMode = FSFiles.isDirectory(basePath) ? FilterMode.FOLDER : FilterMode.FILE;
+        return m_truncationSettings.getPathTruncator(basePath, filterMode);
     }
 
 }
