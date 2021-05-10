@@ -57,7 +57,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
 import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeConfig;
 
 /**
- * Node configuration of the Transfer Files/Folder (Table input) node.
+ * Node configuration of the Transfer Files/Folder (Table) node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */

@@ -69,7 +69,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeDialog;
 
 /**
- * Node dialog of the Transfer Files/Folder (Table input) node.
+ * Node dialog of the Transfer Files/Folder (Table) node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */

@@ -50,7 +50,6 @@ package org.knime.filehandling.utility.nodes.transfer.iterators;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -61,6 +60,7 @@ import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 
 /**
+ * A {@link SimpleFileVisitor} that collects all files and folders.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
@@ -104,7 +104,7 @@ public final class FileAndFoldersCollector extends SimpleFileVisitor<Path> {
      */
     public static List<FSPath> getPaths(final FSPath sourceFolder) throws IOException {
         final List<FSPath> paths = new ArrayList<>();
-        Files.walkFileTree(sourceFolder, new FileAndFoldersCollector(paths));
+        FSFiles.walkFileTree(sourceFolder, new FileAndFoldersCollector(paths));
         FSFiles.sortPathsLexicographically(paths);
         return paths;
     }

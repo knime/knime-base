@@ -55,6 +55,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
@@ -108,7 +109,7 @@ final class TransferTableIterator implements TransferIterator {
 
     private static class TransferKnownTargetEntry implements TransferEntry {
 
-        private final FSPath m_source;
+        private final FSPath m_base;
 
         private final FSPath m_destination;
 
@@ -119,24 +120,24 @@ final class TransferTableIterator implements TransferIterator {
          * @param destination the destination file/folder
          */
         TransferKnownTargetEntry(final FSPath source, final FSPath destination) {
-            m_source = source;
+            m_base = source;
             m_destination = destination;
         }
 
         @Override
         public FSPath getSource() {
-            return m_source;
+            return m_base;
         }
 
         @Override
         public TransferPair getSrcDestPair() throws IOException {
-            return new TransferPair(m_source, m_destination);
+            return new TransferPair(m_base, m_destination);
         }
 
         @Override
         public List<TransferPair> getPathsToCopy() throws IOException {
-            if (FSFiles.isDirectory(m_source)) {
-                return FileAndFoldersCollector.getPaths(m_source).stream()//
+            if (FSFiles.isDirectory(m_base)) {
+                return FileAndFoldersCollector.getPaths(m_base).stream()//
                     .map(this::toTransferPair)//
                     .collect(Collectors.toList());
             } else {
@@ -144,10 +145,13 @@ final class TransferTableIterator implements TransferIterator {
             }
         }
 
-        private TransferPair toTransferPair(final FSPath source) {
-            // FIXME: handle ../ prefix (AP-16364)
-            return new TransferPair(source,
-                m_destination.resolve(PathToStringUtils.split(m_source.relativize(source))));
+        private TransferPair toTransferPair(final FSPath path) {
+            return new TransferPair(path, m_destination.resolve(PathToStringUtils.split(m_base.relativize(path))));
+        }
+
+        @Override
+        public void validate() throws InvalidSettingsException, IOException {
+            // entries are always valid
         }
 
     }

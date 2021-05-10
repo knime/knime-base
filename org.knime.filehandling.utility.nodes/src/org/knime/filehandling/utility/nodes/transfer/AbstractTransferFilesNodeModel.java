@@ -159,7 +159,7 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
         columnSpecs.add(new DataColumnSpecCreator("Status", StringCell.TYPE).createSpec());
 
         final boolean deleteSourceFiles = m_config.getDeleteSourceFilesModel().getBooleanValue();
-        if (deleteSourceFiles) {
+        if (deleteSourceFiles && !m_config.getFailOnDeletionModel().getBooleanValue()) {
             columnSpecs.add(new DataColumnSpecCreator("Source deleted", BooleanCell.TYPE).createSpec());
         }
         if (!m_config.failIfSourceDoesNotExist()) {
@@ -258,7 +258,9 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
         throws IOException, InvalidSettingsException;
 
     private static long transfer(final ExecutionContext exec, final DataContainer container, long rowIdx,
-        final PathCopier2 pathCopier, final TransferEntry entry) throws IOException, CanceledExecutionException {
+        final PathCopier2 pathCopier, final TransferEntry entry)
+        throws IOException, CanceledExecutionException, InvalidSettingsException {
+        entry.validate();
         final DataCell[][] rows = pathCopier.transfer(exec, entry);
         for (final DataCell[] row : rows) {
             container.addRowToTable(new DefaultRow(RowKey.createRowKey(rowIdx), row));

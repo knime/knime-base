@@ -60,11 +60,13 @@ import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferEntry;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferFileFolderEntry;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferIterator;
+import org.knime.filehandling.utility.nodes.truncator.PathTruncator;
+import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
 import org.knime.filehandling.utility.nodes.utils.iterators.FsCellColumnIterator;
 
 /**
@@ -81,12 +83,12 @@ final class TransferFileChooserIterator implements TransferIterator {
 
     private final FSPath m_destinationFolder;
 
-    private final PathTruncator m_pathTruncator;
+    private final TruncationSettings m_truncationSettings;
 
-    TransferFileChooserIterator(final PathTruncator pathTruncator, final BufferedDataTable table, final int pathColIdx,
-        final FSConnection connection, final SettingsModelWriterFileChooser fileChooser,
+    TransferFileChooserIterator(final TruncationSettings truncationSettings, final BufferedDataTable table,
+        final int pathColIdx, final FSConnection connection, final SettingsModelWriterFileChooser fileChooser,
         final Consumer<StatusMessage> statusMessageConsumer) throws IOException, InvalidSettingsException {
-        m_pathTruncator = pathTruncator;
+        m_truncationSettings = truncationSettings;
         m_iterator = new FsCellColumnIterator(table, pathColIdx, connection);
         m_accessor = fileChooser.createWritePathAccessor();
         try {
@@ -114,7 +116,13 @@ final class TransferFileChooserIterator implements TransferIterator {
 
     @Override
     public TransferEntry next() {
-        return new TransferFileFolderEntry(m_iterator.next(), m_destinationFolder, m_pathTruncator);
+        final FSPath path = m_iterator.next();
+        return new TransferFileFolderEntry(path, m_destinationFolder, this::getPathTruncator);
+    }
+
+    private PathTruncator getPathTruncator(final Path basePath) throws IOException {
+        final FilterMode filterMode = FSFiles.isDirectory(basePath) ? FilterMode.FOLDER : FilterMode.FILE;
+        return m_truncationSettings.getPathTruncator(basePath, filterMode);
     }
 
     @Override

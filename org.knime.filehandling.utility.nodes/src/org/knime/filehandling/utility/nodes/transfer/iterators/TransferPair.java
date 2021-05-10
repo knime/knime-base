@@ -69,7 +69,7 @@ public final class TransferPair {
      */
     public TransferPair(final FSPath source, final FSPath destination) {
         m_source = source;
-        m_destination = destination;
+        m_destination = (FSPath) destination.normalize();
     }
 
     /**

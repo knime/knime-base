@@ -51,12 +51,13 @@ package org.knime.filehandling.utility.nodes.transfer.iterators;
 import java.io.IOException;
 import java.util.List;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSPath;
 
 /**
- * A transfer entry encodes a {@link TransferPair} that must be copied or moved. It consists of a source destination
- * pair and in case this pair refers to a folder all files and folders that have to be additionally copied are
- * accessible via the {@link #getPathsToCopy()} method.
+ * A transfer entry encapsulates a {@link TransferPair} that must be copied or moved. It consists of a source
+ * destination pair and in case this pair refers to a folder all files and folders that have to be additionally copied
+ * are accessible via the {@link #getPathsToCopy()} method.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
@@ -86,5 +87,14 @@ public interface TransferEntry {
      * @throws IOException - If something went wrong while compiling this list
      */
     List<TransferPair> getPathsToCopy() throws IOException;
+
+    /**
+     * Validates that the files/folders to be transfered really end up in the selected destination and are not being
+     * copied to some other location. If the validation fails an {@link InvalidSettingsException} is thrown.
+     *
+     * @throws InvalidSettingsException - If the destination is located somewhere else but within the destination folder
+     * @throws IOException - If something goes wrong while constructing this pair
+     */
+    void validate() throws InvalidSettingsException, IOException;
 
 }

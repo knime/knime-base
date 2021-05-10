@@ -124,7 +124,11 @@ final class PathCopier2 {
         m_delete = delete;
         m_failOnUnsuccessfulDeletion = failOnDeletion;
         m_failIfSrcDoesNotExist = failIfSrcDoesNotExist;
-        m_failIfSrcDoesNotExistIdx = m_delete ? (DELETE_COL_IDX + 1) : DELETE_COL_IDX;
+        m_failIfSrcDoesNotExistIdx = addDeleteColumn() ? (DELETE_COL_IDX + 1) : DELETE_COL_IDX;
+    }
+
+    private boolean addDeleteColumn() {
+        return m_delete && !m_failOnUnsuccessfulDeletion;
     }
 
     DataCell[][] transfer(final ExecutionContext exec, final TransferEntry entry)
@@ -211,7 +215,7 @@ final class PathCopier2 {
         exec.checkCanceled();
         exec.setProgress((entriesToProcess - idx) / entriesToProcess, () -> String.format("Deleting '%s'", source));
         final DataCell delete = delete(source);
-        if (verbose) {
+        if (verbose && addDeleteColumn()) {
             rows[idx] = ArrayUtils.addAll(rows[idx], delete);
         }
         return idx - 1;
@@ -355,7 +359,7 @@ final class PathCopier2 {
         final DataCell[] cells = new DataCell[m_failIfSrcDoesNotExistIdx + 1];
         Arrays.fill(cells, DataType.getMissingCell());
         cells[SOURCE_COL_IDX] = m_sourceFSLocationCellFactory.createCell(src.toFSLocation());
-        if (m_delete) {
+        if (addDeleteColumn()) {
             cells[DELETE_COL_IDX] = BooleanCellFactory.create(false);
         }
         cells[m_failIfSrcDoesNotExistIdx] = BooleanCellFactory.create(false);

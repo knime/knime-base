@@ -59,7 +59,7 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeFactory;
 
 /**
- * Node factory of the Transfer Files/Folder (Table input) node.
+ * Node factory of the Transfer Files/Folder (Table) node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */

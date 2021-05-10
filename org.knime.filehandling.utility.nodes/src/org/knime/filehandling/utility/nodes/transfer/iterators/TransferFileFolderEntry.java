@@ -49,14 +49,18 @@
 package org.knime.filehandling.utility.nodes.transfer.iterators;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
-import org.knime.filehandling.utility.nodes.compress.truncator.TruncationException;
+import org.knime.filehandling.core.util.CheckedExceptionFunction;
+import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeDialog;
+import org.knime.filehandling.utility.nodes.truncator.PathToStringArrayTruncator;
+import org.knime.filehandling.utility.nodes.truncator.PathToStringTruncator;
 
 /**
  * A {@link TransferEntry} for file or folder entries. If this class is being constructed with a path to a file
@@ -71,20 +75,20 @@ public final class TransferFileFolderEntry implements TransferEntry {
 
     private final FSPath m_destinationFolder;
 
-    private final PathTruncator m_pathTruncator;
+    private final CheckedExceptionFunction<Path, PathToStringArrayTruncator, IOException> m_truncatorFac;
 
     /**
      * Constructor.
      *
      * @param source can either specify a file or a folder
      * @param destinationFolder the folder where all files have to be transfered to
-     * @param pathTruncator the {@link PathTruncator}
+     * @param truncatorFac factory allowing to create a {@link PathToStringTruncator}
      */
     public TransferFileFolderEntry(final FSPath source, final FSPath destinationFolder,
-        final PathTruncator pathTruncator) {
+        final CheckedExceptionFunction<Path, PathToStringArrayTruncator, IOException> truncatorFac) {
         m_source = source;
         m_destinationFolder = destinationFolder;
-        m_pathTruncator = pathTruncator;
+        m_truncatorFac = truncatorFac;
     }
 
     @Override
@@ -97,29 +101,31 @@ public final class TransferFileFolderEntry implements TransferEntry {
         if (!FSFiles.isDirectory(m_source)) {
             return Collections.emptyList();
         } else {
+            final PathToStringArrayTruncator pathTruncator = m_truncatorFac.apply(m_source);
             return FileAndFoldersCollector.getPaths(m_source).stream()//
-                .map(source -> toTransferPair(m_source, source))//
+                .map(p -> toTransferPair(p, pathTruncator))//
                 .collect(Collectors.toList());
         }
     }
 
-    private TransferPair toTransferPair(final FSPath sourceFolder, final FSPath source) {
-        return new TransferPair(source,
-            m_destinationFolder.resolve(m_pathTruncator.getTruncatedStringArray(sourceFolder, source)));
+    private TransferPair toTransferPair(final FSPath source, final PathToStringArrayTruncator pathTruncator) {
+        return new TransferPair(source, m_destinationFolder.resolve(pathTruncator.getTruncatedStringArray(source)));
     }
 
     @Override
     public TransferPair getSrcDestPair() throws IOException {
-        if (!FSFiles.isDirectory(m_source)) {
-            // FIXME: handle ../ prefix (AP-16364)
-            return new TransferPair(m_source,
-                m_destinationFolder.resolve(m_pathTruncator.getTruncatedStringArray(m_source.getParent(), m_source)));
-        } else {
-            try {
-                return toTransferPair(m_source, m_source);
-            } catch (final TruncationException e) { //NOSONAR
-                return new TransferPair(m_source, m_destinationFolder);
-            }
+        return toTransferPair(m_source, m_truncatorFac.apply(m_source));
+    }
+
+    @Override
+    public void validate() throws InvalidSettingsException, IOException {
+        final String[] suffix = m_truncatorFac.apply(m_source).getTruncatedStringArray(m_source);
+        final FSPath absDestFolder = (FSPath)m_destinationFolder.toAbsolutePath().normalize();
+        final Path dest = absDestFolder.resolve(suffix).normalize();
+        if (!dest.startsWith(absDestFolder)) {
+            throw new InvalidSettingsException(
+                "The selected " + AbstractTransferFilesNodeDialog.DESTINATION_FILE_FOLDER_NAME_MODE
+                    + " causes files to be copied to locations outside of the selected destination folder.");
         }
     }
 

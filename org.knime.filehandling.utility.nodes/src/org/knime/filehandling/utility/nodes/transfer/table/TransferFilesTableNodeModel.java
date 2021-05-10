@@ -73,7 +73,7 @@ import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeMo
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferIterator;
 
 /**
- * The Transfer Files/Folder (Table input) node model.
+ * The Transfer Files/Folder (Table) node model.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
@@ -200,7 +200,7 @@ final class TransferFilesTableNodeModel extends AbstractTransferFilesNodeModel<T
             return new TransferTableIterator(t, srcColIdx, destColIdx, srcConnection,
                 getFSConnection(inObjects, m_destConnectionIdx));
         } else {
-            return new TransferFileChooserIterator(cfg.getPathTruncator(), t, srcColIdx, srcConnection,
+            return new TransferFileChooserIterator(cfg.getTruncationSettings(), t, srcColIdx, srcConnection,
                 cfg.getDestinationFileChooserModel(), getStatusConsumer());
         }
     }

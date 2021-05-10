@@ -65,11 +65,10 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
-import org.knime.filehandling.utility.nodes.compress.truncator.PathTruncator;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferEntry;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferFileFolderEntry;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferIterator;
-import org.knime.filehandling.utility.nodes.transfer.iterators.TransferPair;
+import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
 
 /**
  * A {@link TransferIterator} with exactly one entry provided by the {@link SettingsModelReaderFileChooser}.
@@ -86,9 +85,9 @@ final class TransferFileChooserIterator implements TransferIterator {
 
     private final long m_size;
 
-    TransferFileChooserIterator(final PathTruncator pathTruncator, final SettingsModelReaderFileChooser readFileChooser,
-        final SettingsModelWriterFileChooser writeFileChooser, final Consumer<StatusMessage> statusMessageConsumer)
-        throws IOException, InvalidSettingsException {
+    TransferFileChooserIterator(final TruncationSettings truncationSettings,
+        final SettingsModelReaderFileChooser readFileChooser, final SettingsModelWriterFileChooser writeFileChooser,
+        final Consumer<StatusMessage> statusMessageConsumer) throws IOException, InvalidSettingsException {
         m_readAccessor = readFileChooser.createReadPathAccessor();
         final FSPath source;
         final List<FSPath> sourcePaths;
@@ -119,22 +118,26 @@ final class TransferFileChooserIterator implements TransferIterator {
             throw e;
         }
 
-        if (readFileChooser.getFilterMode() == FilterMode.FOLDER) {
-            m_entryIter = Collections
-                .singletonList(new TransferFileFolderEntry(source, destinationFolder, pathTruncator)).iterator();
-        } else {
-            final FSPath parent;
-            if (readFileChooser.getFilterMode() == FilterMode.FILE) {
-                parent = (FSPath)source.getParent();
-            } else {
-                parent = source;
-            }
-            m_entryIter = sourcePaths.stream()//
-                .map(p -> new TransferFileEntry(p,
-                    destinationFolder.resolve(pathTruncator.getTruncatedStringArray(parent, p))))//
-                .iterator();
-        }
+        final FilterMode filterMode = readFileChooser.getFilterMode();
+        m_entryIter = initEntryIter(truncationSettings, source, sourcePaths, destinationFolder, filterMode);
         m_size = sourcePaths.size();
+    }
+
+    private static Iterator<? extends TransferEntry> initEntryIter(final TruncationSettings truncationSettings,
+        final FSPath source, final List<FSPath> sourcePaths, final FSPath destinationFolder,
+        final FilterMode filterMode) {
+        if (filterMode == FilterMode.FILES_IN_FOLDERS) {
+            return sourcePaths.stream()//
+                .map(p -> new TransferFileFolderEntry(p, destinationFolder,
+                    ignore -> truncationSettings.getPathTruncator(source, filterMode)))//
+                .iterator();
+        } else if (filterMode == FilterMode.FILE || filterMode == FilterMode.FOLDER) {
+            return Collections.singletonList(new TransferFileFolderEntry(source, destinationFolder,
+                p -> truncationSettings.getPathTruncator(p, filterMode))).iterator();
+        } else {
+            throw new IllegalArgumentException(
+                String.format("The selected filter mode %s is not supported.", filterMode.getText()));
+        }
     }
 
     @Override
@@ -161,28 +164,4 @@ final class TransferFileChooserIterator implements TransferIterator {
         return m_size;
     }
 
-    private static class TransferFileEntry implements TransferEntry {
-
-        private final TransferPair m_transferPair;
-
-        TransferFileEntry(final FSPath source, final FSPath destination) {
-            m_transferPair = new TransferPair(source, destination);
-        }
-
-        @Override
-        public FSPath getSource() {
-            return m_transferPair.getSource();
-        }
-
-        @Override
-        public TransferPair getSrcDestPair() throws IOException {
-            return m_transferPair;
-        }
-
-        @Override
-        public List<TransferPair> getPathsToCopy() throws IOException {
-            return Collections.emptyList();
-        }
-
-    }
 }

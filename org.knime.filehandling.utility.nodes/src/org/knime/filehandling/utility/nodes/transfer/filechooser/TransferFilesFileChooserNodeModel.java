@@ -82,7 +82,7 @@ final class TransferFilesFileChooserNodeModel
     protected TransferIterator getTransferIterator(final PortObject[] inObjects)
         throws IOException, InvalidSettingsException {
         final TransferFilesFileChooserNodeConfig cfg = getConfig();
-        return new TransferFileChooserIterator(cfg.getPathTruncator(), cfg.getSourceFileChooserModel(),
+        return new TransferFileChooserIterator(cfg.getTruncationSettings(), cfg.getSourceFileChooserModel(),
             cfg.getDestinationFileChooserModel(), getStatusConsumer());
     }
 

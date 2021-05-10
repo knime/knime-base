@@ -109,6 +109,28 @@
 			Select if the folders of the selected output location should be created if they do not already exist. If
 			this option is unchecked, the node will fail if a folder does not exist.
 		</option>
+		<option name="Destination file/folder name mode">
+			Depending on the selected mode the location of the files/folders to be copied to the destination folder 
+			will differ.
+			<ul>
+				<li><i>Append relative source path:</i>
+					This mode ensures that the selected file/folder is directly copied into the destination folder.
+				</li>
+				<li><i>Append absolute source path:</i>
+					This mode ensures that the folder containing the selected source file/folder will also be created
+					inside the destination folder, i.e., if the source is <i>src_folder/src_subfolder</i> and the
+					destination is <i>dest_folder</i> the content of the source is copied to 
+					<i>dest_folder/src_folder/src_subfolder</i>.
+				</li>
+				<li><i>Append source path without folder prefix:</i>
+					This mode behaves similar to the absolute source path option, except that the specified
+					folder prefix is being ignored, e.g., if the prefix to remove is <i>src_folder</i> the source is
+					copied to <i>dest_folder/src_subfolder</i>. <b>Note:</b> In special cases using this option 
+					can try to copy the source file/folder to a location that is outside the specified destination. In
+					this case the node will fail. 
+				</li>
+			</ul> 
+		</option>
 		<option name="Transfer policy">
 			<ul>
 				<li>
@@ -130,32 +152,6 @@
 					Will issue an error during the node's execution (to prevent unintentional overwrite).
 				</li>
 			</ul>
-		</option>
-		<option name="Source folder truncation">
-			Depending on the selected strategy the folder containing the files/folders to copy/move is being truncated
-			differently, i.e., this option allows to modify the resulting (destination) folder structure. For the 
-			remainder assume that <tt>folder/other/</tt> is the selected folder and it contains the file 
-			<tt>folder/other/subfolder/file.txt</tt>
-			<ul>
-				<li><i>Keep full path:</i>
-					This selection ensures that the folder's path is not being truncated, i.e., the destination folder
-					will contain the entry <tt>folder/other/subfolder/file.txt</tt>
-				</li>
-				<li><i>Keep source folder only:</i>
-					This selection ensures that anything preceding the source folder's name is being truncated,
-					i.e., the destination folder will contain the entry <tt>other/subfolder/file.txt</tt>
-				</li>
-				<li><i>Truncate full path:</i>
-					This selection ensures that the folder's path is being fully truncated, i.e., the destination folder
-					will contain the entry <tt>subfolder/file.txt</tt>.
-				</li>
-				<li><i>Truncate:</i>
-					This selection truncates the first occurrence in the folder's path matching the regular expression,
-					i.e., the destination folder will contain the entry <tt>folder/subfolder/file.txt</tt>
-					given the regular expression <tt>other.*</tt>.
-				</li>
-			</ul> 
-			If it is not possible to apply the selected truncation strategy the node will fail during execution.
 		</option>
 		<option name="Delete source files / folders">
 			If this option is checked all files which have been successfully copied to the destination folder
