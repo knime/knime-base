@@ -223,579 +223,659 @@ abstract class AbstractExtractDateTimeFieldsNodeModel extends SimpleStreamableFu
         if (!isDate && !isTime) {
             throw new InvalidSettingsException("Column " + selectedCol + " does not contain a Date&Time type.");
         }
-        final boolean isLocalDate = selectedColType.isCompatible(LocalDateValue.class);
-        final boolean isLocalTime = selectedColType.isCompatible(LocalTimeValue.class);
         final boolean isLocalDateTime = selectedColType.isCompatible(LocalDateTimeValue.class);
         final boolean isZonedDateTime = selectedColType.isCompatible(ZonedDateTimeValue.class);
 
-        final String selectedLocale = m_localeModel.getStringValue();
-        final Locale locale = getLocale(selectedLocale).orElseThrow(
-            () -> new IllegalArgumentException(String.format("The selected locale %s does not exist", selectedLocale)));
+        final Locale locale = getLocale();
 
         final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(spec);
         final DataColumnDomainCreator domainCreator = new DataColumnDomainCreator();
         final ColumnRearranger rearranger = new ColumnRearranger(spec);
 
         if (isDate) {
-
-            // extract date fields:
-
-            // year:
-
-            if (m_yearModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = nameGenerator.newColumn(YEAR, IntCell.TYPE);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory.create(value.getLocalDate().getYear());
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create(value.getLocalDateTime().getYear());
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create(value.getZonedDateTime().getYear());
-                        }
-                    });
-                }
-            }
-
-            // year (week-based):
-
-            if (m_yearWeekBasedModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = nameGenerator.newColumn(YEAR_WEEK_BASED, IntCell.TYPE);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory
-                                .create(value.getLocalDate().get(WeekFields.of(locale).weekBasedYear()));
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory
-                                .create(value.getLocalDateTime().get(WeekFields.of(locale).weekBasedYear()));
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory
-                                .create(value.getZonedDateTime().get(WeekFields.of(locale).weekBasedYear()));
-                        }
-                    });
-                }
-            }
-
-            // quarter:
-
-            if (m_quarterModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, QUARTER, 1, 4);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory.create((value.getLocalDate().getMonthValue() + 2) / 3);
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create((value.getLocalDateTime().getMonthValue() + 2) / 3);
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create((value.getZonedDateTime().getMonthValue() + 2) / 3);
-                        }
-                    });
-                }
-            }
-
-            // month (number):
-
-            if (m_monthNumberModel.getBooleanValue()) {
-                final DataColumnSpec colSpec =
-                    createBoundedIntColumn(domainCreator, nameGenerator, MONTH_NUMBER, 1, 12);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory.create(value.getLocalDate().getMonthValue());
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create(value.getLocalDateTime().getMonthValue());
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create(value.getZonedDateTime().getMonthValue());
-                        }
-                    });
-                }
-            }
-
-            // month (name):
-
-            if (m_monthNameModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = nameGenerator.newColumn(MONTH_NAME, StringCell.TYPE);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return StringCellFactory
-                                .create(value.getLocalDate().getMonth().getDisplayName(TextStyle.FULL, locale));
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return StringCellFactory
-                                .create(value.getLocalDateTime().getMonth().getDisplayName(TextStyle.FULL, locale));
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return StringCellFactory
-                                .create(value.getZonedDateTime().getMonth().getDisplayName(TextStyle.FULL, locale));
-                        }
-                    });
-                }
-            }
-
-            // week:
-
-            if (m_weekModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, WEEK, 1, 52);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory
-                                .create(value.getLocalDate().get(WeekFields.of(locale).weekOfWeekBasedYear()));
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory
-                                .create(value.getLocalDateTime().get(WeekFields.of(locale).weekOfWeekBasedYear()));
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory
-                                .create(value.getZonedDateTime().get(WeekFields.of(locale).weekOfWeekBasedYear()));
-                        }
-                    });
-                }
-            }
-
-            // day of year:
-
-            if (m_dayYearModel.getBooleanValue()) {
-                final DataColumnSpec colSpec =
-                    createBoundedIntColumn(domainCreator, nameGenerator, DAY_OF_YEAR, 1, 366);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory.create(value.getLocalDate().getDayOfYear());
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create(value.getLocalDateTime().getDayOfYear());
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create(value.getZonedDateTime().getDayOfYear());
-                        }
-                    });
-                }
-            }
-
-            // day of month:
-
-            if (m_dayMonthModel.getBooleanValue()) {
-                final DataColumnSpec colSpec =
-                    createBoundedIntColumn(domainCreator, nameGenerator, DAY_OF_MONTH, 1, 31);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory.create(value.getLocalDate().getDayOfMonth());
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create(value.getLocalDateTime().getDayOfMonth());
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create(value.getZonedDateTime().getDayOfMonth());
-                        }
-                    });
-                }
-            }
-
-            // day of week (number):
-
-            if (m_dayWeekNumberModel.getBooleanValue()) {
-                final DataColumnSpec colSpec =
-                    createBoundedIntColumn(domainCreator, nameGenerator, DAY_OF_WEEK_NUMBER, 1, 7);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return IntCellFactory.create(value.getLocalDate().get(WeekFields.of(locale).dayOfWeek()));
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory
-                                .create(value.getLocalDateTime().get(WeekFields.of(locale).dayOfWeek()));
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory
-                                .create(value.getZonedDateTime().get(WeekFields.of(locale).dayOfWeek()));
-                        }
-                    });
-                }
-            }
-
-            // day of week (name):
-
-            if (m_dayWeekNameModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = nameGenerator.newColumn(DAY_OF_WEEK_NAME, StringCell.TYPE);
-                if (isLocalDate) {
-                    rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateValue value) {
-                            return StringCellFactory.create(
-                                value.getLocalDate().getDayOfWeek().getDisplayName(TextStyle.FULL_STANDALONE, locale));
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return StringCellFactory.create(value.getLocalDateTime().getDayOfWeek()
-                                .getDisplayName(TextStyle.FULL_STANDALONE, locale));
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return StringCellFactory.create(value.getZonedDateTime().getDayOfWeek()
-                                .getDisplayName(TextStyle.FULL_STANDALONE, locale));
-                        }
-                    });
-                }
-            }
+            final boolean isLocalDate = selectedColType.isCompatible(LocalDateValue.class);
+            extractDate(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, locale, nameGenerator,
+                domainCreator, rearranger);
         }
         if (isTime) {
-
-            // extract time fields:
-
-            // hour:
-
-            if (m_hourModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, HOUR, 0, 23);
-                if (isLocalTime) {
-                    rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalTimeValue value) {
-                            return IntCellFactory.create(value.getLocalTime().getHour());
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create(value.getLocalDateTime().getHour());
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create(value.getZonedDateTime().getHour());
-                        }
-                    });
-                }
-            }
-
-            // minute:
-
-            if (m_minuteModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, MINUTE, 0, 59);
-                if (isLocalTime) {
-                    rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalTimeValue value) {
-                            return IntCellFactory.create(value.getLocalTime().getMinute());
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create(value.getLocalDateTime().getMinute());
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create(value.getZonedDateTime().getMinute());
-                        }
-                    });
-                }
-            }
-
-            // second:
-
-            if (m_secondModel.getBooleanValue()) {
-                final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, SECOND, 0, 59);
-                if (isLocalTime) {
-                    rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalTimeValue value) {
-                            return IntCellFactory.create(value.getLocalTime().getSecond());
-                        }
-                    });
-                } else if (isLocalDateTime) {
-                    rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final LocalDateTimeValue value) {
-                            return IntCellFactory.create(value.getLocalDateTime().getSecond());
-                        }
-                    });
-                } else if (isZonedDateTime) {
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return IntCellFactory.create(value.getZonedDateTime().getSecond());
-                        }
-                    });
-                }
-            }
-
-            // subsecond:
-
-            if (m_subsecondModel.getBooleanValue()) {
-                final String subsecondUnit = m_subsecondUnitsModel.getStringValue();
-                if (subsecondUnit.equals(MILLISECOND)) {
-                    // in milliseconds
-                    final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator,
-                        SUBSECOND_COL + " (in " + MILLISECOND + ")", 0, 999);
-                    if (isLocalTime) {
-                        rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final LocalTimeValue value) {
-                                return IntCellFactory.create(value.getLocalTime().get(ChronoField.MILLI_OF_SECOND));
-                            }
-                        });
-                    } else if (isLocalDateTime) {
-                        rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final LocalDateTimeValue value) {
-                                return IntCellFactory.create(value.getLocalDateTime().get(ChronoField.MILLI_OF_SECOND));
-                            }
-                        });
-                    } else if (isZonedDateTime) {
-                        rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final ZonedDateTimeValue value) {
-                                return IntCellFactory.create(value.getZonedDateTime().get(ChronoField.MILLI_OF_SECOND));
-                            }
-                        });
-                    }
-                } else if (subsecondUnit.equals(MICROSECOND)) {
-                    // in microseconds
-                    final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator,
-                        SUBSECOND_COL + " (in " + MICROSECOND + ")", 0, 999_999);
-                    if (isLocalTime) {
-                        rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final LocalTimeValue value) {
-                                return IntCellFactory.create(value.getLocalTime().get(ChronoField.MICRO_OF_SECOND));
-                            }
-                        });
-                    } else if (isLocalDateTime) {
-                        rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final LocalDateTimeValue value) {
-                                return IntCellFactory.create(value.getLocalDateTime().get(ChronoField.MICRO_OF_SECOND));
-                            }
-                        });
-                    } else if (isZonedDateTime) {
-                        rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final ZonedDateTimeValue value) {
-                                return IntCellFactory.create(value.getZonedDateTime().get(ChronoField.MICRO_OF_SECOND));
-                            }
-                        });
-                    }
-                } else if (subsecondUnit.equals(NANOSECOND)) {
-                    // in nanoseconds
-                    final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator,
-                        SUBSECOND_COL + " (in " + NANOSECOND + ")", 0, 999_999_999);
-                    if (isLocalTime) {
-                        rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final LocalTimeValue value) {
-                                return IntCellFactory.create(value.getLocalTime().getNano());
-                            }
-                        });
-                    } else if (isLocalDateTime) {
-                        rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final LocalDateTimeValue value) {
-                                return IntCellFactory.create(value.getLocalDateTime().getNano());
-                            }
-                        });
-                    } else if (isZonedDateTime) {
-                        rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                            @Override
-                            protected DataCell getCell(final ZonedDateTimeValue value) {
-                                return IntCellFactory.create(value.getZonedDateTime().getNano());
-                            }
-                        });
-                    }
-                }
-            }
-            if (isZonedDateTime) {
-
-                // extract time zone fields:
-
-                // time zone name:
-
-                if (m_timeZoneNameModel.getBooleanValue()) {
-                    final DataColumnSpec colSpec = nameGenerator.newColumn(TIME_ZONE_NAME, StringCell.TYPE);
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return StringCellFactory.create(value.getZonedDateTime().getZone().getId().toString());
-                        }
-                    });
-                }
-
-                // time zone offset:
-
-                if (m_timeZoneOffsetModel.getBooleanValue()) {
-                    final DataColumnSpec colSpec = nameGenerator.newColumn(TIME_ZONE_OFFSET, StringCell.TYPE);
-                    rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
-
-                        @Override
-                        protected DataCell getCell(final ZonedDateTimeValue value) {
-                            return StringCellFactory.create(
-                                value.getZonedDateTime().getOffset().getDisplayName(TextStyle.FULL_STANDALONE, locale));
-                        }
-                    });
-                }
-            }
+            final boolean isLocalTime = selectedColType.isCompatible(LocalTimeValue.class);
+            extractTime(selectedColIdx, isLocalTime, isLocalDateTime, isZonedDateTime, locale, nameGenerator,
+                domainCreator, rearranger);
         }
-
         if (rearranger.getColumnCount() == spec.getNumColumns()) {
             getLogger().info("No fields will be extracted. Output table will equal input table.");
         }
 
         return rearranger;
+    }
+
+    private void extractDate(final int selectedColIdx, final boolean isLocalDate, // NOSONAR these are only if's
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final Locale locale,
+        final UniqueNameGenerator nameGenerator, final DataColumnDomainCreator domainCreator,
+        final ColumnRearranger rearranger) {
+        if (m_yearModel.getBooleanValue()) {
+            extractYear(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, nameGenerator, rearranger);
+        }
+        if (m_yearWeekBasedModel.getBooleanValue()) {
+            extractWeekOfYearNumber(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, locale,
+                nameGenerator, rearranger);
+        }
+        if (m_quarterModel.getBooleanValue()) {
+            extractQuarter(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, nameGenerator, domainCreator,
+                rearranger);
+        }
+        if (m_monthNumberModel.getBooleanValue()) {
+            extractMonthNumber(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, nameGenerator,
+                domainCreator, rearranger);
+        }
+        if (m_monthNameModel.getBooleanValue()) {
+            extractMonthName(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, locale, nameGenerator,
+                rearranger);
+        }
+        if (m_weekModel.getBooleanValue()) {
+            extractWeekOfYearNumber(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, locale,
+                nameGenerator, domainCreator, rearranger);
+        }
+        if (m_dayYearModel.getBooleanValue()) {
+            extractDayOfYearNumber(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, nameGenerator,
+                domainCreator, rearranger);
+        }
+        if (m_dayMonthModel.getBooleanValue()) {
+            extractDayOfMonthNumber(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, nameGenerator,
+                domainCreator, rearranger);
+        }
+        if (m_dayWeekNumberModel.getBooleanValue()) {
+            extractDayOfWeekNumber(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, locale, nameGenerator,
+                domainCreator, rearranger);
+        }
+        if (m_dayWeekNameModel.getBooleanValue()) {
+            extractDayOfWeekName(selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, locale, nameGenerator,
+                rearranger);
+        }
+    }
+
+    private void extractTime(final int selectedColIdx, final boolean isLocalTime, // NOSONAR we need all this info
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final Locale locale,
+        final UniqueNameGenerator nameGenerator, final DataColumnDomainCreator domainCreator,
+        final ColumnRearranger rearranger) {
+        if (m_hourModel.getBooleanValue()) {
+            extractHours(selectedColIdx, isLocalTime, isLocalDateTime, isZonedDateTime, nameGenerator, domainCreator,
+                rearranger);
+        }
+        if (m_minuteModel.getBooleanValue()) {
+            extractMinutes(selectedColIdx, isLocalTime, isLocalDateTime, isZonedDateTime, nameGenerator, domainCreator,
+                rearranger);
+        }
+        if (m_secondModel.getBooleanValue()) {
+            extractSeconds(selectedColIdx, isLocalTime, isLocalDateTime, isZonedDateTime, nameGenerator, domainCreator,
+                rearranger);
+        }
+        if (m_subsecondModel.getBooleanValue()) {
+            extractSubSeconds(selectedColIdx, isLocalTime, isLocalDateTime, isZonedDateTime, nameGenerator,
+                domainCreator, rearranger);
+        }
+        if (isZonedDateTime) {
+            extractTimeZoneFields(selectedColIdx, locale, nameGenerator, rearranger);
+        }
+    }
+
+    private static void extractYear(final int selectedColIdx, final boolean isLocalDate, final boolean isLocalDateTime,
+        final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = nameGenerator.newColumn(YEAR, IntCell.TYPE);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return IntCellFactory.create(value.getLocalDate().getYear());
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().getYear());
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().getYear());
+                }
+            });
+        }
+    }
+
+    private static void extractWeekOfYearNumber(final int selectedColIdx, final boolean isLocalDate,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final Locale locale,
+        final UniqueNameGenerator nameGenerator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = nameGenerator.newColumn(YEAR_WEEK_BASED, IntCell.TYPE);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return IntCellFactory.create(value.getLocalDate().get(WeekFields.of(locale).weekBasedYear()));
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().get(WeekFields.of(locale).weekBasedYear()));
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().get(WeekFields.of(locale).weekBasedYear()));
+                }
+            });
+        }
+    }
+
+    private static void extractQuarter(final int selectedColIdx, final boolean isLocalDate,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, QUARTER, 1, 4);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return IntCellFactory.create((value.getLocalDate().getMonthValue() + 2) / 3);
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create((value.getLocalDateTime().getMonthValue() + 2) / 3);
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create((value.getZonedDateTime().getMonthValue() + 2) / 3);
+                }
+            });
+        }
+    }
+
+    private static void extractMonthNumber(final int selectedColIdx, final boolean isLocalDate,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, MONTH_NUMBER, 1, 12);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return IntCellFactory.create(value.getLocalDate().getMonthValue());
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().getMonthValue());
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().getMonthValue());
+                }
+            });
+        }
+    }
+
+    private static void extractMonthName(final int selectedColIdx, final boolean isLocalDate,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final Locale locale,
+        final UniqueNameGenerator nameGenerator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = nameGenerator.newColumn(MONTH_NAME, StringCell.TYPE);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return StringCellFactory
+                        .create(value.getLocalDate().getMonth().getDisplayName(TextStyle.FULL, locale));
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return StringCellFactory
+                        .create(value.getLocalDateTime().getMonth().getDisplayName(TextStyle.FULL, locale));
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return StringCellFactory
+                        .create(value.getZonedDateTime().getMonth().getDisplayName(TextStyle.FULL, locale));
+                }
+            });
+        }
+    }
+
+    private static void extractWeekOfYearNumber(final int selectedColIdx, // NOSONAR we need all this info
+        final boolean isLocalDate, final boolean isLocalDateTime, final boolean isZonedDateTime, final Locale locale,
+        final UniqueNameGenerator nameGenerator, final DataColumnDomainCreator domainCreator,
+        final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, WEEK, 1, 52);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return IntCellFactory.create(value.getLocalDate().get(WeekFields.of(locale).weekOfWeekBasedYear()));
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory
+                        .create(value.getLocalDateTime().get(WeekFields.of(locale).weekOfWeekBasedYear()));
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory
+                        .create(value.getZonedDateTime().get(WeekFields.of(locale).weekOfWeekBasedYear()));
+                }
+            });
+        }
+    }
+
+    private static void extractDayOfYearNumber(final int selectedColIdx, final boolean isLocalDate,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, DAY_OF_YEAR, 1, 366);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return IntCellFactory.create(value.getLocalDate().getDayOfYear());
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().getDayOfYear());
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().getDayOfYear());
+                }
+            });
+        }
+    }
+
+    private static void extractDayOfMonthNumber(final int selectedColIdx, final boolean isLocalDate,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, DAY_OF_MONTH, 1, 31);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return IntCellFactory.create(value.getLocalDate().getDayOfMonth());
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().getDayOfMonth());
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().getDayOfMonth());
+                }
+            });
+        }
+    }
+
+    private static void extractDayOfWeekNumber(final int selectedColIdx, // NOSONAR we need all this info
+        final boolean isLocalDate, final boolean isLocalDateTime, final boolean isZonedDateTime, final Locale locale,
+        final UniqueNameGenerator nameGenerator, final DataColumnDomainCreator domainCreator,
+        final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, DAY_OF_WEEK_NUMBER, 1, 7);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return IntCellFactory.create(value.getLocalDate().get(WeekFields.of(locale).dayOfWeek()));
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().get(WeekFields.of(locale).dayOfWeek()));
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().get(WeekFields.of(locale).dayOfWeek()));
+                }
+            });
+        }
+    }
+
+    private static void extractDayOfWeekName(final int selectedColIdx, final boolean isLocalDate,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final Locale locale,
+        final UniqueNameGenerator nameGenerator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = nameGenerator.newColumn(DAY_OF_WEEK_NAME, StringCell.TYPE);
+        if (isLocalDate) {
+            rearranger.append(new AbstractLocalDateFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateValue value) {
+                    return StringCellFactory
+                        .create(value.getLocalDate().getDayOfWeek().getDisplayName(TextStyle.FULL_STANDALONE, locale));
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return StringCellFactory.create(
+                        value.getLocalDateTime().getDayOfWeek().getDisplayName(TextStyle.FULL_STANDALONE, locale));
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return StringCellFactory.create(
+                        value.getZonedDateTime().getDayOfWeek().getDisplayName(TextStyle.FULL_STANDALONE, locale));
+                }
+            });
+        }
+    }
+
+    private static void extractHours(final int selectedColIdx, final boolean isLocalTime, final boolean isLocalDateTime,
+        final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, HOUR, 0, 23);
+        if (isLocalTime) {
+            rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalTimeValue value) {
+                    return IntCellFactory.create(value.getLocalTime().getHour());
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().getHour());
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().getHour());
+                }
+            });
+        }
+    }
+
+    private static void extractMinutes(final int selectedColIdx, final boolean isLocalTime,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, MINUTE, 0, 59);
+        if (isLocalTime) {
+            rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalTimeValue value) {
+                    return IntCellFactory.create(value.getLocalTime().getMinute());
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().getMinute());
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().getMinute());
+                }
+            });
+        }
+    }
+
+    private static void extractSeconds(final int selectedColIdx, final boolean isLocalTime,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator, SECOND, 0, 59);
+        if (isLocalTime) {
+            rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalTimeValue value) {
+                    return IntCellFactory.create(value.getLocalTime().getSecond());
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().getSecond());
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().getSecond());
+                }
+            });
+        }
+    }
+
+    private void extractSubSeconds(final int selectedColIdx, final boolean isLocalTime, final boolean isLocalDateTime,
+        final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final String subsecondUnit = m_subsecondUnitsModel.getStringValue();
+        if (subsecondUnit.equals(MILLISECOND)) {
+            extractMillis(selectedColIdx, isLocalTime, isLocalDateTime, isZonedDateTime, nameGenerator, domainCreator,
+                rearranger);
+        } else if (subsecondUnit.equals(MICROSECOND)) {
+            extractMicros(selectedColIdx, isLocalTime, isLocalDateTime, isZonedDateTime, nameGenerator, domainCreator,
+                rearranger);
+        } else if (subsecondUnit.equals(NANOSECOND)) {
+            extractNanos(selectedColIdx, isLocalTime, isLocalDateTime, isZonedDateTime, nameGenerator, domainCreator,
+                rearranger);
+        }
+    }
+
+    private static void extractMillis(final int selectedColIdx, final boolean isLocalTime,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec =
+            createBoundedIntColumn(domainCreator, nameGenerator, SUBSECOND_COL + " (in " + MILLISECOND + ")", 0, 999);
+        if (isLocalTime) {
+            rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalTimeValue value) {
+                    return IntCellFactory.create(value.getLocalTime().get(ChronoField.MILLI_OF_SECOND));
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().get(ChronoField.MILLI_OF_SECOND));
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().get(ChronoField.MILLI_OF_SECOND));
+                }
+            });
+        }
+    }
+
+    private static void extractMicros(final int selectedColIdx, final boolean isLocalTime,
+        final boolean isLocalDateTime, final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator,
+            SUBSECOND_COL + " (in " + MICROSECOND + ")", 0, 999_999);
+        if (isLocalTime) {
+            rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalTimeValue value) {
+                    return IntCellFactory.create(value.getLocalTime().get(ChronoField.MICRO_OF_SECOND));
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().get(ChronoField.MICRO_OF_SECOND));
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().get(ChronoField.MICRO_OF_SECOND));
+                }
+            });
+        }
+    }
+
+    private static void extractNanos(final int selectedColIdx, final boolean isLocalTime, final boolean isLocalDateTime,
+        final boolean isZonedDateTime, final UniqueNameGenerator nameGenerator,
+        final DataColumnDomainCreator domainCreator, final ColumnRearranger rearranger) {
+        final DataColumnSpec colSpec = createBoundedIntColumn(domainCreator, nameGenerator,
+            SUBSECOND_COL + " (in " + NANOSECOND + ")", 0, 999_999_999);
+
+        if (isLocalTime) {
+            rearranger.append(new AbstractLocalTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalTimeValue value) {
+                    return IntCellFactory.create(value.getLocalTime().getNano());
+                }
+            });
+        } else if (isLocalDateTime) {
+            rearranger.append(new AbstractLocalDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final LocalDateTimeValue value) {
+                    return IntCellFactory.create(value.getLocalDateTime().getNano());
+                }
+            });
+        } else if (isZonedDateTime) {
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return IntCellFactory.create(value.getZonedDateTime().getNano());
+                }
+            });
+        }
+    }
+
+    void extractTimeZoneFields(final int selectedColIdx, final Locale locale, final UniqueNameGenerator nameGenerator,
+        final ColumnRearranger rearranger) {
+        // time zone name:
+        if (m_timeZoneNameModel.getBooleanValue()) {
+            final DataColumnSpec colSpec = nameGenerator.newColumn(TIME_ZONE_NAME, StringCell.TYPE);
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return StringCellFactory.create(value.getZonedDateTime().getZone().getId());
+                }
+            });
+        }
+
+        // time zone offset:
+        if (m_timeZoneOffsetModel.getBooleanValue()) {
+            final DataColumnSpec colSpec = nameGenerator.newColumn(TIME_ZONE_OFFSET, StringCell.TYPE);
+            rearranger.append(new AbstractZonedDateTimeFieldCellFactory(selectedColIdx, colSpec) {
+
+                @Override
+                protected DataCell getCell(final ZonedDateTimeValue value) {
+                    return StringCellFactory
+                        .create(value.getZonedDateTime().getOffset().getDisplayName(TextStyle.FULL_STANDALONE, locale));
+                }
+            });
+        }
+    }
+
+    private Locale getLocale() {
+        final String selectedLocale = m_localeModel.getStringValue();
+        return getLocale(selectedLocale).orElseThrow(
+            () -> new IllegalArgumentException(String.format("The selected locale %s does not exist", selectedLocale)));
     }
 
     abstract Optional<Locale> getLocale(final String selectedLocale);
@@ -881,33 +961,35 @@ abstract class AbstractExtractDateTimeFieldsNodeModel extends SimpleStreamableFu
 
     // cell factories:
 
-    private abstract class AbstractLocalDateFieldCellFactory extends AbstractExtractFieldCellFactory<LocalDateValue> {
+    private abstract static class AbstractLocalDateFieldCellFactory
+        extends AbstractExtractFieldCellFactory<LocalDateValue> {
         AbstractLocalDateFieldCellFactory(final int colIdx, final DataColumnSpec newColSpec) {
             super(colIdx, newColSpec);
         }
     }
 
-    private abstract class AbstractLocalTimeFieldCellFactory extends AbstractExtractFieldCellFactory<LocalTimeValue> {
+    private abstract static class AbstractLocalTimeFieldCellFactory
+        extends AbstractExtractFieldCellFactory<LocalTimeValue> {
         AbstractLocalTimeFieldCellFactory(final int colIdx, final DataColumnSpec newColSpec) {
             super(colIdx, newColSpec);
         }
     }
 
-    private abstract class AbstractLocalDateTimeFieldCellFactory
+    private abstract static class AbstractLocalDateTimeFieldCellFactory
         extends AbstractExtractFieldCellFactory<LocalDateTimeValue> {
         AbstractLocalDateTimeFieldCellFactory(final int colIdx, final DataColumnSpec newColSpec) {
             super(colIdx, newColSpec);
         }
     }
 
-    private abstract class AbstractZonedDateTimeFieldCellFactory
+    private abstract static class AbstractZonedDateTimeFieldCellFactory
         extends AbstractExtractFieldCellFactory<ZonedDateTimeValue> {
         AbstractZonedDateTimeFieldCellFactory(final int colIdx, final DataColumnSpec newColSpec) {
             super(colIdx, newColSpec);
         }
     }
 
-    private abstract class AbstractExtractFieldCellFactory<V extends DataValue> extends SingleCellFactory {
+    private abstract static class AbstractExtractFieldCellFactory<V extends DataValue> extends SingleCellFactory {
 
         private final int m_colIdx;
 
