@@ -127,6 +127,13 @@ public class FileChooserPathAccessorTest {
         Files.createSymbolicLink(m_fileLink, m_contentFile);
     }
 
+    /**
+     * Tests whether links are correctly handled for the different filter modes.<br>
+     * Links should only included if follow links is set to true i.e. links are not considered to be special files.
+     *
+     * @throws IOException not thrown
+     * @throws InvalidSettingsException not thrown
+     */
     @Test
     public void testLinkBehaviorOfGetFSPaths() throws IOException, InvalidSettingsException {
         final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_tempDir);
@@ -140,7 +147,7 @@ public class FileChooserPathAccessorTest {
 
         // list files, no follow, include special, no subfolders
         testGetFSPathsBehavior(settingsModel, new TestConfig(FilterMode.FILES_IN_FOLDERS, FilterOption.SPECIAL),
-            m_fileLink, m_ordinaryFile);
+            m_ordinaryFile);
 
         // list files, follow, no special files, no subfolders
         testGetFSPathsBehavior(settingsModel, new TestConfig(FilterMode.FILES_IN_FOLDERS, FilterOption.FOLLOW),
@@ -157,8 +164,7 @@ public class FileChooserPathAccessorTest {
 
         // list files, subfolders, no follow, special
         testGetFSPathsBehavior(settingsModel,
-            new TestConfig(FilterMode.FILES_IN_FOLDERS, FilterOption.SUBFOLDERS, FilterOption.SPECIAL), m_fileLink,
-            m_ordinaryFile);
+            new TestConfig(FilterMode.FILES_IN_FOLDERS, FilterOption.SUBFOLDERS, FilterOption.SPECIAL), m_ordinaryFile);
 
         // list files, follow, no special files, subfolders
         testGetFSPathsBehavior(settingsModel,
@@ -197,8 +203,7 @@ public class FileChooserPathAccessorTest {
 
         testGetFSPathsBehavior(settingsModel, new TestConfig(filterMode), m_ordinaryFile);
 
-        testGetFSPathsBehavior(settingsModel, new TestConfig(filterMode, FilterOption.SPECIAL), m_fileLink,
-            m_ordinaryFile);
+        testGetFSPathsBehavior(settingsModel, new TestConfig(filterMode, FilterOption.SPECIAL), m_ordinaryFile);
 
         testGetFSPathsBehavior(settingsModel, new TestConfig(filterMode, FilterOption.FOLLOW), m_fileLink, m_folderLink,
             m_ordinaryFile);
@@ -209,7 +214,7 @@ public class FileChooserPathAccessorTest {
         testGetFSPathsBehavior(settingsModel, new TestConfig(filterMode, FilterOption.SUBFOLDERS), m_ordinaryFile);
 
         testGetFSPathsBehavior(settingsModel, new TestConfig(filterMode, FilterOption.SUBFOLDERS, FilterOption.SPECIAL),
-            m_fileLink, m_ordinaryFile);
+            m_ordinaryFile);
 
         testGetFSPathsBehavior(settingsModel, new TestConfig(filterMode, FilterOption.SUBFOLDERS, FilterOption.FOLLOW),
             m_fileLink, m_folderLink, m_folderLinkToContentFile, m_ordinaryFile);

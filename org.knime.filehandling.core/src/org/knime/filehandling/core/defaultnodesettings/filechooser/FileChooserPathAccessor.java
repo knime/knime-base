@@ -259,15 +259,14 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private FilterVisitor createVisitor(final Path rootPath) {
         final SettingsModelFilterMode settings = m_settings.getFilterModeModel();
         final boolean includeSubfolders = settings.isIncludeSubfolders();
-        final boolean followLinks = settings.isFollowLinks();
         final FileAndFolderFilter filter = new FileAndFolderFilter(rootPath, settings.getFilterOptionsSettings());
         switch (m_filterMode) {
             case FILES_AND_FOLDERS:
-                return new FilterVisitor(filter, true, true, includeSubfolders, followLinks);
+                return new FilterVisitor(filter, true, true, includeSubfolders);
             case FILES_IN_FOLDERS:
-                return new FilterVisitor(filter, true, false, includeSubfolders, followLinks);
+                return new FilterVisitor(filter, true, false, includeSubfolders);
             case FOLDERS:
-                return new FilterVisitor(filter, false, true, includeSubfolders, followLinks);
+                return new FilterVisitor(filter, false, true, includeSubfolders);
             case FOLDER:
             case FILE:
                 throw new IllegalStateException(
