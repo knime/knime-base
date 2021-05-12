@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 10, 2021 (ortmann): created
+ *   May 10, 2021 (Mark Ortmann): created
  */
 package org.knime.time.node.extract.datetime;
 
@@ -64,7 +64,7 @@ import org.junit.Test;
 /**
  * Test class that ensures that with Java-11 all Locales without a region/country as being mapped to a proper value.
  *
- * @author Mark Ortmann
+ * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
 public class ExtractDateTimeFieldsNodeModelTest {
 
@@ -76,9 +76,7 @@ public class ExtractDateTimeFieldsNodeModelTest {
             .collect(Collectors.toSet());
 
     private static Locale getLocale(final String languageTag) {
-        return Arrays.stream(Locale.getAvailableLocales())//
-            .filter(l -> l.toLanguageTag().equals(languageTag))//
-            .findFirst()
+        return LocaleProvider.JAVA_8.stringToLocale(languageTag)
             .orElseThrow(() -> new IllegalArgumentException("No such locale found with tag " + languageTag));
     }
 
@@ -140,15 +138,8 @@ public class ExtractDateTimeFieldsNodeModelTest {
     @Test
     public void test_mapping() {
         for (final String l : J_8_REGION_FREE_LOCALES) {
-            assertNotEquals(Locale.forLanguageTag(l), ExtractDateTimeFieldsNodeModel.getLocale(l, true));
-            assertEquals(Locale.forLanguageTag(l), ExtractDateTimeFieldsNodeModel.getLocale(l, false));
-        }
-        for (final Locale l : Locale.getAvailableLocales()) {
-            final String languageTag = l.toLanguageTag();
-            if (l.getVariant().isEmpty() && !J_8_REGION_FREE_LOCALES.contains(languageTag)) {
-                assertEquals(l, ExtractDateTimeFieldsNodeModel.getLocale(languageTag, true));
-                assertEquals(l, ExtractDateTimeFieldsNodeModel.getLocale(languageTag, false));
-            }
+            assertNotEquals(getLocale(l), ExtractDateTimeFieldsNodeModel.getLocale(l, true).orElseThrow());
+            assertEquals(getLocale(l), ExtractDateTimeFieldsNodeModel.getLocale(l, false).orElseThrow());
         }
     }
 
