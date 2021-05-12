@@ -124,6 +124,8 @@ final class FilterOptionsPanel extends JPanel {
 
     private final JCheckBox m_followLinks;
 
+    private static final String LINK_OPTIONS_PANEL = "Link options";
+
     /** Label for file filter panel */
     private static final String FILE_FILTER_PANEL_LABEL = "File filter options";
 
@@ -162,6 +164,8 @@ final class FilterOptionsPanel extends JPanel {
 
     /** Panel containing all the folder concerning components */
     private final JPanel m_folderPanel = new JPanel(new GridBagLayout());
+
+    private final JPanel m_linksPanel = new JPanel(new GridBagLayout());
 
     /**
      * Creates a new File Filter Panel
@@ -259,9 +263,13 @@ final class FilterOptionsPanel extends JPanel {
         gbc.weighty = 0.0001;
         add(createFileCompsPanel(), gbc);
         gbc.gridy++;
-        gbc.weighty = 0.9999;
         gbc.insets = new Insets(5, 0, 0, 0);
         add(createFolderCompsPanel(), gbc);
+        gbc.gridy++;
+        add(populateLinksCompsPanel(), gbc);
+        gbc.gridy++;
+        gbc.weighty = 0.9999;
+        add(new JPanel(), gbc);
     }
 
     private JPanel createFileCompsPanel() {
@@ -362,13 +370,28 @@ final class FilterOptionsPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         m_folderPanel.add(m_includeHiddenFolders, gbc);
         gbc.gridy++;
-        m_folderPanel.add(m_followLinks, gbc);
-        gbc.gridy++;
         gbc.weighty = 1;
 
         // Dummy label to keep other components at the top
         m_folderPanel.add(new JLabel(), gbc);
         return m_folderPanel;
+    }
+
+    private JPanel populateLinksCompsPanel() {
+        m_linksPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), LINK_OPTIONS_PANEL));
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.insets = new Insets(10, 5, 0, 5);
+        m_linksPanel.add(m_followLinks, gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridy++;
+        gbc.weighty = 1;
+        gbc.weightx = 1;
+        m_linksPanel.add(new JLabel(), gbc);
+        return m_linksPanel;
     }
 
     void visibleComponents(final FilterMode filterOption) {
