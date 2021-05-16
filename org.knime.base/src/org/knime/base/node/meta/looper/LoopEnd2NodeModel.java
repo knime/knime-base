@@ -67,7 +67,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author Thorsten Meinl, University of Konstanz
  */
-public class LoopEnd2NodeModel extends NodeModel implements LoopEndNode {
+final class LoopEnd2NodeModel extends NodeModel implements LoopEndNode {
 
     /* Overall row count port 1 */
     private int m_count1 = 0;
@@ -83,7 +83,7 @@ public class LoopEnd2NodeModel extends NodeModel implements LoopEndNode {
     private final LoopEnd2NodeSettings m_settings = new LoopEnd2NodeSettings();
 
     /** Creates a new model. */
-    public LoopEnd2NodeModel() {
+    LoopEnd2NodeModel() {
         super(2, 2);
     }
 
@@ -107,6 +107,10 @@ public class LoopEnd2NodeModel extends NodeModel implements LoopEndNode {
         return new DataTableSpec[]{spec0, spec1};
     }
 
+    @Override
+    public boolean shouldPropagateModifiedVariables() {
+        return m_settings.propagateLoopVariables();
+    }
 
     /**
      * {@inheritDoc}

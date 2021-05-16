@@ -22,6 +22,13 @@
         	</ul>
         </option>
         <option name="Add iteration column">Allows you to add a column containing the iteration number to the output table.</option>
+		<option name="Propagate modified loop variables">
+			If checked, variables whose values are modified within the loop are exported by this node. These variables
+			must be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream
+			of the corresponding loop start node. For the latter, any modification of a variable is passed back to the 
+			start node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop 
+			start node itself are excluded as these usually represent loop controls (e.g. <i>"currentIteration"</i>).
+		</option>
         <option name="Ignore empty input tables">
         	If this option is checked empty input tables and there structure are ignored and will not cause the node to fail.
         </option>
@@ -33,13 +40,6 @@
 			column have been added or removed between iterations, missing values
 			are inserted accordingly in the result table.
 			If not checked and the table specifications differ, the node will fail.
-		</option>
-		<option name="Propagate modified loop variables">
-			If checked, variables whose values are modified within the loop are exported by this node. These variables
-			must be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream
-			of the corresponding loop start node. For the latter, any modification of a variable is passed back to the 
-			start node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop 
-			start node itself are excluded as these usually represent loop controls (e.g. <i>"currentIteration"</i>).
 		</option>
         <link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
             KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops

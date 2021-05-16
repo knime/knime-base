@@ -90,6 +90,8 @@ public class AbstractLoopEndNodeSettings {
     /** @since 3.1 */
     private RowKeyPolicy m_rowKeyPolicy = RowKeyPolicy.APPEND_SUFFIX;
 
+    /** @since 4.4 */
+    private boolean m_propagateLoopVariables = false;
 
     /**
      *
@@ -172,6 +174,26 @@ public class AbstractLoopEndNodeSettings {
     }
 
     /**
+     * Whether to propagate modification of variables in subsequent loop iterations and in the output of the end node.
+     *
+     * @return the propagateLoopVariables that property.
+     * @since 4.4
+     */
+    public boolean propagateLoopVariables() {
+        return m_propagateLoopVariables;
+    }
+
+    /**
+     * Set the {@link #propagateLoopVariables()} property.
+     *
+     * @param value the propagateLoopVariables to set
+     * @since 4.4
+     */
+    public void propagateLoopVariables(final boolean value) {
+        m_propagateLoopVariables = value;
+    }
+
+    /**
      * Writes the settings into the node settings object.
      *
      * @param settings a node settings object
@@ -179,6 +201,7 @@ public class AbstractLoopEndNodeSettings {
     public void saveSettings(final NodeSettingsWO settings) {
         settings.addBoolean("addIterationColumn", m_addIterationColumn);
         settings.addString("rowKeyPolicy", m_rowKeyPolicy.name());
+        settings.addBoolean("propagateLoopVariables", m_propagateLoopVariables);
     }
 
     /**
@@ -201,6 +224,7 @@ public class AbstractLoopEndNodeSettings {
             String rowKeyPolicy = settings.getString("rowKeyPolicy", RowKeyPolicy.APPEND_SUFFIX.name());
             m_rowKeyPolicy = RowKeyPolicy.valueOf(rowKeyPolicy);
         }
+        m_propagateLoopVariables = settings.getBoolean("propagateLoopVariables", false);
     }
 
 }

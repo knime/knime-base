@@ -52,7 +52,6 @@ import javax.swing.JCheckBox;
  *
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  */
-@SuppressWarnings("java:S1699") // Sonar, addComponent call in constructor
 public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSettings> {
 
     private final JCheckBox m_ignoreEmptyTables = new JCheckBox("Ignore empty input tables");
@@ -61,15 +60,12 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
 
     private final JCheckBox m_tolerateChangingSpecs = new JCheckBox("Allow changing table specifications");
 
-    private final JCheckBox m_propagateLoopVariables = new JCheckBox("Propagate modified loop variables");
-
     /** Create a new dialog.  */
     public LoopEndNodeDialog() {
         super(new LoopEndNodeSettings());
         addComponent(m_ignoreEmptyTables);
         addComponent(m_tolerateColumnTypes);
         addComponent(m_tolerateChangingSpecs);
-        addComponent(m_propagateLoopVariables);
     }
 
     /**
@@ -81,7 +77,6 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
         settings.ignoreEmptyTables(m_ignoreEmptyTables.isSelected());
         settings.tolerateColumnTypes(m_tolerateColumnTypes.isSelected());
         settings.tolerateChangingTableSpecs(m_tolerateChangingSpecs.isSelected());
-        settings.propagateLoopVariables(m_propagateLoopVariables.isSelected());
     }
 
     /**
@@ -93,7 +88,6 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
         m_ignoreEmptyTables.setSelected(settings.ignoreEmptyTables());
         m_tolerateColumnTypes.setSelected(settings.tolerateColumnTypes());
         m_tolerateChangingSpecs.setSelected(settings.tolerateChangingTableSpecs());
-        m_propagateLoopVariables.setSelected(settings.propagateLoopVariables());
     }
 
 

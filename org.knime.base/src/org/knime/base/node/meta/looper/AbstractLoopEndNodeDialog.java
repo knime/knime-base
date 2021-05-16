@@ -86,6 +86,8 @@ public abstract class AbstractLoopEndNodeDialog<T extends AbstractLoopEndNodeSet
 
     private JPanel m_panel;
 
+    private final JCheckBox m_propagateLoopVariables = new JCheckBox("Propagate modified loop variables");
+
     /**
      * Creates a new dialog.
      * @param settings a new settings object
@@ -114,6 +116,8 @@ public abstract class AbstractLoopEndNodeDialog<T extends AbstractLoopEndNodeSet
 
         m_panel.add(m_addIterationColumn, m_gbc);
 
+        addComponent(m_propagateLoopVariables);
+
         addTab("Standard settings", m_panel);
     }
 
@@ -123,7 +127,7 @@ public abstract class AbstractLoopEndNodeDialog<T extends AbstractLoopEndNodeSet
      * @param component The component to add
      * @since 2.9
      */
-    protected void addComponent(final Component component) {
+    protected final void addComponent(final Component component) {
         m_gbc.gridy++;
         m_panel.add(component, m_gbc);
     }
@@ -135,6 +139,7 @@ public abstract class AbstractLoopEndNodeDialog<T extends AbstractLoopEndNodeSet
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_settings.addIterationColumn(m_addIterationColumn.isSelected());
         m_settings.rowKeyPolicy(RowKeyPolicy.valueOf(m_rowKeyPolicy.getSelection().getActionCommand()));
+        m_settings.propagateLoopVariables(m_propagateLoopVariables.isSelected());
         addToSettings(m_settings);
         m_settings.saveSettings(settings);
     }
@@ -159,6 +164,7 @@ public abstract class AbstractLoopEndNodeDialog<T extends AbstractLoopEndNodeSet
             AbstractButton b = e.nextElement();
             b.setSelected(b.getActionCommand().equals(p.name()));
         }
+        m_propagateLoopVariables.setSelected(m_settings.propagateLoopVariables());
         loadFromSettings(m_settings);
     }
 

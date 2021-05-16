@@ -67,9 +67,6 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
     /** @since 3.1 */
     private boolean m_tolerateChangingSpecs = false;
 
-    /** @since 4.4 */
-    private boolean m_propagateLoopVariables = false;
-
     /**
      * Sets if iterations with empty tables are ignored in the output.
      *
@@ -137,26 +134,6 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
     }
 
     /**
-     * Whether to propagate modification of variables in subsequent loop iterations and in the output of the end node.
-     *
-     * @return the propagateLoopVariables that property.
-     * @since 4.4
-     */
-    public boolean propagateLoopVariables() {
-        return m_propagateLoopVariables;
-    }
-
-    /**
-     * Set the {@link #propagateLoopVariables()} property.
-     *
-     * @param value the propagateLoopVariables to set
-     * @since 4.4
-     */
-    public void propagateLoopVariables(final boolean value) {
-        m_propagateLoopVariables = value;
-    }
-
-    /**
      * Writes the settings into the node settings object.
      *
      * @param settings a node settings object
@@ -167,7 +144,6 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
         settings.addBoolean("ignoreEmptyTables", m_ignoreEmptyTables);
         settings.addBoolean("tolerateColumnTypes", m_tolerateColumnTypes);
         settings.addBoolean("tolerateChangingSpecs", m_tolerateChangingSpecs);
-        settings.addBoolean("propagateLoopVariables", m_propagateLoopVariables);
     }
 
     /**
@@ -181,6 +157,5 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
         m_ignoreEmptyTables = settings.getBoolean("ignoreEmptyTables", false);
         m_tolerateColumnTypes = settings.getBoolean("tolerateColumnTypes", false);
         m_tolerateChangingSpecs = settings.getBoolean("tolerateChangingSpecs", false);
-        m_propagateLoopVariables = settings.getBoolean("propagateLoopVariables", false);
     }
 }
