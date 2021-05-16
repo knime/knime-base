@@ -52,8 +52,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.util.Arrays;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -127,25 +126,17 @@ public class LoopEndConditionNodeDialog extends NodeDialogPane {
         c.gridx = 1;
         c.gridwidth = 2;
         m_variables.setRenderer(new FlowVariableListCellRenderer());
-        m_variables.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(final ItemEvent e) {
-                if (m_variables.getSelectedIndex() >= 0) {
-                    FlowVariable v =
-                            (FlowVariable)m_variablesModel.getSelectedItem();
-                    m_operator.removeAllItems();
-                    if (v.getType().equals(Type.STRING)) {
-                        for (Object o : STRING_OPERATORS) {
-                            m_operator.addItem(o);
-                        }
-                    } else {
-                        for (Object o : NUMERIC_OPERATORS) {
-                            m_operator.addItem(o);
-                        }
-                    }
-                    m_selectedVariable.setText(v.getName());
-                    p.revalidate();
+        m_variables.addItemListener(e -> { // NOSONAR (too many lines for a lambda)
+            if (m_variables.getSelectedIndex() >= 0) {
+                FlowVariable v = (FlowVariable)m_variablesModel.getSelectedItem();
+                m_operator.removeAllItems();
+                if (v.getType() == Type.STRING) {
+                    Arrays.stream(STRING_OPERATORS).forEach(m_operator::addItem);
+                } else {
+                    Arrays.stream(NUMERIC_OPERATORS).forEach(m_operator::addItem);
                 }
+                m_selectedVariable.setText(v.getName());
+                p.revalidate();
             }
         });
         p.add(m_variables, c);
