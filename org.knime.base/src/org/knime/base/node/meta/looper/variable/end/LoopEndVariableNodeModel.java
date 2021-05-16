@@ -56,6 +56,9 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
@@ -71,7 +74,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implements LoopEndNode {
+final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implements LoopEndNode {
 
     @SuppressWarnings("hiding")
     static final String CFG_KEY_FILTER = AbstractVariableToTableNodeModel.CFG_KEY_FILTER;
@@ -81,6 +84,8 @@ class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implemen
     private BufferedDataContainer m_container;
 
     private long m_rowCount = 0;
+
+    private SettingsModelBoolean m_propagateLoopVariablesModel = createPropagateLoopVariablesModel();
 
     LoopEndVariableNodeModel() {
         super(FlowVariablePortObject.TYPE);
@@ -149,6 +154,11 @@ class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implemen
     boolean terminateLoop() {
         return ((LoopStartNodeTerminator)this.getLoopStartNode()).terminateLoop();
     }
+    
+    @Override
+    public boolean shouldPropagateModifiedVariables() {
+        return m_propagateLoopVariablesModel.getBooleanValue();
+    }
 
     @Override
     protected void onDispose() {
@@ -171,6 +181,37 @@ class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implemen
             m_container.close();
         }
         m_container = null;
+    }
+
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
+        super.saveSettingsTo(settings);
+        m_propagateLoopVariablesModel.saveSettingsTo(settings);
+    }
+
+    @Override
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        super.loadValidatedSettingsFrom(settings);
+        if (settings.containsKey(m_propagateLoopVariablesModel.getConfigName())) { // added in 4.4
+            m_propagateLoopVariablesModel.loadSettingsFrom(settings);
+        }
+    }
+
+    @Override
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        super.validateSettings(settings);
+        if (settings.containsKey(m_propagateLoopVariablesModel.getConfigName())) { // added in 4.4
+            m_propagateLoopVariablesModel.validateSettings(settings);
+        }
+    }
+
+    /**
+     * Factory method to create model storing m_propagateLoopVariables property.
+     *
+     * @return new model
+     */
+    static SettingsModelBoolean createPropagateLoopVariablesModel() {
+        return new SettingsModelBoolean("propagateLoopVariables", false);
     }
 
 }

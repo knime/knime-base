@@ -16,6 +16,13 @@
 		<option name="Variable selection">
 			The variables that will be collected and put into the output table.
 		</option>
+		<option name="Propagate modified loop variables">
+			If checked, variables whose values are modified within the loop are exported by this node. These variables
+			must be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream
+			of the corresponding loop start node. For the latter, any modification of a variable is passed back to the 
+			start node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop 
+			start node itself are excluded as these usually represent loop controls (e.g. <i>"currentIteration"</i>).
+		</option>
 		<link href="https://www.knime.com/self-paced-course/l2-ds-knime-analytics-platform-for-data-scientists-advanced/lesson2">
 			KNIME Analytics Platform for Data Scientists (Advanced): Lesson 2. Flow Variables &amp; Components
 		</link>

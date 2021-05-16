@@ -61,6 +61,8 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
@@ -76,9 +78,15 @@ public class LoopEndVariableNodeDialog extends NodeDialogPane {
 
     private final FlowVariableFilterPanel m_filter;
 
+    private final DialogComponentBoolean m_propagateLoopVariablesComp;
+
+
     LoopEndVariableNodeDialog() {
         m_filter =
             new FlowVariableFilterPanel(new VariableTypeFilter(VariableToCellConverterFactory.getSupportedTypes()));
+        SettingsModelBoolean propagateLoopVariablesModel = LoopEndVariableNodeModel.createPropagateLoopVariablesModel();
+        m_propagateLoopVariablesComp =
+            new DialogComponentBoolean(propagateLoopVariablesModel, "Propagate modified loop variables");
         addTab("Variable Selection", createPanel());
     }
 
@@ -91,6 +99,9 @@ public class LoopEndVariableNodeDialog extends NodeDialogPane {
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.fill = GridBagConstraints.BOTH;
         panel.add(createVarSelectionPanel(), gbc);
+        gbc.gridy += 1;
+        gbc.weighty = 0.0;
+        panel.add(m_propagateLoopVariablesComp.getComponentPanel(), gbc);
         return panel;
     }
 
@@ -117,6 +128,7 @@ public class LoopEndVariableNodeDialog extends NodeDialogPane {
         final VariableType<?>[] types = VariableToCellConverterFactory.getSupportedTypes();
         config.loadConfigurationInDialog(settings, getAvailableFlowVariables(types));
         m_filter.loadConfiguration(config, getAvailableFlowVariables(types));
+        m_propagateLoopVariablesComp.loadSettingsFrom(settings, specs);
     }
 
     @Override
@@ -125,6 +137,7 @@ public class LoopEndVariableNodeDialog extends NodeDialogPane {
             new FlowVariableFilterConfiguration(LoopEndVariableNodeModel.CFG_KEY_FILTER);
         m_filter.saveConfiguration(config);
         config.saveConfiguration(settings);
+        m_propagateLoopVariablesComp.saveSettingsTo(settings);
     }
 
 }
