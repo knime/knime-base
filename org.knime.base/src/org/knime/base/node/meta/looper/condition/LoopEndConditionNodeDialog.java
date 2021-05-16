@@ -109,6 +109,7 @@ public class LoopEndConditionNodeDialog extends NodeDialogPane {
     private final JCheckBox m_addIterationColumn =
         new JCheckBox("Add iteration column");
 
+    private final JCheckBox m_propagateLoopVariables = new JCheckBox("Propagate modified loop variables");
 
     /**
      * Creates a new dialog.
@@ -187,6 +188,9 @@ public class LoopEndConditionNodeDialog extends NodeDialogPane {
         c.gridy++;
         p.add(m_addIterationColumn, c);
 
+        c.gridy++;
+        p.add(m_propagateLoopVariables, c);
+
         addTab("Default settings", p);
     }
 
@@ -213,6 +217,7 @@ public class LoopEndConditionNodeDialog extends NodeDialogPane {
         m_addLastRowsOnly.setSelected(m_settings.addLastRowsOnly());
         m_addLastRows.setEnabled(!m_settings.addLastRowsOnly());
         m_addIterationColumn.setSelected(m_settings.addIterationColumn());
+        m_propagateLoopVariables.setSelected(m_settings.propagateLoopVariables());
     }
 
     /**
@@ -233,6 +238,7 @@ public class LoopEndConditionNodeDialog extends NodeDialogPane {
         m_settings.addLastRows(m_addLastRows.isSelected());
         m_settings.addLastRowsOnly(m_addLastRowsOnly.isSelected());
         m_settings.addIterationColumn(m_addIterationColumn.isSelected());
+        m_settings.propagateLoopVariables(m_propagateLoopVariables.isSelected());
 
         m_settings.saveSettings(settings);
     }

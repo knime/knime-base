@@ -111,6 +111,9 @@ public class LoopEndConditionSettings {
 
     private boolean m_addIterationColumn = true;
 
+    /** @since 4.4 */
+    private boolean m_propagateLoopVariables = false;
+
     /**
      * Returns if the rows from the loop's last iteration should be added to the
      * output table or not.
@@ -251,6 +254,26 @@ public class LoopEndConditionSettings {
     }
 
     /**
+     * Whether to propagate modification of variables in subsequent loop iterations and in the output of the end node.
+     *
+     * @return the propagateLoopVariables that property.
+     * @since 4.4
+     */
+    public boolean propagateLoopVariables() {
+        return m_propagateLoopVariables;
+    }
+
+    /**
+     * Set the {@link #propagateLoopVariables()} property.
+     *
+     * @param value the propagateLoopVariables to set
+     * @since 4.4
+     */
+    public void propagateLoopVariables(final boolean value) {
+        m_propagateLoopVariables = value;
+    }
+
+    /**
      * Loads the settings from the node settings object.
      *
      * @param settings a node settings object
@@ -277,6 +300,7 @@ public class LoopEndConditionSettings {
         m_addLastRows = settings.getBoolean("addLastRows");
         m_addLastRowsOnly = settings.getBoolean("addLastRowsOnly");
         m_addIterationColumn = settings.getBoolean("addIterationColumn", true);
+        m_propagateLoopVariables = settings.getBoolean("propagateLoopVariables", false); // added in 4.4
     }
 
     /**
@@ -305,6 +329,7 @@ public class LoopEndConditionSettings {
         m_addLastRows = settings.getBoolean("addLastRows", true);
         m_addLastRowsOnly = settings.getBoolean("addLastRowsOnly", false);
         m_addIterationColumn = settings.getBoolean("addIterationColumn", true);
+        m_propagateLoopVariables = settings.getBoolean("propagateLoopVariables", false); // added in 4.4
     }
 
     /**
@@ -328,5 +353,6 @@ public class LoopEndConditionSettings {
         settings.addBoolean("addLastRows", m_addLastRows);
         settings.addBoolean("addLastRowsOnly", m_addLastRowsOnly);
         settings.addBoolean("addIterationColumn", m_addIterationColumn);
+        settings.addBoolean("propagateLoopVariables", m_propagateLoopVariables);
     }
 }

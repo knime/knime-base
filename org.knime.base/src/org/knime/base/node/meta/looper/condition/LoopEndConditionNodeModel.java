@@ -278,6 +278,11 @@ public class LoopEndConditionNodeModel extends NodeModel implements
         }
     }
 
+    @Override
+    public boolean shouldPropagateModifiedVariables() {
+        return m_settings.propagateLoopVariables();
+    }
+
     private boolean checkCondition() {
         if (m_settings.variableType() == Type.INTEGER) {
             int v = peekFlowVariableInt(m_settings.variableName());
