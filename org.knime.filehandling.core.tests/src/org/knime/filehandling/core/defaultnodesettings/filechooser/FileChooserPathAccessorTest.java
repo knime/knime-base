@@ -138,8 +138,8 @@ public class FileChooserPathAccessorTest {
         final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_tempDir);
         FilterMode filterMode = FilterMode.FILES_IN_FOLDERS;
         when(m_portsConfig.getInputPortLocation()).thenReturn(Collections.emptyMap());
-        SettingsModelReaderFileChooser settingsModel =
-            new SettingsModelReaderFileChooser("test", m_portsConfig, "foobar", filterMode);
+        SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("test", m_portsConfig,
+            "foobar", filterMode, EnumSet.of(FSCategory.LOCAL));
         settingsModel.setLocation(new FSLocation(FSCategory.LOCAL, m_links.toAbsolutePath().toString()));
         // list files, no follow, no special files, no subfolders
         testGetFSPathsBehavior(settingsModel, new TestConfig(FilterMode.FILES_IN_FOLDERS), m_ordinaryFile);
