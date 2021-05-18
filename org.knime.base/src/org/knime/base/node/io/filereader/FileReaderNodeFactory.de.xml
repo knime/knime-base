@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode type="Source" icon="./filereader.png" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Dateileser</name>
+	
+	<shortDescription>
+	    Flexibler Leserknoten für ASCII-Dateien.
+	</shortDescription>
+	
+	<fullDescription>
+		<intro>
+		Dieser Knoten kann verwendet werden, um Daten aus ASCII-Dateien oder von 
+		beliebingen URL-Quellen zu lesen. Er kann konfiguriert werden, um eine Vielzahl
+		von Formaten zu lesen.<br />
+		Wenn du den Konfigurationdialog öffnest und einen Dateinamen angibst, analyisiert
+		der Knoten den Dateiinhalt und versucht die passenden Einstellungen zu erraten.
+		Überprüfe danach die Einstellungen in der Tablle mit der Voransicht. Falls die
+		Daten nicht korrekt angezeigt werden oder ein Fehler auftritt, kannst du die
+		Einstellungen per Hand anpassen (siehe unten).<br />
+		<p />
+		Die Datei wird im Hintergrund untersucht. Falls die Untersuchung länger dauert, wird
+		die Schaltfäche &quot;Schnellanalyse&quot; angezeigt, mit der sie vorzeitig beendet
+		werden kann. In diesem Fall werden nur die ersten fünfzig Zeilen untersucht und es kann sein,
+		dass die Vorschau richtig aussieht, während der Ausführung aber ein Fehler bei nicht
+		untersuchten Zeilen auftritt. Deshalb sollten die vorgeschlagenen Einstellung überprüft werden,
+		falls die Datei nicht komplett untersucht wurde.<br />
+		<p />
+		<b>Hinweis:</b> Falls dieser Knoten in einer Schleife verwendet wird, muss sichergestellt werden,
+		dass alle Dateien da gleiche Format haben (z.B. Trennzeichen, Spaltennamen, Spaltentypen). Der Knoten
+		nimmt immer die Konfiguration, die basierend auf der ersten Datei erstellt wurde.<br />
+		Alternativ kann der <i>CSV Reader</i> verwendet werden, da dieser die Datei während der Ausführung
+		in jedem Schleifendurchlauf untersucht.
+		</intro>
+		
+		<option name="Dateipfad">Gib hier einen gültigen Dateinamen oder eine URL an. Sobald du die Eingabetaste
+		    drückst, wird die Datei untersucht und Einstellungen vorgeschlagen. Du kannst auch eine frühere Datei
+		    aus dem Auswahlfeld auswählen oder den "Durchsuchen..."-Dialog verwenden, um Dateien auf deinem
+		    Computer auszuwählen.
+			</option>		
+		<option name="Benutzereinstellungen beibehalten">Wenn ausgewählt, werden alle gesetzten Einstellungen
+		    (z.B. Trennzeichen, Spaltennamen) beibehalten, wenn eine neue Datei ausgewählt wird. Normalerweise
+		    wird eine neue Untersuchung durchgeführt.
+		    </option>
+		<option name="Neu untersuchen">Bei Auswahl dieser Schaltfläche wird die Datei neu untersucht und
+		 	alle Einstellungen werden neu gesetzt (es sei denn "Benutzereinstellungen beibehalten" ist ausgewählt).  
+            </option>
+		<option name="Zeilenidentifikatoren lesen">Falls ausgewählt werden die Werte in der ersten Spalte
+			als eindeutige Zeilenidentifikatoren verwendet. Ansonsten werden künstliche Zeilenidentifikatoren
+			erzeugt.</option>
+		<option name="Spaltennamen lesen">Falls ausgewählt werden die Werte in der ersten Zeile als Spaltennamen
+			verwendet. Ansonsten werden künstliche Spaltennamen erzeugt.</option>
+	    <option name="Spaltentrenner">Gibt das (oder die) Zeichen ein, das die Werte in einer Zeilen
+	    	in Spalten trennt. Aus der Liste können vordefinierte Trennzeichen ausgewählt werden.
+			</option>
+	    <option name="Leerzeichen und Tabulatoren ignorieren">Falls ausgewählt werden Leerzeichen und Tabulatoren
+	    	ignoriert (ausser sie sind mit Anführungszeichen umschlossen).
+		    </option>
+	    <option name="Java-artige Kommentare">
+	    	Alles zwischen '/*' und '*/' wird ignoriert, ebenso alles nach '//' bis zum Ende der Zeile.
+			</option>
+	    <option name="Zeilenkommentare">Gib ein (oder mehrere Zeichen) ein, das den Beginn eines Kommentars kennzeichnet. Alles
+	    	bis zum Zeilenende wird dann übersprungen..
+			</option>
+	    <option name="Erweitert...">Öffnet einen Dialog mit erweiterten Einstellungen. Dort können Anführungszeichen,
+	    	verschiedene Nummerntrennzeichen für Fliesskommazahlen und Zeichensätze eingestellt werden. Ebenso lassen sich
+	    	dort Einstellungen für das Ignorieren von Leerzeichen, das Lesen von zu kurzen Zeilen, die Limitierung
+	    	der zu lesen Zeilen, ein Muster für fehlende Werte, sowie für eindeutige Zeilenidentifikatoren vornehmen (letzeres wird
+	    	für grosse Dateien nicht empfohlen).	    
+			</option>
+	    <option name="Klicke auf den Tabellenkopf">Wenn in der Vorschautabelle auf einen Spaltenkopf
+	    	geklickt wird, öffnet sich ein neuer Dialog. Dort können Einstellungen für diese Spalte vorgenommen werden,
+	    	wie ihren Namen und Datentyp. Ein Muster für fehlende Werte speziell für diese Spalte kann auch hinterlegt werden.
+	    	Zusätzliche können mögliche Werte der Spaltendomäne aktualisiert werden, in dem die "Domäne"-Schaltfläche ausgewählt wird.
+	    	Zu guter letzt kann die Spalte auch komplett übersprungen werden, so dass die nicht in der Ausgangstabelle enthalten ist.
+		    </option>	      	
+			<link href="https://www.knime.com/knime-introductory-course/chapter2/section1/file-reader-node">
+				KNIME E-Learning-Kurs: Dateileseknoten
+			</link>
+	</fullDescription>
+	
+	<ports>
+		<outPort index="0" name="Datentabelle">Die eingelesene Datentabelle</outPort>
+	</ports>	
+</knimeNode>

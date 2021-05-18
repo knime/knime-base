@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode type="Source" icon="./filereader.png" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Dateileser</name>
+	<shortDescription>
+	    En flexible Chnote zum lese vo ASCII-Dateie.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+		De Chnote cha verwendet werde, zum Date ussere ASCII-Datei oder einere 
+        beliebige URL-Quelle z'lese. Er cha so konfiguriert werde, dass es 
+        möglich isch e Vielzahl vo verschiedene Format z'lese.<br/>
+		Wenn du de Konfigurationsdialog öffnisch und en Dateiname ahgisch, tuet
+        de Chnote dä Dateiinhalt analysiere und versuecht die passend Istellig 
+        z'errote. Dennoch söttsch d'Istellige mit Hilf vo de Tabelle i de 
+        Vorschau überprüefe. Falls d'Date nöd korrekt ahzeigt werdet, oder en
+        Fehler uftritt, chasch d'Istellige vo Hand ahpasse (lueg unne).<br />
+        <p />
+        D'Datei wird im Hintergrund untersuecht. Falls d'Untersuechig länger
+        duured, wird e Schaltflächi &quot;Schnellanalyse&quot; ahzeigt, mit dere
+        sie vorziitig beendet werde cha. I dem Fall werdet nur die erste füfzg 
+        Ziile untersuecht und es chann sie, dass d'Vorschau richtig usgseht, 
+        während bi de Usführig aber en Fähler bi de nöd untersuechte Ziile 
+        uftritt. Us dem Grund söttet die vorgschlagene Istellige überprüeft
+        werde, falls d'Datei nöd komplett untersuecht worde isch. <br />
+        <p />
+        <b>Hiwiis:</b> Falls de Chnote innere Schleife verwendet wird, muess
+        sichergstellt werde, dass alli Dateie s'gliiche Format hend (z.B. 
+        Trennzeiche, Spaltename, Spaltetype). De Chnote nimmt immer 
+        d'Konfiguration, wo basierende uf de erste Datei erstellt worde isch.<br />
+        Alternativ cha de <i>CSV Reader</i> verwendet werde, will de d'Dateie 
+        während de Usführig i jedem Schleifedurchlauf untersuecht.
+        </intro>
+		<option name="Dateipfad">Gib do en gültige Dateiname oder e URL ah. 
+            Sobald du d'Igobetaste drucksch, wird d'Datei untersuecht und 
+            Istellige vorgschlage. Du chasch au e früehneri Datei usm Uswahlfeld
+            uswähle oder de "Durchsuchen..."-Dialog benutze, um Dateie uf dim 
+            Computer uszwähle.
+		</option>		
+		<option name="Benutzeristellige bhalte"> 
+            Wenn die Option usgwählt isch, werden alli gsetzte Istellige (z.B. 
+            Trennzeiche, Spaltename) bhalte, wenn e neui Datei usgwählt wird.
+            Normalerwiis wird e neui Untersuechig duregführt.
+		</option>
+		<option name="Neu untersueche">
+            Bi de Uswahl vo dere Schaltflächi wird d'Datei neu untersuecht und 
+            alli Istellige werded neu gsetzt (es sei denn "Benutzereinstellungen 
+            beibehalten" isch usgwählt).
+        </option>
+		<option name="Ziileidentifikatore lese">
+            Falls uswählt, werdet d'Wert i de erste Spalte als eidütigi 
+            Ziileidentifikatore verwendet. Ansuschte werdet künstlichi 
+            Ziileidentifikatore erzüügt.
+        </option>
+		<option name="Spaltenäme lese">
+            Falls usgwählt, werdet d'Wert i de erste Ziile als Spaltename
+            verwendet. Ansuschte werdet künstlichi Spaltenäme erzüügt.
+        </option>
+	    <option name="Spaltetrenner">
+            Gib eis (oder mehreri) Zeiche ah, wo d'Wert innere Ziile i Spalte 
+            ufteilt. Us de Liste chönnd vordefinierti Trennzeiche usgwählt werde.
+        </option>
+	    <option name="Leerzeiche und Tabulatore ignoriere">
+            Falls usgwählt werded Leerzeiche und Tabulatore ignoriert (ussert 
+            sie sind mit Ahführigszeiche umschlosse).
+		    </option>
+	    <option name="Java-artigi Kommentär">
+            Alles zwüsched '/*' und '*/' wird ignoriert, ebeso alles nach '//'
+            bis zum End vo de Ziile.
+			</option>
+	    <option name="Ziilekommentär">
+            Gib eis (oder mehreri Zeiche) ah, wo de Ahfang vomene Kommentar
+            kennzeichnet. Alles bis zum Ziileend wird denn übersprunge.
+        </option>
+	    <option name="Erwiiteret...">
+            Öffnet en Dialog mit erwiiterte Istellige. Do chönnd Ahführigszeiche,
+            verschiedeni Nummeretrennzeiche für Flüsskommazahle und Zeichesätz
+            igstellt werde. Ebeso lönd sich do Istellige zum Ignoriere vo
+            Leerzeiche, s'lese vo zu churze Ziile, d'Limitierig vo Zeile wo
+            sölled glese werde, e Muster für fehlendi Wert, sowie für eidüütigi
+            Ziileidentifikatore vorneh (letschteres wird für grossi Dateie nöd
+            empfohle)
+			</option>
+	    <option name="Klick uf de Tabellechopf">
+            Wenn i de Vorschautabelle uf en Spaltechopf klickt wird, öffnet sich
+            en neue Dialog. Do chönnd Istellige für die Spalte vorgnoh werde,
+            wie ihren Name und Datetyp. Es Muster für fehlendi Wert, speziell
+            für die Spalte chönnd au hinterleit werde.
+            Zuesätzlich chönnd möglichi Wert vo de Spaltedomäne aktualisiert
+            werde, i dem d'"Domäne"-Schaltflächi usgwählt wird. Z'gueter
+            letscht, cha d'Spalte au komplett übersprunge werde, so dass sie nöd
+            i de Usgangstabelle enthalte isch.
+		    </option>	      	
+			<link href="https://www.knime.com/knime-introductory-course/chapter2/section1/file-reader-node">
+				KNIME E-Learning-Kurs: File Reader Node
+			</link>
+	</fullDescription>
+	<ports>
+		<outPort index="0" name="Datentabelle">Die iglese Tabelle</outPort>
+	</ports>	
+</knimeNode>

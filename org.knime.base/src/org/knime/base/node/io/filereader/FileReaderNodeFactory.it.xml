@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode type="Source" icon="./filereader.png" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Lettore file</name>
+	
+	<shortDescription>
+	    Lettore flessibile per file ASCII.
+	</shortDescription>
+	
+	<fullDescription>
+		<intro>		
+		Questo nodo può essere utilizzato per leggere i dati da un file ASCII o da un percorso URL.
+		Può essere configurato per leggere vari formati.<br />
+		Quando viene aperta la finestra di dialogo di configurazione del nodo e viene fornito un nome per il file, 
+		cerca di indovinare
+		le impostazioni del lettore analizzando il contenuto del file.
+		Si possono controllare i risultati di queste impostazioni nella tabella di anteprima. Se i
+		dati visualizzati non sono corretti o viene segnalato un errore, è possibile regolare
+		le impostazioni manualmente(vedi sotto).<br />
+		<p />
+		L'analisi del file viene eseguita sullo sfondo e può essere interrotta facendo clic su
+		&quot;Quick scan&quot;, che mostra se l'analisi richiederá più tempo.
+		In questo caso il file non viene analizzato completamente, ma solo le prime 
+		50 righe vengono prese in considerazione. Potrebbe quindi succedere, che
+		l'anteprima sembri a posto, ma l'esecuzione del File Reader
+		fallisce quando legge le righe che non ha analizzato. Quindi si consiglia di
+		controllare le impostazioni, quando un'analisi si interrompe. <br />
+		<p />
+		<b>Nota:</b> Nel caso in cui questo nodo venga utilizzato in un ciclo, assicurarsi
+		 che tutti i file abbiano lo stesso formato (ad es. separatori, intestazioni di colonna, tipi di colonna).
+		Il nodo salva la configurazione solo durante la prima esecuzione. <br />
+		In alternativa, il nodo <i>CSV Lettore</i> può essere utilizzato in quanto controlla
+		la configurazione in ogni iterazione di un ciclo.
+		</intro>
+		
+		<option name="Posizione del file ASCII">Immettere il nome di un file o un URL valido. Quando
+			viene premuto ENTER, il file viene analizzato e le impostazioni vengono preimpostate.
+			Puó anche essere scelto un file letto in precedenza dal menù a tendina,
+			oppure selezionare un file dalla finestra di dialogo "Sfoglia ...". 
+			</option>		
+		<option name="Conserva le impostazioni dell'utente">Se selezionato, i segni di spunta e
+		    i nomi / tipi di colonna esplicitamente inseriti vengono conservati anche se 
+		    si seleziona un nuovo file. Per impostazione predefinita, l'analizzatore inizia con nuove
+		    impostazioni predefinite per ogni nuovo percorso di file.
+		    </option>
+		<option name="Ripetere la scansione">Se viene fatto clic, il contenuto del file viene nuovamente analizzato. Tutte 
+		    le impostazioni vengono ripristinate (a meno che non venga selezionata l'opzione 
+		    "Mantieni impostazioni utente") e il file viene letto di nuovo per preimpostare le nuove impostazioni e la struttura 
+		    della tabella. 
+            </option>
+		<option name="Leggi i numeri di identificazione delle righe">Se selezionata, la prima colonna del file
+			viene utilizzata come numerdo di identificazione della riga.  Se non viene selezionata, le intestazioni di riga predefinite
+			vengono create.</option>
+		<option name="Leggi le intestazioni delle colonne">Se selezionato, gli elementi nella prima riga 
+			del file vengono utilizzati come nomi delle colonne. 
+			In caso contrario, vengono assegnati dei nomi predefiniti alle colonne.</option>
+	    <option name="Delimitatore di colonna">Immettere i caratteri che separano
+	    	i token di dati nel file o selezionare un delimitatore dall'elenco.
+			</option>
+	    <option name="Ignora spazi e tabulazioni">Se selezionata, gli spazi e i caratteri 
+		    di tabulazione vengono ignorati (non nelle stringhe tra virgolette).
+		    </option>
+	    <option name="Commento in Java">Tutto tra '/*' e '*/' viene
+	    	ignorato. Anche tutto dopo '//' fino alla fine della riga.
+			</option>
+	    <option name="Commento a riga singola">Inserire uno o più caratteri che
+	    	indicheranno l'inizio di un commento (terminato con una nuova riga).
+			</option>
+	    <option name="Opzioni avanzate...">Apre una nuova finestra di dialogo con impostazioni avanzate.
+	    	È disponibile il supporto per virgolette, diversi separatori decimali
+	    	nei numeri in virgola mobile e codifica dei caratteri. Inoltre, per
+	    	ignorare gli spazi, per consentire righe con insufficienti elementi di dati,
+	    	per rendere i numeri identificativi di riga univoci (non consigliato per file di grandi dimensioni),
+	    	per la mancanza di un valore globale
+	    	e per limitare il numero di righe lette.	    
+			</option>
+	    <option name="Fare clic sull'intestazione della tabella">Se viene fatto click sull'intestazione della colonna 
+	    	nella tavola di anteprima, si apre una nuova finestra
+	    	i dialogo in cui è possibile impostare le proprietà della colonna: nome
+	    	e tipo possono essere modificati (e verranno corretti).
+	     	È possibile inserire un modello che causerà la creazione di una "cella
+	        mancante" quando viene letta per questa colonna. Inoltre,
+	        i possibili valori del dominio della colonna possono essere aggiornati selezionando
+	        "Domain" e si può scegliere di saltare completamente questa colonna, cioè non sarà 
+	        inclusa nella tabella di output.
+		    </option>	      	
+			<link href="https://www.knime.com/knime-introductory-course/chapter2/section1/file-reader-node">
+				KNIME E-Learning Course: File Reader Node
+			</link>
+	</fullDescription>
+	
+	<ports>
+		<outPort index="0" name="File Table">Datatable just read from the file</outPort>
+	</ports>	
+</knimeNode>

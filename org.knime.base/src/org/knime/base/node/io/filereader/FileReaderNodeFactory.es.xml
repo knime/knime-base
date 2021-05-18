@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode type="Source" icon="./filereader.png" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+	<name>Lector de archivos</name>
+	
+	<shortDescription>
+	    Lector flexible de archivos ASCII.
+	</shortDescription>
+	
+	<fullDescription>
+		<intro>		
+		Este nodo se puede utilizar para leer datos de un archivo ASCII o una dirección URL.
+		Se puede configurar para leer varios formatos.<br />
+		Cuando se abre el cuadro de diálogo de configuración del nodo y se asigna un nombre al archivo, 
+		intenta adivinar
+		la configuración del lector analizando el contenido del archivo.
+		Se pueden verificar los resultados de estas configuraciones en la tabla de vista previa. Si los
+		datos mostrados son incorrectos o se informa de un error,se puede ajustar
+		la configuración manualmente (ver a continuación).<br />
+		<p />
+		El análisis del archivo se ejecuta en segundo plano y se puede interrumpir haciendo clic
+		en &quot;Quick scan&quot;, que muestra si el análisis llevará más tiempo.
+		En este caso, el archivo no se analiza por completo, sino que solo se tienen en cuenta las primeras
+		cincuenta líneas. Podría suceder entonces que
+		la vista previa se vea bien, pero la ejecución del File Reader
+		falla cuando lee las líneas que no analizó. Por lo tanto,
+		se recomienda verificar la configuración cuando se interrumpa un análisis. <br />
+		<p />
+		<b>Nota:</b> En caso de que este nodo se utilice en un bucle, asegúrese de que
+		todos los archivos tengan el mismo formato (p. Ej. separadores, encabezados de columna, tipos de columna). 
+		El nodo guarda la configuración solo durante la primera ejecución. <br />
+		Alternativamente, se puede utilizare el nodo <i>CSV Reader</i> ya que verifica
+		la configuración en cada iteración de un bucle.
+		</intro>
+		
+		<option name="Ubicación del archivo ASCII">Ingrese un nombre de archivo o URL válido. Cuando
+			presiona ENTER, el archivo es analizado y los ajustes están preestablecidos.
+			También puede elegir un archivo leído anteriormente en el menú desplegable
+			o seleccionar un archivo en el cuadro de diálogo "Examinar ...".
+			</option>		
+		<option name="Conservar la configuración del usuario"> Si está seleccionada, las marcas de verificación 
+		    y los nombres / tipos de columna explícitamente ingresados se conservan incluso si
+		    selecciona un archivo nuevo. De forma predeterminada, el analizador comienza con una nueva configuración
+		    predeterminada para cada nueva ubicación de archivo.
+		    </option>
+		<option name="Volver a escanear">Si se hace clic, el contenido del archivo se analiza nuevamente. Todas
+		    las configuraciones se restablecen (a menos que se seleccione la opción
+		    "Mantener configuraciones de usuario") y el archivo se vuelve a leer para preestablecer nuevas configuraciones y la estructura
+		    de la tabla.
+            </option>
+		<option name="Leer los números de identificación de fila">Si se marca, la primera columna del archivo 
+			se utiliza como número de identificación de fila. Si no está marcado, se crean los encabezados 
+			de línea predeterminados.</option>
+		<option name="Leer los encabezados de las columnas">Si se marca, los elementos
+			de la primera fila del archivo se utilizan como nombres de columna. 
+			De lo contrario, se asignan nombres de columna predeterminados.</option>
+	    <option name="Delimitador de columna">Ingrese los caracteres que separan
+	    	los tokens de datos en el archivo o seleccione un delimitador de la lista.
+			</option>
+	    <option name="Ignorar espacios y tabulaciones">Si se marca, los espacios y los caracteres de tabulación
+		    se ignoran (aunque no en las cadenas entre comillas).
+		    </option>
+	    <option name="Comentario en Java">Todo lo que esté entre '/ *' y '* /'
+	    	ignora. También todo después de '//' hasta el final de la línea.
+			</option>
+	    <option name="Comentario de una sola línea">Ingrese uno o más caracteres que
+	    	indicarán el comienzo de un comentario (terminando por una nueva línea).
+			</option>
+	    <option name="Opciones avanzadas...">Abre un nuevo cuadro de diálogo con configuraciones avanzadas.
+	    	Hay soporte para comillas, diferentes separadores decimales en
+	    	números de coma flotante y codificación de caracteres. Además, para
+	    	ignorar los espacios en blanco, para permitir filas con muy pocos elementos de datos,
+	    	para hacer que los identificadores de fila sean únicos (no recomendado para archivos grandes),
+	    	para un patrón de valor global faltante
+	    	y para limitar el número de filas leídas.	    
+			</option>
+	    <option name="Haga clic en el encabezado de la tabla">Si se hace clic en el encabezado de la columna
+	    	en la tabla de vista previa, se abre un nuevo cuadro de diálogo
+	    	en el que se pueden establecer las propiedades de la columna: el nombre
+	    	el tipo se pueden cambiar (y se corregirán).
+	     	Se puede ingresar un patrón que hará que se cree una "celda
+	        faltante" cuando se lea para esta columna. Además,
+	        los posibles valores del dominio de la columna se pueden actualizar seleccionando
+	        "Domain" y puede optar por omitir esta columna por completo, es decir,
+	        no se incluirá en la tabla de salida.
+		    </option>	      	
+			<link href="https://www.knime.com/knime-introductory-course/chapter2/section1/file-reader-node">
+				KNIME E-Learning Course: File Reader Node
+			</link>
+	</fullDescription>
+	
+	<ports>
+		<outPort index="0" name="File Table">Datatable just read from the file</outPort>
+	</ports>	
+</knimeNode>
