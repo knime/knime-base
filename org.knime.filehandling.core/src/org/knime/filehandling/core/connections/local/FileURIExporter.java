@@ -57,7 +57,7 @@ import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExp
 final class FileURIExporter extends NoConfigURIExporterFactory {
 
     private static final BaseURIExporterMetaInfo META_INFO =
-        new BaseURIExporterMetaInfo("File URI", "Exports the path as file URI.");
+        new BaseURIExporterMetaInfo("file:// URL", "Generates file:// URLs.");
 
     private static final FileURIExporter INSTANCE = new FileURIExporter();
 
