@@ -62,7 +62,6 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
@@ -110,11 +109,10 @@ final class PathToUriNodeDialog extends NodeDialogPane {
     /**
      * Initialize component and attach appropriate event listeners
      *
-     * @param portsConfig PortsConfiguration object
      * @param nodeConfig {@link PathToUriNodeConfig} object
      */
     @SuppressWarnings("unchecked")
-    public PathToUriNodeDialog(final PortsConfiguration portsConfig, final PathToUriNodeConfig nodeConfig) {
+    PathToUriNodeDialog(final PathToUriNodeConfig nodeConfig) {
         m_config = nodeConfig;
 
         m_pathColumnName = new DialogComponentColumnNameSelection(nodeConfig.getPathColumnNameModel(),

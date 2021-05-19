@@ -115,7 +115,7 @@
       <node
             category-path="/io/f-f-util"
             deprecated="false"
-            factory-class="org.knime.filehandling.utility.nodes.pathtourl.PathToUrlNodeFactory"
+            factory-class="org.knime.filehandling.utility.nodes.pathtouri.PathToUriNodeFactory"
             hidden="false">
       </node>
    </extension>

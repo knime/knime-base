@@ -76,6 +76,7 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterPanel;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
+@SuppressWarnings("javadoc")
 final class URIExporterDialogHelper extends AbstractURIExporterHelper {
 
     private final Map<URIExporterID, URIExporterFactory> m_availableExporterFactories;

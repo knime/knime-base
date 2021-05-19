@@ -53,9 +53,11 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 
 /**
  * Concrete implementation of the {@link AbstractURIExporterHelper} to assist in the node model.
@@ -63,6 +65,7 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
  * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  * @author Bjoern Lohrmann, KNIME GmbH
  */
+@SuppressWarnings("javadoc")
 final class URIExporterModelHelper extends AbstractURIExporterHelper {
 
     private NodeSettingsRO m_nodeSettings;
@@ -92,5 +95,10 @@ final class URIExporterModelHelper extends AbstractURIExporterHelper {
         final URIExporterConfig config = factory.initConfig();
         config.loadSettingsForExporter(m_nodeSettings);
         return factory.createExporter(config);
+    }
+
+    FSLocationSpec getPathColumnFSLocationSpec() {
+        return getPathColumnSpec().getMetaDataOfType(FSLocationValueMetaData.class) //
+            .orElseThrow(IllegalStateException::new);
     }
 }

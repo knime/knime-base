@@ -54,6 +54,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.NoSuchFileException;
+import java.util.Optional;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -65,12 +66,13 @@ import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.uri.UriCellFactory;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
-import org.knime.filehandling.core.connections.location.MultiFSPathProviderFactory;
+import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 
@@ -81,30 +83,36 @@ import org.knime.filehandling.core.data.location.FSLocationValue;
  */
 final class PathToUriCellFactory extends SingleCellFactory implements Closeable {
 
+    private static final NodeLogger LOG = NodeLogger.getLogger(PathToUriCellFactory.class);
+
     private final int m_pathColumnIdx;
 
     private final URIExporterModelHelper m_exporterModelHelper;
 
-    private final MultiFSPathProviderFactory m_multiFSPathProviderFactory;
+    private final FSPathProviderFactory m_pathProviderFactory;
 
     private final boolean m_failIfPathNotExists;
 
     private final boolean m_failOnMissingValues;
 
-    PathToUriCellFactory(final int pathColumnIdx, final DataColumnSpec newColSpec, final FSConnection fsConnection,
+    PathToUriCellFactory(final int pathColumnIdx, final DataColumnSpec newColSpec, final Optional<FSConnection> portObjectConnection,
         final URIExporterModelHelper uriModelHelper, final boolean failIfPathNotExists, final boolean failOnMissingValues) {
         super(newColSpec);
 
         m_pathColumnIdx = pathColumnIdx;
         m_exporterModelHelper = uriModelHelper;
-        m_multiFSPathProviderFactory =  new MultiFSPathProviderFactory(fsConnection);
+        m_pathProviderFactory =  FSPathProviderFactory.newFactory(portObjectConnection, uriModelHelper.getPathColumnFSLocationSpec());
         m_failIfPathNotExists = failIfPathNotExists;
         m_failOnMissingValues = failOnMissingValues;
     }
 
     @Override
     public void close() {
-        m_multiFSPathProviderFactory.close();
+        try {
+            m_pathProviderFactory.close();
+        } catch (IOException e) {
+            LOG.error("Error when closing path provider factory: " + e.getMessage(), e);
+        }
     }
 
     @SuppressWarnings("resource")
@@ -122,8 +130,7 @@ final class PathToUriCellFactory extends SingleCellFactory implements Closeable 
 
         final FSLocation fsLocation = ((FSLocationValue)row.getCell(m_pathColumnIdx)).getFSLocation();
 
-        try (final FSPathProvider pathProvider =
-            m_multiFSPathProviderFactory.getOrCreateFSPathProviderFactory(fsLocation).create(fsLocation)) {
+        try (final FSPathProvider pathProvider = m_pathProviderFactory.create(fsLocation)) {
 
             final FSPath fsPath = pathProvider.getPath();
 

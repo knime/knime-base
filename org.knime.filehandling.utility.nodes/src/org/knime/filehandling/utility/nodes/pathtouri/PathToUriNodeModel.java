@@ -77,7 +77,6 @@ import org.knime.core.node.streamable.OutputPortRole;
 import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.core.node.streamable.StreamableFunction;
 import org.knime.core.node.streamable.StreamableOperator;
-import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
@@ -191,16 +190,13 @@ final class PathToUriNodeModel extends NodeModel {
         }
     }
 
-    @SuppressWarnings("resource")
     private PathToUriCellFactory createCellFactory(final PortObjectSpec[] inSpecs) {
         final DataTableSpec inputTableSpec = m_modelHelper.getDataTableSpec();
         final int pathColIndx = inputTableSpec.findColumnIndex(m_config.getPathColumnName());
-        final FSConnection fsConnection =
-            FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, m_fileSystemPortIndex).orElse(null);
 
         return new PathToUriCellFactory(pathColIndx, //
             getNewColumnSpec(inputTableSpec), //
-            fsConnection, //
+            FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, m_fileSystemPortIndex), //
             m_config.getExporterModelHelper(), //
             m_config.failIfPathNotExists(), //
             m_config.failOnMissingValues());

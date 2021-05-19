@@ -52,9 +52,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataColumnSpec;
@@ -64,7 +62,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -207,26 +204,6 @@ abstract class AbstractURIExporterHelper {
         if (warningMsg.isPresent()) {
             warningMessageConsumer.accept(DefaultStatusMessage.mkWarning(warningMsg.get()));
         }
-
-        // FSLocationColumnUtils.validateFSLocationColumn() only warns when the column metadata contains a CONNECTED
-        // FSLocationSpec, but no port object connection is available. However we need to fail because we cannot open
-        // the dialog.
-        if (m_fileSystemPortIndex == -1) {
-            final FSLocationSpec connectedSpec = getPathColumnSpec().getMetaDataOfType(FSLocationValueMetaData.class) //
-                .orElseThrow(IllegalStateException::new) //
-                .getFSLocationSpecs() //
-                .stream() //
-                .filter(spec -> spec.getFSCategory() == FSCategory.CONNECTED) //
-                .findAny() //
-                .orElse(null);
-
-            if (connectedSpec != null) {
-                throw new InvalidSettingsException(String.format(
-                    "The selected column '%s' seems to contain a path referencing a file system that requires to be connected (%s).", //
-                    m_selectedColumn.getStringValue(), //
-                    connectedSpec.getFileSystemSpecifier().orElse("")));
-            }
-        }
     }
 
     /**
@@ -347,29 +324,24 @@ abstract class AbstractURIExporterHelper {
      */
     protected boolean containsConnectedFSLocation() {
         final DataColumnSpec pathColSpec = getPathColumnSpec();
-        final Set<DefaultFSLocationSpec> setOflocationSpecs =
-            pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class) //
-                .orElseThrow(IllegalStateException::new) //
-                .getFSLocationSpecs();
 
-        return !setOflocationSpecs.stream().filter(spec -> spec.getFSCategory() == FSCategory.CONNECTED)
-            .collect(Collectors.toList()).isEmpty();
+        return pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class) //
+                .orElseThrow(IllegalStateException::new) //
+                .getFSCategory() == FSCategory.CONNECTED;
     }
 
     /**
      * @return a list of Convenience FS Connections
      */
+    @SuppressWarnings("resource")
     protected List<FSConnection> getConvenienceConnections() {
         //use path column meta data to ad-hoc instantiate FSConnections
         final DataColumnSpec pathColSpec = getPathColumnSpec();
-        final Set<DefaultFSLocationSpec> setOflocationSpecs =
+        final FSLocationSpec locationSpec =
             pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class) //
-                .orElseThrow(IllegalStateException::new) //
-                .getFSLocationSpecs();
+                .orElseThrow(IllegalStateException::new);
 
-        return setOflocationSpecs.stream() //
-            .map(AbstractURIExporterHelper::createPseudoConnection) //
-            .collect(Collectors.toList());
+        return Collections.singletonList(createPseudoConnection(locationSpec));
     }
 
     /**

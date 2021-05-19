@@ -85,7 +85,7 @@ public final class PathToUriNodeFactory extends ConfigurableNodeFactory<PathToUr
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         final PortsConfiguration portsConfiguration = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new PathToUriNodeDialog(portsConfiguration, createSettings(portsConfiguration));
+        return new PathToUriNodeDialog(createSettings(portsConfiguration));
     }
 
     @Override
