@@ -101,9 +101,9 @@ class Joiner3NodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(Joiner3NodeModel.class);
 
-    private Joiner3Settings m_settings = new Joiner3Settings();
+    private final Joiner3Settings m_settings = new Joiner3Settings();
 
-    private Hiliter m_hiliter = new Hiliter();
+    private final Hiliter m_hiliter = new Hiliter();
 
     Joiner3NodeModel() {
         super(2, 3);
@@ -430,7 +430,7 @@ class Joiner3NodeModel extends NodeModel {
          */
         public void loadInternals(final File nodeInternDir) {
 
-            if (m_settings == null || !m_settings.isHilitingEnabled()) {
+            if (!m_settings.isHilitingEnabled()) {
                 return;
             }
 
