@@ -50,7 +50,7 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -69,22 +69,41 @@ import org.knime.filehandling.core.util.IOESupplier;
  */
 public class InputStreamTest extends AbstractParameterizedFSTest {
 
+    private static final String TEST_CONTENT = "This is read by an input stream!!";
+
     public InputStreamTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
         throws IOException {
         super(fsType, testInitializer);
     }
 
-    @Test
-    public void test_read_from_input_stream() throws Exception {
-        String testContent = "This is read by an input stream!!";
-        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
-
-        String result;
+    public void testReadFromFile(final Path file) throws IOException {
+        final String result;
         try (InputStream inputStream = Files.newInputStream(file)) {
-            result = IOUtils.toString(inputStream, Charset.defaultCharset());
+            result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         }
 
-        assertEquals(testContent, result);
+        assertEquals(TEST_CONTENT, result);
+    }
+
+    @Test
+    public void test_read_from_input_stream() throws Exception {
+        testReadFromFile(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir", "fileName"));
+    }
+
+    @Test
+    public void test_read_from_input_stream_with_spaces() throws Exception {
+        testReadFromFile(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir with spaces", "file with spaces"));
+    }
+
+    @Test
+    public void test_read_from_input_stream_with_pluses() throws Exception {
+        testReadFromFile(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir+with+pluses", "file+with+pluses"));
+    }
+
+    @Test
+    public void test_read_from_input_stream_with_percent_encoding() throws Exception {
+        testReadFromFile(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir%20with%20percent%2520encodings",
+            "file%20with%20percent%2520encodingsA"));
     }
 
     @Test(expected = NoSuchFileException.class)

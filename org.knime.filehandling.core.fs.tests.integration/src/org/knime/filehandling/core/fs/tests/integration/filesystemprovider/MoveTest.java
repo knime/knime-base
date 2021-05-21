@@ -45,11 +45,13 @@
  */
 package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
@@ -74,31 +76,51 @@ import org.knime.filehandling.core.util.IOESupplier;
  */
 public class MoveTest extends AbstractParameterizedFSTest {
 
+    private static final String TEST_CONTENT = "Some simple test content";
+
     public MoveTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
         super(fsType, testInitializer);
     }
 
+    private void moveFileAndCheck(final Path srcFile, final Path targetFile) throws IOException {
+        assertTrue(Files.isRegularFile(srcFile));
+        assertTrue(Files.exists(srcFile));
+        assertTrue(Files.notExists(targetFile));
+
+        Files.move(srcFile, targetFile);
+
+        assertFalse(Files.exists(srcFile));
+        assertFalse(Files.isRegularFile(srcFile));
+        assertTrue(Files.exists(targetFile));
+        assertTrue(Files.isRegularFile(targetFile));
+        assertArrayEquals(TEST_CONTENT.getBytes(StandardCharsets.UTF_8), Files.readAllBytes(targetFile));
+    }
+
+
     @Test
     public void test_move_file() throws Exception {
-        String sourceContent = "Some simple test content";
-        Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
-        Path target = source.getParent().resolve("movedFile");
+        moveFileAndCheck(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir", "file"), //
+            m_testInitializer.makePath("dir", "movedFile"));
+    }
 
-        // load file attributes and ensure file exits
-        assertTrue(Files.isRegularFile(source));
-        assertTrue(Files.exists(source));
+    @Test
+    public void test_move_file_with_spaces() throws Exception {
+        moveFileAndCheck(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir with spaces", "file with spaces"), //
+            m_testInitializer.makePath("dir with spaces", "moved file with spaces"));
+    }
 
-        // move the file
-        Files.move(source, target);
+    @Test
+    public void test_move_file_with_pluses() throws Exception {
+        moveFileAndCheck(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir+with+pluses", "file+with+pluses"), //
+            m_testInitializer.makePath("dir+with+pluses", "moved+file+with+pluses"));
+    }
 
-        // ensure old file does not exits anymore
-        assertFalse(Files.isRegularFile(source));
-        assertFalse(Files.exists(source));
-
-        // ensure new file exists and contains original data
-        assertTrue(Files.exists(target));
-        List<String> movedContent = Files.readAllLines(target);
-        assertEquals(sourceContent, movedContent.get(0));
+    @Test
+    public void test_move_file_with_percent_encoding() throws Exception {
+        moveFileAndCheck(
+            m_testInitializer.createFileWithContent(TEST_CONTENT, "dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodings"), //
+            m_testInitializer.makePath("dir%20with%20percent%2520encodings",
+                "movedfile%20with%20percent%2520encodings"));
     }
 
     @Test(expected = NoSuchFileException.class)

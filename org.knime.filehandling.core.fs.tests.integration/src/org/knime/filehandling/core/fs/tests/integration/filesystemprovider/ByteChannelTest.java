@@ -54,6 +54,7 @@ import java.nio.CharBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
@@ -265,6 +266,24 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
     public void test_write_file_with_inexistent_parent_directory() throws IOException {
         Path file = m_testInitializer.makePath("dirdoesnotexist", "file");
         Files.newByteChannel(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+    }
+
+    private static void writeThenRead(final Path path) throws IOException {
+        final byte[] bytes = "blabla".getBytes(StandardCharsets.UTF_8);
+        Files.write(path, bytes);
+        assertEquals(bytes, Files.readAllBytes(path));
+    }
+
+    public void test_write_file_with_spaces_in_name()  throws IOException {
+        writeThenRead(m_testInitializer.makePath("file with spaces"));
+    }
+
+    public void test_write_file_with_plus_in_name()  throws IOException {
+        writeThenRead(m_testInitializer.makePath("file+with+pluses"));
+    }
+
+    public void test_write_file_with_percent_encoding_in_name()  throws IOException {
+        writeThenRead(m_testInitializer.makePath("file%20with%20percent%2520encodings"));
     }
 
     @Test(expected = FileSystemException.class)

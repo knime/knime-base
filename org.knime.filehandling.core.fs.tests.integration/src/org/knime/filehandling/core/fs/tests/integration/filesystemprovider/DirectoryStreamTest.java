@@ -58,6 +58,8 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Test;
@@ -78,21 +80,60 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
         super(fsType, testInitializer);
     }
 
-    @Test
-    public void test_list_files_in_directory() throws Exception {
-        final Path fileA = m_testInitializer.createFileWithContent("contentA", "dir", "fileA");
-        final Path fileB = m_testInitializer.createFileWithContent("contentB", "dir", "fileB");
-        final Path fileC = m_testInitializer.createFileWithContent("contentC", "dir", "fileC");
-        final Path directory = fileA.getParent();
-
-        final List<Path> paths = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory, (path) -> true)) {
-            directoryStream.forEach(paths::add);
+    private static void testListFiles(final Path directory, final Path[] expectedfiles) throws IOException {
+        final Set<Path> paths;
+        try (Stream<Path> directoryStream = Files.list(directory)) {
+            paths = directoryStream.collect(Collectors.toSet());
         }
 
-        assertTrue(paths.contains(fileA));
-        assertTrue(paths.contains(fileB));
-        assertTrue(paths.contains(fileC));
+        for (final Path expectedFile : expectedfiles) {
+            assertTrue(paths.contains(expectedFile));
+        }
+        assertEquals(expectedfiles.length, paths.size());
+    }
+
+    @Test
+    public void test_list_files_in_directory() throws Exception {
+        final Path[] files = new Path[] {
+            m_testInitializer.createFileWithContent("contentA", "dir", "fileA"),
+            m_testInitializer.createFileWithContent("contentB", "dir", "fileB"),
+            m_testInitializer.createFileWithContent("contentC", "dir", "fileC")
+        };
+
+        testListFiles(files[0].getParent(), files);
+    }
+
+    @Test
+    public void test_list_files_in_directory_with_spaces() throws Exception {
+        final Path[] files = new Path[] {
+            m_testInitializer.createFileWithContent("contentA", "dir with spaces", "file with spacesA"),
+            m_testInitializer.createFileWithContent("contentB", "dir with spaces", "file with spacesB"),
+            m_testInitializer.createFileWithContent("contentC", "dir with spaces", "file with spacesC")
+        };
+
+        testListFiles(files[0].getParent(),files);
+    }
+
+    @Test
+    public void test_list_files_in_directory_with_pluses() throws Exception {
+        final Path[] files = new Path[] {
+            m_testInitializer.createFileWithContent("contentA", "dir+with+pluses", "file+with+plusesA"),
+            m_testInitializer.createFileWithContent("contentB", "dir+with+pluses", "file+with+plusesB"),
+            m_testInitializer.createFileWithContent("contentC", "dir+with+pluses", "file+with+plusesC")
+        };
+
+        testListFiles(files[0].getParent(),files);
+    }
+
+    @Test
+    public void test_list_files_in_directory_with_percent_encoding() throws Exception {
+        final Path[] files = new Path[] {
+            m_testInitializer.createFileWithContent("contentA", "dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsA"),
+            m_testInitializer.createFileWithContent("contentB", "dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsB"),
+            m_testInitializer.createFileWithContent("contentC", "dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsC")
+        };
+
+        testListFiles(files[0].getParent(), files);
     }
 
     @Test
