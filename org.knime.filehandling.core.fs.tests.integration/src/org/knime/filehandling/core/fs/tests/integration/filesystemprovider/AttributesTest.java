@@ -191,7 +191,6 @@ public class AttributesTest extends AbstractParameterizedFSTest {
         ignoreWithReason("Server REST API does not provide mtime for data files", KNIME_REST_RELATIVE_MOUNTPOINT);
         ignoreWithReason("Server REST API does not provide mtime for data files", KNIME_REST_RELATIVE_WORKFLOW);
         ignoreWithReason("Server REST API does not provide mtime for data files", KNIME_REST);
-        ignoreWithReason("DBFS REST API does not provide mtime for data files", DATABRICKS_DBFS);
 
         final Path file = m_testInitializer.createFile("file");
 

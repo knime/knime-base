@@ -45,6 +45,7 @@
  */
 package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -52,6 +53,8 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
@@ -115,6 +118,33 @@ public class CreateTest extends AbstractParameterizedFSTest {
         assertTrue(Files.exists(directory.getParent()));
         assertTrue(Files.isDirectory(directory.getParent()));
     }
+
+    @Test
+    public void test_create_directory_with_space() throws Exception {
+        Path pathToDirectory = m_testInitializer.getTestCaseScratchDir().resolve("dir with spaces");
+
+        Files.createDirectories(pathToDirectory);
+        assertTrue(Files.readAttributes(pathToDirectory, BasicFileAttributes.class).isDirectory());
+
+        try (Stream<Path> dirStream = Files.list(m_testInitializer.getTestCaseScratchDir())) {
+            assertEquals(1, dirStream.filter(p -> p.equals(pathToDirectory)).count());
+        }
+    }
+
+
+    @Test
+    public void test_create_directory_with_percent_encodings() throws Exception {
+        Path pathToDirectory = m_testInitializer.getTestCaseScratchDir().resolve("dir%20with%20percent%2520encodings");
+
+        Files.createDirectories(pathToDirectory);
+
+        assertTrue(Files.readAttributes(pathToDirectory, BasicFileAttributes.class).isDirectory());
+
+        try (Stream<Path> dirStream = Files.list(m_testInitializer.getTestCaseScratchDir())) {
+            assertEquals(1, dirStream.filter(p -> p.equals(pathToDirectory)).count());
+        }
+    }
+
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_create_directory_which_already_exists() throws Exception {

@@ -45,11 +45,13 @@
  */
 package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
@@ -116,6 +118,43 @@ public class CopyTest extends AbstractParameterizedFSTest {
         assertTrue(after.contains(fileB2));
         assertTrue(after.contains(fileB3));
         assertEquals(2, after.size());
+    }
+
+    private void copyFileAndCheck(final Path srcFile, final Path targetFile) throws IOException {
+        final byte[] testContent = "Some simple test content".getBytes(StandardCharsets.UTF_8);
+
+        Files.createDirectories(srcFile.getParent());
+        Files.write(srcFile, testContent);
+        Files.createDirectories(targetFile.getParent());
+
+        assertTrue(Files.notExists(targetFile));
+
+        Files.copy(srcFile, targetFile);
+
+        assertTrue(Files.isRegularFile(srcFile));
+        assertTrue(Files.isRegularFile(targetFile));
+        assertArrayEquals(testContent, Files.readAllBytes(targetFile));
+    }
+
+    @Test
+    public void test_copy_file_with_spaces() throws Exception {
+        final Path srcFile = m_testInitializer.makePath("dir with spaces", "file with spaces");
+        final Path targetFile = m_testInitializer.makePath("dir with spaces2", "file with spaces");
+        copyFileAndCheck(srcFile, targetFile);
+    }
+
+    @Test
+    public void test_copy_file_with_pluses() throws Exception {
+        final Path srcFile = m_testInitializer.makePath("dir+with+pluses", "file+with+pluses");
+        final Path targetFile = m_testInitializer.makePath("dir+with+pluses2", "file+with+pluses");
+        copyFileAndCheck(srcFile, targetFile);
+    }
+
+    @Test
+    public void test_copy_file_with_percent_encoding() throws Exception {
+        final Path srcFile = m_testInitializer.makePath("dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodings");
+        final Path targetFile = m_testInitializer.makePath("dir%20with%20percent%2520encodings2", "file%20with%20percent%2520encodings");
+        copyFileAndCheck(srcFile, targetFile);
     }
 
     @Test(expected = NoSuchFileException.class)

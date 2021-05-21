@@ -78,6 +78,27 @@ public class CheckAccessTest extends AbstractParameterizedFSTest {
     }
 
     @Test
+    public void test_file_with_spaces_exists() throws IOException {
+        Path pathToFile = m_testInitializer.createFile("dir", "some file.txt");
+        pathToFile.getFileSystem().provider().checkAccess(pathToFile);
+        assertTrue(Files.exists(pathToFile));
+    }
+
+    @Test
+    public void test_file_with_plus_exists() throws IOException {
+        Path pathToFile = m_testInitializer.createFile("dir", "some+file.txt");
+        pathToFile.getFileSystem().provider().checkAccess(pathToFile);
+        assertTrue(Files.exists(pathToFile));
+    }
+
+    @Test
+    public void test_file_with_percent_encoding_exists() throws IOException {
+        Path pathToFile = m_testInitializer.createFile("dir", "file%20with%20percent%2520encodings");
+        pathToFile.getFileSystem().provider().checkAccess(pathToFile);
+        assertTrue(Files.exists(pathToFile));
+    }
+
+    @Test
     public void test_empty_path_exists() throws IOException {
         final Path emptyPath = getFileSystem().getPath("");
 

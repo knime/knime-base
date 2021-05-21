@@ -57,6 +57,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
@@ -75,36 +76,49 @@ public class DeleteTest extends AbstractParameterizedFSTest {
         super(fsType, testInitializer);
     }
 
-    @Test
-    public void test_delete_file() throws IOException {
-        final Path fileB = m_testInitializer.createFileWithContent("test", "dir-A", "file-B");
-        final Path dirA = fileB.getParent();
+    private void testCreateAndDeleteFile(final Path file) throws IOException {
+        final Path fileParent = file.getParent();
 
         // list prarent dir-A
         final List<Path> before = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dirA, path -> true)) {
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(fileParent, path -> true)) {
             directoryStream.forEach(before::add);
         }
-        assertTrue(before.contains(fileB));
+        assertTrue(before.contains(file));
         assertEquals(1, before.size());
 
         // ensure file exist before
-        assertTrue(Files.isRegularFile(fileB));
-        assertTrue(Files.exists(fileB));
+        assertTrue(Files.isRegularFile(file));
+        assertTrue(Files.exists(file));
 
         // delete file-B
-        Files.delete(fileB);
+        Files.delete(file);
 
         // ensure file does not exist anymore
-        assertFalse(Files.isRegularFile(fileB));
-        assertFalse(Files.exists(fileB));
+        assertFalse(Files.isRegularFile(file));
+        assertFalse(Files.exists(file));
 
         // list dir-A again and ensure that file-B is not listed anymore
-        final List<Path> after = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dirA, path -> true)) {
-            directoryStream.forEach(after::add);
+        try (Stream<Path> directoryStream = Files.list(fileParent)) {
+            assertEquals(0, directoryStream.count());
         }
-        assertEquals(0, after.size());
+    }
+
+    @Test
+    public void test_delete_file() throws IOException {
+        testCreateAndDeleteFile(m_testInitializer.createFile("dir-A", "file-B"));
+    }
+
+    public void test_delete_file_with_spaces() throws IOException {
+        testCreateAndDeleteFile(m_testInitializer.createFile("dir A", "file B"));
+    }
+
+    public void test_delete_file_with_pluses() throws IOException {
+        testCreateAndDeleteFile(m_testInitializer.createFile("dir+A", "file+B"));
+    }
+
+    public void test_delete_file_with_percent_encoding() throws IOException {
+        testCreateAndDeleteFile(m_testInitializer.createFile("dir%20with%20percent%2520encodings2", "file%20with%20percent%2520encodings"));
     }
 
     @Test

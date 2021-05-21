@@ -51,6 +51,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -104,24 +105,39 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
         assertEquals("This was already there, but this was appended!", fileContent.get(0));
     }
 
-    @Test
-    public void test_output_stream_create_file() throws Exception {
-        Path file = m_testInitializer.createFile("dir", "file");
-        Path directory = file.getParent();
-        Path nonExistingFile = directory.resolve("non-existing-file");
+    public static void testWriteNewFile(final Path file) throws IOException {
+        final byte[] contentToWrite = "The wheel is come full circle: I am here.".getBytes(StandardCharsets.UTF_8);
 
-        String contentToWrite = "The wheel is come full circle: I am here.";
         try (OutputStream outputStream = //
             Files.newOutputStream(//
-                nonExistingFile, //
+                file, //
                 StandardOpenOption.CREATE_NEW, //
                 StandardOpenOption.WRITE//
             )) {
-            outputStream.write(contentToWrite.getBytes());
+            outputStream.write(contentToWrite);
         }
 
-        List<String> fileContent = Files.readAllLines(nonExistingFile);
-        assertEquals(contentToWrite, fileContent.get(0));
+        assertArrayEquals(contentToWrite, Files.readAllBytes(file));
+    }
+
+    @Test
+    public void test_output_stream_create_file() throws Exception {
+        testWriteNewFile(m_testInitializer.makePath("some-file"));
+    }
+
+    @Test
+    public void test_output_stream_create_file_with_spaces() throws Exception {
+        testWriteNewFile(m_testInitializer.makePath("some file"));
+    }
+
+    @Test
+    public void test_output_stream_create_file_with_pluses() throws Exception {
+        testWriteNewFile(m_testInitializer.makePath("some+file"));
+    }
+
+    @Test
+    public void test_output_stream_create_file_with_percent_encoding() throws Exception {
+        testWriteNewFile(m_testInitializer.makePath("file%20with%20percent%2520encodings"));
     }
 
     @Test(expected = FileAlreadyExistsException.class)
