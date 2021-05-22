@@ -182,12 +182,8 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
     }
 
     @Override
-    public boolean isHidden(final Path path) throws IOException {
-        if (path.getFileName().toString().equals(WorkflowPersistor.METAINFO_FILE)) {
-            return true;
-        } else {
-            return Files.isHidden(toRealPathWithAccessibilityCheck(checkCastAndAbsolutizePath(path)));
-        }
+    public boolean isHiddenInternal(final RelativeToPath path) throws IOException {
+        return !path.isRoot() && path.getFileName().toString().equals(WorkflowPersistor.METAINFO_FILE);
     }
 
     @Override
