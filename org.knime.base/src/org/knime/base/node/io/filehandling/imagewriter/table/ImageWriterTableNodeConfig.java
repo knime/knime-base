@@ -92,7 +92,7 @@ final class ImageWriterTableNodeConfig {
 
     private final SettingsModelString m_userDefinedOutputFilenameModel;
 
-    private final SettingsModelString m_filenameColSelectionModel;
+    private final SettingsModelColumnName m_filenameColSelectionModel;
 
     private boolean m_isGenerateFilenameRadio;
 
@@ -150,7 +150,7 @@ final class ImageWriterTableNodeConfig {
         return m_userDefinedOutputFilenameModel;
     }
 
-    SettingsModelString getFilenameColSelectionModel() {
+    SettingsModelColumnName getFilenameColSelectionModel() {
         return m_filenameColSelectionModel;
     }
 

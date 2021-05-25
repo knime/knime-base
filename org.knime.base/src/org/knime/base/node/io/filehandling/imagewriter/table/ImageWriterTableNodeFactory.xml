@@ -12,39 +12,6 @@
 			file, into a directory. It will append the paths of the written files to the 
 			input table as well as the corresponding write status (created, unmodified, overwritten).
 		</intro>
-		<option name="Image">
-			Options for selecting an image column from the input table and whether the original image column 
-			should be included in the output or not.
-			<ul>
-				<li>
-					<b>Column: </b>
-					Column containing the images to write.
-					<br />
-				</li>
-				<li>
-					<b>Remove image column: </b>
-					If checked the column containing the images is removed from the output table.
-				</li>
-			</ul>
-		</option>
-		<option name="File names">
-        	Select an option for the image file names, by default files will be generated using the "File_?" pattern. 
-        	There are two options to choose from. 
-			<ul>
-				<li>
-					<b>Generate: </b>
-					The file names will be generated using the provided pattern. The pattern must contain a single "?" 
-					symbol. This symbol will, during execution, be replaced by an incrementing counter to make the
-					filenames unique. The file extension will be detected automatically and must not be specified.
-					<br />
-				</li>
-				<li>
-					<b>From column: </b>
-					Allows to select a column containing the file names under which the corresponding image file
-					will be stored. 
-				</li>
-			</ul>
-        </option>
 		<option name="Write to">
 			Select a file system in which you want to store the files. There
 			are three default file system options to choose from:
@@ -143,6 +110,39 @@
 				</li>
 			</ul>
 		</option>
+		<option name="Image">
+			Options for selecting an image column from the input table and whether the original image column 
+			should be included in the output or not.
+			<ul>
+				<li>
+					<b>Column: </b>
+					Column containing the images to write.
+					<br />
+				</li>
+				<li>
+					<b>Remove image column: </b>
+					If checked the column containing the images is removed from the output table.
+				</li>
+			</ul>
+		</option>
+		<option name="File names">
+        	Select an option for the image file names, by default files will be generated using the "File_?" pattern. 
+        	There are two options to choose from. 
+			<ul>
+				<li>
+					<b>Generate: </b>
+					The file names will be generated using the provided pattern. The pattern must contain a single "?" 
+					symbol. This symbol will, during execution, be replaced by an incrementing counter to make the
+					filenames unique. The file extension will be detected automatically and must not be specified.
+					<br />
+				</li>
+				<li>
+					<b>From column: </b>
+					Allows to select a column containing the file names under which the corresponding image file
+					will be stored. 
+				</li>
+			</ul>
+        </option>
 	</fullDescription>
 
 	<ports>

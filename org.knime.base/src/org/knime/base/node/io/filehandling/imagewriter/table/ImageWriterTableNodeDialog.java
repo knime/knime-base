@@ -138,11 +138,12 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         final JPanel settingsPanel = new JPanel(new GridBagLayout());
         final GBCBuilder gbcBuilder = new GBCBuilder(new Insets(5, 0, 5, 0));
 
-        settingsPanel.add(createImgPanel(), gbcBuilder.setX(0).setY(0).setWeightX(1.0).fillHorizontal().build());
+        settingsPanel.add(createOutputLocationPanel(),
+            gbcBuilder.setX(0).setY(0).setWeightX(1.0).fillHorizontal().build());
+
+        settingsPanel.add(createImgPanel(), gbcBuilder.incY().build());
 
         settingsPanel.add(createFileNamePanel(), gbcBuilder.incY().build());
-
-        settingsPanel.add(createOutputLocationPanel(), gbcBuilder.incY().build());
 
         settingsPanel.add(new JPanel(), gbcBuilder.incY().setWeightY(1.0).setWeightX(1.0).fillBoth().build());
 
@@ -189,7 +190,7 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
         final JPanel outputPanel = new JPanel(new GridBagLayout());
         final GBCBuilder gbcBuilder = new GBCBuilder();
 
-        outputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output Location"));
+        outputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output location"));
 
         outputPanel.add(m_folderChooser.getComponentPanel(),
             gbcBuilder.anchorFirstLineStart().insetLeft(5).insetRight(5).setWeightX(1.0).fillHorizontal().build());
@@ -204,12 +205,12 @@ final class ImageWriterTableNodeDialog extends NodeDialogPane {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_folderChooser.saveSettingsTo(settings);
         m_imgColSelection.saveSettingsTo(settings);
         m_removeImgCol.saveSettingsTo(settings);
         m_nodeConfig.saveFileNameRadioSelectionForDialog(settings, m_generateFilenameRadio.isSelected());
         m_userDefinedOutputFilename.saveSettingsTo(settings);
         m_filenameColSelection.saveSettingsTo(settings);
-        m_folderChooser.saveSettingsTo(settings);
     }
 
     @Override

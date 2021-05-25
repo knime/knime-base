@@ -63,6 +63,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.MissingValue;
 import org.knime.core.data.MissingValueException;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.StringCell;
@@ -77,6 +78,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -118,7 +120,7 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     private final SettingsModelString m_userDefinedOutputFileName;
 
-    private final SettingsModelString m_filenameColSelectionModel;
+    private final SettingsModelColumnName m_filenameColSelectionModel;
 
     private final NodeModelStatusConsumer m_statusConsumer;
 
@@ -159,12 +161,7 @@ final class ImageWriterTableNodeModel extends NodeModel {
                 String.format("The selected image column '%s' is not part of the input", selectedImgCol));
         }
 
-        final boolean isFileNameColumnSelected = !m_nodeConfig.isGenerateFilenameRadioSelected();
-        final int filenameColIdx = dataTableSpec.findColumnIndex(selectedFilenameCol);
-        if (isFileNameColumnSelected && filenameColIdx < 0) {
-            throw new InvalidSettingsException(
-                String.format("The selected image naming column '%s' is not part of the input", selectedFilenameCol));
-        }
+        validateNameGenerationSettings(dataTableSpec, selectedFilenameCol);
 
         m_nodeConfig.getFolderChooserModel().configureInModel(inSpecs, m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
@@ -207,6 +204,22 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     }
 
+    private void validateNameGenerationSettings(final DataTableSpec dataTableSpec, final String selectedFilenameCol)
+        throws InvalidSettingsException {
+        final boolean isFileNameColumnSelected = !m_nodeConfig.isGenerateFilenameRadioSelected();
+
+        if (isFileNameColumnSelected) {
+            final boolean isRowIdSelected = m_filenameColSelectionModel.useRowID();
+            if (!isRowIdSelected) {
+                final int filenameColIdx = dataTableSpec.findColumnIndex(selectedFilenameCol);
+                if (filenameColIdx < 0) {
+                    throw new InvalidSettingsException(String
+                        .format("The selected image naming column '%s' is not part of the input", selectedFilenameCol));
+                }
+            }
+        }
+    }
+
     private ImageColumnsToFilesCellFactory createImageColumnsToFilesCellFactory(final DataTableSpec dataTableSpec,
         final int imgColIdx, final FSPath outputPath) {
         final DataColumnSpec[] newColumnsSpec = getNewColumnsSpec(dataTableSpec);
@@ -214,12 +227,19 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
         if (m_nodeConfig.isGenerateFilenameRadioSelected()) {
             final String generatedFilenamePattern = m_userDefinedOutputFileName.getStringValue();
-            return new ImageColumnsToFilesCellFactory(newColumnsSpec, imgColIdx,
-                fileOverwritePolicy, outputPath, generatedFilenamePattern);
+            return new ImageColumnsToFilesCellFactory(newColumnsSpec, imgColIdx, fileOverwritePolicy, outputPath,
+                new UserPatternFileNameGenerator(generatedFilenamePattern));
         } else {
-            final int filenameColIdx = dataTableSpec.findColumnIndex(m_filenameColSelectionModel.getStringValue());
-            return new ImageColumnsToFilesCellFactory(newColumnsSpec, imgColIdx,
-                fileOverwritePolicy, outputPath, filenameColIdx);
+            final boolean isRowIdSelected = m_nodeConfig.getFilenameColSelectionModel().useRowID();
+            final int filenameColIdx;
+            if (isRowIdSelected) {
+                return new ImageColumnsToFilesCellFactory(newColumnsSpec, imgColIdx, fileOverwritePolicy, outputPath,
+                    new RowIdFileNameGenerator());
+            } else {
+                filenameColIdx = dataTableSpec.findColumnIndex(m_filenameColSelectionModel.getStringValue());
+                return new ImageColumnsToFilesCellFactory(newColumnsSpec, imgColIdx, fileOverwritePolicy, outputPath,
+                    new NameingColumnFileNameGenerator(filenameColIdx));
+            }
         }
     }
 
@@ -383,48 +403,17 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
         private static final MissingCell MISSING_IMAGE_VALUE_CELL = new MissingCell("Missing image value");
 
-        private final String m_generatedFilenamePattern;
+        private final FileNameGenerator m_fileNameGenerator;
 
-        private final int m_filenameColIdx;
-
-        private ImageColumnsToFilesCellFactory(final DataColumnSpec[] columnSpec, final int imgColIdx,
-            final FileOverwritePolicy overwritePolicy, final FSPath outputPath, final String generatedFilenamePattern,
-            final int filenameColIdx) {
+        ImageColumnsToFilesCellFactory(final DataColumnSpec[] columnSpec, final int imgColIdx,
+            final FileOverwritePolicy overwritePolicy, final FSPath outputPath,
+            final FileNameGenerator fileNameGenerator) {
             super(columnSpec);
             m_imgColIdx = imgColIdx;
             m_outputPath = outputPath;
             m_overwritePolicy = overwritePolicy;
             m_multiFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();
-            m_generatedFilenamePattern = generatedFilenamePattern;
-            m_filenameColIdx = filenameColIdx;
-        }
-
-        /**
-         * Constructor. Image file name is determined by naming column.
-         *
-         * @param columnSpec
-         * @param imgColIdx
-         * @param overwritePolicy
-         * @param outputPath
-         * @param filenameColIdx
-         */
-        ImageColumnsToFilesCellFactory(final DataColumnSpec[] columnSpec, final int imgColIdx,
-            final FileOverwritePolicy overwritePolicy, final FSPath outputPath, final int filenameColIdx) {
-            this(columnSpec, imgColIdx, overwritePolicy, outputPath, null, filenameColIdx);
-        }
-
-        /**
-         * Constructor. Image file name is determined by user defined file name pattern.
-         *
-         * @param columnSpec
-         * @param imgColIdx
-         * @param overwritePolicy
-         * @param outputPath
-         * @param generatedFilenamePattern
-         */
-        ImageColumnsToFilesCellFactory(final DataColumnSpec[] columnSpec, final int imgColIdx,
-            final FileOverwritePolicy overwritePolicy, final FSPath outputPath, final String generatedFilenamePattern) {
-            this(columnSpec, imgColIdx, overwritePolicy, outputPath, generatedFilenamePattern, -1);
+            m_fileNameGenerator = fileNameGenerator;
         }
 
         @Override
@@ -438,30 +427,13 @@ final class ImageWriterTableNodeModel extends NodeModel {
             }
 
             final ImageValue imgValue = (ImageValue)imageCell;
-            final FSPath imgPath =
-                (FSPath)m_outputPath.resolve(getOutputFilename(row) + "." + imgValue.getImageExtension());
+            final FSPath imgPath = (FSPath)m_outputPath
+                .resolve(m_fileNameGenerator.getOutputFilename(row, m_rowIdx) + "." + imgValue.getImageExtension());
             m_rowIdx++;
 
             final String fileStatus = writeImage(imgValue, imgPath);
             return new DataCell[]{m_multiFSLocationCellFactory.createCell(imgPath.toFSLocation()),
                 StringCellFactory.create(fileStatus)};
-        }
-
-        private String getOutputFilename(final DataRow row) {
-            // -1 indicates file name is generated by user pattern
-            if (m_filenameColIdx != -1) {
-
-                if (row.getCell(m_filenameColIdx).isMissing()) {
-                    throw new MissingValueException((MissingValue)row.getCell(m_filenameColIdx),
-                        "Missing values are not supported for image names");
-                }
-
-                final StringCell outputFilenameDataCell = (StringCell)row.getCell(m_filenameColIdx);
-
-                return outputFilenameDataCell.getStringValue();
-            } else {
-                return m_generatedFilenamePattern.replace("?", Integer.toString(m_rowIdx));
-            }
         }
 
         private String writeImage(final ImageValue imgValue, final FSPath imgPath) {
@@ -500,4 +472,73 @@ final class ImageWriterTableNodeModel extends NodeModel {
 
     }
 
+    /**
+     * FileNameGenerator class extending {@link FileNameGenerator} creating file names according to a user pattern.
+     *
+     * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
+     */
+    private static final class UserPatternFileNameGenerator implements FileNameGenerator {
+
+        private final String m_generatedFilenamePattern;
+
+        /**
+         * Implementation of {@link FileNameGenerator} creating file names according to a user pattern.
+         *
+         * @param String generatedFilenamePattern
+         */
+        UserPatternFileNameGenerator(final String generatedFilenamePattern) {
+            m_generatedFilenamePattern = generatedFilenamePattern;
+        }
+
+        @Override
+        public String getOutputFilename(final DataRow row, final int rowIdx) {
+            return m_generatedFilenamePattern.replace("?", Integer.toString(rowIdx));
+        }
+
+    }
+
+    /**
+     * FileNameGenerator class extending {@link FileNameGenerator} creating file names according to the row id.
+     *
+     * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
+     */
+    private static final class RowIdFileNameGenerator implements FileNameGenerator {
+
+        @Override
+        public String getOutputFilename(final DataRow row, final int rowIdx) {
+            return row.getKey().getString();
+        }
+
+    }
+
+    /**
+     * FileNameGenerator class extending {@link FileNameGenerator} creating file names according to a nameing column.
+     *
+     * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
+     */
+    private static final class NameingColumnFileNameGenerator implements FileNameGenerator {
+
+        private final int m_filenameColIdx;
+
+        /**
+         * Implementation of {@link FileNameGenerator} creating file names according to a nameing column.
+         *
+         * @param int filenameColIdx
+         */
+        NameingColumnFileNameGenerator(final int filenameColIdx) {
+            m_filenameColIdx = filenameColIdx;
+        }
+
+        @Override
+        public String getOutputFilename(final DataRow row, final int rowIdx) {
+            final DataCell outputFilenameDataCell = row.getCell(m_filenameColIdx);
+            if (outputFilenameDataCell.isMissing()) {
+                throw new MissingValueException((MissingValue)outputFilenameDataCell,
+                    "Missing values are not supported for image names");
+            }
+
+            final StringValue outputFilename = (StringValue)outputFilenameDataCell;
+            return outputFilename.getStringValue();
+        }
+    }
 }
