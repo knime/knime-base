@@ -255,7 +255,7 @@ public class DialogComponentFileChooser2 extends DialogComponent {
         setFileFolderLabel();
         setFileFilterPanelVisibility();
 
-        m_statusMessage = new WordWrapJLabel(EMPTY_STRING);
+        m_statusMessage = new WordWrapJLabel(EMPTY_STRING, 700);
 
         m_statusMessageSwingWorker = null;
 

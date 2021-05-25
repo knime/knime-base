@@ -48,14 +48,17 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.status;
 
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
 import java.util.Optional;
 
 import javax.swing.Icon;
-import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.defaultnodesettings.WordWrapJLabel;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
  * A view that displays status messages.
@@ -67,25 +70,35 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  */
 public final class StatusView {
 
+    /** A factor used to calculate the width of the panel based on the width of the {@link WordWrapJLabel} */
+    private static final double WIDTH_FACTOR = 1.35;
+
     private final WordWrapJLabel m_statusLabel;
+
+    private final JPanel m_panel;
 
     private StatusMessage m_statusMsg = null;
 
     /**
-     * Constructor that reserves space for one line.
+     * Constructor.
      *
+     * @param widthInPixel status label width in pixels
      */
-    public StatusView() {
-        this(true);
+    public StatusView(final int widthInPixel) {
+        m_statusLabel = new WordWrapJLabel(" ", widthInPixel);
+        m_panel = createPanel(widthInPixel);
     }
 
-    /**
-     * Constructor that allows to specify whether space for one line should be reserved or not.
-     *
-     * @param reserveSpace set to {@code true} if space for one line should be reserved
-     */
-    public StatusView(final boolean reserveSpace) {
-        m_statusLabel = new WordWrapJLabel(reserveSpace ? " " : "", reserveSpace);
+    private JPanel createPanel(final int widthInPixel) {
+        final JPanel panel = new JPanel(new GridBagLayout());
+        final GBCBuilder builder =
+                new GBCBuilder().resetPos().setWeightY(0).setWeightX(0).fillNone().anchorFirstLineStart();
+        panel.add(m_statusLabel, builder.build());
+        final JPanel dummyPanel = new JPanel(new GridBagLayout());
+        dummyPanel.setPreferredSize(new Dimension((int)(widthInPixel * WIDTH_FACTOR), 0));
+        panel.add(dummyPanel, builder.setWeightX(1).fillHorizontal().incY().build());
+
+        return panel;
     }
 
     /**
@@ -132,17 +145,17 @@ public final class StatusView {
      */
     public void clearStatus() {
         m_statusMsg = null;
-        m_statusLabel.setText(null);
+        m_statusLabel.setText(" ");
         m_statusLabel.setIcon(null);
     }
 
     /**
-     * Returns the label that is used to display the status.
+     * Returns the panel that is used to display the status.
      *
-     * @return the label containing the status message
+     * @return the panel containing the status message
      */
-    public JLabel getLabel() {
-        return m_statusLabel;
+    public JPanel getPanel() {
+        return m_panel;
     }
 
 }

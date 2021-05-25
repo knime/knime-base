@@ -86,7 +86,7 @@ final class NumberFormatDialog {
 
     private String m_columnDelimiter = ",";
 
-    private final StatusView m_status = new StatusView();
+    private final StatusView m_status = new StatusView(450);
 
     NumberFormatDialog() {
         final DocumentListener listener = new DocumentListener() {
@@ -181,7 +181,7 @@ final class NumberFormatDialog {
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        panel.add(m_status.getLabel(), gbc);
+        panel.add(m_status.getPanel(), gbc);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
         panel.add(new JPanel(), gbc);

@@ -134,9 +134,9 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     private final JLabel m_fileSelectionLabel = new JLabel("File");
 
-    private final StatusView m_statusView = new StatusView();
+    private final StatusView m_statusView = new StatusView(500);
 
-    private final StatusView m_notBrowsableWarning = new StatusView(false);
+    private final StatusView m_notBrowsableWarning = new StatusView(400);
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
@@ -252,7 +252,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
             panel.add(m_modeLabel, gbc.incY().resetX().insetLeft(0).build());
             panel.add(createModePanel(), gbc.incX().setWeightX(1).widthRemainder().build());
         } else {
-            panel.add(m_notBrowsableWarning.getLabel(),
+            panel.add(m_notBrowsableWarning.getPanel(),
                 gbc.resetX().incX().incY().insetLeft(11).setWeightX(1).build());
         }
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
@@ -260,7 +260,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
             gbc.incX().fillHorizontal().insetLeft(5).setWeightX(1).setWidth(2).build());
         panel.add(m_locationFvmBtn, gbc.incX(2).setWeightX(0).setWidth(1).build());
         addAdditionalComponents(panel, gbc.resetX().insetLeft(0).incY());
-        panel.add(m_statusView.getLabel(),
+        panel.add(m_statusView.getPanel(),
             gbc.anchorLineStart().insetLeft(9).insetTop(4).insetBottom(4).setX(1).widthRemainder().incY().build());
     }
 
@@ -269,7 +269,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(0);
         panel.add(m_filterMode.getComponentPanel(), gbc.incX().build());
         panel.add(m_filterMode.getFilterConfigPanel(), gbc.incX().insetLeft(20).build());
-        panel.add(m_notBrowsableWarning.getLabel(), gbc.incX().setWeightX(1).build());
+        panel.add(m_notBrowsableWarning.getPanel(), gbc.incX().setWeightX(1).build());
         return panel;
     }
 
@@ -450,7 +450,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         // the filter mode panel is updated via the settings model
         m_modeLabel.setEnabled(enabled);
         m_locationFvmBtn.setEnabled(enabled);
-        m_statusView.getLabel().setEnabled(enabled);
+        m_statusView.getPanel().setEnabled(enabled);
         m_fileSelectionLabel.setEnabled(enabled);
     }
 

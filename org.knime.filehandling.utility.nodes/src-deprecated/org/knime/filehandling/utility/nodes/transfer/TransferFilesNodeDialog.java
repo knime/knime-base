@@ -82,6 +82,8 @@ import org.knime.filehandling.utility.nodes.dialog.swingworker.SwingWorkerManage
  */
 @Deprecated
 final class TransferFilesNodeDialog extends NodeDialogPane {
+	
+	private static final int STATUS_VIEW_WIDTH = 400;
 
     private final DialogComponentReaderFileChooser m_sourceFilePanel;
 
@@ -123,7 +125,7 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
             "destination_chooser", writeFvm, s -> new TransferFilesStatusMessageReporter(s,
                 sourceFileChooserConfig.createClone(), config.getSettingsModelIncludeSourceFolder().getBooleanValue()));
 
-        m_includeSourceFolderStatusView = new StatusView();
+        m_includeSourceFolderStatusView = new StatusView(STATUS_VIEW_WIDTH);
 
         m_deleteSourceFilesCheckbox =
             new DialogComponentBoolean(m_config.getDeleteSourceFilesModel(), "Delete source files / folders");
@@ -236,7 +238,7 @@ final class TransferFilesNodeDialog extends NodeDialogPane {
         gbc.weighty = 1;
         gbc.fill = GridBagConstraints.VERTICAL;
         gbc.gridheight = 2;
-        panel.add(m_includeSourceFolderStatusView.getLabel(), gbc);
+        panel.add(m_includeSourceFolderStatusView.getPanel(), gbc);
         gbc.gridheight = 1;
         gbc.fill = GridBagConstraints.NONE;
         gbc.weighty = 0;

@@ -95,6 +95,8 @@ final class CompressNodeDialog extends NodeDialogPane {
             .collect(Collectors.joining("|", "(", ")\\s*$")),
         Pattern.CASE_INSENSITIVE);
 
+    private static final int STATUS_VIEW_WIDTH = 400;
+    
     private static final String FILE_HISTORY_ID = "compress_files_history";
 
     private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
@@ -131,10 +133,10 @@ final class CompressNodeDialog extends NodeDialogPane {
             new DialogComponentReaderFileChooser(sourceLocationChooserModel, FILE_HISTORY_ID, readFvm);
 
         m_includeSourceFolder = new JCheckBox("Include selected source folder");
-        m_includeSourceFolderStatusView = new StatusView();
+        m_includeSourceFolderStatusView = new StatusView(STATUS_VIEW_WIDTH);
 
         m_flattenHierarchyPanel = new JCheckBox("Flatten hierarchy");
-        m_flattenHierarchyStatusView = new StatusView();
+        m_flattenHierarchyStatusView = new StatusView(STATUS_VIEW_WIDTH);
 
         m_config.getInputLocationChooserModel().addChangeListener(c -> m_flattenHierarchyPanel
             .setEnabled((m_config.getInputLocationChooserModel().getFilterMode()) != FilterMode.FILE));
@@ -213,7 +215,7 @@ final class CompressNodeDialog extends NodeDialogPane {
         panel.add(m_includeSourceFolder, gbc.build());
 
         gbc.incX().setWeightY(1).fillVertical().setHeight(2);
-        panel.add(m_includeSourceFolderStatusView.getLabel(), gbc.build());
+        panel.add(m_includeSourceFolderStatusView.getPanel(), gbc.build());
 
         gbc.setHeight(1).fillNone().setWeightY(0).resetX().incY();
         panel.add(new JPanel());
@@ -222,7 +224,7 @@ final class CompressNodeDialog extends NodeDialogPane {
         panel.add(m_flattenHierarchyPanel, gbc.build());
 
         gbc.incX().setWeightY(1).fillVertical().setHeight(2);
-        panel.add(m_flattenHierarchyStatusView.getLabel(), gbc.build());
+        panel.add(m_flattenHierarchyStatusView.getPanel(), gbc.build());
 
         panel.add(new JPanel(),
             gbc.insetTop(0).resetX().setHeight(1).incY().setWeightX(1).fillHorizontal().setWidth(2).build());

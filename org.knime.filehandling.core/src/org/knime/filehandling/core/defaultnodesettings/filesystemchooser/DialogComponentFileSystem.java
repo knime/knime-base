@@ -74,7 +74,7 @@ public final class DialogComponentFileSystem extends DialogComponent {
 
     private final FileSystemChooser m_fileSystemChooser;
 
-    private final StatusView m_statusView = new StatusView();
+    private final StatusView m_statusView = new StatusView(300);
 
     private final PriorityStatusConsumer m_statusConsumer = new PriorityStatusConsumer();
 
@@ -104,7 +104,7 @@ public final class DialogComponentFileSystem extends DialogComponent {
             gbc.incX();
         }
         panel.add(m_fileSystemChooser.getPanel(), gbc.build());
-        panel.add(m_statusView.getLabel(), gbc.resetX().incY().widthRemainder().build());
+        panel.add(m_statusView.getPanel(), gbc.resetX().incY().widthRemainder().build());
         // add empty panel to eat up all additional space
         panel.add(new JPanel(), gbc.resetX().incY().fillBoth().widthRemainder().setWeightX(1).setWeightY(1).build());
     }

@@ -75,7 +75,7 @@ final class AnalysisComponentView extends JPanel {
 
     private final JLabel m_analysisProgressPathLabel = new JLabel();
 
-    private final WordWrapJLabel m_errorLabel = new WordWrapJLabel(" ");
+    private final WordWrapJLabel m_errorLabel = new WordWrapJLabel(" ", 500);
 
     private final JProgressBar m_analysisProgressBar;
 

@@ -48,19 +48,14 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
+import java.util.regex.Pattern;
 
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
+
+import org.apache.commons.lang3.RegExUtils;
 
 /**
- * A <code>JLabel</code> that wraps the text in a HTML paragraph to ensure word wrapping.
+ * A <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -68,81 +63,50 @@ import javax.swing.JViewport;
  * @noinstantiate non-public API
  */
 public final class WordWrapJLabel extends JLabel {
+
     private static final long serialVersionUID = 1L;
 
-    private static final String HTML_FORMAT = "<html><p>%s</p></html>";
+    private static final Pattern BACKSLASH_PATTERN = Pattern.compile("\\\\");
 
-    private final String m_emptyPlaceholder;
+    private static final String BACKSLASH_REPLACEMENT = "\\\\<wbr>";
 
-    private JViewport m_viewport;
+    private static final Pattern SLASH_PATTERN =  Pattern.compile("/");
 
-    private static final ComponentAdapter LISTENER = new ComponentAdapter() {
-        @Override
-        public void componentResized(final ComponentEvent ce) {
-            if (ce.getSource() instanceof JViewport) {
-                final JViewport viewport = (JViewport)ce.getSource();
-                final Container view = (Container)viewport.getView();
-                //set width to min size or the visible size of the viewport
-                final int width = Math.max(view.getMinimumSize().width, viewport.getExtentSize().width);
-                view.setPreferredSize(new Dimension(width, Integer.MAX_VALUE));
-                final int minWidth =
-                    Math.min(view.getLayout().preferredLayoutSize(view).width, view.getPreferredSize().width);
-                view.setPreferredSize(new Dimension(minWidth, view.getLayout().preferredLayoutSize(view).height));
-                viewport.revalidate();
-            }
-        }
-    };
+    private static final String SLASH_REPLACEMENT = "<wbr>/";
+
+    private final String m_html;
 
     /**
      * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
-     * The returned label reserves space for one line.
      *
-     * @param text the text to set
+     * @param text the initial text
+     * @param widthInPixel label width in pixels
      */
-    public WordWrapJLabel(final String text) {
-        this(text, true);
+    public WordWrapJLabel(final String text, final int widthInPixel) {
+        super(text);
+        m_html = createHtmlTemplate(widthInPixel);
     }
 
-    /**
-     * Creates a <code>JLabel</code> that wraps the text in a fixed size HTML paragraph to ensure word wrapping.
-     *
-     * @param text the text to set
-     * @param reserveSpace {@code true} if space for one line should be reserved
-     */
-    public WordWrapJLabel(final String text, final boolean reserveSpace) {
-        super(text);
-        m_emptyPlaceholder = reserveSpace ? " " : "";
-
-        addHierarchyListener(new HierarchyListener() {
-            private boolean m_notSet = true;
-
-            @Override
-            public void hierarchyChanged(final HierarchyEvent e) {
-                if (m_notSet && e.getChangeFlags() == HierarchyEvent.PARENT_CHANGED
-                    && e.getChangedParent().getParent() instanceof JScrollPane) {
-                    m_viewport = (JViewport)e.getChangedParent();
-                    m_viewport.removeComponentListener(LISTENER);
-                    m_viewport.addComponentListener(LISTENER);
-                    m_notSet = false;
-                }
-            }
-        });
+    private static String createHtmlTemplate(final int widthInPixel) {
+        return "<html><body style='width: " + widthInPixel + "px'><p>%s</p></body></html>";
     }
 
     @Override
     public void setText(final String text) {
-        final boolean isNullOrEmpty = text == null || text.trim().isEmpty();
-        if (isNullOrEmpty) {
-            super.setText(m_emptyPlaceholder);
+        if (m_html == null) {
+            // only happens during the call of the super constructor
+            super.setText(text);
+        } else if (text.trim().isEmpty()) {
+            super.setText(" ");
         } else {
-            super.setText(String.format(HTML_FORMAT, text));
+            super.setText(String.format(m_html, addWordBreakHints(text)));
         }
-        /*
-         * we hold the viewport to update the extent size to trigger
-         * the listener when we change the text of the label
-         */
-        if (!isNullOrEmpty && m_viewport != null) {
-            m_viewport.setExtentSize(m_viewport.getPreferredSize());
-        }
+    }
+
+    private static String addWordBreakHints(final String text) {
+        String textWBreakHints = RegExUtils.replaceAll(text, BACKSLASH_PATTERN, BACKSLASH_REPLACEMENT);
+        textWBreakHints = RegExUtils.replaceAll(textWBreakHints, SLASH_PATTERN, SLASH_REPLACEMENT);
+
+        return textWBreakHints;
     }
 }
