@@ -185,7 +185,7 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
      *
      * @return a new multi table reader
      */
-    protected final MultiTableReadFactory<I, C, T>
+    protected MultiTableReadFactory<I, C, T>
         createMultiTableReadFactory(final GenericTableReader<I, C, T, V> reader) {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
         DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
