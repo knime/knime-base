@@ -51,7 +51,7 @@ package org.knime.base.node.io.variablecreator;
 import java.io.File;
 import java.util.Optional;
 
-import org.knime.base.node.io.variablecreator.VariableTable.Type;
+import org.knime.base.node.io.variablecreator.SettingsModelVariables.Type;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -73,15 +73,18 @@ import org.knime.core.util.Pair;
  */
 final class VariableCreatorNodeModel extends NodeModel {
 
+    static final String SETTINGS_MODEL_CONFIG_NAME = "variableCreationTable";
+
     /** A table containing the settings of this model, i.e. the variables, their name and value. */
-    private final VariableTable m_table;
+    private final SettingsModelVariables m_table;
 
     /**
      * Create the node model for the "Variable Creator" node
      */
     VariableCreatorNodeModel() {
         super(new PortType[0], new PortType[]{FlowVariablePortObject.TYPE});
-        m_table = new VariableTable(getAvailableFlowVariables(Type.getAllTypes()));
+        m_table = new SettingsModelVariables(SETTINGS_MODEL_CONFIG_NAME, Type.values(),
+            getAvailableFlowVariables(Type.getAllTypes()));
         addDefaultValue();
     }
 
@@ -91,7 +94,7 @@ final class VariableCreatorNodeModel extends NodeModel {
     private void addDefaultValue() {
         m_table.addRow();
         final var resultType = m_table.setType(0, Type.STRING);
-        final var resultName = m_table.setName(0, VariableTable.DEFAULT_NAME_PREFIX + '_' + 1);
+        final var resultName = m_table.setName(0, SettingsModelVariables.DEFAULT_NAME_PREFIX + '_' + 1);
         final var resultValue = m_table.setValue(0, Type.STRING.getDefaultStringValue());
 
         if (!resultType.getFirst().booleanValue()) {
@@ -156,10 +159,10 @@ final class VariableCreatorNodeModel extends NodeModel {
 
             if (hintMsg.isPresent()) {
                 switch (hintMsg.get()) {
-                    case VariableTable.MSG_NAME_EXTERNAL_CONFLICT:
+                    case SettingsModelVariables.MSG_NAME_EXTERNAL_CONFLICT:
                         foundConflict = true;
                         break;
-                    case VariableTable.MSG_NAME_EXTERNAL_OVERRIDES:
+                    case SettingsModelVariables.MSG_NAME_EXTERNAL_OVERRIDES:
                         foundOverride = true;
                         break;
                     default:
@@ -243,7 +246,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_table.saveVariablesToSettings(settings);
+        m_table.saveSettingsTo(settings);
     }
 
     /**
@@ -251,7 +254,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        VariableTable.validateVariablesFromSettings(settings);
+        m_table.validateSettings(settings);
     }
 
     /**
@@ -259,8 +262,7 @@ final class VariableCreatorNodeModel extends NodeModel {
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_table.loadVariablesFromSettings(settings);
-
+        m_table.loadSettingsFrom(settings);
     }
 
     /**

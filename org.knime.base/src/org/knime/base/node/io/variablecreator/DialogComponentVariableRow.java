@@ -53,12 +53,14 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -74,7 +76,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.apache.commons.lang.WordUtils;
-import org.knime.base.node.io.variablecreator.VariableTable.Type;
+import org.knime.base.node.io.variablecreator.SettingsModelVariables.Type;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.core.util.Pair;
 
@@ -83,13 +85,16 @@ import org.knime.core.util.Pair;
  *
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
-final class DialogVariableRow {
+final class DialogComponentVariableRow {
+
+    /** Whether this row is enabled. */
+    private boolean m_enabled;
 
     /** The index in the row list this row currently has. */
     private int m_index;
 
-    /** The panel on which this row is contained. */
-    private final VariableCreatorNodeDialog m_parent;
+    /** The component on which this row is contained. */
+    private final DialogComponentVariables m_parent;
 
     /** The combo box for selecting a type. */
     private final JComboBox<Type> m_typeSelection;
@@ -103,11 +108,20 @@ final class DialogVariableRow {
     /** The input field for choosing a name. */
     private final JTextField m_nameInput;
 
+    /** What to do if the name input is externally bound. */
+    private Consumer<String> m_nameInputBinding = null;
+
+    /** The value the name input had before it was bound to be able to restore it later. */
+    private String m_nameInputValueBeforeBinding = null;
+
     /** The default border of the name input field. */
     private final Border m_nameInputDefaultBorder;
 
     /** The error border of the name input field. */
     private final Border m_nameInputErrorBorder;
+
+    /** The border to be shown if this field is enabled. */
+    private Border m_nameInputEnabledBorder;
 
     /** The error/warning hint for the name input field. */
     private final JLabel m_nameInputHint;
@@ -137,17 +151,19 @@ final class DialogVariableRow {
     private final JPanel m_buttonBox;
 
     /**
-     * Creates a new row in the panel of the dialog
+     * Creates a new row in the panel of the dialog. The change listeners of the {@link SettingsModelVariables}
+     * must be updated after this object was created!
      *
      * @param parent the dialog panel this row belongs to (is assumed to be lied out by a {@link GridBagLayout})
      * @param loading whether this row is created while loading the values from a {@link VariableTable}
      */
-    DialogVariableRow(final VariableCreatorNodeDialog parent, final boolean loading) {
+    DialogComponentVariableRow(final DialogComponentVariables parent, final boolean loading) {
         m_parent = parent;
         m_index = m_parent.getRows().size();
+        m_enabled = true;
 
         // initialize objects but not values
-        m_typeSelection = new JComboBox<>(Type.values()) {
+        m_typeSelection = new JComboBox<>(parent.getVariableTable().getSupportedTypes()) {
             private static final long serialVersionUID = -5078958064144519774L;
 
             @Override
@@ -183,28 +199,42 @@ final class DialogVariableRow {
      */
     private void initRow(final boolean loading) {
         if (!loading) {
-            m_parent.getVars().addRow();
+            m_parent.getVariableTable().addRow();
         }
         final JPanel parentPanel = m_parent.getGUIPanel();
 
         // we create this in reverse order to ensure correct checks
         final JPanel value = makeValueInputBox();
         final JPanel name = makeNameInputBox();
-        parentPanel.add(makeTypeSelectionBox(), VariableCreatorNodeDialog.getTypeColumnConstraints(m_index + 1,
-            VariableCreatorNodeDialog.COL_PADDING_INNER));
-        parentPanel.add(name, VariableCreatorNodeDialog.getNameColumnConstraints(m_index + 1,
-            VariableCreatorNodeDialog.COL_PADDING_INNER));
-        parentPanel.add(value, VariableCreatorNodeDialog.getValueColumnConstraints(m_index + 1,
-            VariableCreatorNodeDialog.COL_PADDING_INNER));
-        parentPanel.add(makeButtons(), VariableCreatorNodeDialog.getButtonsColumnConstraints(m_index + 1));
+        parentPanel.add(makeTypeSelectionBox(), DialogComponentVariables.getTypeColumnConstraints(m_index + 1,
+            DialogComponentVariables.COL_PADDING_INNER));
+        parentPanel.add(name, DialogComponentVariables.getNameColumnConstraints(m_index + 1,
+            DialogComponentVariables.COL_PADDING_INNER));
+        parentPanel.add(value, DialogComponentVariables.getValueColumnConstraints(m_index + 1,
+            DialogComponentVariables.COL_PADDING_INNER));
+        parentPanel.add(makeButtons(), DialogComponentVariables.getButtonsColumnConstraints(m_index + 1));
+
+        if (!m_parent.isEnabled()) {
+            setEnabled(false);
+        }
     }
 
     /**
-     * Selects all the text in the name input field and grabs the focus
+     * Selects the name text field if it is editable and the value text field otherwise
      */
-    void selectName() {
-        m_nameInput.selectAll();
-        m_nameInput.requestFocusInWindow();
+    void selectSelectNextInput() {
+        if (m_nameInput.isEditable()) {
+            m_nameInput.requestFocusInWindow();
+        } else {
+            m_valueInput.requestFocusInWindow();
+        }
+    }
+
+    /**
+     * @return the currently selected type
+     */
+    Type getType() {
+        return (Type) m_typeSelection.getSelectedItem();
     }
 
     /**
@@ -212,6 +242,20 @@ final class DialogVariableRow {
      */
     String getName() {
         return m_nameInput.getText().trim();
+    }
+
+    /**
+     * @return the untrimmed value entered in the value field of this row
+     */
+    String getValue() {
+        return m_valueInput.getText();
+    }
+
+    /**
+     * @return the index of this row
+     */
+    int getIndex() {
+        return m_index;
     }
 
     /**
@@ -226,11 +270,11 @@ final class DialogVariableRow {
         parentPanel.remove(m_valueBox);
         parentPanel.remove(m_buttonBox);
 
-        m_parent.getVars().removeRow(m_index);
+        m_parent.getVariableTable().removeRow(m_index);
 
         final int numRows = m_parent.getRows().size();
         for (int i = m_index; i < numRows; i++) {
-            final DialogVariableRow after = m_parent.getRows().get(i);
+            final DialogComponentVariableRow after = m_parent.getRows().get(i);
             after.m_index = i;
             after.setRowInLayout(i);
         }
@@ -238,7 +282,7 @@ final class DialogVariableRow {
             m_parent.setAddHintVisible(true);
         }
         m_parent.getLayout().setConstraints(m_parent.getAddButton(),
-            VariableCreatorNodeDialog.getAddButtonConstraints(numRows + 1));
+            DialogComponentVariables.getAddButtonConstraints(numRows + 1));
 
         m_parent.getErrorHints().remove(m_typeSelectionHint);
         m_parent.getErrorHints().remove(m_nameInputHint);
@@ -251,6 +295,9 @@ final class DialogVariableRow {
         updateMoveButtions(m_index);
         updateMoveButtions(m_index + 1);
 
+        m_parent.fireRowsChange();
+
+
         parentPanel.revalidate();
         parentPanel.repaint();
     }
@@ -262,12 +309,12 @@ final class DialogVariableRow {
      * @param second the second row
      */
     void swapRows(final int first, final int second) {
-        m_parent.getVars().swapRows(first, second);
+        m_parent.getVariableTable().swapRows(first, second);
         Collections.swap(m_parent.getRows(), first, second);
 
         // this is after the swap so the positions do not match their indices anymore
-        final DialogVariableRow firstRow = m_parent.getRows().get(first); // old second row
-        final DialogVariableRow secondRow = m_parent.getRows().get(second);// old first  row
+        final DialogComponentVariableRow firstRow = m_parent.getRows().get(first); // old second row
+        final DialogComponentVariableRow secondRow = m_parent.getRows().get(second);// old first  row
         firstRow.m_index = first;
         secondRow.m_index = second;
         firstRow.setRowInLayout(first);
@@ -276,26 +323,28 @@ final class DialogVariableRow {
         updateMoveButtions(first);
         updateMoveButtions(second);
 
+        m_parent.fireRowsChange();
+
         final JPanel parentPanel = m_parent.getGUIPanel();
         parentPanel.revalidate();
         parentPanel.repaint();
     }
 
     /**
-     * Moves this {@link DialogVariableRow} to a specific row in the {@link GridBagLayout} of the parent.
+     * Moves this {@link DialogComponentVariableRow} to a specific row in the {@link GridBagLayout} of the parent.
      *
      * @param row the row number to move to
      */
     private void setRowInLayout(final int row) {
         final GridBagLayout parentLayout = m_parent.getLayout();
         final int destination = row + 1; // we need to skip the header
-        parentLayout.setConstraints(m_typeBox, VariableCreatorNodeDialog.getTypeColumnConstraints(destination,
-            VariableCreatorNodeDialog.COL_PADDING_INNER));
-        parentLayout.setConstraints(m_nameBox, VariableCreatorNodeDialog.getNameColumnConstraints(destination,
-            VariableCreatorNodeDialog.COL_PADDING_INNER));
-        parentLayout.setConstraints(m_valueBox, VariableCreatorNodeDialog.getValueColumnConstraints(destination,
-            VariableCreatorNodeDialog.COL_PADDING_INNER));
-        parentLayout.setConstraints(m_buttonBox, VariableCreatorNodeDialog.getButtonsColumnConstraints(destination));
+        parentLayout.setConstraints(m_typeBox, DialogComponentVariables.getTypeColumnConstraints(destination,
+            DialogComponentVariables.COL_PADDING_INNER));
+        parentLayout.setConstraints(m_nameBox, DialogComponentVariables.getNameColumnConstraints(destination,
+            DialogComponentVariables.COL_PADDING_INNER));
+        parentLayout.setConstraints(m_valueBox, DialogComponentVariables.getValueColumnConstraints(destination,
+            DialogComponentVariables.COL_PADDING_INNER));
+        parentLayout.setConstraints(m_buttonBox, DialogComponentVariables.getButtonsColumnConstraints(destination));
     }
 
     /**
@@ -345,7 +394,7 @@ final class DialogVariableRow {
         JPanel panel = m_typeBox;
         panel.setLayout(new GridBagLayout());
 
-        m_typeSelection.setSelectedItem(m_parent.getVars().getType(m_index));
+        m_typeSelection.setSelectedItem(m_parent.getVariableTable().getType(m_index));
         m_typeSelection.addActionListener(a -> checkTypeBox(true));
         m_typeSelection.setRenderer(new TypeRenderer());
 
@@ -357,13 +406,16 @@ final class DialogVariableRow {
 
         panel.add(m_typeSelection, c);
         c.gridy = 1;
-        panel.add(m_typeSelectionHint, c);
-        VariableCreatorNodeDialog.setPreferredWidth(panel, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
-        VariableCreatorNodeDialog.setPreferredWidth(m_typeSelection, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
-        VariableCreatorNodeDialog.setPreferredWidth(m_typeSelectionHint, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(panel, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(m_typeSelection, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(m_typeSelectionHint, VariableCreatorNodeDialog.COL_TYPE_WIDTH);
+        // used to keep the panel from collapsing if the hint is set to invisible
+        final var placeholder = new JPanel(new GridLayout(1,1));
+        placeholder.add(m_typeSelection);
+        panel.add(placeholder, c);
+        DialogComponentVariables.setPreferredWidth(panel, DialogComponentVariables.COL_TYPE_WIDTH);
+        DialogComponentVariables.setPreferredWidth(m_typeSelection, DialogComponentVariables.COL_TYPE_WIDTH);
+        DialogComponentVariables.setPreferredWidth(m_typeSelectionHint, DialogComponentVariables.COL_TYPE_WIDTH);
+        DialogComponentVariables.setMinWidth(panel, DialogComponentVariables.COL_TYPE_WIDTH);
+        DialogComponentVariables.setMinWidth(m_typeSelection, DialogComponentVariables.COL_TYPE_WIDTH);
+        DialogComponentVariables.setMinWidth(m_typeSelectionHint, DialogComponentVariables.COL_TYPE_WIDTH);
 
         return panel;
     }
@@ -377,10 +429,10 @@ final class DialogVariableRow {
         JPanel panel = m_nameBox;
         panel.setLayout(new GridBagLayout());
 
-        if (m_parent.getVars().getName(m_index).isEmpty()) {
-            m_nameInput.setText(VariableTable.DEFAULT_NAME_PREFIX + '_' + (m_index + 1));
+        if (m_parent.getVariableTable().getName(m_index).isEmpty()) {
+            m_nameInput.setText(SettingsModelVariables.DEFAULT_NAME_PREFIX + '_' + (m_index + 1));
         } else {
-            m_nameInput.setText(m_parent.getVars().getName(m_index));
+            m_nameInput.setText(m_parent.getVariableTable().getName(m_index));
         }
         m_nameInput.getDocument().addDocumentListener(new DocumentListener() {
             /** The value that was preset before the current change. */
@@ -431,13 +483,16 @@ final class DialogVariableRow {
 
         panel.add(m_nameInput, c);
         c.gridy = 1;
-        panel.add(m_nameInputHint, c);
-        VariableCreatorNodeDialog.setPreferredWidth(panel, VariableCreatorNodeDialog.COL_NAME_WIDTH);
-        VariableCreatorNodeDialog.setPreferredWidth(m_nameInput, VariableCreatorNodeDialog.COL_NAME_WIDTH);
-        VariableCreatorNodeDialog.setPreferredWidth(m_nameInputHint, VariableCreatorNodeDialog.COL_NAME_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(panel, VariableCreatorNodeDialog.COL_NAME_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(m_nameInput, VariableCreatorNodeDialog.COL_NAME_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(m_nameInputHint, VariableCreatorNodeDialog.COL_NAME_WIDTH);
+        // used to keep the panel from collapsing if the hint is set to invisible
+        final var placeholder = new JPanel(new GridLayout(1,1));
+        placeholder.add(m_nameInputHint);
+        panel.add(placeholder, c);
+        DialogComponentVariables.setPreferredWidth(panel, DialogComponentVariables.COL_NAME_WIDTH);
+        DialogComponentVariables.setPreferredWidth(m_nameInput, DialogComponentVariables.COL_NAME_WIDTH);
+        DialogComponentVariables.setPreferredWidth(m_nameInputHint, DialogComponentVariables.COL_NAME_WIDTH);
+        DialogComponentVariables.setMinWidth(panel, DialogComponentVariables.COL_NAME_WIDTH);
+        DialogComponentVariables.setMinWidth(m_nameInput, DialogComponentVariables.COL_NAME_WIDTH);
+        DialogComponentVariables.setMinWidth(m_nameInputHint, DialogComponentVariables.COL_NAME_WIDTH);
 
         panel.revalidate();
         panel.repaint();
@@ -454,7 +509,7 @@ final class DialogVariableRow {
         JPanel panel = m_valueBox;
         panel.setLayout(new GridBagLayout());
 
-        m_valueInput.setText(m_parent.getVars().getValue(m_index).toString());
+        m_valueInput.setText(m_parent.getVariableTable().getValue(m_index).toString());
         m_valueInput.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void removeUpdate(final DocumentEvent e) {
@@ -493,13 +548,16 @@ final class DialogVariableRow {
 
         panel.add(m_valueInput, c);
         c.gridy = 1;
-        panel.add(m_valueInputHint, c);
-        VariableCreatorNodeDialog.setPreferredWidth(panel, VariableCreatorNodeDialog.COL_VAL_WIDTH);
-        VariableCreatorNodeDialog.setPreferredWidth(m_valueInput, VariableCreatorNodeDialog.COL_VAL_WIDTH);
-        VariableCreatorNodeDialog.setPreferredWidth(m_valueInputHint, VariableCreatorNodeDialog.COL_VAL_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(panel, VariableCreatorNodeDialog.COL_VAL_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(m_valueInput, VariableCreatorNodeDialog.COL_VAL_WIDTH);
-        VariableCreatorNodeDialog.setMinWidth(m_valueInputHint, VariableCreatorNodeDialog.COL_VAL_WIDTH);
+        // used to keep the panel from collapsing if the hint is set to invisible
+        final var placeholder = new JPanel(new GridLayout(1,1));
+        placeholder.add(m_valueInputHint);
+        panel.add(placeholder, c);
+        DialogComponentVariables.setPreferredWidth(panel, DialogComponentVariables.COL_VAL_WIDTH);
+        DialogComponentVariables.setPreferredWidth(m_valueInput, DialogComponentVariables.COL_VAL_WIDTH);
+        DialogComponentVariables.setPreferredWidth(m_valueInputHint, DialogComponentVariables.COL_VAL_WIDTH);
+        DialogComponentVariables.setMinWidth(panel, DialogComponentVariables.COL_VAL_WIDTH);
+        DialogComponentVariables.setMinWidth(m_valueInput, DialogComponentVariables.COL_VAL_WIDTH);
+        DialogComponentVariables.setMinWidth(m_valueInputHint, DialogComponentVariables.COL_VAL_WIDTH);
 
         return panel;
     }
@@ -550,21 +608,32 @@ final class DialogVariableRow {
      */
     private void checkTypeBox(final boolean popupMayBeOpen) {
         final Type newType = (Type)m_typeSelection.getSelectedItem();
-        final Type oldType = m_parent.getVars().getType(m_index);
+        final Type oldType = m_parent.getVariableTable().getType(m_index);
+        if (!popupMayBeOpen) {
+            m_valueInput.requestFocusInWindow();
+        }
         if (oldType == newType) {
             return;
         }
 
-        m_parent.getVars().setType(m_index, newType);
+        final var updateResult = m_parent.getVariableTable().setType(m_index, newType);
+        final var hintMsg = updateResult.getSecond();
+        if (updateResult.getFirst().booleanValue()) {
+            if (hintMsg.isPresent()) {
+                setInfo(m_typeSelectionHint, hintMsg.get());
+            } else {
+                clearHint(m_typeSelectionHint);
+            }
+        } else {
+            setError(m_typeSelectionHint, hintMsg.orElse("(Unknown Error!)"));
+            return; // no further checks
+        }
         checkNameInputBox(m_nameInput.getText().trim());
         // only update if the default value is an exact match to prevent loosing data from the user
         if (m_valueInput.getText().equals(oldType.getDefaultStringValue())) {
             m_valueInput.setText(newType.getDefaultStringValue());
         }
         checkValueInputBox();
-        if (!popupMayBeOpen) {
-            m_valueInput.requestFocusInWindow();
-        }
     }
 
     /**
@@ -584,7 +653,7 @@ final class DialogVariableRow {
 
         // we will not remove the value
         if (newValue != null) {
-            checkAndUpdateNewvalue(newValue);
+            checkAndUpdateNewValue(newValue);
         }
     }
 
@@ -594,10 +663,10 @@ final class DialogVariableRow {
      * @param oldValue the old value to remove
      */
     private void cleanOldNameValueFromDuplicates(final String oldValue) {
-        final Set<DialogVariableRow> alreadyUsing = m_parent.getUsedNames().get(oldValue);
+        final Set<DialogComponentVariableRow> alreadyUsing = m_parent.getUsedNames().get(oldValue);
         alreadyUsing.remove(this);
         if (alreadyUsing.size() == 1) {
-            final DialogVariableRow remaining = alreadyUsing.iterator().next();
+            final DialogComponentVariableRow remaining = alreadyUsing.iterator().next();
             remaining.checkNameInputBox(oldValue);
         } else if (alreadyUsing.isEmpty()) {
             m_parent.getUsedNames().remove(oldValue);
@@ -610,23 +679,25 @@ final class DialogVariableRow {
      *
      * @param newValue the new name to set
      */
-    private void checkAndUpdateNewvalue(final String newValue) {
+    private void checkAndUpdateNewValue(final String newValue) {
         checkNameInputBox(newValue);
         if (!newValue.isEmpty()) {
             if (!m_parent.getUsedNames().containsKey(newValue)) {
-                m_parent.getUsedNames().put(newValue, new HashSet<DialogVariableRow>());
+                m_parent.getUsedNames().put(newValue, new HashSet<DialogComponentVariableRow>());
             }
-            final Set<DialogVariableRow> alreadyUsing = m_parent.getUsedNames().get(newValue);
+            final Set<DialogComponentVariableRow> alreadyUsing = m_parent.getUsedNames().get(newValue);
             if (alreadyUsing.size() == 1) {
                 final var remaining = alreadyUsing.iterator().next();
                 alreadyUsing.add(this);
                 setError(remaining.m_nameInputHint, "Name conflict");
-                remaining.m_nameInput.setBorder(m_nameInputErrorBorder);
+                remaining.m_nameInputEnabledBorder = remaining.m_nameInputErrorBorder;
+                if (remaining.m_enabled) {
+                    remaining.m_nameInput.setBorder(remaining.m_nameInputEnabledBorder);
+                }
             } else {
                 alreadyUsing.add(this);
             }
         }
-
     }
 
     /**
@@ -638,14 +709,14 @@ final class DialogVariableRow {
      */
     private void checkNameInputBox(final String newValue) {
         final Pair<Boolean, Optional<String>> updateResult =
-            m_parent.getVars().checkVariableNameExternal(m_index, newValue);
+            m_parent.getVariableTable().checkVariableNameExternal(m_index, newValue);
         Optional<String> messageStr = updateResult.getSecond();
         boolean noError = updateResult.getFirst();
         boolean setBorder = false;
         // this ignores only a warning and overrides it with the error if it occurs
         if (noError && m_parent.getUsedNames().containsKey(newValue)
             && !m_parent.getUsedNames().get(newValue).isEmpty()) {
-            final Set<DialogVariableRow> alreadyUsing = m_parent.getUsedNames().get(newValue);
+            final Set<DialogComponentVariableRow> alreadyUsing = m_parent.getUsedNames().get(newValue);
             if (alreadyUsing.size() > 1 || !alreadyUsing.contains(this)) {
                 noError = false;
                 setBorder = true;
@@ -653,9 +724,12 @@ final class DialogVariableRow {
             }
         }
         if (setBorder) {
-            m_nameInput.setBorder(m_nameInputErrorBorder);
+            m_nameInputEnabledBorder = m_nameInputErrorBorder;
         } else {
-            m_nameInput.setBorder(m_nameInputDefaultBorder);
+            m_nameInputEnabledBorder = m_nameInputDefaultBorder;
+        }
+        if (m_enabled) {
+            m_nameInput.setBorder(m_nameInputEnabledBorder);
         }
         if (noError) {
             if (messageStr.isPresent()) {
@@ -669,11 +743,48 @@ final class DialogVariableRow {
     }
 
     /**
+     * Set a binding for the name input field
+     * @return a consumer that will be applied to the text of the name input field
+     */
+    Consumer<String> setNameBinding() {
+        if (m_nameInputBinding != null) {
+            throw new IllegalStateException("Name alrady bound!");
+        }
+        m_nameInputValueBeforeBinding = m_nameInput.getText();
+        m_nameInputBinding = m_nameInput::setText;
+        m_nameInput.setEditable(false);
+        m_nameInput.setCaretPosition(m_nameInput.getText().length());
+        return m_nameInputBinding;
+    }
+
+    /**
+     * @return the consumer bound to the name input field if present
+     */
+    Optional<Consumer<String>> getNameBinding() {
+        return Optional.ofNullable(m_nameInputBinding);
+    }
+
+    /**
+     * Remove the consumer bound to the name input field.
+     * @return whether there was a consumer to remove.
+     */
+    boolean removeNameBinding() {
+        if (m_nameInputBinding != null) {
+            m_nameInputBinding = null;
+            m_nameInput.setText(m_nameInputValueBeforeBinding);
+            m_nameInputValueBeforeBinding = null;
+            m_nameInput.setEditable(true);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Check the value in the value input box and set the hint (as well as an error) hint accordingly.
      */
     private void checkValueInputBox() {
         final String typed = m_valueInput.getText();
-        final Pair<Boolean, Optional<String>> updateResult = m_parent.getVars().setValue(m_index, typed);
+        final Pair<Boolean, Optional<String>> updateResult = m_parent.getVariableTable().setValue(m_index, typed);
         final Optional<String> hintMsg = updateResult.getSecond();
         if (updateResult.getFirst().booleanValue()) {
             if (hintMsg.isPresent()) {
@@ -689,8 +800,26 @@ final class DialogVariableRow {
     /**
      * Update the usable state of the move buttons this row.
      */
-    void updateMoveButtions() {
+    void updateMoveButtons() {
         updateMoveButtions(m_index);
+    }
+
+    /**
+     * Sets the fields of this row
+     * @param type the type to set. May be <code>null</code> to indicate that the type shouldn't be changed.
+     * @param name the name to set. May be <code>null</code> to indicate that the name shouldn't be changed.
+     * @param value the value to set. May be <code>null</code> to indicate that the value shouldn't be changed.
+     */
+    void setFields(final Type type, final String name, final String value) {
+        if (value != null) {
+            m_valueInput.setText(value);
+        }
+        if (name != null) {
+            m_nameInput.setText(name);
+        }
+        if (type != null) {
+            m_typeSelection.setSelectedItem(type);
+        }
     }
 
     /**
@@ -704,9 +833,38 @@ final class DialogVariableRow {
             return;
         }
 
-        final DialogVariableRow buttons = m_parent.getRows().get(index);
+        final DialogComponentVariableRow buttons = m_parent.getRows().get(index);
         buttons.m_up.setEnabled(index != 0);
         buttons.m_down.setEnabled(index != maxIdx);
+    }
+
+    /**
+     * Sets whether the components on this row are enabled
+     * @param enabled the enabled state
+     */
+    void setEnabled(final boolean enabled) {
+        m_enabled = enabled;
+        if (enabled) {
+            m_nameInput.setBorder(m_nameInputEnabledBorder);
+
+            updateMoveButtons();
+        } else {
+            m_typeSelection.setEnabled(false);
+            m_nameInput.setBorder(m_nameInputDefaultBorder);
+            m_nameInput.setCaretPosition(m_nameInput.getText().length());
+            m_valueInput.setCaretPosition(m_valueInput.getText().length());
+
+            m_down.setEnabled(false);
+            m_up.setEnabled(false);
+        }
+
+        m_typeSelection.setEnabled(enabled);
+        m_nameInput.setEnabled(enabled);
+        m_valueInput.setEnabled(enabled);
+        m_delete.setEnabled(enabled);
+        m_typeSelectionHint.setVisible(enabled);
+        m_nameInputHint.setVisible(enabled);
+        m_valueInputHint.setVisible(enabled);
     }
 
     /**
@@ -751,7 +909,7 @@ final class DialogVariableRow {
             }
 
             setIcon(value.m_type.getIcon());
-            setText(WordUtils.capitalizeFully(value.m_type.toString()));
+            setText(WordUtils.capitalizeFully(value.getIdentifier()));
             return this;
         }
     }

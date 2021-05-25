@@ -59,9 +59,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
@@ -73,14 +77,19 @@ import org.knime.core.util.Pair;
  * names while creating entries).
  *
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients.
+ * @noinstantiate This class is not intended to be instantiated by clients.
  */
-final class VariableTable {
+public final class SettingsModelVariables extends SettingsModel {
 
     /** Contains the default name that is automatically used. */
     static final String DEFAULT_NAME_PREFIX = "variable";
 
     /** Contains the key that is used for the variables as a whole. */
     private static final String SETTINGS_KEY = "variables";
+
+    /** Contains the key that is used for the supported variable types. */
+    private static final String SETTINGS_SUPPORTED_TYPES = "supportedTypes";
 
     /** Contains the key that is used for the variable type column. */
     private static final String SETTINGS_COL_TYPE = "types";
@@ -93,6 +102,9 @@ final class VariableTable {
 
     /** Defines the names of the columns of the table. */
     private static final String[] COL_NAMES = new String[]{"Type", "Variable Name", "Value"};
+
+    /** The number of columns. It should be used instead of magic values. */
+    static final int COL_NUMBER = COL_NAMES.length;
 
     /** The index of the type column. It should be used instead of magic values. */
     static final int COL_TYPE_INDEX = 0;
@@ -114,7 +126,7 @@ final class VariableTable {
      *
      * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
      */
-    enum Type {
+    public enum Type {
             /** The representation of {@link org.knime.core.node.workflow.VariableType.StringType}. */
             STRING(VariableType.StringType.INSTANCE, "str", ""),
             /** The representation of {@link org.knime.core.node.workflow.VariableType.IntType}. */
@@ -156,9 +168,16 @@ final class VariableTable {
         }
 
         /**
+         * @return the identifier of the {@link VariableType} associated with this type.
+         */
+        public String getIdentifier() {
+            return m_type.getIdentifier();
+        }
+
+        /**
          * @return the string representation of this type.
          */
-        String getStrRepresentation() {
+        public String getStrRepresentation() {
             return m_strRepresentation;
         }
 
@@ -185,30 +204,51 @@ final class VariableTable {
         }
 
         /**
-         * @return all the {@link VariableType}s that are associated a type enum.
+         * Tries to get a {@link Type} from its {@link VariableType}.
+         *
+         * @param type the {@link VariableType} of the type
+         * @return the type with that {@link VariableType} or <code>null</code> if no such type was found.
          */
-        static VariableType<?>[] getSupportedVariableTypes() { // NOSONAR: cannot be expressed in any other way without causing an error
-            return Arrays.stream(Type.values()).map(Type::getVariableType).toArray(VariableType<?>[]::new);
+        static Type getTypeFromVariableType(final VariableType<?> type) {
+            for (Type t : Type.values()) {
+                if (t.m_type.equals(type)) {
+                    return t;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * @param from the elements for which to get the types
+         * @return all the {@link VariableType}s that are associated a given types.
+         */
+        public static VariableType<?>[] toVariableTypes(final Type[] from) { // NOSONAR: cannot be expressed in any other way without causing an error
+            return Arrays.stream(from).map(Type::getVariableType).toArray(VariableType<?>[]::new);
         }
 
         /**
          * @return all registered variable types.
          * @implNote this is the same as {@link VariableType#getAllTypes()} so the same notices apply.
-         *
          */
-        static VariableType<?>[] getAllTypes() { // NOSONAR: cannot be expressed in any other way without causing an error
+        public static VariableType<?>[] getAllTypes() { // NOSONAR: cannot be expressed in any other way without causing an error
             return VariableTypeRegistry.getInstance().getAllTypes();
         }
     }
 
+    /** The configured name. */
+    private final String m_configName;
+
+    /* The types that are that are selectable for this model. */
+    private Type[] m_supportedTypes;
+
     /** A list of the user given variable types (as their string representation). */
-    private final List<Type> m_variableTypes;
+    private List<Type> m_variableTypes;
 
     /** A list of the user given variable names. */
-    private final List<String> m_variableNames;
+    private List<String> m_variableNames;
 
     /** A list of the user given default values. */
-    private final List<Object> m_variableValues;
+    private List<Object> m_variableValues;
 
     /** The variables that are defined over the “Variable Inport”. */
     private Map<String, FlowVariable> m_externalVariables;
@@ -216,14 +256,33 @@ final class VariableTable {
     /**
      * Creates a new table to store the variables.
      *
-     * @param externalInVariables the external inport variables used for checking for name conflicts and overridden
+     * @param configName the name used for this configuration.
+     * @param types the types that will be presented to the user and can be saved in this model
+     * @param externalVariables the external inport variables used for checking for name conflicts and overridden
      *            variables
      */
-    VariableTable(final Map<String, FlowVariable> externalInVariables) {
-        m_externalVariables = externalInVariables;
+    public SettingsModelVariables(final String configName, final Type[] types,
+        final Map<String, FlowVariable> externalVariables) {
+        m_configName = Objects.requireNonNull(configName);
+        m_externalVariables = Objects.requireNonNull(externalVariables);
+        m_supportedTypes = Objects.requireNonNull(types);
         m_variableNames = new ArrayList<>();
         m_variableTypes = new ArrayList<>();
         m_variableValues = new ArrayList<>();
+    }
+
+    /**
+     * Clones this {@link SettingsModelVariables}.
+     *
+     * @param other the object to clone
+     */
+    private SettingsModelVariables(final SettingsModelVariables other) {
+        m_configName = other.m_configName;
+        m_externalVariables = other.m_externalVariables;
+        m_supportedTypes = other.m_supportedTypes;
+        m_variableNames = new ArrayList<>(other.m_variableNames);
+        m_variableTypes = new ArrayList<>(other.m_variableTypes);
+        m_variableValues = new ArrayList<>(other.m_variableValues);
 
     }
 
@@ -239,14 +298,14 @@ final class VariableTable {
     /**
      * @return the amount of variables that are defined in this model.
      */
-    int getRowCount() {
+    public int getRowCount() {
         return m_variableNames.size();
     }
 
     /**
      * @param externalVariables the variables from the “Variable Inport”
      */
-    void setExternalVariables(final Map<String, FlowVariable> externalVariables) {
+    public void setExternalVariables(final Map<String, FlowVariable> externalVariables) {
         m_externalVariables = Objects.requireNonNull(externalVariables);
     }
 
@@ -263,10 +322,17 @@ final class VariableTable {
     }
 
     /**
+     * @return the types that are that are selectable for this model.
+     */
+    public Type[] getSupportedTypes() {
+        return m_supportedTypes;
+    }
+
+    /**
      * @param row the number of the value of retrieve
      * @return the type of the variable in row <code>row</code>.
      */
-    Type getType(final int row) {
+    public Type getType(final int row) {
         return m_variableTypes.get(row);
     }
 
@@ -279,7 +345,15 @@ final class VariableTable {
      * @return whether the operation was successful and an optional description of the error/warning.
      */
     Pair<Boolean, Optional<String>> setType(final int row, final Type type) {
+        if (!ArrayUtils.contains(m_supportedTypes, type)) {
+            return new Pair<>(Boolean.FALSE, Optional.of("Type not supported"));
+        }
+        final var notify = m_variableTypes.get(row) != type;
         m_variableTypes.set(row, Objects.requireNonNull(type));
+
+        if (notify) {
+            notifyChangeListeners();
+        }
         return new Pair<>(Boolean.TRUE, Optional.empty());
     }
 
@@ -287,7 +361,7 @@ final class VariableTable {
      * @param row the number of the value of retrieve
      * @return the name of the variable in row <code>row</code>.
      */
-    String getName(final int row) {
+    public String getName(final int row) {
         return m_variableNames.get(row);
     }
 
@@ -303,7 +377,11 @@ final class VariableTable {
     Pair<Boolean, Optional<String>> setName(final int row, final String name) {
         final Pair<Boolean, Optional<String>> desc = checkVariableName(row, name);
         if (desc.getFirst().booleanValue()) {
+            final var notify = !m_variableNames.get(row).equals(name);
             m_variableNames.set(row, name);
+            if (notify) {
+                notifyChangeListeners();
+            }
         }
         return desc;
     }
@@ -312,7 +390,7 @@ final class VariableTable {
      * @param row the number of the value of retrieve
      * @return the value of the variable in row <code>row</code>.
      */
-    Object getValue(final int row) {
+    public Object getValue(final int row) {
         return m_variableValues.get(row);
     }
 
@@ -328,7 +406,11 @@ final class VariableTable {
         final Pair<Optional<Object>, Optional<String>> result = checkVariableValueString(getType(row), value);
         final Optional<Object> parsedValue = result.getFirst();
         if (parsedValue.isPresent()) {
+            final var notify = !parsedValue.get().equals(m_variableValues.get(row));
             m_variableValues.set(row, parsedValue.get());
+            if (notify) {
+                notifyChangeListeners();
+            }
             return new Pair<>(Boolean.TRUE, result.getSecond());
         } else {
             return new Pair<>(Boolean.FALSE, result.getSecond());
@@ -336,12 +418,14 @@ final class VariableTable {
     }
 
     /**
-     * Add a generic row of type string to the end of the table
+     * Add a generic row of type string to the end of the table.
      */
     void addRow() {
         m_variableTypes.add(Type.STRING);
         m_variableNames.add("");
         m_variableValues.add("");
+
+        notifyChangeListeners();
     }
 
     /**
@@ -353,6 +437,8 @@ final class VariableTable {
         m_variableTypes.remove(row);
         m_variableNames.remove(row);
         m_variableValues.remove(row);
+
+        notifyChangeListeners();
     }
 
     /**
@@ -365,6 +451,10 @@ final class VariableTable {
         Collections.swap(m_variableTypes, first, second);
         Collections.swap(m_variableNames, first, second);
         Collections.swap(m_variableValues, first, second);
+
+        if (first != second) {
+            notifyChangeListeners();
+        }
     }
 
     /**
@@ -559,8 +649,11 @@ final class VariableTable {
      * @throws InvalidSettingsException
      * @throws InvalidSettingsException if the settings could not be parsed
      */
-    static void validateVariablesFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    @Override
+    protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final NodeSettingsRO tableSettings = settings.getNodeSettings(SETTINGS_KEY);
+        final String[] supportedTypes = tableSettings.getStringArray(SETTINGS_SUPPORTED_TYPES,
+            Arrays.stream(Type.values()).map(Type::getStrRepresentation).toArray(String[]::new)); // backwards compatibility
         final String[] typeStrings = tableSettings.getStringArray(SETTINGS_COL_TYPE);
         final String[] nameStrings = tableSettings.getStringArray(SETTINGS_COL_NAME);
         final String[] valStrings = tableSettings.getStringArray(SETTINGS_COL_VAL);
@@ -569,9 +662,16 @@ final class VariableTable {
             nameStrings.length, valStrings.length);
         final Set<String> usedNames = new HashSet<>();
 
+        for (int i = 0; i < supportedTypes.length; i++) {
+            final Type type = Type.getTypeFromString(supportedTypes[i]);
+            CheckUtils.checkSetting(type != null, "Type represenation \"%s\" (number %d) is not in supported types!",
+                i + 1, supportedTypes[i]);
+        }
+
         for (int i = 0; i < typeStrings.length; i++) {
+            CheckUtils.checkSetting(ArrayUtils.contains(supportedTypes, typeStrings[i]),
+                "Type representation \"%s\" for variable %d is not given in supported types!", typeStrings[i], i + 1);
             final Type type = Type.getTypeFromString(typeStrings[i]);
-            CheckUtils.checkSetting(type != null, "Invalid variable type: %s", typeStrings[i]);
             final String name = nameStrings[i].trim();
             CheckUtils.checkSetting(!name.isEmpty(), "Please use a (non-empty) name for variable %d!", i + 1);
             CheckUtils.checkSetting(!usedNames.contains(name),
@@ -589,8 +689,11 @@ final class VariableTable {
      *
      * @param settings the settings to write to
      */
-    void saveVariablesToSettings(final NodeSettingsWO settings) {
+    @Override
+    protected void saveSettingsForModel(final NodeSettingsWO settings) {
         final NodeSettingsWO tableSettings = settings.addNodeSettings(SETTINGS_KEY);
+        tableSettings.addStringArray(SETTINGS_SUPPORTED_TYPES, Arrays.stream(m_supportedTypes).filter(Objects::nonNull)
+            .distinct().map(Type::getStrRepresentation).toArray(String[]::new));
         tableSettings.addStringArray(SETTINGS_COL_TYPE,
             m_variableTypes.stream().map(Type::getStrRepresentation).toArray(String[]::new));
         tableSettings.addStringArray(SETTINGS_COL_NAME, m_variableNames.toArray(new String[0]));
@@ -600,23 +703,32 @@ final class VariableTable {
 
     /**
      * Tries to load defined variables from the settings. These should be checked beforehand with
-     * {@link #validateVariablesFromSettings(NodeSettingsRO)}.
+     * {@link #validateSettingsForModel(NodeSettingsRO)}.
      *
      * @param settings the settings to read from
      * @throws InvalidSettingsException if the settings could not be parsed
      */
-    void loadVariablesFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    @Override
+    protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         final NodeSettingsRO tableSettings = settings.getNodeSettings(SETTINGS_KEY);
+        final String[] supportedTypes = tableSettings.getStringArray(SETTINGS_SUPPORTED_TYPES,
+            Arrays.stream(Type.values()).map(Type::getStrRepresentation).toArray(String[]::new)); // backwards compatibility
         final String[] typeStrings = tableSettings.getStringArray(SETTINGS_COL_TYPE);
         final String[] nameStrings = tableSettings.getStringArray(SETTINGS_COL_NAME);
         final String[] valStrings = tableSettings.getStringArray(SETTINGS_COL_VAL);
 
         reset();
 
+        m_supportedTypes = Arrays.stream(supportedTypes).map(Type::getTypeFromString).toArray(Type[]::new);
+        CheckUtils.checkSetting(!ArrayUtils.contains(m_supportedTypes, null),
+            "Supported types contain an unknown type representation!");
+
         for (int i = 0; i < typeStrings.length; i++) {
+            CheckUtils.checkSetting(ArrayUtils.contains(supportedTypes, typeStrings[i]),
+                "Type representation \"%s\" is not given in supported types!", typeStrings[i]);
             final Type type = Type.getTypeFromString(typeStrings[i]);
             if (type == null) {
-                throw new InvalidSettingsException("Unknow type represenation");
+                throw new InvalidSettingsException("Unknown type represenation: \"" + typeStrings[i] + "\"");
             }
             final Pair<Optional<Object>, Optional<String>> value = checkVariableValueString(type, valStrings[i]);
             final Optional<Object> parsedValue = value.getFirst();
@@ -629,5 +741,96 @@ final class VariableTable {
             m_variableTypes.add(type);
             m_variableValues.add(parsedValue.get());
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    protected SettingsModelVariables createClone() {
+        return new SettingsModelVariables(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected String getModelTypeID() {
+        return "SMITID_variables";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected String getConfigName() {
+        return m_configName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        try {
+            final NodeSettingsRO tableSettings = settings.getNodeSettings(SETTINGS_KEY);
+            final String[] supportedTypes = tableSettings.getStringArray(SETTINGS_SUPPORTED_TYPES,
+                Arrays.stream(Type.values()).map(Type::getStrRepresentation).toArray(String[]::new)); // backwards compatibility
+            final String[] typeStrings = tableSettings.getStringArray(SETTINGS_COL_TYPE);
+            final String[] nameStrings = tableSettings.getStringArray(SETTINGS_COL_NAME);
+            final String[] valStrings = tableSettings.getStringArray(SETTINGS_COL_VAL);
+            final var variableNames = new ArrayList<String>();
+            final var variableTypes = new ArrayList<Type>();
+            final var variableValues = new ArrayList<Object>();
+
+            final var uncheckedSupportedTypes =
+                Arrays.stream(supportedTypes).map(Type::getTypeFromString).toArray(Type[]::new);
+            if (ArrayUtils.contains(uncheckedSupportedTypes, null)) {
+                return; // unknown type contained
+            }
+
+            m_supportedTypes = uncheckedSupportedTypes;
+
+            for (int i = 0; i < typeStrings.length; i++) {
+                final Type type = Type.getTypeFromString(typeStrings[i]);
+                if (type == null) {
+                    return; // type error
+                }
+                final Pair<Optional<Object>, Optional<String>> value = checkVariableValueString(type, valStrings[i]);
+                final Optional<Object> parsedValue = value.getFirst();
+                if (!parsedValue.isPresent()) {
+                    return; // format error
+                }
+
+                variableNames.add(nameStrings[i].trim());
+                variableTypes.add(type);
+                variableValues.add(parsedValue.get());
+            }
+
+            m_variableNames = variableNames;
+            m_variableTypes = variableTypes;
+            m_variableValues = variableValues;
+
+            notifyChangeListeners();
+        } catch (InvalidSettingsException e) { // NOSONAR: In case of an error we do not update the state
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        saveSettingsForModel(settings);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " ('" + m_configName + "')";
     }
 }
