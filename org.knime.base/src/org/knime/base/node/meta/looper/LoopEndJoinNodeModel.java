@@ -171,7 +171,10 @@ final class LoopEndJoinNodeModel extends NodeModel implements LoopEndNode {
         }
     }
 
-
+    @Override
+    public boolean shouldPropagateModifiedVariables() {
+        return m_configuration != null && m_configuration.propagateLoopVariables();
+    }
 
     /**
      * Copies the given table into a new data container. If desired, the column names are made unique beforehand (see
@@ -237,7 +240,7 @@ final class LoopEndJoinNodeModel extends NodeModel implements LoopEndNode {
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         LoopEndJoinNodeConfiguration c = new LoopEndJoinNodeConfiguration();
-        c.loadConfigurationInModel(settings);
+        c.loadConfiguration(settings);
     }
 
     /** {@inheritDoc} */
@@ -245,7 +248,7 @@ final class LoopEndJoinNodeModel extends NodeModel implements LoopEndNode {
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         LoopEndJoinNodeConfiguration c = new LoopEndJoinNodeConfiguration();
-        c.loadConfigurationInModel(settings);
+        c.loadConfiguration(settings);
         m_configuration = c;
     }
 

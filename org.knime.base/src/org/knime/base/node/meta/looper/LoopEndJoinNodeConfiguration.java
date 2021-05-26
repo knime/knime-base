@@ -47,7 +47,6 @@
  */
 package org.knime.base.node.meta.looper;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
@@ -59,6 +58,9 @@ final class LoopEndJoinNodeConfiguration {
 
     private boolean m_hasSameRowsInEachIteration;
 
+    /** @since 4.4 */
+    private boolean m_propagateLoopVariables = false;
+
     /** @return the hasSameRowsInEachIteration */
     boolean hasSameRowsInEachIteration() {
         return m_hasSameRowsInEachIteration;
@@ -69,26 +71,38 @@ final class LoopEndJoinNodeConfiguration {
         m_hasSameRowsInEachIteration = value;
     }
 
+    /**
+     * Whether to propagate modification of variables in subsequent loop iterations and in the output of the end node.
+     *
+     * @return the propagateLoopVariables that property.
+     * @since 4.4
+     */
+    boolean propagateLoopVariables() {
+        return m_propagateLoopVariables;
+    }
+
+    /**
+     * Set the {@link #propagateLoopVariables()} property.
+     *
+     * @param value the propagateLoopVariables to set
+     * @since 4.4
+     */
+    void propagateLoopVariables(final boolean value) {
+        m_propagateLoopVariables = value;
+    }
+
     /** Save current config.
      * @param settings To save to. */
     void saveConfiguration(final NodeSettingsWO settings) {
-        settings.addBoolean("hasSameRowsInEachIteration",
-                m_hasSameRowsInEachIteration);
+        settings.addBoolean("hasSameRowsInEachIteration", m_hasSameRowsInEachIteration);
+        settings.addBoolean("propagateLoopVariables", m_propagateLoopVariables);
     }
 
-    /** Load in NodeModel.
-     * @param settings To load from.
-     * @throws InvalidSettingsException Not actually thrown. */
-    void loadConfigurationInModel(final NodeSettingsRO settings)
-        throws InvalidSettingsException {
-        m_hasSameRowsInEachIteration =
-            settings.getBoolean("hasSameRowsInEachIteration", false);
-    }
-
-    /** Load in Dialog.
+    /** Load config.
      * @param settings To load from. */
-    void loadConfigurationInDialog(final NodeSettingsRO settings) {
-        m_hasSameRowsInEachIteration =
-            settings.getBoolean("hasSameRowsInEachIteration", false);
+    void loadConfiguration(final NodeSettingsRO settings) {
+        m_hasSameRowsInEachIteration = settings.getBoolean("hasSameRowsInEachIteration", false);
+        m_propagateLoopVariables = settings.getBoolean("propagateLoopVariables", false);
     }
+
 }

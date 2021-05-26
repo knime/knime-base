@@ -47,7 +47,7 @@
  */
 package org.knime.base.node.meta.looper;
 
-import java.awt.FlowLayout;
+import java.awt.GridLayout;
 
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -66,14 +66,16 @@ import org.knime.core.node.NotConfigurableException;
 final class LoopEndJoinNodeDialogPane extends NodeDialogPane {
 
     private final JCheckBox m_hasSameRowsInEachIterationChecker;
+    private final JCheckBox m_propagateLoopVariables;
 
     /**
      *  */
     public LoopEndJoinNodeDialogPane() {
-        m_hasSameRowsInEachIterationChecker =
-            new JCheckBox("Loop has same row IDs in each iteration");
-        JPanel p = new JPanel(new FlowLayout());
+        m_hasSameRowsInEachIterationChecker = new JCheckBox("Loop has same row IDs in each iteration");
+        m_propagateLoopVariables = new JCheckBox("Propagate modified loop variables");
+        JPanel p = new JPanel(new GridLayout(0, 1));
         p.add(m_hasSameRowsInEachIterationChecker);
+        p.add(m_propagateLoopVariables);
         addTab("Loop End Configuration", p);
     }
 
@@ -82,9 +84,9 @@ final class LoopEndJoinNodeDialogPane extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings,
             final DataTableSpec[] specs) throws NotConfigurableException {
         LoopEndJoinNodeConfiguration c = new LoopEndJoinNodeConfiguration();
-        c.loadConfigurationInDialog(settings);
-        m_hasSameRowsInEachIterationChecker.setSelected(
-                c.hasSameRowsInEachIteration());
+        c.loadConfiguration(settings);
+        m_hasSameRowsInEachIterationChecker.setSelected(c.hasSameRowsInEachIteration());
+        m_propagateLoopVariables.setSelected(c.propagateLoopVariables());
     }
 
     /** {@inheritDoc} */
@@ -92,8 +94,8 @@ final class LoopEndJoinNodeDialogPane extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
         LoopEndJoinNodeConfiguration c = new LoopEndJoinNodeConfiguration();
-        c.setHasSameRowsInEachIteration(
-                m_hasSameRowsInEachIterationChecker.isSelected());
+        c.setHasSameRowsInEachIteration(m_hasSameRowsInEachIterationChecker.isSelected());
+        c.propagateLoopVariables(m_propagateLoopVariables.isSelected());
         c.saveConfiguration(settings);
     }
 
