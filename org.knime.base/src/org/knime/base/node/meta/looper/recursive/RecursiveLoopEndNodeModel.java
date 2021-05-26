@@ -77,7 +77,11 @@ import org.knime.core.node.workflow.LoopEndNode;
  *
  * @author Iris Adae, University of Konstanz, Germany
  */
-public class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
+class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
+
+    private static final int PORT_INDEX_COLLECTING_IN = 0;
+
+    private static final int PORT_INDEX_RESULTING_IN = 1;
 
     private BufferedDataContainer m_outcontainer;
 
@@ -85,19 +89,19 @@ public class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode 
 
     private int m_iterationnr = 0;
 
-    private final SettingsModelIntegerBounded m_maxIterations = RecursiveLoopEndNodeDialog.createIterationsModel();
+    private final SettingsModelIntegerBounded m_maxIterations = createIterationsModel();
 
-    private final SettingsModelInteger m_minNumberOfRows = RecursiveLoopEndNodeDialog.createNumOfRowsModel();
+    private final SettingsModelInteger m_minNumberOfRows = createNumOfRowsModel();
 
-    private final SettingsModelBoolean m_onlyLastResult = RecursiveLoopEndNodeDialog.createOnlyLastModel();
+    private final SettingsModelBoolean m_onlyLastResult = createOnlyLastModel();
 
-    private final SettingsModelString m_endLoopDeprecated = RecursiveLoopEndNodeDialog.createEndLoop();
+    private final SettingsModelString m_endLoopDeprecated = createEndLoop();
 
-    private final SettingsModelString m_endLoopVariableName = RecursiveLoopEndNodeDialog.createEndLoopVarModel();
+    private final SettingsModelString m_endLoopVariableName = createEndLoopVarModel();
 
-    private final SettingsModelBoolean m_useVariable = RecursiveLoopEndNodeDialog.createUseVariable();
+    private final SettingsModelBoolean m_useVariable = createUseVariable();
 
-    private final SettingsModelBoolean m_addIterationNr = RecursiveLoopEndNodeDialog.createAddIterationColumn();
+    private final SettingsModelBoolean m_addIterationNr = createAddIterationColumn();
 
     /**
      * Constructor for the node model.
@@ -105,13 +109,9 @@ public class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode 
      * @param inPorts the number of inports
      * @param outPorts the number of outports
      */
-    protected RecursiveLoopEndNodeModel(final int inPorts, final int outPorts) {
+    RecursiveLoopEndNodeModel(final int inPorts, final int outPorts) {
         super(inPorts, outPorts);
     }
-
-    private static int collectingIn = 0;
-
-    private static int resultingIn = 1;
 
     /**
      * Check if the loop end is connected to the correct loop start.
@@ -143,8 +143,8 @@ public class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode 
 
         // in port 0: collects the data provided at the output port
         // in port 1: is fed back to loop start node
-        final BufferedDataContainer loopData = exec.createDataContainer(inData[resultingIn].getDataTableSpec());
-        for (final DataRow row : inData[resultingIn]) {
+        final BufferedDataContainer loopData = exec.createDataContainer(inData[PORT_INDEX_RESULTING_IN].getDataTableSpec());
+        for (final DataRow row : inData[PORT_INDEX_RESULTING_IN]) {
             exec.checkCanceled();
             exec.setMessage("Copy input table 1");
             loopData.addRowToTable(createNewRow(row, row.getKey()));
@@ -170,16 +170,16 @@ public class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode 
 
         if (m_onlyLastResult.getBooleanValue()) {
             if (endLoop) {
-                return new BufferedDataTable[]{inData[collectingIn]};
+                return new BufferedDataTable[]{inData[PORT_INDEX_COLLECTING_IN]};
             }
         } else {
             if (m_outcontainer == null) {
-                final DataTableSpec dts = createSpec(inData[collectingIn].getDataTableSpec());
+                final DataTableSpec dts = createSpec(inData[PORT_INDEX_COLLECTING_IN].getDataTableSpec());
                 m_outcontainer = exec.createDataContainer(dts);
             }
             if (m_addIterationNr.getBooleanValue()) {
                 final IntCell currIterCell = new IntCell(m_iterationnr);
-                for (final DataRow row : inData[collectingIn]) {
+                for (final DataRow row : inData[PORT_INDEX_COLLECTING_IN]) {
                     exec.checkCanceled();
                     exec.setMessage("Collect data for output");
                     final RowKey newKey = new RowKey(row.getKey() + "#" + m_iterationnr);
@@ -187,7 +187,7 @@ public class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode 
                     m_outcontainer.addRowToTable(newRow);
                 }
             } else {
-                for (final DataRow row : inData[collectingIn]) {
+                for (final DataRow row : inData[PORT_INDEX_COLLECTING_IN]) {
                     exec.checkCanceled();
                     exec.setMessage("Collect data for output");
                     final RowKey newKey = new RowKey(row.getKey() + "#" + m_iterationnr);
@@ -247,7 +247,7 @@ public class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode 
                 "Selected flow variable: '" + m_endLoopVariableName.getStringValue() + "' not available!");
         }
 
-        return new DataTableSpec[]{createSpec(inSpecs[collectingIn])};
+        return new DataTableSpec[]{createSpec(inSpecs[PORT_INDEX_COLLECTING_IN])};
     }
 
     private DataTableSpec createSpec(final DataTableSpec inSpec) {
@@ -337,6 +337,58 @@ public class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode 
      */
     public BufferedDataTable getInData() {
         return m_inData;
+    }
+
+    /**
+     * @return
+     */
+    static SettingsModelBoolean createUseVariable() {
+        return new SettingsModelBoolean("Use Flow Variable", false);
+    }
+
+    /**
+     * @return the SM for adding the iteration column
+     */
+    static SettingsModelBoolean createAddIterationColumn() {
+        return new SettingsModelBoolean("CFG_AddIterationColumn", false);
+    }
+
+    /**
+     * @return the SM for ending the loop
+     */
+    @Deprecated
+    static SettingsModelString createEndLoop() {
+        return new SettingsModelString("CFG_End_Loop", "false");
+    }
+
+    /**
+     * @return the SM for the name of the variable that can ending loop
+     */
+    static SettingsModelString createEndLoopVarModel() {
+        return new SettingsModelString("End Loop Variable Name", "");
+    }
+
+    /**
+     *
+     * @return the settings model for the maximal number of iterations.
+     */
+    static SettingsModelIntegerBounded createIterationsModel() {
+        return new SettingsModelIntegerBounded("CFG_MaxNrIterations", 100, 1, Integer.MAX_VALUE);
+    }
+
+    /**
+     *
+     * @return the settings model for the minimal number of rows.
+     */
+    static SettingsModelInteger createNumOfRowsModel() {
+        return new SettingsModelInteger("CFG_MinNrOfRows", 1);
+    }
+
+    /**
+     * @return the settings model that contains the only last result flag
+     */
+    static SettingsModelBoolean createOnlyLastModel() {
+        return new SettingsModelBoolean("CFG_OnlyLastData", false);
     }
 
 }

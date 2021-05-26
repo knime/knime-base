@@ -58,8 +58,6 @@ import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentFlowVariableNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
@@ -71,15 +69,15 @@ import org.knime.core.node.workflow.FlowVariable.Type;
  *
  * @author Iris Adae
  */
-public class RecursiveLoopEndNodeDialog extends DefaultNodeSettingsPane {
+final class RecursiveLoopEndNodeDialog extends DefaultNodeSettingsPane {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(RecursiveLoopEndNodeDialog.class);
 
-    private final SettingsModelString m_endLoopVar = createEndLoopVarModel();
+    private final SettingsModelString m_endLoopVar = RecursiveLoopEndNodeModel.createEndLoopVarModel();
 
-    private final SettingsModelString m_endLoopDeprecated = createEndLoop();
+    private final SettingsModelString m_endLoopDeprecated = RecursiveLoopEndNodeModel.createEndLoop();
 
-    private final SettingsModelBoolean m_useVariable = createUseVariable();
+    private final SettingsModelBoolean m_useVariable = RecursiveLoopEndNodeModel.createUseVariable();
 
     private final DialogComponentFlowVariableNameSelection m_flowVarSelection;
 
@@ -88,12 +86,13 @@ public class RecursiveLoopEndNodeDialog extends DefaultNodeSettingsPane {
     /**
      * Create new dialog.
      */
-    public RecursiveLoopEndNodeDialog() {
+    RecursiveLoopEndNodeDialog() {
         createNewGroup("End settings");
 
-        addDialogComponent(new DialogComponentNumber(createNumOfRowsModel(), "Minimal number of rows :", 1, 10));
-        addDialogComponent(
-            new DialogComponentNumber(createIterationsModel(), "Maximal number of iterations :", 10, 10));
+        addDialogComponent(new DialogComponentNumber(RecursiveLoopEndNodeModel.createNumOfRowsModel(),
+            "Minimal number of rows :", 1, 10));
+        addDialogComponent(new DialogComponentNumber(RecursiveLoopEndNodeModel.createIterationsModel(),
+            "Maximal number of iterations :", 10, 10));
 
         m_flowVarSelection = new DialogComponentFlowVariableNameSelection(m_endLoopVar, "",
             getAvailableFlowVariables().values(), false, FlowVariable.Type.STRING);
@@ -105,65 +104,15 @@ public class RecursiveLoopEndNodeDialog extends DefaultNodeSettingsPane {
         closeCurrentGroup();
 
         createNewGroup("Data settings");
-        addDialogComponent(new DialogComponentBoolean(createOnlyLastModel(), "Collect data from last iteration only"));
-        addDialogComponent(new DialogComponentBoolean(createAddIterationColumn(), "Add iteration column"));
+        addDialogComponent(new DialogComponentBoolean(RecursiveLoopEndNodeModel.createOnlyLastModel(),
+            "Collect data from last iteration only"));
+        addDialogComponent(
+            new DialogComponentBoolean(RecursiveLoopEndNodeModel.createAddIterationColumn(), "Add iteration column"));
         closeCurrentGroup();
 
         // listener setup
         m_useVariable
             .addChangeListener(e -> m_endLoopVar.setEnabled(m_varsAvailable && m_useVariable.getBooleanValue()));
-    }
-
-    /**
-     * @return
-     */
-    static SettingsModelBoolean createUseVariable() {
-        return new SettingsModelBoolean("Use Flow Variable", false);
-    }
-
-    /**
-     * @return the SM for adding the iteration column
-     */
-    static SettingsModelBoolean createAddIterationColumn() {
-        return new SettingsModelBoolean("CFG_AddIterationColumn", false);
-    }
-
-    /**
-     * @return the SM for ending the loop
-     */
-    @Deprecated
-    static SettingsModelString createEndLoop() {
-        return new SettingsModelString("CFG_End_Loop", "false");
-    }
-
-    /**
-     * @return the SM for the name of the variable that can ending loop
-     */
-    static SettingsModelString createEndLoopVarModel() {
-        return new SettingsModelString("End Loop Variable Name", "");
-    }
-
-    /**
-     *
-     * @return the settings model for the maximal number of iterations.
-     */
-    static SettingsModelIntegerBounded createIterationsModel() {
-        return new SettingsModelIntegerBounded("CFG_MaxNrIterations", 100, 1, Integer.MAX_VALUE);
-    }
-
-    /**
-     *
-     * @return the settings model for the minimal number of rows.
-     */
-    static SettingsModelInteger createNumOfRowsModel() {
-        return new SettingsModelInteger("CFG_MinNrOfRows", 1);
-    }
-
-    /**
-     * @return the settings model that contains the only last result flag
-     */
-    static SettingsModelBoolean createOnlyLastModel() {
-        return new SettingsModelBoolean("CFG_OnlyLastData", false);
     }
 
     /**

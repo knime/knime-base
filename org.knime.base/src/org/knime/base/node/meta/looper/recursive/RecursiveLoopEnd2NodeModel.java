@@ -56,22 +56,20 @@ import org.knime.core.node.ExecutionContext;
  *
  * @author Iris Adae, University of Konstanz, Germany
  */
-public class RecursiveLoopEnd2NodeModel extends RecursiveLoopEndNodeModel {
+final class RecursiveLoopEnd2NodeModel extends RecursiveLoopEndNodeModel {
 
+    private static final int PORT_INDEX_RESULTING_IN2 = 2;
 
     /**
      * Constructor for the node model.
      * @param inPorts the number of inports
      * @param outPorts the number of outports
      */
-    protected RecursiveLoopEnd2NodeModel(final int inPorts, final int outPorts) {
+    RecursiveLoopEnd2NodeModel(final int inPorts, final int outPorts) {
         super(inPorts, outPorts);
     }
 
     private BufferedDataTable m_inData2;
-    private static int resultingIn2 = 2;
-
-
     /**
      * Check if the loop end is connected to the correct loop start.
      */
@@ -106,12 +104,12 @@ public class RecursiveLoopEnd2NodeModel extends RecursiveLoopEndNodeModel {
         }
 
         // in port 2: is fed back to loop start node
-        BufferedDataContainer loopData = exec.createDataContainer(inData[resultingIn2].getDataTableSpec());
+        BufferedDataContainer loopData = exec.createDataContainer(inData[PORT_INDEX_RESULTING_IN2].getDataTableSpec());
 
         ExecutionContext exec1 = exec.createSubExecutionContext(0.3);
 
         int count = 0;
-        for (DataRow row : inData[resultingIn2]) {
+        for (DataRow row : inData[PORT_INDEX_RESULTING_IN2]) {
             exec1.checkCanceled();
             exec1.setProgress(1.0 * count / loopData.size(), "Copy input table 2");
             loopData.addRowToTable(createNewRow(row, row.getKey()));
@@ -127,7 +125,7 @@ public class RecursiveLoopEnd2NodeModel extends RecursiveLoopEndNodeModel {
     * @return the indata table of the last iteration.
     */
    public BufferedDataTable getInData(final int port) {
-       if (port == resultingIn2) {
+       if (port == PORT_INDEX_RESULTING_IN2) {
            return m_inData2;
        }
        return getInData();
