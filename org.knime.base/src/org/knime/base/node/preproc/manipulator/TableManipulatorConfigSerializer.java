@@ -74,7 +74,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulatorMultiTableReadConfig>,
+public enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulatorMultiTableReadConfig>,
     ConfigIDFactory<TableManipulatorMultiTableReadConfig> {
 
         /**
@@ -92,7 +92,7 @@ enum TableManipulatorConfigSerializer implements ConfigSerializer<TableManipulat
 
     private final TableSpecConfigSerializer<DataType> m_tableSpecSerializer;
 
-    private enum DataTypeSerializer implements NodeSettingsSerializer<DataType> {
+    public enum DataTypeSerializer implements NodeSettingsSerializer<DataType> {
 
             SERIALIZER_INSTANCE;
 

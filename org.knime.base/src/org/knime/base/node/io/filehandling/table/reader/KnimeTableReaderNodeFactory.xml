@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="tableread.png" type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>Table Reader (new)</name>
+
+	<shortDescription>
+		Reads table written by the Table Writer node.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			<p>
+				<i>This node supports the
+				</i>
+				<a
+					href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+					<i>path flow variable.</i>
+				</a>
+				<i> For further information about file handling in general see the
+				</i>
+				<a
+					href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html">
+					<i>File Handling Guide.</i>
+				</a>
+				<br />
+			</p>
+			<p>
+				This node reads files that have been written using the Table
+				Writer node
+				(which uses an internal format). It retains all meta
+				information
+				such as
+				domain, properties, colors, size.
+			</p>
+		</intro>
+		<tab name="Settings">
+			<option name="Read from">
+				Select a file system which stores the data you want to read. There
+				are
+				four default file system options to choose from:
+				<br />
+				<ul>
+					<li>
+						<i>Local File System:</i>
+						Allows you to select a file/folder from your
+						local system.
+					</li>
+					<li>
+						<i>Mountpoint:</i>
+						Allows you to read from a mountpoint.
+						When selected, a new
+						drop-down menu appears to choose the mountpoint.
+						Unconnected
+						mountpoints are greyed out but can still be selected
+						(note that
+						browsing is disabled in this case).
+						Go to the KNIME Explorer and
+						connect to the mountpoint to enable
+						browsing.
+						A mountpoint is
+						displayed in red if it was previously selected but
+						is no longer
+						available.
+						You won't be able to save the dialog as long as you
+						don't select a
+						valid i.e. known mountpoint.
+					</li>
+					<li>
+						<i>Relative to:</i>
+						Allows you to choose whether to resolve the path
+						relative to the
+						current mountpoint, current workflow or the current workflow's
+						data area.
+						When selected a new drop-down menu appears to choose
+						which of the
+						three options to use.
+					</li>
+					<li>
+						<i>Custom/KNIME URL:</i>
+						Allows to specify a URL (e.g. file://, http:// or knime://
+						protocol).
+						When selected, a spinner appears that allows you to
+						specify the
+						desired connection and read timeout in milliseconds.
+						In
+						case it takes longer to connect to the host / read the file, the
+						node fails to execute.
+						Browsing is disabled for this option.
+					</li>
+				</ul>
+				To read from other file systems, click on
+				<b>...</b>
+				in the bottom left corner of the node icon followed by
+				<i>Add File System Connection port</i>
+				. Afterwards, connect the desired file system connector
+				node to the
+				newly added input port. The file system connection will then
+				be shown
+				in the drop-down menu.
+				It is greyed out if the file system is not
+				connected in which case you
+				have to (re)execute the connector node
+				first.
+				Note: The default file
+				systems listed above can't be selected
+				if a file system is provided
+				via the input port.
+			</option>
+			<option name="Mode">
+				Select whether you want to read a single file or
+				multiple files in a folder.
+				When reading files in a folder, you can
+				set filters to specify which
+				files and subfolders to include (see
+				below).
+			</option>
+			<option name="Filter options">
+				Only displayed if the mode
+				<i>Files in folder</i>
+				is selected.
+				Allows to specify which files should be included
+				according to their file extension and/or name.
+				It is also possible to
+				include hidden files.
+				The folder filter options enable you to specify
+				which folders should be included based on their name and hidden
+				status.
+				Note that the folders themselves will not be included, only
+				the files they contain.
+			</option>
+			<option name="Include subfolders">
+				If this option is checked, the node will include
+				all files from subfolders that satisfy the specified filter options.
+				If left unchecked, only the files in the selected folder will be
+				included and all files from subfolders are ignored.
+			</option>
+
+
+			<option name="File, Folder or URL">
+				Enter a URL when reading from
+				<i>Custom/KNIME URL</i>,
+				otherwise enter a path to a file or folder. The
+				required syntax of a
+				path depends on the chosen file system, such as
+				&quot;C:\path\to\file&quot; (Local
+				File System on Windows) or
+				&quot;/path/to/file&quot; (Local
+				File System on Linux/MacOS and
+				Mountpoint). For file systems connected
+				via input port, the node
+				description of the respective connector node describes the required
+				path
+				format.
+				You can also choose a previously selected file/folder
+				from
+				the drop-down list, or select a location
+				from the
+				&quot;Browse...&quot; dialog.
+				Note that browsing is disabled in some
+				cases:
+				<ul>
+					<li>
+						<i>Custom/KNIME URL:</i>
+						Browsing is always disabled.
+					</li>
+					<li>
+						<i>Mountpoint:</i>
+						Browsing is disabled if the selected mountpoint isn't connected.
+						Go to the KNIME Explorer and connect to the mountpoint to enable
+						browsing.
+					</li>
+					<li>
+						<i>File systems provided via input port:</i>
+						Browsing is disabled if the connector node hasn't been executed
+						since the workflow has been opened.
+						(Re)execute the connector node
+						to enable browsing.
+					</li>
+				</ul>
+				<i>The location can be exposed as or automatically set via a
+				</i>
+				<a
+					href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+					<i>path flow variable.</i>
+				</a>
+			</option>
+			<option name="Use existing row ID">
+				Check this box if the row IDs from the input tables should be used for
+				the
+				output tables. If unchecked, a new row ID is generated.
+				The generated row ID follows the schema "Row0", "Row1" and so on.
+			</option>
+			<option name="Prepend table index to row ID">
+				Only enabled if the existing row IDs are used. If checked, a prefix is
+				prepended to the row IDs that indicates which table the row came
+				from.
+				The format of the prefix is "File_0_", "File_1_" and so on.
+			</option>
+		</tab>
+		<tab name="Transformation">
+			<option name="Transformations">
+				This tab displays every column as a row in a
+				table that allows modifying
+				the structure of the output table.
+				It
+				supports reordering, filtering and renaming columns. It is also
+				possible to change the type of the columns.
+				Reordering is done via
+				drag-and-drop. Just drag a column to the position it
+				should have in
+				the output table.
+				Whether and where to add unknown columns during
+				execution is specified via
+				the special row &lt;any unknown new
+				column&gt;.
+				Note that the positions of columns are reset in the
+				dialog if a new file
+				or folder is selected.
+			</option>
+			<option name="Reset order">Resets the order of columns to the order in the
+				input file/folder.
+			</option>
+			<option name="Reset filter">Clicking this button will reset the filters i.e.
+				all columns will be included.
+			</option>
+			<option name="Reset names">Resets the names to the names that are read from
+				file or created if the file/folder doesn't contain column names.
+			</option>
+			<option name="Reset types">Resets the output types to the default types
+				guessed from the input file/folder.
+			</option>
+			<option name="Reset all">Resets all transformations.</option>
+			<option name="Enforce types">
+				Controls how columns whose type changes are dealt
+				with. If selected, we
+				attempt to map to the KNIME type you
+				configured
+				and fail if that's not possible.
+				If unselected, the KNIME type
+				corresponding to the new type is used.
+			</option>
+			<option name="Take columns from">
+				Only enabled in "Files in folder" mode. Specifies which set of
+				columns are considered for the output table.
+				<ul>
+					<li>Union: Any column that is part of any input file is considered.
+						If a file is missing a column, it's filled up with missing values.
+					</li>
+					<li>Intersection: Only columns that appear in all files are
+						considered for the output table.
+					</li>
+				</ul>
+				<b>NOTE:</b>
+				This setting has special implications if you are controlling the
+				input location with a flow variable.
+				If Intersection is selected any
+				column that moves into the
+				intersection during execution will be
+				considered to be new, even if
+				it was previously part of the union of
+				columns.
+				It is also important to note that the transformation
+				matching during
+				execution is based on name.
+				That means if there was a
+				column [A, Integer] during configuration in
+				the dialog and this
+				column becomes [A, String] during execution,
+				then the stored
+				transformation is applied
+				to it. For filtering, ordering and
+				renaming, this is straight forward.
+				For type mapping the following is
+				done: If there is an alternative
+				converter to the specified KNIME
+				type, then this converter is used,
+				otherwise we default to the
+				default KNIME type for the new type. In
+				our example we might have
+				specified that [A, Integer] should be
+				mapped to Long.
+				For the changed
+				column [A, String] there is no converter to Long, so we
+				default back
+				to String and A becomes a String column in the output
+				table.
+			</option>
+		</tab>
+		<tab name="Advanced Settings">
+			<option name="Skip first data rows">
+				If enabled, the specified number of valid data
+				rows are skipped.
+			</option>
+			<option name="Limit data rows">
+				If enabled, only the specified number of data
+				rows are read.
+			</option>
+			<option name="Support changing file schemas">
+				If selected, the reader will compute the table
+				specification on
+				execution.
+				This behavior is required if the content
+				of the configured file/folder
+				changes between executions,
+				i.e.,
+				columns are added/removed to/from file(s) or their types change.
+				NOTE: When checked, the node will not output a table specification
+				during configure and won't apply transformations
+				(therefore the
+				transformation tab is disabled).
+			</option>
+			<option name="Fail on differing specs">
+				If checked, the node will fail if multiple files
+				are read via the
+				Files in folder option and not all files have the
+				same table
+				structure i.e. the same columns.
+			</option>
+		</tab>
+	</fullDescription>
+
+	<ports>
+		<dynInPort insert-before="0" name="File system connection"
+			group-identifier="File System Connection">
+			The file system connection.
+		</dynInPort>
+		<outPort name="Read table" index="0">The table contained in the
+			selected file.
+		</outPort>
+	</ports>
+</knimeNode>

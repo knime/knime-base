@@ -44,126 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2020 (Tobias): created
+ *   27 May 2021 (moditha.hewasinghge): created
  */
-package org.knime.base.node.preproc.manipulator.framework;
+package org.knime.base.node.io.filehandling.table.reader;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.OptionalLong;
 
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
-import org.knime.base.node.preproc.manipulator.table.BoundedTable;
-import org.knime.base.node.preproc.manipulator.table.Table;
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataRow;
+import org.knime.base.node.preproc.manipulator.framework.TableRead;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.randomaccess.AbstractRandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
-import com.google.common.collect.Tables;
-
 /**
- * {@link Read} implementation that works with {@link Tables}.
+ * Class for the Knime table reader which implements {@link Read}.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
-public class TableRead implements Read<Table, DataValue> {
+final class KnimeTableRead implements Read<Path, DataValue> {
 
-    static class RandomAccessibleDataRow extends AbstractRandomAccessible<DataValue> {
+    private final Path m_path;
 
-        private final DataRow m_row;
+    private final TableRead m_tableRead;
 
-        private TableReadConfig<TableManipulatorConfig> m_config;
-
-        RandomAccessibleDataRow(final DataRow dataRow, final TableReadConfig<TableManipulatorConfig> config) {
-            m_row = dataRow;
-            m_config = config;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int size() {
-            if (m_config.useRowIDIdx()) {
-                return m_row.getNumCells() + 1;
-            }
-            return m_row.getNumCells();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public DataValue get(final int idx) {
-            final int offsetIdx;
-            if (m_config.useRowIDIdx()) {
-                if (idx == 0) {
-                    return new StringCell(m_row.getKey().getString());
-                }
-                offsetIdx = idx - 1;
-            } else {
-                offsetIdx = idx;
-            }
-            final DataCell cell = m_row.getCell(offsetIdx);
-            return cell.isMissing() ? null : cell;
-        }
-
-    }
-
-    private Table m_input;
-
-    private TableReadConfig<TableManipulatorConfig> m_config;
-
-    private CloseableRowIterator m_rowCursor;
-
-    private final OptionalLong m_maxRows;
-
-    private long m_rowsRead;
-
-    public TableRead(final Table input, final TableReadConfig<TableManipulatorConfig> config) {
-        m_input = input;
-        m_rowCursor = input.cursor();
-        m_config = config;
-        m_rowsRead = 0;
-        if (input instanceof BoundedTable) {
-            m_maxRows = OptionalLong.of(((BoundedTable)input).size());
-        } else {
-            m_maxRows = OptionalLong.empty();
-        }
+    /**
+     * Constructor.
+     *
+     * @param path the {@link Path} to the file
+     * @param config the {@link TableReadConfig} of the node
+     * @throws IOException
+     * @throws InvalidSettingsException
+     */
+    KnimeTableRead(final Path path, final TableReadConfig<TableManipulatorConfig> config) throws IOException {
+        m_path = path;
+        final PathBackedBoundedTable table = new PathBackedBoundedTable(m_path);
+        m_tableRead = new TableRead(table, config);
     }
 
     @Override
     public RandomAccessible<DataValue> next() throws IOException {
-        m_rowsRead++;
-        if (!m_rowCursor.hasNext()) {
-            return null;
-        }
-        return new RandomAccessibleDataRow(m_rowCursor.next(), m_config);
+        return m_tableRead.next();
     }
 
     @Override
-    public OptionalLong getMaxProgress() {
-        return m_maxRows;
-    }
-
-    @Override
-    public long getProgress() {
-        return m_rowsRead;
-    }
-
-    @Override
-    public Optional<Table> getItem() {
-        return Optional.of(m_input);
+    public Optional<Path> getItem() {
+        return Optional.of(m_path);
     }
 
     @Override
     public void close() throws IOException {
-        //nothing to close;
+        m_tableRead.close();
+    }
+
+    @Override
+    public OptionalLong getMaxProgress() {
+        return m_tableRead.getMaxProgress();
+    }
+
+    @Override
+    public long getProgress() {
+        return m_tableRead.getProgress();
     }
 }

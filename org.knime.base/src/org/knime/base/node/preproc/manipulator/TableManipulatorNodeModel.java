@@ -116,7 +116,8 @@ final class TableManipulatorNodeModel extends NodeModel {
         super(portConfig.getInputPorts(), portConfig.getOutputPorts());
         final int noOfInputPorts = portConfig.getInputPorts().length;
         m_inputPortRoles = new InputPortRole[noOfInputPorts];
-        Arrays.fill(m_inputPortRoles, InputPortRole.DISTRIBUTED_STREAMABLE);
+        // Row key generation is not distributable.
+        Arrays.fill(m_inputPortRoles, InputPortRole.NONDISTRIBUTED_STREAMABLE);
         m_config = createConfig();
         final DefaultMultiTableReadFactory<Table, TableManipulatorConfig, DataType, DataValue> multiTableReadFactory =
             createReadFactory();

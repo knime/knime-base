@@ -842,6 +842,10 @@
               category-path="/io/read"
               factory-class="org.knime.base.node.io.table.read.ReadTableNodeFactory"/>
         <node
+            category-path="/io/read"
+            factory-class="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
+        </node>
+        <node
               after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
               category-path="/io/write"
               deprecated="true"
@@ -2503,7 +2507,7 @@
            </FileExtension>
         </FileExtensionMapping>
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.table.read.ReadTableNodeFactory">
+              NodeFactory="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
            <FileExtension
                  extension=".table">
            </FileExtension>
