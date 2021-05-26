@@ -36,6 +36,13 @@
         <option name="End Loop with Variable">Whether the node execution is controlled by a variable, when enabled allows choosing the Flow Variable that ends the loop if it's value equals "true".</option>   
         <option name="Collect data from last iteration only">If this option is checked only the last input to the collecting data port is passed through to the outport. Hence, the data of earlier iterations is discarded.</option>  
         <option name="Add iteration column">Allows you to add a column containing the iteration number to the output table.</option>
+		<option name="Propagate modified loop variables">
+			If checked, variables whose values are modified within the loop are exported by this node. These variables
+			must be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream
+			of the corresponding loop start node. For the latter, any modification of a variable is passed back to the 
+			start node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop 
+			start node itself are excluded as these usually represent loop controls (e.g. <i>"currentIteration"</i>).
+		</option>
         <link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
             KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops
         </link>

@@ -103,6 +103,8 @@ class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
 
     private final SettingsModelBoolean m_addIterationNr = createAddIterationColumn();
 
+    private final SettingsModelBoolean m_propagateVariables = createPropagateVariableModel();
+
     /**
      * Constructor for the node model.
      *
@@ -260,6 +262,11 @@ class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
         }
     }
 
+    @Override
+    public boolean shouldPropagateModifiedVariables() {
+        return m_propagateVariables.getBooleanValue();
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -272,6 +279,7 @@ class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
         m_endLoopVariableName.saveSettingsTo(settings);
         m_useVariable.saveSettingsTo(settings);
         m_addIterationNr.saveSettingsTo(settings);
+        m_propagateVariables.saveSettingsTo(settings);
     }
 
     /**
@@ -291,6 +299,10 @@ class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
         if (settings.containsKey(m_useVariable.getConfigName())) {
             m_useVariable.loadSettingsFrom(settings);
         }
+        // since 4.4.0
+        if (settings.containsKey(m_propagateVariables.getConfigName())) {
+            m_propagateVariables.loadSettingsFrom(settings);
+        }
     }
 
     /**
@@ -309,6 +321,10 @@ class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
         }
         if (settings.containsKey(m_useVariable.getConfigName())) {
             m_useVariable.validateSettings(settings);
+        }
+        // since 4.4.0
+        if (settings.containsKey(m_propagateVariables.getConfigName())) {
+            m_propagateVariables.validateSettings(settings);
         }
     }
 
@@ -389,6 +405,13 @@ class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
      */
     static SettingsModelBoolean createOnlyLastModel() {
         return new SettingsModelBoolean("CFG_OnlyLastData", false);
+    }
+
+    /**
+     * @return the settings model that the "propagate modified vars" flag
+     */
+    static SettingsModelBoolean createPropagateVariableModel() {
+        return new SettingsModelBoolean("CFG_PropagateVariables", false);
     }
 
 }

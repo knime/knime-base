@@ -79,6 +79,8 @@ final class RecursiveLoopEndNodeDialog extends DefaultNodeSettingsPane {
 
     private final SettingsModelBoolean m_useVariable = RecursiveLoopEndNodeModel.createUseVariable();
 
+    private final SettingsModelBoolean m_propagateVariables = RecursiveLoopEndNodeModel.createPropagateVariableModel();
+
     private final DialogComponentFlowVariableNameSelection m_flowVarSelection;
 
     private boolean m_varsAvailable = false;
@@ -108,6 +110,10 @@ final class RecursiveLoopEndNodeDialog extends DefaultNodeSettingsPane {
             "Collect data from last iteration only"));
         addDialogComponent(
             new DialogComponentBoolean(RecursiveLoopEndNodeModel.createAddIterationColumn(), "Add iteration column"));
+        closeCurrentGroup();
+
+        createNewGroup("Variable settings");
+        addDialogComponent(new DialogComponentBoolean(m_propagateVariables, "Propagate modified loop variables"));
         closeCurrentGroup();
 
         // listener setup
