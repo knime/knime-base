@@ -48,15 +48,22 @@
  */
 package org.knime.base.expressions.datetime;
 
+import java.time.Clock;
 import java.time.DateTimeException;
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.Period;
 import java.time.format.DateTimeParseException;
+import java.time.format.TextStyle;
+import java.time.temporal.ChronoField;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.WeekFields;
+import java.util.Locale;
 
 import org.knime.expressions.core.ExpressionJavaMethodProvider;
 import org.knime.expressions.core.exceptions.ScriptExecutionException;
@@ -70,6 +77,8 @@ import org.knime.expressions.core.exceptions.ScriptExecutionException;
  */
 @SuppressWarnings("static-method")
 public final class DateTimeExpressionJavaMethodProvider implements ExpressionJavaMethodProvider {
+
+    private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
     final static String ID = DateTimeExpressionJavaMethodProvider.class.getName().replaceAll("\\.", "_");
 
@@ -163,6 +172,142 @@ public final class DateTimeExpressionJavaMethodProvider implements ExpressionJav
         } catch (DateTimeException e) {
             throw new ScriptExecutionException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Obtains the current date-time from the system clock in the default time-zone.
+     * <p>
+     * This will query the {@link Clock#systemDefaultZone() system clock} in the default
+     * time-zone to obtain the current date-time.
+     * <p>
+     * Using this method will prevent the ability to use an alternate clock for testing
+     * because the clock is hard-coded.
+     *
+     * @return the current date-time using the system clock and default time-zone, not null
+     */
+    public LocalDateTime now() {
+        return LocalDateTime.now();
+    }
+
+    /**
+     * Obtains the current date from the system clock in the default time-zone.
+     * <p>
+     * This will query the {@link Clock#systemDefaultZone() system clock} in the default
+     * time-zone to obtain the current date.
+     * <p>
+     * Using this method will prevent the ability to use an alternate clock for testing
+     * because the clock is hard-coded.
+     *
+     * @return the current date using the system clock and default time-zone, not null
+     */
+    public LocalDate today() {
+        return LocalDate.now();
+    }
+
+    /**
+     * @param dateTime to convert
+     * @return the LocalDate time
+     * @throws ScriptExecutionException if the provided dateTime isn't of type {@link LocalDateTime}
+     */
+    public LocalDate getDate(final Object dateTime) throws ScriptExecutionException {
+        checkLocalDateTimeType(dateTime);
+        return ((LocalDateTime)dateTime).toLocalDate();
+    }
+
+    /**
+     * Gets the {@code LocalTime} part of this date-time.
+     * <p>
+     * This returns a {@code LocalTime} with the same hour, minute, second and nanosecond as this date-time.
+     *
+     * @param dateTime to get the time from
+     *
+     * @return the time part of this date-time, not null
+     * @throws ScriptExecutionException if the provided dateTime isn't of type {@link LocalDateTime}
+     */
+    public LocalTime getTime(final Object dateTime) throws ScriptExecutionException {
+        checkLocalDateTimeType(dateTime);
+        return ((LocalDateTime)dateTime).toLocalTime();
+    }
+
+    /**
+     * @param time the time to get the year from
+     * @return the day of the week of the input temporal
+     * @throws ScriptExecutionException if the provided argument is not of type {@link Temporal}
+     */
+    public int getDayOfWeek(final Object time) throws ScriptExecutionException {
+        checkTemporalType(time);
+        //Copied from AbstractExtractDateTimeFieldsNodeModel to obey the local e.g. for US the week starts on Sunday
+        return ((Temporal)time).get(WeekFields.of(DEFAULT_LOCALE).dayOfWeek());
+    }
+
+    /**
+     * @param time the date to get the month for
+     * @return the English representation of the month
+     * @throws ScriptExecutionException if the temporal is not supported
+     */
+    public String getDayOfWeekName(final Object time) throws ScriptExecutionException {
+        checkTemporalType(time);
+        //Copied from AbstractExtractDateTimeFieldsNodeModel to obey the local e.g. for US the week starts on Sunday
+        final DayOfWeek dayOfWeek;
+        if (time instanceof LocalDate) {
+            dayOfWeek = ((LocalDate)time).getDayOfWeek();
+        } else if (time instanceof LocalDateTime) {
+            dayOfWeek = ((LocalDateTime)time).getDayOfWeek();
+        } else {
+            throw new ScriptExecutionException(
+                "Function getDayOfWeekName() only supports LocalDate and LocalDateTime values");
+        }
+        return dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, DEFAULT_LOCALE);
+    }
+
+    /**
+     * @param time the time to get the year from
+     * @return the day of the month of the input temporal
+     * @throws ScriptExecutionException if the provided argument is not of type {@link Temporal}
+     */
+    public int getDayOfMonth(final Object time) throws ScriptExecutionException {
+        checkTemporalType(time);
+        return ((Temporal)time).get(ChronoField.DAY_OF_MONTH);
+    }
+
+    /**
+     * @param time the time to get the year from
+     * @return the day of the year of the input temporal
+     * @throws ScriptExecutionException if the provided argument is not of type {@link Temporal}
+     */
+    public int getDayOfYear(final Object time) throws ScriptExecutionException {
+        checkTemporalType(time);
+        return ((Temporal)time).get(ChronoField.DAY_OF_YEAR);
+    }
+
+    /**
+     * @param time the date to get the month for
+     * @return the English representation of the month
+     * @throws ScriptExecutionException if the provided argument is not of type {@link Temporal}
+     */
+    public String getMonthOfYearName(final Object time) throws ScriptExecutionException {
+        checkTemporalType(time);
+        return Month.of(getMonthOfYear(time)).getDisplayName(TextStyle.FULL, DEFAULT_LOCALE);
+    }
+
+    /**
+     * @param time the time to get the year from
+     * @return the month of the input temporal
+     * @throws ScriptExecutionException if the provided argument is not of type {@link Temporal}
+     */
+    public int getMonthOfYear(final Object time) throws ScriptExecutionException {
+        checkTemporalType(time);
+        return ((Temporal)time).get(ChronoField.MONTH_OF_YEAR);
+    }
+
+    /**
+     * @param time the time to get the year from
+     * @return the year of the input temporal
+     * @throws ScriptExecutionException if the provided argument is not of type {@link Temporal}
+     */
+    public int getYear(final Object time) throws ScriptExecutionException {
+        checkTemporalType(time);
+        return ((Temporal)time).get(ChronoField.YEAR);
     }
 
     /**
@@ -389,6 +534,44 @@ public final class DateTimeExpressionJavaMethodProvider implements ExpressionJav
         if (!(obj instanceof Number)) {
             throw new ScriptExecutionException(
                 "Type of " + name + " ('" + obj.getClass().getSimpleName() + "') not valid. Must be a number.");
+        }
+    }
+
+    /**
+     * Checks if the object is of type {@link Temporal}.
+     *
+     * @param obj Object to be checked.
+     * @param name The name that shall be shown in the error message.
+     *
+     * @throws ScriptExecutionException If obj is null or not of type {@link Temporal}.
+     */
+    private static void checkTemporalType(final Object obj) throws ScriptExecutionException {
+        if (obj == null) {
+            throw new ScriptExecutionException("The provided temporal must not be null");
+        }
+
+        if (!(obj instanceof Temporal)) {
+            throw new ScriptExecutionException(
+                "Type of temporal ('" + obj.getClass().getSimpleName() + "') not valid. Must be a temporal.");
+        }
+    }
+
+    /**
+     * Checks if the object is of type {@link LocalDateTime}.
+     *
+     * @param obj Object to be checked.
+     * @param name The name that shall be shown in the error message.
+     *
+     * @throws ScriptExecutionException If obj is null or not of type {@link Temporal}.
+     */
+    private static void checkLocalDateTimeType(final Object obj) throws ScriptExecutionException {
+        if (obj == null) {
+            throw new ScriptExecutionException("The provided localDateTime must not be null");
+        }
+
+        if (!(obj instanceof LocalDateTime)) {
+            throw new ScriptExecutionException(
+                "Type of localDateTime ('" + obj.getClass().getSimpleName() + "') not valid. Must be a LocalDateTime.");
         }
     }
 

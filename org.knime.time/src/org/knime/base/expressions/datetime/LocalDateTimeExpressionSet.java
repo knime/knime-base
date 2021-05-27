@@ -45,6 +45,10 @@
  */
 package org.knime.base.expressions.datetime;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -69,12 +73,31 @@ public class LocalDateTimeExpressionSet implements ExpressionSet {
     public LocalDateTimeExpressionSet() {
         m_expression = new ArrayList<>();
 
+        m_expression.add(
+            new SimpleDateTimeExpression("getDate", "Returns the LocalDate part of the input LocatDateTime object.",
+                LocalDate.class, new String[]{"localDateTime"}));
+        m_expression.add(
+            new SimpleDateTimeExpression("getTime", "Returns the LocalTime part of the input LocatDateTime object.",
+                LocalTime.class, new String[]{"localDateTime"}));
+        m_expression.add(new TemporalExtractorDateTimeExpression(ChronoField.DAY_OF_WEEK));
+        m_expression.add(new SimpleDateTimeExpression("getDayOfWeekName",
+            "Creates an object of type String with the English name of the day of the given LocalDate value.",
+            String.class, new String[]{"temporal"}));
+        m_expression.add(new TemporalExtractorDateTimeExpression(ChronoField.DAY_OF_MONTH));
+        m_expression.add(new TemporalExtractorDateTimeExpression(ChronoField.DAY_OF_YEAR));
+        m_expression.add(new TemporalExtractorDateTimeExpression(ChronoField.MONTH_OF_YEAR));
+        m_expression.add(new SimpleDateTimeExpression("getMonthOfYearName",
+            "Creates an object of type String with the English name of the month of the given LocalDate value.",
+            String.class, new String[]{"temporal"}));
+        m_expression.add(new TemporalExtractorDateTimeExpression(ChronoField.YEAR));
         m_expression.add(new LocalDateFromString());
         m_expression.add(new LocalDateFromYMD());
         m_expression.add(new LocalDateTimeFromString());
         m_expression.add(new LocalDateTimeFromYMDHMS());
         m_expression.add(new LocalTimeFromHMS());
         m_expression.add(new LocalTimeFromString());
+        m_expression.add(new SimpleDateTimeExpression("now",
+            "Creates an object of type LocalDateTime with the current date and time.", LocalDateTime.class));
         m_expression.add(new DurationOfHours());
         m_expression.add(new DurationOfMinutes());
         m_expression.add(new DurationOfSeconds());
@@ -83,6 +106,8 @@ public class LocalDateTimeExpressionSet implements ExpressionSet {
         m_expression.add(new PeriodOfWeeks());
         m_expression.add(new PeriodOfYears());
         m_expression.add(new PlusTemporal());
+        m_expression.add(new SimpleDateTimeExpression("today",
+            "Creates an object of type LocalDate with the current date.", LocalDate.class));
 
         Comparator<Expression> comparator = (x, y) -> x.getName().compareTo(y.getName());
 
