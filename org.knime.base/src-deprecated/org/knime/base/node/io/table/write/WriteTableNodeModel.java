@@ -54,6 +54,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.knime.base.node.io.filehandling.table.writer.TableWriterNodeFactory;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -71,10 +72,12 @@ import org.knime.core.util.FileUtil;
 
 
 /**
- * NodeModel for the node to write arbitrary tables to a file. It only shows
- * a file chooser dialog.
+ * NodeModel for the node to write arbitrary tables to a file. It only shows a file chooser dialog.
+ *
  * @author wiswedel, University of Konstanz
+ * @deprecated replaced by {@link TableWriterNodeFactory table writer}
  */
+@Deprecated
 public class WriteTableNodeModel extends NodeModel {
     /**
      * This is an ugly workaround for AP-8862. {@link DataContainer#writeToStream} first copies the whole table into a

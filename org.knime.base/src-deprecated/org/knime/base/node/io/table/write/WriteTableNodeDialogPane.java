@@ -57,6 +57,7 @@ import javax.swing.JFileChooser;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.knime.base.node.io.filehandling.table.writer.TableWriterNodeFactory;
 import org.knime.base.node.io.table.read.ReadTableNodeDialogPane;
 import org.knime.base.node.io.table.read.ReadTableNodeModel;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
@@ -67,10 +68,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.FileUtil;
 
 /**
- * Dialog for the node to write arbitrary tables to a file. It only shows
- * a file chooser dialog.
+ * Dialog for the node to write arbitrary tables to a file. It only shows a file chooser dialog.
+ *
  * @author wiswedel, University of Konstanz
+ * @deprecated replaced by {@link TableWriterNodeFactory table writer}
  */
+@Deprecated
 public class WriteTableNodeDialogPane extends DefaultNodeSettingsPane {
 
     /**

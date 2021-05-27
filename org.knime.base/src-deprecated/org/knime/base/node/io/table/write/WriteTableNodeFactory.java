@@ -41,28 +41,31 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   May 19, 2006 (wiswedel): created
  */
 package org.knime.base.node.io.table.write;
 
+import org.knime.base.node.io.filehandling.table.writer.TableWriterNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
- * Factory for the node to write arbitrary tables to a file. It only shows
- * a file chooser dialog.
+ * Factory for the node to write arbitrary tables to a file. It only shows a file chooser dialog.
+ *
  * @author wiswedel, University of Konstanz
+ * @deprecated replaced by {@link TableWriterNodeFactory table writer}
  */
+@Deprecated
 public class WriteTableNodeFactory extends NodeFactory {
 
     /**
      * {@inheritDoc}
      */
-    @Override 
+    @Override
     public NodeModel createNodeModel() {
         return new WriteTableNodeModel();
     }

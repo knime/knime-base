@@ -844,7 +844,12 @@
         <node
               after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
               category-path="/io/write"
+              deprecated="true"
               factory-class="org.knime.base.node.io.table.write.WriteTableNodeFactory"/>
+        <node
+              after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
+              category-path="/io/write"
+              factory-class="org.knime.base.node.io.filehandling.table.writer.TableWriterNodeFactory"/>
      <node
            category-path="/manipulation/column/column-split+combine"
            factory-class="org.knime.base.node.preproc.bitvector.create.CreateBitVectorNodeFactory"/>
@@ -1226,7 +1231,7 @@
             >
       </node>
       <node
-            after="org.knime.base.node.io.table.write.WriteTableNodeFactory"
+            after="org.knime.base.node.io.filehandling.table.writer.TableWriterNodeFactory"
             category-path="/io/write"
             deprecated="true"
             factory-class="org.knime.base.node.io.pmml.write.PMMLWriterNodeFactory"
@@ -2351,7 +2356,7 @@
             factory-class="org.knime.base.node.io.filehandling.model.writer.ModelWriterNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.table.write.WriteTableNodeFactory"
+            after="org.knime.base.node.io.filehandling.table.writer.TableWriterNodeFactory"
             category-path="/io/write"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.writer.PMMLWriterNodeFactory2">
