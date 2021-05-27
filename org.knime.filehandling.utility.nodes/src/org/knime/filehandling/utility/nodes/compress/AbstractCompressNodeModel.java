@@ -171,8 +171,7 @@ public abstract class AbstractCompressNodeModel<T extends AbstractCompressNodeCo
                 final FSPath outputPath = writeAccessor.getOutputPath(m_statusConsumer);
                 m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
-                final FileOverwritePolicy overwritePolicy =
-                    m_config.getTargetFileChooserModel().getFileOverwritePolicy();
+                final FileOverwritePolicy overwritePolicy = m_config.getCompressPolicy().getFileOverwritePolicy();
                 createParentDirIfRequired(outputPath);
                 compress(exec, filesToCompress, outputPath, overwritePolicy);
             }

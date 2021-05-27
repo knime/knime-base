@@ -78,6 +78,9 @@ public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
     /** Config key for the TruncationSettings. */
     protected static final String CFG_TRUNCATE_OPTION = "archive_entry_name_mode";
 
+    /** Config key for the compress policy. */
+    private static final String CFG_COMPRESS_POLICY = "if_path_exists";
+
     static final String INVALID_EXTENSION_ERROR =
         "Invalid destination file extension. Please find the valid extensions in the node description.";
 
@@ -110,6 +113,9 @@ public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
     /** The default compression is zip. */
     private static final String DEFAULT_COMPRESSION = COMPRESSIONS[0];
 
+    /** The compress policy settings model. */
+    private final SettingsModelString m_compressPolicyModel;
+
     /**
      * Constructor.
      *
@@ -117,12 +123,27 @@ public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
      * @param truncationSettings the {@link TruncationSettings}
      */
     protected AbstractCompressNodeConfig(final PortsConfiguration portsConfig, final T truncationSettings) {
-        m_destinationFileChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
-            CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, EnumConfig.create(FilterMode.FILE),
-            EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE), COMPRESSIONS);
+        m_destinationFileChooserModel =
+            new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig, CONNECTION_OUTPUT_DIR_PORT_GRP_NAME,
+                EnumConfig.create(FilterMode.FILE), EnumConfig.create(FileOverwritePolicy.IGNORE), COMPRESSIONS);
         m_compressionModel = new SettingsModelString(CFG_COMPRESSION, DEFAULT_COMPRESSION);
         m_truncationSettings = truncationSettings;
         m_includeEmptyFolders = new SettingsModelBoolean(CFG_INCLUDE_EMPTY_FOLDERS, true);
+        m_compressPolicyModel = new SettingsModelString(CFG_COMPRESS_POLICY, CompressPolicy.getDefault().name()) {
+            @Override
+            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                super.validateSettingsForModel(settings);
+                // no need to catch NPE since the settings model never returns a null value
+                try {
+                    CompressPolicy.valueOf(settings.getString(getKey()));
+                } catch (final IllegalArgumentException e) {
+                    throw new InvalidSettingsException(
+                        String.format("There is no compress policy associated with %s", settings.getString(getKey())),
+                        e);
+                }
+            }
+
+        };
     }
 
     final void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -131,6 +152,7 @@ public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
         m_compressionModel.validateSettings(settings);
         m_truncationSettings.validateSettingsForModel(settings);
         m_includeEmptyFolders.validateSettings(settings);
+        m_compressPolicyModel.validateSettings(settings);
     }
 
     /**
@@ -147,6 +169,7 @@ public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
         m_compressionModel.loadSettingsFrom(settings);
         m_truncationSettings.loadSettingsForModel(settings);
         m_includeEmptyFolders.loadSettingsFrom(settings);
+        m_compressPolicyModel.loadSettingsFrom(settings);
     }
 
     /**
@@ -163,6 +186,7 @@ public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
         m_compressionModel.saveSettingsTo(settings);
         m_truncationSettings.saveSettingsForModel(settings);
         m_includeEmptyFolders.saveSettingsTo(settings);
+        m_compressPolicyModel.saveSettingsTo(settings);
     }
 
     /**
@@ -206,6 +230,24 @@ public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
      */
     final SettingsModelBoolean includeEmptyFoldersModel() {
         return m_includeEmptyFolders;
+    }
+
+    /**
+     * Returns the settings model storing the selected {@link CompressPolicy}.
+     *
+     * @return the settings model storing the selected {@link CompressPolicy}
+     */
+    final SettingsModelString getCompressPolicyModel() {
+        return m_compressPolicyModel;
+    }
+
+    /**
+     * Returns the selected {@link CompressPolicy}.
+     *
+     * @return the selected {@link CompressPolicy}
+     */
+    final CompressPolicy getCompressPolicy() {
+        return CompressPolicy.valueOf(m_compressPolicyModel.getStringValue());
     }
 
 }

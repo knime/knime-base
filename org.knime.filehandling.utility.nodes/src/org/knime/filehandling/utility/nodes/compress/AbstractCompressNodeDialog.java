@@ -54,6 +54,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.knime.core.node.FlowVariableModel;
@@ -64,6 +65,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
@@ -107,6 +109,8 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
 
     private boolean m_isLoading;
 
+    private final DialogComponentButtonGroup m_compressPolicy;
+
     /**
      * Constructor.
      *
@@ -135,6 +139,9 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         compressionModel.addChangeListener(l -> updateLocation());
 
         m_isLoading = false;
+
+        m_compressPolicy =
+            new DialogComponentButtonGroup(m_config.getCompressPolicyModel(), null, false, CompressPolicy.values());
     }
 
     /**
@@ -228,7 +235,21 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         outputPanel.add(m_destinationFileChooserPanel.getComponentPanel(),
             gbc.resetX().incY().fillHorizontal().setWeightX(1).build());
 
+        outputPanel.add(createCompressPolicyPanel(), gbc.resetX().incY().fillHorizontal().setWeightX(1).build());
+
         return outputPanel;
+    }
+
+    private JPanel createCompressPolicyPanel() {
+        final JPanel compressPolicyPanel = new JPanel(new GridBagLayout());
+
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY();
+
+        compressPolicyPanel.add(new JLabel("If exists:"), gbc.anchorLineStart().build());
+        compressPolicyPanel.add(m_compressPolicy.getComponentPanel(), gbc.incX().insetLeft(21).build());
+        compressPolicyPanel.add(new JPanel(), gbc.incX().setWeightX(1.0).fillHorizontal().build());
+
+        return compressPolicyPanel;
     }
 
     private JPanel createOptionsPanel() {
@@ -259,6 +280,7 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_destinationFileChooserPanel.saveSettingsTo(settings);
+        m_compressPolicy.saveSettingsTo(settings);
         m_truncationPanel.saveSettingsTo(settings);
         m_compressionSelection.saveSettingsTo(settings);
         m_includeEmptyFolders.saveSettingsTo(settings);
@@ -293,6 +315,7 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         m_compressionSelection.loadSettingsFrom(settings, specs);
         m_truncationPanel.loadSettings(settings, specs);
         m_includeEmptyFolders.loadSettingsFrom(settings, specs);
+        m_compressPolicy.loadSettingsFrom(settings, specs);
     }
 
     /**
