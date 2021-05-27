@@ -50,6 +50,8 @@ package org.knime.base.node.flowcontrol.trycatch.genericcatch;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.event.ChangeListener;
+
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -78,16 +80,14 @@ import org.knime.core.node.workflow.ScopeEndNode;
  *
  * @author M. Berthold, University of Konstanz
  */
-public class GenericCatchNodeModel extends NodeModel
-implements ScopeEndNode<FlowTryCatchContext>, InactiveBranchConsumer {
-
-//    private static final NodeLogger LOGGER = NodeLogger.getLogger(GenericCatchNodeModel.class);
+final class GenericCatchNodeModel extends NodeModel
+    implements ScopeEndNode<FlowTryCatchContext>, InactiveBranchConsumer {
 
     // new since 2.11
-    private SettingsModelBoolean m_alwaysPopulate = GenericCatchNodeDialog.getAlwaysPopulate();
-    private SettingsModelString m_defaultText = GenericCatchNodeDialog.getDefaultMessage();
-    private SettingsModelString m_defaultVariable = GenericCatchNodeDialog.getDefaultVariable();
-    private SettingsModelString m_defaultStackTrace = GenericCatchNodeDialog.getDefaultStackTrace();
+    private final SettingsModelBoolean m_alwaysPopulate = getAlwaysPopulate();
+    private final SettingsModelString m_defaultText = getDefaultMessage(m_alwaysPopulate);
+    private final SettingsModelString m_defaultVariable = getDefaultVariable(m_alwaysPopulate);
+    private final SettingsModelString m_defaultStackTrace = getDefaultStackTrace(m_alwaysPopulate);
 
     /**
      * Two inputs, one output.
@@ -215,6 +215,48 @@ implements ScopeEndNode<FlowTryCatchContext>, InactiveBranchConsumer {
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
             throws IOException, CanceledExecutionException {
+    }
+
+    /**
+     * @return the SM for always populating the model. (if true, the flow variables will always be shown)
+     */
+    static SettingsModelBoolean getAlwaysPopulate() {
+        return new SettingsModelBoolean("CFG_ALWAYS_POPULATE", false);
+    }
+
+    /**
+     * @param alwaysPopulateModel For enable/disable-ment
+     * @return the SM for the default text message if the node is failing.
+     */
+    static SettingsModelString getDefaultMessage(final SettingsModelBoolean alwaysPopulateModel) {
+        return registerEnablementListener(new SettingsModelString("CFG_DEFAULT_TEXT_MESSAGE", "none"),
+            alwaysPopulateModel);
+    }
+
+    /**
+     * @param alwaysPopulateModel For enable/disable-ment
+     * @return the SM for the default variable if the is failing
+     */
+    static SettingsModelString getDefaultVariable(final SettingsModelBoolean alwaysPopulateModel) {
+        return registerEnablementListener(new SettingsModelString("CFG_DEFAULT_TEXT_VARIABLE", "none"),
+            alwaysPopulateModel);
+    }
+
+    /**
+     * @param alwaysPopulateModel For enable/disable-ment
+     * @return the SM for the default variable if the is failing
+     */
+    static SettingsModelString getDefaultStackTrace(final SettingsModelBoolean alwaysPopulateModel) {
+        return registerEnablementListener(new SettingsModelString("CFG_DEFAULT_STACK_TRACE", "none"),
+            alwaysPopulateModel);
+    }
+
+    private static SettingsModelString registerEnablementListener(final SettingsModelString stringModel,
+        final SettingsModelBoolean alwaysPopulateModel) {
+        ChangeListener changeListener = e -> stringModel.setEnabled(alwaysPopulateModel.getBooleanValue());
+        alwaysPopulateModel.addChangeListener(changeListener);
+        changeListener.stateChanged(null);
+        return stringModel;
     }
 
 }

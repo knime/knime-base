@@ -63,63 +63,23 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @author Iris Adae, University of Konstanz
  * @since 2.11.1
  */
-public class GenericCatchNodeDialog extends DefaultNodeSettingsPane {
+final class GenericCatchNodeDialog extends DefaultNodeSettingsPane {
 
     /**
      * Default constructor.
      */
-    public GenericCatchNodeDialog() {
-        final SettingsModelBoolean alwaysPopulate = getAlwaysPopulate();
+    GenericCatchNodeDialog() {
+        createNewGroup("Error Variables");
+        final SettingsModelBoolean alwaysPopulate = GenericCatchNodeModel.getAlwaysPopulate();
         addDialogComponent(new DialogComponentBoolean(alwaysPopulate, "Always populate error variable"));
-        final SettingsModelString defaultVariable = getDefaultVariable();
+        final SettingsModelString defaultVariable = GenericCatchNodeModel.getDefaultVariable(alwaysPopulate);
         addDialogComponent(new DialogComponentString(defaultVariable, "Default for \"FailingNode\" variable:"));
-        final SettingsModelString defaultMessage = getDefaultMessage();
+        final SettingsModelString defaultMessage = GenericCatchNodeModel.getDefaultMessage(alwaysPopulate);
         addDialogComponent(new DialogComponentString(defaultMessage,
             "Default for \"FailingNodeMessage\" variable:"));
-        final SettingsModelString defaultStackTrace = getDefaultStackTrace();
+        final SettingsModelString defaultStackTrace = GenericCatchNodeModel.getDefaultStackTrace(alwaysPopulate);
         addDialogComponent(new DialogComponentString(defaultStackTrace,
                 "Default for \"FailingNodeStackTrace\" variable:"));
-
-        alwaysPopulate.addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(final ChangeEvent e) {
-                    activateComponents(alwaysPopulate.getBooleanValue());
-            }
-
-            private void activateComponents(final boolean doactivate) {
-                defaultMessage.setEnabled(doactivate);
-                defaultVariable.setEnabled(doactivate);
-                defaultStackTrace.setEnabled(doactivate);
-            }
-        });
-    }
-
-    /**
-     * @return the SM for the default text message if the node is failing.
-     */
-    static SettingsModelString getDefaultMessage() {
-        return new SettingsModelString("CFG_DEFAULT_TEXT_MESSAGE", "none");
-    }
-
-    /**
-     * @return the SM for the default variable if the is failing
-     */
-    static SettingsModelString getDefaultVariable() {
-        return new SettingsModelString("CFG_DEFAULT_TEXT_VARIABLE", "none");
-    }
-
-    /**
-     * @return the SM for always populating the model. (if true, the flow variables will always be shown)
-     */
-    static SettingsModelBoolean getAlwaysPopulate() {
-        return new SettingsModelBoolean("CFG_ALWAYS_POPULATE", false);
-    }
-
-    /**
-     * @return the SM for the default variable if the is failing
-     */
-    static SettingsModelString getDefaultStackTrace() {
-        return new SettingsModelString("CFG_DEFAULT_STACK_TRACE", "none");
+        closeCurrentGroup();
     }
 }
