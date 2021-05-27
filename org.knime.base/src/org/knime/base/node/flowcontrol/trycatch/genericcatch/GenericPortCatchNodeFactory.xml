@@ -17,6 +17,12 @@
         <option name="Default for FailingNode variable:">Default value for the FailingNode variable, if no node is failing.</option>
         <option name="Default for FailingNodeMessage variable:">Default value for the FailingNodeMessage variable, if no node is failing.</option>
         <option name="Default for FailingNodeStackTrace variable:">Default value for the FailingNodeStackTrace variable, if no node is failing.</option>
+		<option name="Propagate Variables">If selected, variables defined (or modified) within the 
+			<i>Try-Catch</i> block are propagated downstream of this <i>Catch Errors</i> node.
+			In most cases users will want to check this box (which is also the default). Previous 
+			versions of KNIME did not have this option and variables were always limited in scope and 
+			not visible downstream.
+		</option>
     </fullDescription>
     
     <ports>

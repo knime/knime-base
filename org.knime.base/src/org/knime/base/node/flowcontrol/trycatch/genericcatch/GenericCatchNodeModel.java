@@ -70,7 +70,9 @@ import org.knime.core.node.port.inactive.InactiveBranchConsumer;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.node.workflow.FlowTryCatchContext;
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.ScopeEndNode;
+import org.knime.core.node.workflow.VariableType;
 
 /**
  * End of an Try-Catch Enclosure. Takes the first input if active (i.e. did
@@ -88,6 +90,9 @@ final class GenericCatchNodeModel extends NodeModel
     private final SettingsModelString m_defaultText = getDefaultMessage(m_alwaysPopulate);
     private final SettingsModelString m_defaultVariable = getDefaultVariable(m_alwaysPopulate);
     private final SettingsModelString m_defaultStackTrace = getDefaultStackTrace(m_alwaysPopulate);
+
+    // added in 4.4
+    private final SettingsModelBoolean m_propagateVariables = createPropagateVariablesModel();
 
     /**
      * Two inputs, one output.
@@ -154,7 +159,23 @@ final class GenericCatchNodeModel extends NodeModel
             pushFlowVariableString("FailingNodeMessage", m_defaultText.getStringValue());
             pushFlowVariableString("FailingNodeStackTrace", m_defaultStackTrace.getStringValue());
         }
+        propagateVariables();
         return new PortObject[]{inData[1], FlowVariablePortObject.INSTANCE};
+    }
+
+
+    /**
+     * Calls {@link #pushFlowVariable(String, VariableType, Object)} for variables defined within
+     * the scope IFF the corresponding configuration is set.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked", "java:S3740"})
+    private void propagateVariables() {
+        if (m_propagateVariables.getBooleanValue()) {
+            for (FlowVariable v : getVariablesDefinedInScope()) {
+                VariableType t = v.getVariableType();
+                pushFlowVariable(v.getName(), t, v.getValue(t));
+            }
+        }
     }
 
     /**
@@ -166,6 +187,7 @@ final class GenericCatchNodeModel extends NodeModel
         m_defaultText.saveSettingsTo(settings);
         m_defaultVariable.saveSettingsTo(settings);
         m_defaultStackTrace.saveSettingsTo(settings);
+        m_propagateVariables.saveSettingsTo(settings);
     }
 
     /**
@@ -179,6 +201,10 @@ final class GenericCatchNodeModel extends NodeModel
             m_defaultVariable.validateSettings(settings);
             m_defaultStackTrace.validateSettings(settings);
         }
+        // added in 4.4 (but if present it needs to be "valid")
+        if (settings.containsKey(m_propagateVariables.getConfigName())) {
+            m_propagateVariables.validateSettings(settings);
+        }
     }
 
     /**
@@ -191,6 +217,13 @@ final class GenericCatchNodeModel extends NodeModel
             m_defaultText.loadSettingsFrom(settings);
             m_defaultVariable.loadSettingsFrom(settings);
             m_defaultStackTrace.loadSettingsFrom(settings);
+        }
+        // setting was added in 4.4 (AP-16447)
+        if (settings.containsKey(m_propagateVariables.getConfigName())) {
+            m_propagateVariables.loadSettingsFrom(settings);
+        } else {
+            // was 'false' in prior versions
+            m_propagateVariables.setBooleanValue(false);
         }
     }
 
@@ -258,5 +291,10 @@ final class GenericCatchNodeModel extends NodeModel
         changeListener.stateChanged(null);
         return stringModel;
     }
+
+    static SettingsModelBoolean createPropagateVariablesModel() {
+        return new SettingsModelBoolean("CFG_PROPAGATE_VARIABLES", true);
+    }
+
 
 }

@@ -81,5 +81,10 @@ final class GenericCatchNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(new DialogComponentString(defaultStackTrace,
                 "Default for \"FailingNodeStackTrace\" variable:"));
         closeCurrentGroup();
+        
+        createNewGroup("Scope Variables");
+        SettingsModelBoolean propagateVariablesModel = GenericCatchNodeModel.createPropagateVariablesModel();
+        addDialogComponent(new DialogComponentBoolean(propagateVariablesModel, "Propagate variables"));
+        closeCurrentGroup();
     }
 }
