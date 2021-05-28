@@ -44,53 +44,85 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 28, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 28, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
-import java.awt.Color;
-import java.awt.Component;
-
-import javax.swing.Icon;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableCellRenderer;
+import java.util.Objects;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
-import org.knime.core.node.util.SharedIcons;
 
 /**
- * Renderer for cells containing a {@link ProductionPath}.</br>
- * Represents a {@link ProductionPath} by its destination {@link DataType}.</br>
- * If {@code null} is provided (i.e. for the placeholder row for unknown columns) only the unknown icon is displayed.
+ * Placeholder for either a ProductionPath or a DataType.
+ * Used in the transformation tab for the type mapping column.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-// This Sonar rule is impossible to satisfy when dealing with Swing
-final class KnimeTypeProductionPathTableCellRenderer extends DefaultTableCellRenderer {//NOSONAR
+final class ProductionPathOrDataType {
 
-    private static final long serialVersionUID = 1L;
+    static final ProductionPathOrDataType DEFAULT = new ProductionPathOrDataType(null, null);
 
-    private static final Icon UNKNOWN = SharedIcons.TYPE_DEFAULT.get();
+    private final ProductionPath m_productionPath;
+
+    private final DataType m_dataType;
+
+    ProductionPathOrDataType(final ProductionPath productionPath) {
+        this(productionPath, null);
+    }
+
+    ProductionPathOrDataType(final DataType dataType) {
+        this(null, dataType);
+    }
+
+    private ProductionPathOrDataType(final ProductionPath productionPath, final DataType dataType) {
+        m_productionPath = productionPath;
+        m_dataType = dataType;
+    }
+
+    boolean hasProductionPath() {
+        return m_productionPath != null;
+    }
+
+    ProductionPath getProductionPath() {
+        return m_productionPath;
+    }
+
+    boolean hasDataType() {
+        return this != DEFAULT;
+    }
+
+    DataType getDataType() {
+        if (m_productionPath != null) {
+            return m_productionPath.getDestinationType();
+        } else {
+            return m_dataType;
+        }
+    }
 
     @Override
-    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
-        final boolean hasFocus, final int row, final int column) {
-        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        final ProductionPathOrDataType prodPathOrDataType = (ProductionPathOrDataType)value;
-        if (isSelected) {
-            // use selection color from parent
-        } else {
-            setBackground(Color.WHITE);
-        }
-        if (prodPathOrDataType == null || !prodPathOrDataType.hasDataType()) {
-            setText("Default");
-            setIcon(UNKNOWN);
-        } else {
-            final DataType knimeType = prodPathOrDataType.getDataType();
-            setText(knimeType.toPrettyString());
-            setIcon(knimeType.getIcon());
-        }
-        return this;
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((m_dataType == null) ? 0 : m_dataType.hashCode());
+        result = prime * result + ((m_productionPath == null) ? 0 : m_productionPath.hashCode());
+        return result;
     }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() == obj.getClass()) {
+            ProductionPathOrDataType other = (ProductionPathOrDataType)obj;
+            return Objects.equals(m_dataType, other.m_dataType)
+                && Objects.equals(m_productionPath, other.m_productionPath);
+        }
+        return false;
+    }
+
 }

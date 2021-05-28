@@ -53,6 +53,7 @@ import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
@@ -64,20 +65,28 @@ import org.knime.core.node.util.SharedIcons;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class KnimeTypeProductionPathListCellRenderer implements ListCellRenderer<ProductionPath> {
+final class KnimeTypeProductionPathListCellRenderer implements ListCellRenderer<ProductionPathOrDataType> {
 
     private final DataTypeListCellRenderer m_dataTypeRenderer = new DataTypeListCellRenderer();
 
-    private static final JLabel UNKNOWN = new JLabel(SharedIcons.TYPE_DEFAULT.get());
+    private static final JLabel UNKNOWN = new JLabel("Default", SharedIcons.TYPE_DEFAULT.get(), SwingConstants.LEFT);
 
     @Override
-    public Component getListCellRendererComponent(final JList<? extends ProductionPath> list, final ProductionPath value,
-        final int index, final boolean isSelected, final boolean cellHasFocus) {
+    public Component getListCellRendererComponent(final JList<? extends ProductionPathOrDataType> list,
+        final ProductionPathOrDataType value, final int index, final boolean isSelected, final boolean cellHasFocus) {
         if (value == null) {
             return UNKNOWN;
         }
-        final DataType knimeType = value.getConverterFactory().getDestinationType();
-        return m_dataTypeRenderer.getListCellRendererComponent(list, knimeType, index, isSelected, cellHasFocus);
+        if (value.hasProductionPath()) {
+            final ProductionPath productionPath = value.getProductionPath();
+            final DataType knimeType = productionPath.getConverterFactory().getDestinationType();
+            return m_dataTypeRenderer.getListCellRendererComponent(list, knimeType, index, isSelected, cellHasFocus);
+        } else if (value.hasDataType()) {
+            return m_dataTypeRenderer.getListCellRendererComponent(list, value.getDataType(), index, isSelected,
+                cellHasFocus);
+        } else {
+            return UNKNOWN;
+        }
     }
 
 }

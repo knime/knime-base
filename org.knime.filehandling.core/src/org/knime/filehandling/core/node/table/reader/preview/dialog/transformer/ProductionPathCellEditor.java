@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader.preview.dialog.transformer;
 
 import java.awt.Component;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractCellEditor;
@@ -57,6 +58,7 @@ import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
 import javax.swing.table.TableCellEditor;
 
+import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 
 /**
@@ -68,37 +70,58 @@ final class ProductionPathCellEditor extends AbstractCellEditor implements Table
 
     private static final long serialVersionUID = 1L;
 
-    private final JComboBox<ProductionPath> m_productionPaths = new JComboBox<>();
+    private final JComboBox<ProductionPathOrDataType> m_items = new JComboBox<>();
 
-    ProductionPathCellEditor(final ListCellRenderer<ProductionPath> renderer) {
-        m_productionPaths.setRenderer(renderer);
-        m_productionPaths.addActionListener(e -> stopCellEditing());
+    private final List<ProductionPathOrDataType> m_unknownColumnsItems = new ArrayList<>();
+
+    ProductionPathCellEditor(final ListCellRenderer<ProductionPathOrDataType> renderer,
+        final TableTransformationTableModel<?> model) {
+        m_items.setRenderer(renderer);
+        m_items.addActionListener(e -> stopCellEditing());
+        m_unknownColumnsItems.add(ProductionPathOrDataType.DEFAULT);
+        model.getAvailableDataTypes().stream()//
+            .sorted(ProductionPathCellEditor::compareDataTypes)//
+            .map(ProductionPathOrDataType::new)//
+            .forEach(m_unknownColumnsItems::add);// NOSONAR
     }
 
     @Override
     public Object getCellEditorValue() {
-        return m_productionPaths.getSelectedItem();
+        return m_items.getSelectedItem();
     }
 
     @Override
     public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
         final int row, final int column) {
-        final ProductionPath currentProdPath = (ProductionPath)value;
         TableTransformationTableModel<?> model = (TableTransformationTableModel<?>)table.getModel();
+        m_items.removeAllItems();
+        if (model.isUnknownColumnsRow(row)) {
+            fillItemsWithAvailableTypes();
+        } else {
+            fillItemsWithPathsForCurrentRow(row, model);
+        }
+        m_items.setSelectedItem(value);
+        return m_items;
+    }
+
+    private void fillItemsWithAvailableTypes() {
+        m_unknownColumnsItems.forEach(m_items::addItem);
+    }
+
+    private void fillItemsWithPathsForCurrentRow(final int row, final TableTransformationTableModel<?> model) {
         final List<ProductionPath> availablePaths = model.getProductionPaths(row);
         availablePaths.sort(ProductionPathCellEditor::compare);
-        m_productionPaths.removeAllItems();
-        availablePaths.forEach(m_productionPaths::addItem);
-        m_productionPaths.setSelectedItem(currentProdPath);
-        return m_productionPaths;
+        availablePaths.stream()//
+            .map(ProductionPathOrDataType::new)//
+            .forEach(m_items::addItem);
     }
 
     private static int compare(final ProductionPath p1, final ProductionPath p2) {
-        return extractDataTypeName(p1).compareTo(extractDataTypeName(p2));
+        return compareDataTypes(p1.getDestinationType(), p2.getDestinationType());
     }
 
-    private static String extractDataTypeName(final ProductionPath p) {
-        return p.getConverterFactory().getDestinationType().toPrettyString();
+    private static int compareDataTypes(final DataType t1, final DataType t2) {
+        return t1.toPrettyString().compareTo(t2.toPrettyString());
     }
 
 }

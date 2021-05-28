@@ -69,7 +69,7 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
 
     private String m_name;
 
-    private ProductionPath m_productionPath;
+    private ProductionPathOrDataType m_productionPathOrDataType;
 
     private int m_positionInOutput;
 
@@ -78,12 +78,12 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
     private final TypedReaderColumnSpec<T> m_colSpec;
 
     MutableColumnTransformation(final DataColumnSpec defaultSpec, final TypedReaderColumnSpec<T> colSpec,
-        final int originalPosition, final String name, final ProductionPath productionPath, final int positionInOutput,
-        final boolean keep) {
+        final int originalPosition, final String name, final ProductionPathOrDataType productionPathOrDataType,
+        final int positionInOutput, final boolean keep) {
         m_defaultSpec = defaultSpec;
         m_originalPosition = originalPosition;
         m_name = name;
-        m_productionPath = productionPath;
+        m_productionPathOrDataType = productionPathOrDataType;
         m_positionInOutput = positionInOutput;
         m_keep = keep;
         m_colSpec = colSpec;
@@ -100,7 +100,11 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
 
     @Override
     public ProductionPath getProductionPath() {
-        return m_productionPath;
+        return m_productionPathOrDataType.getProductionPath();
+    }
+
+    ProductionPathOrDataType getProductionPathOrDataType() {
+        return m_productionPathOrDataType;
     }
 
     @Override
@@ -155,9 +159,9 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
         return false;
     }
 
-    boolean setProductionPath(final ProductionPath productionPath) {
-        if (!Objects.equals(m_productionPath, productionPath)) {
-            m_productionPath = productionPath;
+    boolean setProductionPath(final ProductionPathOrDataType productionPath) {
+        if (!Objects.equals(m_productionPathOrDataType, productionPath)) {
+            m_productionPathOrDataType = productionPath;
             return true;
         }
         return false;
@@ -176,9 +180,15 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
         StringBuilder sb = new StringBuilder("[")//
             .append(m_name)//
             .append(", ");
-        if (m_productionPath != null) {
-            sb.append(m_productionPath.getConverterFactory().getDestinationType())//
-                .append(", ");
+        if (m_productionPathOrDataType != null) {
+            if (m_productionPathOrDataType.hasProductionPath()) {
+                sb.append(m_productionPathOrDataType.getProductionPath().getDestinationType());
+            } else if (m_productionPathOrDataType.hasDataType()) {
+                sb.append(m_productionPathOrDataType.getDataType());
+            } else {
+                sb.append("Default");
+            }
+            sb.append(", ");
         }
         return sb.append(m_keep)//
             .append(", ")//
@@ -195,7 +205,7 @@ class MutableColumnTransformation<T> implements ColumnTransformation<T>, Positio
             && left.m_keep == right.m_keep//NOSONAR
             && left.m_name.equals(right.m_name)//NOSONAR
             && left.m_defaultSpec.equals(right.m_defaultSpec)// NOSONAR
-            && left.m_productionPath.equals(right.m_productionPath);// NOSONAR
+            && left.m_productionPathOrDataType.equals(right.m_productionPathOrDataType);// NOSONAR
     }
 
 }

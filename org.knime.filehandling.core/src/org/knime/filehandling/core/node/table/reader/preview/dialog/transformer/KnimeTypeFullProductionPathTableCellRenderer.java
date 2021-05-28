@@ -80,17 +80,30 @@ final class KnimeTypeFullProductionPathTableCellRenderer extends DefaultTableCel
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
         final boolean hasFocus, final int row, final int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        final ProductionPath prodPath = (ProductionPath)value;
+        final ProductionPathOrDataType prodPathOrDataType = (ProductionPathOrDataType)value;
         if (isSelected) {
             // use selection color from parent
         } else {
             setBackground(Color.WHITE);
         }
-        if (prodPath == null) {
+        if (prodPathOrDataType == null) {
             setText("");
             setIcon(UNKNOWN);
             return this;
         }
+        if (prodPathOrDataType.hasProductionPath()) {
+            displayProductionPath(prodPathOrDataType);
+        } else if (prodPathOrDataType.hasDataType()) {
+            displayDataType(prodPathOrDataType);
+        } else {
+            setText("Default");
+            setIcon(UNKNOWN);
+        }
+        return this;
+    }
+
+    private void displayProductionPath(final ProductionPathOrDataType prodPathOrDataType) {
+        final ProductionPath prodPath = prodPathOrDataType.getProductionPath();
         final JavaToDataCellConverterFactory<?> converterFactory = prodPath.getConverterFactory();
         final DataType knimeType = converterFactory.getDestinationType();
         final Class<?> sourceType = converterFactory.getSourceType();
@@ -102,6 +115,11 @@ final class KnimeTypeFullProductionPathTableCellRenderer extends DefaultTableCel
         }
         setText(text);
         setIcon(knimeType.getIcon());
-        return this;
+    }
+
+    private void displayDataType(final ProductionPathOrDataType prodPathOrDataType) {
+        final DataType knimeType = prodPathOrDataType.getDataType();
+        setIcon(knimeType.getIcon());
+        setText(knimeType.toPrettyString());
     }
 }

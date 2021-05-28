@@ -53,6 +53,7 @@ import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -67,28 +68,36 @@ import org.knime.core.node.util.SharedIcons;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
-final class KnimeTypeFullProductionPathListCellRenderer implements ListCellRenderer<ProductionPath> {
+final class KnimeTypeFullProductionPathListCellRenderer implements ListCellRenderer<ProductionPathOrDataType> {
 
     private final DataTypeListCellRenderer m_dataTypeRenderer = new DataTypeListCellRenderer();
 
-    private static final JLabel UNKNOWN = new JLabel(SharedIcons.TYPE_DEFAULT.get());
+    private static final JLabel UNKNOWN = new JLabel("Default", SharedIcons.TYPE_DEFAULT.get(), SwingConstants.LEFT);
 
     @Override
-    public Component getListCellRendererComponent(final JList<? extends ProductionPath> list, final ProductionPath value,
-        final int index, final boolean isSelected, final boolean cellHasFocus) {
+    public Component getListCellRendererComponent(final JList<? extends ProductionPathOrDataType> list,
+        final ProductionPathOrDataType value, final int index, final boolean isSelected, final boolean cellHasFocus) {
         if (value == null) {
             return UNKNOWN;
         }
-        final JavaToDataCellConverterFactory<?> converterFactory = value.getConverterFactory();
-        final DataType knimeType = converterFactory.getDestinationType();
-        final DataTypeListCellRenderer component = (DataTypeListCellRenderer)m_dataTypeRenderer.getListCellRendererComponent(
-            list, knimeType, index, isSelected, cellHasFocus);
-        final Class<?> sourceType = converterFactory.getSourceType();
-        if (DataCell.class != sourceType ) {
-            final String text = converterFactory.getSourceType().getSimpleName() + " \u2192 "
-                    + knimeType.toPrettyString();
-            component.setText(text);
+        if (value.hasProductionPath()) {
+            final ProductionPath prodPath = value.getProductionPath();
+            final JavaToDataCellConverterFactory<?> converterFactory = prodPath.getConverterFactory();
+            final DataType knimeType = converterFactory.getDestinationType();
+            final DataTypeListCellRenderer component = (DataTypeListCellRenderer)m_dataTypeRenderer
+                .getListCellRendererComponent(list, knimeType, index, isSelected, cellHasFocus);
+            final Class<?> sourceType = converterFactory.getSourceType();
+            if (DataCell.class != sourceType) {
+                final String text =
+                    converterFactory.getSourceType().getSimpleName() + " \u2192 " + knimeType.toPrettyString();
+                component.setText(text);
+            }
+            return component;
+        } else if (value.hasDataType()) {
+            return m_dataTypeRenderer.getListCellRendererComponent(list, value.getDataType(), index, isSelected,
+                cellHasFocus);
+        } else {
+            return UNKNOWN;
         }
-        return component;
     }
 }

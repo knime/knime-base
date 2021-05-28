@@ -113,14 +113,14 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     private static final String[] COLUMN_NAMES = {"", "", "Column", "New name", "Type"};
 
     private static final Class<?>[] COLUMN_CLASSES =
-        new Class[]{Icon.class, Boolean.class, DataColumnSpec.class, String.class, ProductionPath.class};
+        new Class[]{Icon.class, Boolean.class, DataColumnSpec.class, String.class, ProductionPathOrDataType.class};
 
     private static final DataColumnSpec NEW_COL_SPEC =
         new DataColumnSpecCreator("<any unknown new column>", DataType.getType(DataCell.class)).createSpec();
 
     private final transient MutableColumnTransformation<T> m_newColTransformationPlaceholder =
-        new MutableColumnTransformation<T>(NEW_COL_SPEC, TypedReaderColumnSpec.getNull(), -1, "<no-name>", null, -1,
-            true) {
+        new MutableColumnTransformation<T>(NEW_COL_SPEC, TypedReaderColumnSpec.getNull(), -1, "<no-name>",
+            ProductionPathOrDataType.DEFAULT, -1, true) {
 
             @Override
             public int getPosition() {
@@ -284,7 +284,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         final ProductionPath defaultProductionPath =
             m_productionPathProvider.getDefaultProductionPath(transformation.getExternalSpec().getType());
         if (!defaultProductionPath.equals(transformation.getProductionPath())) {
-            transformation.setProductionPath(defaultProductionPath);
+            transformation.setProductionPath(new ProductionPathOrDataType(defaultProductionPath));
             return true;
         }
         return false;
@@ -347,7 +347,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                 final ProductionPath productionPath =
                     m_productionPathProvider.getDefaultProductionPath(column.getType());
                 transformation = new MutableColumnTransformation<>(createDefaultSpec(column), column, idx,
-                    getNameAfterInit(column), productionPath, idx, keepUnknownColumns());
+                    getNameAfterInit(column), new ProductionPathOrDataType(productionPath), idx, keepUnknownColumns());
                 newColumns.put(column, transformation);
             }
             m_nameChecker.add(transformation.getName());
@@ -409,8 +409,10 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
             if (transformationModel.hasTransformationFor(column)) {
                 transformation = createMutableTransformation(transformationModel.getTransformation(column), idx);
             } else {
+                final ProductionPath defaultProductionPath =
+                    m_productionPathProvider.getDefaultProductionPath(column.getType());
                 transformation = new MutableColumnTransformation<>(createDefaultSpec(column), column, idx,
-                    getNameAfterInit(column), m_productionPathProvider.getDefaultProductionPath(column.getType()),
+                    getNameAfterInit(column), new ProductionPathOrDataType(defaultProductionPath),
                     getPositionForUnknownColumns(), keepUnknownColumns());
             }
             m_bySpec.put(column, transformation);
@@ -432,8 +434,9 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     private MutableColumnTransformation<T> createMutableTransformation(final ColumnTransformation<T> transformation,
         final int idx) {
         return new MutableColumnTransformation<>(createDefaultSpec(transformation.getExternalSpec()),
-            transformation.getExternalSpec(), idx, transformation.getName(), transformation.getProductionPath(),
-            transformation.getPosition(), transformation.keep());
+            transformation.getExternalSpec(), idx, transformation.getName(),
+            new ProductionPathOrDataType(transformation.getProductionPath()), transformation.getPosition(),
+            transformation.keep());
     }
 
     private DataColumnSpec createDefaultSpec(final TypedReaderColumnSpec<T> column) {
@@ -501,7 +504,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         } else if (columnIndex == RENAME) {
             return transformation.isRenamed() ? transformation.getName() : "";
         } else if (columnIndex == TYPE) {
-            return transformation.getProductionPath();
+            return transformation.getProductionPathOrDataType();
         } else {
             throw new IndexOutOfBoundsException();
         }
@@ -511,6 +514,14 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         final MutableColumnTransformation<T> transformation = getTransformation(rowIndex);
         final T externalType = transformation.getExternalSpec().getType();
         return m_productionPathProvider.getAvailableProductionPaths(externalType);
+    }
+
+    Set<DataType> getAvailableDataTypes() {
+        return m_productionPathProvider.getAvailableDataTypes();
+    }
+
+    boolean isUnknownColumnsRow(final int rowIndex) {
+        return rowIndex == getPositionForUnknownColumns();
     }
 
     @Override
@@ -527,7 +538,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         } else if (columnIndex == RENAME) {
             alreadyFiredTableDataChange = updateName(aValue, transformation);
         } else if (columnIndex == TYPE) {
-            transformation.setProductionPath((ProductionPath)aValue);
+            transformation.setProductionPath((ProductionPathOrDataType)aValue);
         } else {
             throw new IndexOutOfBoundsException();
         }
@@ -613,7 +624,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     @Override
     public boolean isCellEditable(final int rowIndex, final int columnIndex) {
         if (getTransformation(rowIndex) == m_newColTransformationPlaceholder) {
-            return columnIndex == KEEP;
+            return columnIndex == KEEP || columnIndex == TYPE;
         }
         return columnIndex == KEEP || columnIndex == RENAME || columnIndex == TYPE;
     }
@@ -640,9 +651,11 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
             .filter(c -> c != m_newColTransformationPlaceholder)//
             .map(ImmutableColumnTransformation::copy)//
             .collect(toList());
-        // TODO add support for enforcing the type of unknown columns
-        final UnknownColumnsTransformation unknownColsTransformation = new ImmutableUnknownColumnsTransformation(
-            getPositionForUnknownColumns(), keepUnknownColumns(), false, null);
+        final ProductionPathOrDataType unknownColsDataType =
+            m_newColTransformationPlaceholder.getProductionPathOrDataType();
+        final UnknownColumnsTransformation unknownColsTransformation =
+            new ImmutableUnknownColumnsTransformation(getPositionForUnknownColumns(), keepUnknownColumns(),
+                unknownColsDataType.hasDataType(), unknownColsDataType.getDataType());
         return new DefaultTableTransformation<>(m_rawSpec, transformations, getColumnFilterMode(),
             unknownColsTransformation, m_enforceTypesModel.isSelected(), m_skipEmptyColumns);
     }

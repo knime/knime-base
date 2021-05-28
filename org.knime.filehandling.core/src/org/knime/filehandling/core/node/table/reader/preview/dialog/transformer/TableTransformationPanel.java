@@ -66,7 +66,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.TableColumnModel;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.SharedIcons;
@@ -217,14 +216,14 @@ public final class TableTransformationPanel extends JPanel {
         // this property ensures that currently edited values are committed to the model if the table loses focus
         m_transformationTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         if (showFullProductionPath) {
-            m_transformationTable.setDefaultEditor(ProductionPath.class,
-                new ProductionPathCellEditor(new KnimeTypeFullProductionPathListCellRenderer()));
-            m_transformationTable.setDefaultRenderer(ProductionPath.class,
+            m_transformationTable.setDefaultEditor(ProductionPathOrDataType.class,
+                new ProductionPathCellEditor(new KnimeTypeFullProductionPathListCellRenderer(), model));
+            m_transformationTable.setDefaultRenderer(ProductionPathOrDataType.class,
                 new KnimeTypeFullProductionPathTableCellRenderer());
         } else {
-            m_transformationTable.setDefaultEditor(ProductionPath.class,
-                new ProductionPathCellEditor(new KnimeTypeProductionPathListCellRenderer()));
-            m_transformationTable.setDefaultRenderer(ProductionPath.class,
+            m_transformationTable.setDefaultEditor(ProductionPathOrDataType.class,
+                new ProductionPathCellEditor(new KnimeTypeProductionPathListCellRenderer(), model));
+            m_transformationTable.setDefaultRenderer(ProductionPathOrDataType.class,
                 new KnimeTypeProductionPathTableCellRenderer());
         }
         m_transformationTable.setDefaultRenderer(String.class, new ColumnNameCellRenderer());
