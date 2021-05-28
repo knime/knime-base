@@ -78,6 +78,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
@@ -175,8 +176,8 @@ public class DefaultStagedMultiTableReadTest {
         individualSpecs.put(PATH1, SPEC1);
         individualSpecs.put(PATH2, SPEC2);
         when(m_sourceGroup.getID()).thenReturn(ROOT);
-        m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, individualSpecs,
-            m_rowKeyGenContextFactory, RAW_SPEC, m_readAdapterSupplier, m_transformationFactory, m_config);
+        m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, individualSpecs, m_rowKeyGenContextFactory,
+            RAW_SPEC, m_readAdapterSupplier, m_transformationFactory, m_config);
     }
 
     /**
@@ -285,6 +286,9 @@ public class DefaultStagedMultiTableReadTest {
 
         when(transformationModel.getRawSpec()).thenReturn(RAW_SPEC);
         when(transformationModel.getColumnFilterMode()).thenReturn(ColumnFilterMode.UNION);
+
+        when(transformationModel.getTransformationForUnknownColumns())
+            .thenReturn(mock(UnknownColumnsTransformation.class));
     }
 
     /**

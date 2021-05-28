@@ -98,25 +98,17 @@ public interface TableTransformation<T> extends Iterable<ColumnTransformation<T>
     }
 
     /**
-     * Returns the position at which new unknown columns should be inserted.
+     * Returns the transformation to be used for any unknown column.
      *
-     * @return the position where new unknown columns should be inserted
+     * @return the {@link UnknownColumnsTransformation}
      */
-    int getPositionForUnknownColumns();
-
-    /**
-     * Indicates whether unknown columns should be kept or ignored.
-     *
-     * @return {@code true} if unknown columns should be part of the output
-     */
-    boolean keepUnknownColumns();
+    UnknownColumnsTransformation getTransformationForUnknownColumns();
 
     /**
      * Specifies the execution behavior in the case that a column with a known name is encountered but the external type
-     * differs from the configured one.
-     * If set to {@code true}, it is attempted to find an alternative production path to the configured KNIME type and if no such
-     * path exists, the node fails with a corresponding exception.
-     * If set to {@code false}, the default production path for the new external type is used.
+     * differs from the configured one. If set to {@code true}, it is attempted to find an alternative production path
+     * to the configured KNIME type and if no such path exists, the node fails with a corresponding exception. If set to
+     * {@code false}, the default production path for the new external type is used.
      *
      * @return {@code true} if types should be enforced
      */

@@ -60,8 +60,10 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 
 /**
@@ -78,13 +80,11 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
 
     private final ColumnFilterMode m_columnFilterMode;
 
-    private final int m_unknownColumnPosition;
-
-    private final boolean m_keepUnknownColumns;
-
     private final boolean m_enforceTypes;
 
     private final boolean m_skipEmptyColumns;
+
+    private final ImmutableUnknownColumnsTransformation m_unknownColumnsTransformation;
 
     /**
      * Constructor.
@@ -92,14 +92,14 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
      * @param transformations a {@link Collection} of {@link ImmutableColumnTransformation}
      * @param rawSpec the {@link RawSpec}
      * @param columnFilterMode the {@link ColumnFilterMode}
-     * @param unknownColumnPosition the position at which to insert unknown columns
-     * @param keepUnknownColumns whether unknown columns should be kept
+     * @param unknownColumnsTransformation the transformation for unknown columns
      * @param enforceTypes whether types should be enforced during execution
      * @param skipEmptyColumns whether empty columns should be skipped
      */
     public ImmutableTableTransformation(final Collection<ImmutableColumnTransformation<T>> transformations,
-        final RawSpec<T> rawSpec, final ColumnFilterMode columnFilterMode, final int unknownColumnPosition,
-        final boolean keepUnknownColumns, final boolean enforceTypes, final boolean skipEmptyColumns) {
+        final RawSpec<T> rawSpec, final ColumnFilterMode columnFilterMode,
+        final ImmutableUnknownColumnsTransformation unknownColumnsTransformation, final boolean enforceTypes,
+        final boolean skipEmptyColumns) {
         m_transformations = transformations.stream().collect(//
             toMap(//
                 ImmutableColumnTransformation::getExternalSpec, //
@@ -108,10 +108,9 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
                 LinkedHashMap::new));
         m_rawSpec = rawSpec;
         m_columnFilterMode = columnFilterMode;
-        m_unknownColumnPosition = unknownColumnPosition;
-        m_keepUnknownColumns = keepUnknownColumns;
         m_enforceTypes = enforceTypes;
         m_skipEmptyColumns = skipEmptyColumns;
+        m_unknownColumnsTransformation = unknownColumnsTransformation;
     }
 
     private ImmutableTableTransformation(final TableTransformation<T> toWrap) {
@@ -122,9 +121,9 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
         m_rawSpec = toWrap.getRawSpec();
         m_columnFilterMode = toWrap.getColumnFilterMode();
         m_enforceTypes = toWrap.enforceTypes();
-        m_unknownColumnPosition = toWrap.getPositionForUnknownColumns();
-        m_keepUnknownColumns = toWrap.keepUnknownColumns();
         m_skipEmptyColumns = toWrap.skipEmptyColumns();
+        m_unknownColumnsTransformation =
+            new ImmutableUnknownColumnsTransformation(toWrap.getTransformationForUnknownColumns());
     }
 
     /**
@@ -159,16 +158,6 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
     }
 
     @Override
-    public int getPositionForUnknownColumns() {
-        return m_unknownColumnPosition;
-    }
-
-    @Override
-    public boolean keepUnknownColumns() {
-        return m_keepUnknownColumns;
-    }
-
-    @Override
     public boolean enforceTypes() {
         return m_enforceTypes;
     }
@@ -189,6 +178,11 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
     }
 
     @Override
+    public UnknownColumnsTransformation getTransformationForUnknownColumns() {
+        return m_unknownColumnsTransformation;
+    }
+
+    @Override
     public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
@@ -199,11 +193,10 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
         if (obj.getClass() == getClass()) {
             @SuppressWarnings("unchecked")
             final ImmutableTableTransformation<T> other = (ImmutableTableTransformation<T>)obj;
-            return m_keepUnknownColumns == other.keepUnknownColumns() //
-                && m_enforceTypes == other.enforceTypes() //
-                && m_unknownColumnPosition == other.getPositionForUnknownColumns()//
+            return m_enforceTypes == other.enforceTypes() //
                 && m_columnFilterMode == other.getColumnFilterMode()//
                 && m_rawSpec.equals(other.getRawSpec())//
+                && m_unknownColumnsTransformation.equals(other.getTransformationForUnknownColumns())//
                 && m_transformations.equals(other.m_transformations);
         }
         return false;
@@ -212,11 +205,10 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
     @Override
     public int hashCode() {
         return new HashCodeBuilder()//
-            .append(m_keepUnknownColumns)//
             .append(m_enforceTypes)//
-            .append(m_unknownColumnPosition)//
             .append(m_columnFilterMode)//
             .append(m_rawSpec)//
+            .append(m_unknownColumnsTransformation)//
             .append(m_transformations)//
             .toHashCode();
     }
@@ -226,17 +218,16 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
         return new StringBuilder()//
             .append("{ColumnFilerMode: ")//
             .append(m_columnFilterMode)//
-            .append(", keepUnknown: ")//
-            .append(m_keepUnknownColumns)//
-            .append(", unknownPos: ")//
-            .append(m_unknownColumnPosition)//
             .append(", enforceTypes: ")//
             .append(m_enforceTypes)//
             .append(", RawSpec: ")//
             .append(m_rawSpec)//
+            .append(", UnknownColumnsTransformation: ")//
+            .append(m_unknownColumnsTransformation)//
             .append(", ColumnTransformations: ")//
             .append(m_transformations)//
             .append("}")//
             .toString();
     }
+
 }

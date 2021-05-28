@@ -72,6 +72,7 @@ import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformati
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
@@ -181,8 +182,10 @@ final class TableSpecConfigTestingUtils {
         DefaultTableSpecConfig<String> build() {
             final List<ImmutableColumnTransformation<String>> colTrans =
                 createColTrans(m_cols, asList(m_prodPaths), asList(m_names), asList(m_positions), asList(m_keeps));
+            final ImmutableUnknownColumnsTransformation unknownColsTrans =
+                new ImmutableUnknownColumnsTransformation(m_unknownColPosition, m_keepUnknown, false, null);
             final ImmutableTableTransformation<String> tableTrans = new ImmutableTableTransformation<>(colTrans,
-                m_rawSpec, m_columnFilterMode, m_unknownColPosition, m_keepUnknown, m_enforceTypes, m_skipEmptyColumns);
+                m_rawSpec, m_columnFilterMode, unknownColsTrans, m_enforceTypes, m_skipEmptyColumns);
             return new DefaultTableSpecConfig<>(m_root, m_configID, m_items, m_individualSpecs, tableTrans);
         }
 

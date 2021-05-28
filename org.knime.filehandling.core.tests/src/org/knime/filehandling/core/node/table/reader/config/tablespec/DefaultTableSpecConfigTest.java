@@ -89,6 +89,7 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecC
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -143,11 +144,14 @@ public class DefaultTableSpecConfigTest {
         @SuppressWarnings("unchecked")
         final TableTransformation<String> transformationModel = mock(TableTransformation.class);
 
+        final UnknownColumnsTransformation unknownColsTrans = mock(UnknownColumnsTransformation.class);
+        when(unknownColsTrans.keep()).thenReturn(true);
+        when(unknownColsTrans.getPosition()).thenReturn(3);
+
         when(transformationModel.getRawSpec()).thenReturn(RAW_SPEC);
 
         when(transformationModel.getColumnFilterMode()).thenReturn(ColumnFilterMode.UNION);
-        when(transformationModel.keepUnknownColumns()).thenReturn(true);
-        when(transformationModel.getPositionForUnknownColumns()).thenReturn(3);
+        when(transformationModel.getTransformationForUnknownColumns()).thenReturn(unknownColsTrans);
 
         when(transformationModel.stream()).thenReturn(Stream.of(m_trans1, m_trans2, m_trans3));
 

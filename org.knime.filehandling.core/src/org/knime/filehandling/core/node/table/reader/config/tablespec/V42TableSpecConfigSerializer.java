@@ -68,6 +68,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 
 import com.google.common.collect.Iterators;
@@ -176,8 +177,10 @@ final class V42TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
         final boolean includeUnknownColumns = true;
         final boolean skipEmptyColumns = false;
         final int newColPosition = unionSize;
-        return new ImmutableTableTransformation<>(columnTransformations, rawSpec, columnFilterMode, newColPosition,
-            includeUnknownColumns, enforceTypes, skipEmptyColumns);
+        final ImmutableUnknownColumnsTransformation unknownColumnsTransformation =
+            new ImmutableUnknownColumnsTransformation(newColPosition, includeUnknownColumns, false, null);
+        return new ImmutableTableTransformation<>(columnTransformations, rawSpec, columnFilterMode,
+            unknownColumnsTransformation, enforceTypes, skipEmptyColumns);
     }
 
     /**

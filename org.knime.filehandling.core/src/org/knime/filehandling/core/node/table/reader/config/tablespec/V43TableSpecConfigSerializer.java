@@ -57,6 +57,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 
 /**
@@ -131,8 +132,10 @@ final class V43TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
             loader.getLoadedKnimeSpec(), loader.getProductionPaths(), originalNames, positions, keep);
         final RawSpec<T> rawSpec =
             loader.createRawSpec(loader.getLoadedKnimeSpec(), loader.getProductionPaths(), originalNames);
-        return new ImmutableTableTransformation<>(columnTransformations, rawSpec, columnFilterMode, newColPosition,
-            includeUnknownColumns, enforceTypes, SKIP_EMPTY_COLUMNS);
+        final ImmutableUnknownColumnsTransformation unknownColumnsTransformation =
+            new ImmutableUnknownColumnsTransformation(newColPosition, includeUnknownColumns, false, null);
+        return new ImmutableTableTransformation<>(columnTransformations, rawSpec, columnFilterMode,
+            unknownColumnsTransformation, enforceTypes, SKIP_EMPTY_COLUMNS);
     }
 
     private static ColumnFilterMode loadColumnFilterMode(final NodeSettingsRO settings)

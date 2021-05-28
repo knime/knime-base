@@ -69,7 +69,9 @@ import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformati
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -115,8 +117,9 @@ public class TableTransformationSerializerTest {
         final ColumnTransformation<String> trans3 =
             new ImmutableColumnTransformation<>(TableSpecConfigTestingUtils.COL3, productionPaths[2], false, 0, "baz");
         final List<ColumnTransformation<String>> transformations = Arrays.asList(trans1, trans2, trans3);
+        UnknownColumnsTransformation unknownColsTrans = new ImmutableUnknownColumnsTransformation(1, true, false, null);
         final TableTransformation<String> tableTransformation = new DefaultTableTransformation<>(RAW_SPEC,
-            transformations, ColumnFilterMode.INTERSECTION, true, 1, true, true);
+            transformations, ColumnFilterMode.INTERSECTION, unknownColsTrans, true, true);
         final NodeSettings saved = new NodeSettings("test");
         m_testInstance.save(tableTransformation, saved);
 
@@ -125,8 +128,8 @@ public class TableTransformationSerializerTest {
         assertEquals(expected, saved);
     }
 
-    static void fillSettings(final NodeSettingsWO settings, final boolean keepUnknown, final boolean skipEmptyColumns, final int positionForUnknown,
-        final boolean enforceTypes, final ColumnFilterMode columnFilterMode,
+    static void fillSettings(final NodeSettingsWO settings, final boolean keepUnknown, final boolean skipEmptyColumns,
+        final int positionForUnknown, final boolean enforceTypes, final ColumnFilterMode columnFilterMode,
         final List<? extends ColumnTransformation<String>> transformations) {
         final NodeSettingsWO columnsSettings = settings.addNodeSettings("columns");
         columnsSettings.addInt("num_columns", transformations.size());
@@ -138,11 +141,19 @@ public class TableTransformationSerializerTest {
                 colTransformation.getExternalSpec().getName().orElseThrow(IllegalStateException::new),
                 colTransformation.getExternalSpec().hasType());
         }
-        settings.addBoolean("keep_unknown", keepUnknown);
         settings.addBoolean("skip_empty_columns", skipEmptyColumns);
-        settings.addInt("position_for_unknown", positionForUnknown);
         settings.addBoolean("enforce_types", enforceTypes);
         settings.addString("column_filter_mode", columnFilterMode.name());
+
+        final NodeSettingsWO newColsSettings = settings.addNodeSettings("unknown_columns_transformation");
+        fillUnknownColsSettings(keepUnknown, positionForUnknown, newColsSettings);
+    }
+
+    private static void fillUnknownColsSettings(final boolean keepUnknown, final int positionForUnknown,
+        final NodeSettingsWO newColsSettings) {
+        newColsSettings.addBoolean("keep", keepUnknown);
+        newColsSettings.addInt("position", positionForUnknown);
+        newColsSettings.addBoolean("force_type", false);
     }
 
     /**
@@ -165,15 +176,17 @@ public class TableTransformationSerializerTest {
         fillSettings(settings, false, true, 2, false, ColumnFilterMode.UNION, transformations);
         stubForLoading(productionPaths);
         final TableTransformation<String> loaded = m_testInstance.load(settings);
+        final ImmutableUnknownColumnsTransformation unknownColsTrans =
+            new ImmutableUnknownColumnsTransformation(2, false, false, null);
         final TableTransformation<String> expected = new ImmutableTableTransformation<>(transformations, RAW_SPEC,
-            ColumnFilterMode.UNION, 2, false, false, true);
+            ColumnFilterMode.UNION, unknownColsTrans, false, true);
         assertEquals(loaded, expected);
     }
 
     private void stubForLoading(final ProductionPath[] productionPaths) throws InvalidSettingsException {
         final ProductionPath[] remainder = Arrays.stream(productionPaths)//
-                .skip(1)//
-                .toArray(ProductionPath[]::new);
+            .skip(1)//
+            .toArray(ProductionPath[]::new);
 
         when(m_productionPathSerializer.loadProductionPath(any(), eq(""))).thenReturn(productionPaths[0], remainder);
         when(m_typeSerializer.load(any())).thenReturn("X", "Y", "Z");
@@ -195,8 +208,10 @@ public class TableTransformationSerializerTest {
         final ImmutableColumnTransformation<String> trans3 =
             new ImmutableColumnTransformation<>(TableSpecConfigTestingUtils.COL3, productionPaths[2], false, 0, "baz");
         final List<ImmutableColumnTransformation<String>> transformations = Arrays.asList(trans1, trans2, trans3);
+        final ImmutableUnknownColumnsTransformation unknownColsTrans =
+            new ImmutableUnknownColumnsTransformation(1, true, false, null);
         final TableTransformation<String> saved = new ImmutableTableTransformation<>(transformations, RAW_SPEC,
-            ColumnFilterMode.INTERSECTION, 1, true, true, false);
+            ColumnFilterMode.INTERSECTION, unknownColsTrans, true, false);
 
         final NodeSettings settings = new NodeSettings("test");
         m_testInstance.save(saved, settings);

@@ -83,9 +83,11 @@ import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ObservableTransformationModelProvider;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
@@ -385,7 +387,9 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     public void load(final TableTransformation<T> transformationModel) {
         m_rawSpec = transformationModel.getRawSpec();
         m_skipEmptyColumns = transformationModel.skipEmptyColumns();
-        final int newColPosition = transformationModel.getPositionForUnknownColumns();
+        final UnknownColumnsTransformation unknownColsTransformation =
+            transformationModel.getTransformationForUnknownColumns();
+        final int newColPosition = unknownColsTransformation.getPosition();
         m_newColTransformationPlaceholder.setPosition(newColPosition);
         m_transformations.clear();
         final ColumnFilterMode colFilterMode = transformationModel.getColumnFilterMode();
@@ -636,8 +640,11 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
             .filter(c -> c != m_newColTransformationPlaceholder)//
             .map(ImmutableColumnTransformation::copy)//
             .collect(toList());
-        return new DefaultTableTransformation<>(m_rawSpec, transformations, getColumnFilterMode(), keepUnknownColumns(),
-            getPositionForUnknownColumns(), m_enforceTypesModel.isSelected(), m_skipEmptyColumns);
+        // TODO add support for enforcing the type of unknown columns
+        final UnknownColumnsTransformation unknownColsTransformation = new ImmutableUnknownColumnsTransformation(
+            getPositionForUnknownColumns(), keepUnknownColumns(), false, null);
+        return new DefaultTableTransformation<>(m_rawSpec, transformations, getColumnFilterMode(),
+            unknownColsTransformation, m_enforceTypesModel.isSelected(), m_skipEmptyColumns);
     }
 
 }

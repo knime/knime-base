@@ -74,6 +74,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.mockito.Mock;
@@ -375,8 +376,10 @@ public class DefaultTableTransformationFactoryTest {
             @SuppressWarnings("unchecked")
             final TableTransformation<String> mock = Mockito.mock(TableTransformation.class);
             when(mock.getColumnFilterMode()).thenReturn(m_columnFilterMode);
-            when(mock.getPositionForUnknownColumns()).thenReturn(m_unknownColPos);
-            when(mock.keepUnknownColumns()).thenReturn(m_keepUnknowns);
+            final UnknownColumnsTransformation unknownColsTrans = Mockito.mock(UnknownColumnsTransformation.class);
+            when(unknownColsTrans.getPosition()).thenReturn(m_unknownColPos);
+            when(unknownColsTrans.keep()).thenReturn(m_keepUnknowns);
+            when(mock.getTransformationForUnknownColumns()).thenReturn(unknownColsTrans);
             when(mock.getRawSpec()).thenReturn(m_rawSpecBuilder.build());
             when(mock.enforceTypes()).thenReturn(m_enforceTypes);
             when(mock.skipEmptyColumns()).thenReturn(m_skipEmptyColumns);

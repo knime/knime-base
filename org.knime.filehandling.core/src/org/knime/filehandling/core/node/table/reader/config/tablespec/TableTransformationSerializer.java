@@ -62,6 +62,7 @@ import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformati
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
@@ -80,15 +81,13 @@ final class TableTransformationSerializer<T> {
 
     private static final String CFG_ENFORCE_TYPES = "enforce_types";
 
-    private static final String CFG_KEEP_UNKNOWN_COLUMNS = "keep_unknown";
-
     private static final String CFG_SKIP_EMPTY_COLUMNS = "skip_empty_columns";
-
-    private static final String CFG_POSITION_FOR_UNKNOWN_COLUMNS = "position_for_unknown";
 
     private static final String CFG_INTERSECTION_INDICES = "intersection_indices";
 
     private static final String CFG_NUM_COLUMNS = "num_columns";
+
+    private static final String CFG_UNKNOWN_COLUMNS_TRANSFORMATION = "unknown_columns_transformation";
 
     private final ColumnTransformationSerializer<T> m_columnTransformationSerializer;
 
@@ -98,12 +97,11 @@ final class TableTransformationSerializer<T> {
 
     void save(final TableTransformation<T> tableTransformation, final NodeSettingsWO settings) {
         saveColumns(tableTransformation, settings.addNodeSettings(CFG_COLUMNS));
-        settings.addBoolean(CFG_KEEP_UNKNOWN_COLUMNS, tableTransformation.keepUnknownColumns());
         settings.addBoolean(CFG_SKIP_EMPTY_COLUMNS, tableTransformation.skipEmptyColumns());
-        settings.addInt(CFG_POSITION_FOR_UNKNOWN_COLUMNS, tableTransformation.getPositionForUnknownColumns());
         settings.addBoolean(CFG_ENFORCE_TYPES, tableTransformation.enforceTypes());
         settings.addString(CFG_COLUMN_FILTER_MODE, tableTransformation.getColumnFilterMode().name());
-
+        UnknownColumnsTransformationSerializer.save(tableTransformation.getTransformationForUnknownColumns(),
+            settings.addNodeSettings(CFG_UNKNOWN_COLUMNS_TRANSFORMATION));
     }
 
     private void saveColumns(final TableTransformation<T> tableTransformation, final NodeSettingsWO settings) {
@@ -125,17 +123,16 @@ final class TableTransformationSerializer<T> {
             .toArray());
     }
 
-    TableTransformation<T> load(final NodeSettingsRO settings)
-        throws InvalidSettingsException {
+    TableTransformation<T> load(final NodeSettingsRO settings) throws InvalidSettingsException {
         NodeSettingsRO columnSettings = settings.getNodeSettings(CFG_COLUMNS);
         final List<ImmutableColumnTransformation<T>> columns = loadColumnTransformations(columnSettings);
         final RawSpec<T> rawSpec = loadRawSpec(columns, columnSettings);
-        final boolean keepUnknown = settings.getBoolean(CFG_KEEP_UNKNOWN_COLUMNS);
         final boolean skipEmptyColumns = settings.getBoolean(CFG_SKIP_EMPTY_COLUMNS);
-        final int positionForUnknown = settings.getInt(CFG_POSITION_FOR_UNKNOWN_COLUMNS);
         final boolean enforceTypes = settings.getBoolean(CFG_ENFORCE_TYPES);
         final ColumnFilterMode columnFilterMode = loadColumnFilterMode(settings);
-        return new ImmutableTableTransformation<>(columns, rawSpec, columnFilterMode, positionForUnknown, keepUnknown,
+        final ImmutableUnknownColumnsTransformation unknownColumnsTransformation =
+            UnknownColumnsTransformationSerializer.load(settings.getNodeSettings(CFG_UNKNOWN_COLUMNS_TRANSFORMATION));
+        return new ImmutableTableTransformation<>(columns, rawSpec, columnFilterMode, unknownColumnsTransformation,
             enforceTypes, skipEmptyColumns);
     }
 

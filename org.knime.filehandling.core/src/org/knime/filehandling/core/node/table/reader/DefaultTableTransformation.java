@@ -62,6 +62,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 
 /**
@@ -78,13 +79,11 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
 
     private final ColumnFilterMode m_columnFilterMode;
 
-    private final int m_unknownColumnPosition;
-
-    private final boolean m_includeUnknownColumns;
-
     private final boolean m_enforceTypes;
 
     private final boolean m_skipEmptyColumns;
+
+    private final UnknownColumnsTransformation m_unknownColumnsTransformation;
 
     /**
      * Constructor.
@@ -92,23 +91,20 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
      * @param rawSpec the {@link RawSpec}
      * @param transformations the transformations
      * @param columnFilterMode indicating which columns should be included
-     * @param includeUnknownColumns flag indicating if new columns should be included or not
-     * @param unknownColumnPosition the positions at which new columns should be inserted
+     * @param unknownColumnsTransformation the transformation for unknown columns
      * @param enforceTypes indicates whether configured types should be enforced
      * @param skipEmptyColumns whether empty columns should be skipped
      */
     public DefaultTableTransformation(final RawSpec<T> rawSpec,
         final Collection<ColumnTransformation<T>> transformations, final ColumnFilterMode columnFilterMode,
-        final boolean includeUnknownColumns, final int unknownColumnPosition, final boolean enforceTypes,
-        final boolean skipEmptyColumns) {
+        final UnknownColumnsTransformation unknownColumnsTransformation, final boolean enforceTypes, final boolean skipEmptyColumns) {
         m_rawSpec = rawSpec;
         m_transformations = transformations.stream().collect(
             toMap(ColumnTransformation::getExternalSpec, Function.identity(), (l, r) -> l, LinkedHashMap::new));
         m_columnFilterMode = columnFilterMode;
-        m_includeUnknownColumns = includeUnknownColumns;
-        m_unknownColumnPosition = unknownColumnPosition;
         m_enforceTypes = enforceTypes;
         m_skipEmptyColumns = skipEmptyColumns;
+        m_unknownColumnsTransformation = unknownColumnsTransformation;
     }
 
     @Override
@@ -129,18 +125,8 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
     }
 
     @Override
-    public int getPositionForUnknownColumns() {
-        return m_unknownColumnPosition;
-    }
-
-    @Override
     public ColumnFilterMode getColumnFilterMode() {
         return m_columnFilterMode;
-    }
-
-    @Override
-    public boolean keepUnknownColumns() {
-        return m_includeUnknownColumns;
     }
 
     @Override
@@ -161,6 +147,11 @@ public final class DefaultTableTransformation<T> implements TableTransformation<
     @Override
     public boolean skipEmptyColumns() {
         return m_skipEmptyColumns;
+    }
+
+    @Override
+    public UnknownColumnsTransformation getTransformationForUnknownColumns() {
+        return m_unknownColumnsTransformation;
     }
 
 }

@@ -66,9 +66,11 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformationUtils;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
@@ -129,9 +131,12 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
         final LinkedHashMap<String, ColumnTransformation<T>> relevantTransformations =
             findRelevantTransformations(existingModel, relevantColumns);
 
+        final UnknownColumnsTransformation existingUnknownColumnsTransformation =
+            existingModel.getTransformationForUnknownColumns();
+
         // The position at which all unknown columns are inserted
-        final int insertUnknownsAt =
-            calculateNewPosForUnknown(relevantTransformations.values(), existingModel.getPositionForUnknownColumns());
+        final int insertUnknownsAt = calculateNewPosForUnknown(relevantTransformations.values(),
+            existingUnknownColumnsTransformation.getPosition());
 
         // All columns that are either new or are no longer relevant
         // (i.e. they dropped out of the intersection if ColumnFilterMode==INTERSECTION)
@@ -139,14 +144,30 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
             .filter(e -> !relevantTransformations.containsKey(getNameAfterInit(e)))//
             .collect(toList());
 
-        final boolean keepUnknownColumns = existingModel.keepUnknownColumns();
+        final boolean keepUnknownColumns = existingUnknownColumnsTransformation.keep();
         final boolean enforceTypes = existingModel.enforceTypes();
-        final ColumnTransformationFactory transformationFactory =
-            new ColumnTransformationFactory(enforceTypes, keepUnknownColumns);
+        final ColumnTransformationFactory transformationFactory = new ColumnTransformationFactory(enforceTypes,
+            keepUnknownColumns, createProdPathFinderForNewColumns(existingUnknownColumnsTransformation));
         final List<ColumnTransformation<T>> newTransformations = createColumnTransformations(relevantColumns,
             relevantTransformations, insertUnknownsAt, unknowns, transformationFactory);
-        return new DefaultTableTransformation<>(newRawSpec, newTransformations, colFilterMode, keepUnknownColumns,
-            insertUnknownsAt + unknowns.size(), enforceTypes, skipEmptyColumns);
+        final UnknownColumnsTransformation newUnknownColumnsTransformation =
+            new ImmutableUnknownColumnsTransformation(insertUnknownsAt + unknowns.size(), keepUnknownColumns,
+                existingUnknownColumnsTransformation.forceType(), existingUnknownColumnsTransformation.getForcedType());
+        return new DefaultTableTransformation<>(newRawSpec, newTransformations, colFilterMode,
+            newUnknownColumnsTransformation, enforceTypes, skipEmptyColumns);
+    }
+
+    private Function<TypedReaderColumnSpec<T>, ProductionPath>
+        createProdPathFinderForNewColumns(final UnknownColumnsTransformation unknownColsTransformation) {
+        if (unknownColsTransformation.forceType()) {
+            return new ForcedTypeNewProductionPathFinder(unknownColsTransformation.getForcedType());
+        } else {
+            return this::defaultProdPathFinder;
+        }
+    }
+
+    private ProductionPath defaultProdPathFinder(final TypedReaderColumnSpec<T> t) {
+        return m_prodPathProvider.getDefaultProductionPath(t.getType());
     }
 
     private LinkedHashMap<String, ColumnTransformation<T>> findRelevantTransformations(
@@ -240,31 +261,38 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
         final TypedReaderTableSpec<T> union = rawSpec.getUnion();
         final List<ColumnTransformation<T>> transformations = new ArrayList<>(union.size());
         int idx = 0;
-        final ColumnTransformationFactory transformationFactory = new ColumnTransformationFactory(true, true);
+        final ColumnTransformationFactory transformationFactory =
+            new ColumnTransformationFactory(true, true, this::defaultProdPathFinder);
         for (TypedReaderColumnSpec<T> column : union) {
             transformations.add(transformationFactory.createNew(column, idx));
             idx++;
         }
+        final ImmutableUnknownColumnsTransformation unknownColumnsTransformation =
+            new ImmutableUnknownColumnsTransformation(transformations.size(), true, false, null);
         // defaulting enforceTypes to true is save because this transformation is only stored for the Table Manipulator
         // which is a new node in 4.3. Reader nodes don't store the transformation created here.
-        return new DefaultTableTransformation<>(rawSpec, transformations, columnFilterMode, true,
-            transformations.size(), true, config.skipEmptyColumns());
+        return new DefaultTableTransformation<>(rawSpec, transformations, columnFilterMode,
+            unknownColumnsTransformation, true, config.skipEmptyColumns());
     }
 
-    private class ColumnTransformationFactory {
+    private final class ColumnTransformationFactory {
 
-        private boolean m_enforceTypes;
+        private final boolean m_enforceTypes;
 
-        private boolean m_keepUnknownColumns;
+        private final boolean m_keepUnknownColumns;
 
-        ColumnTransformationFactory(final boolean enforceTypes, final boolean keepUnknownColumns) {
+        private final Function<TypedReaderColumnSpec<T>, ProductionPath> m_prodPathFinderForNewColumns;
+
+        ColumnTransformationFactory(final boolean enforceTypes, final boolean keepUnknownColumns,
+            final Function<TypedReaderColumnSpec<T>, ProductionPath> prodPathFinderForNewColumns) {
             m_enforceTypes = enforceTypes;
             m_keepUnknownColumns = keepUnknownColumns;
+            m_prodPathFinderForNewColumns = prodPathFinderForNewColumns;
         }
 
         ColumnTransformation<T> createNew(final TypedReaderColumnSpec<T> column, final int idx) {
-            return new ImmutableColumnTransformation<>(column,
-                m_prodPathProvider.getDefaultProductionPath(column.getType()), m_keepUnknownColumns, idx,
+            final ProductionPath prodPath = m_prodPathFinderForNewColumns.apply(column);
+            return new ImmutableColumnTransformation<>(column, prodPath, m_keepUnknownColumns, idx,
                 getNameAfterInit(column));
         }
 
@@ -297,6 +325,25 @@ final class DefaultTableTransformationFactory<T> implements TableTransformationF
                 return m_prodPathProvider.getDefaultProductionPath(externalType);
             }
         }
+    }
+
+    private final class ForcedTypeNewProductionPathFinder
+        implements Function<TypedReaderColumnSpec<T>, ProductionPath> {
+
+        private final DataType m_forcedType;
+
+        ForcedTypeNewProductionPathFinder(final DataType forcedType) {
+            m_forcedType = forcedType;
+        }
+
+        @Override
+        public ProductionPath apply(final TypedReaderColumnSpec<T> t) {
+            return m_prodPathProvider.getAvailableProductionPaths(t.getType()).stream()//
+                .filter(p -> p.getDestinationType().equals(m_forcedType)).findFirst()//
+                .orElseThrow(() -> new IllegalArgumentException(String
+                    .format("The new column '%s' can't be converted to the enforced type '%s'.", t, m_forcedType)));
+        }
+
     }
 
 }
