@@ -48,21 +48,25 @@ package org.knime.filehandling.core.connections.knimerelativeto.testing;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystem;
 import org.knime.filehandling.core.connections.knimerelativeto.RelativeToPath;
 import org.knime.filehandling.core.connections.local.BasicLocalTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializer;
+import org.knime.filehandling.core.testing.WorkflowAwareFSTestInitializer;
 
 /**
  * {@link FSTestInitializer} for file systems based on {@link LocalRelativeToFileSystem}.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem> {
+class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem>
+    implements WorkflowAwareFSTestInitializer {
 
     private WorkflowManager m_workflowManager;
 
@@ -106,4 +110,27 @@ class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<Relativ
 
         return toReturn;
     }
+
+    @Override
+    public boolean canDistinguishBetweenComponentsAndMetanodes() {
+        return true;
+    }
+
+    @Override
+    public RelativeToPath deployWorkflow(final Path tmpWf, final String ... pathComponents) throws IOException {
+        final Path workflowFilePath = tmpWf.resolve("workflow.knime");
+        final String workflowFile = Files.readString(workflowFilePath);
+        final String[] pathComponentsWithExtraComponent = Arrays.copyOf(pathComponents, pathComponents.length + 1);
+        pathComponentsWithExtraComponent[pathComponents.length] = WorkflowPersistor.WORKFLOW_FILE;
+        createFileWithContent(workflowFile, pathComponentsWithExtraComponent);
+        final Path templateFilePath = tmpWf.resolve("template.knime");
+        if (Files.exists(templateFilePath)) {
+            final String templateFile = Files.readString(templateFilePath);
+            pathComponentsWithExtraComponent[pathComponents.length] = WorkflowPersistor.TEMPLATE_FILE;
+            createFileWithContent(templateFile, pathComponentsWithExtraComponent);
+        }
+        return makePath(pathComponents);
+    }
+
+
 }

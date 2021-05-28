@@ -64,10 +64,9 @@ import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.util.IOESupplier;
 
 /**
- * The parent class of the test suite in our file system testing framework. All
- * test classes which extend this class will automatically be parameterized by
- * all registered {@link FSTestInitializer} and thus be tested on all file
- * system implementations.
+ * The parent class of the test suite in our file system testing framework. All test classes which extend this class
+ * will automatically be parameterized by all registered {@link FSTestInitializer} and thus be tested on all file system
+ * implementations.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
@@ -84,18 +83,29 @@ public abstract class AbstractParameterizedFSTest {
     private static boolean preferencesLoaded = false;
 
     protected static final String LOCAL = "local";
+
     protected static final String AMAZON_S3 = "amazon-s3";
+
     protected static final String GOOGLE_CS = "google-cs";
+
     protected static final String HDFS = "hdfs";
+
     protected static final String HDFS_KNOX = "hdfs-knox";
+
     protected static final String HDFS_WRAPPER_WRAPPER = "hdfs-wrapper-wrapper";
+
     protected static final String MICROSOFT_BLOBSTORAGE = "microsoft-blobstorage";
+
     protected static final String DATABRICKS_DBFS = "dbfs";
 
     protected static final String KNIME_LOCAL_RELATIVE_WORKFLOW = "knime-local-relative-workflow";
+
     protected static final String KNIME_LOCAL_RELATIVE_MOUNTPOINT = "knime-local-relative-mountpoint";
+
     protected static final String KNIME_REST_RELATIVE_WORKFLOW = "knime-rest-relative-workflow";
+
     protected static final String KNIME_REST_RELATIVE_MOUNTPOINT = "knime-rest-relative-mountpoint";
+
     protected static final String KNIME_REST = "knime-rest";
 
     private static FSTestInitializer currentTestInitializer;
@@ -136,8 +146,8 @@ public abstract class AbstractParameterizedFSTest {
     }
 
     protected final FSTestInitializer m_testInitializer;
-    protected final String m_fsType;
 
+    protected final String m_fsType;
 
     /** {@link FSConnection} that gets initialized before each test */
     protected FSConnection m_connection;
@@ -145,13 +155,12 @@ public abstract class AbstractParameterizedFSTest {
     /**
      * Creates a new instance for a file system.
      *
-     * @param fsType
-     *            the file system type
-     * @param testInitializer
-     *            the initializer for the file system
+     * @param fsType the file system type
+     * @param testInitializer the initializer for the file system
      * @throws IOException
      */
-    public AbstractParameterizedFSTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer) throws IOException {
+    public AbstractParameterizedFSTest(final String fsType, final IOESupplier<FSTestInitializer> testInitializer)
+        throws IOException {
         m_testInitializer = testInitializer.get();
         m_connection = m_testInitializer.getFSConnection();
         m_fsType = fsType;
@@ -160,11 +169,10 @@ public abstract class AbstractParameterizedFSTest {
     /**
      * Ignores a test case for the specified file systems.
      *
-     * This is helpful in the case where a general test case is true for most file
-     * system, but not all. Every file system given as a parameter will be ignored.
+     * This is helpful in the case where a general test case is true for most file system, but not all. Every file
+     * system given as a parameter will be ignored.
      *
-     * @param fileSystems
-     *            the file systems to be ignored for this test case
+     * @param fileSystems the file systems to be ignored for this test case
      */
     public void ignore(final String... fileSystems) {
         final boolean shouldBeIgnored = Arrays.stream(fileSystems).anyMatch(fileSystem -> fileSystem.equals(m_fsType));
@@ -175,11 +183,9 @@ public abstract class AbstractParameterizedFSTest {
     /**
      * Ignores a test case for the specified file system and provides a reason why.
      *
-     * This is helpful in the case where a general test case is true for most file
-     * systems, but not all.
+     * This is helpful in the case where a general test case is true for most file systems, but not all.
      *
-     * @param fileSystem
-     *            the file system to be ignored for this test case
+     * @param fileSystem the file system to be ignored for this test case
      */
     public void ignoreWithReason(final String reason, final String fileSystem) {
         final boolean shouldBeIgnored = fileSystem.equals(m_fsType);
@@ -189,12 +195,10 @@ public abstract class AbstractParameterizedFSTest {
     /**
      * Ignores a test case for all FileSystems except the specified file systems.
      *
-     * This is helpful in the case where a general test case is true for most file
-     * system, but not all. Every file system that is not given as a parameter will
-     * be ignored.
+     * This is helpful in the case where a general test case is true for most file system, but not all. Every file
+     * system that is not given as a parameter will be ignored.
      *
-     * @param fileSystems
-     *            the file systems to be ignored for this test case
+     * @param fileSystems the file systems to be ignored for this test case
      */
     public void ignoreAllExcept(final String... fileSystems) {
         final boolean shouldBeIgnored = !Arrays.stream(fileSystems).anyMatch(fileSystem -> fileSystem.equals(m_fsType));

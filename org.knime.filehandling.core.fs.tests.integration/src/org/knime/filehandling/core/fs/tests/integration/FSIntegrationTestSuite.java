@@ -72,6 +72,7 @@ import org.knime.filehandling.core.fs.tests.integration.path.PathTest;
 import org.knime.filehandling.core.fs.tests.integration.path.SubPathTest;
 import org.knime.filehandling.core.fs.tests.integration.path.ToStringTest;
 import org.knime.filehandling.core.fs.tests.integration.path.ToUriTest;
+import org.knime.filehandling.core.fs.tests.integration.workflowaware.WorkflowAwareTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({//
@@ -98,7 +99,8 @@ import org.knime.filehandling.core.fs.tests.integration.path.ToUriTest;
     TempDirectoriesTest.class,//
     TempFilesTest.class,//
     ToStringTest.class, //
-    ToUriTest.class//
+    ToUriTest.class,//
+    WorkflowAwareTest.class
 })
 public class FSIntegrationTestSuite {
 
