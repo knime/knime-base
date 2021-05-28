@@ -59,6 +59,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.knime.core.data.DataType;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterFactory;
+import org.knime.core.data.convert.datacell.OriginAwareJavaToDataCellConverterRegistry;
+import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.DefaultSourceGroup;
@@ -166,6 +170,20 @@ public final class MultiTableUtils {
             sourceGroup.stream()//
                 .map(Object::toString)//
                 .collect(toList()));
+    }
+
+    /**
+     * Finds the {@link DataType DataTypes} that are reachable from the provided {@link ProducerRegistry}.
+     *
+     * @param producerRegistry to extract reachable KNIME types from
+     * @return the set of KNIME types reachable from producerRegistry
+     */
+    public static Set<DataType> extractReachableKnimeTypes(final ProducerRegistry<?, ?> producerRegistry) {
+        return producerRegistry.getAllDestinationTypes().stream()//
+            .flatMap(
+                c -> OriginAwareJavaToDataCellConverterRegistry.INSTANCE.getConverterFactoriesBySourceType(c).stream())
+            .map(JavaToDataCellConverterFactory::getDestinationType)//
+            .collect(Collectors.toSet());
     }
 
 }

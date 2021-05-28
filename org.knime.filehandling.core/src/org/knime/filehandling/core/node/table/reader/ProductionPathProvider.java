@@ -49,7 +49,9 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import java.util.List;
+import java.util.Set;
 
+import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 
 /**
@@ -75,5 +77,12 @@ public interface ProductionPathProvider<T> {
      * @return a {@link List} of available {@link ProductionPath ProductionPaths} for <B>externalType</b>
      */
     List<ProductionPath> getAvailableProductionPaths(final T externalType);
+
+    /**
+     * Provides the combined set of {@link DataType} that this provider can provide ProductionPaths to.
+     *
+     * @return the set of available data types
+     */
+    Set<DataType> getAvailableDataTypes();
 
 }

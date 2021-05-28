@@ -51,10 +51,13 @@ package org.knime.filehandling.core.node.table.reader;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -70,6 +73,7 @@ import org.knime.core.data.convert.map.Source;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TraversableTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
  * This {@link ProductionPathProvider} uses the {@link TypeHierarchy} of the current node to find the available
@@ -86,7 +90,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <T> the type used to identify external data types
  */
-public final class HierarchyAwareProdutionPathProvider<T> implements ProductionPathProvider<T> {
+public final class HierarchyAwareProductionPathProvider<T> implements ProductionPathProvider<T> {
 
     private final ProducerRegistry<T, ?> m_producerRegistry;
 
@@ -96,8 +100,11 @@ public final class HierarchyAwareProdutionPathProvider<T> implements ProductionP
 
     private final BiPredicate<T, ProductionPath> m_pathTester;
 
+    private final Set<DataType> m_availableDataTypes;
+
     /**
-     * Constructor.
+     * Constructor that extracts the set of available data types (see {@link #getAvailableDataTypes()} from the provided
+     * ProducerRegistry.
      *
      * @param producerRegistry provides the {@link CellValueProducerFactory CellValueProducerFactories}
      * @param typeHierarchy of the reader node
@@ -105,13 +112,34 @@ public final class HierarchyAwareProdutionPathProvider<T> implements ProductionP
      * @param pathBouncer {@link BiPredicate} that allows to blacklist certain (non-default) {@link ProductionPath
      *            ProductionPaths}
      */
-    public HierarchyAwareProdutionPathProvider(final ProducerRegistry<T, ?> producerRegistry,
+    public HierarchyAwareProductionPathProvider(final ProducerRegistry<T, ?> producerRegistry,
         final TraversableTypeHierarchy<T> typeHierarchy, final Function<T, DataType> defaultTypeProvider,
         final BiPredicate<T, ProductionPath> pathBouncer) {
+        this(producerRegistry, typeHierarchy, defaultTypeProvider, pathBouncer,
+            MultiTableUtils.extractReachableKnimeTypes(producerRegistry));
+    }
+
+    /**
+     * Constructor allowing to specify the set of DataTypes returned by {@link #getAvailableDataTypes()}. This allows to
+     * filter out certain data types that are reachable from the ProducerRegistry but can't be reached in the reader
+     * implementation (e.g. BinaryObjectDataCell.TYPE in the CSV Reader).
+     *
+     * @param producerRegistry provides the {@link CellValueProducerFactory CellValueProducerFactories}
+     * @param typeHierarchy of the reader node
+     * @param defaultTypeProvider provides the default {@link DataType} for a particular external type
+     * @param pathBouncer {@link BiPredicate} that allows to blacklist certain (non-default) {@link ProductionPath
+     *            ProductionPaths}
+     * @param availableDataTypes the set of available data types to return in {@link #getAvailableDataTypes()} (should
+     *            match the types reachable from ProducerRegistry)
+     */
+    public HierarchyAwareProductionPathProvider(final ProducerRegistry<T, ?> producerRegistry,
+        final TraversableTypeHierarchy<T> typeHierarchy, final Function<T, DataType> defaultTypeProvider,
+        final BiPredicate<T, ProductionPath> pathBouncer, final Set<DataType> availableDataTypes) {
         m_producerRegistry = producerRegistry;
         m_typeHierarchy = typeHierarchy;
         m_defaultTypeProvider = defaultTypeProvider;
         m_pathTester = pathBouncer;
+        m_availableDataTypes = Collections.unmodifiableSet(new HashSet<>(availableDataTypes));
     }
 
     @Override
@@ -119,11 +147,11 @@ public final class HierarchyAwareProdutionPathProvider<T> implements ProductionP
         final DataType knimeType = m_defaultTypeProvider.apply(externalType);
 
         return getProducerFactories(externalType, m_producerRegistry)//
-                .flatMap(p -> getConverterFactories(p.getDestinationType())//
-                    .filter(f -> f.getDestinationType().equals(knimeType)) //
-                    .map(f -> new ProductionPath(p, f)))//
-                .findFirst()//
-                .orElseThrow();
+            .flatMap(p -> getConverterFactories(p.getDestinationType())//
+                .filter(f -> f.getDestinationType().equals(knimeType)) //
+                .map(f -> new ProductionPath(p, f)))//
+            .findFirst()//
+            .orElseThrow();
     }
 
     private <S extends Source<T>> Stream<CellValueProducerFactory<S, T, ?, ?>>
@@ -178,6 +206,11 @@ public final class HierarchyAwareProdutionPathProvider<T> implements ProductionP
 
     private Predicate<ProductionPath> getPathTesterForCurrentType(final T externalType) {
         return p -> m_pathTester.test(externalType, p);
+    }
+
+    @Override
+    public Set<DataType> getAvailableDataTypes() {
+        return m_availableDataTypes;
     }
 
 }

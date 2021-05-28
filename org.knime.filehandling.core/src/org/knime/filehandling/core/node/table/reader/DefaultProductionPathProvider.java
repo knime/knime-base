@@ -51,6 +51,7 @@ package org.knime.filehandling.core.node.table.reader;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.knime.core.data.DataType;
@@ -58,6 +59,7 @@ import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
  * Creates default {@link ProductionPath ProductionPaths} for external types.
@@ -73,6 +75,8 @@ public final class DefaultProductionPathProvider<T> implements ProductionPathPro
 
     private final Function<T, DataType> m_defaultKnimeTypes;
 
+    private final Set<DataType> m_availableDataTypes;
+
     /**
      * Constructor.
      *
@@ -83,6 +87,7 @@ public final class DefaultProductionPathProvider<T> implements ProductionPathPro
         final Function<T, DataType> defaultKnimeFunction) {
         m_producerRegistry = producerRegistry;
         m_defaultKnimeTypes = defaultKnimeFunction;
+        m_availableDataTypes = MultiTableUtils.extractReachableKnimeTypes(producerRegistry);
     }
 
     /**
@@ -131,6 +136,11 @@ public final class DefaultProductionPathProvider<T> implements ProductionPathPro
     @Override
     public List<ProductionPath> getAvailableProductionPaths(final T externalType) {
         return m_producerRegistry.getAvailableProductionPaths(externalType);
+    }
+
+    @Override
+    public Set<DataType> getAvailableDataTypes() {
+        return m_availableDataTypes;
     }
 
 }
