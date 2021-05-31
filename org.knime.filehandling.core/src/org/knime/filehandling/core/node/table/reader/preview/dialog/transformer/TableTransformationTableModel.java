@@ -344,8 +344,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                 tableChanged |= transformation.setPosition(idx);
                 transformation.setOriginalPosition(idx);
             } else {
-                final ProductionPath productionPath =
-                    m_productionPathProvider.getDefaultProductionPath(column.getType());
+                final ProductionPath productionPath = getProductionPathForUnknownColumn(column);
                 transformation = new MutableColumnTransformation<>(createDefaultSpec(column), column, idx,
                     getNameAfterInit(column), new ProductionPathOrDataType(productionPath), idx, keepUnknownColumns());
                 newColumns.put(column, transformation);
@@ -375,6 +374,20 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         }
     }
 
+    private ProductionPath getProductionPathForUnknownColumn(final TypedReaderColumnSpec<T> column) {
+        final T type = column.getType();
+        ProductionPathOrDataType dataTypeForNewColumns =
+            m_newColTransformationPlaceholder.getProductionPathOrDataType();
+        if (dataTypeForNewColumns.hasDataType()) {
+            return m_productionPathProvider.getAvailableProductionPaths(type).stream()//
+                .filter(p -> p.getDestinationType().equals(dataTypeForNewColumns.getDataType()))//
+                .findFirst()//
+                .orElseGet(() -> m_productionPathProvider.getDefaultProductionPath(type));// fall back to default
+        } else {
+            return m_productionPathProvider.getDefaultProductionPath(type);
+        }
+    }
+
     private boolean keepUnknownColumns() {
         return m_newColTransformationPlaceholder.keep();
     }
@@ -387,10 +400,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
     public void load(final TableTransformation<T> transformationModel) {
         m_rawSpec = transformationModel.getRawSpec();
         m_skipEmptyColumns = transformationModel.skipEmptyColumns();
-        final UnknownColumnsTransformation unknownColsTransformation =
-            transformationModel.getTransformationForUnknownColumns();
-        final int newColPosition = unknownColsTransformation.getPosition();
-        m_newColTransformationPlaceholder.setPosition(newColPosition);
+        loadNewColumnsPlaceholder(transformationModel.getTransformationForUnknownColumns());
         m_transformations.clear();
         final ColumnFilterMode colFilterMode = transformationModel.getColumnFilterMode();
         updateIntersection(m_rawSpec);
@@ -424,6 +434,14 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         // one more sorting to sort in the placeholder for unknown columns correctly
         sortByOutputIdx();
         fireTableDataChanged();
+    }
+
+    private void loadNewColumnsPlaceholder(final UnknownColumnsTransformation unknownColsTransformation) {
+        m_newColTransformationPlaceholder.setPosition(unknownColsTransformation.getPosition());
+        m_newColTransformationPlaceholder.setProductionPath(unknownColsTransformation.forceType()
+            ? new ProductionPathOrDataType(unknownColsTransformation.getForcedType())
+            : ProductionPathOrDataType.DEFAULT);
+        m_newColTransformationPlaceholder.setKeep(unknownColsTransformation.keep());
     }
 
     private void updateIntersection(final RawSpec<T> rawSpec) {
