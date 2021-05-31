@@ -305,7 +305,9 @@ final class PathCopier2 {
      * @throws IOException
      */
     private FileStatus copyFile(final FSPath src, final FSPath dest) throws IOException {
-        createDirectories(dest.getParent());
+        if (dest.getParent() != null) {
+            createDirectories(dest.getParent());
+        }
         try {
             return m_transferPolicy.apply(src, dest);
         } catch (FileAlreadyExistsException e) {
