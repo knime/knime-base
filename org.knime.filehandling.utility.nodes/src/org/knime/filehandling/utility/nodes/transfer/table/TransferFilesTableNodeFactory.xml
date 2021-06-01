@@ -122,7 +122,7 @@
 			If the 'Delete source files (move)' option is activated and something goes wrong during the deletion process
 			the node will fail. This option is only available if the before mentioned option is selected.
 		</option>
-		<option name="Verbose output">
+		<option name="Detailed output">
 			If selected the output will not only show the folder that has been copied/moved but also all the 
 			files/folders it contains.
 		</option>

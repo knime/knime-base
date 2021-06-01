@@ -124,7 +124,7 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
             new DialogComponentBoolean(m_config.getFailOnDeletionModel(), "Fail on unsuccessful deletion");
         m_deleteSourceFilesCheckbox.getModel().addChangeListener(l -> updateFailOnDeletion());
 
-        m_verboseOutput = new DialogComponentBoolean(m_config.getVerboseOutputModel(), "Verbose output");
+        m_verboseOutput = new DialogComponentBoolean(m_config.getVerboseOutputModel(), "Detailed output");
 
         m_transferPolicy =
             new DialogComponentButtonGroup(m_config.getTransferPolicyModel(), null, false, TransferPolicy.values());

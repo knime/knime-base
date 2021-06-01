@@ -75,7 +75,7 @@ public abstract class AbstractTransferFilesNodeConfig {
     private static final String CFG_FAIL_ON_UNSUCCESSFUL_DELETION = "fail_on_unsuccessful_deletion";
 
     /** Config key for the verbose output. */
-    protected static final String CFG_VERBOSE_OUTPUT = "verbose_output";
+    protected static final String CFG_VERBOSE_OUTPUT = "detailed_output";
 
     /** Config key for the transfer policy. */
     protected static final String CFG_TRANSFER_POLICY = "transfer_policy";
