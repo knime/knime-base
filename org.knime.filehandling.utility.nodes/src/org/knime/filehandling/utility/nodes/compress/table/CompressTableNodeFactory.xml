@@ -145,12 +145,6 @@
 		<option name="Compression">
 			Allows to select the desired compression format.
 		</option>
-		<option name="Flatten folder">
-			This option allows to specify where the files are located if multiple files have to be compressed. If
-			checked all files are compressed to the same folder, otherwise the archive will contain also the folder
-			containing the files. <i>Note:</i> If the (source) folder gets flattened it might occur that two files with
-			the very same name end up in the same location. In this case the execution will fail. 
-		</option>
 		<option name="Include empty folders">
 			This option allows to specify whether or not empty folders should be included in the archive.
 		</option>
