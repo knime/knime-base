@@ -53,6 +53,7 @@ import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
@@ -65,9 +66,6 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 public abstract class AbstractCSVTableReaderNodeFactory
     extends AbstractTableReaderNodeFactory<CSVTableReaderConfig, Class<?>, String> {
 
-    private static final TypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY =
-        CSVTableReader.TYPE_HIERARCHY.createTypeFocusedHierarchy();
-
     @Override
     protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
         return StringReadAdapterFactory.INSTANCE;
@@ -75,7 +73,12 @@ public abstract class AbstractCSVTableReaderNodeFactory
 
     @Override
     protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
-        return TYPE_HIERARCHY;
+        return StringReadAdapterFactory.TYPE_HIERARCHY;
+    }
+
+    @Override
+    protected ProductionPathProvider<Class<?>> createProductionPathProvider() {
+        return StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
     }
 
     @Override
@@ -89,8 +92,7 @@ public abstract class AbstractCSVTableReaderNodeFactory
     }
 
     @Override
-    protected CSVMultiTableReadConfig
-        createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+    protected CSVMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
         return new CSVMultiTableReadConfig();
     }
 

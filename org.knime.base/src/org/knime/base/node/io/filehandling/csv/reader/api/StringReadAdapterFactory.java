@@ -55,6 +55,8 @@ import java.time.LocalTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.blob.BinaryObjectDataCell;
@@ -65,6 +67,7 @@ import org.knime.core.data.convert.map.MappingException;
 import org.knime.core.data.convert.map.MappingFramework;
 import org.knime.core.data.convert.map.PrimitiveCellValueProducer;
 import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.convert.map.SimpleCellValueProducerFactory;
 import org.knime.core.data.convert.map.SupplierCellValueProducerFactory;
 import org.knime.core.data.def.BooleanCell;
@@ -72,9 +75,12 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.filehandling.core.node.table.reader.HierarchyAwareProdutionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 
 /**
  * Factory for StringReadAdapter objects.
@@ -91,6 +97,12 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
     private static final ProducerRegistry<Class<?>, StringReadAdapter> PRODUCER_REGISTRY = initializeProducerRegistry();
 
     private static final Map<Class<?>, DataType> DEFAULT_TYPES = createDefaultTypeMap();
+
+    /**
+     * The type hierarchy of the CSV Reader.
+     */
+    public static final TreeTypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY =
+        createHierarchy(new CSVTableReaderConfig()).createTypeFocusedHierarchy();
 
     private static Map<Class<?>, DataType> createDefaultTypeMap() {
         final Map<Class<?>, DataType> defaultTypes = new HashMap<>();
@@ -244,11 +256,62 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
 
     /**
      * {@inheritDoc}
+     *
      * @noreference This enum method is not intended to be referenced by clients.
      */
     @Override
     public DataType getDefaultType(final Class<?> type) {
         return DEFAULT_TYPES.get(type);
+    }
+
+    /**
+     * @return a {@link HierarchyAwareProdutionPathProvider}
+     */
+    public HierarchyAwareProdutionPathProvider<Class<?>> createProductionPathProvider() {
+        return new HierarchyAwareProdutionPathProvider<>(getProducerRegistry(), TYPE_HIERARCHY, this::getDefaultType,
+            StringReadAdapterFactory::isValidPathFor);
+    }
+
+    private static boolean isValidPathFor(final Class<?> type, final ProductionPath path) {
+        if (type == String.class) {
+            final DataType knimeType = path.getDestinationType();
+            // exclude numeric types for String because
+            // a) The default String -> Number converters don't use the user-specified decimal and thousands separators
+            // b) the conversion is likely to fail because otherwise the type of the column would be numeric
+            return !isNumeric(knimeType);
+        } else {
+            return true;
+        }
+    }
+
+    private static boolean isNumeric(final DataType knimeType) {
+        return knimeType.equals(DoubleCell.TYPE)//
+            || knimeType.equals(LongCell.TYPE)//
+            || knimeType.equals(IntCell.TYPE);
+    }
+
+    static TreeTypeHierarchy<Class<?>, String> createHierarchy(final CSVTableReaderConfig config) {
+        final DoubleParser doubleParser = new DoubleParser(config);
+        final IntegerParser integerParser = new IntegerParser(config);
+        return TreeTypeHierarchy.builder(createTypeTester(String.class, t -> {
+        })).addType(String.class, createTypeTester(Double.class, doubleParser::parse))
+            .addType(Double.class, createTypeTester(Long.class, integerParser::parseLong))
+            .addType(Long.class, createTypeTester(Integer.class, integerParser::parseInt)).build();
+    }
+
+    private static TypeTester<Class<?>, String> createTypeTester(final Class<?> type, final Consumer<String> tester) {
+        return TypeTester.createTypeTester(type, consumerToPredicate(tester));
+    }
+
+    private static Predicate<String> consumerToPredicate(final Consumer<String> tester) {
+        return s -> {
+            try {
+                tester.accept(s);
+                return true;
+            } catch (NumberFormatException ex) {
+                return false;
+            }
+        };
     }
 
 }

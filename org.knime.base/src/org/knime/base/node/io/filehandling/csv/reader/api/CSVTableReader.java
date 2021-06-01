@@ -56,9 +56,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,10 +71,6 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TableSpecGuesser;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeFocusableTypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
 
@@ -92,30 +86,6 @@ import com.univocity.parsers.csv.CsvParserSettings;
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public final class CSVTableReader implements TableReader<CSVTableReaderConfig, Class<?>, String> {
-
-    /**
-     * {@link TreeTypeHierarchy} that defines the hierarchy of data types while reading from csv files
-     */
-    public static final TypeFocusableTypeHierarchy<Class<?>, String> TYPE_HIERARCHY =
-        TreeTypeHierarchy.builder(createTypeTester(String.class, t -> {
-        })).addType(String.class, createTypeTester(Double.class, Double::parseDouble))
-            .addType(Double.class, createTypeTester(Long.class, Long::parseLong))
-            .addType(Long.class, createTypeTester(Integer.class, Integer::parseInt)).build();
-
-    private static TypeTester<Class<?>, String> createTypeTester(final Class<?> type, final Consumer<String> tester) {
-        return TypeTester.createTypeTester(type, consumerToPredicate(tester));
-    }
-
-    private static Predicate<String> consumerToPredicate(final Consumer<String> tester) {
-        return s -> {
-            try {
-                tester.accept(s);
-                return true;
-            } catch (NumberFormatException ex) {
-                return false;
-            }
-        };
-    }
 
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     @Override
@@ -152,16 +122,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     private static TableSpecGuesser<Path, Class<?>, String>
         createGuesser(final TableReadConfig<CSVTableReaderConfig> config) {
         final CSVTableReaderConfig csvConfig = config.getReaderSpecificConfig();
-        return new TableSpecGuesser<>(createHierarchy(csvConfig), Function.identity());
-    }
-
-    private static TypeHierarchy<Class<?>, String> createHierarchy(final CSVTableReaderConfig config) {
-        final DoubleParser doubleParser = new DoubleParser(config);
-        final IntegerParser integerParser = new IntegerParser(config);
-        return TreeTypeHierarchy.builder(createTypeTester(String.class, t -> {
-        })).addType(String.class, createTypeTester(Double.class, doubleParser::parse))
-            .addType(Double.class, createTypeTester(Long.class, integerParser::parseLong))
-            .addType(Long.class, createTypeTester(Integer.class, integerParser::parseInt)).build();
+        return new TableSpecGuesser<>(StringReadAdapterFactory.createHierarchy(csvConfig), Function.identity());
     }
 
     /**
@@ -292,7 +253,8 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                     // for some reason when running in non-debug mode the memory limit per column exception often
                     // contains a null message
                     if (index == m_csvParserSettings.getMaxCharsPerColumn() || message == null) {
-                        throw new IOException("Memory limit per column exceeded. Please adapt the according setting.", e);
+                        throw new IOException("Memory limit per column exceeded. Please adapt the according setting.",
+                            e);
                     } else if (index == m_csvParserSettings.getMaxColumns()) {
                         throw new IOException("Number of parsed columns exceeds the defined limit ("
                             + m_csvParserSettings.getMaxColumns() + "). Please adapt the according setting.", e);
