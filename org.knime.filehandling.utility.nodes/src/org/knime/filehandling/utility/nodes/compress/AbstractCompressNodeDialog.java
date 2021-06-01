@@ -72,6 +72,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DefaultWriterStatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.util.GBCBuilder;
@@ -115,7 +116,7 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
      *
      * @param portsConfig the ports configuration
      * @param config the configuration
-     * @param truncationPanel the tuncation panel
+     * @param truncationPanel the truncation panel
      */
     protected AbstractCompressNodeDialog(final PortsConfiguration portsConfig, final T config,
         final TruncationPanel truncationPanel) {
@@ -127,8 +128,11 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
 
         final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserModel.getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE);
+
         m_destinationFileChooserPanel =
-            new DialogComponentWriterFileChooser(destinationFileChooserModel, FILE_OUTPUT_HISTORY_ID, writeFvm);
+            new DialogComponentWriterFileChooser(destinationFileChooserModel, FILE_OUTPUT_HISTORY_ID, writeFvm,
+                fileChooserModel -> new DefaultWriterStatusMessageReporter(fileChooserModel,
+                    m_config.getCompressPolicy().getFileOverwritePolicy()));
 
         m_truncationPanel = truncationPanel;
 
@@ -137,10 +141,11 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
             Arrays.asList(AbstractCompressNodeConfig.COMPRESSIONS));
         compressionModel.addChangeListener(l -> updateLocation());
 
-        m_isLoading = false;
-
         m_compressPolicy =
             new DialogComponentButtonGroup(m_config.getCompressPolicyModel(), null, false, CompressPolicy.values());
+        m_compressPolicy.getModel().addChangeListener(l -> updateDestinationStatusMessage());
+
+        m_isLoading = false;
     }
 
     @Override
@@ -257,6 +262,12 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
         writerModel.setFileExtensions(compression);
     }
 
+    private void updateDestinationStatusMessage() {
+        if (!isLoading()) {
+            m_destinationFileChooserPanel.updateComponent();
+        }
+    }
+
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_destinationFileChooserPanel.saveSettingsTo(settings);
@@ -291,11 +302,11 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
      */
     protected void loadSettings(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        m_compressPolicy.loadSettingsFrom(settings, specs);
         m_destinationFileChooserPanel.loadSettingsFrom(settings, specs);
         m_compressionSelection.loadSettingsFrom(settings, specs);
         m_truncationPanel.loadSettings(settings, specs);
         m_includeEmptyFolders.loadSettingsFrom(settings, specs);
-        m_compressPolicy.loadSettingsFrom(settings, specs);
     }
 
     /**

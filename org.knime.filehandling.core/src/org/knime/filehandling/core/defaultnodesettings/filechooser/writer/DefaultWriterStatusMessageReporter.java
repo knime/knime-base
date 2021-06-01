@@ -95,7 +95,19 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
      */
     public DefaultWriterStatusMessageReporter(final SettingsModelWriterFileChooser settings) {
         m_settings = settings;
-        m_existsHandler = createExistsHandler();
+        m_existsHandler = createExistsHandler(settings.getFileOverwritePolicy());
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param settings the writer file chooser settings
+     * @param policy handles the call of the appropriate {@link StatusMessage}
+     */
+    public DefaultWriterStatusMessageReporter(final SettingsModelWriterFileChooser settings,
+        final FileOverwritePolicy policy) {
+        m_settings = settings;
+        m_existsHandler = createExistsHandler(policy);
     }
 
     @Override
@@ -128,8 +140,8 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
         }
     }
 
-    private ExistsHandler createExistsHandler() {//NOSONAR, stupid rule
-        switch (m_settings.getFileOverwritePolicy()) {
+    private ExistsHandler createExistsHandler(final FileOverwritePolicy policy) {
+        switch (policy) {
             case APPEND:
                 return createAppendHandler();
             case FAIL:
@@ -147,11 +159,13 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
         final FileSelectionMode fileSelectionMode = getFileSelectionMode();
         switch (fileSelectionMode) {
             case DIRECTORIES_ONLY:
-                return attrs.isDirectory() ? createFailStatusMessage(path, true) : createPathDoesNotPointToStatusMessage(path, true);
+                return attrs.isDirectory() ? createFailStatusMessage(path, true)
+                    : createPathDoesNotPointToStatusMessage(path, true);
             case FILES_AND_DIRECTORIES:
                 return createFailStatusMessage(path, attrs.isDirectory());
             case FILES_ONLY:
-                return attrs.isRegularFile() ? createFailStatusMessage(path, false) : createPathDoesNotPointToStatusMessage(path, false);
+                return attrs.isRegularFile() ? createFailStatusMessage(path, false)
+                    : createPathDoesNotPointToStatusMessage(path, false);
             default:
                 throw new IllegalStateException("Unknown file selection mode: " + fileSelectionMode);
         }
@@ -163,7 +177,7 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
     }
 
     private StatusMessage createIgnoreStatusMessage(final Path path, final BasicFileAttributes attrs) {
-        if(getFileSelectionMode() == FileSelectionMode.DIRECTORIES_ONLY && !attrs.isDirectory()) {
+        if (getFileSelectionMode() == FileSelectionMode.DIRECTORIES_ONLY && !attrs.isDirectory()) {
             return createPathDoesNotPointToStatusMessage(path, true);
         } else {
             return StatusMessageUtils.SUCCESS_MSG;
@@ -209,8 +223,7 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
             if (m_successPredicate.test(attrs)) {
                 return StatusMessageUtils.SUCCESS_MSG;
             } else {
-                return DefaultStatusMessage.mkError(PATH_DOES_NOT_POINT_TO, path,
-                    m_expectedEntity);
+                return DefaultStatusMessage.mkError(PATH_DOES_NOT_POINT_TO, path, m_expectedEntity);
             }
         }
 
@@ -219,11 +232,13 @@ public final class DefaultWriterStatusMessageReporter implements StatusMessageRe
     private StatusMessage createOverwriteStatusMsg(final Path path, final BasicFileAttributes attrs) {
         switch (getFileSelectionMode()) {
             case DIRECTORIES_ONLY:
-                return attrs.isDirectory() ? mkOverwriteWarning(path, attrs) : createPathDoesNotPointToStatusMessage(path, true);
+                return attrs.isDirectory() ? mkOverwriteWarning(path, attrs)
+                    : createPathDoesNotPointToStatusMessage(path, true);
             case FILES_AND_DIRECTORIES:
                 return mkOverwriteWarning(path, attrs);
             case FILES_ONLY:
-                return attrs.isRegularFile() ? mkOverwriteWarning(path, attrs) : createPathDoesNotPointToStatusMessage(path, false);
+                return attrs.isRegularFile() ? mkOverwriteWarning(path, attrs)
+                    : createPathDoesNotPointToStatusMessage(path, false);
             default:
                 throw new IllegalStateException("Unknown file selection mode: " + getFileSelectionMode());
         }
