@@ -58,6 +58,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.convert.datacell.OriginAwareJavaToDataCellConverterRegistry;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.def.StringCell;
@@ -90,11 +91,12 @@ final class V42TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
         m_defaultPath = findDefaultProdPath(producerRegistry, mostGenericType);
     }
 
-    private static ProductionPath findDefaultProdPath(final ProducerRegistry<?, ?> registry,
-        final Object mostGenericExternalType) {
-        return registry.getAvailableProductionPaths().stream()//
-            .filter(p -> p.getProducerFactory().getSourceType().equals(mostGenericExternalType))//
-            .filter(p -> p.getConverterFactory().getDestinationType() == StringCell.TYPE)//
+    private ProductionPath findDefaultProdPath(final ProducerRegistry<T, ?> registry, final T mostGenericExternalType) {
+        return registry.getFactoriesForSourceType(mostGenericExternalType).stream()//
+            .flatMap(p -> OriginAwareJavaToDataCellConverterRegistry.INSTANCE
+                .getConverterFactoriesBySourceType(p.getDestinationType()).stream()
+                .filter(f -> f.getDestinationType().equals(StringCell.TYPE))//
+                .map(f -> new ProductionPath(p, f)))//
             .findFirst()//
             .orElseThrow(() -> new IllegalStateException(
                 "No string converter available for the supposedly most generic external type: "

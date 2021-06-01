@@ -150,7 +150,7 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         final MultiTableReadFactory<I, C, T> readFactory = createMultiTableReadFactory(createReader());
-        final DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
+        final ProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
         return createNodeDialogPane(creationConfig, readFactory, productionPathProvider);
     }
 
@@ -160,7 +160,7 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
      *
      * @return the default production path provider
      */
-    protected final DefaultProductionPathProvider<T> createProductionPathProvider() {
+    protected ProductionPathProvider<T> createProductionPathProvider() {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
         return new DefaultProductionPathProvider<>(readAdapterFactory.getProducerRegistry(),
             readAdapterFactory::getDefaultType);
@@ -188,7 +188,7 @@ public abstract class GenericAbstractTableReaderNodeFactory<I, C extends ReaderS
     protected MultiTableReadFactory<I, C, T>
         createMultiTableReadFactory(final GenericTableReader<I, C, T, V> reader) {
         final ReadAdapterFactory<T, V> readAdapterFactory = getReadAdapterFactory();
-        DefaultProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
+        final ProductionPathProvider<T> productionPathProvider = createProductionPathProvider();
         final GenericRowKeyGeneratorContextFactory<I, V> rowKeyGenFactory =
             new DefaultRowKeyGeneratorContextFactory<>(this::extractRowKey, "File");
         return new DefaultMultiTableReadFactory<>(getTypeHierarchy(), rowKeyGenFactory, reader, productionPathProvider,

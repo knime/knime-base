@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.datacell.OriginAwareJavaToDataCellConverterRegistry;
 import org.knime.core.data.convert.map.MappingFramework;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.core.data.convert.map.ProductionPath;
@@ -127,9 +128,17 @@ final class TableSpecConfigTestingUtils {
 
     static ProductionPath[] getProductionPaths(final String[] externalTypes, final DataType[] knimeTypes) {
         return IntStream.range(0, externalTypes.length)
-            .mapToObj(i -> REGISTRY.getAvailableProductionPaths(externalTypes[i]).stream()
-                .filter(p -> p.getConverterFactory().getDestinationType().equals(knimeTypes[i])).findFirst().get())
+            .mapToObj(i -> getProductionPath(externalTypes[i], knimeTypes[i]))//
             .toArray(ProductionPath[]::new);
+    }
+
+    static ProductionPath getProductionPath(final String externalType, final DataType knimeType) {
+        return REGISTRY.getFactoriesForSourceType(externalType).stream()//
+            .flatMap(p -> OriginAwareJavaToDataCellConverterRegistry.INSTANCE
+                .getConverterFactoriesBySourceType(p.getDestinationType()).stream()
+                .filter(f -> f.getDestinationType().equals(knimeType))//
+                .map(f -> new ProductionPath(p, f)))//
+            .findFirst().orElseThrow();
     }
 
     static class TableSpecConfigBuilder {
