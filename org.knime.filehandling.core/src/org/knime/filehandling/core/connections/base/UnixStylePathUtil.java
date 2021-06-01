@@ -48,6 +48,12 @@
  */
 package org.knime.filehandling.core.connections.base;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 /**
  * Utility class to implement basic logic for dealing with UNIX-style paths, in order to avoid reimplementing the logic
  * for each file system.
@@ -121,4 +127,105 @@ public final class UnixStylePathUtil {
     public static String asUnixStylePath(final String path) {
         return path.replaceAll("\\\\", "/");
     }
+
+    /**
+     * @param pathParts the path parts to normalize
+     * @param isAbsolute <code>true</code> if the input path is absolute otherwise <code>false</code>
+     * @return the normalized path parts
+     */
+    public static LinkedList<String> getNormalizedPathParts(final List<String> pathParts,
+        final boolean isAbsolute) {
+        final LinkedList<String> normalized = new LinkedList<>();
+        boolean stepUp = true;
+        for (final String pathComponent : pathParts) {
+            if (pathComponent.equals(".")) {
+                continue;
+            } else if (pathComponent.equals(UnixStylePath.TO_PARENT)) {
+                if (normalized.isEmpty() || !stepUp) {
+                    if (!isAbsolute) {
+                        normalized.add(pathComponent);
+                        stepUp = false;
+                    }
+                } else {
+                    normalized.removeLast();
+                }
+            } else {
+                normalized.add(pathComponent);
+                stepUp = true;
+            }
+        }
+        return normalized;
+    }
+
+    /**
+     * Concatenates the given strings into a path string, introducing the path separator between parts where necessary.
+     * Empty strings will be ignored.
+     *
+     * @param separator the file system specific separator
+     * @param first first part of the path
+     * @param more subsequent parts of the path
+     * @return the concatenated string
+     */
+    public static String concatenatePathSegments(final String separator, final String first, final String... more) {
+        final StringBuilder sb = new StringBuilder(first);
+
+        String previousPart = first;
+        for (final String currentPart : more) {
+            if (currentPart.length() > 0) {
+                if (sb.length() > 0 && !previousPart.endsWith(separator)) {
+                    sb.append(separator);
+                }
+                sb.append(currentPart);
+                previousPart = currentPart;
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Uses the given separator to split the path string into its components.
+     *
+     * @param separator the file system separator
+     * @param pathString the path string
+     * @return the path parts
+     */
+    public static List<String> getPathSplits(final String separator, final String pathString) {
+        final ArrayList<String> splitList = new ArrayList<>();
+        if (pathString.isEmpty()) {
+            // special case: the empty path
+            splitList.add("");
+        } else {
+
+            Arrays.stream(pathString.split(Pattern.quote(separator))) //
+                .filter(c -> !c.isEmpty()) //
+                .forEach(splitList::add);
+        }
+        return splitList;
+    }
+
+    /**
+     * The parent path name.
+     *
+     * @param isAbsolute <code>true</code> if the input path is absolute
+     * @param pathSeparator the path separator to use
+     * @param pathParts the path parts
+     * @return the parent path name or <code>null</code> if the given path parts are empty
+     */
+    public static String getParentPathName(final boolean isAbsolute, final String pathSeparator,
+        final List<String> pathParts) {
+        if ((isAbsolute && pathParts.isEmpty()) || (!isAbsolute && pathParts.size() <= 1)) {
+            return null;
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        if (isAbsolute) {
+            sb.append(pathSeparator);
+        }
+        for (int i = 0; i < pathParts.size() - 1; i++) {
+            sb.append(pathParts.get(i));
+            sb.append(pathSeparator);
+        }
+        return sb.toString();
+    }
+
 }

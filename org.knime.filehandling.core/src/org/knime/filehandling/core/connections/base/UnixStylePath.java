@@ -59,9 +59,7 @@ import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
@@ -85,7 +83,7 @@ public abstract class UnixStylePath extends FSPath {
     protected final String m_pathSeparator;
 
     /** List of individual path components */
-    protected final ArrayList<String> m_pathParts;
+    protected final List<String> m_pathParts;
 
     /** The file system the path belongs to */
     protected final FSFileSystem<? extends UnixStylePath> m_fileSystem;
@@ -130,34 +128,11 @@ public abstract class UnixStylePath extends FSPath {
      * @return the concatenated string
      */
     protected static String concatenatePathSegments(final String separator, final String first, final String... more) {
-        final StringBuilder sb = new StringBuilder(first);
-
-        String previousPart = first;
-        for (final String currentPart : more) {
-            if (currentPart.length() > 0) {
-                if (sb.length() > 0 && !previousPart.endsWith(separator)) {
-                    sb.append(separator);
-                }
-                sb.append(currentPart);
-                previousPart = currentPart;
-            }
-        }
-        return sb.toString();
+        return UnixStylePathUtil.concatenatePathSegments(separator, first, more);
     }
 
-    private ArrayList<String> getPathSplits(final String pathString) {
-
-        final ArrayList<String> splitList = new ArrayList<>();
-        if (pathString.isEmpty()) {
-            // special case: the empty path
-            splitList.add("");
-        } else {
-
-            Arrays.stream(pathString.split(Pattern.quote(m_pathSeparator))) //
-                .filter(c -> !c.isEmpty()) //
-                .forEach(splitList::add);
-        }
-        return splitList;
+    private List<String> getPathSplits(final String pathString) {
+        return UnixStylePathUtil.getPathSplits(m_pathSeparator, pathString);
     }
 
     @Override
@@ -192,20 +167,12 @@ public abstract class UnixStylePath extends FSPath {
 
     @Override
     public Path getParent() {
-        if ((m_isAbsolute && m_pathParts.isEmpty()) || (!m_isAbsolute && m_pathParts.size() <= 1)) {
+        final String parentPath = UnixStylePathUtil.getParentPathName(m_isAbsolute, m_pathSeparator, m_pathParts);
+        if (parentPath == null) {
             return null;
+        } else {
+            return getFileSystem().getPath(parentPath);
         }
-
-        final StringBuilder sb = new StringBuilder();
-        if (m_isAbsolute) {
-            sb.append(m_pathSeparator);
-        }
-        for (int i = 0; i < m_pathParts.size() - 1; i++) {
-            sb.append(m_pathParts.get(i));
-            sb.append(m_pathSeparator);
-        }
-
-        return getFileSystem().getPath(sb.toString());
     }
 
     @Override
@@ -344,26 +311,7 @@ public abstract class UnixStylePath extends FSPath {
      *         "{@code ..}".
      */
     protected List<String> getNormalizedPathParts() {
-        final LinkedList<String> normalized = new LinkedList<>();
-        boolean stepUp = true;
-        for (final String pathComponent : m_pathParts) {
-            if (pathComponent.equals(".")) {
-                continue;
-            } else if (pathComponent.equals(TO_PARENT)) {
-                if (normalized.isEmpty() || !stepUp) {
-                    if (!isAbsolute()) {
-                        normalized.add(pathComponent);
-                        stepUp = false;
-                    }
-                } else {
-                    normalized.removeLast();
-                }
-            } else {
-                normalized.add(pathComponent);
-                stepUp = true;
-            }
-        }
-        return normalized;
+        return UnixStylePathUtil.getNormalizedPathParts(m_pathParts, isAbsolute());
     }
 
     /**
