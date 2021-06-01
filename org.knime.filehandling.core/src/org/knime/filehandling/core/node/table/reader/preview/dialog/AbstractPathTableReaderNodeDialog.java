@@ -54,6 +54,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
@@ -73,9 +75,9 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
     /**
      * Constructor.
      *
-     * @param readFactory
-     * @param productionPathProvider
-     * @param allowsMultipleFiles
+     * @param readFactory for reading
+     * @param productionPathProvider for type mapping
+     * @param allowsMultipleFiles {@code true} if multiple files are supported
      */
     protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<Path, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
@@ -85,14 +87,16 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
     /**
      * Constructor.
      *
-     * @param readFactory
-     * @param productionPathProvider
-     * @param allowsMultipleFiles
-     * @param isDragNDrop
+     * @param readFactory for reading
+     * @param productionPathProvider for type mapping
+     * @param allowsMultipleFiles {@code true} if multiple files are supported
+     * @param preventPreviewUpdateOnFirstLoad set to {@code true} if the preview should not be updated on the first call
+     *            to {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}
      */
     protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<Path, C, T> readFactory,
-        final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles, final boolean isDragNDrop) {
-        super(readFactory, productionPathProvider, allowsMultipleFiles, isDragNDrop);
+        final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles,
+        final boolean preventPreviewUpdateOnFirstLoad) {
+        super(readFactory, productionPathProvider, allowsMultipleFiles, preventPreviewUpdateOnFirstLoad);
     }
 
     @SuppressWarnings("resource") // the ReadPathAccessor is managed by the adapter

@@ -95,7 +95,7 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
 
     private boolean m_ignoreEvents = false;
 
-    private boolean m_isDragNDrop;
+    private boolean m_preventPreviewUpdateOnFirstLoad;
 
     /**
      * Constructor.
@@ -115,11 +115,12 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      * @param readFactory the {@link MultiTableReadFactory} to use for reading
      * @param productionPathProvider provides the default production paths for every external type
      * @param allowsMultipleFiles whether the reader supports reading tables from multiple files at once
-     * @param isDragNDrop flag which indicates if the dialog was created due to drag and drop
+     * @param preventPreviewUpdateOnFirstLoad set to {@code true} if the preview should not be updated on the first call
+     *            to {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}
      */
     public AbstractTableReaderNodeDialog(final MultiTableReadFactory<I, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles,
-        final boolean isDragNDrop) {
+        final boolean preventPreviewUpdateOnFirstLoad) {
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
         m_previewModel = previewModel;
@@ -129,7 +130,7 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
             analysisComponentModel, previewModel, this::getConfig, this::createItemAccessor);
         m_specTransformer = new TableTransformationPanel(transformationModel, allowsMultipleFiles);
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
-        m_isDragNDrop = isDragNDrop;
+        m_preventPreviewUpdateOnFirstLoad = preventPreviewUpdateOnFirstLoad;
     }
 
     /**
@@ -254,8 +255,8 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      *
      * @return flag which indicates whether the dialog was created via drag and drop or not
      */
-    protected boolean isDragNDrop() {
-        return m_isDragNDrop;
+    protected boolean isPreventPreviewUpdateOnFirstLoad() {
+        return m_preventPreviewUpdateOnFirstLoad;
     }
 
     @Override
@@ -273,8 +274,8 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
             m_coordinator.load(config.getTableSpecConfig().getTableTransformation());
         }
         ignoreEvents(false);
-        refreshPreview(!m_isDragNDrop);
-        m_isDragNDrop = false;
+        refreshPreview(!m_preventPreviewUpdateOnFirstLoad);
+        m_preventPreviewUpdateOnFirstLoad = false;
     }
 
     /**

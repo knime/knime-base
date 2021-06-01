@@ -951,7 +951,9 @@ public abstract class AbstractCSVTableReaderNodeDialog
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
         controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner);
 
-        if (isDragNDrop()) {
+        if (isPreventPreviewUpdateOnFirstLoad()) {
+            // this is only true if the node was created via DnD of a compatible file
+            // in which case we need to autodetect the format
             startFormatAutoDetection();
         }
 
