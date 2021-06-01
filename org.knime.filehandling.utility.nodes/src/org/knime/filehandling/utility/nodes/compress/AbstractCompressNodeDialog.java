@@ -75,7 +75,6 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.util.GBCBuilder;
-import org.knime.filehandling.utility.nodes.truncator.TruncatePathOption;
 import org.knime.filehandling.utility.nodes.truncator.TruncationPanel;
 
 /**
@@ -87,7 +86,7 @@ import org.knime.filehandling.utility.nodes.truncator.TruncationPanel;
 public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeConfig<?>> extends NodeDialogPane {
 
     /** The archive option title. */
-    protected static final String ARCHIVE_OPTION_TITLE = "Archive entry name mode";
+    protected static final String ARCHIVE_OPTION_TITLE = "Archive entry path";
 
     private static final String FILE_OUTPUT_HISTORY_ID = "compress_output_files_history";
 
@@ -142,25 +141,6 @@ public abstract class AbstractCompressNodeDialog<T extends AbstractCompressNodeC
 
         m_compressPolicy =
             new DialogComponentButtonGroup(m_config.getCompressPolicyModel(), null, false, CompressPolicy.values());
-    }
-
-    /**
-     * Creates the labels for the {@link TruncatePathOption}s.
-     *
-     * @param opt the option
-     * @return the associated label
-     */
-    protected static final String getTruncatePathOptionLabel(final TruncatePathOption opt) {
-        switch (opt) {
-            case KEEP:
-                return "Absolute source path";
-            case RELATIVE:
-                return "Relative source path";
-            case REMOVE_FOLDER_PREFIX:
-                return "Remove leading folder prefix from source path";
-            default:
-                throw new IllegalArgumentException(String.format("Unsupported option %s", opt));
-        }
     }
 
     @Override

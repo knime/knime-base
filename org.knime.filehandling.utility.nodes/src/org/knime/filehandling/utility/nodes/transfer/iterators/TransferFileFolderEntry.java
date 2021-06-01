@@ -124,8 +124,8 @@ public final class TransferFileFolderEntry implements TransferEntry {
         final Path dest = absDestFolder.resolve(suffix).normalize();
         if (!dest.startsWith(absDestFolder)) {
             throw new InvalidSettingsException(
-                "The selected " + AbstractTransferFilesNodeDialog.DESTINATION_FILE_FOLDER_NAME_MODE
-                    + " causes files to be copied to locations outside of the selected destination folder.");
+                "The selected " + AbstractTransferFilesNodeDialog.DESTINATION_OPTION_TITLE.toLowerCase()
+                    + " option causes files to be copied to locations outside of the selected destination folder.");
         }
     }
 

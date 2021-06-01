@@ -70,7 +70,6 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.utility.nodes.transfer.policy.TransferPolicy;
-import org.knime.filehandling.utility.nodes.truncator.TruncatePathOption;
 import org.knime.filehandling.utility.nodes.truncator.TruncationPanel;
 
 /**
@@ -84,7 +83,7 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
     extends NodeDialogPane {
 
     /** The label for the destination file folder name mode. */
-    public static final String DESTINATION_FILE_FOLDER_NAME_MODE = "Destination file/folder name mode";
+    public static final String DESTINATION_OPTION_TITLE = "Destination file path";
 
     private final DialogComponentWriterFileChooser m_destinationFilePanel;
 
@@ -116,8 +115,7 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
         m_destinationFilePanel =
             new DialogComponentWriterFileChooser(destinationFileChooserConfig, "destination_chooser", writeFvm);
 
-        m_truncationPanel = new TruncationPanel(DESTINATION_FILE_FOLDER_NAME_MODE, config.getTruncationSettings(),
-            AbstractTransferFilesNodeDialog::getTruncatePathOptionLabel);
+        m_truncationPanel = new TruncationPanel(DESTINATION_OPTION_TITLE, config.getTruncationSettings());
 
         m_deleteSourceFilesCheckbox =
             new DialogComponentBoolean(m_config.getDeleteSourceFilesModel(), "Delete source files / folders");
@@ -130,19 +128,6 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
 
         m_transferPolicy =
             new DialogComponentButtonGroup(m_config.getTransferPolicyModel(), null, false, TransferPolicy.values());
-    }
-
-    private static String getTruncatePathOptionLabel(final TruncatePathOption opt) {
-        switch (opt) {
-            case KEEP:
-                return "Append absolute source path";
-            case RELATIVE:
-                return "Append relative source path";
-            case REMOVE_FOLDER_PREFIX:
-                return "Append source path without folder prefix";
-            default:
-                throw new IllegalArgumentException(String.format("Unsupported option %s", opt));
-        }
     }
 
     @Override
@@ -296,7 +281,7 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
         final GridBagConstraints gbc = createAndInitGBC();
         panel.add(m_destinationFilePanel.getComponentPanel(), gbc);
         gbc.gridy++;
-        gbc.insets = new Insets(10,0,0,0);
+        gbc.insets = new Insets(10, 0, 0, 0);
         panel.add(m_truncationPanel.getPanel(), gbc);
         return panel;
     }

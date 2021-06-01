@@ -186,24 +186,24 @@
 				</li>
 			</ul>
 		</option>
-		<option name="Archive entry name mode">
+		<option name="Archive entry path">
 			This mode determines what the folder structure looks like when you de-compress the archive.
 			<ul>
-				<li><i>Relative source path:</i>
+				<li><i>Include only the selected file/folder:</i>
 					This mode ensures that when de-compressing the archive solely the selected source file/folder and
 					its content will be created.
 				</li>
-				<li><i>Absolute source path:</i>
+				<li><i>Include all folders in the source path:</i>
 					This mode ensures that when de-compressing the archive the selected source file/folder, its content
 					as well as the folders containing the selected source will be created. Note that those
 					additional folders don't contain any other files/folders other than those to be compressed.
 				</li>
-				<li><i>Remove leading folder prefix from source path:</i>
-					This mode behaves similar to the absolute source path option, except that the specified
-					folder prefix is being ignored, i.e., the folders matching the prefix will not be created when
-					de-compressing the archive. <b>Note:</b> This mode might create invalid archive entry names, i.e.,
-					entry names resulting in archives that would not be de-compressible. In this case the node will 
-					fail.
+				<li><i>Include all folders in the source path succeeding the prefix:</i>
+					This mode behaves similar to the <i>include all folders in the source path</i> option, except that 
+					the specified folder prefix(the beginning of the path) is being ignored, i.e., the folders in the 
+					prefix will not be created when de-compressing the archive. <b>Note:</b> This mode might create
+					invalid archive entries, i.e., entries resulting in archives that would not be  de-compressible. 
+					In this case the node will fail.
 				</li>
 			</ul> 
 		</option>

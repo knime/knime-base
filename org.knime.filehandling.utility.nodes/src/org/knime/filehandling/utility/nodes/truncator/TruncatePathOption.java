@@ -64,13 +64,18 @@ import org.knime.filehandling.utility.nodes.truncator.impl.RelativePathTruncator
 public enum TruncatePathOption {
 
         /** Option signaling that the resulting path has to be relative to the provided base path. */
-        RELATIVE((path, prefix, filterMode) -> new RelativePathTruncator(path, filterMode)),
+        RELATIVE("Include only the selected file/folder",
+            (path, prefix, filterMode) -> new RelativePathTruncator(path, filterMode)),
 
         /** Option signaling that the absolute normalized path has to be returned. */
-        KEEP((path, prefix, filterMode) -> new KeepPathTruncator()),
+        KEEP("Include all folders in the source path", (path, prefix, filterMode) -> new KeepPathTruncator()),
 
         /** Option signaling that the given folder prefix has to be removed. */
-        REMOVE_FOLDER_PREFIX(FolderPrefixPathTruncator::new);
+        REMOVE_FOLDER_PREFIX("Include all folders in the source path succeeding the prefix",
+            FolderPrefixPathTruncator::new);
+
+    /** The label. */
+    private final String m_label;
 
     /** Function to create the associated {@link PathTruncator}. */
     private final TriFunction<Path, String, FilterMode, PathTruncator> m_pathTruncatorFactory;
@@ -78,10 +83,17 @@ public enum TruncatePathOption {
     /**
      * Constructor.
      *
+     * @param label the label
      * @param pathTruncatorFactory the factory instantiating the associated {@link PathTruncator}
      */
-    private TruncatePathOption(final TriFunction<Path, String, FilterMode, PathTruncator> pathTruncatorFactory) {
+    private TruncatePathOption(final String label,
+        final TriFunction<Path, String, FilterMode, PathTruncator> pathTruncatorFactory) {
+        m_label = label;
         m_pathTruncatorFactory = pathTruncatorFactory;
+    }
+
+    String getLabel() {
+        return m_label;
     }
 
     /**

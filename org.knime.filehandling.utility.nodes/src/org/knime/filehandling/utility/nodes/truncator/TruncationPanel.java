@@ -52,7 +52,6 @@ import java.awt.Component;
 import java.awt.GridBagLayout;
 import java.util.EnumMap;
 import java.util.Map.Entry;
-import java.util.function.Function;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -89,17 +88,15 @@ public class TruncationPanel {
      *
      * @param borderTitle the title border, null if no border should be created
      * @param truncationSettings the {@link TruncationSettings}
-     * @param labels function to map an {@link TruncatePathOption} to its name/label in the dialog
      */
-    public TruncationPanel(final String borderTitle, final TruncationSettings truncationSettings,
-        final Function<TruncatePathOption, String> labels) {
+    public TruncationPanel(final String borderTitle, final TruncationSettings truncationSettings) {
         m_truncationSettings = truncationSettings;
         m_folderTruncationPrefix =
             new DialogComponentString(truncationSettings.getFolderTruncateModel(), null, true, 15);
         m_truncationMap = new EnumMap<>(TruncatePathOption.class);
         m_borderTitle = borderTitle;
         for (final TruncatePathOption opt : TruncatePathOption.values()) {
-            final JRadioButton btn = new JRadioButton(labels.apply(opt));
+            final JRadioButton btn = new JRadioButton(opt.getLabel());
             m_truncationMap.put(opt, btn);
         }
     }

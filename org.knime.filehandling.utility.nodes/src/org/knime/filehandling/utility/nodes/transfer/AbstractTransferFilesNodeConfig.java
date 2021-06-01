@@ -66,7 +66,7 @@ import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
 public abstract class AbstractTransferFilesNodeConfig {
 
     /** Config key for the TruncationSettings. */
-    private static final String CFG_TRUNCATE_OPTION = "dest_file_folder_name_mode";
+    private static final String CFG_TRUNCATE_OPTION = "destination_file_path";
 
     /** Config key for delete source files checkbox. */
     private static final String CFG_DELETE_SOURCE_FILES = "delete_source_files_folders";

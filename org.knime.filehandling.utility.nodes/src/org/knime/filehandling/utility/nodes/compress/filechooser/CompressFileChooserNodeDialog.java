@@ -80,8 +80,7 @@ final class CompressFileChooserNodeDialog extends AbstractCompressNodeDialog<Com
     private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
 
     CompressFileChooserNodeDialog(final PortsConfiguration portsConfig, final CompressFileChooserNodeConfig config) {
-        super(portsConfig, config, new TruncationPanel(ARCHIVE_OPTION_TITLE, config.getTruncationSettings(),
-            AbstractCompressNodeDialog::getTruncatePathOptionLabel));
+        super(portsConfig, config, new TruncationPanel(ARCHIVE_OPTION_TITLE, config.getTruncationSettings()));
         final SettingsModelReaderFileChooser sourceLocationChooserModel = config.getInputLocationChooserModel();
         final FlowVariableModel readFvm =
             createFlowVariableModel(sourceLocationChooserModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);

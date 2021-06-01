@@ -76,8 +76,8 @@ final class CompressTableNodeDialog extends AbstractCompressNodeDialog<CompressT
     @SuppressWarnings("unchecked")
     CompressTableNodeDialog(final PortsConfiguration portsConfig, final CompressTableNodeConfig config,
         final int tablePortIdx) {
-        super(portsConfig, config, new TableTruncationPanel(ARCHIVE_OPTION_TITLE, config.getTruncationSettings(),
-            AbstractCompressNodeDialog::getTruncatePathOptionLabel, tablePortIdx));
+        super(portsConfig, config,
+            new TableTruncationPanel(ARCHIVE_OPTION_TITLE, config.getTruncationSettings(), tablePortIdx));
         m_inputColSelection = new DialogComponentColumnNameSelection(config.getPathColModel(), "Source column",
             tablePortIdx, FSLocationValue.class);
 

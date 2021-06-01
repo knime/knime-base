@@ -76,7 +76,7 @@ public abstract class AbstractCompressNodeConfig<T extends TruncationSettings> {
     public static final String CONNECTION_OUTPUT_DIR_PORT_GRP_NAME = "Destination File System Connection";
 
     /** Config key for the TruncationSettings. */
-    protected static final String CFG_TRUNCATE_OPTION = "archive_entry_name_mode";
+    protected static final String CFG_TRUNCATE_OPTION = "archive_entry_path";
 
     /** Config key for the compress policy. */
     private static final String CFG_COMPRESS_POLICY = "if_path_exists";

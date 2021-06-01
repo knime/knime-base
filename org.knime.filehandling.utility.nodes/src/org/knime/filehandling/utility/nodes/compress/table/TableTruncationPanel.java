@@ -50,7 +50,6 @@ package org.knime.filehandling.utility.nodes.compress.table;
 
 import java.awt.Component;
 import java.awt.GridBagLayout;
-import java.util.function.Function;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
@@ -65,7 +64,6 @@ import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelectio
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.util.GBCBuilder;
-import org.knime.filehandling.utility.nodes.truncator.TruncatePathOption;
 import org.knime.filehandling.utility.nodes.truncator.TruncationPanel;
 
 /**
@@ -85,14 +83,13 @@ final class TableTruncationPanel extends TruncationPanel {
      *
      * @param borderTitle the border title, which can be null
      * @param truncationSettings the truncation settings
-     * @param labels the lalbels for the {@link TruncatePathOption}s
      * @param tablePortIdx the index of the input table containing the column containing that strings/paths that contain
      *            the destination file/folder name
      */
     @SuppressWarnings("unchecked")
     public TableTruncationPanel(final String borderTitle, final TableTruncationSettings truncationSettings,
-        final Function<TruncatePathOption, String> labels, final int tablePortIdx) {
-        super(borderTitle, truncationSettings, labels);
+        final int tablePortIdx) {
+        super(borderTitle, truncationSettings);
         m_entryNameColSelection = new DialogComponentColumnNameSelection(truncationSettings.getEntryNameColModel(),
             null, tablePortIdx, FSLocationValue.class, StringValue.class);
         m_fromColumn = new JRadioButton("From table column");
