@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.io.table.read;
 
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory;
 import org.knime.core.node.ContextAwareNodeFactory;
 import org.knime.core.node.NodeCreationContext;
 import org.knime.core.node.NodeDialogPane;
@@ -56,7 +57,9 @@ import org.knime.core.node.NodeView;
  * Factory for table that reads the file as written from the Write table node.
  *
  * @author wiswedel, University of Konstanz
+ * @deprecated replaced by {@link KnimeTableReaderNodeFactory table reader}
  */
+@Deprecated
 public class ReadTableNodeFactory extends
     ContextAwareNodeFactory<ReadTableNodeModel> {
 

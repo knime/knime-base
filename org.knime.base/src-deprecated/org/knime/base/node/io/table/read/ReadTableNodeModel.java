@@ -61,6 +61,7 @@ import javax.swing.event.ChangeListener;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.CountingInputStream;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
@@ -99,7 +100,9 @@ import org.knime.core.util.FileUtil;
  * NodeMode for table that reads the file as written from the
  * Write table node.
  * @author wiswedel, University of Konstanz
+ * @deprecated replaced by {@link KnimeTableReaderNodeFactory table reader}
  */
+@Deprecated
 public class ReadTableNodeModel extends NodeModel {
 
     private static final NodeLogger LOGGER =

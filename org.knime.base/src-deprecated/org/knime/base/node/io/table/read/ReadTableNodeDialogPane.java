@@ -49,6 +49,7 @@ package org.knime.base.node.io.table.read;
 
 import javax.swing.JFileChooser;
 
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
@@ -61,7 +62,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 /**
  * Simple dialog with just a file browser.
  * @author wiswedel, University of Konstanz
+ * @deprecated replaced by {@link KnimeTableReaderNodeFactory table reader}
  */
+@Deprecated
 public class ReadTableNodeDialogPane extends DefaultNodeSettingsPane {
 
     /**

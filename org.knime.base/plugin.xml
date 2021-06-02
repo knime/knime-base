@@ -839,9 +839,11 @@
              factory-class="org.knime.base.node.mine.regression.predict2.RegressionPredictorNodeFactory"/> 
         <node
               after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
+              deprecated="true"
               category-path="/io/read"
               factory-class="org.knime.base.node.io.table.read.ReadTableNodeFactory"/>
         <node
+            after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
             category-path="/io/read"
             factory-class="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
         </node>
