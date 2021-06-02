@@ -194,7 +194,7 @@ final class ExtractDateTimeFieldsNodeModel extends AbstractExtractDateTimeFields
             // conversion necessary for backwards compatibility (AP-8915)
             final Locale locale = LocaleUtils.toLocale(localeModel.getStringValue());
             localeModel.setStringValue(LocaleProvider.JAVA_8.localeToString(locale));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) { // NOSONAR
             // do nothing, locale is already in correct format
         }
         localeModel.saveSettingsTo(settings);
