@@ -60,6 +60,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
+import org.knime.core.node.InvalidSettingsException;
 
 /**
  * Test class that ensures that with Java-11 all Locales without a region/country as being mapped to a proper value.
@@ -75,9 +76,8 @@ public class ExtractDateTimeFieldsNodeModelTest {
                 "th", "ar", "ru", "ms", "hi", "nl", "vi", "sr", "mt", "da", "ro", "no", "pl", "he", "zh"})
             .collect(Collectors.toSet());
 
-    private static Locale getLocale(final String languageTag) {
-        return LocaleProvider.JAVA_8.stringToLocale(languageTag)
-            .orElseThrow(() -> new IllegalArgumentException("No such locale found with tag " + languageTag));
+    private static Locale getLocale(final String languageTag) throws InvalidSettingsException {
+        return LocaleProvider.JAVA_8.stringToLocale(languageTag);
     }
 
     /**
@@ -103,9 +103,12 @@ public class ExtractDateTimeFieldsNodeModelTest {
 
     /**
      * Tests that the mapping only stores keys without a region.
+     *
+     * @throws InvalidSettingsException - can not happen with {@link LocaleProvider#JAVA_8}
      */
+    @SuppressWarnings("javadoc")
     @Test
-    public void test_keys_are_valid() {
+    public void test_keys_are_valid() throws InvalidSettingsException {
         for (final String localeTag : ExtractDateTimeFieldsNodeModel.LOCALE_MAPPING.keySet()) {
             assertTrue(getLocale(localeTag).getCountry().isEmpty());
         }
@@ -113,9 +116,12 @@ public class ExtractDateTimeFieldsNodeModelTest {
 
     /**
      * Test that all mapped values have a region.
+     *
+     * @throws InvalidSettingsException - can not happen with {@link LocaleProvider#JAVA_8}
      */
+    @SuppressWarnings("javadoc")
     @Test
-    public void test_values_are_valid() {
+    public void test_values_are_valid() throws InvalidSettingsException {
         for (final String localeTag : ExtractDateTimeFieldsNodeModel.LOCALE_MAPPING.values()) {
             assertFalse(getLocale(localeTag).getCountry().isEmpty());
         }
@@ -134,12 +140,15 @@ public class ExtractDateTimeFieldsNodeModelTest {
 
     /**
      * Tests that the mapping function works as expected.
+     *
+     * @throws InvalidSettingsException - can not happen with {@link LocaleProvider#JAVA_8}
      */
+    @SuppressWarnings("javadoc")
     @Test
-    public void test_mapping() {
+    public void test_mapping() throws InvalidSettingsException {
         for (final String l : J_8_REGION_FREE_LOCALES) {
-            assertNotEquals(getLocale(l), ExtractDateTimeFieldsNodeModel.getLocale(l, true).orElseThrow());
-            assertEquals(getLocale(l), ExtractDateTimeFieldsNodeModel.getLocale(l, false).orElseThrow());
+            assertNotEquals(getLocale(l), ExtractDateTimeFieldsNodeModel.getLocale(l, true));
+            assertEquals(getLocale(l), ExtractDateTimeFieldsNodeModel.getLocale(l, false));
         }
     }
 

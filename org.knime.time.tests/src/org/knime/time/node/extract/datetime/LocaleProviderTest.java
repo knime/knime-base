@@ -55,6 +55,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Locale;
 
 import org.junit.Test;
+import org.knime.core.node.InvalidSettingsException;
 
 /**
  * Tests class for the {@link LocaleProvider}s.
@@ -66,9 +67,11 @@ public class LocaleProviderTest {
 
     /**
      * Tests the correctness of the {@link LocaleProvider#JAVA_11}.
+     *
+     * @throws InvalidSettingsException - if the locale has no country
      */
     @Test
-    public void test_java_11_provider() {
+    public void test_java_11_provider() throws InvalidSettingsException {
         LocaleProvider prov = LocaleProvider.JAVA_11;
         testProvider(prov);
         for (final Locale l : prov.getLocales()) {
@@ -77,24 +80,38 @@ public class LocaleProviderTest {
     }
 
     /**
+     * Tests that conversion from to locale with a locale that does not have a country throws an exception.
+     *
+     * @throws InvalidSettingsException - if the locale has no country
+     *
+     */
+    @Test(expected = InvalidSettingsException.class)
+    public void test_java_11_without_country_conversion() throws InvalidSettingsException {
+        LocaleProvider.JAVA_11.stringToLocale("foo");
+    }
+
+    /**
      * Tests the correctness of the {@link LocaleProvider#JAVA_8}.
+     *
+     * @throws InvalidSettingsException - can not happen with {@link LocaleProvider#JAVA_8}
      */
     @Test
-    public void test_java_8_provider() {
+    public void test_java_8_provider() throws InvalidSettingsException {
         LocaleProvider java8 = LocaleProvider.JAVA_8;
         testProvider(java8);
         for (final Locale l : java8.getLocales()) {
             if (l.getCountry().isEmpty()) {
-                assertTrue(ExtractDateTimeFieldsNodeModel.LOCALE_MAPPING.containsKey(java8.localeToString(l)));
+                assertTrue(ExtractDateTimeFieldsNodeModel.LOCALE_MAPPING.containsKey(LocaleProvider.localeToString(l)));
             } else {
-                assertFalse(ExtractDateTimeFieldsNodeModel.LOCALE_MAPPING.containsKey(java8.localeToString(l)));
+                assertFalse(
+                    ExtractDateTimeFieldsNodeModel.LOCALE_MAPPING.containsKey(LocaleProvider.localeToString(l)));
             }
         }
     }
 
-    private static void testProvider(final LocaleProvider prov) {
+    private static void testProvider(final LocaleProvider prov) throws InvalidSettingsException {
         for (final Locale l : prov.getLocales()) {
-            assertEquals(l, prov.stringToLocale(prov.localeToString(l)).orElseThrow());
+            assertEquals(l, prov.stringToLocale(LocaleProvider.localeToString(l)));
         }
     }
 }
