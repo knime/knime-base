@@ -154,8 +154,7 @@ abstract class AbstractExtractDateTimeFieldsNodeDialog extends NodeDialogPane {
         }
 
         m_localeProvider = localeProvider;
-        m_localeModel = AbstractExtractDateTimeFieldsNodeModel
-            .createLocaleModel(localeProvider.localeToString(Locale.getDefault()));
+        m_localeModel = AbstractExtractDateTimeFieldsNodeModel.createLocaleModel();
         m_localeComboBox = new JComboBox<>(m_localeProvider.getLocales());
     }
 
@@ -329,7 +328,7 @@ abstract class AbstractExtractDateTimeFieldsNodeDialog extends NodeDialogPane {
             dc.saveSettingsTo(settings);
         }
         m_localeModel.setStringValue(
-            m_localeProvider.localeToString(m_localeComboBox.getItemAt(m_localeComboBox.getSelectedIndex())));
+            LocaleProvider.localeToString(m_localeComboBox.getItemAt(m_localeComboBox.getSelectedIndex())));
         m_localeModel.saveSettingsTo(settings);
         saveAdditionalSettings(settings);
     }
@@ -353,9 +352,15 @@ abstract class AbstractExtractDateTimeFieldsNodeDialog extends NodeDialogPane {
         try {
             m_localeModel.loadSettingsFrom(settings);
         } catch (final InvalidSettingsException ex) { //NOSONAR
-            m_localeModel.setStringValue(m_localeProvider.localeToString(Locale.getDefault()));
+            m_localeModel.setStringValue(LocaleProvider.localeToString(Locale.getDefault()));
         }
-        m_localeProvider.stringToLocale(m_localeModel.getStringValue()).ifPresent(m_localeComboBox::setSelectedItem);
+        final Locale l;
+        try {
+            l = m_localeProvider.stringToLocale(m_localeModel.getStringValue());
+        } catch (final InvalidSettingsException e) {
+            throw new NotConfigurableException(e.getMessage(), e);
+        }
+        m_localeComboBox.setSelectedItem(l);
         loadAdditionalSettings(settings, specs);
         refreshFieldsSelectionsEnabled();
     }

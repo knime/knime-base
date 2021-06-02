@@ -52,7 +52,6 @@ import java.time.format.TextStyle;
 import java.time.temporal.ChronoField;
 import java.time.temporal.WeekFields;
 import java.util.Locale;
-import java.util.Optional;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
@@ -139,8 +138,8 @@ abstract class AbstractExtractDateTimeFieldsNodeModel extends SimpleStreamableFu
         return subsecondsModelString;
     }
 
-    static SettingsModelString createLocaleModel(final String defaultLocale) {
-        return new SettingsModelString("locale", defaultLocale);
+    static SettingsModelString createLocaleModel() {
+        return new SettingsModelString("locale", LocaleProvider.localeToString(Locale.getDefault()));
     }
 
     static boolean isDateType(final DataType type) {
@@ -201,11 +200,7 @@ abstract class AbstractExtractDateTimeFieldsNodeModel extends SimpleStreamableFu
     private final SettingsModelBoolean[] m_timeZoneModels =
         new SettingsModelBoolean[]{m_timeZoneNameModel, m_timeZoneOffsetModel};
 
-    private final SettingsModelString m_localeModel;
-
-    AbstractExtractDateTimeFieldsNodeModel(final String defaultLocale) {
-        m_localeModel = createLocaleModel(defaultLocale);
-    }
+    private final SettingsModelString m_localeModel = createLocaleModel();
 
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
@@ -872,13 +867,12 @@ abstract class AbstractExtractDateTimeFieldsNodeModel extends SimpleStreamableFu
         }
     }
 
-    private Locale getLocale() {
+    private Locale getLocale() throws InvalidSettingsException {
         final String selectedLocale = m_localeModel.getStringValue();
-        return getLocale(selectedLocale).orElseThrow(
-            () -> new IllegalArgumentException(String.format("The selected locale %s does not exist", selectedLocale)));
+        return getLocale(selectedLocale);
     }
 
-    abstract Optional<Locale> getLocale(final String selectedLocale);
+    abstract Locale getLocale(final String selectedLocale) throws InvalidSettingsException;
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {

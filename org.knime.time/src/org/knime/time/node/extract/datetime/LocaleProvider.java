@@ -51,8 +51,8 @@ package org.knime.time.node.extract.datetime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.function.Function;
+
+import org.knime.core.node.InvalidSettingsException;
 
 /**
  * Providers for locales for Java v.8 and v.11.
@@ -62,26 +62,33 @@ import java.util.function.Function;
 enum LocaleProvider {
 
         JAVA_8(Arrays.stream(Locale.getAvailableLocales())//
-            // with java 11 new Locales without region are available that need to be filtered plus since we use the
-            // languageTag to save and load the Locales we cannot load Locales that have a variant, e.g., no_NO_NY != no_NO
             .filter(l -> ExtractDateTimeFieldsNodeModel.LOCALE_MAPPING.containsKey(l.toLanguageTag()) //
                 || (!l.getCountry().isEmpty()//
-                    && l.getVariant().isEmpty()))//
-            .sorted(Comparator.comparing(Locale::toString))//
-            .toArray(Locale[]::new), Locale::toLanguageTag),
+                    && canBeSaved(l)))//
+            .sorted(Comparator.comparing(LocaleProvider::localeToString))//
+            .toArray(Locale[]::new), //
+            LocaleProvider::getLocale),
 
         JAVA_11(Arrays.stream(Locale.getAvailableLocales())//
-            .filter(l -> !l.getCountry().isEmpty())//
-            .sorted(Comparator.comparing(Locale::toLanguageTag))//
-            .toArray(Locale[]::new), Locale::toString);
+            .filter(l -> !l.getCountry().isEmpty() && canBeSaved(l))//
+            .sorted(Comparator.comparing(LocaleProvider::localeToString))//
+            .toArray(Locale[]::new), //
+            s -> {
+                final Locale l = getLocale(s);
+                if (l.getCountry().isEmpty()) {
+                    throw new InvalidSettingsException(
+                        String.format("The selected locale '%s' does not exist or lacks a country.", s));
+                }
+                return l;
+            });
 
     private final Locale[] m_locales;
 
-    private final Function<Locale, String> m_localeToString;
+    private final StringToLocaleFunction m_stringToLocale;
 
-    private LocaleProvider(final Locale[] locales, final Function<Locale, String> localeToString) {
+    private LocaleProvider(final Locale[] locales, final StringToLocaleFunction stringToLocale) {
         m_locales = locales;
-        m_localeToString = localeToString;
+        m_stringToLocale = stringToLocale;
     }
 
     /**
@@ -99,8 +106,8 @@ enum LocaleProvider {
      * @param locale the locale to be converted
      * @return the string representation of this locale
      */
-    String localeToString(final Locale locale) {
-        return m_localeToString.apply(locale);
+    static String localeToString(final Locale locale) {
+        return locale.toLanguageTag();
     }
 
     /**
@@ -108,10 +115,28 @@ enum LocaleProvider {
      *
      * @param string the string representation of a Locale
      * @return the Locale associated with the given string
+     * @throws InvalidSettingsException if the string does not correspond to a supported locale
      */
-    Optional<Locale> stringToLocale(final String string) {
-        return Arrays.stream(getLocales())//
-            .filter(l -> localeToString(l).equals(string))//
-            .findFirst();
+    Locale stringToLocale(final String string) throws InvalidSettingsException {
+        return m_stringToLocale.stringToLocale(string);
     }
+
+    private static Locale getLocale(final String string) {
+        return Locale.forLanguageTag(string);
+    }
+
+    private static boolean canBeSaved(final Locale l) {
+        // with java 11 new Locales without region are available that need to be filtered plus since we use the
+        // languageTag to save and load the Locales we cannot load Locales that have a variant, e.g.,
+        // no_NO_NY != no_NO
+        return l.equals(getLocale(localeToString(l)));
+    }
+
+    @FunctionalInterface
+    interface StringToLocaleFunction {
+
+        Locale stringToLocale(final String string) throws InvalidSettingsException;
+
+    }
+
 }

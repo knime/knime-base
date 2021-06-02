@@ -53,7 +53,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
-import java.util.Optional;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.knime.core.node.InvalidSettingsException;
@@ -172,16 +171,12 @@ final class ExtractDateTimeFieldsNodeModel extends AbstractExtractDateTimeFields
         return model;
     }
 
-    ExtractDateTimeFieldsNodeModel() {
-        super(LocaleProvider.JAVA_8.localeToString(Locale.getDefault()));
-    }
-
     @Override
-    Optional<Locale> getLocale(final String selectedLocale) {
+    Locale getLocale(final String selectedLocale) throws InvalidSettingsException {
         return getLocale(selectedLocale, !USES_COMPAT && m_mapLocales.getBooleanValue());
     }
 
-    static Optional<Locale> getLocale(String selectedLocale, final boolean mapLocales) {
+    static Locale getLocale(String selectedLocale, final boolean mapLocales) throws InvalidSettingsException {
         if (mapLocales) {
             selectedLocale = LOCALE_MAPPING.getOrDefault(selectedLocale, selectedLocale);
         }
@@ -193,7 +188,7 @@ final class ExtractDateTimeFieldsNodeModel extends AbstractExtractDateTimeFields
         try {
             // conversion necessary for backwards compatibility (AP-8915)
             final Locale locale = LocaleUtils.toLocale(localeModel.getStringValue());
-            localeModel.setStringValue(LocaleProvider.JAVA_8.localeToString(locale));
+            localeModel.setStringValue(LocaleProvider.localeToString(locale));
         } catch (IllegalArgumentException e) { // NOSONAR
             // do nothing, locale is already in correct format
         }

@@ -49,7 +49,6 @@
 package org.knime.time.node.extract.datetime;
 
 import java.util.Locale;
-import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -63,12 +62,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  */
 final class ExtractDateTimeFieldsNodeModel2 extends AbstractExtractDateTimeFieldsNodeModel {
 
-    ExtractDateTimeFieldsNodeModel2() {
-        super(LocaleProvider.JAVA_11.localeToString(Locale.getDefault()));
-    }
-
     @Override
-    Optional<Locale> getLocale(final String selectedLocale) {
+    Locale getLocale(final String selectedLocale) throws InvalidSettingsException {
         return LocaleProvider.JAVA_11.stringToLocale(selectedLocale);
     }
 
@@ -82,10 +77,7 @@ final class ExtractDateTimeFieldsNodeModel2 extends AbstractExtractDateTimeField
         throws InvalidSettingsException {
         localeModel.validateSettings(settings);
         final String locale = settings.getString(localeModel.getKey());
-        if (getLocale(locale).isEmpty()) {
-            throw new InvalidSettingsException(
-                String.format("The string %s does not reference a valid locale.", locale));
-        }
+        getLocale(locale);
     }
 
     @Override
