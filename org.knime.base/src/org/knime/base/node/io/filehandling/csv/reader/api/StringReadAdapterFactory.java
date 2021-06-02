@@ -54,7 +54,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -75,12 +77,13 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.filehandling.core.node.table.reader.HierarchyAwareProdutionPathProvider;
+import org.knime.filehandling.core.node.table.reader.HierarchyAwareProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
  * Factory for StringReadAdapter objects.
@@ -265,11 +268,16 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
     }
 
     /**
-     * @return a {@link HierarchyAwareProdutionPathProvider}
+     * @return a {@link HierarchyAwareProductionPathProvider}
      */
-    public HierarchyAwareProdutionPathProvider<Class<?>> createProductionPathProvider() {
-        return new HierarchyAwareProdutionPathProvider<>(getProducerRegistry(), TYPE_HIERARCHY, this::getDefaultType,
-            StringReadAdapterFactory::isValidPathFor);
+    public HierarchyAwareProductionPathProvider<Class<?>> createProductionPathProvider() {
+        final Set<DataType> reachableDataTypes =
+            new HashSet<>(MultiTableUtils.extractReachableKnimeTypes(PRODUCER_REGISTRY));
+        // the binary object type can't be read with the CSV Reader
+        // it is only in the registry because the SAP Theobald Reader needs it
+        reachableDataTypes.remove(BinaryObjectDataCell.TYPE);
+        return new HierarchyAwareProductionPathProvider<>(getProducerRegistry(), TYPE_HIERARCHY, this::getDefaultType,
+            StringReadAdapterFactory::isValidPathFor, reachableDataTypes);
     }
 
     private static boolean isValidPathFor(final Class<?> type, final ProductionPath path) {
