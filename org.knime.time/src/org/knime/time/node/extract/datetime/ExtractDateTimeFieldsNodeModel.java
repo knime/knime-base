@@ -213,7 +213,7 @@ final class ExtractDateTimeFieldsNodeModel extends AbstractExtractDateTimeFields
                 final String iso3Country = Locale.forLanguageTag(localeModel.getStringValue()).getISO3Country();
                 final String iso3Language = Locale.forLanguageTag(localeModel.getStringValue()).getISO3Language();
                 if (iso3Country.isEmpty() && iso3Language.isEmpty()) {
-                    throw new InvalidSettingsException("Unsupported locale '" + localeModel.getStringValue() + "'");
+                    throw new InvalidSettingsException("Unsupported locale '" + localeModel.getStringValue() + "'", e);
                 }
             } catch (MissingResourceException ex) {
                 throw new InvalidSettingsException(
