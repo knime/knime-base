@@ -181,6 +181,15 @@ public final class WorkingDirectoryChooser extends JPanel {
     }
 
     /**
+     * Allows to enable and disable the browse button.
+     *
+     * @param enableBrowsing {@code true} if browsing should be enabled
+     */
+    public void setEnableBrowsing(final boolean enableBrowsing) {
+        m_fileSelector.setEnableBrowsing(enableBrowsing);
+    }
+
+    /**
      * Adds the currently selected working directory to the history.
      */
     public void addCurrentSelectionToHistory() {
