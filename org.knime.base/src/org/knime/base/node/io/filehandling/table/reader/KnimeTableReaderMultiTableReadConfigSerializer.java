@@ -55,7 +55,6 @@ import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -89,8 +88,6 @@ enum KnimeTableMultiTableReadConfigSerializer
             TableSpecConfigSerializer.createStartingV43(PATH_SERIALIZER, this, DataTypeSerializer.SERIALIZER_INSTANCE);
     }
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(KnimeTableMultiTableReadConfigSerializer.class);
-
     private static final String CFG_HAS_ROW_ID = "has_row_id";
 
     private static final String CFG_PREPEND_TABLE_IDX_TO_ROWID = "prepend_table_index_to_row_id";
@@ -116,6 +113,10 @@ enum KnimeTableMultiTableReadConfigSerializer
     private static final boolean DEFAULT_FAIL_ON_DIFFERING_SPECS = true;
 
     private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
+
+    private static final String CFG_PREPEND_PATH_COLUMN = "prepend_path_column" + SettingsModel.CFGKEY_INTERNAL;
+
+    private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
 
     @Override
     public void loadInDialog(final KnimeTableMultiTableReadConfig config, final NodeSettingsRO settings,
@@ -150,25 +151,14 @@ enum KnimeTableMultiTableReadConfigSerializer
 
     }
 
-    private static boolean loadFailOnDifferingSpecsInModel(final NodeSettingsRO advancedSettings)
-        throws InvalidSettingsException {
-        return advancedSettings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS);
-    }
-
-    private static boolean loadFailOnDifferingSpecsInDialog(final NodeSettingsRO advancedSettings) {
-        try {
-            return loadFailOnDifferingSpecsInModel(advancedSettings);
-        } catch (InvalidSettingsException ise) {
-            LOGGER.debug(String.format("An error occurred while loading %s", CFG_FAIL_ON_DIFFERING_SPECS), ise);
-            return DEFAULT_FAIL_ON_DIFFERING_SPECS;
-        }
-    }
-
     private static void loadAdvancedSettingsTabInDialog(final KnimeTableMultiTableReadConfig config,
         final NodeSettingsRO settings) {
 
-        config.setFailOnDifferingSpecs(loadFailOnDifferingSpecsInDialog(settings));
+        config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS, DEFAULT_FAIL_ON_DIFFERING_SPECS));
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true));
+        config.setPrependItemIdentifierColumn(settings.getBoolean(CFG_PREPEND_PATH_COLUMN, false));
+        config.setItemIdentifierColumnName(
+            settings.getString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName()));
 
         final DefaultTableReadConfig<TableManipulatorConfig> tc = config.getTableReadConfig();
         tc.setLimitRows(settings.getBoolean(CFG_LIMIT_DATA_ROWS, false));
@@ -195,8 +185,10 @@ enum KnimeTableMultiTableReadConfigSerializer
 
     private static void loadAdvancedSettingsTabInModel(final KnimeTableMultiTableReadConfig config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
-        config.setFailOnDifferingSpecs(loadFailOnDifferingSpecsInModel(settings));
+        config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS));
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG));
+        config.setPrependItemIdentifierColumn(settings.getBoolean(CFG_PREPEND_PATH_COLUMN));
+        config.setItemIdentifierColumnName(settings.getString(CFG_PATH_COLUMN_NAME));
 
         final DefaultTableReadConfig<TableManipulatorConfig> tc = config.getTableReadConfig();
 
@@ -225,6 +217,8 @@ enum KnimeTableMultiTableReadConfigSerializer
         settings.addLong(CFG_MAX_ROWS, tc.getMaxRows());
         settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS, config.failOnDifferingSpecs());
         settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, config.saveTableSpecConfig());
+        settings.addBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn());
+        settings.addString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName());
     }
 
     @Override
@@ -238,6 +232,8 @@ enum KnimeTableMultiTableReadConfigSerializer
         settings.getBoolean(CFG_SKIP_DATA_ROWS);
         settings.getLong(CFG_NUMBER_OF_ROWS_TO_SKIP);
         settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG);
+        settings.getBoolean(CFG_PREPEND_PATH_COLUMN);
+        settings.getString(CFG_PATH_COLUMN_NAME);
     }
 
     private static void saveSettingsTab(final KnimeTableMultiTableReadConfig config, final NodeSettingsWO settings) {

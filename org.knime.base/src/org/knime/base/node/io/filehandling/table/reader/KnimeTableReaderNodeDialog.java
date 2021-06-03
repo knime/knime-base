@@ -79,6 +79,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.dialog.SourceIdentifierColumnPanel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.core.util.SettingsUtils;
@@ -113,6 +114,8 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
     private final JCheckBox m_useRowID;
 
     private final JCheckBox m_prependTableIdxToRowID = new JCheckBox("Prepend table index to row ID");
+
+    private final SourceIdentifierColumnPanel m_pathColumnPanel = new SourceIdentifierColumnPanel("Path");
 
     /**
      * Constructor.
@@ -198,6 +201,8 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         m_useRowID.addActionListener(actionListener);
         m_prependTableIdxToRowID.addActionListener(actionListener);
 
+        m_pathColumnPanel.addChangeListener(changeListener);
+
     }
 
     private static void controlSpinner(final JCheckBox checker, final JSpinner spinner) {
@@ -218,10 +223,9 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         final JPanel advPanel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = createGBCBuilder().fillHorizontal().setWeightX(1).anchorPageStart();
         advPanel.add(createLimitRowsPanel(), gbc.build());
-        gbc.incY();
-        advPanel.add(createDataRowsSpecLimitPanel(), gbc.build());
-        gbc.incY();
-        advPanel.add(createSpecMergePanel(), gbc.build());
+        advPanel.add(createDataRowsSpecLimitPanel(), gbc.incY().build());
+        advPanel.add(createSpecMergePanel(), gbc.incY().build());
+        advPanel.add(m_pathColumnPanel, gbc.incY().build());
         gbc.setWeightY(1).resetX().widthRemainder().incY().insetBottom(0).fillBoth();
         advPanel.add(createPreview(), gbc.build());
         return advPanel;
@@ -301,9 +305,6 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         super.saveSettingsTo(settings);
         m_sourceFilePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
         saveTableReadSettings(m_config.getTableReadConfig());
-        if(m_config.saveTableSpecConfig()) {
-            m_config.setTableSpecConfig(getTableSpecConfig());
-        }
         m_config.saveInDialog(settings);
     }
 
@@ -340,6 +341,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
         m_failOnDifferingSpecs.setSelected(m_config.failOnDifferingSpecs());
         toggleFailOnDifferingCheckBox();
+        m_pathColumnPanel.load(m_config.prependItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
 
         final boolean useRowIDIdx = m_config.getTableReadConfig().useRowIDIdx();
         m_useRowID.setSelected(useRowIDIdx);
@@ -360,11 +362,12 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         config.setUseRowIDIdx(m_useRowID.isSelected());
         config.setPrependSourceIdxToRowId(m_prependTableIdxToRowID.isSelected());
 
-        m_config.setSaveTableSpecConfig(!m_supportChangingFileSchemas.isSelected());
-        if (m_config.saveTableSpecConfig()) {
-            m_config.setTableSpecConfig(getTableSpecConfig());
-        }
+        final boolean saveTableSpecConfig = !m_supportChangingFileSchemas.isSelected();
+        m_config.setSaveTableSpecConfig(saveTableSpecConfig);
+        m_config.setTableSpecConfig(saveTableSpecConfig ? getTableSpecConfig() : null);
         m_config.setFailOnDifferingSpecs(m_failOnDifferingSpecs.isSelected());
+        m_config.setPrependItemIdentifierColumn(m_pathColumnPanel.isPrependSourceIdentifierColumn());
+        m_config.setItemIdentifierColumnName(m_pathColumnPanel.getSourceIdentifierColumnName());
     }
 
     @Override

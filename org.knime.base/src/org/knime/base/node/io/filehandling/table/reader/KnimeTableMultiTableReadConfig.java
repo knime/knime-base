@@ -71,6 +71,7 @@ final class KnimeTableMultiTableReadConfig extends
         tc.setColumnHeaderIdx(0);
         tc.setLimitRowsForSpec(false);
         tc.setUseColumnHeaderIdx(false);
+        setItemIdentifierColumnName("Path");
     }
 
     @Override
