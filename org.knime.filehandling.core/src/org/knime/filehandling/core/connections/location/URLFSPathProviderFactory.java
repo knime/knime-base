@@ -49,13 +49,11 @@
 package org.knime.filehandling.core.connections.location;
 
 import java.io.IOException;
-import java.net.URI;
 
-import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.url.URIFSConnection;
 
 /**
  * Concrete path provider factory for Custom URL.
@@ -73,15 +71,8 @@ final class URLFSPathProviderFactory extends FSPathProviderFactory {
     @SuppressWarnings("resource")
     @Override
     public FSPathProvider create(final FSLocation fsLocation) {
-        final int timeout;
-        if (fsLocation.getFileSystemSpecifier().isPresent()) {
-            timeout = Integer.parseInt(fsLocation.getFileSystemSpecifier().get());
-        } else {
-            timeout = FileUtil.getDefaultURLTimeoutMillis();
-        }
 
-        final URI uri = URI.create(fsLocation.getPath().replace(" ", "%20"));
-        final FSConnection fsConnection = new URIFSConnection(uri, timeout);
+        final FSConnection fsConnection = DefaultFSConnectionFactory.createCustomURLConnection(fsLocation); // NOSONAR closed by FSPathProvider
 
         return new FSPathProvider() {
 

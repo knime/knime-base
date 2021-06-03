@@ -90,5 +90,8 @@
       <FSDescriptorProvider
             class="org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSDescriptorProvider">
       </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.connections.url.URIFSDescriptorProvider">
+      </FSDescriptorProvider>
    </extension>
 </plugin>

@@ -66,7 +66,7 @@ import org.knime.filehandling.core.connections.base.UnixStylePath;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIPath extends UnixStylePath {
+class URIPath extends UnixStylePath {
 
     private final URI m_uri;
 
@@ -77,7 +77,7 @@ public class URIPath extends UnixStylePath {
      * @param pathString The (decoded) path of the URI.
      * @param uri The URI.
      */
-    protected URIPath(final URIFileSystem fileSystem, final String pathString, final URI uri) {
+    URIPath(final URIFileSystem fileSystem, final String pathString, final URI uri) {
         super(fileSystem, pathString);
         m_uri = uri;
     }
@@ -89,7 +89,7 @@ public class URIPath extends UnixStylePath {
      * @param first The path string or initial part of the path string
      * @param more Additional strings to be joined to form the path string
      */
-    protected URIPath(final URIFileSystem fileSystem, final String first, final String... more) {
+    URIPath(final URIFileSystem fileSystem, final String first, final String... more) {
         super(fileSystem, concatenatePathSegments(fileSystem.getSeparator(), first, more));
         m_uri = buildURI(fileSystem, concatenatePathSegments(fileSystem.getSeparator(), first, more));
     }
@@ -111,23 +111,13 @@ public class URIPath extends UnixStylePath {
     /**
      * @return the underlying URI of this path, including query and fragment.
      */
-    public URI getURI() {
+    URI getURI() {
         return m_uri;
     }
 
     @Override
     public URIFileSystem getFileSystem() {
         return (URIFileSystem) super.getFileSystem();
-    }
-
-    /**
-     * Opens a {@link URLConnection} to the resource.
-     *
-     * @return an already connected {@link URLConnection}.
-     * @throws IOException
-     */
-    public URLConnection openURLConnection() throws IOException {
-        return openURLConnection(FileUtil.getDefaultURLTimeoutMillis());
     }
 
     /**
@@ -175,6 +165,7 @@ public class URIPath extends UnixStylePath {
         return this;
     }
 
+    @SuppressWarnings("resource")
     @Override
     public int compareTo(final Path other) {
         if (other.getFileSystem() != m_fileSystem) {

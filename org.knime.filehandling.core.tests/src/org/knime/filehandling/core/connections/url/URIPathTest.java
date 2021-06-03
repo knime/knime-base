@@ -56,19 +56,20 @@ import org.junit.Test;
 
 public class URIPathTest {
 
-
     @Test
     public void test_resolve_relative_path() throws URISyntaxException, IOException {
         final String scheme = "knime";
         final String authority = "LOCAL";
         final String absolute = "/absolute";
         final String relative = "relative";
-        final URI uri = new URI(scheme, authority, absolute, null, null);
 
-        final URIFileSystem fs = new URIFileSystem(uri, false, 1000);
+        final URIFSConnectionConfig config = new URIFSConnectionConfig();
+        config.setURI(new URI(scheme, authority, absolute, null, null));
 
-        final URIPath uriPath = fs.getPath(absolute);
-        final Path resolved = uriPath.resolve(relative);
-        assertEquals(String.format("%s/%s", absolute, relative), resolved.toString());
+        try (final URIFSConnection fsConn = new URIFSConnection(config)) {
+            final URIPath uriPath = (URIPath)fsConn.getFileSystem().getPath(absolute);
+            final Path resolved = uriPath.resolve(relative);
+            assertEquals(String.format("%s/%s", absolute, relative), resolved.toString());
+        }
     }
 }

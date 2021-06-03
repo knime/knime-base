@@ -55,16 +55,13 @@ import java.nio.file.attribute.FileStoreAttributeView;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIFileStoreAttributeView implements FileStoreAttributeView {
+final class URIFileStoreAttributeView implements FileStoreAttributeView {
 
     private static final URIFileStoreAttributeView SINGLETON_INSTANCE = new URIFileStoreAttributeView();
 
     private URIFileStoreAttributeView() {
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String name() {
         return "CustomURIFileStoreAttributeView";
@@ -73,7 +70,7 @@ public class URIFileStoreAttributeView implements FileStoreAttributeView {
     /**
      * @return the singleton instance of this {@link URIFileStoreAttributeView}.
      */
-    public static URIFileStoreAttributeView getInstance() {
+    static URIFileStoreAttributeView getInstance() {
         return SINGLETON_INSTANCE;
     }
 }

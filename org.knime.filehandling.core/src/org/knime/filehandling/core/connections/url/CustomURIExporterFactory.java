@@ -57,7 +57,7 @@ import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExp
  *
  * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  */
-public final class CustomURIExporterFactory extends NoConfigURIExporterFactory {
+final class CustomURIExporterFactory extends NoConfigURIExporterFactory {
 
     static final URIExporterID ID = new URIExporterID("knime-customurl");
 
@@ -68,9 +68,5 @@ public final class CustomURIExporterFactory extends NoConfigURIExporterFactory {
 
     private CustomURIExporterFactory() {
         super(META_INFO, p -> ((URIPath)p).getURI());
-    }
-
-    public static CustomURIExporterFactory getInstance() {
-        return INSTANCE;
     }
 }

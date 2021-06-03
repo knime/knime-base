@@ -72,7 +72,7 @@ class URITempFileSeekableChannel extends TempFileSeekableByteChannel<URIPath> {
      * @param options the open options
      * @throws IOException if an I/O Error occurred
      */
-    public URITempFileSeekableChannel(final URIPath file, final Set<? extends OpenOption> options) throws IOException {
+    URITempFileSeekableChannel(final URIPath file, final Set<? extends OpenOption> options) throws IOException {
         super(file, options);
     }
 

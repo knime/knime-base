@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.defaultnodesettings;
 
-import java.net.URI;
 import java.nio.file.FileSystem;
 import java.util.Optional;
 
@@ -65,7 +64,6 @@ import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWo
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnectionConfig;
-import org.knime.filehandling.core.connections.url.URIFSConnection;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
@@ -97,8 +95,7 @@ public final class FileSystemHelper {
             case LOCAL_FS:
                 return DefaultFSConnectionFactory.createLocalFSConnection();
             case CUSTOM_URL_FS:
-                final URI uri = URI.create(settings.getPathOrURL().replace(" ", "%20"));
-                return new URIFSConnection(uri, timeoutInMillis);
+                return DefaultFSConnectionFactory.createCustomURLConnection(settings.getPathOrURL(), timeoutInMillis);
             case KNIME_MOUNTPOINT:
                 final String mountpoint = settings.getKnimeMountpointFileSystem();
                 final KNIMERemoteFSConnectionConfig conf = new KNIMERemoteFSConnectionConfig(mountpoint);
@@ -129,8 +126,7 @@ public final class FileSystemHelper {
             case CONNECTED:
                 return portObjectConnection;
             case CUSTOM_URL:
-                final URI uri = URI.create(location.getPath().replace(" ", "%20"));
-                return Optional.of(new URIFSConnection(uri, extractCustomURLTimeout(location)));
+                return Optional.of(DefaultFSConnectionFactory.createCustomURLConnection(location));
             case RELATIVE:
                 final Type type = extractRelativeToHost(location);
                 return Optional.of(getRelativeToConnection(type));
@@ -207,18 +203,6 @@ public final class FileSystemHelper {
         final String knimeFileSystem = location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
             String.format("The provided mountpoint location '%s' does not specify a mountpoint.", location)));
         return KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
-    }
-
-    private static int extractCustomURLTimeout(final FSLocation location) {
-        final String timeoutString = location.getFileSystemSpecifier()
-            .orElseThrow(() -> new IllegalArgumentException("A custom URL location must always specify a timeout."));
-        try {
-            return Integer.parseInt(timeoutString);
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException(
-                String.format("The provided specifier for the URL location '%s' is not a valid timeout.", location),
-                ex);
-        }
     }
 
     /**

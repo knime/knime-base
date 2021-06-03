@@ -44,49 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Jun 2, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.url;
 
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
 /**
- * Creates a pseudo file system that allows to read user-provided URLs.
+ * {@link FSDescriptorProvider} implementation for the Custom/KNIME URL file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class URIFSConnection implements FSConnection {
-
-    final URIFileSystem m_uriFileSystem;
+public class URIFSDescriptorProvider extends BaseFSDescriptorProvider {
 
     /**
      * Constructor.
-     *
-     * @param config The file system configuration to use.
      */
-    URIFSConnection(final URIFSConnectionConfig config) {
-        CheckUtils.checkArgumentNotNull(config.getURI(), "URI must not be provided");
-        CheckUtils.checkArgumentNotNull(config.getTimeout(), "Timeout must be provided");
-        CheckUtils.checkArgument(config.getTimeout().toMillis() > 0, "Timeout must be positive");
-        CheckUtils.checkArgument(config.getTimeout().toMillis() <= Integer.MAX_VALUE, "Timeout must be an integer number");
-        m_uriFileSystem = new URIFileSystem(config);
-    }
-
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_uriFileSystem;
-    }
-
-    @Override
-    public boolean supportsBrowsing() {
-        return false;
-    }
-
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return null;
+    public URIFSDescriptorProvider() {
+        super(FSType.CUSTOM_URL, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(URIFSConnection::new) //
+                .withCanBrowse(false) //
+                .withCanCreateDirectories(false) //
+                .withCanDeleteDirectories(false) //
+                .withCanDeleteFiles(false) //
+                .withCanListDirectories(false) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, CustomURIExporterFactory.INSTANCE) //
+                .withURIExporterFactory(CustomURIExporterFactory.ID, CustomURIExporterFactory.INSTANCE) //
+                .build());
     }
 }

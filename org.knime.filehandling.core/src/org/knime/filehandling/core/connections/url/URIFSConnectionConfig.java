@@ -44,49 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Jun 2, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.url;
 
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
+import java.net.URI;
+import java.time.Duration;
+
+import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
- * Creates a pseudo file system that allows to read user-provided URLs.
+ * {@link FSConnectionConfig} implementation for the Custom/KNIME URL file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class URIFSConnection implements FSConnection {
+public class URIFSConnectionConfig extends BaseFSConnectionConfig {
 
-    final URIFileSystem m_uriFileSystem;
+    private URI m_uri;
+
+    private Duration m_timeout = Duration.ofMillis(FileUtil.getDefaultURLTimeoutMillis());
 
     /**
      * Constructor.
-     *
-     * @param config The file system configuration to use.
      */
-    URIFSConnection(final URIFSConnectionConfig config) {
-        CheckUtils.checkArgumentNotNull(config.getURI(), "URI must not be provided");
-        CheckUtils.checkArgumentNotNull(config.getTimeout(), "Timeout must be provided");
-        CheckUtils.checkArgument(config.getTimeout().toMillis() > 0, "Timeout must be positive");
-        CheckUtils.checkArgument(config.getTimeout().toMillis() <= Integer.MAX_VALUE, "Timeout must be an integer number");
-        m_uriFileSystem = new URIFileSystem(config);
+    public URIFSConnectionConfig() {
+        super(URIFileSystem.PATH_SEPARATOR, false);
     }
 
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_uriFileSystem;
+    /**
+     * @return the connect/read timeout
+     */
+    public Duration getTimeout() {
+        return m_timeout;
     }
 
-    @Override
-    public boolean supportsBrowsing() {
-        return false;
+    /**
+     * @param timeout the connect/read timeout to use
+     */
+    public void setTimeout(final Duration timeout) {
+        m_timeout = timeout;
     }
 
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return null;
+    /**
+     * @return the URI
+     */
+    public URI getURI() {
+        return m_uri;
+    }
+
+    /**
+     * @param uri the URI to set
+     */
+    public void setURI(final URI uri) {
+        m_uri = uri;
     }
 }

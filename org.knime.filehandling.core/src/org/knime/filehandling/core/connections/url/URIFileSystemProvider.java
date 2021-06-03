@@ -69,6 +69,7 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -77,6 +78,7 @@ import java.util.Set;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
@@ -88,7 +90,7 @@ import org.knime.filehandling.core.util.IOESupplier;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFileSystem> {
+class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFileSystem> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(URIFileSystemProvider.class);
 
@@ -102,18 +104,13 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     /**
      * Constructor.
      *
-     * @param timeoutInMillis read timeout in milliseconds
+     * @param timeout The read timeout.
      */
-    public URIFileSystemProvider(final int timeoutInMillis) {
-        m_timeoutInMillis = timeoutInMillis;
+    public URIFileSystemProvider(final Duration timeout) {
+        CheckUtils.checkArgument(timeout.toMillis() <= Integer.MAX_VALUE, "Timeout value is too high");
+        CheckUtils.checkArgument(timeout.toMillis() >= Integer.MIN_VALUE, "Timeout value is too low");
+        m_timeoutInMillis = (int)timeout.toMillis();
         m_nodeContext = NodeContext.getContext();
-    }
-
-    /**
-     * @return the timeout in milliseconds
-     */
-    public int getTimeout() {
-        return m_timeoutInMillis;
     }
 
     /**
@@ -279,7 +276,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     @Override
     protected InputStream newInputStreamInternal(final URIPath path, final OpenOption... options) throws IOException {
         try {
-            return doWithNodeContext(() -> path.openURLConnection(getTimeout()).getInputStream());
+            return doWithNodeContext(() -> path.openURLConnection(m_timeoutInMillis).getInputStream());
         } catch (IOException e) {
             throw convertToFileSystemExceptionIfPossible(path, e);
         }
@@ -296,7 +293,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
     @Override
     @SuppressWarnings("resource")
     protected OutputStream newOutputStreamInternal(final URIPath path, final OpenOption... options) throws IOException {
-        return doWithNodeContext(() -> {
+        return doWithNodeContext(() -> {  // NOSONAR
             try {
                 final Path localURL = FileUtil.resolveToPath(path.getURI().toURL());
                 if (localURL != null) {
@@ -361,7 +358,7 @@ public class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFi
      */
     private long getRemoteFileSize(final URIPath path) {
         try {
-            return path.openURLConnection(getTimeout(), "HEAD").getContentLength();
+            return path.openURLConnection(m_timeoutInMillis, "HEAD").getContentLength();
         } catch (final IOException e) {  // NOSONAR
             return -1;
         }

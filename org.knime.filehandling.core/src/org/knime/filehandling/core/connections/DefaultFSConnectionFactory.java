@@ -49,10 +49,15 @@
 package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
+import java.net.URI;
+import java.time.Duration;
 
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.local.LocalFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.url.URIFSConnectionConfig;
 
 /**
  *
@@ -80,6 +85,38 @@ public final class DefaultFSConnectionFactory {
                 .orElseThrow(() -> new IllegalStateException("Local file system is not registered")) //
                 .<LocalFSConnectionConfig> getConnectionFactory() //
                 .createConnection(new LocalFSConnectionConfig(workingDir));
+    public static FSConnection createCustomURLConnection(final FSLocation fsLocation) {
+        CheckUtils.checkArgument(fsLocation.getFSCategory() == FSCategory.CUSTOM_URL,
+            "FSLocation must have category CUSTOM_URL");
+        return createCustomURLConnection(fsLocation.getPath(), extractCustomURLTimeout(fsLocation));
+    }
+
+    private static int extractCustomURLTimeout(final FSLocationSpec location) {
+        final String timeoutString = location.getFileSystemSpecifier()
+            .orElseThrow(() -> new IllegalArgumentException("A custom URL location must always specify a timeout."));
+        try {
+            return Integer.parseInt(timeoutString);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(
+                String.format("The provided specifier for the URL location '%s' is not a valid timeout.", location),
+                ex);
+        }
+    }
+
+    public static FSConnection createCustomURLConnection(final String url) {
+        return createCustomURLConnection(url, FileUtil.getDefaultURLTimeoutMillis());
+    }
+
+    public static FSConnection createCustomURLConnection(final String url, final int timeoutInMillis) {
+        final URIFSConnectionConfig config = new URIFSConnectionConfig();
+        config.setTimeout(Duration.ofMillis(timeoutInMillis));
+        config.setURI(URI.create(url.replace(" ", "%20")));
+
+        try {
+            return FSDescriptorRegistry.getFSDescriptor(FSType.CUSTOM_URL) // NOSONAR connection closed later
+                .orElseThrow(() -> new IllegalStateException("Custom/KNIME URL file system is not registered")) //
+                .<URIFSConnectionConfig> getConnectionFactory() //
+                .createConnection(config);
         } catch (IOException ex) {
             throw new IllegalStateException("IOException thrown where it should never happen", ex);
         }
