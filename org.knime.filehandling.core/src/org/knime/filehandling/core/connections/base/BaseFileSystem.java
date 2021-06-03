@@ -49,14 +49,12 @@
 package org.knime.filehandling.core.connections.base;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -73,7 +71,7 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
 import org.knime.filehandling.core.connections.base.attributes.NoOpAttributesCache;
 
 /**
- * Base implementation of {@FileSystem}.
+ * Base implementation of {@link FSFileSystem}.
  *
  * @author Mareike Hoeger, KNIME GmbH
  * @param <T> the path type
@@ -94,41 +92,17 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      * system.
      *
      * @param fileSystemProvider the provider that the file system belongs to
-     * @param fsBaseUri A base URI that is used to construct the URI when invoking {@link FSPath#toUri()}. It's path, query or
-     *            fragment will be ignored.
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
      * @param workingDirectory The working directory of this file system instance.
      * @param fsLocationSpec the {@link FSLocationSpec}
      */
-    protected BaseFileSystem(final BaseFileSystemProvider<?, ?> fileSystemProvider, final URI fsBaseUri, final long cacheTTL,
-        final String workingDirectory, final FSLocationSpec fsLocationSpec) {
+    protected BaseFileSystem(final BaseFileSystemProvider<?, ?> fileSystemProvider, //
+        final long cacheTTL, //
+        final String workingDirectory, //
+        final FSLocationSpec fsLocationSpec) {
 
-        this(fileSystemProvider, fsBaseUri, cacheTTL, workingDirectory, fsLocationSpec, null);
-    }
-
-    /**
-     * Constructs {@FileSystem} with the given file system provider, identifying uri and name an type of the file
-     * system.
-     *
-     * @param fileSystemProvider the provider that the file system belongs to
-     * @param fsBaseUri A base URI that is used to construct the URI when invoking {@link FSPath#toUri()}. It's path, query or
-     *            fragment will be ignored.
-     * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
-     *            caching.
-     * @param workingDirectory The working directory of this file system.
-     * @param fsLocationSpec The {@link FSLocationSpec} for this file system.
-     * @param fileStores The file stores of this file system. May be null, in which case
-     *            {@link #createDefaultFileStore()} will be called to instantiate a file store.
-     */
-    public BaseFileSystem(final BaseFileSystemProvider<?,?> fileSystemProvider,
-        final URI fsBaseUri,
-        final long cacheTTL,
-        final String workingDirectory,
-        final FSLocationSpec fsLocationSpec,
-        final List<FileStore> fileStores) {
-
-        super(fsBaseUri, fsLocationSpec, workingDirectory);
+        super(fsLocationSpec, workingDirectory);
 
         fileSystemProvider.setFileSystem(this); // NOSONAR this is safe to do here
 
@@ -141,15 +115,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
             m_cache = new NoOpAttributesCache();
         }
 
-        if (fileStores != null) {
-            m_fileStores = fileStores;
-        } else {
-            m_fileStores = Collections.singletonList(createDefaultFileStore());
-        }
-    }
-
-    protected FileStore createDefaultFileStore() {
-        return new BaseFileStore(getFileSystemBaseURI().getScheme(), "default_file_store");
+        m_fileStores = Collections.singletonList(new BaseFileStore(getFileSystemBaseURI().getScheme(), "default_file_store"));
     }
 
     @SuppressWarnings("unchecked")
@@ -172,9 +138,6 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         super.closeAllCloseables();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isReadOnly() {
         return false;
@@ -199,19 +162,11 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         return m_fileStores;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Set<String> supportedFileAttributeViews() {
-        final Set<String> supportedViews = new HashSet<>();
-        supportedViews.add("basic");
-        return supportedViews;
+        return Collections.singleton("basic");
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public PathMatcher getPathMatcher(final String syntaxAndPattern) {
         final int splitPosition = syntaxAndPattern.indexOf(':');
@@ -234,17 +189,11 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
         return path -> expr.matcher(path.toString()).matches();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public UserPrincipalLookupService getUserPrincipalLookupService() {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public WatchService newWatchService() throws IOException {
         throw new UnsupportedOperationException();

@@ -51,12 +51,14 @@ package org.knime.filehandling.core.connections;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.FileSystem;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.meta.FSType;
@@ -117,6 +119,29 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
         m_fsBaseUri = fsBaseUri;
         m_fsLocationSpec = fsLocationSpec;
         m_workingDirectory = workingDir;
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * <p>
+     * This constructor initializes the base URI (see {@link #getFileSystemBaseURI()}) to be <fs-type>://<uuid>.
+     * </p>
+     *
+     * @param fsLocationSpec An {@link FSLocationSpec} that characterizes this file system.
+     * @param workingDir The working directory to use (see {@link #getWorkingDirectory()}).
+     */
+    public FSFileSystem(final FSLocationSpec fsLocationSpec, final String workingDir) {
+        this(createDefaultBaseURI(fsLocationSpec.getFSType()), fsLocationSpec, workingDir);
+    }
+
+
+    private static URI createDefaultBaseURI(final FSType fsType) {
+        try {
+            return new URI(fsType.getTypeId(), UUID.randomUUID().toString(), null, null);
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("FSType is not URI-compatible: " + fsType.getTypeId(), ex);
+        }
     }
 
     /**
