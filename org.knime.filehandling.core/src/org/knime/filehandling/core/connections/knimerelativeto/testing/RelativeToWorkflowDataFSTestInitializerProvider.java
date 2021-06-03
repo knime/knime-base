@@ -50,7 +50,9 @@ import java.util.Map;
 
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
@@ -63,13 +65,12 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  */
 public final class RelativeToWorkflowDataFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
-    private static final String FS_NAME = "knime-relative-workflow-data";
-
     /**
      * Constructor.
      */
     public RelativeToWorkflowDataFSTestInitializerProvider() {
-        super(FS_NAME, BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC);
+        super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA,
+            BaseRelativeToFileSystem.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC);
     }
 
     @SuppressWarnings("resource")
@@ -79,6 +80,7 @@ public final class RelativeToWorkflowDataFSTestInitializerProvider extends Local
 
         final String workingDir = generateRandomizedWorkingDir(BaseRelativeToFileSystem.PATH_SEPARATOR,
             BaseRelativeToFileSystem.PATH_SEPARATOR);
-        return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(workingDir));
+        final LocalRelativeToFSConnectionConfig config = new LocalRelativeToFSConnectionConfig(workingDir);
+        return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(config));
     }
 }

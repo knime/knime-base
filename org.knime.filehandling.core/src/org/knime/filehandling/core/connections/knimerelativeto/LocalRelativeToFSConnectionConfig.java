@@ -44,44 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Jun 3, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
-import org.knime.filehandling.core.connections.base.UnixStylePath;
+import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
- * KNIME relative-to file system path.
+ * {@link FSConnectionConfig} for the local Relative-to file systems.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class RelativeToPath extends UnixStylePath implements WorkflowAwarePath {
+public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
 
     /**
-     * Creates a path using a given file system and path parts.
+     * Constructor for a connected file system with the given working directory.
      *
-     * @param fileSystem the file system
-     * @param first first part of the path
-     * @param more subsequent parts of the path
+     * @param workingDirectory The working directory to use.
      */
-    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first, final String... more) {
-        super(fileSystem, first, more);
+    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
+        super(workingDirectory, true);
     }
 
-    @Override
-    public BaseRelativeToFileSystem getFileSystem() {
-        return (BaseRelativeToFileSystem)super.getFileSystem();
-    }
-
-    @Override
-    @SuppressWarnings("resource")
-    public boolean isWorkflow() throws IOException {
-        final BaseRelativeToFileSystem fs = getFileSystem();
-        return fs.isWorkflowDirectory(this);
+    /**
+     * Constructor for a convenience file system with the default working directory.
+     */
+    public LocalRelativeToFSConnectionConfig() {
+        super(BaseRelativeToFileSystem.PATH_SEPARATOR, false);
     }
 }

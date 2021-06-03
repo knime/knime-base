@@ -48,19 +48,19 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.net.URI;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
+import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 /**
  * {@link FSConnection} for the Relative-to workflow file system. It is possible to create a connected or convenience
@@ -78,21 +78,28 @@ public class LocalRelativeToWorkflowFSConnection implements FSConnection {
     private final RelativeToFileSystemBrowser m_browser;
 
     /**
-     * Constructor.
+     * Creates a new connection using the given config. Note that the working directory of the given config is ignored,
+     * as it is always the location of the current workflow within the mountpoint.
      *
-     * @param isConnected If true, a {@link FSCategory#CONNECTED} file system will be created, otherwise it will be
-     *            {@link FSCategory#RELATIVE}.
+     * @param config The config to use.
+     * @throws IOException If the folder for the workflow data area could not be created.
      */
-    public LocalRelativeToWorkflowFSConnection(final boolean isConnected) {
+    public LocalRelativeToWorkflowFSConnection(final LocalRelativeToFSConnectionConfig config) throws IOException {
+        if (CheckNodeContextUtil.isInComponentProject()) {
+            throw new IllegalStateException(
+                "Nodes in a shared component don't have access to workflow-relative locations.");
+        }
+
         final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
+
         if (RelativeToUtil.isServerContext(workflowContext)) {
             throw new UnsupportedOperationException(
-                "Unsupported temporary copy of workflow detected. Relative to does not support server execution.");
+                "Unsupported temporary copy of workflow detected. LocalRelativeTo does not support server execution.");
         }
 
         final Path localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
         final Path localWorkflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
-        m_fileSystem = createWorkflowRelativeFs(localMountpointRoot, localWorkflowLocation, isConnected);
+        m_fileSystem = createWorkflowRelativeFs(localMountpointRoot, localWorkflowLocation, config.isConnectedFileSystem());
 
         // in the workflow-relative file system the working "dir" is the workflow, but it is not a directory,
         // so we need to take the parent
@@ -113,10 +120,8 @@ public class LocalRelativeToWorkflowFSConnection implements FSConnection {
             fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
         }
 
-        final URI uri = URI.create(Type.WORKFLOW_RELATIVE.getSchemeAndHost());
-        return new LocalRelativeToFileSystem(uri, //
-            localMountpointRoot, //
-            Type.WORKFLOW_RELATIVE, //
+        return new LocalRelativeToFileSystem(localMountpointRoot, //
+            RelativeTo.WORKFLOW, //
             workingDir, //
             fsLocationSpec);
     }

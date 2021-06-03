@@ -44,44 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Jun 3, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
-import org.knime.filehandling.core.connections.base.UnixStylePath;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
 
 /**
- * KNIME relative-to file system path.
+ * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_WORKFLOW}, that provides either a local or
+ * server-side Relative-to  {@link FSDescriptor}, depending on the context of the calling thread.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class RelativeToPath extends UnixStylePath implements WorkflowAwarePath {
+public class RelativeToWorkflowFSDescriptorProvider implements FSDescriptorProvider {
 
-    /**
-     * Creates a path using a given file system and path parts.
-     *
-     * @param fileSystem the file system
-     * @param first first part of the path
-     * @param more subsequent parts of the path
-     */
-    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first, final String... more) {
-        super(fileSystem, first, more);
+    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-workflow";
+
+    @Override
+    public FSType getFSType() {
+        return FSType.RELATIVE_TO_WORKFLOW;
     }
 
     @Override
-    public BaseRelativeToFileSystem getFileSystem() {
-        return (BaseRelativeToFileSystem)super.getFileSystem();
-    }
+    public FSDescriptor getFSDescriptor() {
+        FSType fsType = LocalRelativeToWorkflowFSDescriptorProvider.FS_TYPE;
 
-    @Override
-    @SuppressWarnings("resource")
-    public boolean isWorkflow() throws IOException {
-        final BaseRelativeToFileSystem fs = getFileSystem();
-        return fs.isWorkflowDirectory(this);
+        if (RelativeToUtil.isServerContext()) {
+            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
+                .orElseThrow(
+                    () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
+        }
+
+        return FSDescriptorRegistry.getFSDescriptor(fsType) //
+            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
     }
 }

@@ -2,7 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="org.knime.filehandling.core.MountPointFileSystemAccess" name="MountPointFileSystemAccess" schema="schema/org.knime.filehandling.core.MountPointFileSystemAccess.exsd"/>
-   <extension-point id="org.knime.filehandling.core.FSConnectionProvider" name="FSConnectionProvider" schema="schema/org.knime.filehandling.core.FSConnectionProvider.exsd"/>
    <extension-point id="org.knime.filehandling.core.FSDescriptorProvider" name="FSDescriptorProvider" schema="schema/FSDescriptorProvider.exsd"/>
    
    <extension
@@ -92,6 +91,21 @@
       </FSDescriptorProvider>
       <FSDescriptorProvider
             class="org.knime.filehandling.core.connections.url.URIFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.connections.knimerelativeto.RelativeToMountpointFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.connections.knimerelativeto.RelativeToWorkflowFSDescriptorProvider">
       </FSDescriptorProvider>
    </extension>
 </plugin>

@@ -44,44 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Jun 3, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
-import org.knime.filehandling.core.connections.base.UnixStylePath;
+import org.knime.filehandling.core.connections.knimerelativeto.testing.LocalRelativeToWorkflowFSTestInitializerProvider;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
 
 /**
- * KNIME relative-to file system path.
+ * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class RelativeToPath extends UnixStylePath implements WorkflowAwarePath {
+public class LocalRelativeToWorkflowFSDescriptorProvider extends RelativeToFSDescriptorProvider {
+
+    static final FSType FS_TYPE =
+        FSTypeRegistry.getOrCreateFSType("knime-local-relative-workflow", "Relative to Workflow (Local)");
 
     /**
-     * Creates a path using a given file system and path parts.
-     *
-     * @param fileSystem the file system
-     * @param first first part of the path
-     * @param more subsequent parts of the path
+     * Constructor.
      */
-    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first, final String... more) {
-        super(fileSystem, first, more);
-    }
-
-    @Override
-    public BaseRelativeToFileSystem getFileSystem() {
-        return (BaseRelativeToFileSystem)super.getFileSystem();
-    }
-
-    @Override
-    @SuppressWarnings("resource")
-    public boolean isWorkflow() throws IOException {
-        final BaseRelativeToFileSystem fs = getFileSystem();
-        return fs.isWorkflowDirectory(this);
+    public LocalRelativeToWorkflowFSDescriptorProvider() {
+        super(FS_TYPE, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(LocalRelativeToWorkflowFSConnection::new,
+                    new LocalRelativeToFSConnectionConfig()) // DefaultFSConnectionFactory.createRelativeToConnection() will pass null
+                .withTestInitializerProvider(new LocalRelativeToWorkflowFSTestInitializerProvider(FS_TYPE)));
     }
 }

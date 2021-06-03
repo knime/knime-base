@@ -44,44 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Jun 3, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
-import org.knime.filehandling.core.connections.base.UnixStylePath;
+class RelativeToFSDescriptorProvider extends BaseFSDescriptorProvider {
 
-/**
- * KNIME relative-to file system path.
- *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
- */
-public final class RelativeToPath extends UnixStylePath implements WorkflowAwarePath {
-
-    /**
-     * Creates a path using a given file system and path parts.
-     *
-     * @param fileSystem the file system
-     * @param first first part of the path
-     * @param more subsequent parts of the path
-     */
-    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first, final String... more) {
-        super(fileSystem, first, more);
-    }
-
-    @Override
-    public BaseRelativeToFileSystem getFileSystem() {
-        return (BaseRelativeToFileSystem)super.getFileSystem();
-    }
-
-    @Override
-    @SuppressWarnings("resource")
-    public boolean isWorkflow() throws IOException {
-        final BaseRelativeToFileSystem fs = getFileSystem();
-        return fs.isWorkflowDirectory(this);
+    protected RelativeToFSDescriptorProvider(final FSType fsType, final BaseFSDescriptor.Builder builder) {
+        super(fsType, //
+            builder //
+                .withIsWorkflowAware(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getInstance()) //
+                .build());
     }
 }

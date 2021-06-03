@@ -52,20 +52,13 @@ import java.nio.file.FileSystem;
 import java.util.Optional;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.knimerelativeto.FileSystemExtensionHelper;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSConnection;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSConnection;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnectionConfig;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
-import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 /**
  * Utility class to obtain a {@link FSConnection}.
@@ -101,8 +94,8 @@ public final class FileSystemHelper {
                 final KNIMERemoteFSConnectionConfig conf = new KNIMERemoteFSConnectionConfig(mountpoint);
                 return new KNIMERemoteFSConnection(conf);
             case KNIME_FS:
-                final Type type = KNIMEConnection.connectionTypeForHost(settings.getKNIMEFileSystem());
-                return getRelativeToConnection(type);
+                final RelativeTo type = RelativeTo.fromSettingsValue(settings.getKNIMEFileSystem());
+                return DefaultFSConnectionFactory.createRelativeToConnection(type);
             case CONNECTED_FS:
                 return portObjectConnection.orElseThrow(() -> new IllegalArgumentException(
                     "No file system connection available for \"" + choice.getId() + "\""));
@@ -128,8 +121,8 @@ public final class FileSystemHelper {
             case CUSTOM_URL:
                 return Optional.of(DefaultFSConnectionFactory.createCustomURLConnection(location));
             case RELATIVE:
-                final Type type = extractRelativeToHost(location);
-                return Optional.of(getRelativeToConnection(type));
+                final RelativeTo type = extractRelativeToType(location);
+                return Optional.of(DefaultFSConnectionFactory.createRelativeToConnection(type));
             case MOUNTPOINT:
                 final KNIMEConnection connection = extractMountpoint(location);
                 checkMountpointCanCreateConnection(location, connection);
@@ -192,60 +185,16 @@ public final class FileSystemHelper {
         }
     }
 
-    private static Type extractRelativeToHost(final FSLocation location) {
-        final String knimeFileSystemHost =
+    private static RelativeTo extractRelativeToType(final FSLocation location) {
+        final String specifier =
             location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(String
                 .format("The provided relative to location '%s' does not specify the relative to type.", location)));
-        return KNIMEConnection.connectionTypeForHost(knimeFileSystemHost);
+        return RelativeTo.fromSettingsValue(specifier);
     }
 
     private static KNIMEConnection extractMountpoint(final FSLocation location) {
         final String knimeFileSystem = location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
             String.format("The provided mountpoint location '%s' does not specify a mountpoint.", location)));
         return KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
-    }
-
-    /**
-     * Retrieves the relative to {@link FSConnection} of the provided {@link KNIMEConnection.Type}.
-     *
-     * @param type of relative to connection
-     * @return the relative to connection
-     * @throws IllegalStateException if type is {@link Type#WORKFLOW_DATA_RELATIVE} or {@link Type#WORKFLOW_RELATIVE}
-     *             and the method is called from a component project
-     */
-    public static FSConnection getRelativeToConnection(final Type type) {
-
-        if (isRelativeToWorkflowOrWorkflowDataArea(type) && CheckNodeContextUtil.isInComponentProject()) {
-            throw new IllegalStateException(
-                "Nodes in a shared component don't have access to workflow-relative locations or the workflow data area.");
-        }
-
-        if (type == Type.WORKFLOW_DATA_RELATIVE) {
-            return new LocalRelativeToWorkflowDataFSConnection();
-        } else if (isServerContext()) {
-            return FileSystemExtensionHelper //
-                .getFSConnectionProvider("knime-server-relative-to") //
-                .getConnection(type);
-        } else if (type == Type.WORKFLOW_RELATIVE) {
-            return new LocalRelativeToWorkflowFSConnection(false);
-        } else if (type == Type.MOUNTPOINT_RELATIVE) {
-            return new LocalRelativeToMountpointFSConnection();
-        } else {
-            throw new IllegalArgumentException("Unsupported type: " + type);
-        }
-    }
-
-    private static boolean isRelativeToWorkflowOrWorkflowDataArea(final Type type) {
-        return type == Type.WORKFLOW_RELATIVE || type == Type.WORKFLOW_DATA_RELATIVE;
-    }
-
-    private static boolean isServerContext() {
-        final NodeContext nodeContext = NodeContext.getContext();
-        CheckUtils.checkArgumentNotNull(nodeContext, "Node context required.");
-
-        final WorkflowContext context = nodeContext.getWorkflowManager().getContext();
-        CheckUtils.checkArgumentNotNull(context, "Workflow context required.");
-
-        return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
     }
 }

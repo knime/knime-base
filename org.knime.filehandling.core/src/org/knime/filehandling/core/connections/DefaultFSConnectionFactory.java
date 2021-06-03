@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.Duration;
 
@@ -85,6 +86,11 @@ public final class DefaultFSConnectionFactory {
                 .orElseThrow(() -> new IllegalStateException("Local file system is not registered")) //
                 .<LocalFSConnectionConfig> getConnectionFactory() //
                 .createConnection(new LocalFSConnectionConfig(workingDir));
+        } catch (IOException ex) {
+            throw new IllegalStateException("IOException thrown where it should never happen", ex);
+        }
+    }
+
     public static FSConnection createCustomURLConnection(final FSLocation fsLocation) {
         CheckUtils.checkArgument(fsLocation.getFSCategory() == FSCategory.CUSTOM_URL,
             "FSLocation must have category CUSTOM_URL");
@@ -119,6 +125,17 @@ public final class DefaultFSConnectionFactory {
                 .createConnection(config);
         } catch (IOException ex) {
             throw new IllegalStateException("IOException thrown where it should never happen", ex);
+        }
+    }
+
+    public static FSConnection createRelativeToConnection(final RelativeTo type) {
+        try {
+            return FSDescriptorRegistry.getFSDescriptor(type.toFSType()) //
+                .orElseThrow(() -> new IllegalStateException(type.toFSType().getName() + " file system is not registered"))
+                .getConnectionFactory() //
+                .createConnection(null);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 }

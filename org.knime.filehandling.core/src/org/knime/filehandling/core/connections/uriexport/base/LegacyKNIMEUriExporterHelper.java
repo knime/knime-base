@@ -44,44 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Jun 4, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.uriexport.base;
 
-import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
-import org.knime.filehandling.core.connections.base.UnixStylePath;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.RelativeTo;
 
 /**
- * KNIME relative-to file system path.
+ * Helper class to generate legacy knime:// URLs.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class RelativeToPath extends UnixStylePath implements WorkflowAwarePath {
+public final class LegacyKNIMEUriExporterHelper {
+
+    private LegacyKNIMEUriExporterHelper() {
+    }
 
     /**
-     * Creates a path using a given file system and path parts.
+     * Creates a knime:// URL of the given type for this path.
      *
-     * @param fileSystem the file system
-     * @param first first part of the path
-     * @param more subsequent parts of the path
+     * @param type The {@link RelativeTo} type to assume for the given path (workflow-relative, mountpoint-relative,
+     *            ...)
+     * @param path The path for which to generate a URL.
+     * @return a <code>knime://</code> protocol URL
      */
-    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first, final String... more) {
-        super(fileSystem, first, more);
+    public static URI createRelativeKNIMEProtocolURI(final RelativeTo type, final FSPath path) {
+        try {
+            switch (type) {
+                case MOUNTPOINT:
+                    return toMountpointRelativeURI(path);
+                case WORKFLOW:
+                    return toWorkflowRelativeURI(path);
+                case WORKFLOW_DATA:
+                    return toWorkflowDataRelativeURI(path);
+                default:
+                    throw new IllegalArgumentException("Illegal type " + type);
+            }
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException(ex);
+        }
     }
 
-    @Override
-    public BaseRelativeToFileSystem getFileSystem() {
-        return (BaseRelativeToFileSystem)super.getFileSystem();
+    private static URI toWorkflowDataRelativeURI(final FSPath path) throws URISyntaxException {
+        final String uriPath = String.format("/data%s", path.getURICompatiblePath());
+        return new URI("knime", "knime.workflow", uriPath, null);
     }
 
-    @Override
-    @SuppressWarnings("resource")
-    public boolean isWorkflow() throws IOException {
-        final BaseRelativeToFileSystem fs = getFileSystem();
-        return fs.isWorkflowDirectory(this);
+    private static URI toWorkflowRelativeURI(final FSPath path) throws URISyntaxException {
+        @SuppressWarnings("resource")
+        final Path workDir = path.getFileSystem().getWorkingDirectory().normalize();
+        final FSPath relativized = (FSPath)workDir.relativize(path.toAbsolutePath().normalize());
+        final String uriPath =
+            FSPath.URI_SEPARATOR + String.join(FSPath.URI_SEPARATOR, relativized.stringStream().toArray(String[]::new));
+        return new URI("knime", "knime.workflow", uriPath, null);
+    }
+
+    private static URI toMountpointRelativeURI(final FSPath path) throws URISyntaxException {
+        return new URI("knime", "knime.mountpoint", path.getURICompatiblePath(), null);
     }
 }

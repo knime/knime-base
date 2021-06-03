@@ -44,30 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 29, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Jun 3, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.io.IOException;
-
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
 
 /**
- * {@link FSConnection} provider, implemented by extension points.
+ * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_MOUNTPOINT}, that provides either a local or
+ * server-side Relative-to {@link FSDescriptor}, depending on the context of the calling thread.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noimplement non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public interface FSConnectionProvider {
+public class RelativeToMountpointFSDescriptorProvider implements FSDescriptorProvider {
 
-    /**
-     * Create a new {@link FSConnection} with given URI and timeout in milliseconds.
-     *
-     * @param type
-     * @return a file system connection
-     * @throws IOException
-     */
-    public FSConnection getConnection(Type type);
+    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-mountpoint";
+
+    @Override
+    public FSType getFSType() {
+        return FSType.RELATIVE_TO_MOUNTPOINT;
+    }
+
+    @Override
+    public FSDescriptor getFSDescriptor() {
+        FSType fsType = LocalRelativeToMountpointFSDescriptorProvider.FS_TYPE;
+
+        if (RelativeToUtil.isServerContext()) {
+            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
+                .orElseThrow(
+                    () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
+        }
+
+        return FSDescriptorRegistry.getFSDescriptor(fsType) //
+            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
+    }
 }

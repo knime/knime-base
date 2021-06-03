@@ -49,22 +49,19 @@
 package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.base.BaseFileStore;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
+import org.knime.filehandling.core.connections.meta.FSType;
 
 /**
  * Abstract relative to file system.
@@ -75,29 +72,41 @@ import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
  */
 public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeToPath> {
 
-    static final String MOUNTPOINT_REL_SCHEME = "knime-relative-mountpoint";
-
-    static final String WORKFLOW_REL_SCHEME = "knime-relative-workflow";
-
-    static final String WORKFLOW_DATA_REL_SCHEME = "knime-relative-workflow-data";
-
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to workflow file system.
+     */
     public static final FSLocationSpec CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, "knime.workflow");
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW.getSettingsValue());
 
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to workflow data area file system.
+     */
     public static final FSLocationSpec CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, "knime.workflow.data");
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue());
 
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to mountpoint file system.
+     */
     public static final FSLocationSpec CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, "knime.mountpoint");
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.MOUNTPOINT.getSettingsValue());
 
+    /**
+     * {@link FSLocationSpec} for the connected relative-to workflow file system.
+     */
     public static final FSLocationSpec CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, WORKFLOW_REL_SCHEME);
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW.getTypeId());
 
+    /**
+     * {@link FSLocationSpec} for the connected relative-to mountpoint file system.
+     */
     public static final FSLocationSpec CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, MOUNTPOINT_REL_SCHEME);
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_MOUNTPOINT.getTypeId());
 
+    /**
+     * {@link FSLocationSpec} for the connected relative-to workflow data area file system.
+     */
     public static final FSLocationSpec CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, WORKFLOW_DATA_REL_SCHEME);
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW_DATA_AREA.getTypeId());
 
     /**
      * Separator used between names in paths.
@@ -106,35 +115,27 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
 
     private static final long CACHE_TTL = 0; // = disabled
 
-    private final Type m_type;
+    private final RelativeTo m_type;
 
     /**
      * Default constructor.
      *
      * @param fileSystemProvider Creator of this FS, holding a reference.
-     * @param uri URI without a path
-     * @param type {@link Type#MOUNTPOINT_RELATIVE} or {@link Type#WORKFLOW_RELATIVE} connection type
+     * @param type The type of {@link RelativeTo} file system.
      * @param workingDir
      * @param fsLocationSpec
      */
     protected BaseRelativeToFileSystem(final BaseRelativeToFileSystemProvider<? extends BaseRelativeToFileSystem> fileSystemProvider,
-        final URI uri,
-        final Type type,
+        final RelativeTo type,
         final String workingDir,
         final FSLocationSpec fsLocationSpec) {
 
         super(fileSystemProvider, //
-            uri, //
             CACHE_TTL, //
             workingDir,
-            fsLocationSpec,
-            createFileStores(type));
+            fsLocationSpec);
 
         m_type = type;
-    }
-
-    private static List<FileStore> createFileStores(final Type type) {
-        return Collections.singletonList(new BaseFileStore(type.toString(), "default_file_store"));
     }
 
     @Override
@@ -275,32 +276,30 @@ public abstract class BaseRelativeToFileSystem extends BaseFileSystem<RelativeTo
 
     /**
      *
-     * @return the {@link Type} of this file system.
+     * @return the {@link RelativeTo} type of this file system.
      */
-    public Type getType() {
+    public RelativeTo getType() {
         return m_type;
     }
 
     /**
-     * @return {@code true} if this is a workflow relative and {@code false} if this is a mount point relative file
-     *         system
+     * @return {@code true} if this is a workflow relative and {@code false} otherwise.
      */
     public boolean isWorkflowRelativeFileSystem() {
-        return m_type == Type.WORKFLOW_RELATIVE;
+        return m_type == RelativeTo.WORKFLOW;
     }
 
     /**
-     * @return {@code true} if this is a workflow relative and {@code false} if this is a mount point relative file
-     *         system
+     * @return {@code true} if this is a mountpoint relative and {@code false} otherwise.
      */
     public boolean isMountpointRelativeFileSystem() {
-        return m_type == Type.MOUNTPOINT_RELATIVE;
+        return m_type == RelativeTo.MOUNTPOINT;
     }
 
     /**
-     * @return {@link BaseFileStore} file system type
+     * @return {@code true} if this is a workflow data area file system, and {@code false} otherwise.
      */
-    protected String getFileStoreType() {
-        return isWorkflowRelativeFileSystem() ? WORKFLOW_REL_SCHEME : MOUNTPOINT_REL_SCHEME;
+    public boolean isWorkflowDataFileSystem() {
+        return m_type == RelativeTo.WORKFLOW_DATA;
     }
 }

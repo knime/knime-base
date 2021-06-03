@@ -54,10 +54,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.WorkflowAware;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
@@ -73,7 +71,7 @@ final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemPr
     public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
         throws IOException {
 
-        if (getFileSystemInternal().getType() == Type.WORKFLOW_DATA_RELATIVE) {
+        if (getFileSystemInternal().isWorkflowDataFileSystem()) {
             throw new UnsupportedOperationException("Cannot deploy workflow to the workflow data area.");
         }
 
@@ -93,8 +91,9 @@ final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemPr
 
     private static String getCurrentMountpoint() {
         final WorkflowContext context = RelativeToUtil.getWorkflowContext();
-        CheckUtils.checkState(context.getMountpointURI().isPresent(), "Cannot determine name of mountpoint to deploy workflow.");
-        return context.getMountpointURI().get().getAuthority();
+        return context.getMountpointURI() //
+                .orElseThrow(() -> new IllegalStateException("Cannot determine name of mountpoint to deploy workflow.")) //
+                .getAuthority();
     }
 
     @Override

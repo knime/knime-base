@@ -51,6 +51,7 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 import java.util.Map;
 
 import org.apache.commons.lang3.Validate;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
@@ -104,4 +105,20 @@ public final class RelativeToUtil {
         return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
     }
 
+    /**
+     * Checks whether the calling thread is running in a KNIME node as part of a workflow running on KNIME Server.
+     *
+     * @return true if the current {@link WorkflowContext} belongs to a workflow running on KNIME Server, false
+     *         otherwise.
+     * @throws IllegalArgumentException If there is no current {@link NodeContext} or {@link WorkflowContext}.
+     */
+    public static boolean isServerContext() {
+        final NodeContext nodeContext = NodeContext.getContext();
+        CheckUtils.checkArgumentNotNull(nodeContext, "Node context required.");
+
+        final WorkflowContext context = nodeContext.getWorkflowManager().getContext();
+        CheckUtils.checkArgumentNotNull(context, "Workflow context required.");
+
+        return isServerContext(context);
+    }
 }

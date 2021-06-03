@@ -50,6 +50,7 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.base.LegacyKNIMEUriExporterHelper;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
@@ -57,17 +58,21 @@ import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExp
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
+public final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
 
     private static final BaseURIExporterMetaInfo META_INFO =
-            new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
+        new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
 
     private static final LegacyKNIMEUrlExporterFactory INSTANCE = new LegacyKNIMEUrlExporterFactory();
 
     private LegacyKNIMEUrlExporterFactory() {
-        super(META_INFO, p -> ((RelativeToPath)p).toKNIMEProtocolURI());
+        super(META_INFO, p -> LegacyKNIMEUriExporterHelper
+            .createRelativeKNIMEProtocolURI(((RelativeToPath)p).getFileSystem().getType(), p));
     }
 
+    /**
+     * @return the singleton instance
+     */
     public static LegacyKNIMEUrlExporterFactory getInstance() {
         return INSTANCE;
     }

@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -58,7 +57,7 @@ import java.nio.file.Paths;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
+import org.knime.filehandling.core.connections.RelativeTo;
 
 /**
  * Local KNIME relative to File System implementation.
@@ -82,14 +81,12 @@ public final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
      * @throws IOException
      */
     @SuppressWarnings("resource")
-    LocalRelativeToFileSystem(final URI uri, //
-        final Path localRoot, //
-        final Type type, //
+    LocalRelativeToFileSystem(final Path localRoot, //
+        final RelativeTo type, //
         final String workingDir, //
         final FSLocationSpec fsLocationSpec) {
 
         super(new LocalRelativeToFileSystemProvider(), //
-            uri, //
             type, //
             workingDir, //
             fsLocationSpec);

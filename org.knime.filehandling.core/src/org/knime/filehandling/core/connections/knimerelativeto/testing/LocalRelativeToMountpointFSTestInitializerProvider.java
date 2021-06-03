@@ -51,7 +51,9 @@ import java.util.Map;
 
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
+import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSConnection;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
@@ -64,13 +66,12 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  */
 public final class LocalRelativeToMountpointFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
-    private static final String FS_NAME = "knime-local-relative-mountpoint";
-
     /**
      * Constructor.
+     * @param fsType The {@link FSType} to use.
      */
-    public LocalRelativeToMountpointFSTestInitializerProvider() {
-        super(FS_NAME, BaseRelativeToFileSystem.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC);
+    public LocalRelativeToMountpointFSTestInitializerProvider(final FSType fsType) {
+        super(fsType, BaseRelativeToFileSystem.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC);
     }
 
     @SuppressWarnings("resource")
@@ -80,9 +81,14 @@ public final class LocalRelativeToMountpointFSTestInitializerProvider extends Lo
 
         final String workingDir = generateRandomizedWorkingDir(BaseRelativeToFileSystem.PATH_SEPARATOR,
             BaseRelativeToFileSystem.PATH_SEPARATOR);
+
+        final LocalRelativeToFSConnectionConfig config = new LocalRelativeToFSConnectionConfig(workingDir);
+
         final LocalRelativeToMountpointFSConnection fsConnection =
-            new LocalRelativeToMountpointFSConnection(workingDir); // NOSONAR must not be closed here
+            new LocalRelativeToMountpointFSConnection(config); // NOSONAR must not be closed here
+
         Files.createDirectories(fsConnection.getFileSystem().getWorkingDirectory());
+
         return new LocalRelativeToFSTestInitializer(fsConnection);
     }
 }

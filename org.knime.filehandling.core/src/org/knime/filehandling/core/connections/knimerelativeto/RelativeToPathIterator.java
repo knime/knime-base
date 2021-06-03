@@ -51,6 +51,7 @@ import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 /**
@@ -101,6 +102,10 @@ final class RelativeToPathIterator implements Iterator<RelativeToPath> {
 
     @Override
     public RelativeToPath next() {
+        if (m_currIdx >= m_paths.length) {
+            throw new NoSuchElementException();
+        }
+
         final RelativeToPath next = m_paths[m_currIdx];
         m_currIdx++;
         return next;

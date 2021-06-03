@@ -59,6 +59,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.knimerelativeto.RelativeToUtil;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.testing.DefaultFSTestInitializerProvider;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
@@ -74,7 +75,7 @@ import org.knime.filehandling.core.testing.FSTestInitializerProvider;
  */
 public abstract class LocalRelativeToFSTestInitializerProvider extends DefaultFSTestInitializerProvider {
 
-    private final String m_fsType;
+    private final FSType m_fsType;
 
     private final FSLocationSpec m_fsLocationSpec;
 
@@ -84,7 +85,7 @@ public abstract class LocalRelativeToFSTestInitializerProvider extends DefaultFS
      * @param fsType The file system type.
      * @param fsLocationSpec The {@link FSLocationSpec} of the file system to be created.
      */
-    protected LocalRelativeToFSTestInitializerProvider(final String fsType, final FSLocationSpec fsLocationSpec) {
+    protected LocalRelativeToFSTestInitializerProvider(final FSType fsType, final FSLocationSpec fsLocationSpec) {
         m_fsType = fsType;
         m_fsLocationSpec = fsLocationSpec;
     }
@@ -119,7 +120,7 @@ public abstract class LocalRelativeToFSTestInitializerProvider extends DefaultFS
         throws IOException;
 
     @Override
-    public final String getFSType() {
+    public final FSType getFSType() {
         return m_fsType;
     }
 

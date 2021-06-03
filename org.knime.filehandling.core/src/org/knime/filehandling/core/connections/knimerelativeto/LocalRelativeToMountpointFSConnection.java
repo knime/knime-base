@@ -48,19 +48,17 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
  * {@link FSConnection} for the Relative-to mountpoint file system. It is possible to create a connected or convenience
@@ -78,24 +76,12 @@ public class LocalRelativeToMountpointFSConnection implements FSConnection {
     private final RelativeToFileSystemBrowser m_browser;
 
     /**
-     * Creates a new {@link FSConnection} with a {@link FSCategory#RELATIVE} (convenience) file system, where the
-     * working directory is the root of the mountpoint of the current workflow.
-     */
-    public LocalRelativeToMountpointFSConnection() {
-        this(false, BaseRelativeToFileSystem.PATH_SEPARATOR);
-    }
-
-    /**
-     * Creates a new {@link FSConnection} with a {@link FSCategory#CONNECTED} file system, where the working directory
-     * is as provided.
+     * Creates a new connection using the given config.
      *
-     * @param workingDir The working directory of the file system to create.
+     * @param config The config to use.
      */
-    public LocalRelativeToMountpointFSConnection(final String workingDir) {
-        this(true, workingDir);
-    }
+    public LocalRelativeToMountpointFSConnection(final LocalRelativeToFSConnectionConfig config) {
 
-    private LocalRelativeToMountpointFSConnection(final boolean isConnected, final String workingDir) {
         final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
         if (RelativeToUtil.isServerContext(workflowContext)) {
             throw new UnsupportedOperationException(
@@ -103,7 +89,9 @@ public class LocalRelativeToMountpointFSConnection implements FSConnection {
         }
 
         final Path localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
-        m_fileSystem = createMountpointRelativeFs(localMountpointRoot, isConnected, workingDir);
+        m_fileSystem = createMountpointRelativeFs(localMountpointRoot, //
+            config.isConnectedFileSystem(), //
+            config.getWorkingDirectory());
 
         final FSPath browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
         m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
@@ -119,10 +107,8 @@ public class LocalRelativeToMountpointFSConnection implements FSConnection {
             fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
         }
 
-        final URI uri = URI.create(Type.MOUNTPOINT_RELATIVE.getSchemeAndHost());
-        return new LocalRelativeToFileSystem(uri, //
-            localMountpointRoot, //
-            Type.MOUNTPOINT_RELATIVE, //
+        return new LocalRelativeToFileSystem(localMountpointRoot, //
+            RelativeTo.MOUNTPOINT, //
             workingDir, //
             fsLocationSpec);
     }

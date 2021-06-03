@@ -57,11 +57,9 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
 import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnectionConfig;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
 
 /**
  * Abstract factory superclass to obtain {@link FSPathProvider} instances. To get a concrete factory you can use
@@ -153,12 +151,10 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
     }
 
     private static FSConnection createRelativeToFSConnection(final FSLocationSpec fsLocationSpec) {
-        if (!fsLocationSpec.getFileSystemSpecifier().isPresent()) {
-            throw new IllegalArgumentException(
-                "Invalid FSLocation for 'Relative to'. It must specify either workflow or mountpoint");
-        }
 
-        final Type type = KNIMEConnection.connectionTypeForHost(fsLocationSpec.getFileSystemSpecifier().get());
-        return FileSystemHelper.getRelativeToConnection(type);
+        final String specifier = fsLocationSpec.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
+            "Invalid FSLocation for 'Relative to'."));
+
+        return DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.fromSettingsValue(specifier));
     }
 }

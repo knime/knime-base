@@ -49,25 +49,24 @@
 package org.knime.filehandling.core.connections.knimerelativeto;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection.Type;
+import org.knime.filehandling.core.util.CheckNodeContextUtil;
 
 /**
  * {@link FSConnection} for the Relative-to workflow data area file system. It is possible to create a connected or
- * convenience file system, also the working directory is configurable.
+ * convenience file system, also the working directory is configurable. The location of the workflow data area in the
+ * underyling local file system is determined using the KNIME {@link WorkflowContext}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
@@ -80,52 +79,34 @@ public final class LocalRelativeToWorkflowDataFSConnection implements FSConnecti
     private final RelativeToFileSystemBrowser m_browser;
 
     /**
-     * Creates a new {@link FSConnection} with a {@link FSCategory#RELATIVE} (convenience) file system, where the
-     * working directory is the root of the workflow data area.
+     * Creates a new connection using the given config.
      *
-     * @throws UncheckedIOException If the folder for the workflow data area could not be created.
+     * @param config The config to use.
+     * @throws IOException If the folder for the workflow data area could not be created.
      */
-    public LocalRelativeToWorkflowDataFSConnection() {
-        this(false, BaseRelativeToFileSystem.PATH_SEPARATOR);
-    }
-
-    /**
-     * Creates a new {@link FSConnection} with a {@link FSCategory#CONNECTED} file system, where the working directory
-     * is as provided.
-     *
-     * @param workingDir The working directory of the file system to create.
-     * @throws UncheckedIOException If the folder for the workflow data area could not be created.
-     */
-    public LocalRelativeToWorkflowDataFSConnection(final String workingDir) {
-        this(true, workingDir);
-    }
-
-    /**
-     * Internal constructor.
-     *
-     * @throws IOException
-     */
-    private LocalRelativeToWorkflowDataFSConnection(final boolean isConnected, final String workingDir) {
+    public LocalRelativeToWorkflowDataFSConnection(final LocalRelativeToFSConnectionConfig config) throws IOException {
+        if (CheckNodeContextUtil.isInComponentProject()) {
+            throw new IllegalStateException(
+                "Nodes in a shared component don't have access to the workflow data area.");
+        }
 
         final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
         final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
 
-        m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, isConnected, workingDir);
+        m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, //
+            config.isConnectedFileSystem(), //
+            config.getWorkingDirectory());
 
         final FSPath browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
         m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
     }
 
     private static LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
-        final boolean isConnected, final String workingDir) {
+        final boolean isConnected, final String workingDir) throws IOException {
 
         final Path workflowDataDir = workflowLocation.resolve("data");
 
-        try {
-            Files.createDirectories(workflowDataDir);
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+        Files.createDirectories(workflowDataDir);
 
         final FSLocationSpec fsLocationSpec;
         if (isConnected) {
@@ -134,10 +115,8 @@ public final class LocalRelativeToWorkflowDataFSConnection implements FSConnecti
             fsLocationSpec = BaseRelativeToFileSystem.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
         }
 
-        final URI uri = URI.create(Type.WORKFLOW_DATA_RELATIVE.getSchemeAndHost());
-        return new LocalRelativeToFileSystem(uri, //
-            workflowDataDir, //
-            Type.WORKFLOW_DATA_RELATIVE, //
+        return new LocalRelativeToFileSystem(workflowDataDir, //
+            RelativeTo.WORKFLOW_DATA, //
             workingDir, //
             fsLocationSpec);
     }

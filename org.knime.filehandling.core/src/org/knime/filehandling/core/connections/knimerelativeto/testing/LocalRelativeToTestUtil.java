@@ -124,10 +124,10 @@ public final class LocalRelativeToTestUtil {
 
     static void clearDirectoryContents(final Path dir) throws IOException {
         try (final Stream<Path> stream = Files.list(dir)) {
-            stream.forEach((p) -> {
+            stream.forEach(p -> {
                 try {
                     FSFiles.deleteRecursively(p);
-                } catch (IOException e) {
+                } catch (IOException e) { // NOSONAR supposed to be ignored
                     // ignore
                 }
             });
