@@ -84,6 +84,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.dialog.SourceIdentifierColumnPanel;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.core.util.SettingsUtils;
@@ -128,6 +129,8 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
     private final LineMultiTableReadConfig m_config;
 
     private final SettingsModelReaderFileChooser m_settingsModelReaderFileChooser;
+
+    private final SourceIdentifierColumnPanel m_pathColumnPanel = new SourceIdentifierColumnPanel("Path");
 
     /**
      * Constructor.
@@ -248,6 +251,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         m_regexChecker.addActionListener(actionListener);
 
         m_encodingPanel.addChangeListener(changeListener);
+        m_pathColumnPanel.addChangeListener(changeListener);
     }
 
     /**
@@ -288,6 +292,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         advPanel.add(createRegexPanel(), gbc.build());
         gbc.incY();
         advPanel.add(createLimitRowsPanel(), gbc.build());
+        advPanel.add(m_pathColumnPanel, gbc.incY().build());
         gbc.setWeightY(1).resetX().widthRemainder().incY().insetBottom(0).fillBoth();
         advPanel.add(createPreview(), gbc.build());
         return advPanel;
@@ -432,19 +437,16 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_sourceFilePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
-        m_config.setFailOnDifferingSpecs(m_failOnDiffSpecs.isSelected());
-        saveTableReadSettings(m_config.getTableReadConfig());
-        saveLineReaderSettings(m_config.getTableReadConfig().getReaderSpecificConfig());
-
-        m_config.saveInDialog(settings);
+        getConfig().saveInDialog(settings);
     }
 
     @Override
     protected LineMultiTableReadConfig getConfig() throws InvalidSettingsException {
         m_config.setFailOnDifferingSpecs(m_failOnDiffSpecs.isSelected());
+        m_config.setPrependItemIdentifierColumn(m_pathColumnPanel.isPrependSourceIdentifierColumn());
+        m_config.setItemIdentifierColumnName(m_pathColumnPanel.getSourceIdentifierColumnName());
         saveTableReadSettings(m_config.getTableReadConfig());
         saveLineReaderSettings(m_config.getTableReadConfig().getReaderSpecificConfig());
-
         return m_config;
     }
 
@@ -486,6 +488,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         final FileReaderSettings fReadSettings = new FileReaderSettings();
         fReadSettings.setCharsetName(lineReaderConfig.getCharSetName());
         m_encodingPanel.loadSettings(fReadSettings);
+        m_pathColumnPanel.load(m_config.prependItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
         return m_config;
 
     }

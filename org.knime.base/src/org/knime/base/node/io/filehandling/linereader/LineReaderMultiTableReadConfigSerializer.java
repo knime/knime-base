@@ -52,6 +52,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.reader.config.ConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
@@ -100,6 +101,10 @@ enum LineReaderMultiTableReadConfigSerializer
 
     private static final String CFG_ENCODING_TAB = "encoding";
 
+    private static final String CFG_PREPEND_PATH_COLUMN = "prepend_path_column" + SettingsModel.CFGKEY_INTERNAL;
+
+    private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
+
     @Override
     public void loadInDialog(final LineMultiTableReadConfig config, final NodeSettingsRO settings,
         final PortObjectSpec[] specs) {
@@ -124,6 +129,12 @@ enum LineReaderMultiTableReadConfigSerializer
 
     private static void loadAdvancedSettingsTabInDialog(final LineMultiTableReadConfig config,
         final NodeSettingsRO settings) {
+
+        // added in 4.4.0
+        config.setPrependItemIdentifierColumn(
+            settings.getBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn()));
+        config.setItemIdentifierColumnName(
+            settings.getString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName()));
 
         final DefaultTableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
         tc.setLimitRows(settings.getBoolean(CFG_LIMIT_DATA_ROWS, false));
@@ -165,6 +176,12 @@ enum LineReaderMultiTableReadConfigSerializer
     private static void loadAdvancedSettingsTabInModel(final LineMultiTableReadConfig config,
         final NodeSettingsRO settings) throws InvalidSettingsException {
 
+        // added in 4.4.0
+        if (settings.containsKey(CFG_PREPEND_PATH_COLUMN)) {
+            config.setPrependItemIdentifierColumn(settings.getBoolean(CFG_PREPEND_PATH_COLUMN));
+            config.setItemIdentifierColumnName(settings.getString(CFG_PATH_COLUMN_NAME));
+        }
+
         final DefaultTableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
 
         tc.setLimitRows(settings.getBoolean(CFG_LIMIT_DATA_ROWS));
@@ -198,6 +215,9 @@ enum LineReaderMultiTableReadConfigSerializer
     }
 
     private static void saveAdvancedSettingsTab(final LineMultiTableReadConfig config, final NodeSettingsWO settings) {
+
+        settings.addBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn());
+        settings.addString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName());
 
         final TableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
         final LineReaderConfig2 lineReaderCfg = config.getReaderSpecificConfig();
@@ -246,6 +266,11 @@ enum LineReaderMultiTableReadConfigSerializer
         settings.getBoolean(CFG_USE_REGEX);
         settings.getString(CFG_EMPTY_LINE_MODE);
         settings.getString(CFG_EMPTY_REPLACEMENT);
+        // added in 4.4.0
+        if (settings.containsKey(CFG_PREPEND_PATH_COLUMN)) {
+            settings.getBoolean(CFG_PREPEND_PATH_COLUMN);
+            settings.getString(CFG_PATH_COLUMN_NAME);
+        }
     }
 
     @Override
