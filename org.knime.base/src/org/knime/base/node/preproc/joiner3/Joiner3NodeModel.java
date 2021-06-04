@@ -59,8 +59,8 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguation;
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.CompositionMode;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguationButtonGroup;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.CompositionModeButtonGroup;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -115,11 +115,12 @@ class Joiner3NodeModel extends NodeModel {
         JoinSpecification joinSpecification = joinSpecificationForSpecs(inSpecs);
         DataTableSpec matchSpec = joinSpecification.specForMatchTable();
 
-        if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguation.DO_NOT_EXECUTE) {
+        if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.DO_NOT_EXECUTE) {
             Optional<String> duplicateColumn = checkForDuplicateColumn(joinSpecification);
             if (duplicateColumn.isPresent()) {
-                throw new InvalidSettingsException(String.format("Do not execute on ambiguous column names selected. "
-                    + "Column %s appears both in left and right table.", duplicateColumn.get()));
+                throw new InvalidSettingsException(
+                    String.format("Do not execute with ambiguous column names is selected: "
+                        + "Column %s appears both in left and right table.", duplicateColumn.get()));
             }
         }
 
@@ -197,23 +198,24 @@ class Joiner3NodeModel extends NodeModel {
 
         UnaryOperator<String> columnNameDisambiguator;
         // replace with custom
-        if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguation.APPEND_SUFFIX) {
+        if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.APPEND_SUFFIX) {
             columnNameDisambiguator = s -> s.concat(m_settings.getDuplicateColumnSuffix());
         } else {
             columnNameDisambiguator = s -> s.concat(" (#1)");
         }
 
         return new JoinSpecification.Builder(leftSettings, rightSettings)
-            .conjunctive(m_settings.getCompositionMode() == CompositionMode.MATCH_ALL)
+            .conjunctive(m_settings.getCompositionMode() == CompositionModeButtonGroup.MATCH_ALL)
             .outputRowOrder(m_settings.getOutputRowOrder())
             .retainMatched(m_settings.isIncludeMatches())
             .mergeJoinColumns(m_settings.isMergeJoinColumns()).columnNameDisambiguator(columnNameDisambiguator)
+            .dataCellComparisonMode(m_settings.getDataCellComparisonMode())
             .rowKeyFactory(rowKeysFactory)
             .build();
     }
 
     /**
-     * Throw an {@link InvalidSettingsException} if column names are ambiguous. Used for the
+     * Throw an {@link InvalidSettingsException} if column names are ambiguous.
      *
      * @param joinSpecification
      */

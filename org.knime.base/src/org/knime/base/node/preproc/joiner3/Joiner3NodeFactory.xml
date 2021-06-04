@@ -19,6 +19,12 @@
                 <br/>
                 <b>Match all:</b> If selected, two rows must agree in all selected join columns to be matched.<br/>
                 <b>Match any:</b> If selected, two rows must agree in at least one selected join column to be matched.
+                <br/>
+                <b>Compare values in join columns:</b> If <i>value and type</i> is selected, two rows match only if
+                their join columns agree both in value and type, e.g., integer values will never match long values. If
+                <i>make integer types compatible</i> is selected, cells are compared by their long value representation,
+                if available. For instance, integer cells will will match long cells with equal values. If
+                <i>string representation</i> is selected, the join columns are converted to string prior to comparison. 
             </option>
             <option name="Include in output">
                 Select which rows are included in the join result. <br/>

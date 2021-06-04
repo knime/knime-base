@@ -62,6 +62,7 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -71,9 +72,10 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeListener;
 
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguation;
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.CompositionMode;
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.RowKeyFactory;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguationButtonGroup;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.CompositionModeButtonGroup;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.DataCellComparisonModeButtonGroup;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.RowKeyFactoryButtonGroup;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
@@ -104,6 +106,7 @@ class Joiner3NodeDialog extends NodeDialogPane {
     // join conditions
     private ColumnPairsSelectionPanel m_columnPairs;
     private final DialogComponentButtonGroup m_compositionMode;
+    private final DialogComponentButtonGroup m_dataCellComparisonMode;
 
     // include in output
     private final DialogComponentBoolean m_includeMatchingRows;
@@ -138,7 +141,10 @@ class Joiner3NodeDialog extends NodeDialogPane {
     Joiner3NodeDialog() {
 
         m_compositionMode = new DialogComponentButtonGroup(m_settings.m_compositionModeModel, "Composition mode",
-            true, Joiner3Settings.CompositionMode.values());
+            true, Joiner3Settings.CompositionModeButtonGroup.values());
+
+        m_dataCellComparisonMode = new DialogComponentButtonGroup(m_settings.m_dataCellComparisonModeModel,
+            "Data cell comparison mode", true, Joiner3Settings.DataCellComparisonModeButtonGroup.values());
 
         // include in output
         m_includeMatchingRows = new DialogComponentBoolean(m_settings.m_includeMatchesModel, "Matching rows");
@@ -169,22 +175,22 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
         // row keys
         m_rowKeyFactory = new DialogComponentButtonGroup(m_settings.m_rowKeyFactoryModel, "Row keys of the output rows",
-            true, Joiner3Settings.RowKeyFactory.values());
+            true, Joiner3Settings.RowKeyFactoryButtonGroup.values());
         m_rowKeySeparator = new DialogComponentString(m_settings.m_rowKeySeparatorModel, "Separator");
         // enable row key separator input field only when concat is selected
         m_settings.m_rowKeyFactoryModel.addChangeListener(l -> m_settings.m_rowKeySeparatorModel
-            .setEnabled(m_settings.getRowKeyFactory() == RowKeyFactory.CONCATENATE));
+            .setEnabled(m_settings.getRowKeyFactory() == RowKeyFactoryButtonGroup.CONCATENATE));
 
         // include column selection and column name disambiguation
         m_columnDisambiguation = new DialogComponentButtonGroup(m_settings.m_columnDisambiguationModel,
-            "Duplicate column handling", true, Joiner3Settings.ColumnNameDisambiguation.values());
+            "Duplicate column handling", true, Joiner3Settings.ColumnNameDisambiguationButtonGroup.values());
         m_columnDisambiguationSuffix = new DialogComponentString(m_settings.m_columnNameSuffixModel, "Suffix");
         m_settings.m_columnDisambiguationModel.addChangeListener(l -> m_settings.m_columnNameSuffixModel
-            .setEnabled(m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguation.APPEND_SUFFIX));
+            .setEnabled(m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.APPEND_SUFFIX));
 
         // performance
         m_outputRowOrder= new DialogComponentButtonGroup(m_settings.m_outputRowOrderModel,
-            "Output row order", true, Joiner3Settings.OutputRowOrder.values());
+            "Output row order", true, Joiner3Settings.OutputRowOrderButtonGroup.values());
 
         m_maxOpenFiles =
                 new DialogComponentNumberEdit(m_settings.m_maxOpenFilesModel, "Maximum number of temporary files");
@@ -272,21 +278,9 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
     @SuppressWarnings("serial")
     private JPanel createJoinColumnsPanel() {
-        JPanel p = new JPanel(new GridBagLayout());
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setBorder(BorderFactory.createTitledBorder("Join columns"));
-
-        GridBagConstraints c = new GridBagConstraints();
-
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.anchor = GridBagConstraints.NORTHWEST;
-        c.insets = new Insets(2, 2, 2, 2);
-
-        c.gridx = 0;
-        c.gridy = 0;
-
-        c.gridwidth = 3;
-        c.weightx = 1;
-        c.weighty = 1;
 
         m_columnPairs = new ColumnPairsSelectionPanel(true) {
             @Override
@@ -300,15 +294,12 @@ class Joiner3NodeDialog extends NodeDialogPane {
             }
         };
 
-
-        // two elements in one row: button for concat and field for separator
+        // two elements in one row
         JPanel compositionMode = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         compositionMode.add(new JLabel("  Match "));
-        compositionMode.add(m_compositionMode.getButton(CompositionMode.MATCH_ALL.name()));
-        compositionMode.add(m_compositionMode.getButton(CompositionMode.MATCH_ANY.name()));
+        compositionMode.add(m_compositionMode.getButton(CompositionModeButtonGroup.MATCH_ALL.name()));
+        compositionMode.add(m_compositionMode.getButton(CompositionModeButtonGroup.MATCH_ANY.name()));
         p.add(compositionMode);
-
-        c.gridy++;
 
         JScrollPane scrollPane = new JScrollPane(m_columnPairs);
         m_columnPairs.setBackground(Color.white);
@@ -319,7 +310,16 @@ class Joiner3NodeDialog extends NodeDialogPane {
         scrollPane.setPreferredSize(new Dimension(300, 200));
         scrollPane.setMinimumSize(new Dimension(300, 100));
 
-        p.add(scrollPane, c);
+        p.add(scrollPane);
+
+        // three elements in one row
+        JPanel dataCellComparisonMode = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        dataCellComparisonMode.add(new JLabel("  Compare values in join columns by "));
+        dataCellComparisonMode.add(m_dataCellComparisonMode.getButton(DataCellComparisonModeButtonGroup.STRICT.name()));
+        dataCellComparisonMode.add(m_dataCellComparisonMode.getButton(DataCellComparisonModeButtonGroup.STRING.name()));
+        dataCellComparisonMode
+            .add(m_dataCellComparisonMode.getButton(DataCellComparisonModeButtonGroup.NUMERIC.name()));
+        p.add(dataCellComparisonMode);
 
         return p;
 
@@ -342,12 +342,12 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
         // two elements in one row: button for concat and field for separator
         JPanel concatRowKeys = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        concatRowKeys.add(m_rowKeyFactory.getButton(RowKeyFactory.CONCATENATE.name()));
+        concatRowKeys.add(m_rowKeyFactory.getButton(RowKeyFactoryButtonGroup.CONCATENATE.name()));
         Component rowKeySeparatorComponent = m_rowKeySeparator.getComponentPanel().getComponent(1);
         concatRowKeys.add(rowKeySeparatorComponent);
         p.add(concatRowKeys);
 
-        p.add(m_rowKeyFactory.getButton(RowKeyFactory.SEQUENTIAL.name()));
+        p.add(m_rowKeyFactory.getButton(RowKeyFactoryButtonGroup.SEQUENTIAL.name()));
 
         return p;
     }
@@ -376,11 +376,11 @@ class Joiner3NodeDialog extends NodeDialogPane {
         JPanel p = new JPanel(new GridLayout(3, 1));
         p.setBorder(BorderFactory.createTitledBorder("Duplicate column names"));
 
-        p.add(m_columnDisambiguation.getButton(ColumnNameDisambiguation.DO_NOT_EXECUTE.name()));
+        p.add(m_columnDisambiguation.getButton(ColumnNameDisambiguationButtonGroup.DO_NOT_EXECUTE.name()));
 
         // two elements in one row: button and suffix input field
         JPanel suffix = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        suffix.add(m_columnDisambiguation.getButton(ColumnNameDisambiguation.APPEND_SUFFIX.name()));
+        suffix.add(m_columnDisambiguation.getButton(ColumnNameDisambiguationButtonGroup.APPEND_SUFFIX.name()));
         Component suffixComponent = m_columnDisambiguationSuffix.getComponentPanel().getComponent(1);
         suffix.add(suffixComponent);
         p.add(suffix);
@@ -433,7 +433,7 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
         try {
             m_settings.loadSettingsInDialog(settings, specs);
-        } catch (InvalidSettingsException e) {
+        } catch (InvalidSettingsException e) { // NOSONAR
             throw new NotConfigurableException(e.getMessage());
         }
 
@@ -475,7 +475,6 @@ class Joiner3NodeDialog extends NodeDialogPane {
         m_settings.setRightJoinColumns(columnPairsToJoinClauses(m_columnPairs.getRightSelectedItems()));
 
         // output
-//        m_settings.validateSettings();
         m_settings.saveSettingsTo(settings);
     }
 

@@ -57,6 +57,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.join.JoinSpecification;
+import org.knime.core.data.join.JoinSpecification.DataCellComparisonMode;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -77,6 +78,7 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
  * @since 4.2
  */
 class Joiner3Settings {
+
 
     /**
      * This enum holds all ways of joining the two tables.
@@ -114,14 +116,14 @@ class Joiner3Settings {
     /**
      * Conjunctive or disjunctive join mode.
      */
-    enum CompositionMode implements ButtonGroupEnumInterface {
+    enum CompositionModeButtonGroup implements ButtonGroupEnumInterface {
         MATCH_ALL("all of the following", "Join rows when all join attributes match (logical and)."),
         MATCH_ANY("any of the following", "Join rows when at least one join attribute matches (logical or).");
 
-        private String m_label;
-        private String m_tooltip;
+        private final String m_label;
+        private final String m_tooltip;
 
-        CompositionMode(final String label, final String tooltip) {
+        CompositionModeButtonGroup(final String label, final String tooltip) {
             m_label = label;
             m_tooltip = tooltip;
         }
@@ -132,7 +134,38 @@ class Joiner3Settings {
         @Override public boolean isDefault() { return MATCH_ALL == this; }
     }
 
-    enum RowKeyFactory implements ButtonGroupEnumInterface {
+    /**
+     * Options for comparing data cells in join columns.
+     * Introduced in KNIME 4.4
+     */
+    enum DataCellComparisonModeButtonGroup implements ButtonGroupEnumInterface {
+            STRICT(DataCellComparisonMode.STRICT, "value and type",
+                "Two cells need to have the exact same value and type. "
+                    + "For instance, a long and an integer cell will never match."),
+            STRING(DataCellComparisonMode.AS_STRING, "string representation",
+                "Convert values in join columns to string before comparing them."),
+            NUMERIC(DataCellComparisonMode.NUMERIC_AS_LONG, "making integer types compatible",
+                "Ignore type differences for numerical types. "
+                    + "For instance, an integer cell with value 1 will match a long cell with value 1.");
+
+        private final String m_label;
+        private final String m_tooltip;
+        private final DataCellComparisonMode m_mode;
+
+        DataCellComparisonModeButtonGroup(final DataCellComparisonMode mode, final String label, final String tooltip) {
+            m_mode = mode;
+            m_label = label;
+            m_tooltip = tooltip;
+        }
+
+        @Override public String getText() { return m_label; }
+        @Override public String getActionCommand() { return name(); }
+        @Override public String getToolTip() { return m_tooltip; }
+        @Override public boolean isDefault() { return STRICT == this; }
+        public DataCellComparisonMode getMode() { return m_mode; }
+    }
+
+    enum RowKeyFactoryButtonGroup implements ButtonGroupEnumInterface {
             /** Output rows may be provided in any order. */
             CONCATENATE("Concatenate original row keys with separator",
                 "For instance, when selecting separator \"_\", "
@@ -148,7 +181,7 @@ class Joiner3Settings {
 
         private final Function<String, BiFunction<DataRow, DataRow, RowKey>> m_factoryCreator;
 
-        RowKeyFactory(final String label, final String tooltip,
+        RowKeyFactoryButtonGroup(final String label, final String tooltip,
             final Function<String, BiFunction<DataRow, DataRow, RowKey>> factoryCreator) {
             m_label = label;
             m_tooltip = tooltip;
@@ -168,7 +201,7 @@ class Joiner3Settings {
     /**
      * Duplicate column names handling options.
      */
-    enum ColumnNameDisambiguation implements ButtonGroupEnumInterface {
+    enum ColumnNameDisambiguationButtonGroup implements ButtonGroupEnumInterface {
             DO_NOT_EXECUTE("Do not execute", "Prevents the node from being executed if column names clash."),
 //            APPEND_SUFFIX_AUTOMATIC("Append default suffix", "Appends the suffix \" (#1)\"."),
             APPEND_SUFFIX("Append custom suffix", "Appends the given suffix.");
@@ -177,7 +210,7 @@ class Joiner3Settings {
 
         private String m_tooltip;
 
-        ColumnNameDisambiguation(final String label, final String tooltip) {
+        ColumnNameDisambiguationButtonGroup(final String label, final String tooltip) {
             m_label = label;
             m_tooltip = tooltip;
         }
@@ -188,7 +221,7 @@ class Joiner3Settings {
         @Override public boolean isDefault() { return APPEND_SUFFIX == this; }
     }
 
-    enum OutputRowOrder implements ButtonGroupEnumInterface {
+    enum OutputRowOrderButtonGroup implements ButtonGroupEnumInterface {
             /** Output rows may be provided in any order. */
             ARBITRARY("Arbitrary output order (may vary randomly)", "The output can vary depending on the currently "
                     + "available amount of main memory. This means that identical input can produce different output"
@@ -211,7 +244,7 @@ class Joiner3Settings {
 
         private final org.knime.core.data.join.JoinSpecification.OutputRowOrder m_outputRowOrder;
 
-        OutputRowOrder(final String label, final String tooltip,
+        OutputRowOrderButtonGroup(final String label, final String tooltip,
             final org.knime.core.data.join.JoinSpecification.OutputRowOrder outputRowOrder) {
             m_label = label;
             m_tooltip = tooltip;
@@ -236,7 +269,10 @@ class Joiner3Settings {
         new SettingsModelStringArray("rightTableJoinPredicate", new String[0]);
 
     final SettingsModelString m_compositionModeModel =
-        new SettingsModelString("compositionMode", CompositionMode.MATCH_ALL.name());
+        new SettingsModelString("compositionMode", CompositionModeButtonGroup.MATCH_ALL.name());
+
+    final SettingsModelString m_dataCellComparisonModeModel =
+            new SettingsModelString("dataCellComparisonMode", DataCellComparisonModeButtonGroup.STRICT.name());
 
     // include in output: matches, left unmatched, right unmatched
     final SettingsModelBoolean m_includeMatchesModel = new SettingsModelBoolean("includeMatchesInOutput", true);
@@ -257,19 +293,19 @@ class Joiner3Settings {
 
     // row keys
     final SettingsModelString m_rowKeyFactoryModel =
-        new SettingsModelString("rowKeyFactory", RowKeyFactory.CONCATENATE.name());
+        new SettingsModelString("rowKeyFactory", RowKeyFactoryButtonGroup.CONCATENATE.name());
 
     final SettingsModelString m_rowKeySeparatorModel = new SettingsModelString("rowKeySeparator", "_");
 
     // include columns and column name disambiguation
     final SettingsModelString m_columnDisambiguationModel =
-        new SettingsModelString("duplicateHandling", ColumnNameDisambiguation.APPEND_SUFFIX.name());
+        new SettingsModelString("duplicateHandling", ColumnNameDisambiguationButtonGroup.APPEND_SUFFIX.name());
 
     final SettingsModelString m_columnNameSuffixModel = new SettingsModelString("suffix", " (right)");
 
     // performance
     final SettingsModelString m_outputRowOrderModel =
-        new SettingsModelString("outputRowOrder", OutputRowOrder.ARBITRARY.name());
+        new SettingsModelString("outputRowOrder", OutputRowOrderButtonGroup.ARBITRARY.name());
 
     final SettingsModelIntegerBounded m_maxOpenFilesModel =
         new SettingsModelIntegerBounded("maxOpenFiles", 200, 3, Integer.MAX_VALUE);
@@ -291,6 +327,7 @@ class Joiner3Settings {
         m_settings.add(m_rightJoiningColumnsModel);
         m_settings.add(m_compositionModeModel);
         m_settings.add(m_mergeJoinColumnsModel);
+        m_settings.add(m_dataCellComparisonModeModel);
         m_settings.add(m_outputUnmatchedRowsToSeparatePortsModel);
         m_settings.add(m_rowKeyFactoryModel);
         m_settings.add(m_rowKeySeparatorModel);
@@ -309,7 +346,13 @@ class Joiner3Settings {
      */
     public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         for (SettingsModel model : m_settings) {
-            model.loadSettingsFrom(settings);
+            // Backward compatibility: data cell comparison mode was introduced in KNIME 4.4
+            if (model == m_dataCellComparisonModeModel
+                && !settings.containsKey(m_dataCellComparisonModeModel.getKey())) {
+                // use default value for that model
+            } else {
+                model.loadSettingsFrom(settings);
+            }
         }
     }
 
@@ -342,7 +385,7 @@ class Joiner3Settings {
             throw new InvalidSettingsException("Please define at least one joining column pair.");
         }
 
-        if (getColumnNameDisambiguation() == ColumnNameDisambiguation.APPEND_SUFFIX
+        if (getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.APPEND_SUFFIX
             && getDuplicateColumnSuffix().trim().isEmpty()) {
             throw new InvalidSettingsException("No suffix for duplicate columns provided");
         }
@@ -424,12 +467,16 @@ class Joiner3Settings {
     /**
      * @return the compositionMode
      */
-    CompositionMode getCompositionMode() {
-        return CompositionMode.valueOf(m_compositionModeModel.getStringValue());
+    CompositionModeButtonGroup getCompositionMode() {
+        return CompositionModeButtonGroup.valueOf(m_compositionModeModel.getStringValue());
     }
 
     boolean isMergeJoinColumns() {
         return m_mergeJoinColumnsModel.getBooleanValue();
+    }
+
+    DataCellComparisonMode getDataCellComparisonMode() {
+        return DataCellComparisonModeButtonGroup.valueOf(m_dataCellComparisonModeModel.getStringValue()).getMode();
     }
 
     boolean isOutputUnmatchedRowsToSeparateOutputPort() {
@@ -458,8 +505,8 @@ class Joiner3Settings {
      *
      * @return the duplicate handling method
      */
-    ColumnNameDisambiguation getColumnNameDisambiguation() {
-        return ColumnNameDisambiguation.valueOf(m_columnDisambiguationModel.getStringValue());
+    ColumnNameDisambiguationButtonGroup getColumnNameDisambiguation() {
+        return ColumnNameDisambiguationButtonGroup.valueOf(m_columnDisambiguationModel.getStringValue());
     }
 
     /**
@@ -473,7 +520,7 @@ class Joiner3Settings {
     }
 
     JoinSpecification.OutputRowOrder getOutputRowOrder() {
-        return OutputRowOrder.valueOf(m_outputRowOrderModel.getStringValue()).getOutputOrder();
+        return OutputRowOrderButtonGroup.valueOf(m_outputRowOrderModel.getStringValue()).getOutputOrder();
     }
 
     /**
@@ -489,8 +536,8 @@ class Joiner3Settings {
         return m_enableHilitingModel.getBooleanValue();
     }
 
-    RowKeyFactory getRowKeyFactory() {
-        return RowKeyFactory.valueOf(m_rowKeyFactoryModel.getStringValue());
+    RowKeyFactoryButtonGroup getRowKeyFactory() {
+        return RowKeyFactoryButtonGroup.valueOf(m_rowKeyFactoryModel.getStringValue());
     }
 
 }
