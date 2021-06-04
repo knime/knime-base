@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.node.table.reader.read;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.OptionalLong;
 
 import org.knime.core.node.util.CheckUtils;
@@ -62,21 +61,20 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
  * @param <V> the type of values returned by this read
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractReadDecorator<I, V> implements Read<I, V> {
+public abstract class AbstractReadDecorator<V> implements Read<V> {
 
-    private final Read<I, V> m_source;
+    private final Read<V> m_source;
 
     /**
      * Constructor.
      *
      * @param source the {@link Read} to decorate
      */
-    protected AbstractReadDecorator(final Read<I, V> source) {
+    protected AbstractReadDecorator(final Read<V> source) {
         m_source = CheckUtils.checkArgumentNotNull(source, "The source must not be null.");
     }
 
@@ -85,7 +83,7 @@ public abstract class AbstractReadDecorator<I, V> implements Read<I, V> {
      *
      * @return the decorated {@link Read}
      */
-    protected final Read<I, V> getSource() {
+    protected final Read<V> getSource() {
         return m_source;
     }
 
@@ -102,11 +100,6 @@ public abstract class AbstractReadDecorator<I, V> implements Read<I, V> {
     @Override
     public void close() throws IOException {
         m_source.close();
-    }
-
-    @Override
-    public Optional<I> getItem() {
-        return m_source.getItem();
     }
 
 }

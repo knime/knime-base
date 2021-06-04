@@ -54,7 +54,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -115,7 +114,7 @@ public final class ImmutableTableTransformation<T> implements TableTransformatio
 
     private ImmutableTableTransformation(final TableTransformation<T> toWrap) {
         m_transformations = new LinkedHashMap<>();
-        for (ColumnTransformation<T> column : toWrap.stream().collect(Collectors.toList())) {
+        for (ColumnTransformation<T> column : toWrap) {
             m_transformations.put(column.getExternalSpec(), ImmutableColumnTransformation.copy(column));
         }
         m_rawSpec = toWrap.getRawSpec();

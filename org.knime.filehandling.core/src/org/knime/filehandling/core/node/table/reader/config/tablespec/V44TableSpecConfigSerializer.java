@@ -50,6 +50,7 @@ package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
 import java.util.LinkedHashMap;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -62,6 +63,8 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class V44TableSpecConfigSerializer<T> implements TableSpecConfigSerializer<T> {
+
+    private static final String CFG_ITEM_IDENTIFIER_COLUMN = "item_identifier_column";
 
     private static final String CFG_INDIVIDUAL_SPECS = "individual_specs";
 
@@ -92,6 +95,11 @@ final class V44TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
             settings.addNodeSettings(CFG_TABLE_TRANSFORMATION));
         settings.addString(CFG_SOURCE_GROUP_ID, config.getSourceGroupID());
         ConfigIDSerializer.saveID(config.getConfigID(), settings);
+        saveItemIdentifierColumn(config, settings);
+    }
+
+    private static void saveItemIdentifierColumn(final TableSpecConfig<?> config, final NodeSettingsWO settings) {
+        config.getItemIdentifierColumn().ifPresent(i -> i.save(settings.addNodeSettings(CFG_ITEM_IDENTIFIER_COLUMN)));
     }
 
     private void saveIndividualSpecs(final TableSpecConfig<T> config, final NodeSettingsWO settings) {
@@ -114,7 +122,16 @@ final class V44TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
                 loadIndividualSpecs(settings.getNodeSettings(CFG_INDIVIDUAL_SPECS));
             final String sourceGroupID = settings.getString(CFG_SOURCE_GROUP_ID);
             final ConfigID configID = m_configIDSerializer.loadID(settings);
-            return new DefaultTableSpecConfig<>(sourceGroupID, configID, individualSpecs, tableTransformation);
+            final DataColumnSpec itemIdentifierColumn = loadIdentifierColumn(settings);
+            return new DefaultTableSpecConfig<>(sourceGroupID, configID, individualSpecs, tableTransformation, itemIdentifierColumn);
+    }
+
+    private static DataColumnSpec loadIdentifierColumn(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(CFG_ITEM_IDENTIFIER_COLUMN)) {
+            return DataColumnSpec.load(settings.getNodeSettings(CFG_ITEM_IDENTIFIER_COLUMN));
+        } else {
+            return null;
+        }
     }
 
     private LinkedHashMap<String, TypedReaderTableSpec<T>> loadIndividualSpecs(final NodeSettingsRO settings)

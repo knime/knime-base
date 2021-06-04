@@ -50,7 +50,6 @@ package org.knime.base.node.io.filehandling.table.reader;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.OptionalLong;
 
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
@@ -66,9 +65,7 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
-final class KnimeTableRead implements Read<Path, DataValue> {
-
-    private final Path m_path;
+final class KnimeTableRead implements Read<DataValue> {
 
     private final TableRead m_tableRead;
 
@@ -81,19 +78,13 @@ final class KnimeTableRead implements Read<Path, DataValue> {
      * @throws InvalidSettingsException
      */
     KnimeTableRead(final Path path, final TableReadConfig<TableManipulatorConfig> config) throws IOException {
-        m_path = path;
-        final PathBackedBoundedTable table = new PathBackedBoundedTable(m_path);
+        final PathBackedBoundedTable table = new PathBackedBoundedTable(path);
         m_tableRead = new TableRead(table, config);
     }
 
     @Override
     public RandomAccessible<DataValue> next() throws IOException {
         return m_tableRead.next();
-    }
-
-    @Override
-    public Optional<Path> getItem() {
-        return Optional.of(m_path);
     }
 
     @Override

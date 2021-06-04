@@ -64,6 +64,7 @@ import org.knime.core.data.container.ContainerTable;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -88,13 +89,13 @@ final class KnimeTableReader implements TableReader<TableManipulatorConfig, Data
 
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     @Override
-    public Read<Path, DataValue> read(final Path path, final TableReadConfig<TableManipulatorConfig> config)
+    public Read<DataValue> read(final FSPath path, final TableReadConfig<TableManipulatorConfig> config)
         throws IOException {
         return decorateForReading(new KnimeTableRead(path, config), config);
     }
 
     @Override
-    public TypedReaderTableSpec<DataType> readSpec(final Path path,
+    public TypedReaderTableSpec<DataType> readSpec(final FSPath path,
         final TableReadConfig<TableManipulatorConfig> config, final ExecutionMonitor exec) throws IOException {
 
         final List<TypedReaderColumnSpec<DataType>> columnSpecs = new ArrayList<>();
@@ -155,9 +156,9 @@ final class KnimeTableReader implements TableReader<TableManipulatorConfig, Data
     * @throws IOException if a stream can not be created from the provided file.
     */
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    private static Read<Path, DataValue> decorateForReading(final KnimeTableRead read,
+    private static Read<DataValue> decorateForReading(final KnimeTableRead read,
         final TableReadConfig<TableManipulatorConfig> config) {
-        Read<Path, DataValue> filtered = read;
+        Read<DataValue> filtered = read;
         final boolean skipRows = config.skipRows();
         if (skipRows) {
             final long numRowsToSkip = config.getNumRowsToSkip();

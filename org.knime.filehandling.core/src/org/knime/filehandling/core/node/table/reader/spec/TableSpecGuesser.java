@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
@@ -99,13 +100,14 @@ public final class TableSpecGuesser<I, T, V> {
      * @param read providing the rows to guess the spec from
      * @param config providing the user settings
      * @param exec the execution monitor
+     * @param item that the provided read reads from
      * @return the guessed spec
      * @throws IOException if I/O problems occur
      */
-    public TypedReaderTableSpec<T> guessSpec(final Read<I, V> read, final TableReadConfig<?> config,
-        final ExecutionMonitor exec) throws IOException {
-        try (final ExtractColumnHeaderRead<I, V> source = wrap(read, config)) {
-            return guessSpec(source, config, exec);
+    public TypedReaderTableSpec<T> guessSpec(final Read<V> read, final TableReadConfig<?> config,
+        final ExecutionMonitor exec, final I item) throws IOException {
+        try (final ExtractColumnHeaderRead<V> source = wrap(read, config)) {
+            return guessSpec(source, config, exec, item);
         }
     }
 
@@ -117,13 +119,14 @@ public final class TableSpecGuesser<I, T, V> {
      * @param read providing the rows to guess the spec from
      * @param config providing the user settings
      * @param exec the execution monitor
+     * @param item that the provided read reads from
      * @return the guessed spec
      * @throws IOException if I/O problems occur
      */
-    public TypedReaderTableSpec<T> guessSpec(final ExtractColumnHeaderRead<I, V> read,
-        final TableReadConfig<?> config, final ExecutionMonitor exec) throws IOException {
-        try (Read<I, V> filtered = filterColIdx(read, config)) {
-            final TypeGuesser<T, V> typeGuesser = guessTypes(filtered, config.allowShortRows(), exec);
+    public TypedReaderTableSpec<T> guessSpec(final ExtractColumnHeaderRead<V> read,
+        final TableReadConfig<?> config, final ExecutionMonitor exec, final I item) throws IOException {
+        try (Read<V> filtered = filterColIdx(read, config)) {
+            final TypeGuesser<T, V> typeGuesser = guessTypes(filtered, config.allowShortRows(), exec, item);
             final String[] headerArray = read.getColumnHeaders()//
                 .map(val -> extractColumnHeaders(val, config))//
                 .orElse(null);
@@ -135,12 +138,12 @@ public final class TableSpecGuesser<I, T, V> {
     }
 
     @SuppressWarnings("resource")
-    private ExtractColumnHeaderRead<I, V> wrap(final Read<I, V> read, final TableReadConfig<?> config) {
-        final Read<I, V> filtered = ReadUtils.decorateForSpecGuessing(read, config);
+    private ExtractColumnHeaderRead<V> wrap(final Read<V> read, final TableReadConfig<?> config) {
+        final Read<V> filtered = ReadUtils.decorateForSpecGuessing(read, config);
         return new DefaultExtractColumnHeaderRead<>(filtered, config);
     }
 
-    private Read<I, V> filterColIdx(final ExtractColumnHeaderRead<I, V> read,
+    private Read<V> filterColIdx(final ExtractColumnHeaderRead<V> read,
         final TableReadConfig<?> config) {
         if (config.useRowIDIdx()) {
             return new ColumnFilterRead<>(read, config.getRowIDIdx());
@@ -197,8 +200,8 @@ public final class TableSpecGuesser<I, T, V> {
         }
     }
 
-    private TypeGuesser<T, V> guessTypes(final Read<I, V> source, final boolean allowShortRows,
-        final ExecutionMonitor exec) throws IOException {
+    private TypeGuesser<T, V> guessTypes(final Read<V> source, final boolean allowShortRows,
+        final ExecutionMonitor exec, final I item) throws IOException {
         final TypeGuesser<T, V> typeGuesser = new TypeGuesser<>(m_typeHierarchy, !allowShortRows);
         final PreviewExecutionMonitor<I> previewExec;
         final OptionalLong maxProgress = source.getMaxProgress();
@@ -208,7 +211,7 @@ public final class TableSpecGuesser<I, T, V> {
         } else {
             maxProgressAsLong = -1L;
         }
-        previewExec = getPreviewExecutionMonitor(source, exec, maxProgress);
+        previewExec = getPreviewExecutionMonitor(item, exec, maxProgress);
         RandomAccessible<V> row;
         long rowCount = 0;
         try {
@@ -246,13 +249,13 @@ public final class TableSpecGuesser<I, T, V> {
     }
 
     @SuppressWarnings("unchecked")
-    private PreviewExecutionMonitor<I> getPreviewExecutionMonitor(final Read<I, V> source,
+    private PreviewExecutionMonitor<I> getPreviewExecutionMonitor(final I source,
         final ExecutionMonitor exec, final OptionalLong estimatedSizeInBytes) {
         final PreviewExecutionMonitor<I> previewExec;
         if (exec instanceof PreviewExecutionMonitor) {
             previewExec = (PreviewExecutionMonitor<I>)exec;
             previewExec.setSizeAssessable(estimatedSizeInBytes.isPresent());
-            previewExec.setCurrentItem(source.getItem());
+            previewExec.setCurrentItem(Optional.of(source));
             previewExec.incrementCurrentlyReadingItemIdx();
         } else {
             previewExec = null;

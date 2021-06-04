@@ -53,7 +53,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Path;
 import java.util.OptionalLong;
 
 import org.junit.Before;
@@ -90,7 +89,7 @@ public class DefaultIndividualTableReaderTest {
     private RowKeyGenerator<String> m_rowKeyGenerator = null;
 
     @Mock
-    private Read<Path, String> m_read = null;
+    private Read<String> m_read = null;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
@@ -107,7 +106,7 @@ public class DefaultIndividualTableReaderTest {
     @Mock
     private ExecutionMonitor m_monitor = null;
 
-    private DefaultIndividualTableReader<Path, String> m_testInstance = null;
+    private DefaultIndividualTableReader<String> m_testInstance = null;
 
     /**
      * Initializes the test instance.
@@ -117,7 +116,7 @@ public class DefaultIndividualTableReaderTest {
     @SuppressWarnings("unchecked")
     @Before
     public void init() throws Exception {
-        m_testInstance = new DefaultIndividualTableReader<>(m_typeMapper, m_idxMapper, m_rowKeyGenerator);
+        m_testInstance = new DefaultIndividualTableReader<>(m_typeMapper, m_idxMapper, m_rowKeyGenerator, null);
         RowKey firstKey = RowKey.createRowKey(0L);
         RowKey secondKey = RowKey.createRowKey(1L);
         when(m_rowKeyGenerator.createKey(any())).thenReturn(firstKey, secondKey);

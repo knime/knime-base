@@ -50,8 +50,11 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.util.OptionalLong;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.JoinedRow;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
@@ -66,19 +69,20 @@ import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
  * @param <V> the type representing values
  * @noreference non-public API
  * @noextend non-public API
  * @noinstantiate non-public API
  */
-public final class DefaultIndividualTableReader<I, V> implements IndividualTableReader<I, V> {
+public final class DefaultIndividualTableReader<V> implements IndividualTableReader<V> {
 
     private final RowKeyGenerator<V> m_rowKeyGenerator;
 
     private final RandomAccessibleDecorator<V> m_mapper;
 
     private final TypeMapper<V> m_typeMapper;
+
+    private final DataCell m_identifierCell;
 
     /**
      * Constructor.
@@ -87,12 +91,14 @@ public final class DefaultIndividualTableReader<I, V> implements IndividualTable
      *            {@link RowKey}
      * @param indexMapper represents the mapping from the global columns to the columns in the individual table
      * @param rowKeyGenerator creates {@link RowKey RowKeys} from {@link RandomAccessible RandomAccessibles.}
+     * @param identifierCell cell containing the item identifier or null if no identifier should be appended
      */
     public DefaultIndividualTableReader(final TypeMapper<V> typeMapper, final RandomAccessibleDecorator<V> indexMapper,
-        final RowKeyGenerator<V> rowKeyGenerator) {
+        final RowKeyGenerator<V> rowKeyGenerator, final DataCell identifierCell) {
         m_mapper = indexMapper;
         m_rowKeyGenerator = rowKeyGenerator;
         m_typeMapper = typeMapper;
+        m_identifierCell = identifierCell;
     }
 
     @Override
@@ -100,11 +106,17 @@ public final class DefaultIndividualTableReader<I, V> implements IndividualTable
         m_mapper.set(randomAccessible);
         final RowKey key = m_rowKeyGenerator.createKey(randomAccessible);
         // reads the tokens from m_readAdapter and converts them into a DataRow
-        return m_typeMapper.map(key, m_mapper);
+        final DataRow row = m_typeMapper.map(key, m_mapper);
+        if (m_identifierCell != null) {
+            final DataRow identifierRow = new DefaultRow(row.getKey(), m_identifierCell);
+            return new JoinedRow(identifierRow, row);
+        } else {
+            return row;
+        }
     }
 
     @Override
-    public void fillOutput(final Read<I, V> read, final RowOutput output, final ExecutionMonitor progress)
+    public void fillOutput(final Read<V> read, final RowOutput output, final ExecutionMonitor progress)
         throws Exception {
         final OptionalLong maxProgress = read.getMaxProgress();
         if (maxProgress.isPresent()) {
@@ -114,7 +126,7 @@ public final class DefaultIndividualTableReader<I, V> implements IndividualTable
         }
     }
 
-    private void fillOutputWithoutProgress(final Read<I, V> read, final RowOutput output,
+    private void fillOutputWithoutProgress(final Read<V> read, final RowOutput output,
         final ExecutionMonitor progress) throws Exception {
         RandomAccessible<V> next;
         for (long i = 1; (next = read.next()) != null; i++) {
@@ -125,7 +137,7 @@ public final class DefaultIndividualTableReader<I, V> implements IndividualTable
         }
     }
 
-    private void fillOutputWithProgress(final Read<I, V> read, final RowOutput output,
+    private void fillOutputWithProgress(final Read<V> read, final RowOutput output,
         final ExecutionMonitor progress, final double size) throws Exception {
         final double doubleSize = size;
         RandomAccessible<V> next;

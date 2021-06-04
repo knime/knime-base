@@ -50,6 +50,8 @@ package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
 
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
@@ -78,7 +80,7 @@ public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> 
      * @throws IOException if creating the read fails due to IO problems
      */
     // TODO add separate parameter for doing pushdown e.g. filtering
-    Read<I, V> read(I item, TableReadConfig<C> config) throws IOException;
+    Read<V> read(I item, TableReadConfig<C> config) throws IOException;
 
     /**
      * Reads the spec of the table stored at the input item. Note that the spec should not be filtered i.e. any
@@ -91,5 +93,9 @@ public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> 
      * @throws IOException if reading fails due to IO problems
      */
     TypedReaderTableSpec<T> readSpec(I item, TableReadConfig<C> config, ExecutionMonitor exec) throws IOException;
+
+    DataColumnSpec createIdentifierColumnSpec(I item, String name);
+
+    DataCell createIdentifierCell(final I item);
 
 }

@@ -99,11 +99,11 @@ public class TableSpecGuesserTest {
     private TableSpecGuesser<Object, String, String> m_testInstance;
 
     @SuppressWarnings("unchecked")
-    private static Read<Object, String> mockRead(final String[]... table) throws IOException {
+    private static Read<String> mockRead(final String[]... table) throws IOException {
         List<RandomAccessible<String>> rows =
             Stream.concat(Arrays.stream(table).map(TableSpecGuesserTest::mockRandomAccessible),
                 Stream.of((RandomAccessible<String>)null)).collect(toList());
-        Read<Object, String> read = Mockito.mock(Read.class);
+        Read<String> read = Mockito.mock(Read.class);
         when(read.next()).thenReturn(rows.get(0), rows.stream().skip(1).toArray(RandomAccessible[]::new));
         return read;
     }
@@ -197,8 +197,8 @@ public class TableSpecGuesserTest {
     }
 
     /**
-     * Tests the {@link TableSpecGuesser#guessSpec(Read, TableReadConfig, ExecutionMonitor)} method if no headers are
-     * retrieved and all rows have the same size.
+     * Tests the {@link TableSpecGuesser#guessSpec(Read, TableReadConfig, ExecutionMonitor, Object)} method if no
+     * headers are retrieved and all rows have the same size.
      *
      * @throws IOException never thrown
      */
@@ -461,8 +461,8 @@ public class TableSpecGuesserTest {
     private void testGuessSpec(final String[][] table, final TableReadConfig<?> config,
         final TypedReaderTableSpec<String> expected, final boolean earlyStopping) throws IOException {
         setupTypeHierarchy(expected, earlyStopping);
-        Read<Object, String> read = mockRead(table);
-        TypedReaderTableSpec<String> actual = m_testInstance.guessSpec(read, config, m_monitor);
+        Read<String> read = mockRead(table);
+        TypedReaderTableSpec<String> actual = m_testInstance.guessSpec(read, config, m_monitor, new Object());
         int colHeaderIdx = (int)config.getColumnHeaderIdx();
         assertEquals("Specs differed when column header was in row " + colHeaderIdx, expected, actual);
     }

@@ -64,15 +64,14 @@ import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
  * @param <V> the value type
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class DefaultExtractColumnHeaderRead<I, V> implements ExtractColumnHeaderRead<I, V> {
+public final class DefaultExtractColumnHeaderRead<V> implements ExtractColumnHeaderRead<V> {
 
     /** The underlying read. */
-    private final Read<I, V> m_read;
+    private final Read<V> m_read;
     /** The column index containing the header. */
     private final long m_columnHeaderIdx;
     /** The number of rows to read. */
@@ -90,7 +89,7 @@ public final class DefaultExtractColumnHeaderRead<I, V> implements ExtractColumn
      * @param config TableReadConfig to use
      */
     @SuppressWarnings("resource")
-    public DefaultExtractColumnHeaderRead(final Read<I, V> source, final TableReadConfig<?> config) {
+    public DefaultExtractColumnHeaderRead(final Read<V> source, final TableReadConfig<?> config) {
         // get the column index
         long colHeaderIdx;
         if (config.useColumnHeaderIdx()) {
@@ -109,7 +108,7 @@ public final class DefaultExtractColumnHeaderRead<I, V> implements ExtractColumn
             m_numRowsToSkip = 0;
         }
 
-        Read<I, V> read = source;
+        Read<V> read = source;
         /* do initial skip if required, we basically distinguish two cases
          * 1. The number of rows to skip is larger than the column header idx where we find the column head.
          *    In this case we can only skip all rows before the column header and have to take care of the remaining
@@ -200,11 +199,4 @@ public final class DefaultExtractColumnHeaderRead<I, V> implements ExtractColumn
         m_columnHeader = Optional.ofNullable(m_read.next()).map(RandomAccessible::copy);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Optional<I> getItem() {
-        return m_read.getItem();
-    }
 }

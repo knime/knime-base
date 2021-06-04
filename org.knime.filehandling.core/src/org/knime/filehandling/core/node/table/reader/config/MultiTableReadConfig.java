@@ -134,6 +134,20 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
     boolean skipEmptyColumns();
 
     /**
+     * Indicates whether an item identifier column should be prepended.
+     *
+     * @return {@code true} if an item identifier column should be prepended.
+     */
+    boolean prependItemIdentifierColumn();
+
+    /**
+     * Provides the name of the item identifier column.
+     *
+     * @return the name of the item identifier column
+     */
+    String getItemIdentifierColumnName();
+
+    /**
      * Indicates whether this config has been created with the provided {@link SourceGroup} AND hasn't been altered
      * using flow variables.<br>
      * If this method returns {@code true}, it's save to call {@link #getTableSpecConfig()} and use the table spec

@@ -49,9 +49,16 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -67,11 +74,28 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> extends GenericTableReader<Path, C, T, V> {
+public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> extends GenericTableReader<FSPath, C, T, V> {
 
     @Override
-    Read<Path, V> read(Path path, TableReadConfig<C> config) throws IOException;
+    Read<V> read(FSPath path, TableReadConfig<C> config) throws IOException;
 
     @Override
-    TypedReaderTableSpec<T> readSpec(Path path, TableReadConfig<C> config, ExecutionMonitor exec) throws IOException;
+    TypedReaderTableSpec<T> readSpec(FSPath path, TableReadConfig<C> config, ExecutionMonitor exec) throws IOException;
+
+    @Override
+    default DataColumnSpec createIdentifierColumnSpec(final FSPath item, final String name) {
+        final DataColumnSpecCreator creator = new DataColumnSpecCreator(name, SimpleFSLocationCellFactory.TYPE);
+        final FSLocationSpec spec = item.toFSLocation();
+        creator.addMetaData(
+            new FSLocationValueMetaData(spec.getFileSystemCategory(), spec.getFileSystemSpecifier().orElse(null)),
+            true);
+        return creator.createSpec();
+    }
+
+    @Override
+    default DataCell createIdentifierCell(final FSPath item) {
+        final FSLocation fsLocation = item.toFSLocation();
+        return new SimpleFSLocationCellFactory(fsLocation).createCell(fsLocation);
+    }
+
 }

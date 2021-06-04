@@ -57,14 +57,14 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class SkipEmptyRead<I, V> extends AbstractReadDecorator<I, V> {
+class SkipEmptyRead<V> extends AbstractReadDecorator<V> {
 
     /**
      * Constructor.
      *
      * @param source the {@link Read} to decorate
      */
-    SkipEmptyRead(final Read<I, V> source) {
+    SkipEmptyRead(final Read<V> source) {
         super(source);
     }
 

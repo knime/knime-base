@@ -71,7 +71,6 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -93,6 +92,8 @@ import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTran
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import com.google.common.collect.Iterators;
 
 /**
  * Contains test for the {@link DefaultTableSpecConfig}.
@@ -139,9 +140,9 @@ public class DefaultTableSpecConfigTest {
     /**
      * Tests {@link DefaultTableSpecConfig#createFromTransformationModel(String, String, TableTransformation, Map)}.
      */
+    @SuppressWarnings("unchecked")
     @Test
     public void testCreateFromTransformationModel() {
-        @SuppressWarnings("unchecked")
         final TableTransformation<String> transformationModel = mock(TableTransformation.class);
 
         final UnknownColumnsTransformation unknownColsTrans = mock(UnknownColumnsTransformation.class);
@@ -153,7 +154,7 @@ public class DefaultTableSpecConfigTest {
         when(transformationModel.getColumnFilterMode()).thenReturn(ColumnFilterMode.UNION);
         when(transformationModel.getTransformationForUnknownColumns()).thenReturn(unknownColsTrans);
 
-        when(transformationModel.stream()).thenReturn(Stream.of(m_trans1, m_trans2, m_trans3));
+        when(transformationModel.iterator()).thenReturn(Iterators.forArray(m_trans1, m_trans2, m_trans3));
 
         final ProductionPath p1 = TRFTestingUtils.mockProductionPath();
         final ProductionPath p2 = TRFTestingUtils.mockProductionPath();
@@ -178,7 +179,7 @@ public class DefaultTableSpecConfigTest {
             .withExternalSpec(COL3);
 
         final TableSpecConfig<String> config = DefaultTableSpecConfig.createFromTransformationModel(ROOT_PATH,
-            m_configID, m_individualSpecs, transformationModel);
+            m_configID, m_individualSpecs, transformationModel, null);
 
         final TableSpecConfig<String> expected = builder()//
             .withNames("A", "B", "G")//

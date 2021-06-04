@@ -48,10 +48,9 @@
  */
 package org.knime.filehandling.core.node.table.reader;
 
-import java.nio.file.Path;
-
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTableReaderNodeDialog;
 
@@ -66,7 +65,7 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractTabl
  * @noextend non-public API
  */
 public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificConfig<C>, T, V>
-    extends GenericAbstractTableReaderNodeFactory<Path, C, T, V> {
+    extends GenericAbstractTableReaderNodeFactory<FSPath, C, T, V> {
 
     /**
      * Creates the {@link TableReader} for this reader node.
@@ -85,7 +84,7 @@ public abstract class AbstractTableReaderNodeFactory<C extends ReaderSpecificCon
      * @return the node dialog
      */
     @Override
-    protected abstract AbstractTableReaderNodeDialog<Path, C, T> createNodeDialogPane(
-        final NodeCreationConfiguration creationConfig, final MultiTableReadFactory<Path, C, T> readFactory,
+    protected abstract AbstractTableReaderNodeDialog<FSPath, C, T> createNodeDialogPane(
+        final NodeCreationConfiguration creationConfig, final MultiTableReadFactory<FSPath, C, T> readFactory,
         final ProductionPathProvider<T> defaultProductionPathFn);
 }

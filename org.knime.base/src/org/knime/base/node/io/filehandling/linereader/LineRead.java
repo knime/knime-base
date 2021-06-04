@@ -53,11 +53,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.regex.Pattern;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessibleUtils;
@@ -70,11 +70,9 @@ import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-final class LineRead implements Read<Path, String> {
+final class LineRead implements Read<String> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LineRead.class);
-
-    private final Path m_path;
 
     private final BufferedReader m_reader;
 
@@ -105,12 +103,11 @@ final class LineRead implements Read<Path, String> {
      * @param config the {@link TableReadConfig} of the node
      * @throws IOException
      */
-    LineRead(final Path path, final TableReadConfig<LineReaderConfig2> config) throws IOException {
+    LineRead(final FSPath path, final TableReadConfig<LineReaderConfig2> config) throws IOException {
         m_config = config;
         m_lineReaderConfig = m_config.getReaderSpecificConfig();
 
-        m_path = path;
-        m_size = Files.size(m_path);
+        m_size = Files.size(path);
 
         m_compressionAwareStream = new CompressionAwareCountingInputStream(path);
 
@@ -200,11 +197,6 @@ final class LineRead implements Read<Path, String> {
      */
     private static RandomAccessible<String> createRandomAccessible(final String line) {
         return RandomAccessibleUtils.createFromArray(line);
-    }
-
-    @Override
-    public Optional<Path> getItem() {
-        return Optional.of(m_path);
     }
 
     @Override

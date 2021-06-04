@@ -88,6 +88,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.google.common.collect.Iterators;
+
 /**
  * Unit tests for DefaultStagedMultiTableRead.
  *
@@ -177,7 +179,7 @@ public class DefaultStagedMultiTableReadTest {
         individualSpecs.put(PATH2, SPEC2);
         when(m_sourceGroup.getID()).thenReturn(ROOT);
         m_testInstance = new DefaultStagedMultiTableRead<>(m_tableReader, individualSpecs, m_rowKeyGenContextFactory,
-            RAW_SPEC, m_readAdapterSupplier, m_transformationFactory, m_config);
+            RAW_SPEC, m_readAdapterSupplier, m_transformationFactory, m_config, null);
     }
 
     /**
@@ -233,7 +235,6 @@ public class DefaultStagedMultiTableReadTest {
     @Test
     public void testWithTransformationRenaming() {
         TableTransformation<String> renameSecondColumn = mockTransformationModel();
-        when(renameSecondColumn.getTransformation(COL2)).thenReturn(m_transformation2);
         when(m_transformation2.getName()).thenReturn("M");
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "M", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
@@ -247,9 +248,9 @@ public class DefaultStagedMultiTableReadTest {
     @Test
     public void testWithTransformationReordering() {
         TableTransformation<String> reorderColumns = mockTransformationModel();
-        when(m_transformation2.compareTo(any())).thenReturn(1);
-        when(m_transformation3.compareTo(m_transformation1)).thenReturn(1);
-        when(m_transformation3.compareTo(m_transformation2)).thenReturn(-1);
+        when(m_transformation1.getPosition()).thenReturn(0);
+        when(m_transformation2.getPosition()).thenReturn(2);
+        when(m_transformation3.getPosition()).thenReturn(1);
 
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "C", "B"},
             new DataType[]{StringCell.TYPE, DoubleCell.TYPE, IntCell.TYPE});
@@ -265,20 +266,18 @@ public class DefaultStagedMultiTableReadTest {
     }
 
     private static void stubTransformation(final ColumnTransformation<String> mock, final String name,
-        final ProductionPath prodPath, final boolean keep) {
+        final ProductionPath prodPath, final boolean keep, final TypedReaderColumnSpec<String> spec) {
         when(mock.getName()).thenReturn(name);
         when(mock.getProductionPath()).thenReturn(prodPath);
         when(mock.keep()).thenReturn(keep);
+        when(mock.getExternalSpec()).thenReturn(spec);
     }
 
+    @SuppressWarnings("unchecked")
     private void stubTransformationModel(final TableTransformation<String> transformationModel) {
-        stubTransformation(m_transformation1, "A", m_pp1, true);
-        stubTransformation(m_transformation2, "B", m_pp2, true);
-        stubTransformation(m_transformation3, "C", m_pp3, true);
-
-        when(transformationModel.getTransformation(COL1)).thenReturn(m_transformation1);
-        when(transformationModel.getTransformation(COL2)).thenReturn(m_transformation2);
-        when(transformationModel.getTransformation(COL3)).thenReturn(m_transformation3);
+        stubTransformation(m_transformation1, "A", m_pp1, true, COL1);
+        stubTransformation(m_transformation2, "B", m_pp2, true, COL2);
+        stubTransformation(m_transformation3, "C", m_pp3, true, COL3);
 
         when(m_pp1.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
         when(m_pp2.getConverterFactory().getDestinationType()).thenReturn(IntCell.TYPE);
@@ -289,6 +288,8 @@ public class DefaultStagedMultiTableReadTest {
 
         when(transformationModel.getTransformationForUnknownColumns())
             .thenReturn(mock(UnknownColumnsTransformation.class));
+        when(transformationModel.iterator())
+            .thenReturn(Iterators.forArray(m_transformation1, m_transformation2, m_transformation3));
     }
 
     /**

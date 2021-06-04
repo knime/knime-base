@@ -48,10 +48,9 @@
  */
 package org.knime.base.node.io.filehandling.linereader;
 
-import java.nio.file.Path;
-
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -109,7 +108,7 @@ public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory
     @Override
     protected AbstractPathTableReaderNodeDialog<LineReaderConfig2, Class<?>> createNodeDialogPane(
         final NodeCreationConfiguration creationConfig,
-        final MultiTableReadFactory<Path, LineReaderConfig2, Class<?>> readFactory,
+        final MultiTableReadFactory<FSPath, LineReaderConfig2, Class<?>> readFactory,
         final ProductionPathProvider<Class<?>> defaultProductionPathFn) {
 
         return new LineReaderNodeDialog2(createPathSettings(creationConfig), createConfig(creationConfig), readFactory,

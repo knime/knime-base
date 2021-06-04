@@ -59,10 +59,9 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
  * @param <V> the type representing values
  */
-public interface IndividualTableReader<I, V> {
+public interface IndividualTableReader<V> {
 
     /**
      * Reads all {@link RandomAccessible randomAccessibles} in {@link Read read}, converts them to {@link DataRow
@@ -73,7 +72,7 @@ public interface IndividualTableReader<I, V> {
      * @param progress used for cancellation and progress reporting (provided the size of the read is known)
      * @throws Exception if something goes astray
      */
-    void fillOutput(Read<I, V> read, RowOutput output, ExecutionMonitor progress) throws Exception;
+    void fillOutput(Read<V> read, RowOutput output, ExecutionMonitor progress) throws Exception;
 
     /**
      * Converts the random accessible to a data row.

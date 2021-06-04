@@ -56,6 +56,7 @@ import java.util.function.Consumer;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
@@ -70,7 +71,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
  * @param <T> the type used to identify external types
  */
 public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecificConfig<C>, T>
-    extends AbstractTableReaderNodeDialog<Path, C, T> {
+    extends AbstractTableReaderNodeDialog<FSPath, C, T> {
 
     /**
      * Constructor.
@@ -79,7 +80,7 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
      * @param productionPathProvider for type mapping
      * @param allowsMultipleFiles {@code true} if multiple files are supported
      */
-    protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<Path, C, T> readFactory,
+    protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<FSPath, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
         this(readFactory, productionPathProvider, allowsMultipleFiles, false);
     }
@@ -93,7 +94,7 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
      * @param preventPreviewUpdateOnFirstLoad set to {@code true} if the preview should not be updated on the first call
      *            to {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}
      */
-    protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<Path, C, T> readFactory,
+    protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<FSPath, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles,
         final boolean preventPreviewUpdateOnFirstLoad) {
         super(readFactory, productionPathProvider, allowsMultipleFiles, preventPreviewUpdateOnFirstLoad);
@@ -101,7 +102,7 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
 
     @SuppressWarnings("resource") // the ReadPathAccessor is managed by the adapter
     @Override
-    protected final GenericItemAccessor<Path> createItemAccessor() {
+    protected final GenericItemAccessor<FSPath> createItemAccessor() {
         return new ReadPathAccessorAdapter(createReadPathAccessor());
     }
 
@@ -119,7 +120,7 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    private static class ReadPathAccessorAdapter implements GenericItemAccessor<Path> {
+    private static class ReadPathAccessorAdapter implements GenericItemAccessor<FSPath> {
 
         private final ReadPathAccessor m_pathAccessor;
 
@@ -133,13 +134,13 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
         }
 
         @Override
-        public List<Path> getItems(final Consumer<StatusMessage> statusMessageConsumer)
+        public List<FSPath> getItems(final Consumer<StatusMessage> statusMessageConsumer)
             throws IOException, InvalidSettingsException {
-            return m_pathAccessor.getPaths(statusMessageConsumer);
+            return m_pathAccessor.getFSPaths(statusMessageConsumer);
         }
 
         @Override
-        public Path getRootItem(final Consumer<StatusMessage> statusMessageConsumer)
+        public FSPath getRootItem(final Consumer<StatusMessage> statusMessageConsumer)
             throws IOException, InvalidSettingsException {
             return m_pathAccessor.getRootPath(statusMessageConsumer);
         }

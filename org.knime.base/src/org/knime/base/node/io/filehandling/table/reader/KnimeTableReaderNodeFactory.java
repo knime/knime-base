@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.io.filehandling.table.reader;
 
-import java.nio.file.Path;
 import java.util.Optional;
 
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
@@ -60,6 +59,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -115,7 +115,7 @@ public final class KnimeTableReaderNodeFactory
     @Override
     protected AbstractPathTableReaderNodeDialog<TableManipulatorConfig, DataType> createNodeDialogPane(
         final NodeCreationConfiguration creationConfig,
-        final MultiTableReadFactory<Path, TableManipulatorConfig, DataType> readFactory,
+        final MultiTableReadFactory<FSPath, TableManipulatorConfig, DataType> readFactory,
         final ProductionPathProvider<DataType> defaultProductionPathFn) {
 
         return new KnimeTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),

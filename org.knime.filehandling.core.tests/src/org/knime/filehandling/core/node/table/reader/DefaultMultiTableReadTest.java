@@ -114,13 +114,13 @@ public class DefaultMultiTableReadTest {
     private TableReadConfig<?> m_config;
 
     @Mock
-    private CheckedExceptionFunction<String, Read<String, String>, IOException> m_readFn;
+    private CheckedExceptionFunction<String, Read<String>, IOException> m_readFn;
 
     @Mock
-    private BiFunction<String, FileStoreFactory, IndividualTableReader<String, String>> m_individualTableReaderFactory;
+    private BiFunction<String, FileStoreFactory, IndividualTableReader<String>> m_individualTableReaderFactory;
 
     @Mock
-    private IndividualTableReader<String, String> m_individualTableReader;
+    private IndividualTableReader<String> m_individualTableReader;
 
     @Mock
     private RowOutput m_rowOutput;
@@ -139,15 +139,15 @@ public class DefaultMultiTableReadTest {
     private DefaultMultiTableRead<String, String, String> m_testInstance;
 
     private void stubReadFn() throws IOException {
-        Read<String, String> read1 = mockRead(TEST_TABLE[0], TEST_TABLE[1]);
+        Read<String> read1 = mockRead(TEST_TABLE[0], TEST_TABLE[1]);
         when(m_readFn.apply(PATH1)).thenReturn(read1);
-        Read<String, String> read2 = mockRead(TEST_TABLE[2], TEST_TABLE[3]);
+        Read<String> read2 = mockRead(TEST_TABLE[2], TEST_TABLE[3]);
         when(m_readFn.apply(PATH2)).thenReturn(read2);
     }
 
-    private static Read<String, String> mockRead(final String[]... rows) throws IOException {
+    private static Read<String> mockRead(final String[]... rows) throws IOException {
         @SuppressWarnings("unchecked")
-        final Read<String, String> read = mock(Read.class);
+        final Read<String> read = mock(Read.class);
         RandomAccessible<String> first = mockRandomAccessible();
         @SuppressWarnings("unchecked")
         RandomAccessible<String>[] restList = Arrays.stream(rows)//
@@ -183,8 +183,9 @@ public class DefaultMultiTableReadTest {
     public void init() {
         m_outputSpec = new DataTableSpec(new String[]{"hans", "franz", "gunter"},
             new DataType[]{StringCell.TYPE, StringCell.TYPE, StringCell.TYPE});
-        m_testInstance = new DefaultMultiTableRead<>(m_sourceGroup, m_readFn,
-            () -> m_individualTableReaderFactory, m_config, m_tableSpecConfig, m_outputSpec);
+        when(m_tableSpecConfig.getDataTableSpec()).thenReturn(m_outputSpec);
+        m_testInstance = new DefaultMultiTableRead<>(m_sourceGroup, m_readFn, () -> m_individualTableReaderFactory,
+            m_config, m_tableSpecConfig);
     }
 
     /**
@@ -229,6 +230,7 @@ public class DefaultMultiTableReadTest {
 
     /**
      * Tests the {@link MultiTableRead#createPreviewIterator()} implementation.
+     *
      * @throws Exception
      */
     @Test
@@ -237,9 +239,7 @@ public class DefaultMultiTableReadTest {
         stubIndividualTableReaderFactory();
         when(m_sourceGroup.iterator()).thenReturn(asList(PATH1, PATH2).iterator());
         when(m_individualTableReader.toRow(any())).thenReturn(toRow(0, TEST_TABLE[0]),
-            IntStream.range(1, TEST_TABLE.length)
-            .mapToObj(i -> toRow(i, TEST_TABLE[i]))
-            .toArray(DataRow[]::new));
+            IntStream.range(1, TEST_TABLE.length).mapToObj(i -> toRow(i, TEST_TABLE[i])).toArray(DataRow[]::new));
         try (final PreviewRowIterator iterator = m_testInstance.createPreviewIterator()) {
             for (int i = 0; i < TEST_TABLE.length; i++) {
                 assertTrue(iterator.hasNext());

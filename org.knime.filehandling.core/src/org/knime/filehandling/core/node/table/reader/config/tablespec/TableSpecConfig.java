@@ -49,7 +49,9 @@
 package org.knime.filehandling.core.node.table.reader.config.tablespec;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -134,5 +136,12 @@ public interface TableSpecConfig<T> {
      * @return the associated {@link ReaderTableSpec}
      */
     TypedReaderTableSpec<T> getSpec(String item);//NOSONAR
+
+    /**
+     * Returns the item identifier column if the user chose to prepend it.
+     *
+     * @return the optional item identifier column
+     */
+    Optional<DataColumnSpec> getItemIdentifierColumn();
 
 }

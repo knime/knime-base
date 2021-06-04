@@ -59,12 +59,11 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
  * @param <V> the type of tokens making up a row in the read
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface ExtractColumnHeaderRead<I, V> extends Read<I, V> {
+public interface ExtractColumnHeaderRead<V> extends Read<V> {
 
     /**
      * Returns the extracted column headers and if necessary keeps reading until the headers are read.

@@ -71,7 +71,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class SkipEmptyReadTest {
 
     @Mock
-    private Read<Object, String> m_source;
+    private Read<String> m_source;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible;
@@ -86,7 +86,7 @@ public class SkipEmptyReadTest {
     public void testNext() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
         when(m_randomAccessible.size()).thenReturn(2, 0, 0, 1, 0);
-        SkipEmptyRead<Object, String> read = new SkipEmptyRead<>(m_source);
+        SkipEmptyRead<String> read = new SkipEmptyRead<>(m_source);
         assertEquals(m_randomAccessible, read.next());
         verify(m_source, times(1)).next();
         verify(m_randomAccessible, times(1)).size();

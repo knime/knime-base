@@ -93,7 +93,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
         final CSVMultiTableReadConfig config,
-        final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
+        final MultiTableReadFactory<FSPath, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean isDragNDrop) {
         super(fileChooserModel, config, multiReader, productionPathProvider, true, isDragNDrop);
     }

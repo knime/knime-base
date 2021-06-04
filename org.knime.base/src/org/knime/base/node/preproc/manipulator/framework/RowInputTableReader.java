@@ -54,6 +54,7 @@ import java.util.List;
 
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.table.Table;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -74,7 +75,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 public final class RowInputTableReader implements GenericTableReader<Table, TableManipulatorConfig, DataType, DataValue> {
 
     @Override
-    public Read<Table, DataValue> read(final Table path, final TableReadConfig<TableManipulatorConfig> config)
+    public Read<DataValue> read(final Table path, final TableReadConfig<TableManipulatorConfig> config)
             throws IOException {
         return new TableRead(path, config);
     }
@@ -89,5 +90,17 @@ public final class RowInputTableReader implements GenericTableReader<Table, Tabl
             columnSpecs.add(TypedReaderColumnSpec.createWithName(colSpec.getName(), colSpec.getType(), true));
         }
         return new TypedReaderTableSpec<>(columnSpecs);
+    }
+
+
+    @Override
+    public DataColumnSpec createIdentifierColumnSpec(final Table item, final String name) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    @Override
+    public DataCell createIdentifierCell(final Table item) {
+        throw new UnsupportedOperationException();
     }
 }

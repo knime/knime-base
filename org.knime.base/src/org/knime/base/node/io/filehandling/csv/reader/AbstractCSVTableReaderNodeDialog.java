@@ -59,7 +59,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Optional;
@@ -95,6 +94,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.SharedIcons;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
@@ -211,7 +211,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
      * @param allowsReadingMultipleFiles {@code true} if the reader allows reading multiple files at once
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings, final CSVMultiTableReadConfig config,
-        final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
+        final MultiTableReadFactory<FSPath, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles) {
         this(pathSettings, config, multiReader, productionPathProvider, allowsReadingMultipleFiles, false);
     }
@@ -227,7 +227,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
      * @param isDragNDrop flag which indicates if the dialog was created via to drag and drop
      */
     protected AbstractCSVTableReaderNodeDialog(final PathSettings pathSettings, final CSVMultiTableReadConfig config,
-        final MultiTableReadFactory<Path, CSVTableReaderConfig, Class<?>> multiReader,
+        final MultiTableReadFactory<FSPath, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles,
         final boolean isDragNDrop) {
         super(multiReader, productionPathProvider, allowsReadingMultipleFiles, isDragNDrop);

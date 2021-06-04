@@ -86,9 +86,9 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
 
     private final SourceGroup<I> m_sourceGroup;
 
-    private final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> m_readFn;
+    private final CheckedExceptionFunction<I, ? extends Read<V>, IOException> m_readFn;
 
-    private final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>>> m_individualTableReaderFactorySupplier;
+    private final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<V>>> m_individualTableReaderFactorySupplier;
 
     /**
      * Constructor.
@@ -99,14 +99,12 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
      *            item
      * @param tableReadConfig the {@link TableReadConfig}
      * @param tableSpecConfig corresponding to this instance
-     * @param outputSpec {@link DataTableSpec} of the output table
      */
     public DefaultMultiTableRead(final SourceGroup<I> sourceGroup,
-        final CheckedExceptionFunction<I, ? extends Read<I, V>, IOException> readFn,
-        final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>>> individualTableReaderFactorySupplier,
-        final TableReadConfig<?> tableReadConfig, final TableSpecConfig<T> tableSpecConfig,
-        final DataTableSpec outputSpec) {
-        m_outputSpec = outputSpec;
+        final CheckedExceptionFunction<I, ? extends Read<V>, IOException> readFn,
+        final Supplier<BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<V>>> individualTableReaderFactorySupplier,
+        final TableReadConfig<?> tableReadConfig, final TableSpecConfig<T> tableSpecConfig) {
+        m_outputSpec = tableSpecConfig.getDataTableSpec();
         m_tableSpecConfig = tableSpecConfig;
         m_tableReadConfig = tableReadConfig;
         m_readFn = readFn;
@@ -127,13 +125,13 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
     @Override
     public void fillRowOutput(final RowOutput output, final ExecutionMonitor exec, final FileStoreFactory fsFactory)
         throws Exception {
-        final BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>> individualTableReaderFactory =
+        final BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<V>> individualTableReaderFactory =
             m_individualTableReaderFactorySupplier.get();
         for (I item : m_sourceGroup) {
             exec.checkCanceled();
             final ExecutionMonitor progress = exec.createSubProgress(1.0 / m_sourceGroup.size());
-            final IndividualTableReader<I, V> reader = individualTableReaderFactory.apply(item, fsFactory);
-            try (final Read<I, V> read = m_readFn.apply(item)) {
+            final IndividualTableReader<V> reader = individualTableReaderFactory.apply(item, fsFactory);
+            try (final Read<V> read = m_readFn.apply(item)) {
                 reader.fillOutput(read, output, progress);
             } catch (TypeMapperException e) {
                 processAndThrowTypeMapperException(item, e);
@@ -146,10 +144,10 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
     @SuppressWarnings("resource")
     @Override
     public final PreviewRowIterator createPreviewIterator() {
-        final BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<I, V>> individualTableReaderFactory =
+        final BiFunction<I, FileStoreFactory, ? extends IndividualTableReader<V>> individualTableReaderFactory =
             m_individualTableReaderFactorySupplier.get();
         return new MultiTablePreviewRowIterator<>(m_sourceGroup.iterator(), (p, f) -> {
-            final IndividualTableReader<I, V> reader = individualTableReaderFactory.apply(p, f);
+            final IndividualTableReader<V> reader = individualTableReaderFactory.apply(p, f);
             return new IndividualTablePreviewRowIterator<>(m_readFn.apply(p), reader::toRow);
         });
     }

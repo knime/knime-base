@@ -71,9 +71,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractReadDecoratorTest {
 
-    private static class TestReadDecorator extends AbstractReadDecorator<Object, String> {
+    private static class TestReadDecorator extends AbstractReadDecorator<String> {
 
-        TestReadDecorator(final Read<Object, String> source) {
+        TestReadDecorator(final Read<String> source) {
             super(source);
         }
 
@@ -86,7 +86,7 @@ public class AbstractReadDecoratorTest {
     }
 
     @Mock
-    private Read<Object, String> m_source = null;
+    private Read<String> m_source = null;
 
     private TestReadDecorator m_testInstance = null;
 

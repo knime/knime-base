@@ -71,7 +71,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class IntervalReadTest {
 
     @Mock
-    private Read<Object, String> m_source;
+    private Read<String> m_source;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible;

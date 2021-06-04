@@ -56,9 +56,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
 import org.knime.filehandling.core.node.table.reader.ImmutableTableTransformation;
 import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -87,8 +90,11 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
 
     private final TableTransformation<T> m_tableTransformation;
 
+    private final DataColumnSpec m_itemIdentifierColumnSpec;
+
     <I> DefaultTableSpecConfig(final String sourceGroupID, final ConfigID configID,
-        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final TableTransformation<T> tableTransformation) {
+        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final TableTransformation<T> tableTransformation,
+        final DataColumnSpec itemIdentifierColumnSpec) {
         m_sourceGroupID = sourceGroupID;
         m_configID = configID;
         m_individualSpecs = individualSpecs.entrySet().stream()//
@@ -98,15 +104,17 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
                 , (x, y) -> y//
                 , LinkedHashMap::new));
         m_tableTransformation = ImmutableTableTransformation.copy(tableTransformation);
+        m_itemIdentifierColumnSpec = itemIdentifierColumnSpec;
     }
 
     DefaultTableSpecConfig(final String sourceGroupID, final ConfigID configID, final String[] items,
         final Collection<TypedReaderTableSpec<T>> individualSpecs,
-        final ImmutableTableTransformation<T> tableTransformation) {
+        final ImmutableTableTransformation<T> tableTransformation, final DataColumnSpec itemIdentifierColumnSpec) {
         m_configID = configID;
         m_sourceGroupID = sourceGroupID;
         m_individualSpecs = createIndividualSpecsMap(items, individualSpecs);
         m_tableTransformation = tableTransformation;
+        m_itemIdentifierColumnSpec = itemIdentifierColumnSpec;
     }
 
     private static <T> LinkedHashMap<String, TypedReaderTableSpec<T>> createIndividualSpecsMap(final String[] items,
@@ -128,14 +136,18 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
      * @param individualSpecs a map from the path/file to its individual {@link ReaderTableSpec}
      * @param tableTransformation defines the transformation (type-mapping, filtering, renaming and reordering) of the
      *            output spec
+     * @param itemIdentifierColumnSpec the {@link DataColumnSpec} of the item identifier column or {@code null} if no
+     *            such column is appended
      *
+     * @param <I> the type of item the reader reads from
      * @param <T> the type used to identify external types
      * @return a {@link DefaultTableSpecConfig} for the provided parameters
      */
     public static <I, T> TableSpecConfig<T> createFromTransformationModel(final String sourceGroupID,
         final ConfigID configID, final Map<I, TypedReaderTableSpec<T>> individualSpecs,
-        final TableTransformation<T> tableTransformation) {
-        return new DefaultTableSpecConfig<>(sourceGroupID, configID, individualSpecs, tableTransformation);
+        final TableTransformation<T> tableTransformation, final DataColumnSpec itemIdentifierColumnSpec) {
+        return new DefaultTableSpecConfig<>(sourceGroupID, configID, individualSpecs, tableTransformation,
+            itemIdentifierColumnSpec);
     }
 
     /**
@@ -168,7 +180,14 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
 
     @Override
     public DataTableSpec getDataTableSpec() {
-        return TableTransformationUtils.toDataTableSpec(getTableTransformation());
+        final DataTableSpec rawSpec = TableTransformationUtils.toDataTableSpec(getTableTransformation());
+        if (m_itemIdentifierColumnSpec != null) {
+            DataTableSpecCreator tableSpecCreator = new DataTableSpecCreator();
+            tableSpecCreator.addColumns(m_itemIdentifierColumnSpec);
+            tableSpecCreator.addColumns(rawSpec);
+            return tableSpecCreator.createSpec();
+        }
+        return rawSpec;
     }
 
     @Override
@@ -230,6 +249,11 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     @Override
     public String getSourceGroupID() {
         return m_sourceGroupID;
+    }
+
+    @Override
+    public Optional<DataColumnSpec> getItemIdentifierColumn() {
+        return Optional.ofNullable(m_itemIdentifierColumnSpec);
     }
 
 }

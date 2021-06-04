@@ -88,6 +88,10 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
 
     private boolean m_saveTableSpecConfig = true;
 
+    private boolean m_appendItemIdColumn = false;
+
+    private String m_itemIdColumnName = "Path";
+
     /**
      * @deprecated Only used as fallback if no TableSpecConfig is available
      */
@@ -203,6 +207,34 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
     @Override
     public final void setTableSpecConfig(final TableSpecConfig<T> config) {
         m_tableSpecConfig = config;
+    }
+
+    @Override
+    public boolean prependItemIdentifierColumn() {
+        return m_appendItemIdColumn;
+    }
+
+    /**
+     * Allows to set whether a column with an item identifier should be appended.
+     *
+     * @param appendItemIdColumn {@code true} if a column with an item identifier should be appended
+     */
+    public void setPrependItemIdentifierColumn(final boolean appendItemIdColumn) {
+        m_appendItemIdColumn = appendItemIdColumn;
+    }
+
+    @Override
+    public String getItemIdentifierColumnName() {
+        return m_itemIdColumnName;
+    }
+
+    /**
+     * Allows to set the name of the item identifier column.
+     *
+     * @param itemIdColumnName the name for the item identifier column
+     */
+    public void setItemIdentifierColumnName(final String itemIdColumnName) {
+        m_itemIdColumnName = itemIdColumnName;
     }
 
     /**

@@ -61,7 +61,7 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <V> the type of tokens making up a row in the read
  */
-class ColumnFilterRead<I, V> extends AbstractReadDecorator<I, V> {
+class ColumnFilterRead<V> extends AbstractReadDecorator<V> {
 
     private final ColumnFilterRandomAccessible<V> m_filterDecorator;
 
@@ -72,7 +72,7 @@ class ColumnFilterRead<I, V> extends AbstractReadDecorator<I, V> {
      * @param columnToFilter the index of the column to filter (if the RandomAccessible returned by the underlying Read
      *            is smaller than columnToFilter, then no column is filtered)
      */
-    ColumnFilterRead(final Read<I, V> source, final int columnToFilter) {
+    ColumnFilterRead(final Read<V> source, final int columnToFilter) {
         super(source);
         CheckUtils.checkArgument(columnToFilter >= 0, "The columnToFilter argument must be >= 0.");
         m_filterDecorator = new ColumnFilterRandomAccessible<>(columnToFilter);

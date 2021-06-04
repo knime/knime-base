@@ -53,8 +53,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -63,6 +61,7 @@ import java.util.regex.Pattern;
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
@@ -89,7 +88,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     @Override
-    public Read<Path, String> read(final Path path, final TableReadConfig<CSVTableReaderConfig> config)
+    public Read<String> read(final FSPath path, final TableReadConfig<CSVTableReaderConfig> config)
         throws IOException {
         return decorateForReading(new CsvRead(path, config), config);
     }
@@ -104,22 +103,22 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      * @throws IOException if an I/O problem occurs
      */
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    public static Read<Path, String> read(final InputStream inputStream,
+    public static Read<String> read(final InputStream inputStream,
         final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
         final CsvRead read = new CsvRead(inputStream, config);
         return decorateForReading(read, config);
     }
 
     @Override
-    public TypedReaderTableSpec<Class<?>> readSpec(final Path path, final TableReadConfig<CSVTableReaderConfig> config,
+    public TypedReaderTableSpec<Class<?>> readSpec(final FSPath path, final TableReadConfig<CSVTableReaderConfig> config,
         final ExecutionMonitor exec) throws IOException {
-        final TableSpecGuesser<Path, Class<?>, String> guesser = createGuesser(config);
+        final TableSpecGuesser<FSPath, Class<?>, String> guesser = createGuesser(config);
         try (final CsvRead read = new CsvRead(path, config)) {
-            return guesser.guessSpec(read, config, exec);
+            return guesser.guessSpec(read, config, exec, path);
         }
     }
 
-    private static TableSpecGuesser<Path, Class<?>, String>
+    private static TableSpecGuesser<FSPath, Class<?>, String>
         createGuesser(final TableReadConfig<CSVTableReaderConfig> config) {
         final CSVTableReaderConfig csvConfig = config.getReaderSpecificConfig();
         return new TableSpecGuesser<>(StringReadAdapterFactory.createHierarchy(csvConfig), Function.identity());
@@ -135,9 +134,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      * @throws IOException if a stream can not be created from the provided file.
      */
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    private static Read<Path, String> decorateForReading(final CsvRead read,
+    private static Read<String> decorateForReading(final CsvRead read,
         final TableReadConfig<CSVTableReaderConfig> config) {
-        Read<Path, String> filtered = read;
+        Read<String> filtered = read;
         final boolean hasColumnHeader = config.useColumnHeaderIdx();
         final boolean skipRows = config.skipRows();
         if (skipRows) {
@@ -158,7 +157,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      *
      * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
      */
-    private static final class CsvRead implements Read<Path, String> {
+    private static final class CsvRead implements Read<String> {
 
         private static final Pattern INDEX_EXTRACTION_PATTERN =
             Pattern.compile("Index (\\d+) out of bounds for length \\d+");
@@ -177,9 +176,6 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
         /** the {@link CsvParserSettings} */
         private final CsvParserSettings m_csvParserSettings;
 
-        /** the path of the underlying source */
-        private final Path m_path;
-
         /** The {@link CompressionAwareCountingInputStream} which creates the necessary streams */
         private final CompressionAwareCountingInputStream m_compressionAwareStream;
 
@@ -191,8 +187,8 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          * @throws IOException if a stream can not be created from the provided file.
          */
         @SuppressWarnings("resource") // The input stream is closed by the close method
-        CsvRead(final Path path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            this(new CompressionAwareCountingInputStream(path), Files.size(path), path, config);//NOSONAR
+        CsvRead(final FSPath path, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
+            this(new CompressionAwareCountingInputStream(path), Files.size(path), config);//NOSONAR
         }
 
         /**
@@ -204,13 +200,12 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          */
         @SuppressWarnings("resource") //streams will be closed in the close method
         CsvRead(final InputStream inputStream, final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            this(new CompressionAwareCountingInputStream(inputStream), -1, null, config);
+            this(new CompressionAwareCountingInputStream(inputStream), -1, config);
         }
 
-        private CsvRead(final CompressionAwareCountingInputStream inputStream, final long size, final Path path,
+        private CsvRead(final CompressionAwareCountingInputStream inputStream, final long size,
             final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
             m_size = size;
-            m_path = path;
             m_compressionAwareStream = inputStream;
 
             final CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
@@ -315,10 +310,6 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             }
         }
 
-        @Override
-        public Optional<Path> getItem() {
-            return Optional.ofNullable(m_path);
-        }
     }
 
 }

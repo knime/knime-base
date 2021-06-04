@@ -49,12 +49,12 @@
 package org.knime.filehandling.core.node.table.reader.paths;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.GenericItemAccessor;
@@ -67,7 +67,7 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.GenericItemA
  * @noreference non-public API
  * @noimplement non-public API
  */
-public interface PathSettings extends SourceSettings<Path> {
+public interface PathSettings extends SourceSettings<FSPath> {
 
     /**
      * Returns the stored path, which can be {@code null}.
@@ -90,9 +90,9 @@ public interface PathSettings extends SourceSettings<Path> {
 
     @SuppressWarnings("resource")
     @Override
-    default GenericItemAccessor<Path> createItemAccessor() {
+    default GenericItemAccessor<FSPath> createItemAccessor() {
         final ReadPathAccessor pathAccessor = createReadPathAccessor();
-        return new GenericItemAccessor<Path>() {
+        return new GenericItemAccessor<FSPath>() {
 
             @Override
             public void close() throws IOException {
@@ -100,13 +100,13 @@ public interface PathSettings extends SourceSettings<Path> {
             }
 
             @Override
-            public List<Path> getItems(final Consumer<StatusMessage> statusMessageConsumer)
+            public List<FSPath> getItems(final Consumer<StatusMessage> statusMessageConsumer)
                 throws IOException, InvalidSettingsException {
-                return pathAccessor.getPaths(statusMessageConsumer);
+                return pathAccessor.getFSPaths(statusMessageConsumer);
             }
 
             @Override
-            public Path getRootItem(final Consumer<StatusMessage> statusMessageConsumer)
+            public FSPath getRootItem(final Consumer<StatusMessage> statusMessageConsumer)
                 throws IOException, InvalidSettingsException {
                 return pathAccessor.getRootPath(statusMessageConsumer);
             }

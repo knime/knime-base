@@ -71,7 +71,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ColumnFilterReadTest {
 
     @Mock
-    private Read<Object, String> m_source = null;
+    private Read<String> m_source = null;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
@@ -95,7 +95,7 @@ public class ColumnFilterReadTest {
     @Test
     public void testNext() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible, (RandomAccessible<String>)null);
-        ColumnFilterRead<Object, String> testInstance = new ColumnFilterRead<>(m_source, 3);
+        ColumnFilterRead<String> testInstance = new ColumnFilterRead<>(m_source, 3);
         assertTrue(testInstance.next() instanceof ColumnFilterRandomAccessible);
         assertEquals(null, testInstance.next());
     }
@@ -108,7 +108,7 @@ public class ColumnFilterReadTest {
     @Test
     public void testSize() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        ColumnFilterRead<Object, String> testInstance = new ColumnFilterRead<>(m_source, 1);
+        ColumnFilterRead<String> testInstance = new ColumnFilterRead<>(m_source, 1);
         when(m_randomAccessible.size()).thenReturn(3);
         assertEquals(2, testInstance.next().size());
         when(m_randomAccessible.size()).thenReturn(1);
@@ -125,7 +125,7 @@ public class ColumnFilterReadTest {
     @Test
     public void testGet() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        ColumnFilterRead<Object, String> testInstance = new ColumnFilterRead<>(m_source, 1);
+        ColumnFilterRead<String> testInstance = new ColumnFilterRead<>(m_source, 1);
         RandomAccessible<String> randomAccessible = testInstance.next();
         when(m_randomAccessible.get(0)).thenReturn("foo");
         when(m_randomAccessible.get(2)).thenReturn("bar");

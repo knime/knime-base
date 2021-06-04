@@ -82,7 +82,7 @@ import org.mockito.stubbing.Answer;
 public class DefaultExtractColumnHeaderReadTest {
 
     @Mock
-    private Read<Object, String> m_source;
+    private Read<String> m_source;
 
     @Mock
     private RandomAccessible<String> m_dataRow;
@@ -101,7 +101,7 @@ public class DefaultExtractColumnHeaderReadTest {
     @Test
     public void testNextWithoutColumnHeaders() throws IOException {
         stubSource(TestPair.create(10, m_dataRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(-1));
         for (int i = 0; i < 10; i++) {
             assertEquals(m_dataRow, testInstance.next());
@@ -120,7 +120,7 @@ public class DefaultExtractColumnHeaderReadTest {
     public void testNextWithColumnHeaders() throws IOException {
         stubSource(TestPair.create(3, m_dataRow), TestPair.create(1, m_headerRow), TestPair.create(7, m_dataRow));
         stubHeaderCol("foo", "bar", null);
-        ExtractColumnHeaderRead<Object, String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3));
+        ExtractColumnHeaderRead<String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3));
         for (int i = 0; i < 10; i++) {
             assertEquals(m_dataRow, testInstance.next());
         }
@@ -146,7 +146,7 @@ public class DefaultExtractColumnHeaderReadTest {
     public void testGetColumnHeadersIfTheyWereNotReadYet() throws IOException {
         stubSource(TestPair.create(3, m_dataRow), TestPair.create(1, m_headerRow), TestPair.create(5, m_dataRow));
         stubHeaderCol("foo", "bar");
-        ExtractColumnHeaderRead<Object, String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3));
+        ExtractColumnHeaderRead<String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3));
         testInstance.next();
         verify(m_source, times(1)).next();
         final String[] columnHeaders = getColHeaders(testInstance);
@@ -163,7 +163,7 @@ public class DefaultExtractColumnHeaderReadTest {
     public void testGetColumnHeadersReturnsOptionalEmptyIfTheRowContainingTheColumnHeadersIsNotContained()
         throws IOException {
         stubSource(TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<Object, String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2));
+        ExtractColumnHeaderRead<String> testInstance = new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2));
         assertEquals(m_dataRow, testInstance.next());
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(3)).next();
@@ -178,7 +178,7 @@ public class DefaultExtractColumnHeaderReadTest {
     public void testGetColumnHeadersReturnsOptionalEmptydHeaderColNotWithinRead() throws IOException {
         // test without read
         stubSource(TestPair.create(0, null));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(5, 0, -1));
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(2)).next();
@@ -206,7 +206,7 @@ public class DefaultExtractColumnHeaderReadTest {
         // test without read
         stubSource(TestPair.create(2, m_skipRow)//
             , TestPair.create(4, m_dataRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(-1, 2, -1));
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(0)).next();
@@ -236,7 +236,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubSource(TestPair.create(1, m_dataRow)//
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(1, 0, -1));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -271,7 +271,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_dataRow)//
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3, 2, -1));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -307,7 +307,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(1, m_skipRow)//
             , TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 3, -1));
 
         String[] columnHeaders = getColHeaders(testInstance);
@@ -344,7 +344,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubSource(TestPair.create(1, m_headerRow)//
             , TestPair.create(3, m_skipRow)//
             , TestPair.create(2, m_dataRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(0, 3, -1));
 
         String[] columnHeaders = getColHeaders(testInstance);
@@ -380,7 +380,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubSource(TestPair.create(2, m_skipRow)//
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(3, m_dataRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 2, -1));
 
         String[] columnHeaders = getColHeaders(testInstance);
@@ -414,7 +414,7 @@ public class DefaultExtractColumnHeaderReadTest {
         // test without read
         stubSource(TestPair.create(2, m_dataRow) //
             , TestPair.create(2, m_skipRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(-1, 0, 2));
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(0)).next();
@@ -440,7 +440,7 @@ public class DefaultExtractColumnHeaderReadTest {
     public void testGetColumnHeadersReturnsOptionalEmptydWithLimitedReadEqualToZero() throws IOException {
         // test without read
         stubSource(TestPair.create(3, m_skipRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(-1, 0, 0));
         assertTrue(!testInstance.getColumnHeaders().isPresent());
         verify(m_source, times(0)).next();
@@ -485,7 +485,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubHeaderCol("foo", "bar");
         stubSource(TestPair.create(2, m_skipRow) //
             , TestPair.create(1, m_headerRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 0, 0));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -541,7 +541,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(2, m_skipRow)//
             , TestPair.create(1, m_headerRow) //
             , TestPair.create(3, m_skipRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(4, 0, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -600,7 +600,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_dataRow)//
             , TestPair.create(5, m_skipRow));
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(3, 0, 5));
 
         String[] columnHeaders = getColHeaders(testInstance);
@@ -661,7 +661,7 @@ public class DefaultExtractColumnHeaderReadTest {
         stubSource(TestPair.create(2, m_dataRow) //
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 0, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -720,7 +720,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(2, m_skipRow)//
             , TestPair.create(2, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(2, 4, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -782,7 +782,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_headerRow)//
             , TestPair.create(2, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(4, 4, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -842,7 +842,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(4, m_skipRow)//
             , TestPair.create(2, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(0, 4, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -902,7 +902,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(1, m_dataRow), TestPair.create(1, m_headerRow)//
             , TestPair.create(1, m_dataRow) //
             , TestPair.create(2, m_skipRow));//
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(5, 4, 2));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -963,7 +963,7 @@ public class DefaultExtractColumnHeaderReadTest {
             , TestPair.create(3, m_dataRow) //
             , TestPair.create(2, m_skipRow)//
             , TestPair.create(1, m_headerRow));//
-        ExtractColumnHeaderRead<Object, String> testInstance =
+        ExtractColumnHeaderRead<String> testInstance =
             new DefaultExtractColumnHeaderRead<>(m_source, setupConfig(9, 4, 3));
         String[] columnHeaders = getColHeaders(testInstance);
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
@@ -1009,7 +1009,7 @@ public class DefaultExtractColumnHeaderReadTest {
         assertArrayEquals(new String[]{"foo", "bar"}, columnHeaders);
     }
 
-    private String[] getColHeaders(final ExtractColumnHeaderRead<Object, String> testInstance) throws IOException {
+    private String[] getColHeaders(final ExtractColumnHeaderRead<String> testInstance) throws IOException {
         Optional<RandomAccessible<String>> columnHeaders = testInstance.getColumnHeaders();
         assertTrue(columnHeaders.isPresent());
         assertEquals(m_headerRow, columnHeaders.get());

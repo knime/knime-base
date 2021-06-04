@@ -73,7 +73,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ReadUtilsTest {
 
     @Mock
-    private Read<Object, String> m_source = null;
+    private Read<String> m_source = null;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible = null;
@@ -87,7 +87,7 @@ public class ReadUtilsTest {
     @Test
     public void testLimit() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        Read<Object, String> read = ReadUtils.limit(m_source, 3);
+        Read<String> read = ReadUtils.limit(m_source, 3);
         assertEquals(m_randomAccessible, read.next());
         assertEquals(m_randomAccessible, read.next());
         assertEquals(m_randomAccessible, read.next());
@@ -100,7 +100,7 @@ public class ReadUtilsTest {
     @Test
     public void testSkip() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        Read<Object, String> read = ReadUtils.skip(m_source, 3);
+        Read<String> read = ReadUtils.skip(m_source, 3);
         assertEquals(m_randomAccessible, read.next());
         verify(m_source, times(4)).next();
         assertEquals(m_randomAccessible, read.next());
@@ -114,7 +114,7 @@ public class ReadUtilsTest {
     @Test
     public void testRange() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
-        Read<Object, String> read = ReadUtils.range(m_source, 1, 3);
+        Read<String> read = ReadUtils.range(m_source, 1, 3);
         assertEquals(m_randomAccessible, read.next());
         verify(m_source, times(2)).next();
         assertEquals(m_randomAccessible, read.next());
@@ -129,7 +129,7 @@ public class ReadUtilsTest {
     public void testSkipEmptyRows() throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
         when(m_randomAccessible.size()).thenReturn(2, 0, 0, 1, 0);
-        Read<Object, String> read = ReadUtils.skipEmptyRows(m_source);
+        Read<String> read = ReadUtils.skipEmptyRows(m_source);
         assertEquals(m_randomAccessible, read.next());
         verify(m_source, times(1)).next();
         verify(m_randomAccessible, times(1)).size();
@@ -149,7 +149,7 @@ public class ReadUtilsTest {
     public void testDecorateForReadingSkipEmpty() throws IOException {
         when(m_config.skipEmptyRows()).thenReturn(true);
         when(m_config.allowShortRows()).thenReturn(true);
-        Read<Object, String> decorated = ReadUtils.decorateForReading(m_source, m_config);
+        Read<String> decorated = ReadUtils.decorateForReading(m_source, m_config);
         testSkipEmpty(decorated);
     }
 
@@ -159,7 +159,7 @@ public class ReadUtilsTest {
     @Test(expected = IllegalArgumentException.class)
     public void testDecorateForReadingRejectShortRows() throws IOException {
         when(m_config.allowShortRows()).thenReturn(false);
-        Read<Object, String> decorated = ReadUtils.decorateForReading(m_source, m_config);
+        Read<String> decorated = ReadUtils.decorateForReading(m_source, m_config);
         testRejectShortRows(decorated);
     }
 
@@ -184,7 +184,7 @@ public class ReadUtilsTest {
         assertEquals(m_source, ReadUtils.decorateForReading(m_source, m_config));
 
         when(m_config.getColumnHeaderIdx()).thenReturn(2L);
-        Read<Object, String> read = ReadUtils.decorateForReading(m_source, m_config);
+        Read<String> read = ReadUtils.decorateForReading(m_source, m_config);
         // the header row lies in the range of rows -> we need to skip it
         assertNotEquals(m_source, read);
         assertEquals(m_randomAccessible, read.next());
@@ -198,11 +198,11 @@ public class ReadUtilsTest {
     public void testDecorateForSpecGuessingSkipEmpty() throws IOException {
         when(m_config.skipEmptyRows()).thenReturn(true);
         when(m_config.allowShortRows()).thenReturn(true);
-        Read<Object, String> decorated = ReadUtils.decorateForSpecGuessing(m_source, m_config);
+        Read<String> decorated = ReadUtils.decorateForSpecGuessing(m_source, m_config);
         testSkipEmpty(decorated);
     }
 
-    private void testSkipEmpty(final Read<Object, String> decorated) throws IOException {
+    private void testSkipEmpty(final Read<String> decorated) throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
         when(m_randomAccessible.size()).thenReturn(2, 0, 1);
         assertEquals(m_randomAccessible, decorated.next());
@@ -216,11 +216,11 @@ public class ReadUtilsTest {
     @Test(expected = IllegalArgumentException.class)
     public void testDecorateForSpecGuessingRejectShortRows() throws IOException {
         when(m_config.allowShortRows()).thenReturn(false);
-        Read<Object, String> decorated = ReadUtils.decorateForSpecGuessing(m_source, m_config);
+        Read<String> decorated = ReadUtils.decorateForSpecGuessing(m_source, m_config);
         testRejectShortRows(decorated);
     }
 
-    private void testRejectShortRows(final Read<Object, String> decorated) throws IOException {
+    private void testRejectShortRows(final Read<String> decorated) throws IOException {
         when(m_source.next()).thenReturn(m_randomAccessible);
         when(m_randomAccessible.size()).thenReturn(1, 2, 1);
         assertEquals(m_randomAccessible, decorated.next());

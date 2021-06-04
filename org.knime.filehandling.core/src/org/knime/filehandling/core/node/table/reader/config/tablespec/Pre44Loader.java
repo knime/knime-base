@@ -183,7 +183,7 @@ final class Pre44Loader {
     <T> DefaultTableSpecConfig<T> createTableSpecConfig(final ImmutableTableTransformation<T> tableTransformation) {
         Collection<TypedReaderTableSpec<T>> typedIndividualSpecs = getTypedIndividualSpecs(tableTransformation);
         return new DefaultTableSpecConfig<>(m_sourceGroupID, EmptyConfigID.INSTANCE, m_items, typedIndividualSpecs,
-            tableTransformation);
+            tableTransformation, null);
     }
 
     private <T> Collection<TypedReaderTableSpec<T>>

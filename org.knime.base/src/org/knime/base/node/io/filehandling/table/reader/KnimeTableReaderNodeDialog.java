@@ -50,7 +50,6 @@ package org.knime.base.node.io.filehandling.table.reader;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -71,6 +70,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
@@ -124,7 +124,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
      */
     KnimeTableReaderNodeDialog(final SettingsModelReaderFileChooser settingsModelFileChooser,
         final KnimeTableMultiTableReadConfig config,
-        final MultiTableReadFactory<Path, TableManipulatorConfig, DataType> multiReader,
+        final MultiTableReadFactory<FSPath, TableManipulatorConfig, DataType> multiReader,
         final ProductionPathProvider<DataType> productionPathProvider) {
         super(multiReader, productionPathProvider, true);
 

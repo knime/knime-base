@@ -186,7 +186,7 @@ final class TableSpecConfigTestingUtils {
                 new ImmutableUnknownColumnsTransformation(m_unknownColPosition, m_keepUnknown, false, null);
             final ImmutableTableTransformation<String> tableTrans = new ImmutableTableTransformation<>(colTrans,
                 m_rawSpec, m_columnFilterMode, unknownColsTrans, m_enforceTypes, m_skipEmptyColumns);
-            return new DefaultTableSpecConfig<>(m_root, m_configID, m_items, m_individualSpecs, tableTrans);
+            return new DefaultTableSpecConfig<>(m_root, m_configID, m_items, m_individualSpecs, tableTrans, null);
         }
 
         private static List<ImmutableColumnTransformation<String>> createColTrans(

@@ -69,12 +69,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class CheckSameSizeReadTest {
 
     @Mock
-    private Read<Object, String> m_source;
+    private Read<String> m_source;
 
     @Mock
     private RandomAccessible<String> m_randomAccessible;
 
-    private CheckSameSizeRead<Object, String> m_testInstance;
+    private CheckSameSizeRead<String> m_testInstance;
 
     /**
      * Initializes the test instance.

@@ -59,7 +59,7 @@ import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessib
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-class CheckSameSizeRead<I, V> extends AbstractReadDecorator<I, V> {
+class CheckSameSizeRead<V> extends AbstractReadDecorator<V> {
 
     private int m_size = -1;
 
@@ -68,7 +68,7 @@ class CheckSameSizeRead<I, V> extends AbstractReadDecorator<I, V> {
      *
      * @param source the {@link Read} to decorate
      */
-    CheckSameSizeRead(final Read<I, V> source) {
+    CheckSameSizeRead(final Read<V> source) {
         super(source);
     }
 

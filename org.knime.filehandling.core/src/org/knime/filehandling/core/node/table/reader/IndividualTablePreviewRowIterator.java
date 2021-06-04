@@ -65,17 +65,16 @@ import org.knime.filehandling.core.util.CheckedExceptionFunction;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
- * @param <I> the item type to read from
  * @param <V> the type representing values
  * @noreference non-public API
  * @noextend non-public API
  * @noinstantiate non-public API
  */
-public class IndividualTablePreviewRowIterator<I, V> extends PreviewRowIterator {
+public class IndividualTablePreviewRowIterator<V> extends PreviewRowIterator {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(IndividualTablePreviewRowIterator.class);
 
-    private final Read<I, V> m_read;
+    private final Read<V> m_read;
 
     private final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> m_rowMapper;
 
@@ -87,7 +86,7 @@ public class IndividualTablePreviewRowIterator<I, V> extends PreviewRowIterator 
      * @param read the {@link Read} to use
      * @param rowMapper the row mapper
      */
-    public IndividualTablePreviewRowIterator(final Read<I, V> read,
+    public IndividualTablePreviewRowIterator(final Read<V> read,
         final CheckedExceptionFunction<RandomAccessible<V>, DataRow, Exception> rowMapper) {
         m_rowMapper = rowMapper;
         m_read = read;

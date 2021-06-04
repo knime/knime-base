@@ -60,6 +60,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.util.CheckUtils;
@@ -128,7 +130,8 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
     public StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup, final MultiTableReadConfig<C, T> config,
         final ExecutionMonitor exec) throws IOException {
         final Map<I, TypedReaderTableSpec<T>> specs = readIndividualSpecs(sourceGroup, config, exec);
-        return create(specs, config);
+        final DataColumnSpec itemIdColumn = createItemIdentifierColumn(sourceGroup, config);
+        return create(specs, config, itemIdColumn);
     }
 
     private Map<I, TypedReaderTableSpec<T>> readIndividualSpecs(final SourceGroup<I> sourceGroup,
@@ -142,10 +145,31 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         return specs;
     }
 
+    @SuppressWarnings("null")
+    private DataColumnSpec createItemIdentifierColumn(final SourceGroup<I> sourceGroup,
+        final MultiTableReadConfig<?, ?> config) {
+        if (config.prependItemIdentifierColumn()) {
+            DataColumnSpecCreator itemIdColCreator = null;
+            for (I item : sourceGroup) {
+                final DataColumnSpec itemIdCol =
+                    m_reader.createIdentifierColumnSpec(item, config.getItemIdentifierColumnName());
+                if (itemIdColCreator == null) {
+                    itemIdColCreator = new DataColumnSpecCreator(itemIdCol);
+                } else {
+                    itemIdColCreator.merge(itemIdCol);
+                }
+            }
+            assert itemIdColCreator != null : "No source items.";
+            return itemIdColCreator.createSpec();
+        } else {
+            return null;
+        }
+    }
+
     private StagedMultiTableRead<I, T> create(final Map<I, TypedReaderTableSpec<T>> individualSpecs,
-        final MultiTableReadConfig<C, T> config) {
+        final MultiTableReadConfig<C, T> config, final DataColumnSpec itemIdColumn) {
         final RawSpec<T> rawSpec = createAndValidateRawSpec(individualSpecs, config);
-        return createStagedMultiTableRead(rawSpec, individualSpecs, config);
+        return createStagedMultiTableRead(rawSpec, individualSpecs, config, itemIdColumn);
     }
 
     private RawSpec<T> createAndValidateRawSpec(final Map<I, TypedReaderTableSpec<T>> individualSpecs,
@@ -159,9 +183,10 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
     }
 
     private DefaultStagedMultiTableRead<I, C, T, V> createStagedMultiTableRead(final RawSpec<T> rawSpec,
-        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C, T> config) {
-        return new DefaultStagedMultiTableRead<>(m_reader, individualSpecs, m_rowKeyGeneratorFactory,
-            rawSpec, m_readAdapterSupplier, m_transformationModelCreator, config);
+        final Map<I, TypedReaderTableSpec<T>> individualSpecs, final MultiTableReadConfig<C, T> config,
+        final DataColumnSpec itemIdColumn) {
+        return new DefaultStagedMultiTableRead<>(m_reader, individualSpecs, m_rowKeyGeneratorFactory, rawSpec,
+            m_readAdapterSupplier, m_transformationModelCreator, config, itemIdColumn);
     }
 
     private void verifySpecEquality(final RawSpec<T> rawSpec) {
@@ -177,7 +202,8 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
         final MultiTableReadConfig<C, T> config) {
         final TableSpecConfig<T> tableSpecConfig = config.getTableSpecConfig();
         final Map<I, TypedReaderTableSpec<T>> individualSpecs = getIndividualSpecs(sourceGroup, tableSpecConfig);
-        return createStagedMultiTableRead(tableSpecConfig.getRawSpec(), individualSpecs, config);
+        final DataColumnSpec itemIdColumn = tableSpecConfig.getItemIdentifierColumn().orElse(null);
+        return createStagedMultiTableRead(tableSpecConfig.getRawSpec(), individualSpecs, config, itemIdColumn);
     }
 
     private Map<I, TypedReaderTableSpec<T>> getIndividualSpecs(final SourceGroup<I> sourceGroup,
