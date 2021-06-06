@@ -552,12 +552,6 @@ public abstract class UnixStylePath extends FSPath {
         return root + String.join(m_pathSeparator, m_pathParts);
     }
 
-    @Override
-    public String getURICompatiblePath() {
-        UnixStylePath absolute = (UnixStylePath)toAbsolutePath();
-        return "/" + String.join("/", absolute.m_pathParts);
-    }
-
     /**
      * @return whether this path is the root directory.
      */

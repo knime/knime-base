@@ -104,22 +104,31 @@ public abstract class FSPath implements Path {
             toString());
     }
 
+
+    /**
+     * Separator character to separate the name components of a {@link URI}.
+     */
+    public static final String URI_SEPARATOR = "/";
+
     /**
      * This method returns a path string that can be embedded into a URI (i.e. it is "URI-compatible"). Primary use case
      * for this method is the {@link #toUri()} method, however it might be useful in other cases when we need to build
      * some kind of a URI with a path in it.
      *
      * <p>
-     * Note when overriding this method: A path can be considered URI-compatible, if it is (1) absolute and (2) it
-     * starts with a forward slash ("/"). This method must not perform any percent-encoding/URL-encoding of reserved
-     * characters (whitespace, umlauts, ...).
+     * Note when overriding this method: A path can be considered URI-compatible, if it is (1) absolute, (2) normalized
+     * and (3) it starts with a forward slash ("/"). This method must not perform any percent-encoding/URL-encoding of
+     * reserved characters (whitespace, umlauts, ...).
      * </p>
      *
      * @return an path string that can be embedded into a URI (absolute, starts with forward slash, no encodings
      *         applied).
      */
     public String getURICompatiblePath() {
-        return toAbsolutePath().toString();
+        final String[] nameComponents = ((FSPath)toAbsolutePath().normalize()).stringStream() //
+            .toArray(String[]::new);
+
+        return URI_SEPARATOR + String.join(URI_SEPARATOR, nameComponents);
     }
 
     /**

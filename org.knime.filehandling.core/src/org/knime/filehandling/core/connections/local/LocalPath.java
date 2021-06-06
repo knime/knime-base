@@ -313,6 +313,6 @@ class LocalPath extends FSPath {
 
     @Override
     public String getURICompatiblePath() {
-        return ((LocalPath)toAbsolutePath()).m_wrappedPath.toUri().getPath();
+        return ((LocalPath)toAbsolutePath().normalize()).m_wrappedPath.toUri().getPath();
     }
 }
