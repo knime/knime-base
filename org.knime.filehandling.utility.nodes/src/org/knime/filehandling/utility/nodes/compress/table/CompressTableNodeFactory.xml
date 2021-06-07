@@ -128,13 +128,13 @@
 				</li>
 				<li><i>Include all folders in the source path succeeding the prefix:</i>
 					This mode behaves similar to the <i>include all folders in the source path</i> option, except that 
-					the specified folder prefix(the beginning of the path) is being ignored, i.e., the folders in the 
+					the specified folder prefix (the beginning of the path) is being ignored, i.e., the folders in the 
 					prefix will not be created when de-compressing the archive. <b>Note:</b> This mode might create
 					invalid archive entries, i.e., entries resulting in archives that would not be  de-compressible. 
 					In this case the node will fail.
 				</li>
 				<li><i>From table column:</i>
-					This mode ensure that the archive entry name matches the one specified by the selected column, in
+					This mode ensures that the archive entry name matches the one specified by the selected column, in
 					other words, when de-compressing the archive the created folder structure will coincide with the
 					one specified by the selected column.
 				</li>

@@ -200,7 +200,7 @@
 				</li>
 				<li><i>Include all folders in the source path succeeding the prefix:</i>
 					This mode behaves similar to the <i>include all folders in the source path</i> option, except that 
-					the specified folder prefix(the beginning of the path) is being ignored, i.e., the folders in the 
+					the specified folder prefix (the beginning of the path) is being ignored, i.e., the folders in the 
 					prefix will not be created when de-compressing the archive. <b>Note:</b> This mode might create
 					invalid archive entries, i.e., entries resulting in archives that would not be  de-compressible. 
 					In this case the node will fail.

@@ -84,7 +84,7 @@
 				<li><i>Include all folders in the source path succeeding the prefix:</i>
 					This mode behaves similar to the <i>Include all folders in the source path</i> option, except that
 					the specified folder prefix (the beginning of the path) is being ignored, e.g., if the specified 
-					prefix is <i>src_folder</i> the source path is <i>src_folder/src_subfolder</i>, the the source is
+					prefix is <i>src_folder</i> the source path is <i>src_folder/src_subfolder</i>, the source is
 					copied to <i>dest_folder/src_subfolder</i>. <b>Note:</b> In special cases using this option 
 					can try to copy the source file/folder to a location that is outside the specified destination. In
 					this case the node will fail. 
