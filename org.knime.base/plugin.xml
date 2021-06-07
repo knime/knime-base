@@ -555,7 +555,12 @@
             category-path="/manipulation/column/column-transform"/>
       <node
             category-path="/io/read"
+            deprecated="true"
             factory-class="org.knime.base.node.io.filereader.FileReaderNodeFactory">
+      </node>
+      <node
+            category-path="/io/read"
+            factory-class="org.knime.base.node.io.filehandling.filereader.FileReaderNodeFactory">
       </node>
       <node
             category-path="/view/property"
@@ -666,7 +671,7 @@
             category-path="/manipulation/row/row-transform"
             factory-class="org.knime.base.node.preproc.sorter.SorterNodeFactory"/>
       <node
-            after="org.knime.base.node.io.filereader.FileReaderNodeFactory"
+            after="org.knime.base.node.io.filehandling.filereader.FileReaderNodeFactory"
             factory-class="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
             category-path="/io/read"/>
       <node

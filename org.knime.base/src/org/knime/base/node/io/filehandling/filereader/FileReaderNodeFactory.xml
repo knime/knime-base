@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./filereader.png" type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+	<name>File Reader (Complex Format)</name>
+	
+	<shortDescription>
+	    Flexible reader for ASCII files.
+	</shortDescription>
+	
+	<fullDescription>
+		<intro>
+		<p><i>This node supports the
+		</i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
+		<i> For further information about file handling in general see the
+		</i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+		This node can be used to read data from a file.
+		It can be configured to read various formats.<br />
+		When you open the node's configuration dialog and provide a filename, 
+		it tries to guess
+		the reader's settings by analyzing the content of the file.
+		Check the results of these settings in the preview table. If the 
+		data shown is not correct or an error is reported, you can adjust the
+		settings manually (see below).<br />
+		<p />
+		The file analysis runs in the background and can be cut short by clicking
+		the &quot;Quick scan&quot;, which shows if the analysis takes longer.
+		In this case the file is not analyzed completely, but only the first 
+		fifty lines are taken into account. It could happen then, that
+		the preview appears looking fine, but the execution of the File Reader (Complex Format)
+		fails, when it reads the lines it didn't analyze. Thus it is recommended
+		you check the settings, when you cut an analysis short. <br />
+		<p />
+		<b>Note:</b> In case this node is used in a loop, make sure that 
+		all files have the same format (e. g. separators, column headers, column types). 
+		The node saves the configuration only during the first execution. <br />
+		Alternatively, the <i>File Reader</i> node can be used.
+		</intro>
+		<option name="Read from">
+			Select a file system which stores the model you want to read. There
+			are four default file system options to choose from:
+			<br />
+			<ul>
+                <li><i>Local File System:</i> Allows you to select a file from your
+                    local system.
+                </li>
+                <li><i>Mountpoint:</i> Allows you to read from a mountpoint.
+                	When selected, a new drop-down menu appears to choose the mountpoint.
+                	Unconnected mountpoints are greyed out but can still be selected (note that browsing is disabled in this case).
+                	Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
+                	A mountpoint is displayed in red if it was previously selected but is no longer available.
+                	You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
+                </li>
+                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
+					relative to the current mountpoint, current workflow or the current workflow's data area.
+                When selected, a new drop-down menu appears to choose which of the two options to use.
+                </li>
+                <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
+                    When selected, a spinner appears that allows you to specify the desired connection and read timeout in milliseconds.
+                    In case it takes longer to connect to the host / read the file, the node fails to execute.
+                    Browsing is disabled for this option.
+                </li>
+			</ul>
+			It is possible to use other file systems with this node. Therefore,
+			you have to enable the file system connection input port of this node
+			by clicking the
+			<b>...</b>
+			in the bottom left corner of the node's icon and choose
+			<i>Add File System Connection port</i>
+			.
+			<br />
+			Afterwards, you can simply connect the desired connector node to this node.
+			The file system connection will then be shown in the drop-down menu.
+			It is greyed out if the file system is not connected in which case you have to (re)execute the connector node first.
+			Note: The default file systems listed above can't be selected if a file system is provided via the input port.
+		</option>
+		<option name="File/URL">
+			Enter a URL when reading from <i>Custom/KNIME URL</i>, otherwise enter a path to a file. The
+				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+				File System on Windows) or  &quot;/path/to/file&quot; (Local
+	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+	            description of the respective connector node describes the required path format.
+				You can also choose a previously selected file from the drop-down list, or select a location
+				from the &quot;Browse...&quot; dialog.
+				Note that browsing is disabled in some cases:
+				<ul>
+					<li><i>Custom/KNIME URL:</i> Browsing is always disabled.</li>
+					<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected.
+					Go to the KNIME Explorer and connect to the mountpoint to enable browsing.</li>
+					<li><i>File systems provided via input port:</i>
+					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
+					(Re)execute the connector node to enable browsing.</li>
+				</ul>
+                <i>The location can be exposed as or automatically set via a 
+                </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+                <i>path flow variable.</i></a>
+		</option>	
+		<option name="Preserve user settings"> If checked, the checkmarks and
+		    column names/types you explicitly entered are preserved even if 
+		    you select a new file. By default, the analyzer starts with fresh
+		    default settings for each new file location.
+		    </option>
+		<option name="Rescan">If clicked, the file content is analyzed again. All 
+		    settings are reset (unless the "Preserve user settings" option
+		    is selected) and the file is read in again to pre-set new settings and the table
+		    structure.  
+            </option>
+		<option name="Read row IDs">If checked, the first column in the file
+			is used as row IDs. If not checked, default row headers are
+			created.</option>
+		<option name="Read column headers">If checked, the items in the first 
+			line of the file are used as column names. 
+			Otherwise default column names are created.</option>
+	    <option name="Column delimiter">Enter the character(s) that separate
+	    	the data tokens in the file, or select a delimiter from the list.
+			</option>
+	    <option name="Ignore spaces and tabs">If checked, spaces and the TAB
+		    characters are ignored (not in quoted strings though).
+		    </option>
+	    <option name="Java style comment">Everything between '/*' and '*/' is
+	    	ignored. Also everything after '//' until the end of the line.
+			</option>
+	    <option name="Single line comment">Enter one or more characters that
+	    	will indicate the start of a comment (ended by a new line).
+			</option>
+	    <option name="Advanced...">Opens a new dialog with advanced settings.
+	    	There is support for quotes, different decimal separators in 
+	    	floating point numbers, and character encoding. Also, for 
+	    	ignoring whitespaces, for allowing rows with too few data items, 
+	    	for making row IDs unique (not recommended for huge files), 
+	    	for a global missing value pattern,
+	    	and for limiting the number	of rows read in.	    
+			</option>
+	    <option name="Click on the table header">If the column header in the 
+	    	preview table is clicked, a new dialog 
+	    	opens where column properties can be set: name 
+	    	and type can be changed (and will be fixed then).
+	     	A pattern can be entered that will cause a "missing
+	        cell" to be created when it's read for this column. Additionally,
+	        possible values of the column domain can be updated by selecting
+	        "Domain". And, you can choose to skip this column entirely, i.e. it
+	        will not be included in the output table then.
+		    </option>	      	
+			<link href="https://www.knime.com/knime-introductory-course/chapter2/section1/file-reader-node">
+				KNIME E-Learning Course: File Reader Node
+			</link>
+	</fullDescription>
+	
+	<ports>
+		<dynInPort insert-before="0" name="File system connection"
+			group-identifier="File System Connection">
+			The file system connection.
+		</dynInPort>
+		<outPort index="0" name="File Table">Datatable just read from the file</outPort>
+	</ports>	
+</knimeNode>
