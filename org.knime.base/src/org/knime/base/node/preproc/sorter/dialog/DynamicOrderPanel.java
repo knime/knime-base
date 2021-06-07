@@ -90,7 +90,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
      *
      * @param itemContext the context containing information about the displayed items
      */
-    public DynamicOrderPanel(final DynamicItemContext<T> itemContext) {
+    DynamicOrderPanel(final DynamicItemContext<T> itemContext) {
         m_itemContext = itemContext;
         m_outerPanels = new ArrayList<>();
 
@@ -115,7 +115,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
 
         m_addButton = new JButton();
         m_addButton.setIcon(SharedIcons.ADD_PLUS.get());
-        m_addButton.setText("Add Rule");
+        m_addButton.setText("Add sorting criterion");
         m_addButton.addActionListener(e -> {
             if (m_addButton.isEnabled()) {
                 addItem();
@@ -132,7 +132,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
     /**
      * @return the actual panel for display
      */
-    public JPanel getPanel() {
+    JPanel getPanel() {
         return m_panel;
     }
 
@@ -145,7 +145,7 @@ final class DynamicOrderPanel<T extends DynamicPanelItem> {
      *
      * @param itemContext the new context to be set
      */
-    public void setItemContext(final DynamicItemContext<T> itemContext) {
+    void setItemContext(final DynamicItemContext<T> itemContext) {
         CheckUtils.checkArgumentNotNull(m_itemContext);
 
         m_itemContext = itemContext;

@@ -38,11 +38,8 @@
 				The number of rows to select from the input
 				table based on the specified mode.
 			</option>
-			<option name="Selection criteria">If you want to extend the selection criteria
-				to a
-				higher number of columns as displayed, set the number of columns
-				at
-				the bottom and click 'new columns' to add them to the dialog.
+			<option name="Sorting criteria">To refine the sorting/selection criteria
+				click the button at the bottom labeled 'Add sorting criterion'.
 			</option>
 		</tab>
 		<tab name="Advanced Settings">

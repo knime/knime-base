@@ -143,7 +143,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.weightx = 1;
         ++gbc.gridy;
-        p.add(createInnerPanel("Selection criteria", m_panel.getPanel()), gbc);
+        p.add(createInnerPanel("Sorting criteria", m_panel.getPanel()), gbc);
 
         ++gbc.gridx;
         ++gbc.gridy;
