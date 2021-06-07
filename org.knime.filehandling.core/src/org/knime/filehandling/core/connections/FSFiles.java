@@ -60,7 +60,6 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.NotDirectoryException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -483,23 +482,6 @@ public final class FSFiles {
         });
         sortPathsLexicographically(paths);
         return paths;
-    }
-
-    /**
-     * Checks whether the given path is a non-empty directory.
-     *
-     * @param path The path to check.
-     * @return true if the given path is a non-empty directory, false otherwise (if it does not exist, is not a
-     *         directory, or is an empty directory).
-     * @throws IOException if something went wrong while accessing the directory contents
-     */
-    public static boolean isNonEmptyDirectory(final FSPath path) throws IOException {
-        try (final Stream<Path> stream = Files.list(path)) {
-            return stream.findAny().isPresent();
-        } catch (NoSuchFileException | NotDirectoryException e) { // NOSONAR can be ignored
-        }
-
-        return false;
     }
 
     /**

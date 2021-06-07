@@ -87,6 +87,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.knime.filehandling.core.connections.FSFileSystemProvider;
 import org.knime.filehandling.core.connections.FSFiles;
@@ -221,6 +222,23 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         }
     }
 
+    /**
+     * Checks whether the given path is a non-empty directory.
+     *
+     * @param path The path to check.
+     * @return true if the given path is a non-empty directory, false otherwise (if it does not exist, is not a
+     *         directory, or is an empty directory).
+     * @throws IOException if something went wrong while accessing the directory contents
+     */
+    protected boolean isNonEmptyDirectory(final P path) throws IOException {
+        try (final Stream<Path> stream = Files.list(path)) {
+            return stream.findAny().isPresent();
+        } catch (NoSuchFileException | NotDirectoryException e) { // NOSONAR can be ignored
+        }
+
+        return false;
+    }
+
     private static Set<OpenOption> validateAndSanitizeChannelOpenOptions(final Set<? extends OpenOption> options) { // NOSONAR it is best to sanitize the options in one place, also the method has comments
         final Set<OpenOption> sanitized = new HashSet<>(options);
 
@@ -316,7 +334,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             if (!Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
                 throw new FileAlreadyExistsException(
                     String.format("Target file %s already exists.", target.toString()));
-            } else if (FSFiles.isNonEmptyDirectory(checkedTarget)) {
+            } else if (isNonEmptyDirectory(checkedTarget)) {
                 throw new DirectoryNotEmptyException(target.toString());
             }
         } else {
@@ -417,7 +435,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             if (!Arrays.asList(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
                 throw new FileAlreadyExistsException(
                     String.format("Target file %s already exists.", target.toString()));
-            } else if (FSFiles.isNonEmptyDirectory(checkedTarget)) {
+            } else if (isNonEmptyDirectory(checkedTarget)) {
                 throw new DirectoryNotEmptyException(target.toString());
             }
         } else {
@@ -774,7 +792,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new NoSuchFileException(path.toString());
         }
 
-        if (FSFiles.isNonEmptyDirectory(checkedPath)) {
+        if (isNonEmptyDirectory(checkedPath)) {
             throw new DirectoryNotEmptyException(path.toString());
         }
 
