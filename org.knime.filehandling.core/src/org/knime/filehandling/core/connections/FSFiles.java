@@ -304,6 +304,8 @@ public final class FSFiles {
             final AccessDeniedException rephrased = ExceptionUtil.createAccessDeniedException(path);
             rephrased.initCause(ade);
             throw rephrased;
+        } catch (NoSuchFileException ex) { // NOSONAR
+            return false;
         } catch (IOException ex) {
             LOGGER.debug(String.format("An IOException occurred while accessing the attributes of %s.", path), ex);
             return false;
