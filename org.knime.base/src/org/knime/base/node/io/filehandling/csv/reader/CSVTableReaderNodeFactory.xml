@@ -222,6 +222,11 @@
 			</option>
 			<option name="Fail on differing specs">
 				If checked, the node will fail if multiple files are read via the Files in folder option and not all files have the same table structure i.e. the same columns.
+			</option>
+			<option name="Path column">
+			    If checked, the node will prepend a path column with the provided name to the output table.
+			    This column contains for each row which file it was read from.
+			    The node will fail if adding the column with the provided name causes a name collision with any of the columns in the read table.
 			</option>	
 		</tab>
 	    <tab name="Limit Rows">

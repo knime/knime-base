@@ -53,7 +53,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -70,6 +69,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
@@ -77,6 +77,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.dialog.SourceIdentifierColumnPanel;
 import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
 import org.knime.filehandling.core.util.SettingsUtils;
 
@@ -90,6 +91,8 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     private DialogComponentReaderFileChooser m_filePanel;
 
     private JCheckBox m_failOnDifferingSpecs;
+
+    private SourceIdentifierColumnPanel m_pathColumnPanel;
 
     CSVTableReaderNodeDialog(final SettingsModelReaderFileChooser fileChooserModel,
         final CSVMultiTableReadConfig config,
@@ -139,6 +142,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
         m_failOnDifferingSpecs = new JCheckBox("Fail if specs differ");
         m_filePanel.getSettingsModel().getFilterModeModel().addChangeListener(l -> toggleFailOnDifferingCheckBox());
+        m_pathColumnPanel = new SourceIdentifierColumnPanel("Path");
     }
 
     private void toggleFailOnDifferingCheckBox() {
@@ -153,16 +157,17 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
 
     @Override
     protected JPanel[] getAdvancedPanels() {
-        return new JPanel[]{createSpecMergePanel()};
+        return new JPanel[]{createSpecMergePanel(), m_pathColumnPanel};
     }
+
 
     @Override
     protected void registerPreviewChangeListeners() {
         super.registerPreviewChangeListeners();
         final ActionListener actionListener = l -> configChanged();
-
         m_failOnDifferingSpecs.addActionListener(actionListener);
         m_filePanel.getModel().addChangeListener(l -> configChanged());
+        m_pathColumnPanel.addChangeListener(e -> configChanged());
     }
 
     @Override
@@ -183,6 +188,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         m_filePanel.loadSettingsFrom(SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB), specs);
         m_failOnDifferingSpecs.setSelected(m_config.failOnDifferingSpecs());
         toggleFailOnDifferingCheckBox();
+        m_pathColumnPanel.load(m_config.prependItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
     }
 
     @Override
@@ -195,6 +201,8 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     protected void saveConfig() throws InvalidSettingsException {
         super.saveConfig();
         m_config.setFailOnDifferingSpecs(m_failOnDifferingSpecs.isSelected());
+        m_config.setPrependItemIdentifierColumn(m_pathColumnPanel.isPrependSourceIdentifierColumn());
+        m_config.setItemIdentifierColumnName(m_pathColumnPanel.getSourceIdentifierColumnName());
     }
 
     SettingsModelFileChooser2 getFileChooserSettingsModel() {

@@ -84,7 +84,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
 enum CSVMultiTableReadConfigSerializer
     implements ConfigSerializer<CSVMultiTableReadConfig>, ConfigIDFactory<CSVMultiTableReadConfig> {
 
-    INSTANCE;
+        INSTANCE;
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVMultiTableReadConfigSerializer.class);
 
@@ -168,6 +168,10 @@ enum CSVMultiTableReadConfigSerializer
     /** string key used to save the value of the character used as comment start */
     private static final String CFG_COMMENT_CHAR = "comment_char";
 
+    private static final String CFG_PREPEND_PATH_COLUMN = "prepend_path_column" + SettingsModel.CFGKEY_INTERNAL;
+
+    private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
+
     private final TableSpecConfigSerializer<Class<?>> m_tableSpecConfigSerializer;
 
     private enum ClassTypeSerializer implements NodeSettingsSerializer<Class<?>> {
@@ -247,8 +251,7 @@ enum CSVMultiTableReadConfigSerializer
                 return null;
             }
         } catch (InvalidSettingsException ise) {
-            LOGGER
-                .debug("Loading the SpecMergeMode failed unexpectedly, falling back to null.", ise);
+            LOGGER.debug("Loading the SpecMergeMode failed unexpectedly, falling back to null.", ise);
             return null;
         }
     }
@@ -296,8 +299,7 @@ enum CSVMultiTableReadConfigSerializer
         try {
             return loadFailOnDifferingSpecsInModel(advancedSettings);
         } catch (InvalidSettingsException ise) {
-            LOGGER
-                .debug(String.format("An error occurred while loading %s", CFG_FAIL_ON_DIFFERING_SPECS), ise);
+            LOGGER.debug(String.format("An error occurred while loading %s", CFG_FAIL_ON_DIFFERING_SPECS), ise);
             return DEFAULT_FAIL_ON_DIFFERING_SPECS;
         }
     }
@@ -316,6 +318,12 @@ enum CSVMultiTableReadConfigSerializer
             settings.getLong(CFG_MAX_DATA_ROWS_SCANNED, AbstractTableReadConfig.DEFAULT_ROWS_FOR_SPEC_GUESSING));
 
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true));
+
+        // added in 4.4.0
+        config.setPrependItemIdentifierColumn(
+            settings.getBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn()));
+        config.setItemIdentifierColumnName(
+            settings.getString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName()));
 
         final CSVTableReaderConfig cc = tc.getReaderSpecificConfig();
         cc.setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING, true));
@@ -405,6 +413,12 @@ enum CSVMultiTableReadConfigSerializer
             config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG));
         }
 
+        // added in 4.4.0
+        if (settings.containsKey(CFG_PREPEND_PATH_COLUMN)) {
+            config.setPrependItemIdentifierColumn(settings.getBoolean(CFG_PREPEND_PATH_COLUMN));
+            config.setItemIdentifierColumnName(settings.getString(CFG_PATH_COLUMN_NAME));
+        }
+
         final CSVTableReaderConfig cc = tc.getReaderSpecificConfig();
         cc.setReplaceEmptyWithMissing(settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING));
 
@@ -484,6 +498,8 @@ enum CSVMultiTableReadConfigSerializer
         }
 
         settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS, config.failOnDifferingSpecs());
+        settings.addBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn());
+        settings.addString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName());
 
         final TableReadConfig<?> tc = config.getTableReadConfig();
         settings.addBoolean(CFG_LIMIT_DATA_ROWS_SCANNED, tc.limitRowsForSpec());
@@ -574,6 +590,12 @@ enum CSVMultiTableReadConfigSerializer
 
         settings.getBoolean(CFG_LIMIT_MEMORY_PER_COLUMN);
         settings.getInt(CFG_MAXIMUM_NUMBER_OF_COLUMNS);
+
+        // added in 4.4.0
+        if (settings.containsKey(CFG_PREPEND_PATH_COLUMN)) {
+            settings.getBoolean(CFG_PREPEND_PATH_COLUMN);
+            settings.getString(CFG_PATH_COLUMN_NAME);
+        }
 
     }
 
