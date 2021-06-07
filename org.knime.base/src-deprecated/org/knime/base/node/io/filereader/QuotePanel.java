@@ -74,7 +74,9 @@ import org.knime.core.util.tokenizer.Quote;
  * Dialog for the expert settings of the file reader dialog.
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class QuotePanel extends JPanel {
 
     private JList m_currQuotes = null;
@@ -307,14 +309,17 @@ public class QuotePanel extends JPanel {
             m_qEditField = new JTextField();
             m_qEditField.getDocument().addDocumentListener(
                     new DocumentListener() {
+                        @Override
                         public void changedUpdate(final DocumentEvent e) {
                             clearErrorText();
                         }
 
+                        @Override
                         public void removeUpdate(final DocumentEvent e) {
                             clearErrorText();
                         }
 
+                        @Override
                         public void insertUpdate(final DocumentEvent e) {
                             clearErrorText();
                         }
@@ -336,6 +341,7 @@ public class QuotePanel extends JPanel {
         if (m_addButton == null) {
             m_addButton = new JButton();
             m_addButton.addActionListener(new ActionListener() {
+                @Override
                 public void actionPerformed(final ActionEvent e) {
                     addNewQuote();
                 }
@@ -354,6 +360,7 @@ public class QuotePanel extends JPanel {
         if (m_removeButton == null) {
             m_removeButton = new JButton();
             m_removeButton.addActionListener(new ActionListener() {
+                @Override
                 public void actionPerformed(final ActionEvent e) {
                     removeSelectedQuote();
                 }
@@ -581,10 +588,12 @@ public class QuotePanel extends JPanel {
             newModel.add(getListEntry(q));
         }
         m_currQuotes.setModel(new AbstractListModel() {
+            @Override
             public int getSize() {
                 return newModel.size();
             }
 
+            @Override
             public Object getElementAt(final int index) {
                 return newModel.get(index);
             }

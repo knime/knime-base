@@ -40,90 +40,94 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * -------------------------------------------------------------------
+ *
+ * History
+ *   11.01.2006 (ohl): created
  */
 package org.knime.base.node.io.filereader;
 
-import org.knime.core.node.ContextAwareNodeFactory;
-import org.knime.core.node.NodeCreationContext;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeView;
+import org.knime.core.data.DataRow;
 
 /**
+ * The exception the {@link java.io.FileReader} (more specificaly the
+ * {@link org.knime.base.node.io.filereader.FileRowIterator}) throws if something goes wrong.
+ *
+ * This is a runtime exception for now.
+ *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replacce by complex file reader
  */
-public class FileReaderNodeFactory extends
-    ContextAwareNodeFactory<FileReaderNodeModel> {
+@Deprecated
+public class FileReaderException extends RuntimeException {
 
-    private String m_defaultXMLFile;
+    private final DataRow m_row;
+
+    private final int m_lineNumber;
+
+    private String m_detailsMsg;
 
     /**
-     * @param defXMLFileName this string will be set as default path to a XML
-     *            file containing settings for the dialog. Won't be supported in
-     *            the future anymore.
+     * Always provide a good user message why things go wrong.
+     *
+     * @param msg the message to store in the exception
      */
-    public FileReaderNodeFactory(final String defXMLFileName) {
-        m_defaultXMLFile = defXMLFileName;
+    FileReaderException(final String msg) {
+        super(msg);
+        m_row = null;
+        m_lineNumber = -1;
+        m_detailsMsg = null;
     }
 
     /**
-     * Default constructor.
+     * Constructor for an exception that stores the last (partial) row where
+     * things went wrong.
+     *
+     * @param msg the message what went wrong
+     * @param faultyRow the row as far as it got read
+     * @param lineNumber the lineNumber the error occurred
+     * @since 2.11
      */
-    public FileReaderNodeFactory() {
-        m_defaultXMLFile = null;
+    public FileReaderException(final String msg, final DataRow faultyRow,
+            final int lineNumber) {
+        super(msg);
+        m_row = faultyRow;
+        m_lineNumber = lineNumber;
     }
 
     /**
-     * {@inheritDoc}
+     * @return the row that was (possibly partially!) read before things went
+     *         wrong. Could be <code>null</code>, if not set.
+     * @since 2.11
      */
-    @Override
-    public FileReaderNodeModel createNodeModel() {
-        if (m_defaultXMLFile == null) {
-            return new FileReaderNodeModel();
-        } else {
-            return new FileReaderNodeModel(m_defaultXMLFile);
-        }
+    public DataRow getErrorRow() {
+        return m_row;
     }
 
     /**
-     * {@inheritDoc}
+     * @return the line number where the error occurred in the file. Could be -1
+     *         if not set.
+     * @since 2.11
      */
-    @Override
-    public FileReaderNodeModel createNodeModel(final NodeCreationContext context) {
-        return new FileReaderNodeModel(context);
+    public int getErrorLineNumber() {
+        return m_lineNumber;
     }
 
     /**
-     * {@inheritDoc}
+     * Sets an additional message.
+     *
+     * @param msg the additional message
      */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
+    void setDetailsMessage(final String msg) {
+        m_detailsMsg = msg;
     }
 
     /**
-     * {@inheritDoc}
+     * @return the previously set message, or null.
+     * @since 2.11
      */
-    @Override
-    public NodeView<FileReaderNodeModel> createNodeView(final int i,
-            final FileReaderNodeModel nodeModel) {
-        throw new IllegalStateException();
+    public String getDetailedMessage() {
+        return m_detailsMsg;
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new FileReaderNodeDialog();
-    }
-
 }
+

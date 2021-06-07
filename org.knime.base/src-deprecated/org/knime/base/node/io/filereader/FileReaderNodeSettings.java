@@ -74,7 +74,9 @@ import org.xml.sax.SAXException;
 /**
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class FileReaderNodeSettings extends FileReaderSettings {
 
     // a vector storing properties for each column. The size might not be

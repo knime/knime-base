@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   Mar 19, 2007 (ohl): created
  */
@@ -56,9 +56,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 /**
- * 
+ *
  * @author ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 class ShortLinesPanel extends JPanel {
 
     private JCheckBox m_allowShortLines;
@@ -66,7 +68,7 @@ class ShortLinesPanel extends JPanel {
     /**
      * Constructs the panels and loads it with the settings from the passed
      * object.
-     * 
+     *
      * @param settings containing the settings to show in the panel
      */
     ShortLinesPanel(final FileReaderNodeSettings settings) {
@@ -117,7 +119,7 @@ class ShortLinesPanel extends JPanel {
 
     /**
      * Checks the current values in the panel.
-     * 
+     *
      * @return null, if settings are okay and can be applied. An error message
      *         if not.
      */
@@ -129,7 +131,7 @@ class ShortLinesPanel extends JPanel {
     /**
      * Transfers the current settings from the panel in the passed object.
      * Overwriting the corresponding values in the object.
-     * 
+     *
      * @param settings the settings object to fill in the currently set values
      * @return true if the new settings are different from the one passed in.
      */
@@ -141,7 +143,7 @@ class ShortLinesPanel extends JPanel {
 
     /**
      * Transfers the corresponding values from the passed object into the panel.
-     * 
+     *
      * @param settings object holding the values to display in the panel
      */
     private void loadSettings(final FileReaderNodeSettings settings) {

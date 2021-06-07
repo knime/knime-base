@@ -60,6 +60,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.util.CheckedExceptionSupplier;
 
 /**
  * A reader that counts the number of bytes read.
@@ -102,11 +103,10 @@ public final class BufferedFileReader extends BufferedReader {
     private long m_currentLineNumber = 0;
 
     /**
-     * Should only be instantiated by the methods provided. The specified stream
-     * m must be the source of the stream in, from which we read.
+     * Should only be instantiated by the methods provided. The specified stream m must be the source of the stream in,
+     * from which we read.
      */
-    private BufferedFileReader(final InputStreamReader in,
-            final ByteCountingStream m, final long streamSize) {
+    private BufferedFileReader(final InputStreamReader in, final ByteCountingStream m, final long streamSize) {
         super(in);
         m_countingStream = m;
         m_streamSize = streamSize;
@@ -123,34 +123,30 @@ public final class BufferedFileReader extends BufferedReader {
     }
 
     /**
-     * @return the number of bytes read from the inner stream. If the input
-     *         stream is a zipped stream, it returns the number of bytes read
-     *         from this zipped stream. It the EOF of the stream has been read
-     *         once, the returned number might not be accurate anymore.
+     * @return the number of bytes read from the inner stream. If the input stream is a zipped stream, it returns the
+     *         number of bytes read from this zipped stream. It the EOF of the stream has been read once, the returned
+     *         number might not be accurate anymore.
      */
     public long getNumberOfBytesRead() {
         return m_countingStream.bytesRead();
     }
 
     /**
-     * @return the total byte count of the stream, if this stream was created
-     *         from a file (and the file delivered its file size). Zero
-     *         otherwise!
+     * @return the total byte count of the stream, if this stream was created from a file (and the file delivered its
+     *         file size). Zero otherwise!
      */
     public long getFileSize() {
         return m_streamSize;
     }
 
     /**
-     * Returns the line currently read (if the \n char was already read, it
-     * still returns the current/last line). If no characters were read so far,
-     * the empty string is returned.<br>
-     * In contrast to {@link #readLine} this method doesn't modify the stream
-     * (doesn't read from it!) and it returns the entire line (also the
-     * characters at the beginning of the line if they were read already).
+     * Returns the line currently read (if the \n char was already read, it still returns the current/last line). If no
+     * characters were read so far, the empty string is returned.<br>
+     * In contrast to {@link #readLine} this method doesn't modify the stream (doesn't read from it!) and it returns the
+     * entire line (also the characters at the beginning of the line if they were read already).
      *
-     * @return the line that is currently read. Returns the empty string, if no
-     *         character was read as of yet, and null if the reader was closed.
+     * @return the line that is currently read. Returns the empty string, if no character was read as of yet, and null
+     *         if the reader was closed.
      * @throws IOException if the stream has been closed
      */
     public String getCurrentLine() throws IOException {
@@ -179,8 +175,7 @@ public final class BufferedFileReader extends BufferedReader {
     }
 
     /**
-     * @return the number of the line currently read. It returns zero if no
-     *         character was read yet.
+     * @return the number of the line currently read. It returns zero if no character was read yet.
      * @throws IOException if the stream has been closed
      */
     public long getCurrentLineNumber() throws IOException {
@@ -191,9 +186,8 @@ public final class BufferedFileReader extends BufferedReader {
     }
 
     /**
-     * Reads the next line from the underlying reader and stores it in our
-     * currentLine variable from which this reader reads the next chars. The
-     * '\n' character is stored in the currentLine.
+     * Reads the next line from the underlying reader and stores it in our currentLine variable from which this reader
+     * reads the next chars. The '\n' character is stored in the currentLine.
      *
      */
     private void readNextLine() throws IOException {
@@ -239,13 +233,12 @@ public final class BufferedFileReader extends BufferedReader {
     }
 
     /**
-     * Always use this to get the next character from the underlying reader. It
-     * returns the next char of the currentLine or sets everything to indicate
-     * the EOF, if the underlying reader is done.<br>
+     * Always use this to get the next character from the underlying reader. It returns the next char of the currentLine
+     * or sets everything to indicate the EOF, if the underlying reader is done.<br>
      * NOTE: this method is not synchronized and does not check the open status.
      *
-     * @return either the next char from the currentLine string, or -1 if the
-     *         EOF is reached and sets all flags to the appropriate states then.
+     * @return either the next char from the currentLine string, or -1 if the EOF is reached and sets all flags to the
+     *         appropriate states then.
      * @throws IOException if something goes wrong during reading
      */
     private int readNextChar() throws IOException {
@@ -271,8 +264,7 @@ public final class BufferedFileReader extends BufferedReader {
      */
 
     /**
-     * Check to make sure that the stream has not been closed. Throws an
-     * IOException if it has been closed.
+     * Check to make sure that the stream has not been closed. Throws an IOException if it has been closed.
      */
     private void checkOpen() throws IOException {
         if ((m_currentLine == null) && (m_next == -1)) {
@@ -323,12 +315,10 @@ public final class BufferedFileReader extends BufferedReader {
      * {@inheritDoc}
      */
     @Override
-    public int read(final char[] cbuf, final int off, final int len)
-            throws IOException {
+    public int read(final char[] cbuf, final int off, final int len) throws IOException {
         synchronized (lock) {
             checkOpen();
-            if ((off < 0) || (off > cbuf.length) || (len < 0)
-                    || ((off + len) > cbuf.length) || ((off + len) < 0)) {
+            if ((off < 0) || (off > cbuf.length) || (len < 0) || ((off + len) > cbuf.length) || ((off + len) < 0)) {
                 throw new IndexOutOfBoundsException();
             } else if (len == 0) {
                 return 0;
@@ -420,8 +410,7 @@ public final class BufferedFileReader extends BufferedReader {
     @Override
     public long skip(final long n) throws IOException {
         if (n < 0) {
-            throw new IllegalArgumentException(
-                    "Can't skip a negative number of characters");
+            throw new IllegalArgumentException("Can't skip a negative number of characters");
         }
         synchronized (lock) {
             checkOpen();
@@ -454,65 +443,93 @@ public final class BufferedFileReader extends BufferedReader {
     }
 
     /**
-     * Creates a new reader from the specified location with the default
-     * character set from the Java VM. The returned reader can be asked for the
-     * number of bytes read from the stream ({@link #getNumberOfBytesRead()}),
-     * and, if the location specifies a local file - and the size of it can be
-     * retrieved - the overall byte count in the stream
+     * Creates a new reader from the specified location with the default character set from the Java VM. The returned
+     * reader can be asked for the number of bytes read from the stream ({@link #getNumberOfBytesRead()}), and, if the
+     * location specifies a local file - and the size of it can be retrieved - the overall byte count in the stream
      * ({@link #getFileSize()}).<br>
-     * If the specified file is compressed, it will try to create a ZIP stream
-     * (and the byte counts refer both to the compressed file).<br>
-     * In addition this reader can be asked for the current line it is reading
-     * from ({@link #getCurrentLine()})and the current line number
-     * ({@link #getCurrentLineNumber()}).
+     * If the specified file is compressed, it will try to create a ZIP stream (and the byte counts refer both to the
+     * compressed file).<br>
+     * In addition this reader can be asked for the current line it is reading from ({@link #getCurrentLine()})and the
+     * current line number ({@link #getCurrentLineNumber()}).
      *
      *
-     * @param dataLocation the URL of the source to read from. If it is zipped
-     *            it will try to open a ZIP stream on it.
+     * @param dataLocation the URL of the source to read from. If it is zipped it will try to open a ZIP stream on it.
      * @return reader reading from the specified location.
      * @throws IOException if something went wrong when opening the stream.
      */
-    public static BufferedFileReader createNewReader(final URL dataLocation)
-            throws IOException {
+    public static BufferedFileReader createNewReader(final URL dataLocation) throws IOException {
         // creates one with the default character set
         return createNewReader(dataLocation, null);
     }
 
     /**
-     * Creates a new reader from the specified location with the default
-     * character set from the Java VM. The returned reader can be asked for the
-     * number of bytes read from the stream ({@link #getNumberOfBytesRead()}),
-     * and, if the location specifies a local file - and the size of it can be
-     * retrieved - the overall byte count in the stream
+     * Creates a new reader from the specified location with the default character set from the Java VM. The returned
+     * reader can be asked for the number of bytes read from the stream ({@link #getNumberOfBytesRead()}), and, if the
+     * location specifies a local file - and the size of it can be retrieved - the overall byte count in the stream
      * ({@link #getFileSize()}).<br>
-     * If the specified file is compressed, it will try to create a ZIP stream
-     * (and the byte counts refer both to the compressed file).<br>
-     * In addition this reader can be asked for the current line it is reading
-     * from ({@link #getCurrentLine()})and the current line number
-     * ({@link #getCurrentLineNumber()}).
+     * If the specified file is compressed, it will try to create a ZIP stream (and the byte counts refer both to the
+     * compressed file).<br>
+     * In addition this reader can be asked for the current line it is reading from ({@link #getCurrentLine()})and the
+     * current line number ({@link #getCurrentLineNumber()}).
      *
-     * @param dataLocation the URL of the source to read from. If it is zipped
-     *            it will try to open a ZIP stream on it.
+     * @param dataLocation the URL of the source to read from. If it is zipped it will try to open a ZIP stream on it.
      * @param charsetName the character set to use. Must be supported by the VM
-     * @param timeout timeout for the reader in milliseconds. Can be {@code null}, which results in usage of default value
+     * @param timeout timeout for the reader in milliseconds. Can be {@code null}, which results in usage of default
+     *            value
      * @return reader reading from the specified location.
      *
      * @throws IOException if something went wrong when opening the stream.
-     * @throws java.nio.charset.IllegalCharsetNameException If the given charset
-     *             name is illegal
-     * @throws java.nio.charset.UnsupportedCharsetException If no support for
-     *             the named charset is available in this instance of the Java
-     *             virtual machine
+     * @throws java.nio.charset.IllegalCharsetNameException If the given charset name is illegal
+     * @throws java.nio.charset.UnsupportedCharsetException If no support for the named charset is available in this
+     *             instance of the Java virtual machine
      * @since 3.4
      */
-    public static BufferedFileReader createNewReader(final URL dataLocation,
-            final String charsetName, final Integer timeout) throws IOException {
+    public static BufferedFileReader createNewReader(final URL dataLocation, final String charsetName,
+        final Integer timeout) throws IOException {
 
         if (dataLocation == null) {
-            throw new NullPointerException("Can't open a stream on a null "
-                    + "location");
+            throw new NullPointerException("Can't open a stream on a null " + "location");
         }
+        return createReader(dataLocation.toString(), () -> openStream(dataLocation, timeout), charsetName,
+            getFileSize(dataLocation));
+    }
 
+    private static long getFileSize(final URL dataLocation) {
+        long fileSize = 0;
+        try {
+            final File f = FileUtil.getFileFromURL(dataLocation);
+            if (f.exists()) {
+                fileSize = f.length();
+            }
+        } catch (final Exception e) {
+            // then don't give them a filesize.
+        }
+        return fileSize;
+    }
+
+    /**
+     * Creates a new reader reading from the supplied input stream using the provided character set. The returned reader
+     * can be asked for the number of bytes read from the stream ({@link #getNumberOfBytesRead()}).<br>
+     * If the specified file is compressed, it will try to create a ZIP stream (and the byte counts refer both to the
+     * compressed file).<br>
+     * In addition this reader can be asked for the current line it is reading from ({@link #getCurrentLine()})and the
+     * current line number ({@link #getCurrentLineNumber()}).
+     *
+     * @param fileName the name of the file
+     * @param charsetName the character set to use. Must be supported by the VM
+     * @param streamSupplier the supplier to open the stream to read from
+     * @param fileSize the size of the file to be read
+     * @return reader reading from the stream.
+     *
+     * @throws IOException if something went wrong when opening the stream.
+     * @throws java.nio.charset.IllegalCharsetNameException If the given charset name is illegal
+     * @throws java.nio.charset.UnsupportedCharsetException If no support for the named charset is available in this
+     *             instance of the Java virtual machine
+     * @since 4.4
+     */
+    public static BufferedFileReader createReader(final String fileName,
+        final CheckedExceptionSupplier<InputStream, IOException> streamSupplier, final String charsetName,
+        final long fileSize) throws IOException {
         try {
 
             Charset cs = Charset.defaultCharset();
@@ -527,22 +544,15 @@ public final class BufferedFileReader extends BufferedReader {
             // stream passed to the reader (either zipped or unzipped stream)
             InputStreamReader readerStream;
             // the stream used to get the byte count from
-            ByteCountingStream sourceStream = new ByteCountingStream(
-                new BufferedInputStream(timeout != null ? FileUtil.openStreamWithTimeout(dataLocation, timeout)
-                    : FileUtil.openStreamWithTimeout(dataLocation)));
+            ByteCountingStream sourceStream = new ByteCountingStream(new BufferedInputStream(streamSupplier.get()));
 
             try {
                 // first see if its a GZIPped file
-                readerStream =
-                        new InputStreamReader(
-                                new GZIPInputStream(sourceStream), cs);
+                readerStream = new InputStreamReader(new GZIPInputStream(sourceStream), cs);
             } catch (Exception e) {
                 // if not, it could be a ZIPped file
                 sourceStream.close(); // close and reopen
-                sourceStream = new ByteCountingStream(
-                    new BufferedInputStream(timeout != null ? FileUtil.openStreamWithTimeout(dataLocation, timeout)
-                        : FileUtil.openStreamWithTimeout(dataLocation)));
-
+                sourceStream = new ByteCountingStream(new BufferedInputStream(streamSupplier.get()));
                 try {
                     zipStream = new ZipInputStream(sourceStream);
                     readerStream = new InputStreamReader(zipStream, cs);
@@ -567,28 +577,12 @@ public final class BufferedFileReader extends BufferedReader {
             // couldn't figure out which reader to use? Take a regular one.
             if (readerStream == null) {
                 sourceStream.close(); // close and reopen
-                sourceStream = new ByteCountingStream(
-                    new BufferedInputStream(timeout != null ? FileUtil.openStreamWithTimeout(dataLocation, timeout)
-                        : FileUtil.openStreamWithTimeout(dataLocation)));
+                sourceStream = new ByteCountingStream(new BufferedInputStream(streamSupplier.get()));
                 readerStream = new InputStreamReader(sourceStream, cs);
 
             }
 
-            // see if the underlying source is a file and we can get the size of
-            // it
-            long fileSize = 0;
-            try {
-                File f = FileUtil.getFileFromURL(dataLocation);
-                if (f.exists()) {
-                    fileSize = f.length();
-                }
-            } catch (Exception e) {
-                // then don't give them a filesize.
-            }
-
-            BufferedFileReader result =
-                    new BufferedFileReader(readerStream, sourceStream,
-                            fileSize);
+            BufferedFileReader result = new BufferedFileReader(readerStream, sourceStream, fileSize);
             if (zipStream != null) {
                 // if it's a zipped source, store some stuff in the reader
                 result.setZippedSource(zipStream);
@@ -601,55 +595,50 @@ public final class BufferedFileReader extends BufferedReader {
             if (msg == null) {
                 msg = e.getClass().getSimpleName() + ": <no details>";
             }
-            throw new IOException("Can't access '"
-                    + dataLocation + "'. (" + msg + ")", e);
+            throw new IOException("Can't access '" + fileName + "'. (" + msg + ")", e);
         }
     }
 
+    private static InputStream openStream(final URL dataLocation, final Integer timeout) throws IOException {
+        return timeout != null ? FileUtil.openStreamWithTimeout(dataLocation, timeout)
+            : FileUtil.openStreamWithTimeout(dataLocation);
+    }
+
     /**
-     * Creates a new reader from the specified location with the default
-     * character set from the Java VM. The returned reader can be asked for the
-     * number of bytes read from the stream ({@link #getNumberOfBytesRead()}),
-     * and, if the location specifies a local file - and the size of it can be
-     * retrieved - the overall byte count in the stream
+     * Creates a new reader from the specified location with the default character set from the Java VM. The returned
+     * reader can be asked for the number of bytes read from the stream ({@link #getNumberOfBytesRead()}), and, if the
+     * location specifies a local file - and the size of it can be retrieved - the overall byte count in the stream
      * ({@link #getFileSize()}).<br>
-     * If the specified file is compressed, it will try to create a ZIP stream
-     * (and the byte counts refer both to the compressed file).<br>
-     * In addition this reader can be asked for the current line it is reading
-     * from ({@link #getCurrentLine()})and the current line number
-     * ({@link #getCurrentLineNumber()}).
+     * If the specified file is compressed, it will try to create a ZIP stream (and the byte counts refer both to the
+     * compressed file).<br>
+     * In addition this reader can be asked for the current line it is reading from ({@link #getCurrentLine()})and the
+     * current line number ({@link #getCurrentLineNumber()}).
      *
-     * @param dataLocation the URL of the source to read from. If it is zipped
-     *            it will try to open a ZIP stream on it.
+     * @param dataLocation the URL of the source to read from. If it is zipped it will try to open a ZIP stream on it.
      * @param charsetName the character set to use. Must be supported by the VM
      * @return reader reading from the specified location.
      *
      * @throws IOException if something went wrong when opening the stream.
-     * @throws java.nio.charset.IllegalCharsetNameException If the given charset
-     *             name is illegal
-     * @throws java.nio.charset.UnsupportedCharsetException If no support for
-     *             the named charset is available in this instance of the Java
-     *             virtual machine
+     * @throws java.nio.charset.IllegalCharsetNameException If the given charset name is illegal
+     * @throws java.nio.charset.UnsupportedCharsetException If no support for the named charset is available in this
+     *             instance of the Java virtual machine
      */
-    public static BufferedFileReader createNewReader(final URL dataLocation,
-            final String charsetName) throws IOException {
+    public static BufferedFileReader createNewReader(final URL dataLocation, final String charsetName)
+        throws IOException {
         return createNewReader(dataLocation, charsetName, null);
     }
 
     /**
-     * Same as the method above ({@link #createNewReader(URL)}), but with an
-     * input stream as argument. The {@link #getFileSize()} method of the
-     * created reader always returns zero.
+     * Same as the method above ({@link #createNewReader(URL)}), but with an input stream as argument. The
+     * {@link #getFileSize()} method of the created reader always returns zero.
      *
      * @param in the stream to read from
-     * @return a new buffered reader with some extra functionality (compared to
-     *         the {@link BufferedReader}), but no file size (even if the
-     *         stream reads from a file).
+     * @return a new buffered reader with some extra functionality (compared to the {@link BufferedReader}), but no file
+     *         size (even if the stream reads from a file).
      */
     public static BufferedFileReader createNewReader(final InputStream in) {
         if (in == null) {
-            throw new NullPointerException("Can't open a reader on a null "
-                    + "input stream");
+            throw new NullPointerException("Can't open a reader on a null " + "input stream");
         }
 
         // the stream used to get the byte count from
@@ -669,8 +658,7 @@ public final class BufferedFileReader extends BufferedReader {
     }
 
     /**
-     * If the underlying source is a ZIP archive this method returns the name of
-     * the entry read. Otherwise null.
+     * If the underlying source is a ZIP archive this method returns the name of the entry read. Otherwise null.
      *
      * @return the entry read, if the source is a ZIP archive, or null.
      */
@@ -686,18 +674,15 @@ public final class BufferedFileReader extends BufferedReader {
     }
 
     /**
-     * @return true, if the underlying source is a ZIP archive, if the EOF of
-     *         the first entry was read and if there are more entries in the
-     *         archive. False, otherwise, especially if the (first) EOF was not
-     *         read!
+     * @return true, if the underlying source is a ZIP archive, if the EOF of the first entry was read and if there are
+     *         more entries in the archive. False, otherwise, especially if the (first) EOF was not read!
      */
     public boolean hasMoreZipEntries() {
         return m_hasMoreEntries;
     }
 
     /**
-     * Wraps an input stream and counts the number of bytes read from the
-     * stream.
+     * Wraps an input stream and counts the number of bytes read from the stream.
      *
      * @author ohl, University of Konstanz
      */
@@ -738,8 +723,7 @@ public final class BufferedFileReader extends BufferedReader {
          * {@inheritDoc}
          */
         @Override
-        public int read(final byte[] b, final int off, final int len)
-                throws IOException {
+        public int read(final byte[] b, final int off, final int len) throws IOException {
             int r = m_in.read(b, off, len);
             m_byteCount += r; // inaccurate if EOF is met
             return r;
@@ -756,9 +740,8 @@ public final class BufferedFileReader extends BufferedReader {
         }
 
         /**
-         * @return the number of bytes read from the stream. As soon as the end
-         *         of the stream is reached this number is not accurate anymore.
-         *         (As it also counts the "end-of-file" tags returned.)
+         * @return the number of bytes read from the stream. As soon as the end of the stream is reached this number is
+         *         not accurate anymore. (As it also counts the "end-of-file" tags returned.)
          */
         public long bytesRead() {
             return m_byteCount;

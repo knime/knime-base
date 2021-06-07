@@ -63,7 +63,9 @@ import javax.swing.JTabbedPane;
  * Dialog for the expert settings of the file reader dialog.
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class FileReaderAdvancedDialog extends JDialog {
 
     private JPanel m_jContentPane;

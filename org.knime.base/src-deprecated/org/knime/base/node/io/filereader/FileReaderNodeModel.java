@@ -78,7 +78,9 @@ import org.knime.core.util.tokenizer.SettingsStatus;
 
 /**
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class FileReaderNodeModel extends NodeModel {
     /**
      * The id this objects uses to store its file history in the

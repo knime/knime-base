@@ -79,7 +79,9 @@ import org.knime.core.util.tokenizer.Tokenizer;
  * of delimiters and comments the file contains - honoring fixed pre-settings passed in.
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public final class FileAnalyzer {
 
     /**

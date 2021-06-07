@@ -124,10 +124,11 @@ import org.knime.core.util.tokenizer.TokenizerSettings;
  *
  * @author Peter Ohl, University of Konstanz
  *
- *         Implements the {@link java.awt.event.ItemListener} for the file
- *         location ComboBox (because we need to remove it and add it again from
- *         time to time.
+ *         Implements the {@link java.awt.event.ItemListener} for the file location ComboBox (because we need to remove
+ *         it and add it again from time to time.
+ * @deprecated replacce by complex file reader
  */
+@Deprecated
 class FileReaderNodeDialog extends NodeDialogPane {
 
     private static final NodeLogger LOGGER = NodeLogger

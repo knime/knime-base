@@ -71,7 +71,9 @@ import org.knime.core.node.util.ViewUtils;
 /**
  *
  * @author ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 class LimitRowsPanel extends JPanel {
 
     private static final long serialVersionUID = -3925078784275176264L;

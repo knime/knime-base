@@ -61,16 +61,16 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 
 /**
- * The data table displayed in the file reader's dialog's preview. We need an
- * extra incarnation of a data table (different from from the {@link FileTable})
- * because if settings are not correct yet, the table in the preview must not
- * throw any exception on unexpected or invalid data it reads (which the
- * "normal" file table does). Thus, this table returns a row iterator that will
- * create an error row when a error occurs during file reading. It will end the
- * table after the erroneous element was read.
+ * The data table displayed in the file reader's dialog's preview. We need an extra incarnation of a data table
+ * (different from from the {@link FileTable}) because if settings are not correct yet, the table in the preview must
+ * not throw any exception on unexpected or invalid data it reads (which the "normal" file table does). Thus, this table
+ * returns a row iterator that will create an error row when a error occurs during file reading. It will end the table
+ * after the erroneous element was read.
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class FileReaderPreviewTable implements DataTable {
     private static final NodeLogger LOGGER =
             NodeLogger.getLogger(FileReaderPreviewTable.class);
@@ -141,6 +141,7 @@ public class FileReaderPreviewTable implements DataTable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public RowIterator iterator() {
         FileReaderPreviewRowIterator i =
                 new FileReaderPreviewRowIterator(m_table.iterator(), this);
@@ -153,6 +154,7 @@ public class FileReaderPreviewTable implements DataTable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public DataTableSpec getDataTableSpec() {
         return m_table.getDataTableSpec();
     }

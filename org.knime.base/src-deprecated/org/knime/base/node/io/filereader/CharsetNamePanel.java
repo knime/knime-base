@@ -78,7 +78,9 @@ import org.knime.core.node.util.SharedIcons;
  * Implements the tab panel for the character set settings (in the advanced settings dialog).
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class CharsetNamePanel extends JPanel {
 
     private static final long serialVersionUID = 2016L;

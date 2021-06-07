@@ -71,15 +71,15 @@ import org.knime.core.util.tokenizer.SettingsStatus;
 import org.knime.core.util.tokenizer.TokenizerSettings;
 
 /**
- * Contains all settings needed to read in a ASCII data file. This includes the
- * location of the data file, the settings for the tokenizer (like column
- * delimiter, comment patterns etc.) as well as the row headers and more. This
- * object combined with a {@link org.knime.core.data.DataTableSpec} can be used
- * to create a {@link FileTable} from. A <code>FileTable</code> will represent
- * then the data of the file in a {@link org.knime.core.data.DataTable}.
+ * Contains all settings needed to read in a ASCII data file. This includes the location of the data file, the settings
+ * for the tokenizer (like column delimiter, comment patterns etc.) as well as the row headers and more. This object
+ * combined with a {@link org.knime.core.data.DataTableSpec} can be used to create a {@link FileTable} from. A
+ * <code>FileTable</code> will represent then the data of the file in a {@link org.knime.core.data.DataTable}.
  *
  * @author ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class FileReaderSettings extends TokenizerSettings {
     private static final Duration DEFAULT_CONNECT_TIMEOUT =
         Duration.ofMillis(Integer.getInteger(KNIMEConstants.PROPERTY_URL_TIMEOUT, 1000));

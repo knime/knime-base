@@ -54,16 +54,16 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeProgressMonitor;
 
 /**
- * Execution monitor used by the {@link FileAnalyzer}. Supports immediate
- * interruption of execution (in contrast to user cancellation, which finishes
- * fast - but not immediate).
+ * Execution monitor used by the {@link FileAnalyzer}. Supports immediate interruption of execution (in contrast to user
+ * cancellation, which finishes fast - but not immediate).
  * <p>
- * IMPORTANT NOTE: In contrast to the default implementation cancel and
- * interrupt requests must be set with the execution monitor, not the progress
- * monitor!
+ * IMPORTANT NOTE: In contrast to the default implementation cancel and interrupt requests must be set with the
+ * execution monitor, not the progress monitor!
  *
  * @author ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class FileReaderExecutionMonitor extends ExecutionMonitor {
 
     // if not null this is a sub exec

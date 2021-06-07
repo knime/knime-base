@@ -40,10 +40,10 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
- * 
+ * -------------------------------------------------------------------
+ *
  * History
- *   Mar 19, 2007 (ohl): created
+ *   19.07.2006 (ohl): created
  */
 package org.knime.base.node.io.filereader;
 
@@ -55,22 +55,28 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-/**
- * Panel for the "uniquify row IDs" option.
- * 
- * @author ohl, University of Konstanz
- */
-class UniquifyPanel extends JPanel {
+import org.knime.core.util.tokenizer.Delimiter;
 
-    private JCheckBox m_uniquifyRowIDs;
+/**
+ * Dialog panel for the expert dialog of the filereader. Panel for the flag "ignore extra delimiters at the end of the
+ * rows".
+ *
+ * @author Peter Ohl, University of Konstanz
+ *
+ * @deprecated replaced by File Reader (Complex Format)
+ */
+@Deprecated
+public class IgnoreDelimsPanel extends JPanel {
+
+    private JCheckBox m_ignoreThem;
 
     /**
      * Constructs the panels and loads it with the settings from the passed
      * object.
-     * 
+     *
      * @param settings containing the settings to show in the panel
      */
-    UniquifyPanel(final FileReaderNodeSettings settings) {
+    IgnoreDelimsPanel(final FileReaderNodeSettings settings) {
         initialize();
         loadSettings(settings);
     }
@@ -89,11 +95,10 @@ class UniquifyPanel extends JPanel {
 
     private Container getPanel() {
 
-        m_uniquifyRowIDs = new JCheckBox("generate unique row IDs");
-
+        m_ignoreThem = new JCheckBox("Ignore extra delimiters at end of rows");
         Box result = Box.createHorizontalBox();
         result.add(Box.createHorizontalGlue());
-        result.add(m_uniquifyRowIDs);
+        result.add(m_ignoreThem);
         result.add(Box.createHorizontalStrut(5));
         result.add(Box.createHorizontalGlue());
         return result;
@@ -102,31 +107,23 @@ class UniquifyPanel extends JPanel {
     private Container getTextBox() {
         Box result = Box.createVerticalBox();
         result.add(Box.createVerticalGlue());
-        result.add(new JLabel(
-                "If you check this, the reader checks each row ID"));
-        result.add(new JLabel(
-                "that it reads from the file and appends a suffix"));
-        result.add(new JLabel(
-                "if it has read the ID before. Huge files will cause"));
-        result.add(new JLabel("it to fail with an out of memory error."));
-        result.add(Box.createVerticalStrut(7));
-        result.add(new JLabel(
-                "If this is not checked and the file reader reads"));
-        result.add(new JLabel(
-                "rows with identical row IDs, it will refuse to read the"));
-        result.add(new JLabel("data and fail during execution."));
-        result.add(Box.createVerticalStrut(10));
-        result.add(new JLabel(
-                "This option is ignored if the file doesn't contain"));
-        result.add(new JLabel("row IDs."));
+        result.add(new JLabel("Check this to ignore additional whitespaces"));
+        result.add(new JLabel("at the end of each row. Otherwise a missing"));
+        result.add(new JLabel("cell will be introduced."));
+        result.add(Box.createVerticalStrut(5));
+        result.add(new JLabel("Note: With this set, missing values at the"));
+        result.add(new JLabel("\t\tend of a row must be quoted (e.g. \"\")."));
+        result.add(Box.createVerticalStrut(3));
+        result.add(new JLabel("This setting is ignored if a delimiter other"));
+        result.add(new JLabel("than space or tab is selected."));
 
         result.add(Box.createVerticalGlue());
         return result;
     }
-    
+
     /**
      * Checks the current values in the panel.
-     * 
+     *
      * @return null, if settings are okay and can be applied. An error message
      *         if not.
      */
@@ -134,27 +131,60 @@ class UniquifyPanel extends JPanel {
         return null;
     }
 
-
-
     /**
      * Transfers the current settings from the panel in the passed object.
      * Overwriting the corresponding values in the object.
-     * 
+     *
      * @param settings the settings object to fill in the currently set values
      * @return true if the new settings are different from the one passed in.
      */
     boolean overrideSettings(final FileReaderNodeSettings settings) {
-        boolean oldVal = settings.uniquifyRowIDs();
-        settings.setUniquifyRowIDs(m_uniquifyRowIDs.isSelected());
-        return oldVal != settings.uniquifyRowIDs();
+
+        boolean ignoreEm = m_ignoreThem.isSelected();
+
+        if (ignoreEm != settings.ignoreDelimsAtEORUserValue()) {
+            // set the user set value - only if he changed it.
+
+            settings.setIgnoreDelimsAtEndOfRowUserValue(ignoreEm);
+
+            // and set he actual flag, if the delimiter is a whitespace (THIS
+            // DEPENDS on delimiters are being set before this is called!!!!)
+            // (!)
+            for (Delimiter delim : settings.getAllDelimiters()) {
+                String delStr = delim.getDelimiter();
+                if (!settings.isRowDelimiter(delStr, false)) {
+                    if (delStr.equals(" ") || delStr.equals("\t")) {
+                        settings.setIgnoreEmptyTokensAtEndOfRow(ignoreEm);
+                        break;
+                    }
+
+                }
+
+            }
+
+            // also fix the delimiter settings
+            // I guess that is what they would expect...?
+            settings.setDelimiterUserSet(true);
+
+            // need to re-analyze file with settings changed
+            return true;
+        }
+
+        return false; // no need to re-analyze, no settings changed here.
+
     }
 
     /**
      * Transfers the corresponding values from the passed object into the panel.
-     * 
+     *
      * @param settings object holding the values to display in the panel
      */
     private void loadSettings(final FileReaderNodeSettings settings) {
-        m_uniquifyRowIDs.setSelected(settings.uniquifyRowIDs());
+
+        if (settings.ignoreDelimsAtEORUserSet()) {
+            m_ignoreThem.setSelected(settings.ignoreDelimsAtEORUserValue());
+        } else {
+            m_ignoreThem.setSelected(settings.ignoreEmptyTokensAtEndOfRow());
+        }
     }
 }

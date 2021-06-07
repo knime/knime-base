@@ -69,7 +69,9 @@ import org.knime.core.util.tokenizer.TokenizerException;
  * @author Peter Ohl, University of Konstanz
  *
  * @see org.knime.core.data.RowIterator
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 class FileRowIterator extends CloseableRowIterator {
 
     /* The tokenizer reads the next token from the input stream. */

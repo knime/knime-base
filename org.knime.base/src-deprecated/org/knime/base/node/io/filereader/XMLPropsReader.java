@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   28.01.2005 (ohl): created
  */
@@ -67,9 +67,11 @@ import org.xml.sax.SAXException;
 /**
  * Adds support for the old XML property files. It will read the specified XML
  * file and provides the values at its API.
- * 
+ *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class XMLPropsReader extends XMLProperties {
 
     /*
@@ -88,9 +90,9 @@ public class XMLPropsReader extends XMLProperties {
      * Initializes a new specification object for a {@link FileTable} using the
      * XML {@link URL} which contains a link to the source file as well as other
      * properties how to parse the input data file.
-     * 
+     *
      * @param xmlURL specifies the URL where to find the XML file
-     * 
+     *
      * @throws IllegalArgumentException if <code>xmlURL</code> is
      *             <code>null</code>.
      * @throws IOException if <code>xmlURL</code> is not valid
@@ -113,7 +115,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns the file tables' id.
-     * 
+     *
      * @return the id for this table
      */
     public String getId() {
@@ -123,7 +125,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Get the missing value designator for the specified column.
-     * 
+     *
      * @param index the index of the column to get the missing value
      *            representation for
      * @return the value of the missing attr of the specified column
@@ -151,7 +153,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns number of columns as read from the xml file.
-     * 
+     *
      * @return number of columns specified in the xml file
      * @throws NumberFormatException if value is not parsable as integer number
      */
@@ -166,10 +168,10 @@ public class XMLPropsReader extends XMLProperties {
     /**
      * Returns <code>true</code> if column header is specified in the data
      * file and must be read from data input file, otherwise <code>false</code>.
-     * 
+     *
      * @return <code>true</code> if column header must be read from input
      *         file, otherwise <code>false</code>
-     * 
+     *
      * @throws IllegalCharsetNameException if attribute is not either of value
      *             <code>true</code> or <code>false</code>
      */
@@ -192,10 +194,10 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns column name at index.
-     * 
+     *
      * @param index in column header.
      * @return column name at index.
-     * 
+     *
      * @throws IndexOutOfBoundsException if index out of range or number of
      *             columns not specified in xml file
      */
@@ -224,7 +226,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns column type as {@link DataType} at index.
-     * 
+     *
      * @param index in column header
      * @return column type
      * @throws IndexOutOfBoundsException if index out of range
@@ -273,7 +275,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Get the URL of the XML file this spec was build from.
-     * 
+     *
      * @return the URL of the XML file
      */
     public URL getXMLFileURL() {
@@ -285,7 +287,7 @@ public class XMLPropsReader extends XMLProperties {
      * It will not try to create an URL from it (in case it is malformed). It
      * will return a (not null) string of the form (parts in brackets are
      * optional): "['protocol':]['host'//][:'port]filename"
-     * 
+     *
      * @return a non-<code>null</code> string containing the data file URL
      *         specifier from the XML file
      */
@@ -328,7 +330,7 @@ public class XMLPropsReader extends XMLProperties {
      * Returns an URL of the input data file initialized with file name,
      * protocol, host, and port as specified in the xml file. If a relative URL
      * was specified it is being relativized against the URL of the XML file.
-     * 
+     *
      * @return input file URL or <code>null</code> if not available
      * @throws MalformedURLException if the URL cannot be initialized
      */
@@ -349,7 +351,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns column delimiter string.
-     * 
+     *
      * @return column delimiter string or <code>null</code> if not available
      */
     public String getColumnDelimiter() {
@@ -359,7 +361,7 @@ public class XMLPropsReader extends XMLProperties {
     /**
      * Returns <code>true</code> if row header is specified in the data file
      * and must be read from data input file, otherwise <code>false</code>.
-     * 
+     *
      * @return <code>true</code> if row header must be read from input file,
      *         otherwise <code>false</code>
      * @throws IllegalCharsetNameException if attribute is not either of value
@@ -382,7 +384,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns the prefix for row keys.
-     * 
+     *
      * @return row key prefix or <code>null</code> if not available
      */
     public String getRowPrefix() {
@@ -391,7 +393,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns row delimiter string.
-     * 
+     *
      * @return row delimiter string or <code>null</code> if not available
      */
     public String getRowDelimiter() {
@@ -400,7 +402,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns line comment string.
-     * 
+     *
      * @return the line comment string or <code>null</code> if not available
      */
     public String getLineComment() {
@@ -416,7 +418,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns the string for the left block comment.
-     * 
+     *
      * @return string for left block comment
      */
     public String getBlockCommentLeft() {
@@ -432,7 +434,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns the string for the right block comment.
-     * 
+     *
      * @return string for right block comment
      */
     public String getBlockCommentRight() {
@@ -448,7 +450,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns the string for the left quote.
-     * 
+     *
      * @return string for left quote
      */
     public String getQuoteLeft() {
@@ -464,7 +466,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns the string for the right quote.
-     * 
+     *
      * @return string for right quote
      */
     public String getQuoteRight() {
@@ -480,7 +482,7 @@ public class XMLPropsReader extends XMLProperties {
 
     /**
      * Returns escape quote string.
-     * 
+     *
      * @return the escape quote string
      */
     public String getQuoteEscape() {

@@ -68,13 +68,14 @@ import org.knime.core.util.tokenizer.SettingsStatus;
 /**
  * Implements a {@link DataTable} that reads data from an ASCII file.
  *
- * To instantiate this table you need to specify {@link FileReaderSettings} and
- * a {@link org.knime.core.data.DataTableSpec}. File reader settings define
- * from where and how to read the data, the table spec specifies the structure
- * of the table to create.
+ * To instantiate this table you need to specify {@link FileReaderSettings} and a
+ * {@link org.knime.core.data.DataTableSpec}. File reader settings define from where and how to read the data, the table
+ * spec specifies the structure of the table to create.
  *
  * @author Peter Ohl, University of Konstanz
+ * @deprecated replaced by File Reader (Complex Format)
  */
+@Deprecated
 public class FileTable implements DataTable {
 
     /** The node logger for this class. */
@@ -197,6 +198,7 @@ public class FileTable implements DataTable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public FileRowIterator iterator() {
         try {
             synchronized (m_iterators) {
@@ -218,6 +220,7 @@ public class FileTable implements DataTable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public DataTableSpec getDataTableSpec() {
         return m_tableSpec;
     }
