@@ -23,6 +23,7 @@
 #   dbfs
 #   local
 #   ftp
+#   ftp-embedded
 #   google-cs
 #   google-drive
 #   hdfs
@@ -64,7 +65,7 @@ dbfs.url = <DATABRICKS-DEPLOYMENT-URL>
 dbfs.token = <TOKEN>
 
 ################ FTP ###################
-ftp.workingDirPrefix = <PATH-ON-SSH-SERVER>
+ftp.workingDirPrefix = <PATH-ON-FTP-SERVER>
 ftp.host = <HOST>
 # port is optional
 # ftp.port = 21
@@ -74,6 +75,11 @@ ftp.host = <HOST>
 # ftp.timeZoneOffset = 0
 ftp.username = <USERNAME>
 ftp.password = <PASSWORD>
+
+################ FTP (with embedded server) ###################
+ftp-embedded.workingDirPrefix = <PATH-ON-LOCAL-SYSTEM>
+ftp-embedded.username = <USERNAME>
+ftp-embedded.password = <PASSWORD>
 
 ################ Google CS (Cloud Storage) ################
 google-cs.workingDirPrefix = /knime-filehandling-test-bucket
