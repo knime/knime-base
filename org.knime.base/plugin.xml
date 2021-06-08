@@ -636,9 +636,10 @@
             factory-class="org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory"/>
       <node
             category-path="/manipulation/column/column-split+combine"
-            factory-class="org.knime.base.node.preproc.joiner.Joiner2NodeFactory"/>
+            factory-class="org.knime.base.node.preproc.joiner.Joiner2NodeFactory"
+            deprecated="true"/>
       <node
-            category-path="/labs/"
+            category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.joiner3.Joiner3NodeFactory"/>
       <node
             category-path="/manipulation/column/column-split+combine"
@@ -647,7 +648,7 @@
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.crossjoin.CrossJoinerNodeFactory"
-            after="org.knime.base.node.preproc.joiner.Joiner2NodeFactory" />
+            after="org.knime.base.node.preproc.joiner.Joiner3NodeFactory" />
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.split.SplitNodeFactory"
