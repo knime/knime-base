@@ -112,6 +112,16 @@ final class TableWriterNodeModel extends NodeModel {
         try (final WritePathAccessor accessor = writerModel.createWritePathAccessor()) {
             final FSPath outpath = accessor.getOutputPath(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+            // create parent directories
+            final FSPath parentPath = (FSPath)outpath.getParent();
+            if (parentPath != null && !FSFiles.exists(parentPath)) {
+                if (m_settings.getWriterModel().isCreateMissingFolders()) {
+                    FSFiles.createDirectories(parentPath);
+                } else {
+                    throw new IOException(String.format(
+                        "The directory '%s' does not exist and must not be created due to user settings.", parentPath));
+                }
+            }
             // since the remainder is rather costly we do this check here
             final FileOverwritePolicy fileOverwritePolicy = writerModel.getFileOverwritePolicy();
             if (fileOverwritePolicy == FileOverwritePolicy.FAIL && FSFiles.exists(outpath)) {
