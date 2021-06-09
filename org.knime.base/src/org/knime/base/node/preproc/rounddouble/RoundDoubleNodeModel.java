@@ -175,10 +175,7 @@ class RoundDoubleNodeModel extends SimpleStreamableFunctionNodeModel {
         /// SPEC CHECKS
         //
         FilterResult filteredCols = m_filterDoubleColModel.applyTo(dataSpec);
-        // check for at least one double column in input data table spec
-        if (filteredCols.getIncludes().length == 0) {
-            throw new InvalidSettingsException("There are no columns containing double values in the input table!");
-        }
+
         // check if all included columns are available in the spec
         String[] unknownCols = filteredCols.getRemovedFromIncludes();
         if (unknownCols.length == 1) {
