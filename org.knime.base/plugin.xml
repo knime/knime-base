@@ -648,7 +648,7 @@
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.crossjoin.CrossJoinerNodeFactory"
-            after="org.knime.base.node.preproc.joiner.Joiner3NodeFactory" />
+            after="org.knime.base.node.preproc.joiner3.Joiner3NodeFactory" />
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.split.SplitNodeFactory"
@@ -2357,7 +2357,7 @@
             factory-class="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
       </node>
       <node
-            after="org.knime.base.node.io.table.read.ReadTableNodeFactory"
+            after="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.pmml.reader.PMMLReaderNodeFactory3">
