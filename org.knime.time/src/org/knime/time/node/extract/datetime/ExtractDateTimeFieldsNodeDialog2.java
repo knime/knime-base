@@ -62,7 +62,7 @@ import org.knime.core.node.NodeSettingsWO;
 final class ExtractDateTimeFieldsNodeDialog2 extends AbstractExtractDateTimeFieldsNodeDialog {
 
     ExtractDateTimeFieldsNodeDialog2() {
-        super(LocaleProvider.JAVA_11);
+        super(LocaleProvider.JAVA_11, ExtractDateTimeFieldsNodeModel2.getDefaultLocale());
         initPanel();
     }
 

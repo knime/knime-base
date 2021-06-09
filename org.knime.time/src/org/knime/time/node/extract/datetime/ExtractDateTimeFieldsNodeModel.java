@@ -149,6 +149,10 @@ final class ExtractDateTimeFieldsNodeModel extends AbstractExtractDateTimeFields
 
     private final SettingsModelBoolean m_mapLocales = createMapLocalesModel();
 
+    ExtractDateTimeFieldsNodeModel() {
+        super(Locale.getDefault());
+    }
+
     static SettingsModelBoolean createMapLocalesModel() {
         final SettingsModelBoolean model = new SettingsModelBoolean("map_locales", true) {
             @Override

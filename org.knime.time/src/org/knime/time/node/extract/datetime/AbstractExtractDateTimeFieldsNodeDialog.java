@@ -98,11 +98,13 @@ abstract class AbstractExtractDateTimeFieldsNodeDialog extends NodeDialogPane {
 
     private final LocaleProvider m_localeProvider;
 
+    private final Locale m_defaultLocale;
+
     /**
      * Creates a new dialog.
      */
     @SuppressWarnings("unchecked")
-    AbstractExtractDateTimeFieldsNodeDialog(final LocaleProvider localeProvider) {
+    AbstractExtractDateTimeFieldsNodeDialog(final LocaleProvider localeProvider, final Locale defaultLocale) {
         // dialog components:
 
         m_dialogCompColSelect = new DialogComponentColumnNameSelection(
@@ -154,7 +156,8 @@ abstract class AbstractExtractDateTimeFieldsNodeDialog extends NodeDialogPane {
         }
 
         m_localeProvider = localeProvider;
-        m_localeModel = AbstractExtractDateTimeFieldsNodeModel.createLocaleModel();
+        m_defaultLocale = defaultLocale;
+        m_localeModel = AbstractExtractDateTimeFieldsNodeModel.createLocaleModel(defaultLocale);
         m_localeComboBox = new JComboBox<>(m_localeProvider.getLocales());
     }
 
@@ -352,13 +355,13 @@ abstract class AbstractExtractDateTimeFieldsNodeDialog extends NodeDialogPane {
         try {
             m_localeModel.loadSettingsFrom(settings);
         } catch (final InvalidSettingsException ex) { //NOSONAR
-            m_localeModel.setStringValue(LocaleProvider.localeToString(Locale.getDefault()));
+            m_localeModel.setStringValue(LocaleProvider.localeToString(m_defaultLocale));
         }
-        final Locale l;
+        Locale l;
         try {
             l = m_localeProvider.stringToLocale(m_localeModel.getStringValue());
-        } catch (final InvalidSettingsException e) {
-            throw new NotConfigurableException(e.getMessage(), e);
+        } catch (final InvalidSettingsException e) { // NOSONAR
+            l = m_defaultLocale;
         }
         m_localeComboBox.setSelectedItem(l);
         loadAdditionalSettings(settings, specs);

@@ -48,6 +48,8 @@
  */
 package org.knime.time.node.extract.datetime;
 
+import java.util.Locale;
+
 import javax.swing.JPanel;
 
 import org.knime.core.data.DataTableSpec;
@@ -65,7 +67,7 @@ final class ExtractDateTimeFieldsNodeDialog extends AbstractExtractDateTimeField
     private final DialogComponentBoolean m_mapLocales;
 
     ExtractDateTimeFieldsNodeDialog() {
-        super(LocaleProvider.JAVA_8);
+        super(LocaleProvider.JAVA_8, Locale.getDefault());
         m_mapLocales = new DialogComponentBoolean(ExtractDateTimeFieldsNodeModel.createMapLocalesModel(),
             "Map locales without region");
         super.initPanel();

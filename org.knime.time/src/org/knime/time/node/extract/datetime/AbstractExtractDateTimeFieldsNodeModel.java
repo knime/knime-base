@@ -138,8 +138,8 @@ abstract class AbstractExtractDateTimeFieldsNodeModel extends SimpleStreamableFu
         return subsecondsModelString;
     }
 
-    static SettingsModelString createLocaleModel() {
-        return new SettingsModelString("locale", LocaleProvider.localeToString(Locale.getDefault()));
+    static SettingsModelString createLocaleModel(final Locale defaultLocale) {
+        return new SettingsModelString("locale", LocaleProvider.localeToString(defaultLocale));
     }
 
     static boolean isDateType(final DataType type) {
@@ -200,7 +200,11 @@ abstract class AbstractExtractDateTimeFieldsNodeModel extends SimpleStreamableFu
     private final SettingsModelBoolean[] m_timeZoneModels =
         new SettingsModelBoolean[]{m_timeZoneNameModel, m_timeZoneOffsetModel};
 
-    private final SettingsModelString m_localeModel = createLocaleModel();
+    private final SettingsModelString m_localeModel;
+
+    AbstractExtractDateTimeFieldsNodeModel(final Locale defaultLocale) {
+        m_localeModel = createLocaleModel(defaultLocale);
+    }
 
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
