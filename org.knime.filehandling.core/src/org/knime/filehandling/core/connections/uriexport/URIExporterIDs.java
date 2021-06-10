@@ -48,8 +48,8 @@
  */
 package org.knime.filehandling.core.connections.uriexport;
 
+import org.knime.filehandling.core.connections.uriexport.base.PathURIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.path.PathURIExporterFactory;
 
 /**
  * Declares various {@link URIExporterID}s which are used across several file system implementations.

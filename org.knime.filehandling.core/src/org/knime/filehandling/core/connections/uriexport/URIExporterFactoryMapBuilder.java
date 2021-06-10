@@ -54,8 +54,8 @@ import java.util.Map;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.uriexport.base.PathURIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.path.PathURIExporterFactory;
 
 /**
  * Builder class to make it easier to correctly build the map for {@link FSConnection#getURIExporterFactories()}.

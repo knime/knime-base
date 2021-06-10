@@ -46,7 +46,7 @@
  * History
  *   Mar 16, 2021 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.uriexport.path;
+package org.knime.filehandling.core.connections.uriexport.base;
 
 import java.net.URI;
 
@@ -54,7 +54,6 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
