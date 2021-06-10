@@ -44,89 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 27, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 4, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.meta;
 
-import java.util.Arrays;
-
-import org.knime.filehandling.core.connections.meta.FSType;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
- * Lists the available options for the relative to file system.
+ * Registry class that maps string
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference non-public API
+ * <p>
+ * In corner cases, a particular file system implementation can register itself under several types in the
+ * {@link FSTypeRegistry}, but also for a given type/
+ * <p>
+ *
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public enum RelativeTo {
+public final class FSTypeRegistry {
 
-        /**
-         * Relative to mountpoint.
-         */
-        MOUNTPOINT("knime.mountpoint", "Current mountpoint", FSType.RELATIVE_TO_MOUNTPOINT),
+    private static final Map<String, FSType> TYPES = new HashMap<>();
 
-        /**
-         * Relative to workflow.
-         */
-        WORKFLOW("knime.workflow", "Current workflow", FSType.RELATIVE_TO_WORKFLOW),
-
-        /**
-         * Relative to workflow data area..
-         */
-        WORKFLOW_DATA("knime.workflow.data", "Current workflow data area", FSType.RELATIVE_TO_WORKFLOW_DATA_AREA);
-
-    private final String m_settingsValue;
-
-    private final String m_label;
-
-    private final FSType m_fsType;
-
-    private RelativeTo(final String settingsValue, final String label, final FSType fsType) {
-        m_settingsValue = settingsValue;
-        m_label = label;
-        m_fsType = fsType;
+    private FSTypeRegistry() {
     }
 
-    @Override
-    public String toString() {
-        return m_label;
+    public static synchronized FSType getOrCreateFSType(final String typeId, final String name) {
+        FSType fsType = TYPES.get(typeId); // NOSONAR computeIfAbsent causes ConcurrentModificationException due to FSType constants
+        if (fsType == null) {
+            fsType = new FSType(typeId, name);
+            TYPES.put(typeId, fsType);
+        }
+        return fsType;
     }
 
-    /**
-     * Retrieves the {@link RelativeTo} corresponding to the provided string (as obtained from
-     * {@link RelativeTo#getSettingsValue()}).
-     *
-     * @param string representation of the {@link RelativeTo} constant (as obtained from
-     *            {@link RelativeTo#getSettingsValue()}).
-     * @return the {@link RelativeTo} constant corresponding to <b>string</b>
-     */
-    public static RelativeTo fromSettingsValue(final String string) {
-        return Arrays.stream(RelativeTo.values())//
-            .filter(r -> r.m_settingsValue.equals(string))//
-            .findFirst()//
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("Unknown relative to option '%s' encountered.", string)));
+    public static synchronized Optional<FSType> getFSType(final String key) {
+        FSDescriptorRegistry.ensureInitialized();
+        return Optional.ofNullable(TYPES.get(key));
     }
 
-    /**
-     * Provides a user-friendly label for display purposes.
-     *
-     * @return a user-friendly label for display purposes.
-     */
-    public String getLabel() {
-        return m_label;
-    }
-
-    /**
-     * Provides the settings value.
-     *
-     * @return the settings value
-     */
-    public String getSettingsValue() {
-        return m_settingsValue;
-    }
-
-    public FSType toFSType() {
-        return m_fsType;
+    public static synchronized Set<FSType> getFSTypes() {
+        FSDescriptorRegistry.ensureInitialized();
+        return Collections.unmodifiableSet(new HashSet(TYPES.values()));
     }
 }

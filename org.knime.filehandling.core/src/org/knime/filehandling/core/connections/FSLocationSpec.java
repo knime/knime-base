@@ -54,6 +54,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
 
 /**
  * Interface that provides information about the kind of file system that a {@link FSLocation} requires.
@@ -98,6 +100,27 @@ public interface FSLocationSpec {
     default FSCategory getFSCategory() {
         return FSCategory.valueOf(getFileSystemCategory());
     }
+
+    default FSType getFSType() {
+        switch (getFSCategory()) {
+            case LOCAL:
+                return FSType.LOCAL_FS;
+            case RELATIVE:
+                final RelativeTo relativeTo = RelativeTo.fromSettingsValue(getFileSystemSpecifier().orElseThrow(IllegalStateException::new));
+                return relativeTo.toFSType();
+            case MOUNTPOINT:
+                return FSType.MOUNTPOINT;
+            case CUSTOM_URL:
+                return FSType.CUSTOM_URL;
+            case CONNECTED:
+                final String specifier = getFileSystemSpecifier().orElseThrow(IllegalStateException::new);
+                final String typeId = specifier.split(":")[0];
+                return FSTypeRegistry.getFSType(typeId).orElseThrow(IllegalStateException::new);
+            default:
+                throw new IllegalStateException("Unknown file system category: " + getFSCategory());
+        }
+    }
+
 
     /**
      * Returns the optional file system specifier.

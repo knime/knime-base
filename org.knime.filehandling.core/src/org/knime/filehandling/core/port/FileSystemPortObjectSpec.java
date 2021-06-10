@@ -56,6 +56,7 @@ import org.knime.core.node.ModelContentWO;
 import org.knime.core.node.port.AbstractSimplePortObjectSpec;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec.DefaultFSLocationSpecSerializer;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.FSLocationSpec;
@@ -141,6 +142,10 @@ public final class FileSystemPortObjectSpec extends AbstractSimplePortObjectSpec
             throw new IllegalStateException("Please reset and reexecute the file system connection node.");
         }
         return m_fsLocationSpec;
+    }
+
+    public FSType getFSType() {
+        return getFSLocationSpec().getFSType();
     }
 
     /**

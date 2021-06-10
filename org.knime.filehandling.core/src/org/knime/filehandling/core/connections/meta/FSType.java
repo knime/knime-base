@@ -46,16 +46,16 @@
  * History
  *   Jun 17, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.meta;
+
+import org.apache.commons.lang3.StringUtils;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSCategory;
 
 /**
- * Instances of this class uniquely identify a particular file system implementation, e.g. the Amazon S3 file system.
- *
- * <p>
- * Note that a file system implementation may register several {@link FSType}s in different {@link FSCategory
- * categories}. This is for example true for most of the convenience file systems (local, etc). In this case, these
- * {@link FSType}s share the same type identifier (see {@link #getTypeId()}, but differ in their category.
- * </p>
+ * Instances of this class uniquely identify a particular type of file system, e.g. the "local file system", or the "SSH
+ * file system". The "type" of a file system is almost always synonymous with its implementation, but does not have to
+ * be (see {@link FSTypeRegistry}).
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
@@ -64,21 +64,28 @@ package org.knime.filehandling.core.connections;
 public final class FSType {
 
     /**
-     * The file system type for the (convenience) local file system.
+     * The file system type for the local file system.
      */
-    public static final FSType LOCAL_FS = new FSType(FSCategory.LOCAL, "local", "Local File System");
+    public static final FSType LOCAL_FS = FSTypeRegistry.getOrCreateFSType("local", "Local File System");
 
     /**
-     * The file system type for the (convenience) Mountpoint file system.
+     * The file system type for the Mountpoint file system.
      */
-    public static final FSType MOUNTPOINT = new FSType(FSCategory.MOUNTPOINT, "knime-mountpoint", "Mountpoint");
+    public static final FSType MOUNTPOINT = FSTypeRegistry.getOrCreateFSType("knime-mountpoint", "Mountpoint");
+
+    public static final FSType RELATIVE_TO_WORKFLOW =
+        FSTypeRegistry.getOrCreateFSType("knime-relative-workflow", "Relative to current workflow");
+
+    public static final FSType RELATIVE_TO_MOUNTPOINT =
+        FSTypeRegistry.getOrCreateFSType("knime-relative-mountpoint", "Relative to current mountpoint");
+
+    public static final FSType RELATIVE_TO_WORKFLOW_DATA_AREA =
+        FSTypeRegistry.getOrCreateFSType("knime-relative-workflow-data", "Relative to current workflow data area");
 
     /**
      * The file system type for the (convenience) Custom/KNIME URL file system.
      */
-    public static final FSType CUSTOM_URL = new FSType(FSCategory.CUSTOM_URL, "knime-url", "Custom/KNIME URL");
-
-    private final FSCategory m_category;
+    public static final FSType CUSTOM_URL = FSTypeRegistry.getOrCreateFSType("knime-url", "Custom/KNIME URL");
 
     private final String m_typeId;
 
@@ -87,21 +94,14 @@ public final class FSType {
     /**
      * Creates a new instance.
      *
-     * @param category The file system category.
      * @param typeId The globally unique type identifier of the file system type.
      * @param name A human-readable name for this type of file system
      */
-    public FSType(final FSCategory category, final String typeId, final String name) {
-        m_category = category;
-        m_typeId = typeId;
+    FSType(final String typeId, final String name) {
+        CheckUtils.checkArgument(StringUtils.isNotBlank(typeId), "ID of FSType must not be blank");
+        CheckUtils.checkArgument(StringUtils.isNotBlank(name), "Name of FSType must not be blank");
+        m_typeId = typeId.trim();
         m_name = name;
-    }
-
-    /**
-     * @return the file system category of this particular {@link FSType}.
-     */
-    public FSCategory getCategory() {
-        return m_category;
     }
 
     /**
@@ -127,13 +127,12 @@ public final class FSType {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((m_category == null) ? 0 : m_category.hashCode());
         result = prime * result + ((m_typeId == null) ? 0 : m_typeId.hashCode());
         return result;
     }
 
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(final Object obj) { // NOSONAR generated equals method
         if (this == obj) {
             return true;
         }
@@ -144,9 +143,6 @@ public final class FSType {
             return false;
         }
         FSType other = (FSType)obj;
-        if (m_category != other.m_category) {
-            return false;
-        }
         if (m_typeId == null) {
             if (other.m_typeId != null) {
                 return false;
@@ -155,5 +151,10 @@ public final class FSType {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return getTypeId();
     }
 }

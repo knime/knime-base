@@ -59,6 +59,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.meta.FSType;
 
 /**
  * Abstract super class implemented by all NIO file systems provided in KNIME. This class adds the following features on
@@ -123,8 +124,17 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      *
      * @return the {@link FSLocationSpec} for this file system instance.
      */
-    public FSLocationSpec getFSLocationSpec() {
+    public final FSLocationSpec getFSLocationSpec() {
         return m_fsLocationSpec;
+    }
+
+    /**
+     * Returns the type of this file system, such as "local", or "amazon-s3".
+     *
+     * @return the type of this file system as an {@link FSType} instance.
+     */
+    public final FSType getFSType() {
+        return m_fsLocationSpec.getFSType();
     }
 
     /**

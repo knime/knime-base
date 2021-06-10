@@ -56,7 +56,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSType;
+import org.knime.filehandling.core.connections.meta.FSType;
 
 /**
  * Class encapsulating the five different types of file system choices.
