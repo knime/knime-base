@@ -44,65 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2020 (bjoern): created
+ *   Feb 9, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections;
-
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+package org.knime.filehandling.core.connections.meta;
 
 /**
- * Wrapper for {@link FSConnection} that prevents closing the wrapped {@link FSConnection}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class UncloseableFSConnection implements FSConnection {
+public interface FSCapabilities {
 
-    private final FSConnection m_wrapped;
+    boolean canBrowse();
 
-    @Override
-    public final void closeInBackground() {
-        // do nothing
-    }
+    boolean canListDirectories();
 
-    @Override
-    public final void close() {
-        // do nothing
-    }
+    boolean canCreateDirectories();
 
-    /**
-     * @return the wrapped {@link FSConnection}.
-     */
-    FSConnection getWrappedConnection() {
-        return m_wrapped;
-    }
+    boolean canDeleteDirectories();
 
-    /**
-     * Creates new instance.
-     *
-     * @param wrapped The actual {@link FSConnection} to wrap.
-     */
-    UncloseableFSConnection(final FSConnection wrapped) {
-        m_wrapped = wrapped;
-    }
+    boolean canGetPosixAttributes();
 
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_wrapped.getFileSystem();
-    }
+    boolean canSetPosixAttributes();
 
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return m_wrapped.getFileSystemBrowser();
-    }
+    boolean canWriteFiles();
 
-    @Override
-    public NoConfigURIExporterFactory getDefaultURIExporterFactory() {
-        return m_wrapped.getDefaultURIExporterFactory();
-    }
+    boolean canDeleteFiles();
 
-    @Override
-    public boolean supportsBrowsing() {
-        return m_wrapped.supportsBrowsing();
-    }
+    boolean isWorkflowAware();
+
 }

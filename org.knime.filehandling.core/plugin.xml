@@ -3,6 +3,8 @@
 <plugin>
    <extension-point id="org.knime.filehandling.core.MountPointFileSystemAccess" name="MountPointFileSystemAccess" schema="schema/org.knime.filehandling.core.MountPointFileSystemAccess.exsd"/>
    <extension-point id="org.knime.filehandling.core.FSConnectionProvider" name="FSConnectionProvider" schema="schema/org.knime.filehandling.core.FSConnectionProvider.exsd"/>
+   <extension-point id="org.knime.filehandling.core.FSDescriptorProvider" name="FSDescriptorProvider" schema="schema/FSDescriptorProvider.exsd"/>
+   
    <extension
          point="org.knime.workbench.repository.categories">
       <category

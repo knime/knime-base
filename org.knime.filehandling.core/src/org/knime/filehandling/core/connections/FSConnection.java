@@ -7,13 +7,13 @@ import java.util.Set;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactoryMapBuilder;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.path.PathURIExporterFactory;
 
 /**
  * Interface for file system connections.
@@ -95,18 +95,7 @@ public interface FSConnection extends AutoCloseable {
      * @return default exporter or {@code null}
      */
     default NoConfigURIExporterFactory getDefaultURIExporterFactory() {
-        return (NoConfigURIExporterFactory) getURIExporterFactories().get(URIExporterIDs.DEFAULT);
-    }
-
-    /**
-     * Returns all supported {@link URIExporter} of this connection by identifier.
-     *
-     * @return map supported exporters by identifier
-     */
-    default Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
-        return new URIExporterFactoryMapBuilder() //
-            .add(URIExporterIDs.DEFAULT, PathURIExporterFactory.getInstance()) //
-            .build();
+        return (NoConfigURIExporterFactory) getURIExporterFactory(URIExporterIDs.DEFAULT);
     }
 
     /**
@@ -116,7 +105,11 @@ public interface FSConnection extends AutoCloseable {
      * @return URIExporterPanel of the URIExporter
      */
     default Set<URIExporterID> getURIExporterIDs() {
-        return getURIExporterFactories().keySet();
+        @SuppressWarnings("resource")
+        final FSType fsType = getFileSystem().getFSType();
+        return FSDescriptorRegistry.getFSDescriptor(fsType) //
+            .orElseThrow(() -> new IllegalStateException(String.format("FSType %s is not registered", fsType))) //
+            .getURIExporters();
     }
 
     /**
@@ -127,6 +120,16 @@ public interface FSConnection extends AutoCloseable {
      * @return URIExporterFactory A URIExporterFactory instance
      */
     default URIExporterFactory getURIExporterFactory(final URIExporterID uriExporterID) {
-        return getURIExporterFactories().get(uriExporterID);
+        @SuppressWarnings("resource")
+        final FSType fsType = getFileSystem().getFSType();
+        return FSDescriptorRegistry.getFSDescriptor(fsType) //
+            .orElseThrow(() -> new IllegalStateException(String.format("FSType %s is not registered", fsType))) //
+            .getURIExporterFactory(uriExporterID);
     }
+
+    // FIXME remove me
+    default Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
+        throw new UnsupportedOperationException();
+    }
+
 }

@@ -98,7 +98,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
      *            fragment will be ignored.
      * @param cacheTTL the time to live for cached elements in milliseconds. A value of 0 or smaller indicates no
      *            caching.
-     * @param workingDirectory the working directory
+     * @param workingDirectory The working directory of this file system instance.
      * @param fsLocationSpec the {@link FSLocationSpec}
      */
     protected BaseFileSystem(final BaseFileSystemProvider<?, ?> fileSystemProvider, final URI fsBaseUri, final long cacheTTL,
@@ -130,7 +130,7 @@ public abstract class BaseFileSystem<T extends FSPath> extends FSFileSystem<T> {
 
         super(fsBaseUri, fsLocationSpec, workingDirectory);
 
-        fileSystemProvider.setFileSystem(this);
+        fileSystemProvider.setFileSystem(this); // NOSONAR this is safe to do here
 
         Validate.notNull(fileSystemProvider, "File system provider must not be null.");
 

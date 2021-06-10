@@ -44,65 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2020 (bjoern): created
+ *   Jun 6, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.meta.base;
 
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import java.util.Set;
+
+import org.knime.filehandling.core.connections.meta.FSCapabilities;
+import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSConnectionFactory;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 
 /**
- * Wrapper for {@link FSConnection} that prevents closing the wrapped {@link FSConnection}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class UncloseableFSConnection implements FSConnection {
+public class ForwardingFSDescriptor implements FSDescriptor {
 
-    private final FSConnection m_wrapped;
+    private FSDescriptor m_targetDescriptor;
 
-    @Override
-    public final void closeInBackground() {
-        // do nothing
+    private final FSType m_targetFSType;
+
+    public ForwardingFSDescriptor(final FSType targetFSType) {
+        m_targetDescriptor = null;
+        m_targetFSType = targetFSType;
+    }
+
+    private synchronized FSDescriptor getTargetDescriptor() {
+        if (m_targetDescriptor == null) {
+            m_targetDescriptor = FSDescriptorRegistry.getFSDescriptor(m_targetFSType) //
+                .orElseThrow(
+                    () -> new IllegalStateException(m_targetFSType.getTypeId() + " FSDescriptor not registered"));
+        }
+
+        return m_targetDescriptor;
     }
 
     @Override
-    public final void close() {
-        // do nothing
-    }
-
-    /**
-     * @return the wrapped {@link FSConnection}.
-     */
-    FSConnection getWrappedConnection() {
-        return m_wrapped;
-    }
-
-    /**
-     * Creates new instance.
-     *
-     * @param wrapped The actual {@link FSConnection} to wrap.
-     */
-    UncloseableFSConnection(final FSConnection wrapped) {
-        m_wrapped = wrapped;
+    public <C extends FSConnectionConfig> FSConnectionFactory<C> getConnectionFactory() {
+        return getTargetDescriptor().getConnectionFactory();
     }
 
     @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_wrapped.getFileSystem();
+    public String getSeparator() {
+        return getTargetDescriptor().getSeparator();
     }
 
     @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return m_wrapped.getFileSystemBrowser();
+    public FSCapabilities getCapabilities() {
+        return getTargetDescriptor().getCapabilities();
     }
 
     @Override
-    public NoConfigURIExporterFactory getDefaultURIExporterFactory() {
-        return m_wrapped.getDefaultURIExporterFactory();
+    public Set<URIExporterID> getURIExporters() {
+        return getTargetDescriptor().getURIExporters();
     }
 
     @Override
-    public boolean supportsBrowsing() {
-        return m_wrapped.supportsBrowsing();
+    public URIExporterFactory getURIExporterFactory(final URIExporterID exporterId) {
+        return getTargetDescriptor().getURIExporterFactory(exporterId);
     }
+
 }

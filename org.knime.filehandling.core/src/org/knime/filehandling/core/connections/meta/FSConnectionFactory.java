@@ -44,65 +44,20 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2020 (bjoern): created
+ *   Feb 5, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.meta;
 
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import java.io.IOException;
+
+import org.knime.filehandling.core.connections.FSConnection;
 
 /**
- * Wrapper for {@link FSConnection} that prevents closing the wrapped {@link FSConnection}.
- *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class UncloseableFSConnection implements FSConnection {
+@FunctionalInterface
+public interface FSConnectionFactory<C extends FSConnectionConfig> {
 
-    private final FSConnection m_wrapped;
+    FSConnection createConnection(C config) throws IOException;
 
-    @Override
-    public final void closeInBackground() {
-        // do nothing
-    }
-
-    @Override
-    public final void close() {
-        // do nothing
-    }
-
-    /**
-     * @return the wrapped {@link FSConnection}.
-     */
-    FSConnection getWrappedConnection() {
-        return m_wrapped;
-    }
-
-    /**
-     * Creates new instance.
-     *
-     * @param wrapped The actual {@link FSConnection} to wrap.
-     */
-    UncloseableFSConnection(final FSConnection wrapped) {
-        m_wrapped = wrapped;
-    }
-
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_wrapped.getFileSystem();
-    }
-
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return m_wrapped.getFileSystemBrowser();
-    }
-
-    @Override
-    public NoConfigURIExporterFactory getDefaultURIExporterFactory() {
-        return m_wrapped.getDefaultURIExporterFactory();
-    }
-
-    @Override
-    public boolean supportsBrowsing() {
-        return m_wrapped.supportsBrowsing();
-    }
 }

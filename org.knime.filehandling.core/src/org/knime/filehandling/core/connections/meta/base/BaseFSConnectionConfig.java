@@ -44,65 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2020 (bjoern): created
+ *   May 2, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.meta.base;
 
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 
 /**
- * Wrapper for {@link FSConnection} that prevents closing the wrapped {@link FSConnection}.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author bjoern
  */
-class UncloseableFSConnection implements FSConnection {
+public class BaseFSConnectionConfig implements FSConnectionConfig {
 
-    private final FSConnection m_wrapped;
+    private final String m_workingDirectory;
 
-    @Override
-    public final void closeInBackground() {
-        // do nothing
+    private final boolean m_isConnectedFileSystem;
+
+
+    public BaseFSConnectionConfig(final String workingDirectory) {
+        this(workingDirectory, true);
     }
 
-    @Override
-    public final void close() {
-        // do nothing
+    public BaseFSConnectionConfig(final String workingDirectory, final boolean isConnectedFileSystem) {
+        m_workingDirectory = workingDirectory;
+        m_isConnectedFileSystem = isConnectedFileSystem;
     }
 
-    /**
-     * @return the wrapped {@link FSConnection}.
-     */
-    FSConnection getWrappedConnection() {
-        return m_wrapped;
+    public String getWorkingDirectory() {
+        return m_workingDirectory;
     }
 
-    /**
-     * Creates new instance.
-     *
-     * @param wrapped The actual {@link FSConnection} to wrap.
-     */
-    UncloseableFSConnection(final FSConnection wrapped) {
-        m_wrapped = wrapped;
-    }
-
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_wrapped.getFileSystem();
-    }
-
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return m_wrapped.getFileSystemBrowser();
-    }
-
-    @Override
-    public NoConfigURIExporterFactory getDefaultURIExporterFactory() {
-        return m_wrapped.getDefaultURIExporterFactory();
-    }
-
-    @Override
-    public boolean supportsBrowsing() {
-        return m_wrapped.supportsBrowsing();
+    public boolean isConnectedFileSystem() {
+        return m_isConnectedFileSystem;
     }
 }
