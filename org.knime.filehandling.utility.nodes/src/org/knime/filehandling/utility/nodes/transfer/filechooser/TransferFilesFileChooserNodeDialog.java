@@ -59,6 +59,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeDialog;
 
 /**
@@ -83,7 +84,8 @@ final class TransferFilesFileChooserNodeDialog
             createFlowVariableModel(sourceFileChooserConfig.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
 
         m_sourceFilePanel = new DialogComponentReaderFileChooser(sourceFileChooserConfig, "source_chooser", sourceFvm);
-
+        sourceFileChooserConfig.addChangeListener(
+            l -> enableVerboseOutputCheckbox(sourceFileChooserConfig.getFilterMode() == FilterMode.FOLDER));
         createPanel();
     }
 

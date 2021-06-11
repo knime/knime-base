@@ -155,6 +155,15 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
     }
 
     /**
+     * Enables/diables the verbose / detailed output checkbox.
+     *
+     * @param enabled flag indicating whether to enable or disable the checkbox
+     */
+    protected final void enableVerboseOutputCheckbox(final boolean enabled) {
+        m_verboseOutput.getModel().setEnabled(enabled);
+    }
+
+    /**
      * Listener method for the fail on deletion checkbox.
      */
     private void updateFailOnDeletion() {
