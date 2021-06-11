@@ -141,26 +141,28 @@ final class GenericCatchNodeModel extends NodeModel
      */
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
+        PortObject resultPort0;
         if (!(inData[0] instanceof InactiveBranchPortObject)) {
             // main branch is active - no failure so far...
-            return new PortObject[]{inData[0], FlowVariablePortObject.INSTANCE};
-        }
-
-        // main branch inactive, grab spec from alternative (default) input
-        // and push error reasons on stack (they come from the ScopeObject
-        // which will we removed after this node, closing the scope).
-        FlowTryCatchContext ftcc = getFlowContext();
-        if ((ftcc != null) && (ftcc.hasErrorCaught())) {
-            pushFlowVariableString("FailingNode", ftcc.getNode());
-            pushFlowVariableString("FailingNodeMessage", ftcc.getReason());
-            pushFlowVariableString("FailingNodeStackTrace", ftcc.getStacktrace());
-        } else if (m_alwaysPopulate.getBooleanValue()) {
-            pushFlowVariableString("FailingNode", m_defaultVariable.getStringValue());
-            pushFlowVariableString("FailingNodeMessage", m_defaultText.getStringValue());
-            pushFlowVariableString("FailingNodeStackTrace", m_defaultStackTrace.getStringValue());
+            resultPort0 = inData[0];
+        } else {
+            // main branch inactive, grab spec from alternative (default) input
+            // and push error reasons on stack (they come from the ScopeObject
+            // which will we removed after this node, closing the scope).
+            FlowTryCatchContext ftcc = getFlowContext();
+            if ((ftcc != null) && (ftcc.hasErrorCaught())) {
+                pushFlowVariableString("FailingNode", ftcc.getNode());
+                pushFlowVariableString("FailingNodeMessage", ftcc.getReason());
+                pushFlowVariableString("FailingNodeStackTrace", ftcc.getStacktrace());
+            } else if (m_alwaysPopulate.getBooleanValue()) {
+                pushFlowVariableString("FailingNode", m_defaultVariable.getStringValue());
+                pushFlowVariableString("FailingNodeMessage", m_defaultText.getStringValue());
+                pushFlowVariableString("FailingNodeStackTrace", m_defaultStackTrace.getStringValue());
+            }
+            resultPort0 = inData[1];
         }
         propagateVariables();
-        return new PortObject[]{inData[1], FlowVariablePortObject.INSTANCE};
+        return new PortObject[]{resultPort0, FlowVariablePortObject.INSTANCE};
     }
 
 
