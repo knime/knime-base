@@ -247,13 +247,11 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal();
         panel.add(m_fsChooserLabel, gbc.setWeightX(0).setWidth(1).build());
         panel.add(m_fsChooser.getPanel(), gbc.incX().insetLeft(5).fillNone().build());
+        panel.add(m_notBrowsableWarning.getPanel(), gbc.resetX().incX().incY().insetLeft(11).setWeightX(1).build());
         gbc.fillHorizontal();
         if (displayFilterModes) {
             panel.add(m_modeLabel, gbc.incY().resetX().insetLeft(0).build());
             panel.add(createModePanel(), gbc.incX().setWeightX(1).widthRemainder().build());
-        } else {
-            panel.add(m_notBrowsableWarning.getPanel(),
-                gbc.resetX().incX().incY().insetLeft(11).setWeightX(1).build());
         }
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
         panel.add(m_fileSelection.getPanel(),
@@ -266,10 +264,10 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     private JPanel createModePanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal().setWeightX(0);
+        final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().setWeightX(0);
         panel.add(m_filterMode.getComponentPanel(), gbc.incX().build());
         panel.add(m_filterMode.getFilterConfigPanel(), gbc.incX().insetLeft(20).build());
-        panel.add(m_notBrowsableWarning.getPanel(), gbc.incX().setWeightX(1).build());
+        panel.add(new JPanel(), gbc.incX().setWeightX(1).fillHorizontal().build());
         return panel;
     }
 
@@ -375,9 +373,11 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
             final StatusMessage msg =
                 DefaultStatusMessage.mkWarning(NOT_BROWSABLE_WARNING_TEMPLATE, sm.getFileSystemName());
             m_notBrowsableWarning.setStatus(msg);
+
         } else {
             m_notBrowsableWarning.clearStatus();
         }
+        m_notBrowsableWarning.getPanel().setVisible(!sm.canListFiles());
     }
 
     private FileSystemBrowser.FileSelectionMode getFileSelectionMode() {
