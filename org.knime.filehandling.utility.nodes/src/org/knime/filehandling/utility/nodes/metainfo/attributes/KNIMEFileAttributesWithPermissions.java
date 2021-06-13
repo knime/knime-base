@@ -52,6 +52,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Optional;
+
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.meta.FSCapabilities;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 
 /**
  * Class wrapping {@link BasicFileAttributes} and exposing additional functionality required by all
@@ -61,11 +67,11 @@ import java.nio.file.attribute.BasicFileAttributes;
  */
 public final class KNIMEFileAttributesWithPermissions extends KNIMEFileAttributes {
 
-    private final boolean m_isReadable;
+    private final Boolean m_isReadable;
 
-    private final boolean m_isWritable;
+    private final Boolean m_isWritable;
 
-    private final boolean m_isExecutable;
+    private final Boolean m_isExecutable;
 
     /**
      * Constructor allowing to calculate the overall size of the provided path if it is a folder as well as the
@@ -76,33 +82,50 @@ public final class KNIMEFileAttributesWithPermissions extends KNIMEFileAttribute
      * @param fileAttributes the path's {@link BasicFileAttributes}
      * @throws IOException - If anything went wrong while calculating the folders size
      */
-    public KNIMEFileAttributesWithPermissions(final Path p, final boolean calcFolderSize,
+    public KNIMEFileAttributesWithPermissions(final FSPath p, final boolean calcFolderSize,
         final BasicFileAttributes fileAttributes) throws IOException {
-        this(p, calcFolderSize, fileAttributes, Files.isReadable(p), Files.isWritable(p), Files.isExecutable(p));
+        super(p, calcFolderSize, fileAttributes);
+        if (supportsPosix(p)) {
+            m_isReadable = Files.isReadable(p);
+            m_isWritable = Files.isWritable(p);
+            m_isExecutable = Files.isExecutable(p);
+        } else {
+            m_isReadable = null;
+            m_isWritable = null;
+            m_isExecutable = null;
+        }
     }
 
     KNIMEFileAttributesWithPermissions(final Path p, final boolean calcFolderSize,
-        final BasicFileAttributes fileAttributes, final boolean isReadable, final boolean isWritable,
-        final boolean isExecutable) throws IOException {
+        final BasicFileAttributes fileAttributes, final Boolean isReadable, final Boolean isWritable,
+        final Boolean isExecutable) throws IOException {
         super(p, calcFolderSize, fileAttributes);
         m_isReadable = isReadable;
         m_isWritable = isWritable;
         m_isExecutable = isExecutable;
     }
 
-    @Override
-    boolean isReadable() {
-        return m_isReadable;
+    @SuppressWarnings("resource")
+    private static boolean supportsPosix(final FSPath p) {
+        return FSDescriptorRegistry.getFSDescriptor(p.getFileSystem().getFSType())//
+            .map(FSDescriptor::getCapabilities)//
+            .map(FSCapabilities::canGetPosixAttributes)//
+            .orElse(false);
     }
 
     @Override
-    boolean isWritable() {
-        return m_isWritable;
+    Optional<Boolean> isReadable() {
+        return Optional.ofNullable(m_isReadable);
     }
 
     @Override
-    boolean isExecutable() {
-        return m_isExecutable;
+    Optional<Boolean> isWritable() {
+        return Optional.ofNullable(m_isWritable);
+    }
+
+    @Override
+    Optional<Boolean> isExecutable() {
+        return Optional.ofNullable(m_isExecutable);
     }
 
 }

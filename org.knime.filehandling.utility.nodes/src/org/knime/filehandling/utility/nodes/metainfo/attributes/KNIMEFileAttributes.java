@@ -55,6 +55,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.knime.core.node.util.CheckUtils;
@@ -167,19 +168,19 @@ public abstract class KNIMEFileAttributes {
      *
      * @return the is readable flag
      */
-    abstract boolean isReadable();
+    abstract Optional<Boolean> isReadable();
 
     /**
      * Returns the is writable flag for the given file/folder.
      *
      * @return the is readable flag
      */
-    abstract boolean isWritable();
+    abstract Optional<Boolean> isWritable();
 
     /**
      * Returns the is executable flag for the given file/folder.
      *
      * @return the is readable flag
      */
-    abstract boolean isExecutable();
+    abstract Optional<Boolean> isExecutable();
 }

@@ -49,6 +49,7 @@
 package org.knime.filehandling.utility.nodes.metainfo.attributes;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
@@ -79,11 +80,25 @@ public class KNIMEFileAttributesWithPermissionsTest extends KNIMEFileAttributesT
      * @throws IOException - Cannot happen
      */
     @Test
-    public void testPermissions() throws IOException {
+    public void testStdPermissions() throws IOException {
         final KNIMEFileAttributes attr = initAttributes(false);
-        assertEquals(IS_READABLE, attr.isReadable());
-        assertEquals(IS_WRITABLE, attr.isWritable());
-        assertEquals(IS_EXECUTABLE, attr.isExecutable());
+        assertEquals(IS_READABLE, attr.isReadable().get());
+        assertEquals(IS_WRITABLE, attr.isWritable().get());
+        assertEquals(IS_EXECUTABLE, attr.isExecutable().get());
+    }
+
+    /**
+     * Tests that the permissions are correctly stored.
+     *
+     * @throws IOException - Cannot happen
+     */
+    @Test
+    public void testNullPermissions() throws IOException {
+        final KNIMEFileAttributes attr =
+            new KNIMEFileAttributesWithPermissions(getPathMock(), false, getFileAttributesMock(), null, null, null);
+        assertTrue(attr.isReadable().isEmpty());
+        assertTrue(attr.isWritable().isEmpty());
+        assertTrue(attr.isExecutable().isEmpty());
     }
 
 }

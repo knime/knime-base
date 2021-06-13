@@ -51,6 +51,7 @@ package org.knime.filehandling.utility.nodes.metainfo.attributes;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Optional;
 
 /**
  * Class wrapping {@link BasicFileAttributes} and exposing additional functionality required by all
@@ -80,17 +81,17 @@ public final class KNIMEFileAttributesWithoutPermissions extends KNIMEFileAttrib
     }
 
     @Override
-    boolean isReadable() {
+    Optional<Boolean> isReadable() {
         throw unsupportedOperation();
     }
 
     @Override
-    boolean isWritable() {
+    Optional<Boolean> isWritable() {
         throw unsupportedOperation();
     }
 
     @Override
-    boolean isExecutable() {
+    Optional<Boolean> isExecutable() {
         throw unsupportedOperation();
     }
 }

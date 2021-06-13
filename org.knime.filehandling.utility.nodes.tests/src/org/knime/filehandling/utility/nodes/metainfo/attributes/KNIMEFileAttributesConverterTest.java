@@ -215,6 +215,8 @@ public class KNIMEFileAttributesConverterTest {
         assertEquals(BooleanCell.TYPE, converter.getType());
         assertEquals(BooleanCellFactory.create(true), converter.createCell(
             new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, true, false, true)));
+        assertEquals(PermissionsKNIMEFileAttributesConverter.MISSING_CELL, converter.createCell(
+            new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, null, false, true)));
 
     }
 
@@ -229,6 +231,8 @@ public class KNIMEFileAttributesConverterTest {
         assertEquals(BooleanCell.TYPE, converter.getType());
         assertEquals(BooleanCellFactory.create(false), converter.createCell(
             new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, true, false, true)));
+        assertEquals(PermissionsKNIMEFileAttributesConverter.MISSING_CELL, converter.createCell(
+            new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, true, null, true)));
 
     }
 
@@ -243,6 +247,8 @@ public class KNIMEFileAttributesConverterTest {
         assertEquals(BooleanCell.TYPE, converter.getType());
         assertEquals(BooleanCellFactory.create(true), converter.createCell(
             new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, true, false, true)));
+        assertEquals(PermissionsKNIMEFileAttributesConverter.MISSING_CELL, converter.createCell(
+            new KNIMEFileAttributesWithPermissions(m_path, false, m_basicFileAttributes, true, null, null)));
 
     }
 }

@@ -48,10 +48,12 @@
  */
 package org.knime.filehandling.utility.nodes.metainfo.attributes;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 
@@ -66,36 +68,39 @@ public enum PermissionsKNIMEFileAttributesConverter implements KNIMEFileAttribut
         /**
          * Indicates whether or not the file/folder is readable.
          */
-        READABLE("Readable", BooleanCell.TYPE, k -> BooleanCellFactory.create(k.isReadable())),
+        READABLE("Readable", BooleanCell.TYPE, KNIMEFileAttributes::isReadable),
 
         /**
          * Indicates whether or not the file/folder is writable.
          */
-        WRITABLE("Writable", BooleanCell.TYPE, k -> BooleanCellFactory.create(k.isWritable())),
+        WRITABLE("Writable", BooleanCell.TYPE, KNIMEFileAttributes::isWritable),
 
         /**
          * Indicates whether or not the file/folder is executable.
          */
-        EXECUTABLE("Executable", BooleanCell.TYPE, k -> BooleanCellFactory.create(k.isExecutable()));
+        EXECUTABLE("Executable", BooleanCell.TYPE, KNIMEFileAttributes::isExecutable);
+
+    static final DataCell MISSING_CELL =
+        new MissingCell("The specified file system does not support permission lookups.");
 
     private final String m_name;
 
     private final DataType m_type;
 
-    private final Function<KNIMEFileAttributes, DataCell> m_cellCreator;
+    private final Function<KNIMEFileAttributes, Optional<Boolean>> m_valueAccessor;
 
     /**
      * Constructor.
      *
      * @param name name of this attribute
      * @param type cell type created by this attribute
-     * @param cellCreator function to create the data cell
+     * @param valueAccessor function to access the permissions flag
      */
     private PermissionsKNIMEFileAttributesConverter(final String name, final DataType type,
-        final Function<KNIMEFileAttributes, DataCell> cellCreator) {
+        final Function<KNIMEFileAttributes, Optional<Boolean>> valueAccessor) {
         m_name = name;
         m_type = type;
-        m_cellCreator = cellCreator;
+        m_valueAccessor = valueAccessor;
     }
 
     @Override
@@ -110,6 +115,8 @@ public enum PermissionsKNIMEFileAttributesConverter implements KNIMEFileAttribut
 
     @Override
     public DataCell createCell(final KNIMEFileAttributes attributes) {
-        return m_cellCreator.apply(attributes);
+        return m_valueAccessor.apply(attributes)//
+            .map(BooleanCellFactory::create)//
+            .orElse(MISSING_CELL);
     }
 }

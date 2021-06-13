@@ -58,7 +58,8 @@
 		</option>
 		<option name="Append permissions">
 			If checked the the file/folder permissions, i.e., <i>readable</i>, <i>writable</i>, and <i>executable</i> 
-			flags will be appended to the output.
+			flags will be appended to the output. In case the file system does not allow to access these attributes 
+			missing values are written to the output. 
 			<br/>
 			<i>Note:</i> The meaning of the executable flag with respect to folders is file system depended, e.g., on 
 			UNIX systems this flag is <tt>true</tt> if the JVM has permissions to search the directory.
