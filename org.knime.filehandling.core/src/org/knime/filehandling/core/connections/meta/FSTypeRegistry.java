@@ -81,13 +81,25 @@ public final class FSTypeRegistry {
         return fsType;
     }
 
-    public static synchronized Optional<FSType> getFSType(final String key) {
+    public static Optional<FSType> getFSType(final String key) {
         FSDescriptorRegistry.ensureInitialized();
-        return Optional.ofNullable(TYPES.get(key));
+
+        // in order to avoid deadlocks we synchronize AFTER the FSDescriptorRegistry
+        // is initialized, because a concurrent code path initializing the
+        // FSDescriptorRegistry may need to get/create FSTypes.
+        synchronized (FSTypeRegistry.class) {
+            return Optional.ofNullable(TYPES.get(key));
+        }
     }
 
-    public static synchronized Set<FSType> getFSTypes() {
+    public static Set<FSType> getFSTypes() {
         FSDescriptorRegistry.ensureInitialized();
-        return Collections.unmodifiableSet(new HashSet(TYPES.values()));
+
+        // in order to avoid deadlocks we synchronize AFTER the FSDescriptorRegistry
+        // is initialized, because a concurrent code path initializing the
+        // FSDescriptorRegistry may need to get/create FSTypes.
+        synchronized (FSTypeRegistry.class) {
+            return Collections.unmodifiableSet(new HashSet(TYPES.values()));
+        }
     }
 }
