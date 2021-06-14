@@ -99,6 +99,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.tableview.TableRowHeaderView;
 import org.knime.core.node.tableview.TableView;
 import org.knime.core.node.util.ViewUtils;
@@ -1040,12 +1041,11 @@ final class FileReaderNodeDialog extends NodeDialogPane {
      * {@inheritDoc}
      */
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         /*
          * TODO: We need to synchronize the NodeSettings object
          */
-
         m_isLoading = true;
         m_fileChooser.loadSettingsFrom(settings, specs);
         m_isLoading = false;
@@ -1060,7 +1060,7 @@ final class FileReaderNodeDialog extends NodeDialogPane {
     /**
      * We do the entire load settings in the Event/GUI thread as it accesses a lot of GUI components.
      */
-    private void loadSettingsFromInternal(final NodeSettingsRO settings, final DataTableSpec[] specs) {
+    private void loadSettingsFromInternal(final NodeSettingsRO settings, final PortObjectSpec[] specs) {
         assert (settings != null && specs != null);
         try {
             // this will fail if the settings are invalid (which will be the

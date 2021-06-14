@@ -49,7 +49,6 @@ import java.util.EnumSet;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -58,6 +57,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.node.streamable.PartitionInfo;
@@ -181,16 +181,12 @@ final class FileReaderNodeModel extends NodeModel {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] data, final ExecutionContext exec)
-        throws Exception {
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         DataTableSpec spec = m_frSettings.createDataTableSpec(false);
         BufferedDataTableRowOutput output = new BufferedDataTableRowOutput(exec.createDataContainer(spec));
         createStreamableOperator(null, null).runFinal(new PortInput[0], new PortOutput[]{output}, exec);
-        return new BufferedDataTable[]{output.getDataTable()};
+        return new PortObject[]{output.getDataTable()};
     }
 
     /**
@@ -200,13 +196,8 @@ final class FileReaderNodeModel extends NodeModel {
         return m_frSettings;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        assert inSpecs.length == 0;
-
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_frSettings == null) {
             throw new InvalidSettingsException("No Settings available.");
         }
