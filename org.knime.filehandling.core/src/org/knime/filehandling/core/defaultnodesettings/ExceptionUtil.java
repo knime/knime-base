@@ -212,7 +212,7 @@ public class ExceptionUtil {
     private static final class FormattedAccessDeniedException extends AccessDeniedException
         implements FormattedNIOException {
 
-        private static final String MSG_PREFIX = "Unable to access";
+        private static final String MSG_PREFIX = "Access denied on";
 
         private static final long serialVersionUID = 1L;
 
