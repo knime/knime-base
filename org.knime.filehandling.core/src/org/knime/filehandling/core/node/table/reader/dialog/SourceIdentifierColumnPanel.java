@@ -71,7 +71,7 @@ public final class SourceIdentifierColumnPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private final JCheckBox m_prependSourceIdentifierColumn;
+    private final JCheckBox m_appendSourceIdentifierColumn;
 
     private final JTextField m_sourceIdentifierColumnName = new JTextField(20);
 
@@ -87,14 +87,14 @@ public final class SourceIdentifierColumnPanel extends JPanel {
     public SourceIdentifierColumnPanel(final String sourceType) {
         super(new GridBagLayout());
         setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), sourceType + " column"));
-        m_prependSourceIdentifierColumn = new JCheckBox(String.format("Prepend %s column", sourceType.toLowerCase()));
+        m_appendSourceIdentifierColumn = new JCheckBox(String.format("Append %s column", sourceType.toLowerCase()));
         hookupListeners();
         layoutPanel();
     }
 
     private void hookupListeners() {
-        m_prependSourceIdentifierColumn.addActionListener(e -> togglePathColumnName());
-        m_prependSourceIdentifierColumn.addActionListener(e -> notifyListeners());
+        m_appendSourceIdentifierColumn.addActionListener(e -> togglePathColumnName());
+        m_appendSourceIdentifierColumn.addActionListener(e -> notifyListeners());
         m_sourceIdentifierColumnName.getDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -117,23 +117,23 @@ public final class SourceIdentifierColumnPanel extends JPanel {
 
     private void layoutPanel() {
         final GBCBuilder gbc = new GBCBuilder().resetPos().anchorFirstLineStart();
-        add(m_prependSourceIdentifierColumn, gbc.build());
+        add(m_appendSourceIdentifierColumn, gbc.build());
         add(m_sourceIdentifierColumnName, gbc.incX().insetTop(2).build());
         add(new JPanel(), gbc.incX().fillHorizontal().setWeightX(1.0).build());
     }
 
     private void togglePathColumnName() {
-        m_sourceIdentifierColumnName.setEnabled(m_prependSourceIdentifierColumn.isSelected());
+        m_sourceIdentifierColumnName.setEnabled(m_appendSourceIdentifierColumn.isSelected());
     }
 
     /**
      * Loads the provided values into the panel.
      *
-     * @param prependSourceIdentifierColumn whether the column should be prepended
+     * @param appendSourceIdentifierColumn whether the column should be prepended
      * @param sourceIdentifierColumnName the name of the column to append
      */
-    public void load(final boolean prependSourceIdentifierColumn, final String sourceIdentifierColumnName) {
-        m_prependSourceIdentifierColumn.setSelected(prependSourceIdentifierColumn);
+    public void load(final boolean appendSourceIdentifierColumn, final String sourceIdentifierColumnName) {
+        m_appendSourceIdentifierColumn.setSelected(appendSourceIdentifierColumn);
         m_sourceIdentifierColumnName.setText(sourceIdentifierColumnName);
         togglePathColumnName();
     }
@@ -141,8 +141,8 @@ public final class SourceIdentifierColumnPanel extends JPanel {
     /**
      * @return {@code true} if the append checkbox is checked
      */
-    public boolean isPrependSourceIdentifierColumn() {
-        return m_prependSourceIdentifierColumn.isSelected();
+    public boolean isAppendSourceIdentifierColumn() {
+        return m_appendSourceIdentifierColumn.isSelected();
     }
 
     /**

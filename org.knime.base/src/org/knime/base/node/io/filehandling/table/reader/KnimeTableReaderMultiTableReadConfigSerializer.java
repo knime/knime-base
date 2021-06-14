@@ -114,7 +114,7 @@ enum KnimeTableMultiTableReadConfigSerializer
 
     private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
 
-    private static final String CFG_PREPEND_PATH_COLUMN = "prepend_path_column" + SettingsModel.CFGKEY_INTERNAL;
+    private static final String CFG_APPEND_PATH_COLUMN = "append_path_column" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
 
@@ -156,7 +156,7 @@ enum KnimeTableMultiTableReadConfigSerializer
 
         config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS, DEFAULT_FAIL_ON_DIFFERING_SPECS));
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true));
-        config.setPrependItemIdentifierColumn(settings.getBoolean(CFG_PREPEND_PATH_COLUMN, false));
+        config.setAppendItemIdentifierColumn(settings.getBoolean(CFG_APPEND_PATH_COLUMN, false));
         config.setItemIdentifierColumnName(
             settings.getString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName()));
 
@@ -187,7 +187,7 @@ enum KnimeTableMultiTableReadConfigSerializer
         final NodeSettingsRO settings) throws InvalidSettingsException {
         config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS));
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG));
-        config.setPrependItemIdentifierColumn(settings.getBoolean(CFG_PREPEND_PATH_COLUMN));
+        config.setAppendItemIdentifierColumn(settings.getBoolean(CFG_APPEND_PATH_COLUMN));
         config.setItemIdentifierColumnName(settings.getString(CFG_PATH_COLUMN_NAME));
 
         final DefaultTableReadConfig<TableManipulatorConfig> tc = config.getTableReadConfig();
@@ -217,7 +217,7 @@ enum KnimeTableMultiTableReadConfigSerializer
         settings.addLong(CFG_MAX_ROWS, tc.getMaxRows());
         settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS, config.failOnDifferingSpecs());
         settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, config.saveTableSpecConfig());
-        settings.addBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn());
+        settings.addBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn());
         settings.addString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName());
     }
 
@@ -232,7 +232,7 @@ enum KnimeTableMultiTableReadConfigSerializer
         settings.getBoolean(CFG_SKIP_DATA_ROWS);
         settings.getLong(CFG_NUMBER_OF_ROWS_TO_SKIP);
         settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG);
-        settings.getBoolean(CFG_PREPEND_PATH_COLUMN);
+        settings.getBoolean(CFG_APPEND_PATH_COLUMN);
         settings.getString(CFG_PATH_COLUMN_NAME);
     }
 

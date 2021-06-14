@@ -168,7 +168,7 @@ enum CSVMultiTableReadConfigSerializer
     /** string key used to save the value of the character used as comment start */
     private static final String CFG_COMMENT_CHAR = "comment_char";
 
-    private static final String CFG_PREPEND_PATH_COLUMN = "prepend_path_column" + SettingsModel.CFGKEY_INTERNAL;
+    private static final String CFG_APPEND_PATH_COLUMN = "append_path_column" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
 
@@ -320,8 +320,8 @@ enum CSVMultiTableReadConfigSerializer
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true));
 
         // added in 4.4.0
-        config.setPrependItemIdentifierColumn(
-            settings.getBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn()));
+        config.setAppendItemIdentifierColumn(
+            settings.getBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn()));
         config.setItemIdentifierColumnName(
             settings.getString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName()));
 
@@ -414,8 +414,8 @@ enum CSVMultiTableReadConfigSerializer
         }
 
         // added in 4.4.0
-        if (settings.containsKey(CFG_PREPEND_PATH_COLUMN)) {
-            config.setPrependItemIdentifierColumn(settings.getBoolean(CFG_PREPEND_PATH_COLUMN));
+        if (settings.containsKey(CFG_APPEND_PATH_COLUMN)) {
+            config.setAppendItemIdentifierColumn(settings.getBoolean(CFG_APPEND_PATH_COLUMN));
             config.setItemIdentifierColumnName(settings.getString(CFG_PATH_COLUMN_NAME));
         }
 
@@ -498,7 +498,7 @@ enum CSVMultiTableReadConfigSerializer
         }
 
         settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS, config.failOnDifferingSpecs());
-        settings.addBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn());
+        settings.addBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn());
         settings.addString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName());
 
         final TableReadConfig<?> tc = config.getTableReadConfig();
@@ -592,8 +592,8 @@ enum CSVMultiTableReadConfigSerializer
         settings.getInt(CFG_MAXIMUM_NUMBER_OF_COLUMNS);
 
         // added in 4.4.0
-        if (settings.containsKey(CFG_PREPEND_PATH_COLUMN)) {
-            settings.getBoolean(CFG_PREPEND_PATH_COLUMN);
+        if (settings.containsKey(CFG_APPEND_PATH_COLUMN)) {
+            settings.getBoolean(CFG_APPEND_PATH_COLUMN);
             settings.getString(CFG_PATH_COLUMN_NAME);
         }
 

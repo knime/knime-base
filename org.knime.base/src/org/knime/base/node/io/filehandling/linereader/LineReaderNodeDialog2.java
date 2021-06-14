@@ -443,7 +443,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
     @Override
     protected LineMultiTableReadConfig getConfig() throws InvalidSettingsException {
         m_config.setFailOnDifferingSpecs(m_failOnDiffSpecs.isSelected());
-        m_config.setPrependItemIdentifierColumn(m_pathColumnPanel.isPrependSourceIdentifierColumn());
+        m_config.setAppendItemIdentifierColumn(m_pathColumnPanel.isAppendSourceIdentifierColumn());
         m_config.setItemIdentifierColumnName(m_pathColumnPanel.getSourceIdentifierColumnName());
         saveTableReadSettings(m_config.getTableReadConfig());
         saveLineReaderSettings(m_config.getTableReadConfig().getReaderSpecificConfig());
@@ -488,7 +488,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         final FileReaderSettings fReadSettings = new FileReaderSettings();
         fReadSettings.setCharsetName(lineReaderConfig.getCharSetName());
         m_encodingPanel.loadSettings(fReadSettings);
-        m_pathColumnPanel.load(m_config.prependItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
+        m_pathColumnPanel.load(m_config.appendItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
         return m_config;
 
     }

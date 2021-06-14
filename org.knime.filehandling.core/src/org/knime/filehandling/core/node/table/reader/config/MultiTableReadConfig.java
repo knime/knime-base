@@ -134,11 +134,11 @@ public interface MultiTableReadConfig<C extends ReaderSpecificConfig<C>, T> {
     boolean skipEmptyColumns();
 
     /**
-     * Indicates whether an item identifier column should be prepended.
+     * Indicates whether an item identifier column should be appended.
      *
-     * @return {@code true} if an item identifier column should be prepended.
+     * @return {@code true} if an item identifier column should be appended.
      */
-    boolean prependItemIdentifierColumn();
+    boolean appendItemIdentifierColumn();
 
     /**
      * Provides the name of the item identifier column.

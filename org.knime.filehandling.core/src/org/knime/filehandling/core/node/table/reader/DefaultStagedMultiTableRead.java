@@ -184,7 +184,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
     }
 
     private Function<I, DataCell> createItemIdentifierCellFactory() {
-        if (m_config.prependItemIdentifierColumn()) {
+        if (m_config.appendItemIdentifierColumn()) {
             return m_reader::createIdentifierCell;
         } else {
             return i -> null;

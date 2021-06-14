@@ -148,7 +148,7 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
     @SuppressWarnings("null")
     private DataColumnSpec createItemIdentifierColumn(final SourceGroup<I> sourceGroup,
         final MultiTableReadConfig<?, ?> config) {
-        if (config.prependItemIdentifierColumn()) {
+        if (config.appendItemIdentifierColumn()) {
             DataColumnSpecCreator itemIdColCreator = null;
             for (I item : sourceGroup) {
                 final DataColumnSpec itemIdCol =

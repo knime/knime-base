@@ -101,7 +101,7 @@ enum LineReaderMultiTableReadConfigSerializer
 
     private static final String CFG_ENCODING_TAB = "encoding";
 
-    private static final String CFG_PREPEND_PATH_COLUMN = "prepend_path_column" + SettingsModel.CFGKEY_INTERNAL;
+    private static final String CFG_APPEND_PATH_COLUMN = "append_path_column" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
 
@@ -131,8 +131,8 @@ enum LineReaderMultiTableReadConfigSerializer
         final NodeSettingsRO settings) {
 
         // added in 4.4.0
-        config.setPrependItemIdentifierColumn(
-            settings.getBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn()));
+        config.setAppendItemIdentifierColumn(
+            settings.getBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn()));
         config.setItemIdentifierColumnName(
             settings.getString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName()));
 
@@ -177,8 +177,8 @@ enum LineReaderMultiTableReadConfigSerializer
         final NodeSettingsRO settings) throws InvalidSettingsException {
 
         // added in 4.4.0
-        if (settings.containsKey(CFG_PREPEND_PATH_COLUMN)) {
-            config.setPrependItemIdentifierColumn(settings.getBoolean(CFG_PREPEND_PATH_COLUMN));
+        if (settings.containsKey(CFG_APPEND_PATH_COLUMN)) {
+            config.setAppendItemIdentifierColumn(settings.getBoolean(CFG_APPEND_PATH_COLUMN));
             config.setItemIdentifierColumnName(settings.getString(CFG_PATH_COLUMN_NAME));
         }
 
@@ -216,7 +216,7 @@ enum LineReaderMultiTableReadConfigSerializer
 
     private static void saveAdvancedSettingsTab(final LineMultiTableReadConfig config, final NodeSettingsWO settings) {
 
-        settings.addBoolean(CFG_PREPEND_PATH_COLUMN, config.prependItemIdentifierColumn());
+        settings.addBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn());
         settings.addString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName());
 
         final TableReadConfig<LineReaderConfig2> tc = config.getTableReadConfig();
@@ -267,8 +267,8 @@ enum LineReaderMultiTableReadConfigSerializer
         settings.getString(CFG_EMPTY_LINE_MODE);
         settings.getString(CFG_EMPTY_REPLACEMENT);
         // added in 4.4.0
-        if (settings.containsKey(CFG_PREPEND_PATH_COLUMN)) {
-            settings.getBoolean(CFG_PREPEND_PATH_COLUMN);
+        if (settings.containsKey(CFG_APPEND_PATH_COLUMN)) {
+            settings.getBoolean(CFG_APPEND_PATH_COLUMN);
             settings.getString(CFG_PATH_COLUMN_NAME);
         }
     }

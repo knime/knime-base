@@ -341,7 +341,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
         m_failOnDifferingSpecs.setSelected(m_config.failOnDifferingSpecs());
         toggleFailOnDifferingCheckBox();
-        m_pathColumnPanel.load(m_config.prependItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
+        m_pathColumnPanel.load(m_config.appendItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
 
         final boolean useRowIDIdx = m_config.getTableReadConfig().useRowIDIdx();
         m_useRowID.setSelected(useRowIDIdx);
@@ -366,7 +366,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         m_config.setSaveTableSpecConfig(saveTableSpecConfig);
         m_config.setTableSpecConfig(saveTableSpecConfig ? getTableSpecConfig() : null);
         m_config.setFailOnDifferingSpecs(m_failOnDifferingSpecs.isSelected());
-        m_config.setPrependItemIdentifierColumn(m_pathColumnPanel.isPrependSourceIdentifierColumn());
+        m_config.setAppendItemIdentifierColumn(m_pathColumnPanel.isAppendSourceIdentifierColumn());
         m_config.setItemIdentifierColumnName(m_pathColumnPanel.getSourceIdentifierColumnName());
     }
 

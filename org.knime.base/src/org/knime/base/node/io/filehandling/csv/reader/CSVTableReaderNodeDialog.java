@@ -188,7 +188,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
         m_filePanel.loadSettingsFrom(SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB), specs);
         m_failOnDifferingSpecs.setSelected(m_config.failOnDifferingSpecs());
         toggleFailOnDifferingCheckBox();
-        m_pathColumnPanel.load(m_config.prependItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
+        m_pathColumnPanel.load(m_config.appendItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
     }
 
     @Override
@@ -201,7 +201,7 @@ final class CSVTableReaderNodeDialog extends AbstractCSVTableReaderNodeDialog {
     protected void saveConfig() throws InvalidSettingsException {
         super.saveConfig();
         m_config.setFailOnDifferingSpecs(m_failOnDifferingSpecs.isSelected());
-        m_config.setPrependItemIdentifierColumn(m_pathColumnPanel.isPrependSourceIdentifierColumn());
+        m_config.setAppendItemIdentifierColumn(m_pathColumnPanel.isAppendSourceIdentifierColumn());
         m_config.setItemIdentifierColumnName(m_pathColumnPanel.getSourceIdentifierColumnName());
     }
 

@@ -182,9 +182,8 @@ public final class DefaultTableSpecConfig<T> implements TableSpecConfig<T> {
     public DataTableSpec getDataTableSpec() {
         final DataTableSpec rawSpec = TableTransformationUtils.toDataTableSpec(getTableTransformation());
         if (m_itemIdentifierColumnSpec != null) {
-            DataTableSpecCreator tableSpecCreator = new DataTableSpecCreator();
+            DataTableSpecCreator tableSpecCreator = new DataTableSpecCreator(rawSpec);
             tableSpecCreator.addColumns(m_itemIdentifierColumnSpec);
-            tableSpecCreator.addColumns(rawSpec);
             return tableSpecCreator.createSpec();
         }
         return rawSpec;

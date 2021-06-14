@@ -210,7 +210,7 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
     }
 
     @Override
-    public boolean prependItemIdentifierColumn() {
+    public boolean appendItemIdentifierColumn() {
         return m_appendItemIdColumn;
     }
 
@@ -219,7 +219,7 @@ public abstract class AbstractMultiTableReadConfig<C extends ReaderSpecificConfi
      *
      * @param appendItemIdColumn {@code true} if a column with an item identifier should be appended
      */
-    public void setPrependItemIdentifierColumn(final boolean appendItemIdColumn) {
+    public void setAppendItemIdentifierColumn(final boolean appendItemIdColumn) {
         m_appendItemIdColumn = appendItemIdColumn;
     }
 

@@ -53,8 +53,7 @@ import java.util.OptionalLong;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.JoinedRow;
+import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
@@ -108,8 +107,7 @@ public final class DefaultIndividualTableReader<V> implements IndividualTableRea
         // reads the tokens from m_readAdapter and converts them into a DataRow
         final DataRow row = m_typeMapper.map(key, m_mapper);
         if (m_identifierCell != null) {
-            final DataRow identifierRow = new DefaultRow(row.getKey(), m_identifierCell);
-            return new JoinedRow(identifierRow, row);
+            return new AppendedColumnRow(row, m_identifierCell);
         } else {
             return row;
         }
