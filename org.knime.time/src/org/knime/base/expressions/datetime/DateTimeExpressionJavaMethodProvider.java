@@ -78,7 +78,7 @@ import org.knime.expressions.core.exceptions.ScriptExecutionException;
 @SuppressWarnings("static-method")
 public final class DateTimeExpressionJavaMethodProvider implements ExpressionJavaMethodProvider {
 
-    private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
+    private static final Locale DEFAULT_LOCALE = Locale.US;
 
     final static String ID = DateTimeExpressionJavaMethodProvider.class.getName().replaceAll("\\.", "_");
 
