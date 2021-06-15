@@ -74,10 +74,10 @@ public class LocalDateTimeExpressionSet implements ExpressionSet {
         m_expression = new ArrayList<>();
 
         m_expression.add(
-            new SimpleDateTimeExpression("getDate", "Returns the LocalDate part of the input LocatDateTime object.",
+            new SimpleDateTimeExpression("getDate", "Returns the LocalDate part of the input LocalDateTime object.",
                 LocalDate.class, new String[]{"localDateTime"}));
         m_expression.add(
-            new SimpleDateTimeExpression("getTime", "Returns the LocalTime part of the input LocatDateTime object.",
+            new SimpleDateTimeExpression("getTime", "Returns the LocalTime part of the input LocalDateTime object.",
                 LocalTime.class, new String[]{"localDateTime"}));
         m_expression.add(new TemporalExtractorDateTimeExpression(ChronoField.DAY_OF_WEEK));
         m_expression.add(new SimpleDateTimeExpression("getDayOfWeekName",
