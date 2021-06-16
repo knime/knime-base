@@ -122,7 +122,9 @@ final class V43TableSpecConfigSerializer<T> implements TableSpecConfigSerializer
     private ImmutableTableTransformation<T> loadTableTransformation(final NodeSettingsRO settings,
         final Pre44Loader loader) throws InvalidSettingsException {
         final boolean includeUnknownColumns = settings.getBoolean(CFG_INCLUDE_UNKNOWN);
-        final boolean enforceTypes = settings.getBoolean(CFG_ENFORCE_TYPES);
+        // there are some workflows that were created with a release candidate and don't contain this setting
+        // In order to avoid issues with those workflows, we fallback on the old behavior if the setting is missing
+        final boolean enforceTypes = settings.getBoolean(CFG_ENFORCE_TYPES, false);
         final int newColPosition = settings.getInt(CFG_NEW_COLUMN_POSITION);
         final String[] originalNames = settings.getStringArray(CFG_ORIGINAL_NAMES);
         final int[] positions = settings.getIntArray(CFG_POSITIONAL_MAPPING);
