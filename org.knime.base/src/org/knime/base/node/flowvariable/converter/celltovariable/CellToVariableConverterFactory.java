@@ -50,7 +50,10 @@ package org.knime.base.node.flowvariable.converter.celltovariable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,6 +65,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
+import org.knime.core.data.MissingValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.core.node.workflow.FlowVariable;
@@ -76,6 +80,7 @@ import org.knime.core.node.workflow.VariableType.LongArrayType;
 import org.knime.core.node.workflow.VariableType.LongType;
 import org.knime.core.node.workflow.VariableType.StringArrayType;
 import org.knime.core.node.workflow.VariableType.StringType;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
@@ -83,6 +88,7 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
  * Factory class to create the {@link CellToVariableConverter} associated with the provided {@link DataType}.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
 public final class CellToVariableConverterFactory {
 
@@ -119,6 +125,7 @@ public final class CellToVariableConverterFactory {
      *
      * @param type the {@link DataType} of the column whose cells need to be converted
      * @return the converter associated with the given {@link DataType}
+     * @throws NoSuchElementException If there exists no converter for the provided cell type
      */
     public static CellToVariableConverter<?> createConverter(final DataType type) { //NOSONAR
         final DataType eleType = getType(type);
@@ -127,8 +134,9 @@ public final class CellToVariableConverterFactory {
             .map(Map.Entry::getValue) //
             .map(Supplier::get) //
             .findFirst() //
-            .orElseThrow(() -> new IllegalArgumentException(String.format(
-                "There is no Cell to Variable converter associated with the provided cell type '%s'", type.getName())));
+            .orElseThrow(() -> new IllegalArgumentException(
+                String.format("There is no Cell to Variable converter associated with the provided cell type '%s'",
+                    getTypeName(type))));
     }
 
     /**
@@ -155,6 +163,16 @@ public final class CellToVariableConverterFactory {
             .collect(Collectors.toSet());
     }
 
+    private static String getTypeName(final DataType type) {
+        var currentType = type;
+        final var typeName = new StringBuilder(currentType.getName());
+        while (currentType.isCollectionType()) {
+            currentType = currentType.getCollectionElementType();
+            typeName.append(" of ").append(currentType.getName());
+        }
+        return typeName.toString();
+    }
+
     private static DataType getType(final DataType type) {
         return type.isCollectionType() ? type.getCollectionElementType() : type;
     }
@@ -168,131 +186,184 @@ public final class CellToVariableConverterFactory {
         }
     }
 
-    private static class BooleanCellToVariableConverter implements CellToVariableConverter<BooleanType> {
+    private abstract static class AbstractCellToVariableConverter<T> implements CellToVariableConverter<T> {
+        @Override
+        public Optional<FlowVariable> createFlowVariable(final String varName, final DataCell cell,
+            final MissingValueHandler handler) {
+            return mayCreateVariableValue(cell, handler).map(v -> new FlowVariable(varName, getVariableType(), v));
+        }
+
+        @SuppressWarnings("unchecked")
+        protected Optional<T> mayCreateVariableValue(final DataCell cell, final MissingValueHandler handler) {
+            if (cell.isMissing()) {
+                return Optional.ofNullable((T)handler.handle((MissingValue)cell, getVariableType()));
+            }
+            return Optional.of(createVariableValue(cell, handler));
+        }
+
+        protected abstract T createVariableValue(final DataCell cell, final MissingValueHandler handler);
+    }
+
+    private abstract static class AbstractCellToArrayVariableConverter<T> extends AbstractCellToVariableConverter<T[]> {
+
+        private BiFunction<DataCell, MissingValueHandler, Optional<T>> m_conversion = null;
+
+        private void initConversion() {
+            final var elementConverter = getElementConverter();
+            if (elementConverter instanceof AbstractCellToVariableConverter<?>) { // avoid unnecessary flow variable creation
+                final var castConverter = (AbstractCellToVariableConverter<T>)elementConverter;
+                m_conversion = castConverter::mayCreateVariableValue;
+            } else { // fail save
+                m_conversion = (c, h) -> elementConverter.createFlowVariable("?", c, h)
+                    .map(v -> v.getValue(elementConverter.getVariableType()));
+            }
+        }
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, getVariableType(), ((BooleanValue)cell).getBooleanValue());
+        protected T[] createVariableValue(final DataCell cell, final MissingValueHandler handler) {
+            if (m_conversion == null) {
+                initConversion();
+            }
+            return createArray(((CollectionDataValue)cell).stream() //
+                .map(c -> m_conversion.apply(c, handler)) //
+                .filter(Optional::isPresent) //
+                .map(Optional::get));
+        }
+
+        /**
+         * Turns the stream into an array of that type.<br>
+         * Needed because arrays of generics cannot be instantiated.
+         *
+         * @param stream the stream to convert
+         * @return the resulting array.
+         */
+        protected abstract T[] createArray(Stream<T> stream);
+
+        /**
+         * @return the {@link CellToVariableConverter} that is used to convert the cells in the cell collection.<br>
+         *         This is needed because the type of empty lists or lists with only missing values cannot be reliably
+         *         retrieved.
+         * @apiNote this function will only be cached in the object
+         */
+        protected abstract CellToVariableConverter<T> getElementConverter();
+    }
+
+    private static class BooleanCellToVariableConverter extends AbstractCellToVariableConverter<Boolean> {
+
+        @Override
+        protected Boolean createVariableValue(final DataCell cell, final MissingValueHandler handler) {
+            return ((BooleanValue)cell).getBooleanValue();
         }
 
         @Override
         public BooleanType getVariableType() {
             return BooleanType.INSTANCE;
         }
-
     }
 
-    private static class BooleanArrayCellToVariableConverter implements CellToVariableConverter<BooleanArrayType> {
-
-        @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, //
-                getVariableType(), //
-                ((CollectionDataValue)cell).stream() //
-                    .map(c -> Boolean.valueOf(((BooleanValue)c).getBooleanValue())) //
-                    .toArray(Boolean[]::new));
-        }
+    private static class BooleanArrayCellToVariableConverter extends AbstractCellToArrayVariableConverter<Boolean> {
 
         @Override
         public BooleanArrayType getVariableType() {
             return BooleanArrayType.INSTANCE;
         }
 
-    }
-
-    private static class IntCellToVariableConverter implements CellToVariableConverter<IntType> {
+        @Override
+        protected CellToVariableConverter<Boolean> getElementConverter() {
+            return new BooleanCellToVariableConverter();
+        }
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, getVariableType(), ((IntValue)cell).getIntValue());
+        protected Boolean[] createArray(final Stream<Boolean> stream) {
+            return stream.toArray(Boolean[]::new);
+        }
+    }
+
+    private static class IntCellToVariableConverter extends AbstractCellToVariableConverter<Integer> {
+
+        @Override
+        protected Integer createVariableValue(final DataCell cell, final MissingValueHandler handler) {
+            return ((IntValue)cell).getIntValue();
         }
 
         @Override
         public IntType getVariableType() {
             return IntType.INSTANCE;
         }
-
     }
 
-    private static class IntArrayCellToVariableConverter implements CellToVariableConverter<IntArrayType> {
+    private static class IntArrayCellToVariableConverter extends AbstractCellToArrayVariableConverter<Integer> {
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, //
-                getVariableType(), //
-                ((CollectionDataValue)cell).stream() //
-                    .mapToInt(c -> ((IntValue)c).getIntValue()) //
-                    .boxed() //
-                    .toArray(Integer[]::new) //
-            );
+        protected Integer[] createArray(final Stream<Integer> stream) {
+            return stream.toArray(Integer[]::new);
+        }
+
+        @Override
+        protected CellToVariableConverter<Integer> getElementConverter() {
+            return new IntCellToVariableConverter();
         }
 
         @Override
         public IntArrayType getVariableType() {
             return IntArrayType.INSTANCE;
         }
-
     }
 
-    private static class LongCellToVariableConverter implements CellToVariableConverter<LongType> {
+    private static class LongCellToVariableConverter extends AbstractCellToVariableConverter<Long> {
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, getVariableType(), ((LongValue)cell).getLongValue());
+        protected Long createVariableValue(final DataCell cell, final MissingValueHandler handler) {
+            return ((LongValue)cell).getLongValue();
         }
 
         @Override
         public LongType getVariableType() {
             return LongType.INSTANCE;
         }
-
     }
 
-    private static class LongArrayCellToVariableConverter implements CellToVariableConverter<LongArrayType> {
+    private static class LongArrayCellToVariableConverter extends AbstractCellToArrayVariableConverter<Long> {
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, //
-                getVariableType(), //
-                ((CollectionDataValue)cell).stream() //
-                    .mapToLong(c -> ((LongValue)c).getLongValue()) //
-                    .boxed() //
-                    .toArray(Long[]::new) //
-            );
+        protected Long[] createArray(final Stream<Long> stream) {
+            return stream.toArray(Long[]::new);
+        }
+
+        @Override
+        protected CellToVariableConverter<Long> getElementConverter() {
+            return new LongCellToVariableConverter();
         }
 
         @Override
         public LongArrayType getVariableType() {
             return LongArrayType.INSTANCE;
         }
-
     }
 
-    private static class DoubleCellToVariableConverter implements CellToVariableConverter<DoubleType> {
+    private static class DoubleCellToVariableConverter extends AbstractCellToVariableConverter<Double> {
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, getVariableType(), ((DoubleValue)cell).getDoubleValue());
+        protected Double createVariableValue(final DataCell cell, final MissingValueHandler handler) {
+            return ((DoubleValue)cell).getDoubleValue();
         }
 
         @Override
         public DoubleType getVariableType() {
             return DoubleType.INSTANCE;
         }
-
     }
 
-    private static class DoubleArrayCellToVariableConverter implements CellToVariableConverter<DoubleArrayType> {
+    private static class DoubleArrayCellToVariableConverter extends AbstractCellToArrayVariableConverter<Double> {
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, //
-                getVariableType(), //
-                ((CollectionDataValue)cell).stream() //
-                    .mapToDouble(c -> ((DoubleValue)c).getDoubleValue()) //
-                    .boxed() //
-                    .toArray(Double[]::new) //
-            );
+        protected Double[] createArray(final Stream<Double> stream) {
+            return stream.toArray(Double[]::new);
+        }
+
+        @Override
+        protected CellToVariableConverter<Double> getElementConverter() {
+            return new DoubleCellToVariableConverter();
         }
 
         @Override
@@ -301,29 +372,29 @@ public final class CellToVariableConverterFactory {
         }
     }
 
-    private static class StringCellToVariableConverter implements CellToVariableConverter<StringType> {
+    private static class StringCellToVariableConverter extends AbstractCellToVariableConverter<String> {
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, getVariableType(), ((StringValue)cell).getStringValue());
+        protected String createVariableValue(final DataCell cell, final MissingValueHandler handler) {
+            return ((StringValue)cell).getStringValue();
         }
 
         @Override
         public StringType getVariableType() {
             return StringType.INSTANCE;
         }
-
     }
 
-    private static class StringArrayCellToVariableConverter implements CellToVariableConverter<StringArrayType> {
+    private static class StringArrayCellToVariableConverter extends AbstractCellToArrayVariableConverter<String> {
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, //
-                getVariableType(), //
-                ((CollectionDataValue)cell).stream() //
-                    .map(c -> (((StringValue)c).getStringValue())) //
-                    .toArray(String[]::new));
+        protected String[] createArray(final Stream<String> stream) {
+            return stream.toArray(String[]::new);
+        }
+
+        @Override
+        protected CellToVariableConverter<String> getElementConverter() {
+            return new StringCellToVariableConverter();
         }
 
         @Override
@@ -333,18 +404,16 @@ public final class CellToVariableConverterFactory {
 
     }
 
-    private static class FSLocationCellToVariableConverter implements CellToVariableConverter<FSLocationVariableType> {
+    private static class FSLocationCellToVariableConverter extends AbstractCellToVariableConverter<FSLocation> {
 
         @Override
-        public FlowVariable createFlowVariable(final String varName, final DataCell cell) {
-            return new FlowVariable(varName, getVariableType(), ((FSLocationValue)cell).getFSLocation());
+        protected FSLocation createVariableValue(final DataCell cell, final MissingValueHandler handler) {
+            return ((FSLocationValue)cell).getFSLocation();
         }
 
         @Override
         public FSLocationVariableType getVariableType() {
             return FSLocationVariableType.INSTANCE;
         }
-
     }
-
 }

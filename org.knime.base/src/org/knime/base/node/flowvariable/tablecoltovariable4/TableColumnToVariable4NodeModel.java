@@ -54,11 +54,11 @@ import java.util.stream.Collectors;
 
 import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverter;
 import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
+import org.knime.base.node.flowvariable.converter.celltovariable.MissingValueHandler;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.MissingValue;
 import org.knime.core.data.MissingValueException;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -117,12 +117,18 @@ final class TableColumnToVariable4NodeModel extends NodeModel {
             final DataTableSpec spec = table.getSpec();
             final int colIndex = spec.findColumnIndex(m_column.getStringValue());
             assert colIndex >= 0 : colIndex;
-            final CellToVariableConverter<?> cell2VarConverter =
-                CellToVariableConverterFactory.createConverter(spec.getColumnSpec(colIndex).getType());
-            if (table.size() > 0) {
-                convertColToVar(table, colIndex, cell2VarConverter);
-            } else {
-                setWarningMessage("Node created no variables since the input data table is empty.");
+            try {
+                final CellToVariableConverter<?> cell2VarConverter =
+                    CellToVariableConverterFactory.createConverter(spec.getColumnSpec(colIndex).getType());
+                if (table.size() > 0) {
+                    convertColToVar(table, colIndex, cell2VarConverter);
+                } else {
+                    setWarningMessage("Node created no variables since the input data table is empty.");
+                }
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(
+                    e.getMessage() + " (column \"" + spec.getColumnNames()[colIndex] + "\" (index " + colIndex + "))",
+                    e);
             }
         }
         return new FlowVariablePortObject[]{FlowVariablePortObject.INSTANCE};
@@ -133,16 +139,22 @@ final class TableColumnToVariable4NodeModel extends NodeModel {
         for (final DataRow row : table) {
             final DataCell cell = row.getCell(colIndex);
             final String name = row.getKey().getString();
-            if (cell.isMissing()) {
-                if (m_ignoreMissing.getBooleanValue()) {
-                    continue;
-                }
-                throw new MissingValueException((MissingValue)cell,
-                    String.format("Missing values are not allowed as variable values -- column \"%s\" for row \"%s\"",
-                        m_column.getStringValue(), row.getKey()));
-            }
+            cell2VarConverter.createFlowVariable(name, cell, //
+                getHandler(m_column.getStringValue(), colIndex, row.getKey().toString()))//
+                .ifPresent(this::pushVariable);
+        }
+    }
 
-            pushVariable(cell2VarConverter.createFlowVariable(name, cell));
+    private MissingValueHandler getHandler(final String columnName, final int columnIndex, final String rowName) {
+        if (m_ignoreMissing.getBooleanValue()) {
+            return (v, t) -> null;
+        } else {
+            return (v, t) -> {
+                throw new MissingValueException(v,
+                    String.format(
+                        "Missing values are not allowed as variable values -- column \"%s\" (index %d) for row \"%s\"",
+                        columnName, columnIndex, rowName));
+            };
         }
     }
 

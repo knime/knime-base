@@ -53,11 +53,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
+import org.knime.base.node.flowvariable.converter.celltovariable.MissingValueHandler;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -101,6 +103,16 @@ import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.node.workflow.VariableType.BooleanArrayType;
+import org.knime.core.node.workflow.VariableType.BooleanType;
+import org.knime.core.node.workflow.VariableType.DoubleArrayType;
+import org.knime.core.node.workflow.VariableType.DoubleType;
+import org.knime.core.node.workflow.VariableType.IntArrayType;
+import org.knime.core.node.workflow.VariableType.IntType;
+import org.knime.core.node.workflow.VariableType.LongArrayType;
+import org.knime.core.node.workflow.VariableType.LongType;
+import org.knime.core.node.workflow.VariableType.StringArrayType;
+import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.core.util.UniqueNameGenerator;
 
 /**
@@ -111,7 +123,7 @@ import org.knime.core.util.UniqueNameGenerator;
 public class TableToVariable3NodeModel extends NodeModel {
 
     /** Suffix for missing value exception. */
-    private static final String MISSING_VALUE_EXCEPTION_SUFFIX = "%s -- column \"%s\" (index %d)\"";
+    private static final String MISSING_VALUE_EXCEPTION_SUFFIX = "%s -- column \"%s\" (index %d)";
 
     private final SettingsModelString m_onMV = getOnMissing();
 
@@ -173,7 +185,7 @@ public class TableToVariable3NodeModel extends NodeModel {
         }
         if (getMissingValuePolicy() != MissingValuePolicy.OMIT) {
             // Pushes the default variables onto the stack
-            pushVariables(spec, null, createDefaultCells(spec), selectedColumns);
+            pushVariables(spec, null, createDefaultCells(spec), selectedColumns, true);
         }
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
     }
@@ -226,6 +238,68 @@ public class TableToVariable3NodeModel extends NodeModel {
         return cell;
     }
 
+    private Optional<Object> getDefaultPrimitiveType(final VariableType<?> type) {
+        final Object result;
+        if (type.equals(StringType.INSTANCE)) {
+            result = m_string.getStringValue();
+        } else if (type.equals(BooleanType.INSTANCE)) {
+            result = Boolean.valueOf(m_boolean.getStringValue());
+        } else if (type.equals(IntType.INSTANCE)) {
+            result = m_int.getIntValue();
+        } else if (type.equals(LongType.INSTANCE)) {
+            result = m_long.getLongValue();
+        } else if (type.equals(DoubleType.INSTANCE)) {
+            result = m_double.getDoubleValue();
+        } else {
+            result = null;
+        }
+        return Optional.ofNullable(result);
+    }
+
+    private static final Optional<Object> getDefaultArrayType(final VariableType<?> type) {
+        final Object result;
+        if (type.equals(StringArrayType.INSTANCE)) {
+            result = new String[0];
+        } else if (type.equals(BooleanArrayType.INSTANCE)) {
+            result = new Boolean[0];
+        } else if (type.equals(DoubleArrayType.INSTANCE)) {
+            result = new Double[0];
+        } else if (type.equals(IntArrayType.INSTANCE)) {
+            result = new Integer[0];
+        } else if (type.equals(LongArrayType.INSTANCE)) {
+            result = new Long[0];
+        } else {
+            result = null;
+        }
+        return Optional.ofNullable(result);
+    }
+
+    private Object getDefault(final MissingValue value, final VariableType<?> type, final String columnName,
+        final int columnIndex) {
+        return getDefaultPrimitiveType(type)//
+            .or(() -> getDefaultArrayType(type))//
+            .orElseThrow(() -> new MissingValueException(value, String.format(MISSING_VALUE_EXCEPTION_SUFFIX,
+                "Missing values are not allowed for data types without a default value.", columnName, columnIndex)));
+    }
+
+    private static Object fail(final MissingValue value, final String columnName, final int columnIndex) {
+        throw new MissingValueException(value, String.format(MISSING_VALUE_EXCEPTION_SUFFIX,
+            "Missing values are not allowed as variable values", columnName, columnIndex));
+    }
+
+    private MissingValueHandler getHandler(final String columnName, final int columnIndex) {
+        switch (getMissingValuePolicy()) {
+            case DEFAULT:
+                return (v, t) -> getDefault(v, t, columnName, columnIndex);
+            case FAIL:
+                return (v, t) -> fail(v, columnName, columnIndex);
+            case OMIT:
+                return (v, t) -> null;
+            default:
+                throw new IllegalStateException("Unknown MissingValuePolicy!");
+        }
+    }
+
     /**
      * Pushes the variable as given by the row argument onto the stack.
      *
@@ -233,9 +307,11 @@ public class TableToVariable3NodeModel extends NodeModel {
      * @param rowKey the name of the row
      * @param row the content of the row
      * @param selectedColumns the names of the column to be converted to flow variables
+     * @param skipMissingValues whether {@link MissingValue}s should be skipped. This is useful if the default values
+     *            are pushed.
      */
     private void pushVariables(final DataTableSpec variablesSpec, final String rowKey, final DataCell[] row,
-        final String[] selectedColumns) {
+        final String[] selectedColumns, final boolean skipMissingValues) {
 
         // push the rowID onto the stack
         final String rowIDVarName = "RowID";
@@ -251,13 +327,21 @@ public class TableToVariable3NodeModel extends NodeModel {
         for (int i = 0; i < selectedColumns.length; i++) {
             final String selectedColumnName = selectedColumns[i];
             final int colIdx = variablesSpec.findColumnIndex(selectedColumnName);
+            if (skipMissingValues && row[colIdx].isMissing()) {
+                continue;
+            }
+
             // 'name' to be determined independent of whether value is missing (name clash handling)
             final String name = variableNameGenerator.newName(getBaseName(colIdx, selectedColumnName));
-            if (!row[colIdx].isMissing()) {
-                final DataColumnSpec spec = variablesSpec.getColumnSpec(selectedColumnName);
-                final DataType type = spec.getType();
-                varsToPush.addFirst(
-                    CellToVariableConverterFactory.createConverter(type).createFlowVariable(name, row[colIdx]));
+            final DataColumnSpec spec = variablesSpec.getColumnSpec(selectedColumnName);
+            final DataType type = spec.getType();
+            try {
+                CellToVariableConverterFactory.createConverter(type)
+                    .createFlowVariable(name, row[colIdx], getHandler(selectedColumnName, i))
+                    .ifPresent(varsToPush::addFirst);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(
+                    e.getMessage() + " (column \"" + selectedColumnName + "\" (index " + i + "))", e);
             }
         }
 
@@ -319,66 +403,30 @@ public class TableToVariable3NodeModel extends NodeModel {
      * @param row the row to push onto the flow variable stack
      */
     protected final void pushVariables(final DataTableSpec spec, final DataRow row) {
-        pushVariables(spec, row, createDefaultCells(spec));
-    }
-
-    private void pushVariables(final DataTableSpec spec, final DataRow row, final DataCell[] defaultCells) {
         final String[] selectedColumns = m_columnSelection.applyTo(spec).getIncludes();
 
         // now replace missing cells from the input by their defaults!
-        final DataCell[] rowToConvert = prepareRow(spec, row, defaultCells, selectedColumns);
+        final DataCell[] rowToConvert = prepareRow(spec, row);
 
-        pushVariables(spec, extractRowKey(row), rowToConvert, selectedColumns);
+        pushVariables(spec, extractRowKey(row), rowToConvert, selectedColumns, false);
     }
 
-    private DataCell[] prepareRow(final DataTableSpec spec, final DataRow row, final DataCell[] defaultCells,
-        final String[] selectedColumns) {
+    private DataCell[] prepareRow(final DataTableSpec spec, final DataRow row) {
         final DataCell[] updatedRow;
-        final MissingValuePolicy policy = getMissingValuePolicy();
 
         if (row == null) {
-            if (policy == MissingValuePolicy.DEFAULT) {
-                updatedRow = defaultCells;
-            } else if (policy == MissingValuePolicy.OMIT) {
-                updatedRow = Stream.generate(DataType::getMissingCell)//
-                    .limit(defaultCells.length)//
-                    .toArray(DataCell[]::new);
-            } else {
+            if (getMissingValuePolicy() == MissingValuePolicy.FAIL) {
                 throw new IllegalStateException("The row to convert is null");
-            }
-        } else if (policy == MissingValuePolicy.DEFAULT) {
-            updatedRow = new DataCell[row.getNumCells()];
-            for (int i = 0; i < updatedRow.length; i++) {
-                DataCell cell = row.getCell(i);
-                if (cell.isMissing()) {
-                    cell = defaultCells[i];
-                }
-                updatedRow[i] = cell;
+            } else {
+                updatedRow = Stream.generate(DataType::getMissingCell)//
+                    .limit(spec.getNumColumns())//
+                    .toArray(DataCell[]::new);
             }
         } else {
             updatedRow = row.stream()//
                 .toArray(DataCell[]::new);
         }
-        checkPolicyCompliance(policy, spec, selectedColumns, updatedRow);
         return updatedRow;
-    }
-
-    private static void checkPolicyCompliance(final MissingValuePolicy policy, final DataTableSpec spec,
-        final String[] selectedColumns, final DataCell[] updatedRow) {
-        for (final String colName : selectedColumns) {
-            final int colIdx = spec.findColumnIndex(colName);
-            if (updatedRow[colIdx].isMissing()) {
-                if (policy == MissingValuePolicy.FAIL) {
-                    throw new MissingValueException((MissingValue)updatedRow[colIdx],
-                        String.format(MISSING_VALUE_EXCEPTION_SUFFIX,
-                            "Missing values are not allowed as variable values", colName, colIdx));
-                } else if (policy == MissingValuePolicy.DEFAULT) { // NOSONAR
-                    throw new MissingValueException((MissingValue)updatedRow[colIdx],
-                        String.format(MISSING_VALUE_EXCEPTION_SUFFIX,
-                            "Missing values are not allowed for data types without a default value", colName, colIdx));
-                }
-            }
-        }
     }
 
     private static String extractRowKey(final DataRow row) {

@@ -44,46 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 7, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   16.06.2021 (loescher): created
  */
 package org.knime.base.node.flowvariable.converter.celltovariable;
 
-import java.util.Optional;
-
-import org.knime.core.data.DataCell;
 import org.knime.core.data.MissingValue;
-import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.data.MissingValueException;
+import org.knime.core.data.collection.ListCell;
 import org.knime.core.node.workflow.VariableType;
 
 /**
- * A converter that allows to translate a {@link DataCell} into a {@link FlowVariable}.
+ * A functional interface used to handle missing values when they are encountered by a {@link CellToVariableConverter}.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
- * @param <T> the simple type of the {@link FlowVariable}'s {@link VariableType} resulting from the conversion.
  */
-public interface CellToVariableConverter<T> {
+@FunctionalInterface
+public interface MissingValueHandler { //NOSONAR: We want to be able to better document the function
 
     /**
-     * Converts the given {@link DataCell} into the matching {@link FlowVariable}.
+     * Returns how to handle as missing value if one is encountered. This function gets the required type as context and
+     * returns a suitable default value or throws an exception.<br>
+     * The special return value <code>null</code> can be used to indicate that the value should be omitted.
      *
-     * @param varName the name of the flow variable to create
-     * @param cell the cell to be converted
-     * @param missingValueHandler the {@link MissingValueHandler} that should be used. In a collection a omit value
-     *            (return value of <code>null</code>) should not include the value. If a missing {@code cell} shall be
-     *            omitted, the method should return an empty {@link Optional}.
-     * @return the resulting {@link FlowVariable} or empty if {@code cell} is a {@link MissingValue} and should be
-     *         omitted
-     * @apiNote Implementations should at least implement this function.
+     * @param missingValue the missing value that was encountered. This can be used to throw a
+     *            {@link MissingValueException}
+     * @param requiredType the type the default value is supposed to have. The returned value must have the same type as
+     *            the simple type of this {@link VariableType}, i.e.
+     *            {@code requiredType.getSimpleType().equals(returned.getClass())}.<br>
+     *            For example, this can be used to handle a missing {@link ListCell} but also the cells contained in it
+     *            depending on the given type.
+     * @return the default value of the correct type or <code>null</code> if the value should be omitted
      */
-    Optional<FlowVariable> createFlowVariable(final String varName, final DataCell cell,
-        final MissingValueHandler missingValueHandler);
-
-    /**
-     * Returns the {@link VariableType} of the {@link FlowVariable} when converting a {@link DataCell}
-     *
-     * @return the {@link VariableType} of the created {@link FlowVariable}
-     */
-    VariableType<T> getVariableType();
-
+    Object handle(final MissingValue missingValue, final VariableType<?> requiredType);
 }

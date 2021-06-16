@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.MissingValueException;
 import org.knime.core.data.collection.CollectionCellFactory;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
@@ -82,6 +83,8 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
  */
 public class CellToVariableConverterTest {
 
+    private static final MissingValueHandler HANDLER = (m, v) -> {throw new MissingValueException(m);};
+
     /**
      * Tests the correctness of the int cell converter.
      */
@@ -91,7 +94,7 @@ public class CellToVariableConverterTest {
         final String name = "int_var";
         final DataCell cell = IntCellFactory.create(val);
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        assertEquals(new FlowVariable(name, val), converter.createFlowVariable(name, cell));
+        assertEquals(new FlowVariable(name, val), converter.createFlowVariable(name, cell, HANDLER).orElseThrow());
     }
 
     /**
@@ -103,7 +106,7 @@ public class CellToVariableConverterTest {
         final String name = "long_var";
         final DataCell cell = LongCellFactory.create(val);
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        assertEquals(new FlowVariable(name, LongType.INSTANCE, val), converter.createFlowVariable(name, cell));
+        assertEquals(new FlowVariable(name, LongType.INSTANCE, val), converter.createFlowVariable(name, cell, HANDLER).orElseThrow());
     }
 
     /**
@@ -115,7 +118,7 @@ public class CellToVariableConverterTest {
         final String name = "double_var";
         final DataCell cell = DoubleCellFactory.create(val);
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        assertEquals(new FlowVariable(name, val), converter.createFlowVariable(name, cell));
+        assertEquals(new FlowVariable(name, val), converter.createFlowVariable(name, cell, HANDLER).orElseThrow());
     }
 
     /**
@@ -127,7 +130,7 @@ public class CellToVariableConverterTest {
         final String name = "string_var";
         final DataCell cell = new StringCell(val);
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        assertEquals(new FlowVariable(name, val), converter.createFlowVariable(name, cell));
+        assertEquals(new FlowVariable(name, val), converter.createFlowVariable(name, cell, HANDLER).orElseThrow());
     }
 
     /**
@@ -139,7 +142,7 @@ public class CellToVariableConverterTest {
         final String name = "boolean_var";
         final DataCell cell = BooleanCellFactory.create(val);
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        assertEquals(new FlowVariable(name, BooleanType.INSTANCE, val), converter.createFlowVariable(name, cell));
+        assertEquals(new FlowVariable(name, BooleanType.INSTANCE, val), converter.createFlowVariable(name, cell, HANDLER).orElseThrow());
     }
 
     /**
@@ -153,7 +156,7 @@ public class CellToVariableConverterTest {
         final DataCell cell = fac.createCell(val);
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
         assertEquals(new FlowVariable(name, FSLocationVariableType.INSTANCE, val),
-            converter.createFlowVariable(name, cell));
+            converter.createFlowVariable(name, cell, HANDLER).orElseThrow());
     }
 
     /**
@@ -167,7 +170,7 @@ public class CellToVariableConverterTest {
             .map(IntCellFactory::create)//
             .collect(Collectors.toList()));
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        final FlowVariable var = converter.createFlowVariable(name, cell);
+        final FlowVariable var = converter.createFlowVariable(name, cell, HANDLER).orElseThrow();
         assertEquals(name, var.getName());
         assertTrue(Arrays.equals(val, var.getValue(IntArrayType.INSTANCE)));
     }
@@ -183,7 +186,7 @@ public class CellToVariableConverterTest {
             .map(LongCellFactory::create)//
             .collect(Collectors.toList()));
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        final FlowVariable var = converter.createFlowVariable(name, cell);
+        final FlowVariable var = converter.createFlowVariable(name, cell, HANDLER).orElseThrow();
         assertEquals(name, var.getName());
         assertTrue(Arrays.equals(val, var.getValue(LongArrayType.INSTANCE)));
     }
@@ -199,7 +202,7 @@ public class CellToVariableConverterTest {
             .map(DoubleCellFactory::create)//
             .collect(Collectors.toList()));
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        final FlowVariable var = converter.createFlowVariable(name, cell);
+        final FlowVariable var = converter.createFlowVariable(name, cell, HANDLER).orElseThrow();
         assertEquals(name, var.getName());
         assertTrue(Arrays.equals(val, var.getValue(DoubleArrayType.INSTANCE)));
     }
@@ -215,7 +218,7 @@ public class CellToVariableConverterTest {
             .map(StringCell::new)//
             .collect(Collectors.toList()));
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        final FlowVariable var = converter.createFlowVariable(name, cell);
+        final FlowVariable var = converter.createFlowVariable(name, cell, HANDLER).orElseThrow();
         assertEquals(name, var.getName());
         assertTrue(Arrays.equals(val, var.getValue(StringArrayType.INSTANCE)));
     }
@@ -231,7 +234,7 @@ public class CellToVariableConverterTest {
             .map(BooleanCellFactory::create)//
             .collect(Collectors.toList()));
         final CellToVariableConverter<?> converter = CellToVariableConverterFactory.createConverter(cell.getType());
-        final FlowVariable var = converter.createFlowVariable(name, cell);
+        final FlowVariable var = converter.createFlowVariable(name, cell, HANDLER).orElseThrow();
         assertEquals(name, var.getName());
         assertTrue(Arrays.equals(val, var.getValue(BooleanArrayType.INSTANCE)));
     }
