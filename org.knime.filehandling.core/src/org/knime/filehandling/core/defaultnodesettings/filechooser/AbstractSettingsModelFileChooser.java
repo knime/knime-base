@@ -608,7 +608,7 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
         final String path = getLocation().getPath();
         if (path.length() == 0) {
             messageConsumer.accept(new DefaultStatusMessage(MessageType.ERROR,
-                String.format(NO_LOCATION_ERROR, getFilterMode() == FilterMode.FILE ? "file" : "folder")));
+                String.format(NO_LOCATION_ERROR, getFilterMode().getTextLabel())));
         }
         if (!path.equals(path.trim())) {
             messageConsumer.accept(TRAILING_OR_LEADING_WHITESPACE_ERROR);

@@ -214,7 +214,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     private List<FSPath> handleSinglePath(final FSPath rootPath) throws IOException, InvalidSettingsException {
         final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
         if (m_filterMode == FilterMode.FILE || m_filterMode == FilterMode.WORKFLOW) {
-            String workflowOrFile = m_filterMode == FilterMode.FILE ? "file" : "workflow";
+            String workflowOrFile = m_filterMode.getTextLabel();
             CheckUtils.checkSetting(!rootPath.toString().trim().isEmpty(), "Please specify a " + workflowOrFile + ".");
             CheckUtils.checkSetting(!attr.isDirectory(), "%s is a folder. Please specify a " + workflowOrFile + ".",
                 rootPath);
@@ -287,14 +287,7 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
     @Override
     public FSPath getRootPath(final Consumer<StatusMessage> statusMessageConsumer)
         throws IOException, InvalidSettingsException {
-        final String errorSuffix;
-        if (m_filterMode == FilterMode.FILE) {
-            errorSuffix = "file";
-        } else if (m_filterMode == FilterMode.WORKFLOW) {
-            errorSuffix = "workflow";
-        } else {
-            errorSuffix = "folder";
-        }
+        final String errorSuffix = m_filterMode.getTextLabel();
         CheckUtils.checkSetting(!m_rootLocation.getPath().trim().isEmpty(),
             String.format(AbstractSettingsModelFileChooser.NO_LOCATION_ERROR, errorSuffix));
         final FSPath rootPath = getOutputPath(statusMessageConsumer);

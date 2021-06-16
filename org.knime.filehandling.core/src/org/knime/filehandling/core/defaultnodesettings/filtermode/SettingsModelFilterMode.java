@@ -354,17 +354,17 @@ public final class SettingsModelFilterMode extends SettingsModel {
      */
     public enum FilterMode implements ButtonGroupEnumInterface {
             /** Only one file */
-            FILE("File", FileSelectionMode.FILES_ONLY, false),
+            FILE("File", "file", FileSelectionMode.FILES_ONLY, false),
             /** Only one folder */
-            FOLDER("Folder", FileSelectionMode.DIRECTORIES_ONLY, false),
+            FOLDER("Folder", "folder", FileSelectionMode.DIRECTORIES_ONLY, false),
             /** Several files in a folder */
-            FILES_IN_FOLDERS("Files in folder", FileSelectionMode.DIRECTORIES_ONLY, true),
+            FILES_IN_FOLDERS("Files in folder", "folder", FileSelectionMode.DIRECTORIES_ONLY, true),
             /** Multiple folders */
-            FOLDERS("Folders", FileSelectionMode.DIRECTORIES_ONLY, true),
+            FOLDERS("Folders", "folder", FileSelectionMode.DIRECTORIES_ONLY, true),
             /** Multiple files and folders */
-            FILES_AND_FOLDERS("Files and folders", FileSelectionMode.DIRECTORIES_ONLY, true),
+            FILES_AND_FOLDERS("Files and folders", "folder", FileSelectionMode.DIRECTORIES_ONLY, true),
             /** Only one workflow */
-            WORKFLOW("Workflow", FileSelectionMode.FILES_AND_DIRECTORIES, false);
+            WORKFLOW("Workflow", "workflow", FileSelectionMode.FILES_AND_DIRECTORIES, false);
 
         private final String m_label;
 
@@ -372,9 +372,12 @@ public final class SettingsModelFilterMode extends SettingsModel {
 
         private final boolean m_hasFilterOptions;
 
-        private FilterMode(final String label, final FileSelectionMode fileSelectionMode,
+        private final String m_textLabel;
+
+        private FilterMode(final String label, final String textLabel, final FileSelectionMode fileSelectionMode,
             final boolean hasFilterOptions) {
             m_label = label;
+            m_textLabel = textLabel;
             m_fileSelectionMode = fileSelectionMode;
             m_hasFilterOptions = hasFilterOptions;
         }
@@ -409,8 +412,18 @@ public final class SettingsModelFilterMode extends SettingsModel {
             return m_fileSelectionMode;
         }
 
+        /**
+         * A label to be used in (message) texts, such as 'Please specify a xxx'.
+         *
+         * @return the label, singular and all lower case
+         */
+        public String getTextLabel() {
+            return m_textLabel;
+        }
+
         boolean hasFilterOptions() {
             return m_hasFilterOptions;
         }
+
     }
 }

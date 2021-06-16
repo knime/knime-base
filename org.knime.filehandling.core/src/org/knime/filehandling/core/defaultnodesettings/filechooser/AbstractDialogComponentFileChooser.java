@@ -61,6 +61,7 @@ import java.util.stream.Stream;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.FlowVariableModelButton;
 import org.knime.core.node.InvalidSettingsException;
@@ -391,13 +392,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         }
 
         final FilterMode filterMode = getSettingsModel().getFilterMode();
-        if (filterMode == FilterMode.FILE) {
-            return "File";
-        } else if (filterMode == FilterMode.WORKFLOW) {
-            return "Workflow";
-        } else {
-            return "Folder";
-        }
+        return StringUtils.capitalize(filterMode.getTextLabel());
     }
 
     private void updateFileSelectionLabel(final FSLocation location) {
