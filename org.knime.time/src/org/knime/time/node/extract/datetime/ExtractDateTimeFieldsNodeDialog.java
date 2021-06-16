@@ -87,6 +87,7 @@ final class ExtractDateTimeFieldsNodeDialog extends AbstractExtractDateTimeField
     void loadAdditionalSettings(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
         m_mapLocales.loadSettingsFrom(settings, specs);
+        m_mapLocales.getModel().setEnabled(!ExtractDateTimeFieldsNodeModel.USES_COMPAT);
     }
 
 }
