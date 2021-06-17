@@ -72,6 +72,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
+import org.knime.core.node.util.ViewUtils;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
@@ -291,11 +292,13 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     @Override
     public final void updateComponent() {
+        ViewUtils.runOrInvokeLaterInEDT(this::updateUI);
+    }
+
+    private void updateUI() {
         final T sm = getSettingsModel();
         final FSLocation location = sm.getLocation();
-
         m_fileSelection.setSelected(location.getPath());
-
         updateFileSelectionLabel(location);
         updateBrowser();
         updateAdditionalComponents();
