@@ -156,10 +156,13 @@ public final class FileSystemChooser {
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         m_panel.add(m_fileSystemComboBox, gbc);
         gbc.gridx++;
         m_panel.add(m_specifierPanel, gbc);
+        gbc.weightx = 1;
+        gbc.gridx++;
+        m_panel.add(new JPanel(), gbc);
     }
 
     private FileSystemSpecificDialog getSelectedFileSystem() {

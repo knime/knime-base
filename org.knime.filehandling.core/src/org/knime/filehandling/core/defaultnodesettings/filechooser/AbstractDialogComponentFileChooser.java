@@ -248,11 +248,10 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
         panel.setLayout(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillHorizontal();
         panel.add(m_fsChooserLabel, gbc.setWeightX(0).setWidth(1).build());
-        panel.add(m_fsChooser.getPanel(), gbc.incX().insetLeft(5).fillNone().build());
+        panel.add(m_fsChooser.getPanel(), gbc.incX().setWeightX(1).insetLeft(5).build());
         panel.add(m_notBrowsableWarning.getPanel(), gbc.resetX().incX().incY().insetLeft(11).setWeightX(1).build());
-        gbc.fillHorizontal();
         if (displayFilterModes) {
-            panel.add(m_modeLabel, gbc.incY().resetX().insetLeft(0).build());
+            panel.add(m_modeLabel, gbc.incY().resetX().setWeightX(0).insetLeft(0).build());
             panel.add(createModePanel(), gbc.incX().setWeightX(1).widthRemainder().build());
         }
         panel.add(m_fileSelectionLabel, gbc.setWidth(1).insetLeft(0).setWeightX(0).resetX().incY().build());
