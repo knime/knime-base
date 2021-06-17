@@ -105,13 +105,16 @@ final class TableTransformationSerializer<T> {
     }
 
     private void saveColumns(final TableTransformation<T> tableTransformation, final NodeSettingsWO settings) {
-        final Set<TypedReaderColumnSpec<T>> intersection = tableTransformation.getRawSpec().getIntersection()//
+        final RawSpec<T> rawSpec = tableTransformation.getRawSpec();
+        final Set<TypedReaderColumnSpec<T>> intersection = rawSpec.getIntersection()//
             .stream()//
             .collect(toSet());
         final List<Integer> intersectionIndices = new ArrayList<>();
         int i = 0;
-        for (ColumnTransformation<T> columnTransformation : tableTransformation) {
-            if (intersection.contains(columnTransformation.getExternalSpec())) {
+        // iterate in the order of the RawSpec, so that we can reconstruct it correctly on load
+        for (TypedReaderColumnSpec<T> columnSpec : rawSpec.getUnion()) {
+            final ColumnTransformation<T> columnTransformation = tableTransformation.getTransformation(columnSpec);
+            if (intersection.contains(columnSpec)) {
                 intersectionIndices.add(i);
             }
             m_columnTransformationSerializer.save(columnTransformation, settings.addNodeSettings("" + i));

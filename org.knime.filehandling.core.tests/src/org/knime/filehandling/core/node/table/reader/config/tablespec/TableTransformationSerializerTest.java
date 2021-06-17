@@ -116,7 +116,7 @@ public class TableTransformationSerializerTest {
             new ImmutableColumnTransformation<>(TableSpecConfigTestingUtils.COL2, productionPaths[1], true, 2, "bar");
         final ColumnTransformation<String> trans3 =
             new ImmutableColumnTransformation<>(TableSpecConfigTestingUtils.COL3, productionPaths[2], false, 0, "baz");
-        final List<ColumnTransformation<String>> transformations = Arrays.asList(trans1, trans2, trans3);
+        final List<ColumnTransformation<String>> transformations = Arrays.asList(trans3, trans1, trans2);
         UnknownColumnsTransformation unknownColsTrans = new ImmutableUnknownColumnsTransformation(1, true, false, null);
         final TableTransformation<String> tableTransformation = new DefaultTableTransformation<>(RAW_SPEC,
             transformations, ColumnFilterMode.INTERSECTION, unknownColsTrans, true, true);
@@ -124,7 +124,8 @@ public class TableTransformationSerializerTest {
         m_testInstance.save(tableTransformation, saved);
 
         final NodeSettings expected = new NodeSettings("test");
-        fillSettings(expected, true, true, 1, true, ColumnFilterMode.INTERSECTION, transformations);
+        final List<ColumnTransformation<String>> expectedTransformations = Arrays.asList(trans1, trans2, trans3);
+        fillSettings(expected, true, true, 1, true, ColumnFilterMode.INTERSECTION, expectedTransformations);
         assertEquals(expected, saved);
     }
 
@@ -207,7 +208,7 @@ public class TableTransformationSerializerTest {
             new ImmutableColumnTransformation<>(TableSpecConfigTestingUtils.COL2, productionPaths[1], true, 2, "bar");
         final ImmutableColumnTransformation<String> trans3 =
             new ImmutableColumnTransformation<>(TableSpecConfigTestingUtils.COL3, productionPaths[2], false, 0, "baz");
-        final List<ImmutableColumnTransformation<String>> transformations = Arrays.asList(trans1, trans2, trans3);
+        final List<ImmutableColumnTransformation<String>> transformations = Arrays.asList(trans3, trans1, trans2);
         final ImmutableUnknownColumnsTransformation unknownColsTrans =
             new ImmutableUnknownColumnsTransformation(1, true, false, null);
         final TableTransformation<String> saved = new ImmutableTableTransformation<>(transformations, RAW_SPEC,
