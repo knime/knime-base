@@ -53,6 +53,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.meta.FSCapabilities;
@@ -85,14 +86,21 @@ public final class KNIMEFileAttributesWithPermissions extends KNIMEFileAttribute
     public KNIMEFileAttributesWithPermissions(final FSPath p, final boolean calcFolderSize,
         final BasicFileAttributes fileAttributes) throws IOException {
         super(p, calcFolderSize, fileAttributes);
-        if (supportsPosix(p)) {
-            m_isReadable = Files.isReadable(p);
-            m_isWritable = Files.isWritable(p);
-            m_isExecutable = Files.isExecutable(p);
+        final Optional<FSCapabilities> capabilities = getCapabilities(p);
+        if (fileAttributes.isDirectory()) {
+            m_isReadable = supportsOperation(capabilities, FSCapabilities::canCheckAccessReadOnDirectories)
+                ? Files.isReadable(p) : null;
+            m_isWritable = supportsOperation(capabilities, FSCapabilities::canCheckAccessWriteOnDirectories)
+                ? Files.isWritable(p) : null;
+            m_isExecutable = supportsOperation(capabilities, FSCapabilities::canCheckAccessExecuteOnDirectories)
+                ? Files.isExecutable(p) : null;
         } else {
-            m_isReadable = null;
-            m_isWritable = null;
-            m_isExecutable = null;
+            m_isReadable =
+                supportsOperation(capabilities, FSCapabilities::canCheckAccessReadOnFiles) ? Files.isReadable(p) : null;
+            m_isWritable = supportsOperation(capabilities, FSCapabilities::canCheckAccessWriteOnFiles)
+                ? Files.isWritable(p) : null;
+            m_isExecutable = supportsOperation(capabilities, FSCapabilities::canCheckAccessExecuteOnFiles)
+                ? Files.isExecutable(p) : null;
         }
     }
 
@@ -106,11 +114,14 @@ public final class KNIMEFileAttributesWithPermissions extends KNIMEFileAttribute
     }
 
     @SuppressWarnings("resource")
-    private static boolean supportsPosix(final FSPath p) {
+    private static Optional<FSCapabilities> getCapabilities(final FSPath p) {
         return FSDescriptorRegistry.getFSDescriptor(p.getFileSystem().getFSType())//
-            .map(FSDescriptor::getCapabilities)//
-            .map(FSCapabilities::canGetPosixAttributes)//
-            .orElse(false);
+            .map(FSDescriptor::getCapabilities);
+    }
+
+    private static boolean supportsOperation(final Optional<FSCapabilities> capabilities,
+        final Function<FSCapabilities, Boolean> operation) {
+        return capabilities.map(operation).orElseGet(() -> false);
     }
 
     @Override
