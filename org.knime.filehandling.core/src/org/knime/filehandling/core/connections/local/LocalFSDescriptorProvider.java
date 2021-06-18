@@ -50,25 +50,45 @@ package org.knime.filehandling.core.connections.local;
 
 import java.nio.file.FileSystems;
 
+import org.apache.commons.lang3.SystemUtils;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
 /**
+ * Provides an {@link FSDescriptor} for the Local File System.
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME Gmbh
  */
 public class LocalFSDescriptorProvider extends BaseFSDescriptorProvider {
+
+    /**
+     * Constructor.
+     */
+    @SuppressWarnings("resource")
     public LocalFSDescriptorProvider() {
         super(FSType.LOCAL_FS, //
             new BaseFSDescriptor.Builder() //
                 .withSeparator(FileSystems.getDefault().getSeparator()) //
                 .withConnectionFactory(LocalFSConnection::new) //
+                .withCanGetPosixAttributes(runningOnUnixOrMac()) //
+                .withCanSetPosixAttributes(runningOnUnixOrMac()) //
+                .withCanCheckAccessReadOnFiles(true) //
+                .withCanCheckAccessReadOnFolders(true) //
+                .withCanCheckAccessWriteOnFiles(true) //
+                .withCanCheckAccessWriteOnFolders(true) //
+                .withCanCheckAccessExecuteOnFiles(true) //
+                .withCanCheckAccessExecuteOnFolders(true) //
                 .withURIExporterFactory(URIExporterIDs.DEFAULT, FileURIExporter.getInstance()) //
                 .withURIExporterFactory(URIExporterIDs.DEFAULT_HADOOP, FileURIExporter.getInstance()) //
                 .withURIExporterFactory(URIExporterIDs.KNIME_FILE, FileURIExporter.getInstance()) //
                 .withTestInitializerProvider(new LocalFSTestInitializerProvider()) //
                 .build());
+    }
+
+    private static boolean runningOnUnixOrMac() {
+        return SystemUtils.IS_OS_UNIX || SystemUtils.IS_OS_MAC_OSX;
     }
 }
