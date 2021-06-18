@@ -311,8 +311,18 @@ class LocalPath extends FSPath {
         return m_wrappedPath.hashCode();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Note that Windows UNC paths are prefixed with {@code /unc:/}.
+     */
     @Override
     public String getURICompatiblePath() {
-        return ((LocalPath)toAbsolutePath().normalize()).m_wrappedPath.toUri().getPath();
+        final Path absPath = ((LocalPath)toAbsolutePath().normalize()).m_wrappedPath;
+        if (absPath.toString().startsWith("\\\\")) {
+            return "/unc:/" + absPath.toUri().getHost() + absPath.toUri().getPath();
+        } else {
+            return absPath.toUri().getPath();
+        }
     }
 }

@@ -114,9 +114,22 @@ final class LocalFileSystem extends FSFileSystem<LocalPath> {
         return m_provider;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * To use Windows UNC paths in URIs, prefix the path {@code /unc:/} followed by the host.
+     */
     @Override
     public LocalPath getPath(final String first, final String... more) {
-        return new LocalPath(this, Paths.get(first, more));
+        if (first.startsWith("/unc:/")) { // URI style
+            final String newFirst = "//" + first.substring(6);
+            return new LocalPath(this, Paths.get(newFirst, more));
+        } else if (first.startsWith("unc:\\")) { // Windows drive name style
+            final String newFirst = "\\\\"  + first.substring(5);
+            return new LocalPath(this, Paths.get(newFirst, more));
+        } else {
+            return new LocalPath(this, Paths.get(first, more));
+        }
     }
 
     @Override

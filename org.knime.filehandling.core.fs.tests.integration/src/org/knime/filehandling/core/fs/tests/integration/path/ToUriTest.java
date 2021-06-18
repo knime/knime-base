@@ -50,6 +50,7 @@ package org.knime.filehandling.core.fs.tests.integration.path;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.net.URI;
@@ -58,6 +59,7 @@ import java.util.StringTokenizer;
 
 import org.eclipse.core.runtime.Platform;
 import org.junit.Test;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.util.IOESupplier;
@@ -133,5 +135,17 @@ public class ToUriTest extends AbstractParameterizedFSTest {
         final URI uri = p.toUri();
 
         assertEqualNameComponents(uri.getPath(), p.toAbsolutePath());
+    }
+
+    @Test
+    public void test_unc_path() throws IOException {
+        assumeTrue("Only Winodws supports UNC paths", Platform.getOS().equals(Platform.OS_WIN32));
+        ignoreAllExcept("Only local file system supports UNC paths", LOCAL);
+
+        final FSPath path = getFileSystem().getPath("\\\\some-host\\some-path\\some.file");
+        final String uriPath = path.getURICompatiblePath();
+        assertEquals("Encodes double backslash as virtual unc Windows drive.", "/unc:/some-host/some-path/some.file", uriPath);
+        final FSPath otherPath = getFileSystem().getPath(uriPath);
+        assertEquals("Decodes virtual unc Windows drive back to double backslash.", path, otherPath);
     }
 }
