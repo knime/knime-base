@@ -161,12 +161,19 @@ public class MoveTest extends AbstractParameterizedFSTest {
         final Path source = m_testInitializer.createFileWithContent("a", "src");
         final Path existingTarget = m_testInitializer.createFileWithContent("b", "target");
 
+        final BasicFileAttributes sourceAttrs = Files.readAttributes(source, BasicFileAttributes.class);
         final BasicFileAttributes beforeAttrs = Files.readAttributes(existingTarget, BasicFileAttributes.class);
         Thread.sleep(1000);
         Files.move(source, existingTarget, StandardCopyOption.REPLACE_EXISTING);
         final BasicFileAttributes afterAttrs = Files.readAttributes(existingTarget, BasicFileAttributes.class);
-        assertTrue(beforeAttrs.creationTime().toMillis() <= afterAttrs.creationTime().toMillis());
-        assertTrue(beforeAttrs.lastModifiedTime().toMillis() <= afterAttrs.lastModifiedTime().toMillis());
+
+        // some file systems (e.g. local) also copy ctime/mtime, hence we need the OR clause
+        assertTrue(sourceAttrs.creationTime().equals(afterAttrs.creationTime())
+            || beforeAttrs.creationTime().toMillis() <= afterAttrs.creationTime().toMillis());
+
+        // some file systems (e.g. local) also copy ctime/mtime, hence we need the OR clause
+        assertTrue(sourceAttrs.lastModifiedTime().equals(afterAttrs.lastModifiedTime())
+            || beforeAttrs.lastModifiedTime().toMillis() <= afterAttrs.lastModifiedTime().toMillis());
     }
 
 
