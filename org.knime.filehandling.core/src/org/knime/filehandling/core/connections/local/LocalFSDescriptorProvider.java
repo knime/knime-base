@@ -76,11 +76,11 @@ public class LocalFSDescriptorProvider extends BaseFSDescriptorProvider {
                 .withCanGetPosixAttributes(runningOnUnixOrMac()) //
                 .withCanSetPosixAttributes(runningOnUnixOrMac()) //
                 .withCanCheckAccessReadOnFiles(true) //
-                .withCanCheckAccessReadOnFolders(true) //
+                .withCanCheckAccessReadOnDirectories(true) //
                 .withCanCheckAccessWriteOnFiles(true) //
-                .withCanCheckAccessWriteOnFolders(true) //
+                .withCanCheckAccessWriteOnDirectories(true) //
                 .withCanCheckAccessExecuteOnFiles(true) //
-                .withCanCheckAccessExecuteOnFolders(true) //
+                .withCanCheckAccessExecuteOnDirectories(true) //
                 .withURIExporterFactory(URIExporterIDs.DEFAULT, FileURIExporter.getInstance()) //
                 .withURIExporterFactory(URIExporterIDs.DEFAULT_HADOOP, FileURIExporter.getInstance()) //
                 .withURIExporterFactory(URIExporterIDs.KNIME_FILE, FileURIExporter.getInstance()) //

@@ -78,9 +78,9 @@ public interface FSCapabilities {
     /**
      *
      * @return whether or not {@link Files#isReadable(java.nio.file.Path)} will return a meaningful result when given a
-     *         path that points to a folder.
+     *         path that points to a directory.
      */
-    boolean canCheckAccessReadOnFolders();
+    boolean canCheckAccessReadOnDirectories();
 
     /**
      *
@@ -92,9 +92,9 @@ public interface FSCapabilities {
     /**
      *
      * @return whether or not {@link Files#isWritable(java.nio.file.Path)} will return a meaningful result when given a
-     *         path that points to a folder.
+     *         path that points to a directory.
      */
-    boolean canCheckAccessWriteOnFolders();
+    boolean canCheckAccessWriteOnDirectories();
 
     /**
      *
@@ -106,9 +106,9 @@ public interface FSCapabilities {
     /**
      *
      * @return whether or not {@link Files#isExecutable(java.nio.file.Path)} will return a meaningful result when given
-     *         a path that points to a folder.
+     *         a path that points to a directory.
      */
-    boolean canCheckAccessExecuteOnFolders();
+    boolean canCheckAccessExecuteOnDirectories();
 
     boolean canWriteFiles();
 

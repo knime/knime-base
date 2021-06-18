@@ -173,8 +173,8 @@ public final class BaseFSDescriptor implements FSDescriptor {
             return this;
         }
 
-        public Builder withCanCheckAccessReadOnFolders(final boolean canCheckAccessReadOnFolders) {
-            m_capabilitiesBuilder.withCanCheckAccessReadOnFolders(canCheckAccessReadOnFolders);
+        public Builder withCanCheckAccessReadOnDirectories(final boolean canCheckAccessReadOnDirectories) {
+            m_capabilitiesBuilder.withCanCheckAccessReadOnDirectories(canCheckAccessReadOnDirectories);
             return this;
         }
 
@@ -183,8 +183,8 @@ public final class BaseFSDescriptor implements FSDescriptor {
             return this;
         }
 
-        public Builder withCanCheckAccessWriteOnFolders(final boolean canCheckAccessWriteOnFolders) {
-            m_capabilitiesBuilder.withCanCheckAccessWriteOnFolders(canCheckAccessWriteOnFolders);
+        public Builder withCanCheckAccessWriteOnDirectories(final boolean canCheckAccessWriteOnDirectories) {
+            m_capabilitiesBuilder.withCanCheckAccessWriteOnDirectories(canCheckAccessWriteOnDirectories);
             return this;
         }
 
@@ -193,8 +193,8 @@ public final class BaseFSDescriptor implements FSDescriptor {
             return this;
         }
 
-        public Builder withCanCheckAccessExecuteOnFolders(final boolean canCheckAccessExecuteOnFolders) {
-            m_capabilitiesBuilder.withCanCheckAccessExecuteOnFolders(canCheckAccessExecuteOnFolders);
+        public Builder withCanCheckAccessExecuteOnDirectories(final boolean canCheckAccessExecuteOnDirectories) {
+            m_capabilitiesBuilder.withCanCheckAccessExecuteOnDirectories(canCheckAccessExecuteOnDirectories);
             return this;
         }
 

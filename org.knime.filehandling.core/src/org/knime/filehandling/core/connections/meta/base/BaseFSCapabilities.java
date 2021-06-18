@@ -70,15 +70,15 @@ public final class BaseFSCapabilities implements FSCapabilities {
 
     private final boolean m_canCheckAccessReadOnFiles;
 
-    private final boolean m_canCheckAccessReadOnFolders;
+    private final boolean m_canCheckAccessReadOnDirectories;
 
     private final boolean m_canCheckAccessWriteOnFiles;
 
-    private final boolean m_canCheckAccessWriteOnFolders;
+    private final boolean m_canCheckAccessWriteOnDirectories;
 
     private final boolean m_canCheckAccessExecuteOnFiles;
 
-    private final boolean m_canCheckAccessExecuteOnFolders;
+    private final boolean m_canCheckAccessExecuteOnDirectories;
 
     private final boolean m_canWriteFiles;
 
@@ -93,11 +93,11 @@ public final class BaseFSCapabilities implements FSCapabilities {
         final boolean canGetPosixAttributes, //
         final boolean canSetPosixAttributes, //
         final boolean canCheckAccessReadOnFiles, //
-        final boolean canCheckAccessReadOnFolders, //
+        final boolean canCheckAccessReadOnDirectories, //
         final boolean canCheckAccessWriteOnFiles, //
-        final boolean canCheckAccessWriteOnFolders, //
+        final boolean canCheckAccessWriteOnDirectories, //
         final boolean canCheckAccessExecuteOnFiles, //
-        final boolean canCheckAccessExecuteOnFolders, //
+        final boolean canCheckAccessExecuteOnDirectories, //
         final boolean canWriteFiles, //
         final boolean canDeleteFiles, //
         final boolean isWorkflowAware) {
@@ -109,11 +109,11 @@ public final class BaseFSCapabilities implements FSCapabilities {
         m_canGetPosixAttributes = canGetPosixAttributes;
         m_canSetPosixAttributes = canSetPosixAttributes;
         m_canCheckAccessReadOnFiles = canCheckAccessReadOnFiles;
-        m_canCheckAccessReadOnFolders = canCheckAccessReadOnFolders;
+        m_canCheckAccessReadOnDirectories = canCheckAccessReadOnDirectories;
         m_canCheckAccessWriteOnFiles = canCheckAccessWriteOnFiles;
-        m_canCheckAccessWriteOnFolders = canCheckAccessWriteOnFolders;
+        m_canCheckAccessWriteOnDirectories = canCheckAccessWriteOnDirectories;
         m_canCheckAccessExecuteOnFiles = canCheckAccessExecuteOnFiles;
-        m_canCheckAccessExecuteOnFolders = canCheckAccessExecuteOnFolders;
+        m_canCheckAccessExecuteOnDirectories = canCheckAccessExecuteOnDirectories;
         m_canWriteFiles = canWriteFiles;
         m_canDeleteFiles = canDeleteFiles;
         m_isWorkflowAware = isWorkflowAware;
@@ -155,8 +155,8 @@ public final class BaseFSCapabilities implements FSCapabilities {
     }
 
     @Override
-    public boolean canCheckAccessReadOnFolders() {
-        return m_canCheckAccessReadOnFolders;
+    public boolean canCheckAccessReadOnDirectories() {
+        return m_canCheckAccessReadOnDirectories;
     }
 
     @Override
@@ -165,8 +165,8 @@ public final class BaseFSCapabilities implements FSCapabilities {
     }
 
     @Override
-    public boolean canCheckAccessWriteOnFolders() {
-        return m_canCheckAccessWriteOnFolders;
+    public boolean canCheckAccessWriteOnDirectories() {
+        return m_canCheckAccessWriteOnDirectories;
     }
 
     @Override
@@ -175,8 +175,8 @@ public final class BaseFSCapabilities implements FSCapabilities {
     }
 
     @Override
-    public boolean canCheckAccessExecuteOnFolders() {
-        return m_canCheckAccessExecuteOnFolders;
+    public boolean canCheckAccessExecuteOnDirectories() {
+        return m_canCheckAccessExecuteOnDirectories;
     }
 
     @Override
@@ -209,15 +209,15 @@ public final class BaseFSCapabilities implements FSCapabilities {
 
         private boolean m_canCheckAccessReadOnFiles = false;
 
-        private boolean m_canCheckAccessReadOnFolders = false;
+        private boolean m_canCheckAccessReadOnDirectories = false;
 
         private boolean m_canCheckAccessWriteOnFiles = false;
 
-        private boolean m_canCheckAccessWriteOnFolders = false;
+        private boolean m_canCheckAccessWriteOnDirectories = false;
 
         private boolean m_canCheckAccessExecuteOnFiles = false;
 
-        private boolean m_canCheckAccessExecuteOnFolders = false;
+        private boolean m_canCheckAccessExecuteOnDirectories = false;
 
         private boolean m_canWriteFiles = true;
 
@@ -260,8 +260,8 @@ public final class BaseFSCapabilities implements FSCapabilities {
             return this;
         }
 
-        Builder withCanCheckAccessReadOnFolders(final boolean canCheckAccessReadOnFolders) {
-            m_canCheckAccessReadOnFolders = canCheckAccessReadOnFolders;
+        Builder withCanCheckAccessReadOnDirectories(final boolean canCheckAccessReadOnDirectories) {
+            m_canCheckAccessReadOnDirectories = canCheckAccessReadOnDirectories;
             return this;
         }
 
@@ -270,8 +270,8 @@ public final class BaseFSCapabilities implements FSCapabilities {
             return this;
         }
 
-        Builder withCanCheckAccessWriteOnFolders(final boolean canCheckAccessWriteOnFolders) {
-            m_canCheckAccessWriteOnFolders = canCheckAccessWriteOnFolders;
+        Builder withCanCheckAccessWriteOnDirectories(final boolean canCheckAccessWriteOnDirectories) {
+            m_canCheckAccessWriteOnDirectories = canCheckAccessWriteOnDirectories;
             return this;
         }
 
@@ -280,8 +280,8 @@ public final class BaseFSCapabilities implements FSCapabilities {
             return this;
         }
 
-        Builder withCanCheckAccessExecuteOnFolders(final boolean canCheckAccessExecuteOnFolders) {
-            m_canCheckAccessExecuteOnFolders = canCheckAccessExecuteOnFolders;
+        Builder withCanCheckAccessExecuteOnDirectories(final boolean canCheckAccessExecuteOnDirectories) {
+            m_canCheckAccessExecuteOnDirectories = canCheckAccessExecuteOnDirectories;
             return this;
         }
 
@@ -308,11 +308,11 @@ public final class BaseFSCapabilities implements FSCapabilities {
                 m_canGetPosixAttributes, //
                 m_canSetPosixAttributes, //
                 m_canCheckAccessReadOnFiles, //
-                m_canCheckAccessReadOnFolders, //
+                m_canCheckAccessReadOnDirectories, //
                 m_canCheckAccessWriteOnFiles, //
-                m_canCheckAccessWriteOnFolders, //
+                m_canCheckAccessWriteOnDirectories, //
                 m_canCheckAccessExecuteOnFiles, //
-                m_canCheckAccessExecuteOnFolders, //
+                m_canCheckAccessExecuteOnDirectories, //
                 m_canWriteFiles, //
                 m_canDeleteFiles, //
                 m_isWorkflowAware);
