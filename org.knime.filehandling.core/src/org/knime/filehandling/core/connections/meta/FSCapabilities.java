@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.connections.meta;
 
+import java.nio.file.Files;
+
 /**
  *
  * @author Bjoern Lohrmann, KNIME GmbH
@@ -65,6 +67,48 @@ public interface FSCapabilities {
     boolean canGetPosixAttributes();
 
     boolean canSetPosixAttributes();
+
+    /**
+     *
+     * @return whether or not {@link Files#isReadable(java.nio.file.Path)} will return a meaningful result when given a
+     *         path that points to a file.
+     */
+    boolean canCheckAccessReadOnFiles();
+
+    /**
+     *
+     * @return whether or not {@link Files#isReadable(java.nio.file.Path)} will return a meaningful result when given a
+     *         path that points to a folder.
+     */
+    boolean canCheckAccessReadOnFolders();
+
+    /**
+     *
+     * @return whether or not {@link Files#isWritable(java.nio.file.Path)} will return a meaningful result when given a
+     *         path that points to a file.
+     */
+    boolean canCheckAccessWriteOnFiles();
+
+    /**
+     *
+     * @return whether or not {@link Files#isWritable(java.nio.file.Path)} will return a meaningful result when given a
+     *         path that points to a folder.
+     */
+    boolean canCheckAccessWriteOnFolders();
+
+    /**
+     *
+     * @return whether or not {@link Files#isExecutable(java.nio.file.Path)} will return a meaningful result when given
+     *         a path that points to a file.
+     */
+    boolean canCheckAccessExecuteOnFiles();
+
+    /**
+     *
+     * @return whether or not {@link Files#isExecutable(java.nio.file.Path)} will return a meaningful result when given
+     *         a path that points to a folder.
+     */
+    boolean canCheckAccessExecuteOnFolders();
 
     boolean canWriteFiles();
 
