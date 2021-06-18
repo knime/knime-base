@@ -188,8 +188,7 @@ public abstract class BaseRelativeToFileSystemProvider<F extends BaseRelativeToF
 
     @Override
     protected void checkAccessInternal(final RelativeToPath path, final AccessMode... modes) throws IOException {
-        final Path realPath = toRealPathWithAccessibilityCheck(path);
-        realPath.getFileSystem().provider().checkAccess(realPath);
+        // do nothing here
     }
 
     @Override
