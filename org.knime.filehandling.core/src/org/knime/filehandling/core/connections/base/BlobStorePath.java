@@ -125,7 +125,7 @@ public abstract class BlobStorePath extends UnixStylePath {
             nameComponents[i] = m_pathParts.get(i) + sep;
         }
 
-        nameComponents[nameComponents.length - 1] = toString();
+        nameComponents[nameComponents.length - 1] = m_pathParts.get(nameComponents.length - 1);
         return Arrays.stream(nameComponents);
     }
 
