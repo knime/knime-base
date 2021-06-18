@@ -79,11 +79,13 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 public final class KnimeTableReaderNodeFactory
     extends AbstractTableReaderNodeFactory<TableManipulatorConfig, DataType, DataValue> {
 
+    private static final String[] FILE_SUFFIXES = new String[]{".table"};
+
     @Override
     protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
         final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
             nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS));
+            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
             settingsModel
