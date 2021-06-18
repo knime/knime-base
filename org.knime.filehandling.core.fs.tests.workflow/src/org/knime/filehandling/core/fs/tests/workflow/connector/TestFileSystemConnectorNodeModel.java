@@ -72,12 +72,17 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.meta.FSCapabilities;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.fs.testinitializer.FSTestConfig;
 import org.knime.filehandling.core.fs.testinitializer.FSTestInitializerManager;
 import org.knime.filehandling.core.fs.testinitializer.FSTestPropertiesResolver;
@@ -116,11 +121,12 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
         final FSLocationSpec fsLocationSpec =
             FSTestInitializerManager.instance().createFSLocationSpec(fsType, testConfig.getSettingsForFSType(fsType));
 
+        pushFSMetaInfo(getDescriptor(fsLocationSpec.getFSType()));
+
         return new PortObjectSpec[]{createSpec(fsType, fsLocationSpec)};
     }
 
-    private static String getFSTypeToTest(final FSTestConfig testConfig)
-        throws InvalidSettingsException {
+    private static String getFSTypeToTest(final FSTestConfig testConfig) throws InvalidSettingsException {
 
         final Optional<String> fsToTest = testConfig.getFSTypeToTest();
         if (!fsToTest.isPresent()) {
@@ -131,10 +137,42 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
         return fsToTest.get();
     }
 
+    private void pushFSMetaInfo(final FSDescriptor descriptor) throws InvalidSettingsException {
+        pushFlowVariable("fs.file_separator", VariableType.StringType.INSTANCE, descriptor.getSeparator());
+        pushCapabilities(descriptor);
+    }
+
+    private void pushCapabilities(final FSDescriptor descriptor) {
+        final FSCapabilities capabilities = descriptor.getCapabilities();
+        pushFlowVariable("fs.can_browse", capabilities.canBrowse());
+        pushFlowVariable("fs.can_create_directories", capabilities.canCreateDirectories());
+        pushFlowVariable("fs.can_delete_directories", capabilities.canDeleteDirectories());
+        pushFlowVariable("fs.can_delete_files", capabilities.canDeleteFiles());
+        pushFlowVariable("fs.can_get_posix_attributes", capabilities.canGetPosixAttributes());
+        pushFlowVariable("fs.can_list_directories", capabilities.canListDirectories());
+        pushFlowVariable("fs.can_set_posix_attributes", capabilities.canSetPosixAttributes());
+        pushFlowVariable("fs.can_write_files", capabilities.canWriteFiles());
+        pushFlowVariable("fs.is_workflow_aware", capabilities.isWorkflowAware());
+        pushFlowVariable("fs.can_check_execute_access_on_file", capabilities.canCheckAccessExecuteOnFiles());
+        pushFlowVariable("fs.can_check_execute_access_on_directories", capabilities.canCheckAccessExecuteOnDirectories());
+        pushFlowVariable("fs.can_check_read_access_on_file", capabilities.canCheckAccessReadOnFiles());
+        pushFlowVariable("fs.can_check_read_access_on_directories", capabilities.canCheckAccessReadOnDirectories());
+        pushFlowVariable("fs.can_check_write_access_on_file", capabilities.canCheckAccessWriteOnFiles());
+        pushFlowVariable("fs.can_check_write_access_on_directories", capabilities.canCheckAccessWriteOnDirectories());
+    }
+
+    private void pushFlowVariable(final String name, final boolean val) {
+        pushFlowVariable(name, VariableType.BooleanType.INSTANCE, val);
+    }
+
+    private static FSDescriptor getDescriptor(final FSType fsType) throws InvalidSettingsException {
+        return FSDescriptorRegistry.getFSDescriptor(fsType).orElseThrow(
+            () -> new InvalidSettingsException(String.format("No FSDescription associated with FSType '%s'", fsType)));
+    }
+
     @SuppressWarnings("resource")
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-
 
         final FSTestConfig testConfig = new FSTestConfig(FSTestPropertiesResolver.forWorkflowTests());
         final String fsType = getFSTypeToTest(testConfig);
@@ -165,12 +203,16 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
         m_fsConnection = initializer.getFSConnection();
         FSConnectionRegistry.getInstance().register(m_fsId, m_fsConnection);
 
+        pushFSMetaInfo(m_fsConnection.getFSDescriptor());
+
         return new PortObject[]{
             new FileSystemPortObject(createSpec(fsType, m_fsConnection.getFileSystem().getFSLocationSpec()))};
 
     }
 
+    @SuppressWarnings("resource")
     private static void deleteWorkingDirOnConnectionClose(final FSTestInitializer initializer) {
+        @SuppressWarnings("unchecked")
         final FSFileSystem<FSPath> fs = (FSFileSystem<FSPath>)initializer.getFileSystem();
         initializer.getFileSystem().registerCloseable(() -> {
             FSFiles.deleteRecursively(fs.getWorkingDirectory());
@@ -268,7 +310,6 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
                 return FileVisitResult.CONTINUE;
             }
 
-
             @Override
             public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
                 throw exc;
@@ -288,13 +329,13 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
 
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+        throws IOException, CanceledExecutionException {
         setWarningMessage("File system connection no longer available. Please re-execute the node.");
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir,
-        final ExecutionMonitor exec) throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
     }
 
     @Override

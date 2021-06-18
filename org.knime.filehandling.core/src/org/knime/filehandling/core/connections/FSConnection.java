@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
@@ -95,36 +96,49 @@ public interface FSConnection extends AutoCloseable {
      * @return default exporter or {@code null}
      */
     default NoConfigURIExporterFactory getDefaultURIExporterFactory() {
-        return (NoConfigURIExporterFactory) getURIExporterFactory(URIExporterIDs.DEFAULT);
+        return (NoConfigURIExporterFactory)getURIExporterFactory(URIExporterIDs.DEFAULT);
     }
 
     /**
      * Export the relevant Panel for each URIExporter. This panel will contain different settings required to setup
-     * different URIExporters
+     * different URIExporters.
      *
      * @return URIExporterPanel of the URIExporter
      */
     default Set<URIExporterID> getURIExporterIDs() {
-        @SuppressWarnings("resource")
-        final FSType fsType = getFileSystem().getFSType();
-        return FSDescriptorRegistry.getFSDescriptor(fsType) //
-            .orElseThrow(() -> new IllegalStateException(String.format("FSType %s is not registered", fsType))) //
-            .getURIExporters();
+        return getFSDescriptor().getURIExporters();
     }
 
     /**
-     * Return the URI Exporter Factory from the URIExporter ID
+     * Return the URI Exporter Factory from the URIExporter ID.
      *
      * @param uriExporterID URIExporterID object for the requested URIExporter
      *
      * @return URIExporterFactory A URIExporterFactory instance
      */
     default URIExporterFactory getURIExporterFactory(final URIExporterID uriExporterID) {
-        @SuppressWarnings("resource")
-        final FSType fsType = getFileSystem().getFSType();
+        return getFSDescriptor().getURIExporterFactory(uriExporterID);
+    }
+
+    /**
+     * Return the {@link FSType}.
+     *
+     * @return the {@link FSType}
+     */
+    @SuppressWarnings("resource")
+    default FSType getFSType() {
+        return getFileSystem().getFSType();
+    }
+
+    /**
+     * Return the {@link FSDescriptor}.
+     *
+     * @return the {@link FSDescriptor}
+     */
+    default FSDescriptor getFSDescriptor() {
+        final FSType fsType = getFSType();
         return FSDescriptorRegistry.getFSDescriptor(fsType) //
-            .orElseThrow(() -> new IllegalStateException(String.format("FSType %s is not registered", fsType))) //
-            .getURIExporterFactory(uriExporterID);
+            .orElseThrow(() -> new IllegalStateException(String.format("FSType %s is not registered", fsType)));
     }
 
     // FIXME remove me
