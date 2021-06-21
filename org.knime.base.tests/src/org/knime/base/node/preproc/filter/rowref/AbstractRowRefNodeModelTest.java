@@ -49,7 +49,6 @@
 package org.knime.base.node.preproc.filter.rowref;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
@@ -139,15 +138,17 @@ public class AbstractRowRefNodeModelTest {
         compare(generateData(33, 64), outData[0]);
     }
 
-    @Test
+    @Test(timeout = 60000)
     public void testEmptyInputLargeReferenceLowMemory() throws Exception {
         try {
-            // induce low memory condition by (a) setting low memory threshold to 10 MB below current memory usage
-            MAS.setFractionUsageThreshold(Math.min(MemoryAlertSystem.DEFAULT_USAGE_THRESHOLD,
-                (MemoryAlertSystem.getUsedMemory() - (10 << 20)) / (double)MemoryAlertSystem.getMaximumMemory()));
-            // ... and (b) forcing a garbage collection to trigger a usage threshold event
-            forceGC();
-            assertTrue(MAS.isMemoryLow());
+            while (!MAS.isMemoryLow()) {
+                forceGC();
+                // induce low memory condition by (a) setting low memory threshold to 10 MB below current memory usage
+                MAS.setFractionUsageThreshold(Math.min(MemoryAlertSystem.DEFAULT_USAGE_THRESHOLD,
+                    (MemoryAlertSystem.getUsedMemory() - (10 << 20)) / (double)MemoryAlertSystem.getMaximumMemory()));
+                // ... and (b) forcing a garbage collection to trigger a usage threshold event
+                forceGC();
+            }
 
             final TestRowRefNodeModel model = new TestRowRefNodeModel(false);
             final BufferedDataTable emptyTable = generateData(0, -1);
