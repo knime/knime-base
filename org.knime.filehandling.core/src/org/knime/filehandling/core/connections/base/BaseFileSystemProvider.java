@@ -185,6 +185,9 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             checkParentDirectoryExists(checkedPath);
         }
 
+        if (sanitizedOptions.contains(StandardOpenOption.WRITE)) {
+            deleteCachedParentDirectoryAttributes(checkedPath);
+        }
         return new FSSeekableByteChannel(newByteChannelInternal(checkedPath, sanitizedOptions, attrs), m_fileSystem) {
             @Override
             public void close() throws IOException {
@@ -297,6 +300,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new IOException(path.toString() + " is a directory");
         }
 
+        deleteCachedParentDirectoryAttributes(checkedPath);
         return new FSInputStream(newInputStreamInternal(checkedPath, options), getFileSystemInternal());
     }
 
@@ -343,6 +347,8 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
         moveInternal(checkedSource, checkedTarget, options);
         getFileSystemInternal().removeFromAttributeCacheDeep(checkedSource);
+
+        deleteCachedParentDirectoryAttributes(checkedTarget);
     }
 
     /**
@@ -444,6 +450,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
         copyInternal(checkedSource, checkedTarget, options);
         getFileSystemInternal().removeFromAttributeCache(checkedTarget);
+        deleteCachedParentDirectoryAttributes(checkedTarget);
     }
 
     /**
@@ -488,6 +495,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         } catch (NoSuchFileException e) { // NOSONAR must be ignored here
         }
 
+        deleteCachedParentDirectoryAttributes(checkedPath);
         return new FSOutputStream(newOutputStreamInternal(checkedPath, validatedOpenOptions), getFileSystemInternal()) {
             @Override
             public void close() throws IOException {
@@ -581,6 +589,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
             throw new FileAlreadyExistsException(checkedDir.toString());
         } catch (NoSuchFileException e) { // NOSONAR exception is dealt with properly
             createDirectoryInternal(checkedDir, attrs);
+            deleteCachedParentDirectoryAttributes(checkedDir);
         }
     }
 
@@ -647,10 +656,10 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     }
 
     /**
-     * Tests whether the given absolute, normalized path exists in the backing file system. Subclasses can override
-     * this method, if there is a more efficient method than invoking {@link #fetchAttributesInternal(FSPath, Class)}
-     * to determine the existence of the given path. Note that implementations of this method must not perform a
-     * cache lookup (this is already done in {@link #existsCached(FSPath)}.
+     * Tests whether the given absolute, normalized path exists in the backing file system. Subclasses can override this
+     * method, if there is a more efficient method than invoking {@link #fetchAttributesInternal(FSPath, Class)} to
+     * determine the existence of the given path. Note that implementations of this method must not perform a cache
+     * lookup (this is already done in {@link #existsCached(FSPath)}.
      *
      * @param path An absolute and normalized path to check for existence.
      * @return whether the path exists or not.
@@ -798,6 +807,7 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
 
         deleteInternal(checkedPath);
         getFileSystemInternal().removeFromAttributeCache(path);
+        deleteCachedParentDirectoryAttributes(checkedPath);
     }
 
     /**
@@ -902,5 +912,11 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
     @Override
     public final String getScheme() {
         return getFileSystemInternal().getFileSystemBaseURI().getScheme();
+    }
+
+    private void deleteCachedParentDirectoryAttributes(final P path) {
+        if (path.getParent() != null) {
+            getFileSystemInternal().removeFromAttributeCache(path.getParent());
+        }
     }
 }
