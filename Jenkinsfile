@@ -1,7 +1,7 @@
 #!groovy
 def BN = BRANCH_NAME == "master" || BRANCH_NAME.startsWith("releases/") ? BRANCH_NAME : "master"
 
-library "knime-pipeline@$BN"
+library "knime-pipeline@$BRANCH_NAME"
 
 properties([
 	// provide a list of upstream jobs which should trigger a rebuild of this job
