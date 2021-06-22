@@ -67,6 +67,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.util.workflowsummary.WorkflowSummaryCreator;
 
 /**
  *
@@ -238,7 +239,8 @@ final class ReadSysPropertyConfiguration {
         DataTable getTable() {
             final List<DataRow> rows = new ArrayList<>();
             for (Map.Entry<String, String> e : m_props.entrySet()) {
-                rows.add(new DefaultRow(e.getKey(), e.getValue()));
+                String key = e.getKey();
+                rows.add(new DefaultRow(key, WorkflowSummaryCreator.getValueHidePasswords(key, e.getValue())));
             }
             return new DataTable() {
 
