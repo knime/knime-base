@@ -94,8 +94,21 @@ public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> 
      */
     TypedReaderTableSpec<T> readSpec(I item, TableReadConfig<C> config, ExecutionMonitor exec) throws IOException;
 
+    /**
+     * Creates the {@link DataColumnSpec} for the provided item with the provided name.
+     *
+     * @param item for which to create the spec
+     * @param name the column should have
+     * @return a {@link DataColumnSpec} for the <b>item</b> with the provided <b>name</b>
+     */
     DataColumnSpec createIdentifierColumnSpec(I item, String name);
 
+    /**
+     * Creates the identifier cell for the provided item.
+     *
+     * @param item to create the cell for
+     * @return a cell that represents <b>item</b>
+     */
     DataCell createIdentifierCell(final I item);
 
 }

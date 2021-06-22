@@ -81,7 +81,7 @@ public final class ReadUtils {
      * @param skip the number of rows to skip
      * @return a read that skips over the first <b>skip</b> rows
      */
-    public static <I, V> Read<V> skip(final Read<V> read, final long skip) {
+    public static <V> Read<V> skip(final Read<V> read, final long skip) {
         return new IntervalRead<>(read, skip, Long.MAX_VALUE);
     }
 
@@ -93,7 +93,7 @@ public final class ReadUtils {
      * @param to the last index to read
      * @return a read that returns only the rows of <b>read</b> starting from <b>from</b> upto <b>to</b>
      */
-    public static <I, V> Read<V> range(final Read<V> read, final long from, final long to) {
+    public static <V> Read<V> range(final Read<V> read, final long from, final long to) {
         return new IntervalRead<>(read, from, to);
     }
 
@@ -103,7 +103,7 @@ public final class ReadUtils {
      * @param read the read to decorate
      * @return a {@link Read} that skips empty rows in {@link Read read}
      */
-    public static <I, V> Read<V> skipEmptyRows(final Read<V> read) {
+    public static <V> Read<V> skipEmptyRows(final Read<V> read) {
         return new SkipEmptyRead<>(read);
     }
 
@@ -118,7 +118,7 @@ public final class ReadUtils {
      * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
      */
     @SuppressWarnings("resource") // that's the point
-    public static <I, V> Read<V> decorateForSpecGuessing(final Read<V> read, final TableReadConfig<?> config) {
+    public static <V> Read<V> decorateForSpecGuessing(final Read<V> read, final TableReadConfig<?> config) {
         Read<V> decorated = read;
         decorated = decorateSkipEmpty(decorated, config);
         decorated = decorateAllowShortRows(decorated, config);
@@ -137,7 +137,7 @@ public final class ReadUtils {
      * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
      */
     @SuppressWarnings("resource") // that's the point...
-    public static <I, V> Read<V> decorateForReading(final Read<V> read, final TableReadConfig<?> config) {
+    public static <V> Read<V> decorateForReading(final Read<V> read, final TableReadConfig<?> config) {
         Read<V> decorated = read;
         decorated = decorateSkipEmpty(decorated, config);
         decorated = decorateAllowShortRows(decorated, config);
@@ -157,7 +157,7 @@ public final class ReadUtils {
      * @return a decorated {@link Read} conforming to {@link TableReadConfig config}
      */
     @SuppressWarnings("resource") // that's the point...
-    public static <I, V> Read<V> decorateForReading(final TableReadConfig<?> config,
+    public static <V> Read<V> decorateForReading(final TableReadConfig<?> config,
         final Read<V> read) {
         Read<V> decorated = read;
         decorated = decorateSkipEmpty(decorated, config);
@@ -166,7 +166,7 @@ public final class ReadUtils {
         return decorated;
     }
 
-    private static <I, V> Read<V> decorateSkipEmpty(final Read<V> read, final TableReadConfig<?> config) {
+    private static <V> Read<V> decorateSkipEmpty(final Read<V> read, final TableReadConfig<?> config) {
         if (config.skipEmptyRows()) {
             return new SkipEmptyRead<>(read);
         } else {
@@ -174,7 +174,7 @@ public final class ReadUtils {
         }
     }
 
-    private static <I, V> Read<V> decorateAllowShortRows(final Read<V> read, final TableReadConfig<?> config) {
+    private static <V> Read<V> decorateAllowShortRows(final Read<V> read, final TableReadConfig<?> config) {
         if (!config.allowShortRows()) {
             return new CheckSameSizeRead<>(read);
         } else {
@@ -189,7 +189,7 @@ public final class ReadUtils {
      * @param config {@link TableReadConfig} from which to figure out if the column read needs to be skipped
      * @return a {@link Read} without a column header (one way or the other)
      */
-    private static <I, V> Read<V> decorateSkipHeader(final Read<V> read, final TableReadConfig<?> config) {
+    private static <V> Read<V> decorateSkipHeader(final Read<V> read, final TableReadConfig<?> config) {
         if (needToSkipColumnHeader(config)) {
             // we only end up here if there is a column header index and it is in [readStartIdx, readEndIdx)
             final long offset = config.getColumnHeaderIdx() - getStartIdx(config);
