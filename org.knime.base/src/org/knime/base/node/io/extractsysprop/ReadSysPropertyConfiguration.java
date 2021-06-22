@@ -161,7 +161,7 @@ final class ReadSysPropertyConfiguration {
      * @return A new map of string containing all system properties.
      */
     static Map<String, String> readAllProps() {
-        Map<String, String> result = new TreeMap<String, String>();
+        Map<String, String> result = new TreeMap<>();
         Properties properties = System.getProperties();
         for (Map.Entry<Object, Object> e : properties.entrySet()) {
             Object key = e.getKey();
@@ -186,25 +186,23 @@ final class ReadSysPropertyConfiguration {
      */
     Result createResult() throws InvalidSettingsException {
         Map<String, String> props;
-//        InetAddress add = InetAddress.getLocalHost();
-//        add.getCanonicalHostName();
         String message = null;
         if (isExtractAllProps()) {
             props = readAllProps();
         } else {
-            props = new LinkedHashMap<String, String>();
+            props = new LinkedHashMap<>();
             String[] selectedProps = getSelectedProps();
             boolean failIfSomeMissing = isFailIfSomeMissing();
             if (selectedProps == null || selectedProps.length == 0) {
                 throw new InvalidSettingsException("No properties selected");
             }
             Properties sysProps = System.getProperties();
-            List<String> ignored = new ArrayList<String>();
+            List<String> ignored = new ArrayList<>();
             for (String s : selectedProps) {
                 String value = sysProps.getProperty(s);
                 if (value == null && failIfSomeMissing) {
-                    throw new InvalidSettingsException("System property \""
-                            + s + "\" not available in runtime environment");
+                    throw new InvalidSettingsException(
+                        "System property \"" + s + "\" not available in runtime environment");
                 } else if (value == null) {
                     ignored.add(s);
                 } else {
@@ -212,8 +210,7 @@ final class ReadSysPropertyConfiguration {
                 }
             }
             if (!ignored.isEmpty()) {
-                message = "Ignoring selected system properties: "
-                    + ignored.toString();
+                message = "Ignoring selected system properties: " + ignored.toString();
             }
         }
         return new Result(props, message);
@@ -239,7 +236,7 @@ final class ReadSysPropertyConfiguration {
 
         /** @return the table */
         DataTable getTable() {
-            final List<DataRow> rows = new ArrayList<DataRow>();
+            final List<DataRow> rows = new ArrayList<>();
             for (Map.Entry<String, String> e : m_props.entrySet()) {
                 rows.add(new DefaultRow(e.getKey(), e.getValue()));
             }

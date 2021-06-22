@@ -83,8 +83,7 @@ final class ReadSysPropertyNodeModel extends NodeModel {
         if (m_config == null) {
             m_config = new ReadSysPropertyConfiguration();
             m_config.loadSettingsNoFail(new NodeSettings("empty"));
-            setWarningMessage("Auto-configuration: "
-                    + "extracting all available properties");
+            setWarningMessage("Auto-configuration: extracting all available properties");
         }
         Result result = m_config.createResult();
         String message = result.getWarningMessage();
