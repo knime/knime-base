@@ -230,7 +230,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         final MultiTableReadFactory<FSPath, CSVTableReaderConfig, Class<?>> multiReader,
         final ProductionPathProvider<Class<?>> productionPathProvider, final boolean allowsReadingMultipleFiles,
         final boolean isDragNDrop) {
-        super(multiReader, productionPathProvider, allowsReadingMultipleFiles, isDragNDrop);
+        super(multiReader, productionPathProvider, allowsReadingMultipleFiles, isDragNDrop, false);
         init(pathSettings); //NOSONAR
         m_pathSettings = pathSettings;
 

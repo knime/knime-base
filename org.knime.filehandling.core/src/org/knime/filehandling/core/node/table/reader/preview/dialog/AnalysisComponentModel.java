@@ -54,11 +54,8 @@ import javax.swing.BoundedRangeModel;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.DefaultButtonModel;
-import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import org.knime.core.node.util.SharedIcons;
 
 import com.google.common.base.Objects;
 
@@ -81,7 +78,9 @@ public final class AnalysisComponentModel {
 
     private boolean m_progressIndeterminate = false;
 
-    private boolean m_analysisComponentsVisible = false;
+    private boolean m_progressBarVisible = false;
+
+    private boolean m_quickScanButtonVisible = false;
 
     private String m_analysisProgressText = EMPTY_SPACE_RESERVING_LABEL_TEXT;
 
@@ -89,9 +88,9 @@ public final class AnalysisComponentModel {
 
     private String m_errorText = EMPTY_SPACE_RESERVING_LABEL_TEXT;
 
-    private Icon m_analysisProgressIcon = null;
+    private MessageType m_analysisProgressMessageType = MessageType.NONE;
 
-    private Icon m_errorIcon = null;
+    private MessageType m_errorMessageType = MessageType.NONE;
 
     void addChangeListener(final ChangeListener listener) {
         if (!m_listeners.contains(listener)) {//NOSONAR
@@ -119,34 +118,13 @@ public final class AnalysisComponentModel {
         return false;
     }
 
-    void setProgress(final int progress) {
+    private void setProgress(final int progress) {
         m_progress.setValue(progress);
-    }
-
-    void setProgressLabel(final String text) {
-        if (setProgressLabelInternal(text)) {
-            notifyListeners();
-        }
     }
 
     private boolean setProgressLabelInternal(final String text) {
         if (!Objects.equal(m_analysisProgressText, text)) {
             m_analysisProgressText = text;
-            return true;
-        }
-        return false;
-    }
-
-    void setProgressLabel(final Icon icon, final String text) {
-        if (setProgressLabelInternal(icon, text)) {
-            notifyListeners();
-        }
-    }
-
-    private boolean setProgressLabelInternal(final Icon icon, final String text) {
-        if (!Objects.equal(m_analysisProgressIcon, icon) || !Objects.equal(m_analysisProgressText, text)) {
-            m_analysisProgressText = text;
-            m_analysisProgressIcon = icon;
             return true;
         }
         return false;
@@ -159,8 +137,8 @@ public final class AnalysisComponentModel {
 
     private void resetAnalysisComponentsInternal() {
         m_progress.setValue(0);
-        m_analysisProgressIcon = null;
-        m_analysisProgressText = null;
+        m_analysisProgressMessageType = MessageType.NONE;
+        m_analysisProgressText = EMPTY_SPACE_RESERVING_LABEL_TEXT;
         m_quickScan.setEnabled(true);
     }
 
@@ -168,32 +146,9 @@ public final class AnalysisComponentModel {
      * Resets the error label.
      */
     public void resetErrorLabel() {
-        resetErrorLabelInternal();
-        notifyListeners();
-    }
-
-    private void resetErrorLabelInternal() {
-        m_errorIcon = null;
-        m_errorText = EMPTY_SPACE_RESERVING_LABEL_TEXT;
-    }
-
-    void setError(final long row, final String text) {
-        // only set error if not another one is already set
-        if (m_errorText.equals(EMPTY_SPACE_RESERVING_LABEL_TEXT)) {
-            m_errorIcon = SharedIcons.ERROR.get();
-            m_errorText = (row < 0 ? "" : ("Row " + row + ": "))
-                + (text == null || text.isEmpty() ? EMPTY_SPACE_RESERVING_LABEL_TEXT : text);
-            notifyListeners();
-        }
-    }
-
-    /**
-     * Sets an error text to be displayed.
-     *
-     * @param text the error text
-     */
-    public void setError(final String text) {
-        setError(-1, text);
+        startUpdate()//
+            .clearErrorMessage()//
+            .finishUpdate();
     }
 
     /**
@@ -202,38 +157,55 @@ public final class AnalysisComponentModel {
      * @param text the info text
      */
     public void setInfo(final String text) {
-        m_errorIcon = SharedIcons.INFO_BALLOON.get();
+        m_errorMessageType = MessageType.INFO;
         m_errorText = text;
         notifyListeners();
+    }
+
+    void setProgressLabel(final MessageType messageType, final String message) {
+        startUpdate()//
+            .setAnalysisProgressMessage(messageType, message)//
+            .finishUpdate();
+    }
+
+    void clearProgressLabel() {
+        startUpdate()//
+            .clearAnalysisProgressMessage()//
+            .finishUpdate();
+    }
+
+    void setErrorLabel(final MessageType messageType, final String message) {
+        startUpdate()//
+            .setErrorMessage(messageType, message)//
+            .finishUpdate();
+    }
+
+    void setErrorLabel(final String message, final long row) {
+        startUpdate()//
+            .setErrorMessage(MessageType.ERROR, message, row)//
+            .finishUpdate();
+    }
+
+    /**
+     * Sets the provided error message and notifies the listeners.<br>
+     * Convenience short cut for {@code startUpdate().setErrorMessage(MessageType.ERROR, message).finishUpdate()}.
+     *
+     *
+     * @param message error message to set
+     */
+    public void setErrorLabel(final String message) {
+        startUpdate()//
+        .setErrorMessage(MessageType.ERROR, message)//
+        .finishUpdate();
     }
 
     /**
      * Reset the model.
      */
     public void reset() {
-        resetAnalysisComponentsInternal();
-        resetErrorLabelInternal();
-        notifyListeners();
-    }
-
-    /**
-     * Sets the visibility of this {@link AnalysisComponentModel}
-     *
-     * @param visible whether it should be visible or not
-     */
-    public void setVisible(final boolean visible) {
-        if (setVisibleInternal(visible)) {
-            m_progress.setValue(0);
-            notifyListeners();
-        }
-    }
-
-    private boolean setVisibleInternal(final boolean visible) {
-        if (m_analysisComponentsVisible != visible) {
-            m_analysisComponentsVisible = visible;
-            return true;
-        }
-        return false;
+        startUpdate()//
+            .reset()//
+            .finishUpdate();
     }
 
     void setProgressPathLabel(final String text) {
@@ -293,8 +265,12 @@ public final class AnalysisComponentModel {
     /**
      * @return the analysisComponentsVisible
      */
-    boolean areAnalysisComponentsVisible() {
-        return m_analysisComponentsVisible;
+    boolean showProgressBar() {
+        return m_progressBarVisible;
+    }
+
+    boolean showQuickScanButton() {
+        return m_quickScanButtonVisible;
     }
 
     /**
@@ -321,15 +297,176 @@ public final class AnalysisComponentModel {
     /**
      * @return the analysisProgressIcon
      */
-    Icon getAnalysisProgressIcon() {
-        return m_analysisProgressIcon;
+    MessageType getAnalysisProgressMessageType() {
+        return m_analysisProgressMessageType;
     }
 
     /**
      * @return the errorIcon
      */
-    Icon getErrorIcon() {
-        return m_errorIcon;
+    MessageType getErrorMessageType() {
+        return m_errorMessageType;
+    }
+
+    /**
+     * Starts an update for this model.<br>
+     * An update allows to modify multiple parameters at once.
+     * The listeners are notified once the update is finished via the {@link Update#finishUpdate()} method.
+     *
+     * @return a fresh Update instance
+     */
+    public Update startUpdate() {
+        return new Update(this);
+    }
+
+    private void finishUpdate(final Update update) {//NOSONAR, moving it inside Update would defeat its purpose
+        m_progressIndeterminate = update.m_progressIndeterminate;
+        m_progressBarVisible = update.m_showProgressBar;
+        m_quickScanButtonVisible = update.m_showQuickScanButton;
+        m_errorText = update.m_errorText;
+        m_errorMessageType = update.m_errorMessageType;
+        m_analysisProgressMessageType = update.m_analysisProgressMessageType;
+        m_analysisProgressText = update.m_analysisProgressText;
+        notifyListeners();
+    }
+
+    enum MessageType {
+            INFO, ERROR, WARNING, SUCCESS, NONE;
+
+    }
+
+    /**
+     * Represents an update of the AnalysisComponentModel.<br>
+     * Allows for fluid updates via method chaining.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    public static final class Update {
+
+        private final AnalysisComponentModel m_model;
+
+        private boolean m_progressIndeterminate;
+
+        private boolean m_showProgressBar;
+
+        private boolean m_showQuickScanButton;
+
+        private String m_analysisProgressText;
+
+        private MessageType m_analysisProgressMessageType;
+
+        private String m_errorText;
+
+        private MessageType m_errorMessageType;
+
+        private boolean m_somethingChanged = false;
+
+        private int m_progress;
+
+        private Update(final AnalysisComponentModel model) {
+            m_model = model;
+            m_progressIndeterminate = model.m_progressIndeterminate;
+            m_showProgressBar = model.m_progressBarVisible;
+            m_showQuickScanButton = model.m_quickScanButtonVisible;
+            m_analysisProgressText = model.m_analysisProgressText;
+            m_analysisProgressMessageType = model.m_analysisProgressMessageType;
+            m_errorText = model.m_errorText;
+            m_errorMessageType = model.m_errorMessageType;
+            m_progress = model.m_progress.getValue();
+        }
+
+        /**
+         * Finishes the update and notifies the listeners if anything changed.
+         */
+        public void finishUpdate() {
+            if (m_somethingChanged) {
+                m_model.finishUpdate(this);
+            }
+        }
+
+        final Update reset() {
+            setProgressValue(0);
+            clearAnalysisProgressMessage();
+            clearErrorMessage();
+            return this;
+        }
+
+        final Update setAnalysisProgressMessage(final MessageType progressType, final String info) {
+            m_somethingChanged |=
+                (m_analysisProgressMessageType != progressType || !Objects.equal(m_analysisProgressText, info));
+            m_analysisProgressText = info;
+            m_analysisProgressMessageType = progressType;
+            return this;
+        }
+
+        final Update clearAnalysisProgressMessage() {
+            return setAnalysisProgressMessage(MessageType.NONE, EMPTY_SPACE_RESERVING_LABEL_TEXT);
+        }
+
+        final Update setProgressValue(final int progress) {
+            m_somethingChanged |= (m_progress != progress);
+            m_progress = progress;
+            return this;
+        }
+
+        final Update setProgressIndeterminate(final boolean progressIndeterminate) {
+            m_somethingChanged |= (m_progressIndeterminate != progressIndeterminate);
+            m_progressIndeterminate = progressIndeterminate;
+            return this;
+        }
+
+        /**
+         * Sets whether or not to display the progress bar.
+         *
+         * @param showProgressBar {@code true} if the progress bar should be displayed
+         * @return this Update
+         */
+        public final Update showProgressBar(final boolean showProgressBar) {
+            m_somethingChanged |= (m_showProgressBar != showProgressBar);
+            m_showProgressBar = showProgressBar;
+            return this;
+        }
+
+        /**
+         * Sets whether or not to show the "Quick Scan" button.
+         *
+         * @param showQuickScanButton {@code true} if the "Quick Scan" button should be displayed
+         * @return this Update
+         */
+        public final Update showQuickScanButton(final boolean showQuickScanButton) {
+            m_somethingChanged |= (m_showQuickScanButton != showQuickScanButton);
+            m_showQuickScanButton = showQuickScanButton;
+            return this;
+        }
+
+        final Update setAnalysisProgressText(final String analysisProgressText) {
+            m_somethingChanged |= !Objects.equal(m_analysisProgressText, analysisProgressText);
+            m_analysisProgressText = analysisProgressText;
+            return this;
+        }
+
+        final Update setErrorMessage(final MessageType messageType, final String message, final long row) {
+            final String messageWithRowInfo = combineErrorMessage(message, row);
+            m_somethingChanged |=
+                (m_errorMessageType != messageType || !Objects.equal(m_errorText, messageWithRowInfo));
+            m_errorText = messageWithRowInfo;
+            m_errorMessageType = messageType;
+            return this;
+        }
+
+        private static String combineErrorMessage(final String message, final long row) {
+            return (row < 0 ? "" : ("Row " + row + ": "))
+                + (message == null || message.isEmpty() ? EMPTY_SPACE_RESERVING_LABEL_TEXT : message);
+        }
+
+        final Update setErrorMessage(final MessageType messageType, final String message) {
+            return setErrorMessage(messageType, message, -1);
+        }
+
+        final Update clearErrorMessage() {
+            return setErrorMessage(MessageType.NONE, EMPTY_SPACE_RESERVING_LABEL_TEXT, -1);
+        }
+
     }
 
 }

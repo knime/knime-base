@@ -129,7 +129,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         final KnimeTableMultiTableReadConfig config,
         final MultiTableReadFactory<FSPath, TableManipulatorConfig, DataType> multiReader,
         final ProductionPathProvider<DataType> productionPathProvider) {
-        super(multiReader, productionPathProvider, true);
+        super(multiReader, productionPathProvider, true, false, true);
 
 
 

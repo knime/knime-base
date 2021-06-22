@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader.preview.dialog;
 
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Supplier;
 
 import javax.swing.event.ChangeEvent;
@@ -56,7 +57,12 @@ import javax.swing.event.ChangeEvent;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.CloseableTable;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
+import org.knime.filehandling.core.node.table.reader.PreviewIteratorException;
 import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
 
@@ -69,17 +75,17 @@ import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMon
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class PreviewDataTable implements CloseableTable {
+public abstract class PreviewDataTable implements CloseableTable {
 
     static final NodeLogger LOGGER = NodeLogger.getLogger(PreviewDataTable.class);
 
-    private final DataTableSpec m_spec;
-
-    private final Supplier<PreviewRowIterator> m_iteratorFn;
-
     private final CopyOnWriteArrayList<CloseableRowIterator> m_iterators = new CopyOnWriteArrayList<>();
 
-    private final CopyOnWriteArrayList<PreviewIterationErrorListener> m_errorListeners = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArraySet<PreviewIterationErrorListener> m_errorListeners = new CopyOnWriteArraySet<>();
+
+    private PreviewDataTable() {
+        // all members are already initialized
+    }
 
     /**
      * Listener interface for errors during preview iteration.
@@ -98,14 +104,35 @@ public final class PreviewDataTable implements CloseableTable {
     }
 
     /**
-     * Constructor.
+     * Creates a PreviewDataTable that is buffered in a {@link BufferedDataTable}.<br>
+     * Note this call may take a long time because it reads the table into the BufferedDataTable.<br>
+     * Use this method if reading individual rows is potentially expensive (e.g. JSON).
      *
-     * @param iteratorSupplier supplies the {@link PreviewRowIterator}
-     * @param spec the {@link DataTableSpec} of the table
+     * @param spec of the table
+     * @param iteratorSupplier provides the {@link PreviewRowIterator} to fill the buffer
+     * @param exec used to check for cancellation as well as creation and management of the underlying
+     *            {@link BufferedDataTable}
+     * @return a buffered PreviewDataTable
+     * @throws CanceledExecutionException if the execution is cancelled
      */
-    public PreviewDataTable(final Supplier<PreviewRowIterator> iteratorSupplier, final DataTableSpec spec) {
-        m_iteratorFn = iteratorSupplier;
-        m_spec = spec;
+    public static PreviewDataTable createBufferedPreviewDataTable(final DataTableSpec spec,
+        final Supplier<PreviewRowIterator> iteratorSupplier, final ExecutionContext exec)
+        throws CanceledExecutionException {
+        return new BufferedPreviewDataTable(spec, iteratorSupplier, exec);
+    }
+
+    /**
+     * Creates PreviewDataTable that reads lazily.<br>
+     * This call is expected to be quick because no reading happens.<br>
+     * Use this method if reading individual rows is cheap (e.g. CSV).
+     *
+     * @param spec of the table
+     * @param iteratorSupplier provides the {@link PreviewRowIterator iterators} used by the returned table
+     * @return a lazy PreviewDataTable
+     */
+    public static PreviewDataTable createLazyPreviewDataTable(final DataTableSpec spec,
+        final Supplier<PreviewRowIterator> iteratorSupplier) {
+        return new LazyPreviewDataTable(spec, iteratorSupplier);
     }
 
     /**
@@ -113,26 +140,20 @@ public final class PreviewDataTable implements CloseableTable {
      *
      * @param listener to add
      */
-    public void addErrorListener(final PreviewIterationErrorListener listener) {
-        if (!m_errorListeners.contains(listener)) {//NOSONAR
-            m_errorListeners.add(listener);//NOSONAR a small price to pay for thread-safety
-        }
+    public final void addErrorListener(final PreviewIterationErrorListener listener) {
+        m_errorListeners.add(listener);//NOSONAR a small price to pay for thread-safety
     }
 
     @Override
-    public DataTableSpec getDataTableSpec() {
-        return m_spec;
-    }
-
-    @Override
-    public ObservablePreviewIterator iterator() {
-        final ObservablePreviewIterator iterator = new ObservablePreviewIterator(m_iteratorFn.get());
-        iterator.addErrorListener(this::handleIteratorError);
+    public final CloseableRowIterator iterator() {
+        final CloseableRowIterator iterator = createIterator();
         m_iterators.add(iterator); //NOSONAR that's the prize we pay to avoid concurrency issues
         return iterator;
     }
 
-    private void handleIteratorError(final ChangeEvent errorEvent) {
+    abstract CloseableRowIterator createIterator();
+
+    void handleIteratorError(final ChangeEvent errorEvent) {
         @SuppressWarnings("resource") // the iterator will be closed by the #close()
         final ObservablePreviewIterator iterator = (ObservablePreviewIterator)errorEvent.getSource();
         final long errorRow = iterator.getCurrentRowIdx();
@@ -141,7 +162,6 @@ public final class PreviewDataTable implements CloseableTable {
             listener.errorEncountered(errorRow, errorMsg);
         }
     }
-
 
     /**
      * Dispose all iterators and close their underlying sources.
@@ -153,6 +173,79 @@ public final class PreviewDataTable implements CloseableTable {
         }
         m_iterators.clear();
         m_errorListeners.clear();
+    }
+
+    private static final class LazyPreviewDataTable extends PreviewDataTable {
+
+        private final Supplier<PreviewRowIterator> m_iteratorSupplier;
+
+        private final DataTableSpec m_spec;
+
+        LazyPreviewDataTable(final DataTableSpec spec, final Supplier<PreviewRowIterator> iteratorSupplier) {
+            m_spec = spec;
+            m_iteratorSupplier = iteratorSupplier;
+        }
+
+        @Override
+        protected CloseableRowIterator createIterator() {
+            final ObservablePreviewIterator iterator = new ObservablePreviewIterator(m_iteratorSupplier.get());
+            iterator.addErrorListener(this::handleIteratorError);
+            return iterator;
+        }
+
+        @Override
+        public DataTableSpec getDataTableSpec() {
+            return m_spec;
+        }
+    }
+
+    private static final class BufferedPreviewDataTable extends PreviewDataTable {
+
+        private final BufferedDataTable m_table;
+
+        private final ExecutionContext m_exec;
+
+        BufferedPreviewDataTable(final DataTableSpec spec, final Supplier<PreviewRowIterator> iteratorSupplier,
+            final ExecutionContext exec) throws CanceledExecutionException {
+            m_exec = exec;
+            final BufferedDataContainer dataContainer = m_exec.createDataContainer(spec);
+            try (PreviewRowIterator iterator = iteratorSupplier.get()) {
+                while (iterator.hasNext()) {
+                    m_exec.checkCanceled();
+                    dataContainer.addRowToTable(iterator.next());
+                }
+                m_exec.checkCanceled();
+            } catch (CanceledExecutionException | PreviewIteratorException ex) {
+                // the preview was cancelled or an exception occurred
+                // either way we have to release the resources
+                closeAndClear(dataContainer);
+                throw ex;
+            }
+            dataContainer.close();
+            m_table = dataContainer.getTable();
+        }
+
+        private void closeAndClear(final BufferedDataContainer container) {
+            container.close();
+            m_exec.clearTable(container.getTable());
+        }
+
+        @Override
+        protected CloseableRowIterator createIterator() {
+            return m_table.iterator();
+        }
+
+        @Override
+        public DataTableSpec getDataTableSpec() {
+            return m_table.getDataTableSpec();
+        }
+
+        @Override
+        public void close() {
+            super.close();
+            m_exec.clearTable(m_table);
+        }
+
     }
 
 }

@@ -71,7 +71,10 @@ public final class TableReaderPreviewModel {
      */
     public TableReaderPreviewModel(final AnalysisComponentModel analysisComponent) {
         m_analysisComponentModel = analysisComponent;
-        m_analysisComponentModel.setVisible(false);
+        m_analysisComponentModel.startUpdate()//
+            .showProgressBar(false)//
+            .showQuickScanButton(false)//
+            .finishUpdate();
     }
 
     AnalysisComponentModel getAnalysisComponent() {
@@ -94,7 +97,7 @@ public final class TableReaderPreviewModel {
         // register a listener for error messages
         // (because of lazy loading an error does not occur until the user scrolls down to the respective row)
         if (previewTable != null) {
-            previewTable.addErrorListener(m_analysisComponentModel::setError);
+            previewTable.addErrorListener((r, e) -> m_analysisComponentModel.setErrorLabel(e, r));
         }
 
         ViewUtils.invokeLaterInEDT(() -> {

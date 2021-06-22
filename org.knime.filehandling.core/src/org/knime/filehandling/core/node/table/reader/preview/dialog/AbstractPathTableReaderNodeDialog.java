@@ -74,7 +74,8 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
     extends AbstractTableReaderNodeDialog<FSPath, C, T> {
 
     /**
-     * Constructor.
+     * Constructor that neither prevents the preview update on the first load nor buffers the preview.<br>
+     * For most readers, this will be the appropriate constructor to call.
      *
      * @param readFactory for reading
      * @param productionPathProvider for type mapping
@@ -82,7 +83,7 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
      */
     protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<FSPath, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
-        this(readFactory, productionPathProvider, allowsMultipleFiles, false);
+        this(readFactory, productionPathProvider, allowsMultipleFiles, false, false);
     }
 
     /**
@@ -93,11 +94,13 @@ public abstract class AbstractPathTableReaderNodeDialog<C extends ReaderSpecific
      * @param allowsMultipleFiles {@code true} if multiple files are supported
      * @param preventPreviewUpdateOnFirstLoad set to {@code true} if the preview should not be updated on the first call
      *            to {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}
+     * @param bufferPreview {@code true} if the preview should be buffered (only use if reading individual rows is
+     *            expensive)
      */
     protected AbstractPathTableReaderNodeDialog(final MultiTableReadFactory<FSPath, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles,
-        final boolean preventPreviewUpdateOnFirstLoad) {
-        super(readFactory, productionPathProvider, allowsMultipleFiles, preventPreviewUpdateOnFirstLoad);
+        final boolean preventPreviewUpdateOnFirstLoad, final boolean bufferPreview) {
+        super(readFactory, productionPathProvider, allowsMultipleFiles, preventPreviewUpdateOnFirstLoad, bufferPreview);
     }
 
     @SuppressWarnings("resource") // the ReadPathAccessor is managed by the adapter

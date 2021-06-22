@@ -60,7 +60,6 @@ import javax.swing.ButtonModel;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeProgressMonitor;
-import org.knime.core.node.util.SharedIcons;
 import org.knime.core.node.workflow.NodeProgressEvent;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
@@ -71,6 +70,7 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.preview.PreviewExecutionMonitor;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AnalysisComponentModel.MessageType;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 
 /**
@@ -173,12 +173,19 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
     protected void doneWithContext() {
         m_analysisComponent.setProgressPathLabel("");
         if (isCancelled()) {
-            m_analysisComponent.resetErrorLabel();
+            m_analysisComponent.startUpdate()//
+            .clearErrorMessage()//
+            .showProgressBar(false)//
+            .showQuickScanButton(false)//
+            .finishUpdate();
         } else {
             reportAnalysisStatus();
+            m_analysisComponent.startUpdate()//
+                .showProgressBar(false)//
+                .showQuickScanButton(false)//
+                .finishUpdate();
             feedResultToConsumer();
         }
-        m_analysisComponent.setVisible(false);
 
     }
 
@@ -202,20 +209,23 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
     private void displayExecutionException(final ExecutionException ex) {
         final Optional<Throwable> firstThrowable = ExceptionUtil.getFirstThrowable(ex,
             t -> !(t instanceof ExecutionException) && t.getMessage() != null && !t.getMessage().isEmpty());
-        m_analysisComponent.setError(firstThrowable.map(Throwable::getMessage).orElse("An error occurred."));
+        m_analysisComponent.setErrorLabel(MessageType.ERROR,
+            firstThrowable.map(Throwable::getMessage).orElse("An error occurred."));
     }
 
     private void reportAnalysisStatus() {
         if (m_exec.isSpecGuessingErrorOccurred()) {
-            m_analysisComponent.setError(m_exec.getSpecGuessingErrorRow(), m_exec.getSpecGuessingErrorMsg());
+            m_analysisComponent.startUpdate()//
+                .setErrorMessage(MessageType.ERROR, m_exec.getSpecGuessingErrorMsg(), m_exec.getSpecGuessingErrorRow())
+                .finishUpdate();
         }
         try {
             m_exec.checkCanceled();
             setAnalysisStatus();
         } catch (CanceledExecutionException ex) {
             LOGGER.info("Spec analysis has been cancelled.", ex);
-            m_analysisComponent.setProgressLabel(SharedIcons.WARNING_YELLOW.get(),
-                "The suggested column types are based on a partial input data analysis only!");
+            m_analysisComponent
+                .setProgressLabel(MessageType.WARNING, "The suggested column types are based on a partial input data analysis only!");
         }
     }
 
@@ -223,15 +233,13 @@ public final class SpecGuessingSwingWorker<I, C extends ReaderSpecificConfig<C>,
         if (!m_exec.isSpecGuessingErrorOccurred()) {
             TableReadConfig<C> tableReadConfig = m_config.getTableReadConfig();
             if (tableReadConfig.limitRowsForSpec()) {
-                m_analysisComponent.setProgressLabel(SharedIcons.INFO.get(),
-                    "The suggested column types are based on the first " + tableReadConfig.getMaxRowsForSpec()
-                        + " rows only. See 'Advanced Settings' tab.");
+                m_analysisComponent.setProgressLabel(MessageType.INFO, "The suggested column types are based on the first "
+                    + tableReadConfig.getMaxRowsForSpec() + " rows only. See 'Advanced Settings' tab.");
             } else {
-                m_analysisComponent.setProgressLabel(SharedIcons.SUCCESS.get(),
-                    "Data analysis successfully completed.");
+                m_analysisComponent.setProgressLabel(MessageType.SUCCESS, "Data analysis successfully completed.");
             }
         } else {
-            m_analysisComponent.setProgressLabel(null, " ");
+            m_analysisComponent.clearProgressLabel();
         }
     }
 

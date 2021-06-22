@@ -51,12 +51,15 @@ package org.knime.filehandling.core.node.table.reader.preview.dialog;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
+import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.defaultnodesettings.WordWrapJLabel;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AnalysisComponentModel.MessageType;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -92,17 +95,29 @@ final class AnalysisComponentView extends JPanel {
 
     private void update() {
         m_analysisProgressBar.setIndeterminate(m_model.isProgressIndeterminate());
-        m_analysisProgressLabel.setIcon(m_model.getAnalysisProgressIcon());
+        m_analysisProgressLabel.setIcon(getIcon(m_model.getAnalysisProgressMessageType()));
         m_analysisProgressLabel.setText(m_model.getAnalysisProgressText());
         m_analysisProgressPathLabel.setText(m_model.getCurrentPath());
-        m_errorLabel.setIcon(m_model.getErrorIcon());
+        m_errorLabel.setIcon(getIcon(m_model.getErrorMessageType()));
         m_errorLabel.setText(m_model.getErrorText());
-        updateVisible(m_model.areAnalysisComponentsVisible());
+        m_analysisProgressBar.setVisible(m_model.showProgressBar());
+        m_quickScanButton.setVisible(m_model.showQuickScanButton());
     }
 
-    private void updateVisible(final boolean visible) {
-        m_analysisProgressBar.setVisible(visible);
-        m_quickScanButton.setVisible(visible);
+    private static Icon getIcon(final MessageType messageType) {
+        switch (messageType) {
+            case ERROR:
+                return SharedIcons.ERROR.get();
+            case INFO:
+                return SharedIcons.INFO.get();
+            case SUCCESS:
+                return SharedIcons.SUCCESS.get();
+            case WARNING:
+                return SharedIcons.WARNING_YELLOW.get();
+            case NONE:
+            default:
+                return null;
+        }
     }
 
     private void layoutPanel() {

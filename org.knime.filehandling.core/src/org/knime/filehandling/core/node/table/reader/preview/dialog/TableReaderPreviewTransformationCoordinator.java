@@ -52,8 +52,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import javax.swing.SwingWorker;
+
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.workflow.NativeNodeContainer;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
@@ -62,6 +67,7 @@ import org.knime.filehandling.core.node.table.reader.config.ImmutableMultiTableR
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.AnalysisComponentModel.MessageType;
 import org.knime.filehandling.core.node.table.reader.selector.ObservableTransformationModelProvider;
 import org.knime.filehandling.core.node.table.reader.selector.TableTransformation;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
@@ -95,6 +101,8 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
 
     private final Supplier<GenericItemAccessor<I>> m_readPathAccessorSupplier;
 
+    private final boolean m_bufferPreview;
+
     private PreviewRun m_currentRun;
 
     /**
@@ -104,12 +112,14 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
      * @param tableReaderPreviewModel {@link TableReaderPreviewModel}
      * @param configSupplier {@link CheckedExceptionSupplier}
      * @param itemAccessorSupplier GenericItemAccessor supplier
+     * @param bufferPreview controls whether the preview is buffered or not (only set to {@code true} for readers where
+     *            reading individual rows is very expensive e.g. JSON)
      */
     public TableReaderPreviewTransformationCoordinator(final MultiTableReadFactory<I, C, T> readFactory,
         final ObservableTransformationModelProvider<T> transformationModel,
         final AnalysisComponentModel analysisComponentModel, final TableReaderPreviewModel tableReaderPreviewModel,
         final CheckedExceptionSupplier<MultiTableReadConfig<C, T>, InvalidSettingsException> configSupplier,
-        final Supplier<GenericItemAccessor<I>> itemAccessorSupplier) {
+        final Supplier<GenericItemAccessor<I>> itemAccessorSupplier, final boolean bufferPreview) {
         m_readFactory = readFactory;
         m_transformationModel = transformationModel;
         m_analysisComponent = analysisComponentModel;
@@ -117,18 +127,19 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
         m_configSupplier = configSupplier;
         m_readPathAccessorSupplier = itemAccessorSupplier;
         m_transformationModel.addChangeListener(e -> handleTransformationModelChange());
+        m_bufferPreview = bufferPreview;
     }
 
     /**
      * Updates the transformation model and consequently the preview if the config changed.
      */
     public void configChanged() {
-        m_analysisComponent.reset();
         cancelCurrentRun();
+        m_analysisComponent.reset();
         try {
             m_currentRun = new PreviewRun(m_configSupplier.get());
         } catch (InvalidSettingsException ex) {// NOSONAR, the exception is displayed in the dialog
-            m_analysisComponent.setError(ex.getMessage());
+            m_analysisComponent.setErrorLabel(ex.getMessage());
             m_previewModel.setDataTable(null);
             m_transformationModel.clearRawSpec();
         }
@@ -195,13 +206,15 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    private class PreviewRun implements AutoCloseable {
+    private final class PreviewRun implements AutoCloseable {
 
         private ImmutableMultiTableReadConfig<C, T> m_config;
 
         private SpecGuessingSwingWorker<I, C, T> m_specGuessingWorker = null;
 
         private SourceGroupSwingWorker<I> m_pathAccessWorker = null;
+
+        private TableUpdateSwingWorker m_tableUpdateWorker = null;
 
         private StagedMultiTableRead<I, T> m_currentRead = null;
 
@@ -218,8 +231,8 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
         PreviewRun(final MultiTableReadConfig<C, T> config) {
             m_config = new ImmutableMultiTableReadConfig<>(config);
             m_readPathAccessor = m_readPathAccessorSupplier.get();
-            m_pathAccessWorker = new SourceGroupSwingWorker<>(m_readPathAccessor, this::startSpecGuessingWorker,
-                this::displayPathError);
+            m_pathAccessWorker =
+                new SourceGroupSwingWorker<>(m_readPathAccessor, this::startSpecGuessingWorker, this::displayPathError);
             m_pathAccessWorker.execute();
         }
 
@@ -230,12 +243,9 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
         @Override
         public void close() {
             m_closed.set(true);
-            if (m_pathAccessWorker != null) {
-                m_pathAccessWorker.cancel(true);
-            }
-            if (m_specGuessingWorker != null) {
-                m_specGuessingWorker.cancel(true);
-            }
+            cancelIfNotNull(m_pathAccessWorker);
+            cancelIfNotNull(m_specGuessingWorker);
+            cancelTableUpdate();
             // the preview must be closed before we close the readPathAccessor
             // otherwise the iterator might throw a ClosedFileSystemException
             m_previewModel.setDataTable(null);
@@ -244,8 +254,14 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
             }
         }
 
+        private void cancelIfNotNull(final SwingWorker<?, ?> worker) {
+            if (worker != null) {
+                worker.cancel(true);
+            }
+        }
+
         private void displayPathError(final ExecutionException exception) {
-            m_analysisComponent.setError(exception.getCause().getMessage());
+            m_analysisComponent.setErrorLabel(MessageType.ERROR, exception.getCause().getMessage());
             m_previewModel.setDataTable(null);
             m_transformationModel.clearRawSpec();
         }
@@ -266,7 +282,10 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
                 // and the invocation of its background worker
                 return;
             }
-            m_analysisComponent.setVisible(true);
+            m_analysisComponent.startUpdate()//
+                .showProgressBar(true)//
+                .showQuickScanButton(true)//
+                .finishUpdate();
             m_sourceGroup = sourceGroup;
             m_specGuessingWorker = new SpecGuessingSwingWorker<>(m_readFactory, m_sourceGroup, m_config,
                 m_analysisComponent, this::consumeNewStagedMultiRead, e -> calculatingRawSpecFailed());
@@ -304,16 +323,40 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
                 return;
             }
             try {
+                cancelTableUpdate();
                 final MultiTableRead<T> mtr = createMultiTableRead();
                 m_currentTableSpecConfig = mtr.getTableSpecConfig();
-                @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
-                final PreviewDataTable pdt = new PreviewDataTable(mtr::createPreviewIterator, mtr.getOutputSpec());
-                m_previewModel.setDataTable(pdt);
+                if (m_bufferPreview) {
+                    bufferPreviewInBackground(mtr);
+                } else {
+                    setPreviewDirectly(mtr);
+                }
             } catch (Exception ex) {// NOSONAR we need to handle all exceptions in the same way
                 LOGGER.debug("Updating the preview table failed.", ex);
-                m_analysisComponent.setError(ex.getMessage());
+                m_analysisComponent.setErrorLabel(MessageType.ERROR, ex.getMessage());
                 m_previewModel.setDataTable(null);
             }
+        }
+
+        private void cancelTableUpdate() {
+            cancelIfNotNull(m_tableUpdateWorker);
+        }
+
+        private void bufferPreviewInBackground(final MultiTableRead<T> mtr) {
+            m_analysisComponent.startUpdate()//
+                .reset()//
+                .showProgressBar(true)//
+                .setProgressIndeterminate(true)//
+                .finishUpdate();
+            m_tableUpdateWorker = new TableUpdateSwingWorker(mtr);
+            m_tableUpdateWorker.execute();
+        }
+
+        private void setPreviewDirectly(final MultiTableRead<T> mtr) {
+            @SuppressWarnings("resource") // the m_preview must make sure that the PreviewDataTable is closed
+            final PreviewDataTable pdt =
+                PreviewDataTable.createLazyPreviewDataTable(mtr.getOutputSpec(), mtr::createPreviewIterator);
+            m_previewModel.setDataTable(pdt);
         }
 
         private MultiTableRead<T> createMultiTableRead() {
@@ -322,6 +365,55 @@ public final class TableReaderPreviewTransformationCoordinator<I, C extends Read
             } else {
                 return m_currentRead.withoutTransformation(m_sourceGroup);
             }
+        }
+
+        private class TableUpdateSwingWorker extends SwingWorkerWithContext<PreviewDataTable, Void> {
+
+            private final MultiTableRead<?> m_multiTableRead;
+
+            private final ExecutionContext m_exec;
+
+            TableUpdateSwingWorker(final MultiTableRead<?> multiTableRead) {
+                m_multiTableRead = multiTableRead;
+                NodeContext nodeContext = NodeContext.getContext();
+                NativeNodeContainer nodeContainer = (NativeNodeContainer)nodeContext.getNodeContainer();
+                m_exec = nodeContainer.createExecutionContext();
+            }
+
+            @Override
+            protected PreviewDataTable doInBackgroundWithContext() throws Exception {
+                // necessary because otherwise the ExecutionContext is already canceled
+                m_exec.getProgressMonitor().reset();
+                return PreviewDataTable.createBufferedPreviewDataTable(m_multiTableRead.getOutputSpec(),
+                    m_multiTableRead::createPreviewIterator, m_exec);
+            }
+
+            @Override
+            protected void doneWithContext() {
+                if (isCancelled()) {
+                    m_exec.getProgressMonitor().setExecuteCanceled();
+                } else {
+                    try {
+                        @SuppressWarnings("resource") // closing previewTable is the responsibility of m_previewModel
+                        PreviewDataTable previewTable = get();
+                        m_previewModel.setDataTable(previewTable);
+                    } catch (InterruptedException ex) {//NOSONAR
+                        LOGGER.debug("Table preview update interrupted before it could run.", ex);
+                    } catch (ExecutionException ex) {
+                        LOGGER.debug("Buffering Table preview failed.", ex);
+                        m_analysisComponent.startUpdate()//
+                            .setErrorMessage(MessageType.ERROR, ex.getCause().getMessage())//
+                            .showProgressBar(false)//
+                            .finishUpdate();
+                        return;
+                    }
+                    m_analysisComponent.startUpdate()//
+                        .reset()//
+                        .showProgressBar(false)//
+                        .finishUpdate();
+                }
+            }
+
         }
 
     }

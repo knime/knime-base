@@ -98,7 +98,8 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
     private boolean m_preventPreviewUpdateOnFirstLoad;
 
     /**
-     * Constructor.
+     * Constructor that neither prevents the preview update on the first load nor buffers the preview.<br>
+     * For most readers, this will be the appropriate constructor to call.
      *
      * @param readFactory the {@link MultiTableReadFactory} to use for reading
      * @param productionPathProvider provides the default production paths for every external type
@@ -106,7 +107,7 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      */
     public AbstractTableReaderNodeDialog(final MultiTableReadFactory<I, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles) {
-        this(readFactory, productionPathProvider, allowsMultipleFiles, false);
+        this(readFactory, productionPathProvider, allowsMultipleFiles, false, false);
     }
 
     /**
@@ -117,17 +118,19 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
      * @param allowsMultipleFiles whether the reader supports reading tables from multiple files at once
      * @param preventPreviewUpdateOnFirstLoad set to {@code true} if the preview should not be updated on the first call
      *            to {@link #loadSettingsFrom(NodeSettingsRO, PortObjectSpec[])}
+     * @param bufferPreview set to {@code true} if the preview should be buffered. Only use if reading individual rows
+     *            is expensive.
      */
     public AbstractTableReaderNodeDialog(final MultiTableReadFactory<I, C, T> readFactory,
         final ProductionPathProvider<T> productionPathProvider, final boolean allowsMultipleFiles,
-        final boolean preventPreviewUpdateOnFirstLoad) {
+        final boolean preventPreviewUpdateOnFirstLoad, final boolean bufferPreview) {
         final AnalysisComponentModel analysisComponentModel = new AnalysisComponentModel();
         final TableReaderPreviewModel previewModel = new TableReaderPreviewModel(analysisComponentModel);
         m_previewModel = previewModel;
         final TableTransformationTableModel<T> transformationModel =
             new TableTransformationTableModel<>(productionPathProvider);
         m_coordinator = new TableReaderPreviewTransformationCoordinator<>(readFactory, transformationModel,
-            analysisComponentModel, previewModel, this::getConfig, this::createItemAccessor);
+            analysisComponentModel, previewModel, this::getConfig, this::createItemAccessor, bufferPreview);
         m_specTransformer = new TableTransformationPanel(transformationModel, allowsMultipleFiles);
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
         m_preventPreviewUpdateOnFirstLoad = preventPreviewUpdateOnFirstLoad;
