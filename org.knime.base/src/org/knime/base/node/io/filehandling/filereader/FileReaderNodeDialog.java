@@ -1402,9 +1402,10 @@ final class FileReaderNodeDialog extends NodeDialogPane {
                         updatePreview();
                     }
 
-                } catch (final InvalidSettingsException | IOException ioe) {
+                } catch (final InvalidSettingsException | IOException | IllegalStateException // NOSONAR
+                        | IllegalArgumentException e) {// NOSONAR
                     setPreviewTable(null);
-                    String msg = ioe.getMessage();
+                    String msg = e.getMessage();
                     if ((msg == null) || (msg.length() == 0)) {
                         msg = "No details, sorry.";
                     }

@@ -1170,7 +1170,7 @@ class FileReaderSettings extends TokenizerSettings {
                 final BufferedFileReader fRead = // NOSONAR
                     reader.createBufferedFileReader(getCharsetName(), s -> status.addError(s.getMessage()))) {
             // we only want to collect all errors
-        } catch (final IOException | InvalidSettingsException e) {
+        } catch (final IOException | InvalidSettingsException | IllegalStateException | IllegalArgumentException e) {
             LOGGER.debug(e.getMessage(), e);
             status.addError(e.getMessage());
         }
