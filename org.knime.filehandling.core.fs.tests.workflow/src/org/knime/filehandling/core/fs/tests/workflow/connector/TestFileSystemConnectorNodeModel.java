@@ -116,14 +116,17 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
 
         final FSTestConfig testConfig = new FSTestConfig(FSTestPropertiesResolver.forWorkflowTests());
 
-        final String fsType = getFSTypeToTest(testConfig);
+        final String fsTypeString = getFSTypeToTest(testConfig);
 
         final FSLocationSpec fsLocationSpec =
-            FSTestInitializerManager.instance().createFSLocationSpec(fsType, testConfig.getSettingsForFSType(fsType));
+            FSTestInitializerManager.instance().createFSLocationSpec(fsTypeString, testConfig.getSettingsForFSType(fsTypeString));
 
-        pushFSMetaInfo(getDescriptor(fsLocationSpec.getFSType()));
+        final FSType fsType = fsLocationSpec.getFSType();
+        pushFSType(fsType);
+        pushFSMetaInfo(getDescriptor(fsType));
+        System.out.println(m_fsId);
 
-        return new PortObjectSpec[]{createSpec(fsType, fsLocationSpec)};
+        return new PortObjectSpec[]{createSpec(fsTypeString, fsLocationSpec)};
     }
 
     private static String getFSTypeToTest(final FSTestConfig testConfig) throws InvalidSettingsException {
@@ -136,6 +139,12 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
         }
         return fsToTest.get();
     }
+
+    private void pushFSType(final FSType fsType) {
+        pushFlowVariable("fs.type_name", VariableType.StringType.INSTANCE, fsType.getName());
+        pushFlowVariable("fs.type_id", VariableType.StringType.INSTANCE, fsType.getTypeId());
+    }
+
 
     private void pushFSMetaInfo(final FSDescriptor descriptor) throws InvalidSettingsException {
         pushFlowVariable("fs.file_separator", VariableType.StringType.INSTANCE, descriptor.getSeparator());
@@ -203,6 +212,7 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
         m_fsConnection = initializer.getFSConnection();
         FSConnectionRegistry.getInstance().register(m_fsId, m_fsConnection);
 
+        pushFSType(m_fsConnection.getFSType());
         pushFSMetaInfo(m_fsConnection.getFSDescriptor());
 
         return new PortObject[]{
