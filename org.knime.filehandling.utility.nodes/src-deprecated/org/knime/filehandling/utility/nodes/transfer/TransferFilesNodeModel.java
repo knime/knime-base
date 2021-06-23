@@ -51,7 +51,6 @@ package org.knime.filehandling.utility.nodes.transfer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -176,12 +175,12 @@ final class TransferFilesNodeModel extends NodeModel {
         long rowIdx = 0;
         final long noPaths = sourcePaths.size();
 
-        for (final Path sourcePath : sourcePaths) {
+        for (final FSPath sourcePath : sourcePaths) {
             //Adds a row for the root and destination folder to the output table
             if (sourcePath.equals(rootPath) && filterMode == FilterMode.FOLDER && !includeSourceFolder) {
                 pathCopier.handleSourceTargetPath(rootPath, destinationDir, rowIdx, destDirExists);
             } else {
-                final Path destinationPath = destinationDir.resolve(pathRelativizer.apply(sourcePath));
+                final FSPath destinationPath = (FSPath)destinationDir.resolve(pathRelativizer.apply(sourcePath));
                 pathCopier.copyPath(sourcePath, destinationPath, rowIdx);
             }
 

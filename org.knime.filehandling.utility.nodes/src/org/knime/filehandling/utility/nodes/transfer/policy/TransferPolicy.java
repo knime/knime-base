@@ -51,13 +51,14 @@ package org.knime.filehandling.utility.nodes.transfer.policy;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.filehandling.core.connections.FSFiles;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
@@ -90,7 +91,7 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
     }
 
     @Override
-    public FileStatus apply(final Path t, final Path s) throws IOException {
+    public FileStatus apply(final FSPath t, final FSPath s) throws IOException {
         return m_transferFunction.apply(t, s);
     }
 
@@ -123,13 +124,22 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
         return TransferPolicy.FAIL;
     }
 
-    private static FileStatus overwrite(final Path src, final Path dest) throws IOException {
+    private static FileStatus overwrite(final FSPath src, final FSPath dest) throws IOException {
+        if (isSameFileOrFolder(src, dest)) {
+            return FileStatus.UNMODIFIED;
+        }
         final FileStatus fileStatus = FSFiles.exists(dest) ? FileStatus.OVERWRITTEN : FileStatus.CREATED;
         Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
         return fileStatus;
     }
 
-    private static FileStatus fail(final Path src, final Path dest) throws IOException {
+    private static boolean isSameFileOrFolder(final FSPath src, final FSPath dest) { // check with other FS
+        FSLocation srcLoc = ((FSPath)src.toAbsolutePath().normalize()).toFSLocation();
+        FSLocation desttLoc = ((FSPath)dest.toAbsolutePath().normalize()).toFSLocation();
+        return srcLoc.equals(desttLoc);
+    }
+
+    private static FileStatus fail(final FSPath src, final FSPath dest) throws IOException {
         if (FSFiles.exists(dest)) {
             throw new FileAlreadyExistsException(dest.toString());
         }
@@ -137,7 +147,7 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
         return FileStatus.CREATED;
     }
 
-    private static FileStatus ignore(final Path src, final Path dest) throws IOException {
+    private static FileStatus ignore(final FSPath src, final FSPath dest) throws IOException {
         if (FSFiles.exists(dest)) {
             return FileStatus.UNMODIFIED;
         } else {
@@ -146,7 +156,7 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
         }
     }
 
-    private static FileStatus overwriteIfNewer(final Path src, final Path dest) throws IOException {
+    private static FileStatus overwriteIfNewer(final FSPath src, final FSPath dest) throws IOException {
         final boolean exists = FSFiles.exists(dest);
         final FileStatus fileStatus;
         if (!exists) {
@@ -164,11 +174,11 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
         return fileStatus;
     }
 
-    private static boolean isNewer(final Path src, final Path dest) throws IOException {
+    private static boolean isNewer(final FSPath src, final FSPath dest) throws IOException {
         return getLastModifiedTime(src).compareTo(getLastModifiedTime(dest)) > 0;
     }
 
-    private static FileTime getLastModifiedTime(final Path path) throws IOException {
+    private static FileTime getLastModifiedTime(final FSPath path) throws IOException {
         return Files.readAttributes(path, BasicFileAttributes.class).lastModifiedTime();
     }
 

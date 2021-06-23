@@ -70,6 +70,7 @@ import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
@@ -232,7 +233,7 @@ final class PathCopier {
      * @param rowIdx the current row index
      * @throws IOException
      */
-    void copyPath(final Path sourcePath, final Path destinationPath, final long rowIdx) throws IOException {
+    void copyPath(final FSPath sourcePath, final FSPath destinationPath, final long rowIdx) throws IOException {
         if (FSFiles.isDirectory(sourcePath)) {
             copyDirectories(sourcePath, destinationPath, rowIdx);
         } else {
@@ -281,7 +282,7 @@ final class PathCopier {
      * @param rowIdx the current row index
      * @throws IOException
      */
-    private void copyFiles(final Path sourcePath, final Path destinationPath, final long rowIdx) throws IOException {
+    private void copyFiles(final FSPath sourcePath, final FSPath destinationPath, final long rowIdx) throws IOException {
         createDirectories(destinationPath.getParent());
         try {
             final FileStatus fileStatus = m_copyFunction.apply(sourcePath, destinationPath);

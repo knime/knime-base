@@ -51,6 +51,7 @@ package org.knime.filehandling.utility.nodes.transfer.policy;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
 import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
@@ -60,6 +61,6 @@ import org.knime.filehandling.utility.nodes.utils.FileStatus;
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-public interface TransferFunction extends CheckedExceptionBiFunction<Path, Path, FileStatus, IOException> {
+public interface TransferFunction extends CheckedExceptionBiFunction<FSPath, FSPath, FileStatus, IOException> {
 
 }
