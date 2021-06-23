@@ -162,9 +162,10 @@ class Joiner3NodeDialog extends NodeDialogPane {
 
         // output options
         m_outputUnmatchedRowsToSeparatePorts = new DialogComponentBoolean(
-            m_settings.m_outputUnmatchedRowsToSeparatePortsModel, "Output unmatched rows to separate ports");
-        m_outputUnmatchedRowsToSeparatePorts
-            .setToolTipText("Use the other two output ports to output unmatched rows separately from matched rows.");
+            m_settings.m_outputUnmatchedRowsToSeparatePortsModel, "Route unmatched rows to separate ports");
+        m_outputUnmatchedRowsToSeparatePorts.setToolTipText("If selected, unmatched rows (depending on the \"Include in"
+            + " output\" configuration above) will not appear in the first output port but instead "
+            + "in the second/third port.");
 
         m_mergeJoinColumns = new DialogComponentBoolean(m_settings.m_mergeJoinColumnsModel, "Merge join columns");
         m_mergeJoinColumns
