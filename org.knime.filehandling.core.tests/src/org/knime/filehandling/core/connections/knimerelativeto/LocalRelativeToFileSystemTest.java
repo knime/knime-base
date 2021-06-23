@@ -305,7 +305,7 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         try {
             Files.newInputStream(path);
         } catch (final IOException e) {
-            assertEquals(path.toString() + ": Only reading data items is supported (not workflows, components, workflow groups, etc)", e.getMessage());
+            assertEquals(path.toString() + ": Reading a Workflow is not possible. See the Integrated Deployment extension for handling workflows.", e.getMessage());
             throw e;
         }
     }
@@ -317,7 +317,7 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         try {
             Files.newOutputStream(path);
         } catch (final IOException e) {
-            assertEquals(path.toString()  + ": Only writing to data items is supported (not workflows, components, workflow groups, etc)", e.getMessage());
+            assertEquals(path.toString()  + ": Overwriting a Workflow is not possible. See the Integrated Deployment extension for handling workflows.", e.getMessage());
             throw e;
         }
     }
