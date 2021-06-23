@@ -157,4 +157,29 @@ public final class DateTimeUtils {
             return Optional.empty();
         }
     }
+
+    /**
+     * @return {@link LocalTime#now()} with precision reduced to milliseconds
+     */
+    public static LocalTime nowLocalTimeMillis() {
+        final LocalTime now = LocalTime.now();
+        return now.minusNanos(now.getNano() % 1000000);
+    }
+
+    /**
+     * @return {@link LocalDateTime#now()} with precision reduced to milliseconds
+     */
+    public static LocalDateTime nowLocalDateTimeMillis() {
+        final LocalDateTime now = LocalDateTime.now();
+        return now.minusNanos(now.getNano() % 1000000);
+    }
+
+    /**
+     * @return {@link ZonedDateTime#now()} with precision reduced to milliseconds
+     */
+    public static ZonedDateTime nowZonedDateTimeMillis() {
+        final ZonedDateTime now = ZonedDateTime.now();
+        return now.minusNanos(now.getNano() % 1000000);
+    }
+
 }
