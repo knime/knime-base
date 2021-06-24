@@ -412,8 +412,8 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
                         isStartBeforeEnd = ((LocalDateTime)start).isBefore((LocalDateTime)end);
                         isEqual = ((LocalDateTime)start).isEqual((LocalDateTime)end);
                     } else {
-                        isStartBeforeEnd = (((ZonedDateTime)start)).toLocalDateTime().isBefore(((LocalDateTime)end));
-                        isEqual = (((ZonedDateTime)start)).toLocalDateTime().isEqual(((LocalDateTime)end));
+                        isStartBeforeEnd = (((ZonedDateTime)start)).isBefore(((ZonedDateTime)end));
+                        isEqual = (((ZonedDateTime)start)).isEqual(((ZonedDateTime)end));
                     }
 
                     final boolean isDurationNegative;
