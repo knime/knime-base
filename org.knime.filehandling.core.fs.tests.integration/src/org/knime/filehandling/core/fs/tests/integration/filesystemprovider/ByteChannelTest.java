@@ -344,6 +344,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_overwrite_updates_attribute_times() throws Exception {
+        ignoreWithReason("Some FTP servers don't have second resolution of mtime", FTP);
+
         final Path file = m_testInitializer.createFileWithContent("a", "file");
 
         final BasicFileAttributes beforeTgtAttributes = Files.readAttributes(file, BasicFileAttributes.class);

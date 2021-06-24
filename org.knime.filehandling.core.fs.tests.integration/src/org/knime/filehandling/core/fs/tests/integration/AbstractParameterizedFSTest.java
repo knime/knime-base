@@ -86,6 +86,8 @@ public abstract class AbstractParameterizedFSTest {
 
     protected static final String AMAZON_S3 = "amazon-s3";
 
+    protected static final String FTP = "ftp";
+
     protected static final String GOOGLE_CS = "google-cs";
 
     protected static final String HDFS = "hdfs";
