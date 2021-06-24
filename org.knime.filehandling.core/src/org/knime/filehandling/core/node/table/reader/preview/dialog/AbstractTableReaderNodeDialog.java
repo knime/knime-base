@@ -97,6 +97,8 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
 
     private boolean m_preventPreviewUpdateOnFirstLoad;
 
+    private boolean m_scrollingInProgress = false;
+
     /**
      * Constructor that neither prevents the preview update on the first load nor buffers the preview.<br>
      * For most readers, this will be the appropriate constructor to call.
@@ -195,11 +197,15 @@ public abstract class AbstractTableReaderNodeDialog<I, C extends ReaderSpecificC
     }
 
     private void updateScrolling(final ChangeEvent changeEvent) {
-        final TableReaderPreviewView updatedView = (TableReaderPreviewView)changeEvent.getSource();
-        for (TableReaderPreviewView preview : m_previews) {
-            if (preview != updatedView) {
-                preview.updateViewport(updatedView);
+        if (!m_scrollingInProgress) {
+            m_scrollingInProgress = true;
+            final TableReaderPreviewView updatedView = (TableReaderPreviewView)changeEvent.getSource();
+            for (TableReaderPreviewView preview : m_previews) {
+                if (preview != updatedView) {
+                    preview.updateViewport(updatedView);
+                }
             }
+            m_scrollingInProgress = false;
         }
     }
 
