@@ -70,6 +70,24 @@
           </li>
         </ul>
       </option>
+      <option name="When to validate">
+	Determines at which point in its life-cycle the node will report
+	validation errors.
+	<ul>
+		<li>
+			<i>Validate at node configuration and execution</i>
+			- If set to fail on validation issues,
+			the node will report validation issues on both node configuration and
+			node execution.
+		</li>
+		<li>
+			<i>Validate at node execution only</i>
+			- The node will report validation issues only
+			on execution and not on configuration. This is useful for example when
+			using the node in a Try-Catch construct.
+		</li>
+	</ul>
+      </option>
     </tab>
     <tab name="Validation Settings">
       <option name="Fail if column is missing (Structure)">

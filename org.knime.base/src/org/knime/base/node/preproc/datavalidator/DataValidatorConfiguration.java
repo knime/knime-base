@@ -91,6 +91,8 @@ final class DataValidatorConfiguration {
     /** Reference table spec. */
     private static final String CFG_SPEC = "data_table_spec";
 
+    private static final String CFG_VALIDATE_AT_BEHAVIOR = "validate_at";
+
     private DataTableSpec m_referenceTableSpec;
 
     private RejectBehavior m_failingBehavior;
@@ -100,6 +102,8 @@ final class DataValidatorConfiguration {
     private List<DataValidatorColConfiguration> m_individualConfigurations;
 
     private final boolean m_referenceSpecNeedet;
+
+    private ValidateAtBehavior m_validateAtBehavior = ValidateAtBehavior.VALIDATE_BOTH;
 
     /**
      * Constructor.
@@ -174,6 +178,20 @@ final class DataValidatorConfiguration {
     }
 
     /**
+     * @return the specified behavior when to validate
+     */
+    ValidateAtBehavior getValidateAtBehavior() {
+        return m_validateAtBehavior;
+    }
+
+    /**
+     * @param value the behavior to apply describing when to validate
+     */
+    void setValidateAtBehavior(final ValidateAtBehavior value) {
+        m_validateAtBehavior = value;
+    }
+
+    /**
      * Loads the configuration for the dialog with corresponding default values.
      *
      * @param settings the settings to read from
@@ -203,6 +221,7 @@ final class DataValidatorConfiguration {
 
         m_removeUnkownColumns = getEnum(settings, CFG_REMOVE_UNKOWN_COLUMNS, UnknownColumnHandling.REJECT);
         m_failingBehavior = getEnum(settings, CFG_REJECTING_BEHAVIOR, RejectBehavior.FAIL_NODE);
+        m_validateAtBehavior = getEnum(settings, CFG_VALIDATE_AT_BEHAVIOR, ValidateAtBehavior.VALIDATE_BOTH);
     }
 
     /**
@@ -225,6 +244,8 @@ final class DataValidatorConfiguration {
         }
         m_removeUnkownColumns = getEnum(settings, CFG_REMOVE_UNKOWN_COLUMNS, UnknownColumnHandling.class);
         m_failingBehavior = getEnum(settings, CFG_REJECTING_BEHAVIOR, RejectBehavior.class);
+        // added in 4.4
+        m_validateAtBehavior = getEnum(settings, CFG_VALIDATE_AT_BEHAVIOR, ValidateAtBehavior.VALIDATE_BOTH);
     }
 
     /**
@@ -241,6 +262,7 @@ final class DataValidatorConfiguration {
         }
         addEnum(settings, CFG_REMOVE_UNKOWN_COLUMNS, m_removeUnkownColumns);
         addEnum(settings, CFG_REJECTING_BEHAVIOR, m_failingBehavior);
+        addEnum(settings, CFG_VALIDATE_AT_BEHAVIOR, m_validateAtBehavior);
         if (m_referenceSpecNeedet) {
             m_referenceTableSpec.save(settings.addNodeSettings(CFG_SPEC));
         }
@@ -472,4 +494,23 @@ final class DataValidatorConfiguration {
             return m_description;
         }
     }
+
+    enum ValidateAtBehavior {
+
+        VALIDATE_BOTH("Validate at node configuration and execution"),
+
+        VALIDATE_AT_EXEC_ONLY("Validate only at node execution");
+
+        private final String m_description;
+
+        private ValidateAtBehavior(final String description) {
+            m_description = description;
+        }
+
+        @Override
+        public String toString() {
+            return m_description;
+        }
+    }
+
 }

@@ -75,6 +75,7 @@ import javax.swing.ScrollPaneConstants;
 import org.apache.commons.lang.ArrayUtils;
 import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.RejectBehavior;
 import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.UnknownColumnHandling;
+import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.ValidateAtBehavior;
 import org.knime.base.node.preproc.datavalidator.dndpanel.DnDColumnSelectionSearchableListPanel;
 import org.knime.base.node.preproc.datavalidator.dndpanel.DnDConfigurationPanel;
 import org.knime.core.data.DataColumnSpec;
@@ -124,6 +125,9 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
 
     private RadionButtonPanel<RejectBehavior> m_failBehavior;
 
+    private RadionButtonPanel<ValidateAtBehavior> m_validateAtBehavior;
+
+
     /**
      * Constructs new dialog with an appropriate dialog title.
      */
@@ -137,6 +141,7 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
 
         m_failBehavior = new RadionButtonPanel<>("Behavior on validation issue", RejectBehavior.values());
         m_unkownColumnsHandling = new RadionButtonPanel<>("Handling of unkown columns", UnknownColumnHandling.values());
+        m_validateAtBehavior = new RadionButtonPanel<>("When to validate", ValidateAtBehavior.values());
 
         Dimension failBehPrefSize = m_failBehavior.getPreferredSize();
         Dimension unknownColPrefSize = m_unkownColumnsHandling.getPreferredSize();
@@ -161,6 +166,14 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
         c.gridx = 1;
         c.gridy = 0;
         generalConfigPanel.add(m_unkownColumnsHandling, c);
+        c.gridwidth = 2;
+        c.weightx = 1;
+        c.gridx = 0;
+        c.gridy = 1;
+        generalConfigPanel.add(m_validateAtBehavior, c);
+        c.gridwidth = 1;  // reset
+
+
         generalConfigPanel.setBorder(BorderFactory.createTitledBorder("General settings"));
 
         southernPanel.add(generalConfigPanel, BorderLayout.NORTH);
@@ -385,6 +398,7 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
 
         m_failBehavior.setSelectedValue(dataValidatorConfiguration.getFailingBehavior());
         m_unkownColumnsHandling.setSelectedValue(dataValidatorConfiguration.getUnkownColumnsHandling());
+        m_validateAtBehavior.setSelectedValue(dataValidatorConfiguration.getValidateAtBehavior());
 
         updateDataTableSpecComparison();
     }
@@ -429,6 +443,7 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
         dataValidatorConfiguration.setReferenceTableSpec(m_referenceDataTableSpec);
         dataValidatorConfiguration.setRemoveUnkownColumns(m_unkownColumnsHandling.getSelectedValue());
         dataValidatorConfiguration.setFailingBehavior(m_failBehavior.getSelectedValue());
+        dataValidatorConfiguration.setValidateAtBehavior(m_validateAtBehavior.getSelectedValue());
 
         dataValidatorConfiguration.saveSettings(settings);
     }

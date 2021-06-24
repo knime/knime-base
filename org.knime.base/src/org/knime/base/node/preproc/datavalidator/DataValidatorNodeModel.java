@@ -61,6 +61,7 @@ import java.util.Set;
 import org.knime.base.node.preproc.datavalidator.DataValidatorColConflicts.DataValidatorColConflict;
 import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.ConfigurationContainer;
 import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.RejectBehavior;
+import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.ValidateAtBehavior;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -118,8 +119,8 @@ class DataValidatorNodeModel extends NodeModel {
         ColumnRearranger columnRearranger = null;
         columnRearranger = createRearranger(in, conflicts);
 
-        if (!conflicts.isEmpty()) {
-            checkSetting(!RejectBehavior.FAIL_NODE.equals(m_config.getFailingBehavior()), "Validation failed:\n%s",
+        if (!conflicts.isEmpty() && ValidateAtBehavior.VALIDATE_BOTH == m_config.getValidateAtBehavior()) {
+            checkSetting(RejectBehavior.FAIL_NODE != m_config.getFailingBehavior(), "Validation failed:\n%s",
                 conflicts);
             return new DataTableSpec[]{null, DataValidatorColConflicts.CONFLICTS_SPEC};
         } else {
