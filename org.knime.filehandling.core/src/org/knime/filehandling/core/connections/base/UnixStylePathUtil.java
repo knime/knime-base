@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Utility class to implement basic logic for dealing with UNIX-style paths, in order to avoid reimplementing the logic
@@ -216,16 +217,10 @@ public final class UnixStylePathUtil {
         if ((isAbsolute && pathParts.isEmpty()) || (!isAbsolute && pathParts.size() <= 1)) {
             return null;
         }
-
-        final StringBuilder sb = new StringBuilder();
-        if (isAbsolute) {
-            sb.append(pathSeparator);
-        }
-        for (int i = 0; i < pathParts.size() - 1; i++) {
-            sb.append(pathParts.get(i));
-            sb.append(pathSeparator);
-        }
-        return sb.toString();
+        final String prefix = isAbsolute ? pathSeparator : "";
+        return pathParts.stream()//
+                .limit(pathParts.size() - 1L)//
+                .collect(Collectors.joining(pathSeparator, prefix, ""));
     }
 
 }
