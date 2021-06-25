@@ -58,6 +58,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 
 /**
  * Pseudo-filesystem that allows to read user-provided URLs.

@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.connections.knimerelativeto;
 
+import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.knimerelativeto.testing.LocalRelativeToWorkflowFSTestInitializerProvider;
 import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSType;

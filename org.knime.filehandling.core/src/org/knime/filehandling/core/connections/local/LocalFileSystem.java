@@ -66,6 +66,7 @@ import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
 
 /**

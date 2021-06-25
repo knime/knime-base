@@ -52,6 +52,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 
 /**
  * Creates a pseudo file system that allows to read user-provided URLs.

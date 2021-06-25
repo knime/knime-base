@@ -53,6 +53,7 @@ import java.net.URISyntaxException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 
 public class KNIMERemotePathTest {
 
@@ -63,7 +64,7 @@ public class KNIMERemotePathTest {
     @Before
     public void setup() {
         m_fsProvider = new KNIMERemoteFileSystemProvider();
-        m_fs = new KNIMERemoteFileSystem(new KNIMERemoteFSConnectionConfig("LOCAL"));
+        m_fs = new KNIMERemoteFileSystem(new MountpointFSConnectionConfig("LOCAL"));
     }
 
     @Test

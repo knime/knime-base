@@ -55,10 +55,10 @@ import java.time.Duration;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.FileUtil;
-import org.knime.filehandling.core.connections.local.LocalFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.url.URIFSConnectionConfig;
 
 /**
  *

@@ -49,8 +49,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
-import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;

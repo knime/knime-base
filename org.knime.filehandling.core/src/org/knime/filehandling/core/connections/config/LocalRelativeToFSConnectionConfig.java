@@ -44,60 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 2, 2021 (bjoern): created
+ *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.url;
+package org.knime.filehandling.core.connections.config;
 
-import java.net.URI;
-import java.time.Duration;
-
-import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
+import org.knime.filehandling.core.connections.knimerelativeto.BaseRelativeToFileSystem;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
- * {@link FSConnectionConfig} implementation for the Custom/KNIME URL file system.
+ * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
+ * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
-public class URIFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private URI m_uri;
-
-    private Duration m_timeout = Duration.ofMillis(FileUtil.getDefaultURLTimeoutMillis());
+public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
 
     /**
-     * Constructor.
+     * Constructor for a connected file system with the given working directory.
+     *
+     * @param workingDirectory The working directory to use.
      */
-    public URIFSConnectionConfig() {
-        super(URIFileSystem.PATH_SEPARATOR, false);
+    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
+        super(workingDirectory, true);
     }
 
     /**
-     * @return the connect/read timeout
+     * Constructor for a convenience file system with the default working directory.
      */
-    public Duration getTimeout() {
-        return m_timeout;
-    }
-
-    /**
-     * @param timeout the connect/read timeout to use
-     */
-    public void setTimeout(final Duration timeout) {
-        m_timeout = timeout;
-    }
-
-    /**
-     * @return the URI
-     */
-    public URI getURI() {
-        return m_uri;
-    }
-
-    /**
-     * @param uri the URI to set
-     */
-    public void setURI(final URI uri) {
-        m_uri = uri;
+    public LocalRelativeToFSConnectionConfig() {
+        super(BaseRelativeToFileSystem.PATH_SEPARATOR, false);
     }
 }

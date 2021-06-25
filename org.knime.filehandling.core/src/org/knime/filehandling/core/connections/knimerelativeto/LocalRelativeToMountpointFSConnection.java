@@ -59,6 +59,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**

@@ -44,25 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 2, 2021 (bjoern): created
+ *   Jun 2, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.config;
 
+import java.net.URI;
+import java.time.Duration;
+
+import org.knime.core.util.FileUtil;
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
+import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
+ * {@link FSConnectionConfig} implementation for the Custom/KNIME URL file system.It is unlikely that you will have to
+ * use this class directly. To create a configured Custom/KNIME URL file system, please use
+ * {@link DefaultFSConnectionFactory}.
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
-public class LocalFSConnectionConfig extends BaseFSConnectionConfig {
+public class URIFSConnectionConfig extends BaseFSConnectionConfig {
 
-    private static final String WORKSPACE_PATH = System.getProperty("user.home");
+    private URI m_uri;
 
-    public LocalFSConnectionConfig() {
-        super(WORKSPACE_PATH, false);
+    private Duration m_timeout = Duration.ofMillis(FileUtil.getDefaultURLTimeoutMillis());
+
+    /**
+     * Constructor.
+     */
+    public URIFSConnectionConfig() {
+        super("/", false);
     }
 
-    public LocalFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    /**
+     * @return the connect/read timeout
+     */
+    public Duration getTimeout() {
+        return m_timeout;
+    }
+
+    /**
+     * @param timeout the connect/read timeout to use
+     */
+    public void setTimeout(final Duration timeout) {
+        m_timeout = timeout;
+    }
+
+    /**
+     * @return the URI
+     */
+    public URI getURI() {
+        return m_uri;
+    }
+
+    /**
+     * @param uri the URI to set
+     */
+    public void setURI(final URI uri) {
+        m_uri = uri;
     }
 }

@@ -52,6 +52,7 @@ import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**

@@ -58,6 +58,7 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.knimerelativeto.testing.LocalRelativeToTestUtil;
 
 /**

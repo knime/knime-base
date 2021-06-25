@@ -44,33 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   May 2, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
+package org.knime.filehandling.core.connections.config;
 
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems.
+ * {@link FSConnectionConfig} for the local file system. It is unlikely that you will have to use this class directly.
+ * To create a configured local file system, please use {@link DefaultFSConnectionFactory}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+public class LocalFSConnectionConfig extends BaseFSConnectionConfig {
+
+    private static final String WORKSPACE_PATH = System.getProperty("user.home");
 
     /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
+     * Constructor that sets the KNIME workspace path as the working directory.
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    public LocalFSConnectionConfig() {
+        super(WORKSPACE_PATH, false);
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * Constructor.
+     *
+     * @param workingDirectory The working directory to use.
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(BaseRelativeToFileSystem.PATH_SEPARATOR, false);
+    public LocalFSConnectionConfig(final String workingDirectory) {
+        super(workingDirectory, true);
     }
 }

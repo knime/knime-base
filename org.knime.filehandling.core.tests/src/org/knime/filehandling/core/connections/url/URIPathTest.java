@@ -53,6 +53,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 
 import org.junit.Test;
+import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 
 public class URIPathTest {
 
