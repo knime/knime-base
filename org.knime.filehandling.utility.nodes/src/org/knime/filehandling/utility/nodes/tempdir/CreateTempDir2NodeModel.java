@@ -370,12 +370,18 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
         private final Map<FSLocationSpec, List<FSLocation>> m_dirsToDelete;
 
+        private final Map<FSLocationSpec, FSPathProviderFactory> m_factories;
+
         private Optional<FSConnection> m_connection;
 
         private DeleteTempDirs(final FSConnection connection,
             final Map<FSLocationSpec, List<FSLocation>> dirsToDelete) {
             m_connection = Optional.ofNullable(connection);
             m_dirsToDelete = new HashMap<>(dirsToDelete);
+            m_factories = m_dirsToDelete.keySet().stream()//
+                .collect(Collectors.toMap(//
+                    Function.identity(), e -> FSPathProviderFactory.newFactory(m_connection, e))//
+                );
         }
 
         DeleteTempDirs(final FSConnection connection, final FSLocation fsLocation) {
@@ -389,16 +395,35 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
         @Override
         protected void runWithContext() {
-            for (final Entry<FSLocationSpec, List<FSLocation>> entry : m_dirsToDelete.entrySet()) {
-                try (FSPathProviderFactory factory = FSPathProviderFactory.newFactory(m_connection, entry.getKey())) {
-                    for (FSLocation loc : entry.getValue()) {
-                        deleteTempDir(factory, loc);
-                    }
-                } catch (ClosedFileSystemException e) { // NOSONAR can be ignored
-                    // do nothing, can be safely ignored because temp dir has already been deleted when closing the file system
-                } catch (final IOException facE) {
-                    LOGGER.debug("Unable to close path provider factory for " + entry.getKey().toString() + " "
-                        + facE.getMessage(), facE);
+            try {
+                m_dirsToDelete.entrySet()//
+                    .forEach(this::deleteTempDir);
+            } finally {
+                closeFactories();
+            }
+        }
+
+        private void deleteTempDir(final Entry<FSLocationSpec, List<FSLocation>> entry) {
+            @SuppressWarnings("resource")
+            final FSPathProviderFactory factory = m_factories.get(entry.getKey());
+            try {
+                for (FSLocation loc : entry.getValue()) {
+                    deleteTempDir(factory, loc);
+                }
+            } catch (ClosedFileSystemException e) { // NOSONAR can be ignored
+                // do nothing, can be safely ignored because temp dir has already been deleted when
+                // closing the file system
+            }
+        }
+
+        private void closeFactories() {
+            for (Entry<FSLocationSpec, FSPathProviderFactory> entry : m_factories.entrySet()) {
+                try {
+                    entry.getValue().close();
+                } catch (IOException e) {
+                    LOGGER.debug(
+                        "Unable to close path provider factory for " + entry.getKey().toString() + " " + e.getMessage(),
+                        e);
                 }
             }
         }
