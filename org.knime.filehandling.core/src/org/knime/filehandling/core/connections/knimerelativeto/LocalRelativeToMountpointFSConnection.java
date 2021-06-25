@@ -59,6 +59,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * {@link FSConnection} for the Relative-to mountpoint file system. It is possible to create a connected or convenience
@@ -82,8 +83,8 @@ public class LocalRelativeToMountpointFSConnection implements FSConnection {
      */
     public LocalRelativeToMountpointFSConnection(final LocalRelativeToFSConnectionConfig config) {
 
-        final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
-        if (RelativeToUtil.isServerContext(workflowContext)) {
+        final WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
+        if (WorkflowContextUtil.isServerContext(workflowContext)) {
             throw new UnsupportedOperationException(
                 "Unsupported temporary copy of workflow detected. Relative to does not support server execution.");
         }

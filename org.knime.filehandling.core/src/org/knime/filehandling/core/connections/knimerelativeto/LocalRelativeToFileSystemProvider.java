@@ -57,6 +57,7 @@ import java.nio.file.Path;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Local KNIME relative to File System provider.
@@ -90,7 +91,7 @@ final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemPr
     }
 
     private static String getCurrentMountpoint() {
-        final WorkflowContext context = RelativeToUtil.getWorkflowContext();
+        final WorkflowContext context = WorkflowContextUtil.getWorkflowContext();
         return context.getMountpointURI() //
                 .orElseThrow(() -> new IllegalStateException("Cannot determine name of mountpoint to deploy workflow.")) //
                 .getAuthority();

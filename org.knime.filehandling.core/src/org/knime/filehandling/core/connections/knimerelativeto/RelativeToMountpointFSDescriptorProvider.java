@@ -53,6 +53,7 @@ import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_MOUNTPOINT}, that provides either a local or
@@ -73,7 +74,7 @@ public class RelativeToMountpointFSDescriptorProvider implements FSDescriptorPro
     public FSDescriptor getFSDescriptor() {
         FSType fsType = LocalRelativeToMountpointFSDescriptorProvider.FS_TYPE;
 
-        if (RelativeToUtil.isServerContext()) {
+        if (WorkflowContextUtil.isServerContext()) {
             fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
                 .orElseThrow(
                     () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));

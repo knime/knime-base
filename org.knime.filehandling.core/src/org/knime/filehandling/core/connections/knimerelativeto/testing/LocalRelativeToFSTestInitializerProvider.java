@@ -58,11 +58,11 @@ import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.knimerelativeto.RelativeToUtil;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.testing.DefaultFSTestInitializerProvider;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Abstract {@link FSTestInitializerProvider} base class for all file systems in the category
@@ -94,7 +94,7 @@ public abstract class LocalRelativeToFSTestInitializerProvider extends DefaultFS
     public final LocalRelativeToFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
         final LocalRelativeToFSTestInitializer testInitializer;
 
-        if (RelativeToUtil.hasWorkflowContext()) {
+        if (WorkflowContextUtil.hasWorkflowContext()) {
             testInitializer = createTestInitializer(configuration);
         } else {
             final Path localMountpointRoot = Files.createTempDirectory("knime-relative-test");

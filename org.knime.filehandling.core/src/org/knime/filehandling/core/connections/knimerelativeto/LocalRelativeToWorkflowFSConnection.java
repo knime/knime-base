@@ -61,6 +61,7 @@ import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * {@link FSConnection} for the Relative-to workflow file system. It is possible to create a connected or convenience
@@ -90,9 +91,9 @@ public class LocalRelativeToWorkflowFSConnection implements FSConnection {
                 "Nodes in a shared component don't have access to workflow-relative locations.");
         }
 
-        final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
+        final WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
 
-        if (RelativeToUtil.isServerContext(workflowContext)) {
+        if (WorkflowContextUtil.isServerContext(workflowContext)) {
             throw new UnsupportedOperationException(
                 "Unsupported temporary copy of workflow detected. LocalRelativeTo does not support server execution.");
         }

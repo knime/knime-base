@@ -62,6 +62,7 @@ import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * {@link FSConnection} for the Relative-to workflow data area file system. It is possible to create a connected or
@@ -90,7 +91,7 @@ public final class LocalRelativeToWorkflowDataFSConnection implements FSConnecti
                 "Nodes in a shared component don't have access to the workflow data area.");
         }
 
-        final WorkflowContext workflowContext = RelativeToUtil.getWorkflowContext();
+        final WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
         final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
 
         m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, //

@@ -44,34 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 23, 2020 (bjoern): created
+ *   Jun 23, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.knimerelativeto;
-
-import java.util.Map;
+package org.knime.filehandling.core.util;
 
 import org.apache.commons.lang3.Validate;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactoryMapBuilder;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
-import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
 /**
+ * Utility class that allows to reason about the current {@link WorkflowContext}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public final class RelativeToUtil {
+public final class WorkflowContextUtil {
 
-    static final Map<URIExporterID, URIExporterFactory> RELATIVE_TO_URI_EXPORTERS = new URIExporterFactoryMapBuilder() //
-        .add(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getInstance()) //
-        .add(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getInstance()) //
-        .build();
-
-    private RelativeToUtil() {
+    private WorkflowContextUtil() {
     }
 
     /**
@@ -80,10 +69,10 @@ public final class RelativeToUtil {
     public static WorkflowContext getWorkflowContext() {
         final NodeContext nodeContext = NodeContext.getContext();
         Validate.notNull(nodeContext, "Node context required.");
-
+    
         final WorkflowContext workflowContext = nodeContext.getWorkflowManager().getContext();
         Validate.notNull(workflowContext, "Workflow context required.");
-
+    
         return workflowContext;
     }
 
@@ -115,10 +104,11 @@ public final class RelativeToUtil {
     public static boolean isServerContext() {
         final NodeContext nodeContext = NodeContext.getContext();
         CheckUtils.checkArgumentNotNull(nodeContext, "Node context required.");
-
+    
         final WorkflowContext context = nodeContext.getWorkflowManager().getContext();
         CheckUtils.checkArgumentNotNull(context, "Workflow context required.");
-
+    
         return isServerContext(context);
     }
+
 }
