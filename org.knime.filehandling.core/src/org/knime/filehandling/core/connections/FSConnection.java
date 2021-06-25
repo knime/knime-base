@@ -2,7 +2,6 @@ package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.node.NodeLogger;
@@ -140,10 +139,4 @@ public interface FSConnection extends AutoCloseable {
         return FSDescriptorRegistry.getFSDescriptor(fsType) //
             .orElseThrow(() -> new IllegalStateException(String.format("FSType %s is not registered", fsType)));
     }
-
-    // FIXME remove me
-    default Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
-        throw new UnsupportedOperationException();
-    }
-
 }

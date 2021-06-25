@@ -51,7 +51,6 @@ package org.knime.filehandling.core.connections.knimerelativeto;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
@@ -59,8 +58,6 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
-import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
@@ -131,10 +128,5 @@ public final class LocalRelativeToWorkflowDataFSConnection implements FSConnecti
     @Override
     public FileSystemBrowser getFileSystemBrowser() {
         return m_browser;
-    }
-
-    @Override
-    public Map<URIExporterID, URIExporterFactory> getURIExporterFactories() {
-        return RelativeToUtil.RELATIVE_TO_URI_EXPORTERS;
     }
 }
