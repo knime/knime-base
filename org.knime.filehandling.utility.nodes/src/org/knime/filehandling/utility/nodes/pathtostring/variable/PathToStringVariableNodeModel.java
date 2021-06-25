@@ -83,7 +83,7 @@ import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
+import org.knime.filehandling.core.util.PathToStringUtils;
 
 /**
  * This node allows you to convert a flow variable of type {@link FSLocationVariableType} to a flow variable of type

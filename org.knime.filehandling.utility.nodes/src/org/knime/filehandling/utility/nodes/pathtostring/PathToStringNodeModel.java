@@ -90,6 +90,7 @@ import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
+import org.knime.filehandling.core.util.PathToStringUtils;
 
 /**
  * This node allows you to convert a {@link SimpleFSLocationCell} to a {@link StringCell}. Depending on the settings, the

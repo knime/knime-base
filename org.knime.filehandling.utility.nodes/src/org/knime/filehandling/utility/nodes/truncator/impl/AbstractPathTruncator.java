@@ -50,7 +50,7 @@ package org.knime.filehandling.utility.nodes.truncator.impl;
 
 import java.nio.file.Path;
 
-import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
+import org.knime.filehandling.core.util.PathToStringUtils;
 import org.knime.filehandling.utility.nodes.truncator.PathTruncator;
 import org.knime.filehandling.utility.nodes.utils.PathHandlingUtils;
 

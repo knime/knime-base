@@ -59,7 +59,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.utility.nodes.pathtostring.PathToStringUtils;
+import org.knime.filehandling.core.util.PathToStringUtils;
 import org.knime.filehandling.utility.nodes.transfer.iterators.FileAndFoldersCollector;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferEntry;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferIterator;

@@ -46,7 +46,7 @@
  * History
  *   Nov 27, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.utility.nodes.pathtostring;
+package org.knime.filehandling.core.util;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -63,9 +63,10 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * Utility class for the Path to String nodes.
+ * Utility class to map Paths to String.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @noreference not intended to be referenced by clients (non-public API)
  */
 public final class PathToStringUtils {
 
