@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.WorkflowAware;
@@ -126,5 +127,12 @@ final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemPr
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public Optional<String> getMountID() {
+        // currently this is unused code, but it will need to be made functional
+        // for AP-16355
+        return Optional.empty();
     }
 }

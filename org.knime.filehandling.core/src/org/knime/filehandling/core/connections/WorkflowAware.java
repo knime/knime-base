@@ -51,6 +51,7 @@ package org.knime.filehandling.core.connections;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  * An interface providing methods for handling workflows. While such workflows are not much different than regular
@@ -86,4 +87,8 @@ public interface WorkflowAware {
      */
     File toLocalWorkflowDir(Path path) throws IOException;
 
+    /**
+     * @return the (default) mount ID of the underlying workflow repository or mountpoint.
+     */
+    Optional<String> getMountID();
 }

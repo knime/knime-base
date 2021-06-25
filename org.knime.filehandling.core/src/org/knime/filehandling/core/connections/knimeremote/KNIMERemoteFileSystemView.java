@@ -51,11 +51,11 @@ package org.knime.filehandling.core.connections.knimeremote;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * File System view for {@link KNIMERemoteFileSystem}
+ * File System view for the Explorer-based Mountpoint file system.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-final class KNIMERemoteFileSystemView extends NioFileSystemView {
+class KNIMERemoteFileSystemView extends NioFileSystemView {
 
     /**
      * File System view for {@link KNIMERemoteFileSystem}

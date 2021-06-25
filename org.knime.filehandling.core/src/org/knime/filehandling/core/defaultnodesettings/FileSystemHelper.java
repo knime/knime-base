@@ -57,8 +57,6 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnectionConfig;
 
 /**
  * Utility class to obtain a {@link FSConnection}.
@@ -90,9 +88,8 @@ public final class FileSystemHelper {
             case CUSTOM_URL_FS:
                 return DefaultFSConnectionFactory.createCustomURLConnection(settings.getPathOrURL(), timeoutInMillis);
             case KNIME_MOUNTPOINT:
-                final String mountpoint = settings.getKnimeMountpointFileSystem();
-                final KNIMERemoteFSConnectionConfig conf = new KNIMERemoteFSConnectionConfig(mountpoint);
-                return new KNIMERemoteFSConnection(conf);
+                final var mountID = settings.getKnimeMountpointFileSystem();
+                return DefaultFSConnectionFactory.createMountpointConnection(mountID);
             case KNIME_FS:
                 final RelativeTo type = RelativeTo.fromSettingsValue(settings.getKNIMEFileSystem());
                 return DefaultFSConnectionFactory.createRelativeToConnection(type);
@@ -126,7 +123,7 @@ public final class FileSystemHelper {
             case MOUNTPOINT:
                 final KNIMEConnection connection = extractMountpoint(location);
                 checkMountpointCanCreateConnection(location, connection);
-                return Optional.of(new KNIMERemoteFSConnection(new KNIMERemoteFSConnectionConfig(connection.getId())));
+                return Optional.of(DefaultFSConnectionFactory.createMountpointConnection(connection.getId()));
             case LOCAL:
                 return Optional.of(DefaultFSConnectionFactory.createLocalFSConnection());
             default:

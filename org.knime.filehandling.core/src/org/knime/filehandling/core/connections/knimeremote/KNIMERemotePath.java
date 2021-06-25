@@ -64,7 +64,7 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-final class KNIMERemotePath extends UnixStylePath implements WorkflowAwarePath {
+class KNIMERemotePath extends UnixStylePath implements WorkflowAwarePath {
 
     /**
      * Constructs a {@code KNIMERemotePath} from a path string, or a sequence of strings that when joined form a path
@@ -95,7 +95,7 @@ final class KNIMERemotePath extends UnixStylePath implements WorkflowAwarePath {
 
     URI toKNIMEProtocolURI() {
         try {
-            return new URI("knime", getFileSystem().getMountpoint(), getURICompatiblePath(), null);
+            return LegacyKNIMEUrlExporterFactory.getInstance().getExporter().toUri(this);
         } catch (final URISyntaxException ex) {
             throw new IllegalStateException("Failed to create valid URL: " + ex.getMessage(), ex);
         }

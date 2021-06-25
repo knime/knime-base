@@ -46,29 +46,69 @@
  * History
  *   May 2, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.knimeremote;
+package org.knime.filehandling.core.connections.config;
 
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
+ * {@link FSConnectionConfig} for the Mountpoint file system. It is unlikely that you will have to use this class
+ * directly. To create a configured Mountpoint file system, please use {@link DefaultFSConnectionFactory}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
  */
-public final class KNIMERemoteFSConnectionConfig extends BaseFSConnectionConfig {
+public final class MountpointFSConnectionConfig extends BaseFSConnectionConfig {
 
-    private final String m_mountpoint;
+    private final String m_mountID;
 
-    public KNIMERemoteFSConnectionConfig(final String mountpoint) {
-        super(KNIMERemoteFileSystem.SEPARATOR, false);
-        m_mountpoint = mountpoint;
+    /**
+     * Constructor that creates a convenience file system with the default working directory (mountpoint root).
+     *
+     * @param mountID The mount ID to connect to.
+     */
+    public MountpointFSConnectionConfig(final String mountID) {
+        super("/", false);
+        m_mountID = mountID;
     }
 
-    KNIMERemoteFSConnectionConfig(final String workingDirectory, final String mountpoint) {
+    /**
+     * Constructor that creates a CONNECTED file system with the given working directory.
+     *
+     * @param workingDirectory The working directory to use.
+     * @param mountID The mount ID to connect to.
+     */
+    public MountpointFSConnectionConfig(final String workingDirectory, final String mountID) {
         super(workingDirectory, true);
-        m_mountpoint = mountpoint;
+        m_mountID = mountID;
     }
 
-    String getMountpoint() {
-        return m_mountpoint;
+    /**
+     * @return the mount ID to connect to.
+     */
+    public String getMountID() {
+        return m_mountID;
+    }
+
+    /**
+     * @return the {@link FSLocationSpec} for the Mountpoint file system which uses this configuration.
+     */
+    public FSLocationSpec createFSLocationSpec() {
+        final FSCategory category;
+        final String specifier;
+
+        if (isConnectedFileSystem()) {
+            category = FSCategory.CONNECTED;
+            specifier = String.format("%s:%s", FSType.MOUNTPOINT.getTypeId(), getMountID());
+        } else {
+            category = FSCategory.MOUNTPOINT;
+            specifier = getMountID();
+        }
+        return new DefaultFSLocationSpec(category, specifier);
     }
 }

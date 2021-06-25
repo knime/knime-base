@@ -58,8 +58,6 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnection;
-import org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSConnectionConfig;
 
 /**
  * Abstract factory superclass to obtain {@link FSPathProvider} instances. To get a concrete factory you can use
@@ -139,15 +137,11 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
     }
 
     private static FSConnection createMountpointConnection(final FSLocationSpec fsLocationSpec) {
-        final Optional<String> specifier = fsLocationSpec.getFileSystemSpecifier();
+        final var mountID = fsLocationSpec.getFileSystemSpecifier() //
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Invalid FSLocation for 'Mountpoint'. It must specify the name of the mountpoint."));
 
-        if (!specifier.isPresent()) {
-            throw new IllegalArgumentException(
-                "Invalid FSLocation for 'Mountpoint'. It must specify the name of the mountpoint.");
-        }
-
-        final KNIMERemoteFSConnectionConfig conf = new KNIMERemoteFSConnectionConfig(specifier.get());
-        return new KNIMERemoteFSConnection(conf);
+        return DefaultFSConnectionFactory.createMountpointConnection(mountID);
     }
 
     private static FSConnection createRelativeToFSConnection(final FSLocationSpec fsLocationSpec) {

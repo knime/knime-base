@@ -87,7 +87,7 @@
             class="org.knime.filehandling.core.connections.local.LocalFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.knimeremote.KNIMERemoteFSDescriptorProvider">
+            class="org.knime.filehandling.core.connections.knimeremote.MountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
             class="org.knime.filehandling.core.connections.url.URIFSDescriptorProvider">

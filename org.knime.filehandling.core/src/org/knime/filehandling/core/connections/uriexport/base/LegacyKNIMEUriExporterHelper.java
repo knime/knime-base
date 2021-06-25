@@ -66,7 +66,7 @@ public final class LegacyKNIMEUriExporterHelper {
     }
 
     /**
-     * Creates a knime:// URL of the given type for this path.
+     * Creates a workflow- or mountpoint-relative knime:// URL of the given type for this path.
      *
      * @param type The {@link RelativeTo} type to assume for the given path (workflow-relative, mountpoint-relative,
      *            ...)
@@ -85,6 +85,21 @@ public final class LegacyKNIMEUriExporterHelper {
                 default:
                     throw new IllegalArgumentException("Illegal type " + type);
             }
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+
+    /**
+     * Creates a mountpoint-absolute knime:// URL for this path.
+     *
+     * @param mountID The name of the mountpoint
+     * @param path The path
+     * @return a <code>knime://</code> protocol URL
+     */
+    public static URI createAbsoluteKNIMEProtocolURI(final String mountID, final FSPath path) {
+        try {
+            return new URI("knime", mountID, path.getURICompatiblePath(), null);
         } catch (URISyntaxException ex) {
             throw new IllegalArgumentException(ex);
         }

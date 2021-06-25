@@ -54,7 +54,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Class encapsulating the different types of KNIME file system connections.
@@ -253,10 +256,28 @@ public class KNIMEConnection {
     public boolean isConnected() {
         try {
             return !getType().equals(Type.MOUNTPOINT_ABSOLUTE)
-                || MountPointFileSystemAccessService.instance().isReadable(URI.create(getSchemeAndHost()));
+                || checkMountpointConnected();
         } catch (final IOException ex) {
             return false;
         }
+    }
+
+    private boolean checkMountpointConnected() throws IOException {
+        CheckUtils.checkState(getType() == Type.MOUNTPOINT_ABSOLUTE, "Mountpoint-absolute required");
+
+        if (WorkflowContextUtil.hasWorkflowContext()&& WorkflowContextUtil.isServerContext()) {
+            final WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
+            final boolean isRemoteMountID = workflowContext.getRemoteMountId() //
+                    .orElseThrow(() -> new IllegalStateException("No remote mount ID")) //
+                    .equals(getId());
+
+            if (isRemoteMountID && workflowContext.getRemoteRepositoryAddress().isPresent()
+                && workflowContext.getServerAuthToken().isPresent()) {
+                return true;
+            }
+        }
+
+        return MountPointFileSystemAccessService.instance().isReadable(URI.create(getSchemeAndHost()));
     }
 
     /**

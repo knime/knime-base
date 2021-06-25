@@ -64,6 +64,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -75,11 +76,11 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
- * Implementation of {@link FileSystemProvider} for KNIME Mountpoints
+ * {@link FileSystemProvider} for the Explorer-based Mountpoint file system.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-final class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERemotePath, KNIMERemoteFileSystem>
+class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERemotePath, KNIMERemoteFileSystem>
     implements WorkflowAware {
 
     @Override
@@ -194,5 +195,11 @@ final class KNIMERemoteFileSystemProvider extends BaseFileSystemProvider<KNIMERe
     public File toLocalWorkflowDir(final Path path) throws IOException {
         final KNIMERemotePath checkedPath = checkCastAndAbsolutizePath(path);
         return MountPointFileSystemAccessService.instance().toLocalWorkflowDir(checkedPath.toKNIMEProtocolURI());
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    public Optional<String> getMountID() {
+        return Optional.of(getFileSystemInternal().getMountpoint());
     }
 }

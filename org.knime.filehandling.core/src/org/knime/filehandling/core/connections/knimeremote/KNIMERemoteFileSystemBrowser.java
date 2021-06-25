@@ -55,10 +55,11 @@ import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
+ * File system browser for the Explorer-based Mountpoint file system.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-final class KNIMERemoteFileSystemBrowser extends NioFileSystemBrowser {
+class KNIMERemoteFileSystemBrowser extends NioFileSystemBrowser {
 
     /**
      * Creates a file system browser for remote KNIME mount points.

@@ -53,47 +53,29 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
 import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
-import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
+ * The Explorer-based Mountpoint file system.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-final class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
-
-    static final FSType FS_TYPE = FSType.MOUNTPOINT;
+class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
 
     static final String SEPARATOR = "/";
 
-    private final KNIMERemoteFSConnectionConfig m_config;
+    private final MountpointFSConnectionConfig m_config;
 
-    KNIMERemoteFileSystem(final KNIMERemoteFSConnectionConfig config) {
+    KNIMERemoteFileSystem(final MountpointFSConnectionConfig config) {
         super(new KNIMERemoteFileSystemProvider(), //
             0, //
             config.getWorkingDirectory(), //
-            createFSLocationSpec(config));
+            config.createFSLocationSpec());
 
         m_config = config;
-    }
-
-    private static FSLocationSpec createFSLocationSpec(final KNIMERemoteFSConnectionConfig config) {
-        final FSCategory category;
-        final String specifier;
-
-        if (config.isConnectedFileSystem()) {
-            category = FSCategory.CONNECTED;
-            specifier = String.format("%s:%s", FS_TYPE.getTypeId(), config.getMountpoint());
-        } else {
-            category = FSCategory.MOUNTPOINT;
-            specifier = config.getMountpoint();
-        }
-        return new DefaultFSLocationSpec(category, specifier);
     }
 
     @Override
@@ -117,14 +99,14 @@ final class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
      * @return the mount point of this remote KNIME file system
      */
     String getMountpoint() {
-        return m_config.getMountpoint();
+        return m_config.getMountID();
     }
 
     URI getKNIMEProtocolURL() {
         try {
-            return new URI("knime", m_config.getMountpoint(), null, null);
+            return new URI("knime", m_config.getMountID(), null, null);
         } catch (URISyntaxException ex) {
-            throw new IllegalArgumentException("Illegal mountpoint: " + m_config.getMountpoint(), ex);
+            throw new IllegalArgumentException("Illegal mountpoint: " + m_config.getMountID(), ex);
         }
     }
 

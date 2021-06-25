@@ -72,7 +72,7 @@ class KNIMERemoteTempFileSeekableChannel extends TempFileSeekableByteChannel<KNI
      * @param options the open options
      * @throws IOException if an I/O Error occurred
      */
-    public KNIMERemoteTempFileSeekableChannel(final KNIMERemotePath file, final Set<? extends OpenOption> options) throws IOException {
+    KNIMERemoteTempFileSeekableChannel(final KNIMERemotePath file, final Set<? extends OpenOption> options) throws IOException {
         super(file, options);
     }
 

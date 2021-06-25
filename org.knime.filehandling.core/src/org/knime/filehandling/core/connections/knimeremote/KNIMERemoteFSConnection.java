@@ -54,21 +54,21 @@ import java.io.UncheckedIOException;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
+ * {@link FSConnection} for the Explorer-based Mountpoint file system.
  *
- * @author bjoern
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class KNIMERemoteFSConnection implements FSConnection {
+final class KNIMERemoteFSConnection implements FSConnection {
 
     private final KNIMERemoteFileSystem m_fileSystem;
 
     private final KNIMERemoteFileSystemBrowser m_browser;
 
-    public KNIMERemoteFSConnection(final KNIMERemoteFSConnectionConfig config) {
+    public KNIMERemoteFSConnection(final MountpointFSConnectionConfig config) {
         m_fileSystem = new KNIMERemoteFileSystem(config);
 
         try {

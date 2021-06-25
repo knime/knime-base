@@ -48,24 +48,29 @@
  */
 package org.knime.filehandling.core.connections.knimeremote;
 
+import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.base.LegacyKNIMEUriExporterHelper;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * {@link URIExporter} that provides legacy knime:// URLs.
+ * {@link URIExporter} that provides mountpoint-absolute knime:// URLs.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
 final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
 
     private static final BaseURIExporterMetaInfo META_INFO =
-        new BaseURIExporterMetaInfo("knime:// URL", "Provides a knime:// URL");
+        new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
 
     private static final LegacyKNIMEUrlExporterFactory INSTANCE = new LegacyKNIMEUrlExporterFactory();
 
     private LegacyKNIMEUrlExporterFactory() {
-        super(META_INFO, p -> ((KNIMERemotePath)p).toKNIMEProtocolURI());
+        super(META_INFO, p -> LegacyKNIMEUriExporterHelper.createAbsoluteKNIMEProtocolURI( //
+            ((WorkflowAware)p.getFileSystem().provider()).getMountID()
+                .orElseThrow(() -> new IllegalArgumentException("File system does not supply mountpoint name")), //
+            p));
     }
 
     public static LegacyKNIMEUrlExporterFactory getInstance() {
