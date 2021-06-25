@@ -83,6 +83,7 @@ import org.knime.filehandling.core.connections.meta.FSCapabilities;
 import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.fs.testinitializer.FSTestConfig;
 import org.knime.filehandling.core.fs.testinitializer.FSTestInitializerManager;
 import org.knime.filehandling.core.fs.testinitializer.FSTestPropertiesResolver;
@@ -145,7 +146,6 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
         pushFlowVariable("fs.type_id", VariableType.StringType.INSTANCE, fsType.getTypeId());
     }
 
-
     private void pushFSMetaInfo(final FSDescriptor descriptor) throws InvalidSettingsException {
         pushFlowVariable("fs.file_separator", VariableType.StringType.INSTANCE, descriptor.getSeparator());
         pushCapabilities(descriptor);
@@ -172,6 +172,10 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
 
     private void pushFlowVariable(final String name, final boolean val) {
         pushFlowVariable(name, VariableType.BooleanType.INSTANCE, val);
+    }
+
+    private void pushWorkingDirectory(final FSPath workingDirectory) {
+        pushFlowVariable("fs.working_directory", FSLocationVariableType.INSTANCE, workingDirectory.toFSLocation());
     }
 
     private static FSDescriptor getDescriptor(final FSType fsType) throws InvalidSettingsException {
@@ -214,6 +218,8 @@ public class TestFileSystemConnectorNodeModel extends NodeModel {
 
         pushFSType(m_fsConnection.getFSType());
         pushFSMetaInfo(m_fsConnection.getFSDescriptor());
+
+        pushWorkingDirectory(m_fsConnection.getFileSystem().getWorkingDirectory());
 
         return new PortObject[]{
             new FileSystemPortObject(createSpec(fsType, m_fsConnection.getFileSystem().getFSLocationSpec()))};
