@@ -171,7 +171,17 @@ public abstract class BlobStorePath extends UnixStylePath {
         if (m_pathParts.size() <= 1) {
             return null;
         } else {
-            return subpath(1, getNameCount()).toString().toString();
+            return subpath(1, getNameCount()).toString();
+        }
+    }
+
+    @Override
+    public Path getParent() {
+        final BlobStorePath parentPath = (BlobStorePath)super.getParent();
+        if (parentPath == null) {
+            return null;
+        } else {
+            return parentPath.toDirectoryPath();
         }
     }
 
