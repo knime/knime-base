@@ -58,19 +58,31 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
 final class ExampleCSVReaderConfig implements ReaderSpecificConfig<ExampleCSVReaderConfig> {
+
+    /** Setting to store the name of the column header prefix */
+    private String m_columnHeaderPrefix = "Column";
+
     /**
      * Constructor.
      */
     ExampleCSVReaderConfig() {
     }
 
-    private ExampleCSVReaderConfig(final ExampleCSVReaderConfig toCopy) { // NOSONAR
-
+    private ExampleCSVReaderConfig(final ExampleCSVReaderConfig toCopy) {
+        setColumnHeaderPrefix(toCopy.getColumnHeaderPrefix());
     }
 
     @Override
     public ExampleCSVReaderConfig copy() {
         return new ExampleCSVReaderConfig(this);
+    }
+
+    public String getColumnHeaderPrefix() {
+        return m_columnHeaderPrefix;
+    }
+
+    public void setColumnHeaderPrefix(final String columnHeaderPrefix) {
+        m_columnHeaderPrefix = columnHeaderPrefix;
     }
 
 }

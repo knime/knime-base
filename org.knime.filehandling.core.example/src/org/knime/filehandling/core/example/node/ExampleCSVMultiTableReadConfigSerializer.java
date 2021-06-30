@@ -73,6 +73,8 @@ enum ExampleCSVMultiTableReadConfigSerializer
      */
     INSTANCE;
 
+    private static final String CFG_COL_HEADER_PREFIX = "col_header_prefix";
+
     @Override
     public void loadInDialog(final ExampleCSVMultiTableReadConfig config, final NodeSettingsRO settings,
             final PortObjectSpec[] specs) {
@@ -81,7 +83,8 @@ enum ExampleCSVMultiTableReadConfigSerializer
 
     private static void loadSettingsTabInDialog(final ExampleCSVMultiTableReadConfig config, // NOSONAR
             final NodeSettingsRO settings) {
-        // the node has no settings yet
+        final ExampleCSVReaderConfig csvReaderCfg = config.getReaderSpecificConfig();
+        csvReaderCfg.setColumnHeaderPrefix(settings.getString(CFG_COL_HEADER_PREFIX, "Column"));
     }
 
     @Override
@@ -90,14 +93,21 @@ enum ExampleCSVMultiTableReadConfigSerializer
         loadSettingsTabInModel(config, settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
     }
 
-    private static void loadSettingsTabInModel(final ExampleCSVMultiTableReadConfig config, // NOSONAR
+    private static void loadSettingsTabInModel(final ExampleCSVMultiTableReadConfig config,
             final NodeSettingsRO settings) {
-        // the node has no settings yet
+        final ExampleCSVReaderConfig csvReaderCfg = config.getReaderSpecificConfig();
+        csvReaderCfg.setColumnHeaderPrefix(settings.getString(CFG_COL_HEADER_PREFIX, "Column"));
+
     }
 
     @Override
     public void saveInModel(final ExampleCSVMultiTableReadConfig config, final NodeSettingsWO settings) {
-        // the node has no settings yet
+        saveSettingsTab(config, SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
+    }
+
+    private static void saveSettingsTab(final ExampleCSVMultiTableReadConfig config, final NodeSettingsWO settings) {
+        final ExampleCSVReaderConfig exampleReaderCfg = config.getReaderSpecificConfig();
+        settings.addString(CFG_COL_HEADER_PREFIX, exampleReaderCfg.getColumnHeaderPrefix());
     }
 
     @Override
@@ -108,13 +118,23 @@ enum ExampleCSVMultiTableReadConfigSerializer
     @Override
     public void validate(final ExampleCSVMultiTableReadConfig config, final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        // the node has no settings yet
+        validateSettingsTab(settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
+    }
+
+    public static void validateSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
+        settings.getString(CFG_COL_HEADER_PREFIX);
     }
 
     @Override
     public ConfigID createFromConfig(final ExampleCSVMultiTableReadConfig config) {
         final NodeSettings settings = new NodeSettings("example_csv_reader");
+        saveConfigIDSettingsTab(config, settings.addNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
         return new NodeSettingsConfigID(settings);
+    }
+
+    private static void saveConfigIDSettingsTab(final ExampleCSVMultiTableReadConfig config,
+            final NodeSettingsWO settings) {
+        settings.addString(CFG_COL_HEADER_PREFIX, config.getReaderSpecificConfig().getColumnHeaderPrefix());
     }
 
     @Override
