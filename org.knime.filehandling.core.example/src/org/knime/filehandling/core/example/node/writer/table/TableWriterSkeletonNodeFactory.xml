@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./not-available.png"
+	type="Sink"
+	 xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	 xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+    <name>Table Writer Skeleton</name>
+    
+    <shortDescription>
+       This is the skeleton of a table writer
+   	</shortDescription>
+    
+    <fullDescription>
+        <intro>
+			<p><i>This node supports the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable</i></a>
+            <i> to specify the source and destination location. To convert the created path column to a string column which is 
+            required by some nodes that have not been migrated yet you can use the </i>
+            <a href="https://kni.me/n/ZLCisQlHCzW4IiZG"><i>Path to String</i></a><i> node.
+             For further information about file handling in general see the 
+            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
+            
+			<p>
+			This is a table writer skeleton.
+			</p>
+    	</intro>
+            
+        <tab name="Settings">
+			<option name="Write to">
+				Select a file system in which you want to write the file formatted Excel xlsx file to. There
+				are
+				four default file system options to choose from:
+				<br />
+				<ul>
+					<li><i>Local File System:</i> Allows you to select a location in your
+	                    local system.
+	                </li>
+	                <li><i>Mountpoint:</i> Allows you to read from a mountpoint.
+	                	When selected, a new drop-down menu appears to choose the mountpoint.
+	                	Unconnected mountpoints are greyed out but can still be selected (note that browsing is disabled in this case).
+	                	Go to the KNIME Explorer and connect to the mountpoint to enable browsing.
+	                	A mountpoint is displayed in red if it was previously selected but is no longer available.
+	                	You won't be able to save the dialog as long as you don't select a valid i.e. known mountpoint.
+	                </li>
+	                <li><i>Relative to:</i> Allows you to choose whether to resolve the path
+						relative to the current mountpoint, current workflow or the current workflow's data area.
+	                When selected a new drop-down menu appears to choose which of the three options to use.
+	                </li>
+					<li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
+	                    When selected, a spinner appears that allows you to specify the desired connection and write timeout in milliseconds.
+	                    In case it takes longer to connect to the host / write the file, the node fails to execute.
+	                    Browsing is disabled for this option.
+	                </li>
+				</ul>
+				It is possible to use other file systems with this node. Therefore,
+				you have to enable the file system connection input port of this
+				node
+				by clicking the
+				<b>...</b>
+				in the bottom left corner of the node's icon and choose
+				<i>Add File System Connection port</i>
+				.
+				<br />
+				Afterwards, you can simply connect the desired connector node to this node.
+				The file system connection will then be shown in the drop-down menu.
+				It is greyed out if the file system is not connected in which case you have to (re)execute the connector node first.
+				Note: The default file systems listed above can't be selected if a file system is provided via the input port.
+			</option>
+		</tab>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input table">
+        	The input table to be written.
+        </inPort>
+       	<dynInPort insert-before="0" name="File System Connection" group-identifier="File System Connection">
+			The file system connection.
+		</dynInPort>
+    </ports>    
+</knimeNode>
