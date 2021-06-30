@@ -54,7 +54,11 @@ import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -93,6 +97,8 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
     private final SettingsModelReaderFileChooser m_settingsModelReaderFileChooser;
 
+    private final JTextField m_columnHeaderPrefix = new JTextField("######", 6);
+
     /**
      * Constructor.
      *
@@ -129,14 +135,32 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
     }
 
     /**
-     * Register the listeners for the preview.
-     * Only when the file changes
+     * Register the listeners for the preview. Only when the file changes
      */
     private void registerPreviewChangeListeners() {
 
         final ChangeListener changeListener = l -> configChanged();
 
+        final DocumentListener documentListener = new DocumentListener() {
+
+            @Override
+            public void removeUpdate(final DocumentEvent e) {
+                configChanged();
+            }
+
+            @Override
+            public void insertUpdate(final DocumentEvent e) {
+                configChanged();
+            }
+
+            @Override
+            public void changedUpdate(final DocumentEvent e) {
+                configChanged();
+            }
+        };
+
         m_sourceFilePanel.getModel().addChangeListener(changeListener);
+        m_columnHeaderPrefix.getDocument().addDocumentListener(documentListener);
     }
 
     private void createDialogPanels() {
@@ -161,6 +185,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         final JPanel panel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = createGBCBuilder().fillHorizontal().setWeightX(1).anchorPageStart();
         panel.add(createSourcePanel(), gbc.build());
+        panel.add(createColHeaderPanel(), gbc.incY().build());
         gbc.setWeightY(1).resetX().widthRemainder().incY().fillBoth();
         // Adding the preview panel
         panel.add(createPreview(), gbc.build());
@@ -180,6 +205,20 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         return sourcePanel;
     }
 
+    /**
+     * Creates the column header {@link JPanel}.
+     *
+     * @return the column header {@link JPanel}
+     */
+    private JPanel createColHeaderPanel() {
+        final JPanel colHeaderPanel = new JPanel(new GridBagLayout());
+        GBCBuilder gbc = createGBCBuilder().fillHorizontal();
+        colHeaderPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Column Header"));
+        colHeaderPanel.add(m_columnHeaderPrefix, gbc.build());
+        colHeaderPanel.add(new JPanel(), gbc.incX().setWeightX(1.0).build());
+        return colHeaderPanel;
+    }
+
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_sourceFilePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
@@ -189,7 +228,12 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
     @Override
     protected ExampleCSVMultiTableReadConfig getConfig() throws InvalidSettingsException {
         saveTableReadSettings(m_config.getTableReadConfig());
+        saveExampleReaderSettings(m_config.getTableReadConfig().getReaderSpecificConfig());
         return m_config;
+    }
+
+    private void saveExampleReaderSettings(ExampleCSVReaderConfig config) {
+        config.setColumnHeaderPrefix(m_columnHeaderPrefix.getText());
     }
 
     @Override
@@ -202,6 +246,9 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
             throws NotConfigurableException {
         m_sourceFilePanel.loadSettingsFrom(SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB), specs);
         m_config.loadInDialog(settings, specs);
+
+        final ExampleCSVReaderConfig exampleReaderConfig = m_config.getReaderSpecificConfig();
+        m_columnHeaderPrefix.setText(exampleReaderConfig.getColumnHeaderPrefix());
         return m_config;
 
     }

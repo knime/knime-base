@@ -85,7 +85,9 @@ final class ExampleCSVReader implements TableReader<ExampleCSVReaderConfig, Clas
             TypedReaderTableSpecBuilder<Class<?>> specBuilder = new TypedReaderTableSpecBuilder<>();
             final RandomAccessible<String> columns = read.next();
             for (int i = 0; i < columns.size(); i++) {
-                specBuilder.addColumn(String.format("Column%x", i), String.class, true);
+                specBuilder.addColumn(
+                        String.format("%s%x", config.getReaderSpecificConfig().getColumnHeaderPrefix(), i),
+                        String.class, true);
             }
             return specBuilder.build();
         }
