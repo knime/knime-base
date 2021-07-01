@@ -55,6 +55,8 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 
@@ -69,9 +71,35 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.T
 final class ExampleCSVReader implements TableReader<ExampleCSVReaderConfig, Class<?>, String> {
 
     @Override
-    public ExampleCSVRead read(final FSPath path, final TableReadConfig<ExampleCSVReaderConfig> config)
+    public Read<String> read(final FSPath path, final TableReadConfig<ExampleCSVReaderConfig> config)
             throws IOException {
-        return new ExampleCSVRead(path, config);
+        return decorateForReading(new ExampleCSVRead(path, config), config);
+    }
+
+    /**
+     * Creates a decorated {@link Read}, taking into account how many rows should be
+     * skipped or what is the maximum number of rows to read.
+     *
+     * @param path
+     *            the path of the file to read
+     * @param config
+     *            the {@link TableReadConfig} used
+     * @return a decorated read of type {@link Read}
+     * @throws IOException
+     *             if a stream can not be created from the provided file.
+     */
+    private static Read<String> decorateForReading(final ExampleCSVRead read,
+            final TableReadConfig<ExampleCSVReaderConfig> config) {
+        Read<String> filtered = read;
+        if (config.skipRows()) {
+            final long numRowsToSkip = config.getNumRowsToSkip();
+            filtered = ReadUtils.skip(filtered, numRowsToSkip);
+        }
+        if (config.limitRows()) {
+            final long numRowsToKeep = config.getMaxRows();
+            filtered = ReadUtils.limit(filtered, numRowsToKeep);
+        }
+        return filtered;
     }
 
     /**
