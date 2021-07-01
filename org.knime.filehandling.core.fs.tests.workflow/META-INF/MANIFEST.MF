@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Integration tests for NIO file systems
 Bundle-SymbolicName: org.knime.filehandling.core.fs.tests.workflow;singleton:=true
-Bundle-Version: 4.4.0.qualifier
+Bundle-Version: 4.5.0.qualifier
 Fragment-Host: org.knime.filehandling.core.fs;bundle-version="4.2.0.qualifier"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
