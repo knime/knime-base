@@ -44,8 +44,6 @@
  */
 package org.knime.base.node.preproc.colcombine2;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -58,10 +56,6 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -99,28 +93,10 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
     private boolean m_isQuoting;
     private boolean m_isQuotingAlways;
     private String m_replaceDelimString;
+    /** The included columns */
     private String[] m_included;
     private boolean m_removeIncludedColumns;
 
-
-    /** {@inheritDoc} */
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
-        ColumnRearranger arranger =
-            createColumnRearranger(inData[0].getDataTableSpec());
-        BufferedDataTable out = exec.createColumnRearrangeTable(
-                inData[0], arranger, exec);
-        return new BufferedDataTable[]{out};
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void reset() {
-        // noting to reset
-    }
-
-    /** {@inheritDoc} */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
@@ -146,9 +122,6 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
         return new DataTableSpec[]{arranger.createSpec()};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) {
         ColumnRearranger result = new ColumnRearranger(spec);
@@ -159,7 +132,8 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
         for (int k = 0; k < spec.getNumColumns() && j < m_included.length; k++) {
             DataColumnSpec cs = spec.getColumnSpec(k);
             if (m_included[j].equals(cs.getName())) {
-               indices[j++] = k;
+               indices[j] = k;
+               j++;
             }
         }
 
@@ -206,18 +180,7 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
                 if (m_isQuotingAlways
                         || s.contains(delimTrim)
                         || s.contains(Character.toString(m_quoteChar))) {
-                    // quote the cell content
-                    b.append(m_quoteChar);
-
-                    for (int j = 0; j < s.length(); j++) {
-                        char tempChar = s.charAt(j);
-                        if (tempChar == m_quoteChar || tempChar == '\\') {
-                            b.append('\\');
-                        }
-                        b.append(tempChar);
-                    }
-
-                    b.append(m_quoteChar);
+                    quoteCellContent(b, s);
                 } else {
                     b.append(s);
                 }
@@ -229,7 +192,20 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
         return b.toString();
     }
 
-    /** {@inheritDoc} */
+    private void quoteCellContent(final StringBuilder b, final String s) {
+        b.append(m_quoteChar);
+
+        for (int j = 0; j < s.length(); j++) {
+            char tempChar = s.charAt(j);
+            if (tempChar == m_quoteChar || tempChar == '\\') {
+                b.append('\\');
+            }
+            b.append(tempChar);
+        }
+
+        b.append(m_quoteChar);
+    }
+
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         if (m_filterConf != null) {
@@ -248,7 +224,6 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
@@ -268,7 +243,6 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
         m_removeIncludedColumns = settings.getBoolean(CFG_REMOVE_INCLUDED_COLUMNS, false);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
@@ -308,23 +282,6 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
             }
         }
     }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void loadInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-        // no internals
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void saveInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-        // no internals
-    }
-
 
     /**
      * ', ' gets ','.
