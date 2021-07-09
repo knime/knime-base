@@ -1609,43 +1609,55 @@
             >
       </node>
       <node
-            after="org.knime.base.node.switches.endif.EndifNodeFactory"
             category-path="/flowcontrol/switches"
             factory-class="org.knime.base.node.switches.startcase.StartcaseNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.switches.startcase.StartcaseNodeFactory"
             category-path="/flowcontrol/switches"
             factory-class="org.knime.base.node.switches.endcase.EndcaseNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.switches.endcase.EndcaseNodeFactory"
+            after="org.knime.base.node.switches.endif.EndifNodeFactory"
+            category-path="/flowcontrol/switches"
+            factory-class="org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory"
+            >
+      </node>
+      <node
+            after="org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory"
+            category-path="/flowcontrol/switches"
+            factory-class="org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory"
+            >
+      </node>
+      <node
             category-path="/flowcontrol/switches"
             factory-class="org.knime.base.node.switches.caseswitch.model.CaseStartModelNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.switches.caseswitch.model.CaseStartModelNodeFactory"
             category-path="/flowcontrol/switches"
             factory-class="org.knime.base.node.switches.endmodelcase.EndmodelcaseNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.switches.endmodelcase.EndmodelcaseNodeFactory"
             category-path="/flowcontrol/switches"
             factory-class="org.knime.base.node.switches.caseswitch.variable.CaseStartVariableNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.switches.caseswitch.variable.CaseStartVariableNodeFactory"
             category-path="/flowcontrol/switches"
             factory-class="org.knime.base.node.switches.caseswitch.variable.CaseEndVariableNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.switches.caseswitch.variable.CaseEndVariableNodeFactory"
+            after="org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory"
             category-path="/flowcontrol/switches"
             factory-class="org.knime.base.node.switches.emptytableswitch.EmptyTableSwitchNodeFactory"
             >

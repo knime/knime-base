@@ -49,12 +49,15 @@
 package org.knime.base.node.switches.caseswitch.model;
 
 import org.knime.base.node.switches.caseswitch.CaseStartNodeFactory;
+import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
 import org.knime.core.node.port.PortObject;
 
 /**
  *
  * @author wiswedel
+ * @deprecated superseded by {@link CaseStartAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public final class CaseStartModelNodeFactory extends CaseStartNodeFactory {
 
     /**

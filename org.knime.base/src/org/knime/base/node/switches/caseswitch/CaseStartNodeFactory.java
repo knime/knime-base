@@ -50,6 +50,7 @@ package org.knime.base.node.switches.caseswitch;
 import java.io.IOException;
 
 import org.apache.xmlbeans.XmlException;
+import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -62,7 +63,9 @@ import org.xml.sax.SAXException;
 /**
  *
  * @author Tim-Oliver Buchholz, KNIME Zurich
+ * @deprecated superseded by {@link CaseStartAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public class CaseStartNodeFactory extends NodeFactory<CaseStartNodeModel> {
 
     private final PortType m_portType;

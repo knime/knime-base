@@ -61,6 +61,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.knime.base.data.append.row.AppendedRowsIterator.RuntimeCanceledExecutionException;
+import org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
@@ -92,7 +93,9 @@ import org.knime.core.node.property.hilite.HiLiteTranslator;
  * carry data the specs must match and the two tables will be concatenated.
  *
  * @author M. Berthold, University of Konstanz
+ * @deprecated superseded by {@link CaseEndAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public class EndcaseNodeModel extends NodeModel implements InactiveBranchConsumer {
 
     /** NodeSettings key if to append suffix. If false, skip the rows. */

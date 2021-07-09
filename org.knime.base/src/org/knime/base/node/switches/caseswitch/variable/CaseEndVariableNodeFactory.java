@@ -49,12 +49,15 @@
 package org.knime.base.node.switches.caseswitch.variable;
 
 import org.knime.base.node.switches.caseswitch.CaseEndNodeFactory;
+import org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 
 /**
  *
  * @author wiswedel
+ * @deprecated superseded by {@link CaseEndAnyNodeFactory}
  */
+@Deprecated(since = "4.5")
 public final class CaseEndVariableNodeFactory extends CaseEndNodeFactory {
 
     /**

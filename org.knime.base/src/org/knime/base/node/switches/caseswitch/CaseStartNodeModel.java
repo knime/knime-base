@@ -49,10 +49,9 @@
 package org.knime.base.node.switches.caseswitch;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 
-import org.knime.core.node.CanceledExecutionException;
+import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -67,18 +66,24 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 
-/** Shared node model for (almost) all case switch start nodes. Port type is specified in constructor.
+/**
+ * Shared node model for (almost) all case switch start nodes. Port type is specified in constructor.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @noreference This class is not intended to be referenced by clients.
+ * @deprecated superseded by {@link CaseStartAnyNodeFactory}
  */
+@Deprecated(since = "4.5")
 public final class CaseStartNodeModel extends NodeModel {
 
     private final SettingsModelIntegerBounded m_selectedPortModel = createSelectedPortModel();
-    private final SettingsModelBoolean m_activateAllOutputsDuringConfigureModel =
-            createActivateAllOutputsDuringConfigureModel();
 
-    /** One in, three out.
+    private final SettingsModelBoolean m_activateAllOutputsDuringConfigureModel =
+        createActivateAllOutputsDuringConfigureModel();
+
+    /**
+     * One in, three out.
+     *
      * @param portType Type of ins and outs.
      */
     protected CaseStartNodeModel(final PortType portType) {
@@ -87,12 +92,11 @@ public final class CaseStartNodeModel extends NodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         int selectedOutputPort = m_selectedPortModel.getIntValue();
         PortObjectSpec[] outSpecs = new PortObjectSpec[3];
-        PortObjectSpec defOutput = m_activateAllOutputsDuringConfigureModel.getBooleanValue()
-                ? inSpecs[0] : InactiveBranchPortObjectSpec.INSTANCE;
+        PortObjectSpec defOutput = m_activateAllOutputsDuringConfigureModel.getBooleanValue() ? inSpecs[0]
+            : InactiveBranchPortObjectSpec.INSTANCE;
         Arrays.fill(outSpecs, defOutput);
         outSpecs[selectedOutputPort] = inSpecs[0];
         return outSpecs;
@@ -100,8 +104,7 @@ public final class CaseStartNodeModel extends NodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected PortObject[] execute(final PortObject[] inSpecs,
-            final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inSpecs, final ExecutionContext exec) throws Exception {
         int selectedOutputPort = m_selectedPortModel.getIntValue();
 
         PortObject[] outObjects = new PortObject[3];
@@ -131,24 +134,21 @@ public final class CaseStartNodeModel extends NodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_selectedPortModel.validateSettings(settings);
         m_activateAllOutputsDuringConfigureModel.validateSettings(settings);
     }
 
     /** {@inheritDoc} */
     @Override
-    protected void loadInternals(
-            final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
+        // no internals
     }
 
     /** {@inheritDoc} */
     @Override
-    protected void saveInternals(
-            final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
+        // no internals
     }
 
     static SettingsModelIntegerBounded createSelectedPortModel() {

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="pythonscript.png" type="Manipulator" xmlns="http://knime.org/node/v4.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+    <name>CASE Switch (&#8230;) (End)</name>
+    
+    <shortDescription>
+        Takes the input data from one (or more) active inputs port and makes it
+        available on the output port. The type as well
+        as the amount of input ports can dynamically chosen.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            <p>
+                This nodes takes the data from the input ports and makes it available on
+                the output. The type of data can be chosen by adding an
+                output port using the &#8220;&#8230;&#8221; menu. No input ports can be added before an
+                output port has been selected. The type of the output port can be changed by removing and
+                adding it again with a new type. Keep in mind that this removes any connections of the
+                input ports.
+            </p>
+            <p>
+                <i>Note for &#8220;flow variable&#8221; ports:</i>
+                    Due to the way in which flow variables are handled within
+                    KNIME, the flow variable values for any existing flow variables beyond the corresponding
+                    &#8220;end&#8221; node will always be those at the top-most port of the &#8220;end&#8221; node. New
+                    variables created in any active branch will retain their correct values. If you need to change
+                    the value of existing variables, please either use a new flow variable, or use a
+                    <i>Variable to Table Row</i> node before a <i>CASE Switch (Data) (End)</i> node
+                    (i.e. a <i>CASE Switch (&#8230;) (End)</i> node with the type set to &#8220;Data&#8221;).<br/>
+                     If all branches are inactive, the flow variables of the top branch are passed through.
+            </p>
+            <h4>Migrating from the old &#8220;CASE Switch [&#8230;] (End)&#8221; nodes</h4>
+                To get the same results as the old nodes you have to add as many input ports as they had connected and select the following types:
+            <table>
+                <tr><th>Node name</th><th>Port type name</th></tr>
+                <tr><td>CASE Switch Data (End)</td><td>Data</td></tr>
+                <tr><td>CASE Switch Variable (End)</td><td>Flow Variable</td></tr>
+                <tr><td>CASE Switch Model (End)</td><td>Generic Port</td></tr>
+            </table>
+        </intro>
+        <tab name="&#8220;Data&#8221; Type Settings">
+            <option name="If multiple inputs are active">
+                Choose the expected behavior of the node if two or more inputs are active.
+                <ul>
+                    <li><i>Merge tables:</i> tries to merge the input tables <i>(default)</i></li>
+                    <li><i>Fail:</i> the node fails</li>
+                    <li><i>Use first non-inactive input:</i> output the first active port, ignoring any subsequent active ports</li>
+                </ul>
+                In the case all inputs are inactive the node itself will pass on and an inactive object.
+            </option>
+            <option name="Skip Rows">
+                Duplicate row identifiers (RowID) occurring in additional active
+                tables are not appended to the output table. This option is
+                relatively memory intensive as it needs to cache the row IDs in
+                order to find duplicates.
+            </option>
+            <option name="Append suffix">
+                The output table will contain all rows, but
+                duplicate row identifiers are labeled with a suffix. Similar to
+                the "Skip Rows" option this method is also memory intensive.
+            </option>
+            <option name="Enable hiliting">
+                Enables hiliting between both inputs and the concatenated output
+                table.
+            </option>
+        </tab>
+        <tab name="&#8220;Other&#8221; Type Settings">
+            <option name="If multiple inputs are active">
+                Choose the expected behavior of the node if two or more inputs are active.
+                <ul>
+                    <li><i>Fail:</i> the node fails <i>(default)</i></li>
+                    <li><i>Use first non-inactive input:</i> output the first active port, ignoring any subsequent active ports</li>
+                </ul>
+                In the case all inputs are inactive the node itself will pass on and an inactive object.
+            </option>
+        </tab>
+        <link href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
+            KNIME E-Learning Course: Creation and usage of Flow Variables in a KNIME workflow
+        </link>
+    </fullDescription>
+    <ports>
+        <dynInPort name="Input" group-identifier="Input" insert-before="0">
+            Select the input port type and connect it. Only one input port can be selected at
+            a time. If the input port is removed, all output ports are also removed.
+        </dynInPort>
+        <dynOutPort name="Input" group-identifier="Output" insert-before="0">
+            The output ports. They are only present and editable if an input port type was
+            selected and always have the same type. At least two outputs are required.
+        </dynOutPort>
+    </ports>
+</knimeNode>

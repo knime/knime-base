@@ -47,13 +47,16 @@
  */
 package org.knime.base.node.switches.startcase;
 
+import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
  * @author M. Berthold, University of Konstanz
+ * @deprecated superseded by {@link CaseStartAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public class StartcaseNodeFactory extends NodeFactory<StartcaseNodeModel> {
 
     /**

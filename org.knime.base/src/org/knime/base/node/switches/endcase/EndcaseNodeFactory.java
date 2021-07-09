@@ -47,13 +47,16 @@
  */
 package org.knime.base.node.switches.endcase;
 
+import org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
  * @author M. Berthold, University of Konstanz
+ * @deprecated superseded by {@link CaseEndAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public class EndcaseNodeFactory extends NodeFactory<EndcaseNodeModel> {
 
     /**

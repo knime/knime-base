@@ -48,13 +48,16 @@
  */
 package org.knime.base.node.switches.caseswitch;
 
+import org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 
 /**
  *
  * @author wiswedel
+ * @deprecated superseded by {@link CaseEndAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 final class CaseEndNodeDialogPane extends DefaultNodeSettingsPane {
 
     /**

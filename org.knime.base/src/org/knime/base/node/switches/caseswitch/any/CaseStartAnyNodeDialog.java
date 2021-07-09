@@ -42,45 +42,65 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-package org.knime.base.node.switches.startcase;
+package org.knime.base.node.switches.caseswitch.any;
 
-import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
+import org.knime.base.node.switches.startcase.StartcaseNodeDialog;
 import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentLabel;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 
 /**
- * @author M. Berthold, University of Konstanz
- * @deprecated superseded by {@link CaseStartAnyNodeFactory}
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author M. Berthold, University of Konstanz (original {@link StartcaseNodeDialog} as a base)
  */
-@Deprecated(since="4.5")
-public class StartcaseNodeDialog extends DefaultNodeSettingsPane {
-
-    /** Possible options to select output port. */
-    static final String[] options = {"0", "1", "2"};
+final class CaseStartAnyNodeDialog extends DefaultNodeSettingsPane {
 
     /**
-     *
+     * @param outPorts the ouput ports
      */
-    public StartcaseNodeDialog() {
-        SettingsModelString smfs = StartcaseNodeModel.createChoiceModel();
+    public CaseStartAnyNodeDialog(final PortType[] outPorts) {
+        if (outPorts.length == 0) { // we are invalid anyway
+            return;
+        }
+
+        setDefaultTabTitle("Settings");
+        addDialogComponent(new DialogComponentLabel("Port type name: " + outPorts[0].getName()));
+
+        SettingsModelString smfs = CaseStartAnyNodeModel.createChoiceModel();
         FlowVariableModel fvm = createFlowVariableModel(smfs);
 
-        addDialogComponent(new DialogComponentStringSelection(
-                smfs, "Select active port:",
-                Arrays.asList(options), false, fvm));
+        addDialogComponent(new DialogComponentStringSelection(smfs, "Select active port:",
+            IntStream.range(0, outPorts.length).mapToObj(Integer::toString).collect(Collectors.toList()), false, fvm));
 
         SettingsModelBoolean activateAllOutputsDuringConfigureModel =
-                StartcaseNodeModel.createActivateAllOutputsDuringConfigureModel();
+            CaseStartAnyNodeModel.createActivateAllOutputsDuringConfigureModel();
         final DialogComponentBoolean diaC = new DialogComponentBoolean(activateAllOutputsDuringConfigureModel,
             "Activate all outputs during configuration step");
         diaC.setToolTipText("Enable during design time, disable for production workflows");
         addDialogComponent(diaC);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        if (specs.length == 0) {
+            throw new NotConfigurableException("Please select an input type!");
+        }
+        super.loadAdditionalSettingsFrom(settings, specs);
     }
 
 }

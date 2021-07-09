@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.switches.caseswitch;
 
+import org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -56,7 +57,9 @@ import org.knime.core.node.util.CheckUtils;
 /**
  *
  * @author Tim-Oliver Buchholz, KNIME Zurich
+ * @deprecated superseded by {@link CaseEndAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public class CaseEndNodeFactory extends NodeFactory<CaseEndNodeModel> {
 
     private final PortType m_mandatoryPortType;

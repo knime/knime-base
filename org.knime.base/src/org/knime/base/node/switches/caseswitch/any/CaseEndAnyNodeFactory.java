@@ -40,47 +40,70 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   2021-07-06 (jl): created
  */
-package org.knime.base.node.switches.startcase;
+package org.knime.base.node.switches.caseswitch.any;
 
-import java.util.Arrays;
+import java.util.Optional;
 
-import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
-import org.knime.core.node.FlowVariableModel;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
 
 /**
- * @author M. Berthold, University of Konstanz
- * @deprecated superseded by {@link CaseStartAnyNodeFactory}
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
-@Deprecated(since="4.5")
-public class StartcaseNodeDialog extends DefaultNodeSettingsPane {
-
-    /** Possible options to select output port. */
-    static final String[] options = {"0", "1", "2"};
+public final class CaseEndAnyNodeFactory extends ConfigurableNodeFactory<CaseEndAnyNodeModel> {
 
     /**
-     *
+     * {@inheritDoc}
      */
-    public StartcaseNodeDialog() {
-        SettingsModelString smfs = StartcaseNodeModel.createChoiceModel();
-        FlowVariableModel fvm = createFlowVariableModel(smfs);
+    @Override
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final var b = new PortsConfigurationBuilder();
+        b.addOptionalOutputPortGroup("Output", t -> true);
+        b.addBoundExtendableInputPortGroup("Input", "Output", 1);
 
-        addDialogComponent(new DialogComponentStringSelection(
-                smfs, "Select active port:",
-                Arrays.asList(options), false, fvm));
+        return Optional.of(b);
+    }
 
-        SettingsModelBoolean activateAllOutputsDuringConfigureModel =
-                StartcaseNodeModel.createActivateAllOutputsDuringConfigureModel();
-        final DialogComponentBoolean diaC = new DialogComponentBoolean(activateAllOutputsDuringConfigureModel,
-            "Activate all outputs during configuration step");
-        diaC.setToolTipText("Enable during design time, disable for production workflows");
-        addDialogComponent(diaC);
+    /** {@inheritDoc} */
+    @Override
+    public NodeView<CaseEndAnyNodeModel> createNodeView(final int viewIndex, final CaseEndAnyNodeModel nodeModel) {
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected CaseEndAnyNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        final var config = creationConfig.getPortConfig().orElseThrow();
+        return new CaseEndAnyNodeModel(config.getInputPorts(), config.getOutputPorts());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return new CaseEndAnyNodeDialog(creationConfig.getPortConfig().orElseThrow().getInputPorts());
     }
 
 }

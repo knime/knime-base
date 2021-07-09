@@ -58,6 +58,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -73,7 +74,9 @@ import org.knime.core.node.port.PortObjectSpec;
  *
  * @author M. Berthold, University of Konstanz
  * (copied from AppendedRowsNodeDialog)
+ * @deprecated superseded by {@link CaseEndAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public class EndcaseNodeDialog extends NodeDialogPane {
 
     private final JRadioButton m_appendSuffixButton;

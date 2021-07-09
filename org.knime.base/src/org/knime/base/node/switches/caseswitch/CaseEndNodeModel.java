@@ -50,6 +50,7 @@ package org.knime.base.node.switches.caseswitch;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -69,7 +70,9 @@ import org.knime.core.node.util.ButtonGroupEnumInterface;
 /**
  *
  * @author Tim-Oliver Buchholz, KNIME AG, Zurich, Switzerland
+ * @deprecated superseded by {@link CaseEndAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 final class CaseEndNodeModel extends NodeModel implements InactiveBranchConsumer {
 
     private final SettingsModelString m_multipleActiveHandlingSettingsModel;

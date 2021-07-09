@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.switches.caseswitch;
 
+import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
@@ -58,7 +59,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 /**
  *
  * @author tibuch
+ * @deprecated superseded by {@link CaseStartAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 final class CaseStartNodeDialogPane extends DefaultNodeSettingsPane {
 
     /**

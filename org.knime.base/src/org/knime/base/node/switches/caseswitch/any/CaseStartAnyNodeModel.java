@@ -45,14 +45,12 @@
  * History
  *   Sept 17 2008 (mb): created (from wiswedel's TableToVariableNode)
  */
-package org.knime.base.node.switches.startcase;
+package org.knime.base.node.switches.caseswitch.any;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 
-import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
-import org.knime.core.node.CanceledExecutionException;
+import org.knime.base.node.switches.startcase.StartcaseNodeModel;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -63,44 +61,49 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * Start of a CASE Statement. Takes the table from one branch and
- * outputs it to exactly one outport.
+ * Start of a CASE Statement. Takes the table from one branch and outputs it to exactly one outport.
  *
- * @author M. Berthold, University of Konstanz
- * @deprecated superseded by {@link CaseStartAnyNodeFactory}
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author M. Berthold, University of Konstanz (original {@link StartcaseNodeModel} as a base)
  */
-@Deprecated(since="4.5")
-public class StartcaseNodeModel extends NodeModel {
+final class CaseStartAnyNodeModel extends NodeModel {
 
     private static final String ACTIVATE_OUTPUT_CFG = "activate_all_outputs_during_configure";
 
     private SettingsModelString m_selectedPort = createChoiceModel();
+
     private final SettingsModelBoolean m_activateAllOutputsDuringConfigureModel =
-            createActivateAllOutputsDuringConfigureModel();
+        createActivateAllOutputsDuringConfigureModel();
+
     /**
-     * One input, four output.
+     * @param inPorts the input ports
+     * @param outPorts the output ports
      */
-    protected StartcaseNodeModel() {
-        super(1, StartcaseNodeDialog.options.length);
+    CaseStartAnyNodeModel(final PortType[] inPorts, final PortType[] outPorts) {
+        super(inPorts, outPorts);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
-            throws InvalidSettingsException {
-        int index = Integer.parseInt(m_selectedPort.getStringValue());
-        if ((index < 0) || (index >= getNrOutPorts())) {
-            throw new InvalidSettingsException("Invalid Port Index " + index);
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        if (getNrInPorts() == 0) {
+            throw new InvalidSettingsException("Please select an input type!");
         }
-        PortObjectSpec[] outspecs = new PortObjectSpec[getNrOutPorts()];
-        PortObjectSpec defSpec = m_activateAllOutputsDuringConfigureModel.getBooleanValue()
-                ? inSpecs[0] : InactiveBranchPortObjectSpec.INSTANCE;
+        final int index = Integer.parseInt(m_selectedPort.getStringValue());
+        CheckUtils.checkSetting(index >= 0 && index < getNrOutPorts(),
+            "Invalid output port “%d” configured. Please reconfigure the node.", index);
+        final var outspecs = new PortObjectSpec[getNrOutPorts()];
+        final var defSpec = m_activateAllOutputsDuringConfigureModel.getBooleanValue()//
+            ? inSpecs[0]//
+            : InactiveBranchPortObjectSpec.INSTANCE;
         Arrays.fill(outspecs, defSpec);
         outspecs[index] = inSpecs[0];
         return outspecs;
@@ -110,13 +113,11 @@ public class StartcaseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected PortObject[] execute(final PortObject[] inData,
-            final ExecutionContext exec) throws Exception {
-        int index = Integer.parseInt(m_selectedPort.getStringValue());
-        if ((index < 0) || (index >= getNrOutPorts())) {
-            throw new IllegalArgumentException("Invalid Port Index.");
-        }
-        PortObject[] outs = new PortObject[getNrOutPorts()];
+    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
+        final int index = Integer.parseInt(m_selectedPort.getStringValue());
+        CheckUtils.checkSetting(index >= 0 && index < getNrOutPorts(),
+            "Invalid output port “%d” configured. Please reconfigure the node.", index);
+        final var outs = new PortObject[getNrOutPorts()];
         Arrays.fill(outs, InactiveBranchPortObject.INSTANCE);
         outs[index] = inData[0];
         return outs;
@@ -135,10 +136,9 @@ public class StartcaseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_selectedPort.validateSettings(settings);
-        if (settings.containsKey(ACTIVATE_OUTPUT_CFG)) { // added in 2.12
+        if (settings.containsKey(ACTIVATE_OUTPUT_CFG)) {
             m_activateAllOutputsDuringConfigureModel.validateSettings(settings);
         }
     }
@@ -147,9 +147,8 @@ public class StartcaseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        if (settings.containsKey(ACTIVATE_OUTPUT_CFG)) { // added 2.12
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(ACTIVATE_OUTPUT_CFG)) {
             m_activateAllOutputsDuringConfigureModel.loadSettingsFrom(settings);
         } else {
             m_activateAllOutputsDuringConfigureModel.setBooleanValue(false);
@@ -169,9 +168,7 @@ public class StartcaseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // empty
     }
 
@@ -179,22 +176,19 @@ public class StartcaseNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // empty
     }
 
     /**
-    *
-    * @return name of PMML file model
-    */
-   static SettingsModelString createChoiceModel() {
-       return new SettingsModelString("PortIndex", "0");
-   }
+     * @return name of PMML file model
+     */
+    static SettingsModelString createChoiceModel() {
+        return new SettingsModelString("PortIndex", "0");
+    }
 
-   static SettingsModelBoolean createActivateAllOutputsDuringConfigureModel() {
-       return new SettingsModelBoolean(ACTIVATE_OUTPUT_CFG, true);
-   }
+    static SettingsModelBoolean createActivateAllOutputsDuringConfigureModel() {
+        return new SettingsModelBoolean(ACTIVATE_OUTPUT_CFG, true);
+    }
 
 }

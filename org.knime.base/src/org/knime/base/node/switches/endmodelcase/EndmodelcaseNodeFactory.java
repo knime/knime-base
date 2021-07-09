@@ -48,12 +48,15 @@
 package org.knime.base.node.switches.endmodelcase;
 
 import org.knime.base.node.switches.caseswitch.CaseEndNodeFactory;
+import org.knime.base.node.switches.caseswitch.any.CaseEndAnyNodeFactory;
 import org.knime.core.node.port.PortObject;
 
 /** End case node for arbitrary port types. Ideally this class should be moved to
  * org.knime.base.node.switches.caseswitch.portobject but is kept here for backward compatible reasons.
  * @author M. Berthold, University of Konstanz
+ * @deprecated superseded by {@link CaseEndAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public class EndmodelcaseNodeFactory extends CaseEndNodeFactory {
 
     /**

@@ -49,12 +49,15 @@
 package org.knime.base.node.switches.caseswitch.variable;
 
 import org.knime.base.node.switches.caseswitch.CaseStartNodeFactory;
+import org.knime.base.node.switches.caseswitch.any.CaseStartAnyNodeFactory;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 
 /**
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @deprecated superseded by {@link CaseStartAnyNodeFactory}
  */
+@Deprecated(since="4.5")
 public final class CaseStartVariableNodeFactory extends CaseStartNodeFactory {
 
     /** Customized super class with flow var port type. */
