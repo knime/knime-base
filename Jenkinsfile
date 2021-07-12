@@ -45,7 +45,7 @@ try {
                         "knime-base", "knime-core", "knime-expressions",
                         "knime-jep", "knime-datageneration", "knime-js-base",
                         "knime-js-core", "knime-r", "knime-database",
-                        "knime-kerberos", "knime-timeseries", "knime-arima",
+                        "knime-kerberos", "knime-timeseries",
                         "knime-jfreechart", "knime-distance", "knime-streaming"
                     ]
                 ],
