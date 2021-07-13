@@ -2,30 +2,24 @@
 <knimeNode icon="pythonscript.png" type="Manipulator" xmlns="http://knime.org/node/v4.1"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-    <name>CASE Switch (&#8230;) (Start)</name>
+    <name>CASE Switch Start</name>
     
     <shortDescription>
-        Outputs the input data to exactly one of the output ports. The type as well
-        as the amount of output ports can dynamically chosen.
+        Routes the input to a selectable output port. The type and number of output ports can be dynamically chosen.
     </shortDescription>
     
     <fullDescription>
         <intro>
-            This nodes takes the data from the input port and moves it
-            to exactly one active output branch. The type of data can be chosen by adding an
-            input port using the &#8220;&#8230;&#8221; menu. No output ports can be added before an
-            input port has been selected. The type of the input port can be changed by removing and
-            adding it again with a new type. Keep in mind that this removes any connections of the
-            output ports.
-
-            <h4>Migrating from the old &#8220;CASE Switch [&#8230;] (Start)&#8221; nodes</h4>
-                To get the same results as the old nodes you have to select the following types:
-            <table>
-                <tr><th>Node name</th><th>Port type name</th></tr>
-                <tr><td>CASE Switch Data (Start)</td><td>Data</td></tr>
-                <tr><td>CASE Switch Variable (Start)</td><td>Flow Variable</td></tr>
-                <tr><td>CASE Switch Model (Start)</td><td>Generic Port</td></tr>
-            </table>
+        	<p>
+	            This node routes its input to a selectable output port, allowing different branches of the workflow to
+	            be activated manually or using a flow variable. The input port type can be chosen when adding an
+	            input port using the &#8220;&#8230;&#8221; menu. The type can be changed by removing the input port 
+	            and adding it again.
+        	</p>
+			<p>
+				To migrate from the deprecated CASE Switch Model (Start) node, select
+				Generic Port when creating the input port.
+			</p>
         </intro>
         <option name="Select active port">
             Select the active output port. This can be controlled by an integer or string variable and used to

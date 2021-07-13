@@ -66,7 +66,7 @@ public final class CaseEndAnyNodeFactory extends ConfigurableNodeFactory<CaseEnd
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final var b = new PortsConfigurationBuilder();
         b.addOptionalOutputPortGroup("Output", t -> true);
-        b.addBoundExtendableInputPortGroup("Input", "Output", 1);
+        b.addBoundExtendableInputPortGroupWithDefault("Input", "Output", 1, 1);
 
         return Optional.of(b);
     }
