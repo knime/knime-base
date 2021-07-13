@@ -8,10 +8,18 @@
     </shortDescription>
     
     <fullDescription>
-        <intro>Splits the rows based on the selected value of a nominal attribute.
+        <intro>
+        <p>
+        Splits the rows based on the selected value of a nominal attribute.
         A nominal column can be selected and one or more nominal value of this 
         attribute. Rows which have this nominal value in the selected column are 
         included in the output data at out-port 0, the rest at out-port 1.
+        </p>
+        <p>
+		In order for a nominal column to appear in the node dialog, its domain (the set of values that appear in the 
+		column) must be calculated. For columns with few values (less than 60) this is done automatically. 
+		To ensure the domain is properly set, use the Domain Calculator node or the Edit Nominal Domain node.
+        </p>
         </intro>
         
         
