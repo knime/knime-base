@@ -487,7 +487,8 @@ final class CreateDateTimeNodeModel extends NodeModel {
             // because of the problem that 00:00 is before 23:59, a local time needs to be temporarily converted
             // to a local date time
             boolean isLocalTimeStartAfterEnd = ((LocalTime)start).isAfter((LocalTime)end);
-            final boolean isDurationNegative = ((Duration)durationOrPeriod).isNegative();
+            final boolean isDurationNegative = durationOrPeriod instanceof Duration
+                ? ((Duration)durationOrPeriod).isNegative() : ((Period)durationOrPeriod).isNegative();
             int daysAddedToEnd = 0;
             if (isLocalTimeStartAfterEnd && !isDurationNegative) {
                 daysAddedToEnd = 1;
