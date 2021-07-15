@@ -70,7 +70,8 @@
 		<tab name="Wildcard/Regex Selection">
         	<option name="">
 				Type a search pattern which matches columns to move into the
-				Include list. You can use either Wildcards ('?' matching any
+				Include or Exclude list. Which list is used can be specified.
+				You can use either Wildcards ('?' matching any
 				character, '*' matching a sequence of any characters) or Regex.
 				You can specify whether your pattern should be case sensitive.
 			</option>
