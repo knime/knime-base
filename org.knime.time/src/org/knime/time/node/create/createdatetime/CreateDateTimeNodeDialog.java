@@ -412,8 +412,15 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
                         isStartBeforeEnd = ((LocalDateTime)start).isBefore((LocalDateTime)end);
                         isEqual = ((LocalDateTime)start).isEqual((LocalDateTime)end);
                     } else {
-                        isStartBeforeEnd = (((ZonedDateTime)start)).isBefore(((ZonedDateTime)end));
-                        isEqual = (((ZonedDateTime)start)).isEqual(((ZonedDateTime)end));
+                        ZonedDateTime startZoned = (ZonedDateTime)start;
+                        // assumption: end uses same time zone as start (in the dialog, no zone is selectable, thus the
+                        // dialog component returns a LocalDateTime instead of a ZonedDateTime,
+                        // even if zoned is selected as date type).
+                        // However, end can also be of type ZonedDateTime when set via a flow variable
+                        ZonedDateTime endZoned = end instanceof ZonedDateTime ? (ZonedDateTime)end
+                            : ZonedDateTime.of((LocalDateTime)end, startZoned.getZone());
+                        isStartBeforeEnd = startZoned.isBefore(endZoned);
+                        isEqual = startZoned.isEqual(endZoned);
                     }
 
                     final boolean isDurationNegative;
