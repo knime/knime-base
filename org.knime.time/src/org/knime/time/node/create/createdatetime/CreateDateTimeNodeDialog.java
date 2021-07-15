@@ -61,6 +61,7 @@ import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
+import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -92,9 +93,9 @@ import org.knime.time.util.SettingsModelDateTime;
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
 final class CreateDateTimeNodeDialog extends NodeDialogPane {
-    final static String BUTTONS = "buttons";
+    static final String BUTTONS = "buttons";
 
-    final static String LABELS = "labels";
+    static final String LABELS = "labels";
 
     private final JComboBox<DateTimeType> m_typeCombobox;
 
@@ -121,7 +122,7 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
     private boolean m_updateWarningLabel = true;
 
     CreateDateTimeNodeDialog() {
-        m_typeCombobox = new JComboBox<DateTimeType>(DateTimeType.values());
+        m_typeCombobox = new JComboBox<>(DateTimeType.values());
 
         m_dialogCompColumnName =
             new DialogComponentString(CreateDateTimeNodeModel.createColumnNameModel(), null, true, 17);
@@ -332,9 +333,9 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
         m_typeCombobox.addActionListener(l -> {
             m_updateWarningLabel = false;
             // update date&time models
-            final boolean useDate = !m_typeCombobox.getSelectedItem().equals(DateTimeType.LOCAL_TIME);
-            final boolean useTime = !m_typeCombobox.getSelectedItem().equals(DateTimeType.LOCAL_DATE);
-            final boolean useZone = m_typeCombobox.getSelectedItem().equals(DateTimeType.ZONED_DATE_TIME);
+            final boolean useDate = m_typeCombobox.getSelectedItem() != DateTimeType.LOCAL_TIME;
+            final boolean useTime = m_typeCombobox.getSelectedItem() != DateTimeType.LOCAL_DATE;
+            final boolean useZone = m_typeCombobox.getSelectedItem() == DateTimeType.ZONED_DATE_TIME;
             modelStart.setUseDate(useDate);
             modelStart.setUseTime(useTime);
             modelStart.setUseZone(useZone);
@@ -344,9 +345,7 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
             updateWarningLabel();
         });
 
-        modelStart.addChangeListener(l -> {
-            updateWarningLabel();
-        });
+        modelStart.addChangeListener(l ->  updateWarningLabel());
         modelEnd.addChangeListener(l -> updateWarningLabel());
         modelStartUseExecTime.addChangeListener(l -> updateWarningLabel());
         modelEndUseExecTime.addChangeListener(l -> updateWarningLabel());
@@ -367,7 +366,7 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
             try {
                 duration = DurationPeriodFormatUtils
                     .parseDuration(((SettingsModelString)m_dialogCompDuration.getModel()).getStringValue());
-                if (selectedItem.equals(DateTimeType.LOCAL_DATE)) {
+                if (selectedItem == DateTimeType.LOCAL_DATE) {
                     m_warningLabel.setText("A time-based duration cannot be applied to a local date.");
                     return;
                 }
@@ -375,7 +374,7 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
                 try {
                     period = DurationPeriodFormatUtils
                         .parsePeriod(((SettingsModelString)m_dialogCompDuration.getModel()).getStringValue());
-                    if (selectedItem.equals(DateTimeType.LOCAL_TIME)) {
+                    if (selectedItem == DateTimeType.LOCAL_TIME) {
                         m_warningLabel.setText("A date-based duration cannot be applied to a local time.");
                         return;
                     }
@@ -386,63 +385,75 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
             }
             if (((SettingsModelString)m_dialogCompRowNrOptionSelection.getModel()).getStringValue()
                 .equals(RowNrMode.Variable.name())) {
-                // === check that duration is not zero and row number variable ===
-                if ((duration != null && duration.isZero()) || (period != null && period.isZero())) {
-                    m_warningLabel.setText("Interval must not be zero.");
-                }
-
-                // === check that start is before end and duration positive and vice versa ===
-                final Temporal start = ((SettingsModelBoolean)m_dialogCompStartUseExecTime.getModel()).getBooleanValue()
-                    ? CreateDateTimeNodeModel.getTemporalExecTimeWithFormat(
-                        ((SettingsModelDateTime)m_dialogCompEnd.getModel()).getSelectedDateTime())
-                    : ((SettingsModelDateTime)m_dialogCompStart.getModel()).getSelectedDateTime();
-
-                final Temporal end = ((SettingsModelBoolean)m_dialogCompEndUseExecTime.getModel()).getBooleanValue()
-                    ? CreateDateTimeNodeModel.getTemporalExecTimeWithFormat(
-                        ((SettingsModelDateTime)m_dialogCompStart.getModel()).getSelectedDateTime())
-                    : ((SettingsModelDateTime)m_dialogCompEnd.getModel()).getSelectedDateTime();
-
-                if (!selectedItem.equals(DateTimeType.LOCAL_TIME)) {
-                    final boolean isStartBeforeEnd;
-                    final boolean isEqual;
-                    if (selectedItem.equals(DateTimeType.LOCAL_DATE)) {
-                        isStartBeforeEnd = ((LocalDate)start).isBefore((LocalDate)end);
-                        isEqual = ((LocalDate)start).isEqual((LocalDate)end);
-                    } else if (selectedItem.equals(DateTimeType.LOCAL_DATE_TIME)) {
-                        isStartBeforeEnd = ((LocalDateTime)start).isBefore((LocalDateTime)end);
-                        isEqual = ((LocalDateTime)start).isEqual((LocalDateTime)end);
-                    } else {
-                        ZonedDateTime startZoned = (ZonedDateTime)start;
-                        // assumption: end uses same time zone as start (in the dialog, no zone is selectable, thus the
-                        // dialog component returns a LocalDateTime instead of a ZonedDateTime,
-                        // even if zoned is selected as date type).
-                        // However, end can also be of type ZonedDateTime when set via a flow variable
-                        ZonedDateTime endZoned = end instanceof ZonedDateTime ? (ZonedDateTime)end
-                            : ZonedDateTime.of((LocalDateTime)end, startZoned.getZone());
-                        isStartBeforeEnd = startZoned.isBefore(endZoned);
-                        isEqual = startZoned.isEqual(endZoned);
-                    }
-
-                    final boolean isDurationNegative;
-                    if (duration != null) {
-                        isDurationNegative = duration.isNegative();
-                    } else if (period != null) {
-                        isDurationNegative = period.isNegative();
-                    } else {
-                        throw new IllegalStateException("Either duration or period must not be null!");
-                    }
-
-                    if (isStartBeforeEnd && isDurationNegative) {
-                        m_warningLabel.setText("Start is before end, but the interval is negative.");
-                        return;
-                    }
-                    if (!isStartBeforeEnd && !isEqual && !isDurationNegative) {
-                        m_warningLabel.setText("Start is after end, but the interval is positive.");
-                        return;
-                    }
-                }
+                warningVariableRowNumber(selectedItem, duration, period).ifPresent(m_warningLabel::setText);
 
             }
+        }
+    }
+
+    /**
+     * Check that duration is not zero and and positive if start <= end or negative if end <= start.
+     * @param type
+     * @param duration
+     * @param period
+     */
+    private Optional<String> warningVariableRowNumber(final DateTimeType type, final Duration duration,
+        final Period period) {
+        // === check that duration is not zero and row number variable ===
+        if ((duration != null && duration.isZero()) || (period != null && period.isZero())) {
+            return Optional.of("Interval must not be zero.");
+        }
+
+        // === check that start is before end and duration positive and vice versa ===
+        final Temporal start = ((SettingsModelBoolean)m_dialogCompStartUseExecTime.getModel()).getBooleanValue()
+            ? CreateDateTimeNodeModel.getTemporalExecTimeWithFormat(
+                ((SettingsModelDateTime)m_dialogCompEnd.getModel()).getSelectedDateTime())
+            : ((SettingsModelDateTime)m_dialogCompStart.getModel()).getSelectedDateTime();
+
+        final Temporal end = ((SettingsModelBoolean)m_dialogCompEndUseExecTime.getModel()).getBooleanValue()
+            ? CreateDateTimeNodeModel.getTemporalExecTimeWithFormat(
+                ((SettingsModelDateTime)m_dialogCompStart.getModel()).getSelectedDateTime())
+            : ((SettingsModelDateTime)m_dialogCompEnd.getModel()).getSelectedDateTime();
+
+        if (type != DateTimeType.LOCAL_TIME) {
+            final boolean isDurationNegative;
+            if (duration != null) {
+                isDurationNegative = duration.isNegative();
+            } else if (period != null) {
+                isDurationNegative = period.isNegative();
+            } else {
+                throw new IllegalStateException("Either duration or period must not be null!");
+            }
+
+            if (compareDates(type, start, end) >= 0 && isDurationNegative) {
+                return Optional.of("Start is before end, but the interval is negative.");
+            }
+            if (compareDates(type, start, end) < 0 && !isDurationNegative) {
+                return Optional.of("Start is after end, but the interval is positive.");
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * @param selectedItem
+     * @param start
+     * @param end
+     */
+    private static int compareDates(final DateTimeType selectedItem, final Temporal start, final Temporal end) {
+        if (selectedItem == DateTimeType.LOCAL_DATE) {
+            return ((LocalDate)start).compareTo((LocalDate)end);
+        } else if (selectedItem == DateTimeType.LOCAL_DATE_TIME) {
+            return ((LocalDateTime)start).compareTo((LocalDateTime)end);
+        } else {
+            ZonedDateTime startZoned = (ZonedDateTime)start;
+            // assumption: end uses same time zone as start (in the dialog, no zone is selectable, thus the
+            // dialog component returns a LocalDateTime instead of a ZonedDateTime,
+            // even if zoned is selected as date type).
+            // However, end can also be of type ZonedDateTime when set via a flow variable
+            ZonedDateTime endZoned = end instanceof ZonedDateTime ? (ZonedDateTime)end
+                : ZonedDateTime.of((LocalDateTime)end, startZoned.getZone());
+            return startZoned.compareTo(endZoned);
         }
     }
 
