@@ -48,10 +48,13 @@
  */
 package org.knime.filehandling.core.util;
 
-import org.apache.commons.lang3.Validate;
-import org.knime.core.node.util.CheckUtils;
+import static org.knime.core.node.util.CheckUtils.checkState;
+
+import java.util.Optional;
+
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
+import org.knime.core.node.workflow.WorkflowManager;
 
 /**
  * Utility class that allows to reason about the current {@link WorkflowContext}.
@@ -64,24 +67,50 @@ public final class WorkflowContextUtil {
     }
 
     /**
+     * Retrieves the {@link WorkflowContext} via the {@link NodeContext} (if a node context is set). It is recommended
+     * to first check for the existence of the workflow context ({@link #hasWorkflowContext()} or use
+     * {@link #getWorkflowContextOptional()} instead.
+     *
      * @return current {@link WorkflowContext} from the {@link NodeContext}
+     * @throws IllegalStateException if no {@link WorkflowContext} is available (see
+     *             {@link #getWorkflowContextOptional()} for possible reasons)
      */
+    @SuppressWarnings("null")
     public static WorkflowContext getWorkflowContext() {
         final NodeContext nodeContext = NodeContext.getContext();
-        Validate.notNull(nodeContext, "Node context required.");
-    
-        final WorkflowContext workflowContext = nodeContext.getWorkflowManager().getContext();
-        Validate.notNull(workflowContext, "Workflow context required.");
-    
+        checkState(nodeContext != null, "Node context required.");
+
+        WorkflowManager wfm = nodeContext.getWorkflowManager();
+        checkState(wfm != null, "Can't access workflow instance (is it a remotely edited workflow?).");
+
+        final WorkflowContext workflowContext = wfm.getContext();
+        checkState(workflowContext != null, "Workflow context required.");
+
         return workflowContext;
     }
 
     /**
-     * @return true, when we curently have a workflow context, false otherwise.
+     * Returns the {@link WorkflowContext} or an empty optional if no workflow context is available. The lack of a
+     * workflow context can have multiple reasons:
+     * <ul>
+     * <li>node {@link NodeContext} is set</li>
+     * <li>no workflow manager instance is available (e.g. because the workflow is opened in the remote workflow
+     * editor)</li>
+     * <li>there is no workflow context set for the workflow (most likely an implementation error)</li<
+     * </ul>
+     *
+     * @return the {@link WorkflowContext} or an empty optional if no workflow context is available
+     */
+    public static Optional<WorkflowContext> getWorkflowContextOptional() {
+        return Optional.ofNullable(NodeContext.getContext()).map(NodeContext::getWorkflowManager)
+            .map(WorkflowManager::getContext);
+    }
+
+    /**
+     * @return true, when we currently have a workflow context, false otherwise.
      */
     public static boolean hasWorkflowContext() {
-        final NodeContext nodeContext = NodeContext.getContext();
-        return nodeContext != null && nodeContext.getWorkflowManager().getContext() != null;
+        return getWorkflowContextOptional().isPresent();
     }
 
     /**
@@ -99,16 +128,10 @@ public final class WorkflowContextUtil {
      *
      * @return true if the current {@link WorkflowContext} belongs to a workflow running on KNIME Server, false
      *         otherwise.
-     * @throws IllegalArgumentException If there is no current {@link NodeContext} or {@link WorkflowContext}.
+     * @throws IllegalStateException If there is no current {@link NodeContext} or {@link WorkflowContext}.
      */
     public static boolean isServerContext() {
-        final NodeContext nodeContext = NodeContext.getContext();
-        CheckUtils.checkArgumentNotNull(nodeContext, "Node context required.");
-    
-        final WorkflowContext context = nodeContext.getWorkflowManager().getContext();
-        CheckUtils.checkArgumentNotNull(context, "Workflow context required.");
-    
-        return isServerContext(context);
+        return isServerContext(getWorkflowContext());
     }
 
 }
