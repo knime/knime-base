@@ -51,7 +51,9 @@ import org.knime.core.node.NodeView;
 /**
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopEnd2NodeFactory extends NodeFactory<LoopEnd2NodeModel> {
     /**
      * {@inheritDoc}
@@ -73,8 +75,7 @@ public class LoopEnd2NodeFactory extends NodeFactory<LoopEnd2NodeModel> {
      * {@inheritDoc}
      */
     @Override
-    public NodeView<LoopEnd2NodeModel> createNodeView(final int viewIndex,
-            final LoopEnd2NodeModel nodeModel) {
+    public NodeView<LoopEnd2NodeModel> createNodeView(final int viewIndex, final LoopEnd2NodeModel nodeModel) {
         return null;
     }
 

@@ -57,7 +57,9 @@ import org.knime.core.node.workflow.FlowVariable.Type;
  * This class holds the settings for the condition loop tail node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopEndConditionDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopEndConditionSettings {
     /** All comparison operators the user can choose from in the dialog. */
     public enum Operator {

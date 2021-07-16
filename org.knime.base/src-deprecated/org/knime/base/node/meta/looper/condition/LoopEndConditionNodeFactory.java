@@ -55,7 +55,9 @@ import org.knime.core.node.NodeView;
  * This factory creates all necessary classes for the condition loop head node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopEndConditionDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopEndConditionNodeFactory extends
         NodeFactory<LoopEndConditionNodeModel> {
 

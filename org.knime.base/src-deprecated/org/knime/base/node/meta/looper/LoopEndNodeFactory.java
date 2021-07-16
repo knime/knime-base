@@ -42,65 +42,60 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * Created on Nov 28, 2013 by Patrick Winter, KNIME AG, Zurich, Switzerland
+ * History
+ *   13.02.2008 (thor): created
  */
 package org.knime.base.node.meta.looper;
 
-import javax.swing.JCheckBox;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
+ * This factory create all necessary classes for the for-loop head node.
  *
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.9
+ * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopEndDynamicNodeFactory}
  */
-public class LoopEnd2NodeDialog extends AbstractLoopEndNodeDialog<LoopEnd2NodeSettings> {
-
-    private final JCheckBox m_ignoreEmptyTables1 = new JCheckBox("Ignore empty input tables at port 1");
-    private final JCheckBox m_ignoreEmptyTables2 = new JCheckBox("Ignore empty input tables at port 2");
-
-    private final JCheckBox m_tolerateColumnTypes1 = new JCheckBox("Allow variable column types at port 1");
-    private final JCheckBox m_tolerateColumnTypes2 = new JCheckBox("Allow variable column types at port 2");
-
-    private final JCheckBox m_tolerateChangingSpecs1 = new JCheckBox("Allow changing table specifications at port 1");
-    private final JCheckBox m_tolerateChangingSpecs2 = new JCheckBox("Allow changing table specifications at port 2");
-
+@Deprecated(since = "4.5")
+public class LoopEndNodeFactory extends NodeFactory<LoopEndNodeModel> {
     /**
-     *
+     * {@inheritDoc}
      */
-    public LoopEnd2NodeDialog() {
-        super(new LoopEnd2NodeSettings());
-        addComponent(m_ignoreEmptyTables1);
-        addComponent(m_ignoreEmptyTables2);
-        addComponent(m_tolerateColumnTypes1);
-        addComponent(m_tolerateColumnTypes2);
-        addComponent(m_tolerateChangingSpecs1);
-        addComponent(m_tolerateChangingSpecs2);
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new LoopEndNodeDialog();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void addToSettings(final LoopEnd2NodeSettings settings) {
-        settings.ignoreEmptyTables1(m_ignoreEmptyTables1.isSelected());
-        settings.ignoreEmptyTables2(m_ignoreEmptyTables2.isSelected());
-        settings.tolerateColumnTypes1(m_tolerateColumnTypes1.isSelected());
-        settings.tolerateColumnTypes2(m_tolerateColumnTypes2.isSelected());
-        settings.tolerateChangingTableSpecs1(m_tolerateChangingSpecs1.isSelected());
-        settings.tolerateChangingTableSpecs2(m_tolerateChangingSpecs2.isSelected());
+    public LoopEndNodeModel createNodeModel() {
+        return new LoopEndNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void loadFromSettings(final LoopEnd2NodeSettings settings) {
-        m_ignoreEmptyTables1.setSelected(settings.ignoreEmptyTables1());
-        m_ignoreEmptyTables2.setSelected(settings.ignoreEmptyTables2());
-        m_tolerateColumnTypes1.setSelected(settings.tolerateColumnTypes1());
-        m_tolerateColumnTypes2.setSelected(settings.tolerateColumnTypes2());
-        m_tolerateChangingSpecs1.setSelected(settings.tolerateChangingTableSpecs1());
-        m_tolerateChangingSpecs2.setSelected(settings.tolerateChangingTableSpecs2());
+    protected int getNrNodeViews() {
+        return 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<LoopEndNodeModel> createNodeView(final int index, final LoopEndNodeModel model) {
+        return null;
+    }
 }

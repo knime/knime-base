@@ -50,13 +50,14 @@ package org.knime.base.node.meta.looper;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-
 /**
  * This class holds the settings for the generic loop end node (2 ports).
  *
  * @author Thorsten Meinl, University of Konstanz
  * @since 2.9
+ * @deprecated superseded by {@link LoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
 
     /** @since 2.9 */
@@ -80,8 +81,8 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
     /**
      * Sets if iterations with empty tables are ignored in the first output port.
      *
-     * @param ignore <code>true</code> empty tables will be ignored,
-     *               <code>false</code> empty tables that have different specs will cause an exception
+     * @param ignore <code>true</code> empty tables will be ignored, <code>false</code> empty tables that have different
+     *            specs will cause an exception
      * @since 2.9
      */
     public void ignoreEmptyTables1(final boolean ignore) {
@@ -91,8 +92,8 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
     /**
      * Returns if iterations with empty tables are ignored in the first output port.
      *
-     * @return <code>true</code> empty tables will be ignored,
-     *         <code>false</code> empty tables that have different specs will cause an exception
+     * @return <code>true</code> empty tables will be ignored, <code>false</code> empty tables that have different specs
+     *         will cause an exception
      * @since 2.9
      */
     public boolean ignoreEmptyTables1() {
@@ -102,8 +103,8 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
     /**
      * Sets if iterations with empty tables are ignored in the second output port.
      *
-     * @param ignore <code>true</code> empty tables will be ignored,
-     *               <code>false</code> empty tables that have different specs will cause an exception
+     * @param ignore <code>true</code> empty tables will be ignored, <code>false</code> empty tables that have different
+     *            specs will cause an exception
      * @since 2.9
      */
     public void ignoreEmptyTables2(final boolean ignore) {
@@ -113,8 +114,8 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
     /**
      * Returns if iterations with empty tables are ignored in the second output port.
      *
-     * @return <code>true</code> empty tables will be ignored,
-     *         <code>false</code> empty tables that have different specs will cause an exception
+     * @return <code>true</code> empty tables will be ignored, <code>false</code> empty tables that have different specs
+     *         will cause an exception
      * @since 2.9
      */
     public boolean ignoreEmptyTables2() {
@@ -123,8 +124,8 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
 
     /**
      * Sets if column types in different tables at port 1 are merged.
-     * @param tolerate <code>true</code> merge columns types,
-     *                 <code>false</code> don't merge column types.
+     *
+     * @param tolerate <code>true</code> merge columns types, <code>false</code> don't merge column types.
      * @since 2.11
      */
     public void tolerateColumnTypes1(final boolean tolerate) {
@@ -133,8 +134,8 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
 
     /**
      * Returns if column types in different tables at port 1 are merged.
-     * @return tolerate <code>true</code> merge columns types,
-     *                  <code>false</code> don't merge column types.
+     *
+     * @return tolerate <code>true</code> merge columns types, <code>false</code> don't merge column types.
      * @since 2.11
      */
     public boolean tolerateColumnTypes1() {
@@ -143,8 +144,8 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
 
     /**
      * Sets if column types in different tables at port 2 are merged.
-     * @param tolerate <code>true</code> merge columns types,
-     *                 <code>false</code> don't merge column types.
+     *
+     * @param tolerate <code>true</code> merge columns types, <code>false</code> don't merge column types.
      * @since 2.11
      */
     public void tolerateColumnTypes2(final boolean tolerate) {
@@ -153,8 +154,8 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
 
     /**
      * Returns if column types in different tables at port 2 are merged.
-     * @return tolerate <code>true</code> merge columns types,
-     *                  <code>false</code> don't merge column types.
+     *
+     * @return tolerate <code>true</code> merge columns types, <code>false</code> don't merge column types.
      * @since 2.11
      */
     public boolean tolerateColumnTypes2() {
@@ -176,8 +177,7 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
      * Returns if changing tables specs are to be tolerated at port 1.
      *
      * @return <code>true</code> changes are tolerated and missing values are inserted for missing column in respective
-     *         iterations
-     *         <code>false</code> the node fails if table spec varies
+     *         iterations <code>false</code> the node fails if table spec varies
      * @since 3.1
      */
     public boolean tolerateChangingTableSpecs1() {
@@ -199,14 +199,12 @@ public class LoopEnd2NodeSettings extends AbstractLoopEndNodeSettings {
      * Returns if changing tables specs are to be tolerated at port 2.
      *
      * @return <code>true</code> changes are tolerated and missing values are inserted for missing column in respective
-     *         iterations
-     *         <code>false</code> the node fails if table spec varies
+     *         iterations <code>false</code> the node fails if table spec varies
      * @since 3.1
      */
     public boolean tolerateChangingTableSpecs2() {
         return m_tolerateChangingSpecs2;
     }
-
 
     /**
      * Writes the settings into the node settings object.
