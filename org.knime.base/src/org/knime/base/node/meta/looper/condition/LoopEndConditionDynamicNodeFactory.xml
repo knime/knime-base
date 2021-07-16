@@ -53,14 +53,14 @@
         <inPort index="0" name="Input table">
                 Any datatable
         </inPort>
-        <dynInPort name="Input table" group-identifier="Collection" insert-before="0">
+        <dynInPort name="Input table" group-identifier="Collector" insert-before="0">
                 Any datatable
         </dynInPort>
         <outPort index="0" name="Collected results">
                 Collected results from the loop body
         </outPort>
         <outPort index="1" name="Variable values">The selected flow variable's values in each iteration</outPort>
-        <dynOutPort name="Collected results" group-identifier="Collection" insert-before="0">
+        <dynOutPort name="Collected results" group-identifier="Collector" insert-before="0">
                 Collected results from the loop body
         </dynOutPort>
     </ports>

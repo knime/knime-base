@@ -66,55 +66,37 @@ import org.knime.core.node.port.PortType;
 public final class LoopEndConditionDynamicNodeFactory extends
         ConfigurableNodeFactory<LoopEndConditionDynamicNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final var b = new PortsConfigurationBuilder();
-        b.addExtendablePortGroup("Collection", new PortType[] {BufferedDataTable.TYPE}, BufferedDataTable.TYPE);
+        b.addExtendablePortGroup("Collector", new PortType[] {BufferedDataTable.TYPE}, BufferedDataTable.TYPE);
         b.addFixedOutputPortGroup("Variable values", BufferedDataTable.TYPE);
         return Optional.of(b);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected LoopEndConditionDynamicNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
         final var config = creationConfig.getPortConfig().orElseThrow();
         return new LoopEndConditionDynamicNodeModel(config.getInputPorts(), config.getOutputPorts());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         final var config = creationConfig.getPortConfig().orElseThrow();
         return new LoopEndConditionDynamicNodeDialog(config.getInputPorts().length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<LoopEndConditionDynamicNodeModel> createNodeView(final int viewIndex,
         final LoopEndConditionDynamicNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
