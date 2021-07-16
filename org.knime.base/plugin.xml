@@ -1359,15 +1359,27 @@
             >
       </node>
       <node
-            after="org.knime.base.node.meta.looper.variable.start.LoopStartVariable3NodeFactory"
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.LoopEndNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.meta.looper.LoopEndNodeFactory"
+            after="org.knime.base.node.meta.looper.variable.start.LoopStartVariable3NodeFactory"
+            category-path="/flowcontrol/loopsupport"
+            factory-class="org.knime.base.node.meta.looper.LoopEndDynamicNodeFactory"
+            >
+      </node>
+      <node
+            after="org.knime.base.node.meta.looper.LoopEndDynamicNodeFactory"
+            category-path="/flowcontrol/loopsupport"
+            factory-class="org.knime.base.node.meta.looper.condition.LoopEndConditionDynamicNodeFactory"
+            >
+      </node>
+      <node
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.condition.LoopEndConditionNodeFactory"
+            deprecated="true"
             >
       </node>
       <node category-path="/flowcontrol/variables"
@@ -1574,6 +1586,7 @@
       <node
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.LoopEnd2NodeFactory"
+            deprecated="true"
             >
       </node>
       <node
