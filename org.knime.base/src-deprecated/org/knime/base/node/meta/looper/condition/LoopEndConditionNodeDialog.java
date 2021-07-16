@@ -77,7 +77,9 @@ import org.knime.core.node.workflow.FlowVariable.Type;
  * can enter the condition.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopEndConditionDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopEndConditionNodeDialog extends NodeDialogPane {
     private static final Object[] NUMERIC_OPERATORS =
             {Operator.EQ, Operator.LE, Operator.LT, Operator.GE, Operator.GT,

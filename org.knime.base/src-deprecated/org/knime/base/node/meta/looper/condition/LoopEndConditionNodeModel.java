@@ -85,7 +85,9 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  * Meanwhile it collects all rows from each iteration.s
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopEndConditionDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopEndConditionNodeModel extends NodeModel implements
         LoopEndNode {
     private static final NodeLogger LOGGER =

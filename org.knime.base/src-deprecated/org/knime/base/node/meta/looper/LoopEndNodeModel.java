@@ -70,7 +70,9 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  * This model is the tail node of a for loop.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 final class LoopEndNodeModel extends NodeModel implements LoopEndNode {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LoopEndNodeModel.class);
@@ -89,7 +91,6 @@ final class LoopEndNodeModel extends NodeModel implements LoopEndNode {
 
     private final LoopEndNodeSettings m_settings = new LoopEndNodeSettings();
 
-
     /** Creates a new model. */
     LoopEndNodeModel() {
         super(1, 1);
@@ -99,43 +100,47 @@ final class LoopEndNodeModel extends NodeModel implements LoopEndNode {
      * {@inheritDoc}
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-        if (m_settings.ignoreEmptyTables() || m_settings.tolerateColumnTypes() || m_settings.tolerateChangingTableSpecs()) {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+        if (m_settings.ignoreEmptyTables() || m_settings.tolerateColumnTypes()
+            || m_settings.tolerateChangingTableSpecs()) {
             return new DataTableSpec[]{null};
         } else {
-            return new DataTableSpec[]{ConcatenateTableFactory.createSpec(inSpecs[0], m_settings.addIterationColumn(), false)};
+            return new DataTableSpec[]{
+                ConcatenateTableFactory.createSpec(inSpecs[0], m_settings.addIterationColumn(), false)};
         }
     }
 
-
     /** {@inheritDoc} */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
 
         if (!(this.getLoopStartNode() instanceof LoopStartNodeTerminator)) {
             throw new IllegalStateException("Loop End is not connected"
-                    + " to matching/corresponding Loop Start node. You"
-                    + " are trying to create an infinite loop!");
+                + " to matching/corresponding Loop Start node. You" + " are trying to create an infinite loop!");
         }
 
-        if(m_tableFactory == null) {
+        if (m_tableFactory == null) {
             //first time we get here: create table factory
             Optional<Function<RowKey, RowKey>> rowKeyFunc;
-            switch(m_settings.rowKeyPolicy()) {
+            switch (m_settings.rowKeyPolicy()) {
                 case APPEND_SUFFIX:
-                    rowKeyFunc = Optional.of(k -> {return new RowKey(k.toString() + "#" + (m_iteration));});
+                    rowKeyFunc = Optional.of(k -> {
+                        return new RowKey(k.toString() + "#" + (m_iteration));
+                    });
                     break;
                 case GENERATE_NEW:
-                    rowKeyFunc = Optional.of(k -> {return new RowKey("Row" + (m_count++));});
+                    rowKeyFunc = Optional.of(k -> {
+                        return new RowKey("Row" + (m_count++));
+                    });
                     break;
                 case UNMODIFIED:
                 default:
                     rowKeyFunc = Optional.empty();
             }
-            m_tableFactory = new ConcatenateTableFactory(m_settings.ignoreEmptyTables(),
-                m_settings.tolerateColumnTypes(), m_settings.addIterationColumn(), m_settings.tolerateChangingTableSpecs(), rowKeyFunc);
+            m_tableFactory =
+                new ConcatenateTableFactory(m_settings.ignoreEmptyTables(), m_settings.tolerateColumnTypes(),
+                    m_settings.addIterationColumn(), m_settings.tolerateChangingTableSpecs(), rowKeyFunc);
             m_startTime = System.currentTimeMillis();
         }
 
@@ -164,9 +169,8 @@ final class LoopEndNodeModel extends NodeModel implements LoopEndNode {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // empty
     }
 
@@ -174,8 +178,7 @@ final class LoopEndNodeModel extends NodeModel implements LoopEndNode {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_settings.loadSettings(settings);
     }
 
@@ -206,9 +209,8 @@ final class LoopEndNodeModel extends NodeModel implements LoopEndNode {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // empty
     }
 
@@ -224,8 +226,7 @@ final class LoopEndNodeModel extends NodeModel implements LoopEndNode {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         AbstractLoopEndNodeSettings s = new LoopEndNodeSettings();
         s.loadSettings(settings);
     }

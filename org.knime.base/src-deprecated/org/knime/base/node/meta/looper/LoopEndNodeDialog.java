@@ -51,7 +51,9 @@ import javax.swing.JCheckBox;
 /**
  *
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
+ * @deprecated superseded by {@link LoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSettings> {
 
     private final JCheckBox m_ignoreEmptyTables = new JCheckBox("Ignore empty input tables");
@@ -60,7 +62,7 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
 
     private final JCheckBox m_tolerateChangingSpecs = new JCheckBox("Allow changing table specifications");
 
-    /** Create a new dialog.  */
+    /** Create a new dialog. */
     public LoopEndNodeDialog() {
         super(new LoopEndNodeSettings());
         addComponent(m_ignoreEmptyTables);
@@ -70,6 +72,7 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.9
      */
     @Override
@@ -81,6 +84,7 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.9
      */
     @Override
@@ -89,6 +93,5 @@ public class LoopEndNodeDialog extends AbstractLoopEndNodeDialog<LoopEndNodeSett
         m_tolerateColumnTypes.setSelected(settings.tolerateColumnTypes());
         m_tolerateChangingSpecs.setSelected(settings.tolerateChangingTableSpecs());
     }
-
 
 }

@@ -50,12 +50,13 @@ package org.knime.base.node.meta.looper;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-
 /**
  * This class holds the settings for the generic loop end node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
 
     /** @since 2.9 */
@@ -70,8 +71,8 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
     /**
      * Sets if iterations with empty tables are ignored in the output.
      *
-     * @param ignore <code>true</code> empty tables will be ignored,
-     *               <code>false</code> empty tables that have different specs will cause an exception
+     * @param ignore <code>true</code> empty tables will be ignored, <code>false</code> empty tables that have different
+     *            specs will cause an exception
      * @since 2.9
      */
     public void ignoreEmptyTables(final boolean ignore) {
@@ -81,8 +82,8 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
     /**
      * Returns if iterations with empty tables are ignored in the output.
      *
-     * @return <code>true</code> empty tables will be ignored,
-     *         <code>false</code> empty tables that have different specs will cause an exception
+     * @return <code>true</code> empty tables will be ignored, <code>false</code> empty tables that have different specs
+     *         will cause an exception
      * @since 2.9
      */
     public boolean ignoreEmptyTables() {
@@ -91,8 +92,8 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
 
     /**
      * Sets if column types in different tables are merged.
-     * @param tolerate <code>true</code> merge columns types,
-     *                 <code>false</code> don't merge column types.
+     *
+     * @param tolerate <code>true</code> merge columns types, <code>false</code> don't merge column types.
      * @since 2.11
      */
     public void tolerateColumnTypes(final boolean tolerate) {
@@ -101,14 +102,13 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
 
     /**
      * Returns if column types in different tables are merged.
-     * @return tolerate <code>true</code> merge columns types,
-     *                  <code>false</code> don't merge column types.
+     *
+     * @return tolerate <code>true</code> merge columns types, <code>false</code> don't merge column types.
      * @since 2.11
      */
     public boolean tolerateColumnTypes() {
         return m_tolerateColumnTypes;
     }
-
 
     /**
      * Returns if changing tables specs are to be tolerated
@@ -125,8 +125,7 @@ public class LoopEndNodeSettings extends AbstractLoopEndNodeSettings {
      * Returns if changing tables specs are to be tolerated
      *
      * @return <code>true</code> changes are tolerated and missing values are inserted for missing column in respective
-     *         iterations
-     *         <code>false</code> the node fails if table spec varies
+     *         iterations <code>false</code> the node fails if table spec varies
      * @since 3.1
      */
     public boolean tolerateChangingTableSpecs() {
