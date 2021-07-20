@@ -40,62 +40,57 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
+ * -------------------------------------------------------------------
  *
- * History
- *   24.02.2009 (meinl): created
  */
 package org.knime.base.node.meta.looper;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
- * This is the factory for the interval loop node.
+ * Settings for the looper node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopStartCountDynamicNodeFactory}
  */
-public class LoopStartIntervalNodeFactory extends
-        NodeFactory<LoopStartIntervalNodeModel> {
+@Deprecated(since = "4.5")
+public class LoopStartCountSettings {
+    private int m_loops = 10;
+
     /**
-     * {@inheritDoc}
+     * Sets the number of times the inner workflow should be executed.
+     * @param loops the number loops, which must be &gt; 0
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new LoopStartIntervalNodeDialog();
+    public void loops(final int loops) {
+        m_loops = loops;
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the number of loops.
+     * @return the number of loops.
      */
-    @Override
-    public LoopStartIntervalNodeModel createNodeModel() {
-        return new LoopStartIntervalNodeModel();
+    public int loops() {
+        return m_loops;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<LoopStartIntervalNodeModel> createNodeView(
-            final int viewIndex, final LoopStartIntervalNodeModel nodeModel) {
-        return null;
-    }
 
     /**
-     * {@inheritDoc}
+     * Loads the settings from the node settings object.
+     *
+     * @param settings a node settings object
      */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
+    public void loadSettingsFrom(final NodeSettingsRO settings) {
+        m_loops = settings.getInt("loops", 10);
     }
 
+
     /**
-     * {@inheritDoc}
+     * Writes the settings into the node settings object.
+     *
+     * @param settings a node settings object
      */
-    @Override
-    protected boolean hasDialog() {
-        return true;
+    public void saveSettingsTo(final NodeSettingsWO settings) {
+        settings.addInt("loops", m_loops);
     }
 }
