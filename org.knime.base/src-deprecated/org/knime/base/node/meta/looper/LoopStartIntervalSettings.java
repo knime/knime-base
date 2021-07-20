@@ -55,7 +55,9 @@ import org.knime.core.node.NodeSettingsWO;
  * This class holds the settings for the loop interval start node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopStartIntervalDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopStartIntervalSettings {
     private double m_from = 0;
 

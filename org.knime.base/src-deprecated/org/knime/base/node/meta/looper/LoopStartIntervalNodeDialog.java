@@ -67,7 +67,9 @@ import org.knime.core.node.NotConfigurableException;
  * This is the dialog for the interval looper node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopStartIntervalDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopStartIntervalNodeDialog extends NodeDialogPane {
     private final JTextField m_prefix = new JTextField(10);
 

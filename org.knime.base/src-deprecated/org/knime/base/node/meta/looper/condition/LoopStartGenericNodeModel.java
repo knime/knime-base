@@ -66,7 +66,9 @@ import org.knime.core.node.workflow.LoopStartNode;
  * current iteration number on the context stack.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopStartGenericDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopStartGenericNodeModel extends NodeModel implements
         LoopStartNode {
     private int m_iteration;

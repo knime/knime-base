@@ -43,13 +43,12 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24.02.2009 (meinl): created
+ *   13.02.2008 (thor): created
  */
 package org.knime.base.node.meta.looper;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -65,26 +64,25 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /**
- * This is the model for the interval loop start node. It lets the user defined
- * an interval in which a variable is increased by a certain amount in each
- * iteration.
+ * This model is the head node of a for loop.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopStartCountDynamicNodeFactory}
  */
-public class LoopStartIntervalNodeModel extends NodeModel implements
-        LoopStartNodeTerminator {
+@Deprecated(since = "4.5")
+public class LoopStartCountNodeModel extends NodeModel
+implements LoopStartNodeTerminator {
 
-    private double m_value;
+    private int m_iteration;
 
-    private final LoopStartIntervalSettings m_settings =
-            new LoopStartIntervalSettings();
+    private final LoopStartCountSettings m_settings = new LoopStartCountSettings();
 
     /**
      * Creates a new model with one input and one output port.
      */
-    public LoopStartIntervalNodeModel() {
-        super(new PortType[]{BufferedDataTable.TYPE},
-                new PortType[]{BufferedDataTable.TYPE});
+    public LoopStartCountNodeModel() {
+        super(new PortType[] {BufferedDataTable.TYPE},
+                new PortType[] {BufferedDataTable.TYPE});
     }
 
     /**
@@ -93,28 +91,12 @@ public class LoopStartIntervalNodeModel extends NodeModel implements
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
             throws InvalidSettingsException {
-        if ((m_settings.from() > m_settings.to()) && (m_settings.step() > 0)) {
-            throw new InvalidSettingsException("From must be smaller than to if step size is positive.");
-        } else if ((m_settings.from() < m_settings.to()) && (m_settings.step() < 0)) {
-            throw new InvalidSettingsException("From must be bigger than to if step size is negative.");
-        } else if (m_settings.step() == 0) {
-            throw new InvalidSettingsException("Step size is zero, this will lead to an endless loop");
+        if (m_settings.loops() < 1) {
+            throw new InvalidSettingsException("Cannot loop fewer than once");
         }
-
-        m_value = m_settings.from();
-        final String prefix = m_settings.prefix();
-        if (m_settings.integerLoop()) {
-            pushFlowVariableInt(prefix + "from", (int)Math
-                    .round(m_settings.from()));
-            pushFlowVariableInt(prefix + "to", (int)Math.round(m_settings.to()));
-            pushFlowVariableInt(prefix + "step", (int)m_settings.step());
-            pushFlowVariableInt(prefix + "value", (int)Math.round(m_value));
-        } else {
-            pushFlowVariableDouble(prefix + "from", m_settings.from());
-            pushFlowVariableDouble(prefix + "to", m_settings.to());
-            pushFlowVariableDouble(prefix + "step", m_settings.step());
-            pushFlowVariableDouble(prefix + "value", m_value);
-        }
+        assert m_iteration == 0;
+        pushFlowVariableInt("currentIteration", m_iteration);
+        pushFlowVariableInt("maxIterations", m_settings.loops());
         return inSpecs;
     }
 
@@ -129,32 +111,16 @@ public class LoopStartIntervalNodeModel extends NodeModel implements
         if (getLoopEndNode() == null) {
             // if it's null we know that this is the first time the
             // loop is being executed.
-            assert m_value == m_settings.from();
+            assert m_iteration == 0;
         } else {
-            assert m_value != m_settings.from();
-            // otherwise we do this again, and we increment our counter
-            // and we can do a quick sanity check
-            // FIXME: this test is to specific, do we need it after all?
-            // if (!(getLoopEndNode() instanceof LoopEndNodeModel)) {
-            // throw new IllegalArgumentException("Loop tail has wrong type!");
-            // }
+            assert m_iteration > 0;
+            // otherwise we do this again.
         }
         // let's also put the counts on the stack for someone else:
-        final String prefix = m_settings.prefix();
-        if (m_settings.integerLoop()) {
-            pushFlowVariableInt(prefix + "from", (int)Math.round(m_settings.from()));
-            pushFlowVariableInt(prefix + "to", (int)Math.round(m_settings.to()));
-            pushFlowVariableInt(prefix + "step", (int)m_settings.step());
-            pushFlowVariableInt(prefix + "value", (int)Math.round(m_value));
-        } else {
-            pushFlowVariableDouble(prefix + "from", m_settings.from());
-            pushFlowVariableDouble(prefix + "to", m_settings.to());
-            pushFlowVariableDouble(prefix + "step", m_settings.step());
-            pushFlowVariableDouble(prefix + "value", m_value);
-        }
-
+        pushFlowVariableInt("currentIteration", m_iteration);
+        pushFlowVariableInt("maxIterations", m_settings.loops());
         // increment counter for next iteration
-        m_value = BigDecimal.valueOf(m_value).add(BigDecimal.valueOf(m_settings.step())).doubleValue();
+        m_iteration++;
         return inData;
     }
 
@@ -163,14 +129,7 @@ public class LoopStartIntervalNodeModel extends NodeModel implements
      */
     @Override
     public boolean terminateLoop() {
-        if (m_settings.step() > 0) {
-            return m_value > m_settings.to();
-        } else if (m_settings.step() < 0) {
-            return m_value < m_settings.to();
-        } else {
-            // we never end up here --> step() == 0
-            return false;
-        }
+        return m_iteration >= m_settings.loops();
     }
 
     /**
@@ -189,7 +148,7 @@ public class LoopStartIntervalNodeModel extends NodeModel implements
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_settings.loadSettings(settings);
+        m_settings.loadSettingsFrom(settings);
     }
 
     /**
@@ -197,7 +156,7 @@ public class LoopStartIntervalNodeModel extends NodeModel implements
      */
     @Override
     protected void reset() {
-        m_value = m_settings.from();
+        m_iteration = 0;
     }
 
     /**
@@ -224,18 +183,6 @@ public class LoopStartIntervalNodeModel extends NodeModel implements
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        LoopStartIntervalSettings s = new LoopStartIntervalSettings();
-        s.loadSettings(settings);
-
-        if ((s.from() > s.to()) && (s.step() > 0)) {
-            throw new InvalidSettingsException("From must be smaller than to if step size is positive.");
-        }
-        if ((s.from() < s.to()) && (s.step() < 0)) {
-            throw new InvalidSettingsException("From must be bigger than to if step size is negative.");
-        }
-        if (s.step() == 0) {
-            throw new InvalidSettingsException("Step size is zero, this will lead to an endless loop");
-        }
-
+        new LoopStartCountSettings().loadSettingsFrom(settings);
     }
 }

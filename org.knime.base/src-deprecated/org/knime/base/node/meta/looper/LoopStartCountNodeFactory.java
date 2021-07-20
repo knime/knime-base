@@ -45,15 +45,17 @@
  */
 package org.knime.base.node.meta.looper;
 
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.core.node.NodeDialogPane;
 
 /**
  * This factory create all necessary classes for the for-loop head node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopStartCountDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class LoopStartCountNodeFactory extends
         NodeFactory<LoopStartCountNodeModel> {
     /**

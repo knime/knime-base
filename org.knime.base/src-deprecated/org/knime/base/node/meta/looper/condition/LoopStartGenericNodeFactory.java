@@ -43,43 +43,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24.02.2009 (meinl): created
+ *   02.09.2008 (thor): created
  */
-package org.knime.base.node.meta.looper;
+package org.knime.base.node.meta.looper.condition;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * This is the factory for the interval loop node.
+ * This factory creates all necessary classes for the condition loop head node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated superseded by {@link LoopStartGenericDynamicNodeFactory}
  */
-public class LoopStartIntervalNodeFactory extends
-        NodeFactory<LoopStartIntervalNodeModel> {
+@Deprecated(since = "4.5")
+public class LoopStartGenericNodeFactory extends
+        NodeFactory<LoopStartGenericNodeModel> {
     /**
      * {@inheritDoc}
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new LoopStartIntervalNodeDialog();
+        return null;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public LoopStartIntervalNodeModel createNodeModel() {
-        return new LoopStartIntervalNodeModel();
+    public LoopStartGenericNodeModel createNodeModel() {
+        return new LoopStartGenericNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<LoopStartIntervalNodeModel> createNodeView(
-            final int viewIndex, final LoopStartIntervalNodeModel nodeModel) {
+    public NodeView<LoopStartGenericNodeModel> createNodeView(
+            final int viewIndex, final LoopStartGenericNodeModel nodeModel) {
         return null;
     }
 
@@ -96,6 +98,6 @@ public class LoopStartIntervalNodeFactory extends
      */
     @Override
     protected boolean hasDialog() {
-        return true;
+        return false;
     }
 }
