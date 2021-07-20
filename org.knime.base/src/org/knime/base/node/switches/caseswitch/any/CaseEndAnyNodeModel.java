@@ -182,7 +182,7 @@ final class CaseEndAnyNodeModel extends NodeModel implements InactiveBranchConsu
         }
 
         // check compatibility of specs against first spec in list
-        if (specs.stream().noneMatch(specs.get(0)::equalStructure)) {
+        if (!specs.stream().allMatch(specs.get(0)::equalStructure)) {
             // incompatible - refuse to configure
             throw new InvalidSettingsException("The table structures of active ports are not compatible.");
         }
@@ -238,7 +238,7 @@ final class CaseEndAnyNodeModel extends NodeModel implements InactiveBranchConsu
         }
 
         // check compatibility of specs against first spec in list
-        if (tables.stream().map(BufferedDataTable::getSpec).noneMatch(tables.get(0).getSpec()::equalStructure)) {
+        if (!tables.stream().map(BufferedDataTable::getSpec).allMatch(tables.get(0).getSpec()::equalStructure)) {
             // incompatible - refuse to execute
             throw new InvalidSettingsException("The data table structures of the active ports are not compatible.");
         }
