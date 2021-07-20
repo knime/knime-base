@@ -1305,10 +1305,16 @@
       <node
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.LoopStartCountNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.meta.looper.LoopStartCountNodeFactory"
+            category-path="/flowcontrol/loopsupport"
+            factory-class="org.knime.base.node.meta.looper.LoopStartCountDynamicNodeFactory"
+            >
+      </node>
+      <node
+            after="org.knime.base.node.meta.looper.LoopStartCountDynamicNodeFactory"
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeFactory"
             >
@@ -1327,27 +1333,33 @@
             >
       </node>  
       <node
-            after="org.knime.base.node.meta.looper.columnlist2.ColumnListLoopStartNodeFactory"
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.condition.LoopStartGenericNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
-            after="org.knime.base.node.meta.looper.condition.LoopStartGenericNodeFactory"
+            after="org.knime.base.node.meta.looper.columnlist2.ColumnListLoopStartNodeFactory"
+            category-path="/flowcontrol/loopsupport"
+            factory-class="org.knime.base.node.meta.looper.condition.LoopStartGenericDynamicNodeFactory"
+            >
+      </node>
+      <node
+            after="org.knime.base.node.meta.looper.condition.LoopStartGenericDynamicNodeFactory"
             category-path="/flowcontrol/loopsupport"
             deprecated="true"
             factory-class="org.knime.base.node.flowvariable.variableloophead.LoopStartVariableNodeFactory"
             >
       </node>
       <node
-            after="org.knime.base.node.meta.looper.condition.LoopStartGenericNodeFactory"
+            after="org.knime.base.node.meta.looper.condition.LoopStartGenericDynamicNodeFactory"
             category-path="/flowcontrol/loopsupport"
             deprecated="true"
             factory-class="org.knime.base.node.meta.looper.variable.start.LoopStartVariable2NodeFactory"
             >
       </node>
       <node
-            after="org.knime.base.node.meta.looper.condition.LoopStartGenericNodeFactory"
+            after="org.knime.base.node.meta.looper.condition.LoopStartGenericDynamicNodeFactory"
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.variable.start.LoopStartVariable3NodeFactory"
             >
@@ -1516,6 +1528,12 @@
       <node
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.LoopStartIntervalNodeFactory"
+            deprecated="true"
+            >
+      </node>
+      <node
+            category-path="/flowcontrol/loopsupport"
+            factory-class="org.knime.base.node.meta.looper.LoopStartIntervalDynamicNodeFactory"
             >
       </node>
       <node

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="loop_start_generic.png" type="LoopStart" xmlns="http://knime.org/node/v4.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+    <name>Generic Loop Start</name>
+
+    <shortDescription>Generic loop start node with no termination criterion.</shortDescription>
+
+    <fullDescription>
+        <intro>
+            In combination with a "Variable Condition Loop (End)" node, you can build a loop while body is executed
+            until a certain condition on one of the flow variables is met. The condition must be set in the loop's end
+            node.
+		<p>
+			The input ports are just passed through to the output ports. You can add an arbitrary number of
+			port pairs by using the &#8220;&#8230;&#8221; menu.
+		</p>
+        </intro>
+        <link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
+            KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops
+        </link>
+    </fullDescription>
+
+    <ports>
+        <dynInPort name="Any port object" group-identifier="Pass through" insert-before="0">
+            The input data, which can be a data table or any other arbitrary port object.
+        </dynInPort>
+        <dynOutPort name="Unaltered input" group-identifier="Pass through" insert-before="0">
+            The unaltered input object
+        </dynOutPort>
+    </ports>
+</knimeNode>

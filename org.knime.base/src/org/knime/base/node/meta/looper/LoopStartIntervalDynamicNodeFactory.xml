@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="interval_variables_looper.png" type="LoopStart" xmlns="http://knime.org/node/v4.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+    <name>Interval Loop Start</name>
+
+    <shortDescription>
+        Node at the start of a loop
+	</shortDescription>
+
+    <fullDescription>
+        <intro>
+            The Interval LoopStart is the node that starts a loop which increases a variable
+            within a user-defined interval by a certain amount. This is very handy for nodes
+            inside a loop that take a continuous parameter. The current value is accessible via the
+            scope variable
+            <tt>loop_value</tt>
+            .
+            At the end of the loop you need LoopEnd, which collects the results from
+            all loop iterations. All nodes in between are executed as many times as you specify in the dialog
+            of LoopStart.
+            <p>
+                The input ports are just passed through to the output ports. You can add an arbitrary number of
+                port pairs by using the &#8220;&#8230;&#8221; menu.
+            </p>
+        </intro>
+        <option name="From">The interval start value (inclusive).</option>
+        <option name="To">The interval end value (inclusive).</option>
+        <option name="Step">
+            The step size by which the value is increased after each iteration. Negative step sizes are possible, if
+            <i>from</i>
+            is greater than
+            <i>to</i>
+        </option>
+        <option name="Loop variable is">
+            Select the type of the variable that is exposed by the node (integers, longs or doubles).
+            The node creates variables for <i>from, to, step</i> and the current <i>value.</i>
+            Keep in mind that this only affects the type of the variables. Internally doubles are used
+            to keep track of the loop state. This means that the values may be rounded to fit the specified
+            type.
+        </option>
+        <option name="Variable prefix">The prefix of the variable names</option>
+        <link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
+            KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops
+        </link>
+    </fullDescription>
+
+    <ports>
+        <dynInPort name="Any port object" group-identifier="Pass through" insert-before="0">
+            The input data, which can be a data table or any other arbitrary port object.
+        </dynInPort>
+        <dynOutPort name="Unaltered input" group-identifier="Pass through" insert-before="0">
+            The unaltered input object
+        </dynOutPort>
+    </ports>
+</knimeNode>
