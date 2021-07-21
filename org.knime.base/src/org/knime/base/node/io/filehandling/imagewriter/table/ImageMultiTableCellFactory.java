@@ -44,18 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   1 Jun 2021 (Laurin Siefermann, KNIME GmbH, Konstanz, Germany): created
+ *   21 Jul 2021 (Laurin Siefermann, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
-import org.knime.core.data.DataRow;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.image.ImageValue;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterCellFactory;
 
 /**
- * Interface for file name strategy pattern.
+ * Cell factory of the image writer table node.
  *
  * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
  */
-interface FileNameGenerator {
+public class ImageMultiTableCellFactory extends AbstractMultiTableWriterCellFactory<ImageValue> {
 
-    public String getOutputFilename(final DataRow row, final int rowIdx);
+    /**
+     * Constructor.
+     *
+     * @param outputColumnsSpecs the spec's of the created columns
+     * @param sourceColumnIndex index of source column
+     * @param overwritePolicy policy how to proceed when output file exists according to {@link FileOverwritePolicy}
+     */
+    ImageMultiTableCellFactory(final DataColumnSpec[] outputColumnsSpecs, final int sourceColumnIndex,
+        final FileOverwritePolicy overwritePolicy) {
+        super(outputColumnsSpecs, sourceColumnIndex, overwritePolicy);
+    }
+
+    @Override
+    protected void writeFile(final OutputStream outputStream, final ImageValue value) throws IOException {
+        value.getImageContent().save(outputStream);
+    }
+
+    @Override
+    protected String getOutputFileExtension(final ImageValue value) {
+        return value.getImageExtension();
+    }
 }
