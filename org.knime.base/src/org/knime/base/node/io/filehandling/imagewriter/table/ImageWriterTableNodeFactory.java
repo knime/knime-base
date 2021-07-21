@@ -48,73 +48,40 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
-import java.util.Map;
-import java.util.Optional;
-
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ConfigurableNodeFactory;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.data.image.ImageValue;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNodeFactory;
 
 /**
  * Node factory of the image writer table node.
  *
  * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
  */
-public final class ImageWriterTableNodeFactory extends ConfigurableNodeFactory<ImageWriterTableNodeModel> {
-
-    private static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
-
-    private static final String DATA_TABLE_INPUT_PORT_GRP_NAME = "Input Data Table";
+public final class ImageWriterTableNodeFactory
+    extends AbstractMultiTableWriterNodeFactory<ImageValue, ImageWriterTableNodeConfig, //
+            ImageWriterTableNodeModel, ImageWriterTableNodeDialog> {
 
     @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
-        builder.addFixedInputPortGroup(DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
-        builder.addFixedOutputPortGroup("Output Table", BufferedDataTable.TYPE);
-        return Optional.of(builder);
+    protected ImageWriterTableNodeConfig getNodeConfig(final PortsConfiguration portConfig, final String portGroupName,
+        final Class<ImageValue> dataValue) {
+        return new ImageWriterTableNodeConfig(portConfig, portGroupName, dataValue);
     }
 
     @Override
-    protected ImageWriterTableNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        return new ImageWriterTableNodeModel(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new),
-            createNodeConfig(creationConfig), getDataTableInputIdx(creationConfig));
+    protected ImageWriterTableNodeModel getNodeModel(final PortsConfiguration portConfig,
+        final ImageWriterTableNodeConfig nodeConfig, final int dataTableInputIndex) {
+        return new ImageWriterTableNodeModel(portConfig, nodeConfig, dataTableInputIndex);
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new ImageWriterTableNodeDialog(createNodeConfig(creationConfig), getDataTableInputIdx(creationConfig));
+    protected ImageWriterTableNodeDialog getDialog(final ImageWriterTableNodeConfig nodeConfig,
+        final int dataTableInputIndex) {
+        return new ImageWriterTableNodeDialog(nodeConfig, dataTableInputIndex);
     }
 
     @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<ImageWriterTableNodeModel> createNodeView(final int viewIndex,
-        final ImageWriterTableNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    private static ImageWriterTableNodeConfig createNodeConfig(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new ImageWriterTableNodeConfig(portConfig, CONNECTION_INPUT_PORT_GRP_NAME);
-    }
-
-    private static int getDataTableInputIdx(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        final Map<String, int[]> inputPortLocation = portConfig.getInputPortLocation();
-        return inputPortLocation.get(DATA_TABLE_INPUT_PORT_GRP_NAME)[0];
+    protected Class<ImageValue> getDataValueClass() {
+        return ImageValue.class;
     }
 
 }

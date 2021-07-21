@@ -48,171 +48,50 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
-import java.util.EnumSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import org.knime.core.data.image.ImageValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNodeConfig;
 
 /**
  * Node config of the image writer table node.
  *
  * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
  */
-final class ImageWriterTableNodeConfig {
-
-    private static final String CFG_OUTPUT_LOCATION = "output_location";
-
-    private static final String CFG_IMG_COLUMN_NAME = "image_column";
-
-    private static final String CFG_REMOVE_IMG_COLUMN = "remove_image_column";
-
-    private static final String CFG_USER_DEFINED_OUTPUT_FILENAME_NAME = "filename_pattern";
-
-    private static final String CFG_OUTPUT_FILENAME_COLUMN_NAME = "filename_column";
-
-    private static final String CFG_GENERATE_FILE_NAMES = "generate_file_names";
-
-    private final SettingsModelWriterFileChooser m_folderChooserModel;
-
-    private final SettingsModelString m_imgColSelectionModel;
-
-    private final SettingsModelBoolean m_removeImgColModel;
-
-    private final SettingsModelString m_userDefinedOutputFilenameModel;
-
-    private final SettingsModelColumnName m_filenameColSelectionModel;
-
-    private boolean m_isGenerateFilenameRadio;
-
-    // Allows one instance of ?, file extension will be automatically detected, no spaces are allowed in filenames.
-    private static final Pattern CFG_USER_DEFINED_FILENAME_PATTERN = Pattern.compile("^[\\w,.-]*\\?{1}[\\w,.-]*$");
+final class ImageWriterTableNodeConfig extends AbstractMultiTableWriterNodeConfig<ImageValue> {
+    private static final String WRITER_SPECIFIC_TYPE_NAME = "image";
 
     /**
-     * Constructor.
-     *
      * @param portsConfig
      * @param connectionInputPortGrouptName
+     * @param dataValueClass
      */
-    public ImageWriterTableNodeConfig(final PortsConfiguration portsConfig,
-        final String connectionInputPortGrouptName) {
-        m_folderChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
-            connectionInputPortGrouptName, EnumConfig.create(FilterMode.FOLDER),
-            EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE),
-            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
-
-        m_imgColSelectionModel = new SettingsModelString(CFG_IMG_COLUMN_NAME, null);
-
-        m_removeImgColModel = new SettingsModelBoolean(CFG_REMOVE_IMG_COLUMN, false);
-
-        m_userDefinedOutputFilenameModel = new SettingsModelString(CFG_USER_DEFINED_OUTPUT_FILENAME_NAME, "File_?") {
-
-            @Override
-            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-                super.validateSettingsForModel(settings);
-                if (!isValidUserDefinedFilename(settings.getString(CFG_USER_DEFINED_OUTPUT_FILENAME_NAME))) {
-                    throw new InvalidSettingsException("The file name pattern is not valid.");
-                }
-            }
-        };
-
-        m_filenameColSelectionModel = new SettingsModelColumnName(CFG_OUTPUT_FILENAME_COLUMN_NAME, null);
-
-        m_isGenerateFilenameRadio = true;
-        m_userDefinedOutputFilenameModel.setEnabled(m_isGenerateFilenameRadio);
-        m_filenameColSelectionModel.setEnabled(!m_isGenerateFilenameRadio);
+    protected ImageWriterTableNodeConfig(final PortsConfiguration portsConfig,
+        final String connectionInputPortGrouptName, final Class<ImageValue> dataValueClass) {
+        super(portsConfig, connectionInputPortGrouptName, dataValueClass, false);
     }
 
-    SettingsModelWriterFileChooser getFolderChooserModel() {
-        return m_folderChooserModel;
+    @Override
+    protected String getWriterSpecificTypeName() {
+        return WRITER_SPECIFIC_TYPE_NAME;
     }
 
-    SettingsModelString getImgColSelectionModel() {
-        return m_imgColSelectionModel;
+    @Override
+    protected void saveWriterSpecificSettingsForModel(final NodeSettingsWO settings) {
+        // Nothing to do
     }
 
-    SettingsModelBoolean getRemoveImgColModel() {
-        return m_removeImgColModel;
+    @Override
+    protected void loadWriterSpecificSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // Nothing to do
     }
 
-    SettingsModelString getUserDefinedOutputFilenameModel() {
-        return m_userDefinedOutputFilenameModel;
+    @Override
+    protected void validateWriterSpecificSettingsForModel(final NodeSettingsRO settings)
+        throws InvalidSettingsException {
+        // Nothing to do
     }
 
-    SettingsModelColumnName getFilenameColSelectionModel() {
-        return m_filenameColSelectionModel;
-    }
-
-    private void setGenerateFilenameRadio(final boolean generateFileNameRadio) {
-        m_isGenerateFilenameRadio = generateFileNameRadio;
-    }
-
-    boolean isGenerateFilenameRadioSelected() {
-        return m_isGenerateFilenameRadio;
-    }
-
-    void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_folderChooserModel.loadSettingsFrom(settings);
-        m_imgColSelectionModel.loadSettingsFrom(settings);
-        m_removeImgColModel.loadSettingsFrom(settings);
-
-        setGenerateFilenameRadio(settings.getBoolean(CFG_GENERATE_FILE_NAMES));
-        m_userDefinedOutputFilenameModel.loadSettingsFrom(settings);
-        m_filenameColSelectionModel.loadSettingsFrom(settings);
-    }
-
-    void saveSettingsForModel(final NodeSettingsWO settings) {
-        m_folderChooserModel.saveSettingsTo(settings);
-        m_imgColSelectionModel.saveSettingsTo(settings);
-        m_removeImgColModel.saveSettingsTo(settings);
-
-        saveFileNameRadioSelectionToSettings(settings);
-        m_userDefinedOutputFilenameModel.saveSettingsTo(settings);
-        m_filenameColSelectionModel.saveSettingsTo(settings);
-    }
-
-    void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_folderChooserModel.validateSettings(settings);
-        m_imgColSelectionModel.validateSettings(settings);
-        m_removeImgColModel.validateSettings(settings);
-
-        settings.getBoolean(CFG_GENERATE_FILE_NAMES);
-        m_userDefinedOutputFilenameModel.validateSettings(settings);
-        m_filenameColSelectionModel.validateSettings(settings);
-    }
-
-    void saveFileNameRadioSelectionForDialog(final NodeSettingsWO settings, final boolean generateFileNameRadio) {
-        setGenerateFilenameRadio(generateFileNameRadio);
-        saveFileNameRadioSelectionToSettings(settings);
-    }
-
-    void loadFileNameRadioSelectionForDialog(final NodeSettingsRO settings) {
-        setGenerateFilenameRadio(settings.getBoolean(CFG_GENERATE_FILE_NAMES, true));
-    }
-
-    private void saveFileNameRadioSelectionToSettings(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_GENERATE_FILE_NAMES, isGenerateFilenameRadioSelected());
-    }
-
-    /**
-     * Returns bool if enclosed string matches the regex for valid file name
-     *
-     * @param String A string value of the user input field
-     * @return true or false value
-     */
-    private static boolean isValidUserDefinedFilename(final String incomingFilename) {
-        final Matcher regexPatternMatcher = CFG_USER_DEFINED_FILENAME_PATTERN.matcher(incomingFilename);
-        return regexPatternMatcher.matches();
-    }
 }
