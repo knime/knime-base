@@ -76,7 +76,9 @@ import org.knime.core.node.workflow.LoopEndNode;
  *
  *
  * @author Iris Adae, University of Konstanz, Germany
+ * @deprecated superseded by {@link RecursiveLoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 class RecursiveLoopEndNodeModel extends NodeModel implements LoopEndNode {
 
     private static final int PORT_INDEX_COLLECTING_IN = 0;

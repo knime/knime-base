@@ -68,7 +68,9 @@ import org.knime.core.node.workflow.FlowVariable.Type;
  * Dialog for the recursive loop end.
  *
  * @author Iris Adae
+ * @deprecated superseded by {@link RecursiveLoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 final class RecursiveLoopEndNodeDialog extends DefaultNodeSettingsPane {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(RecursiveLoopEndNodeDialog.class);

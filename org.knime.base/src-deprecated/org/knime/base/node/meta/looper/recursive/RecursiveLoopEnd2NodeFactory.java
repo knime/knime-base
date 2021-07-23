@@ -54,7 +54,9 @@ import org.knime.core.node.NodeView;
  *
  *
  * @author Iris Adae, University of Konstanz, Germany
+ * @deprecated superseded by {@link RecursiveLoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 public class RecursiveLoopEnd2NodeFactory extends NodeFactory<RecursiveLoopEnd2NodeModel> {
 
     /**

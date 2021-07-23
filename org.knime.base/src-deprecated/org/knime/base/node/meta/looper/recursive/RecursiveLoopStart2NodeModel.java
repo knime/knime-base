@@ -48,10 +48,7 @@ package org.knime.base.node.meta.looper.recursive;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -63,20 +60,22 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.LoopStartNode;
 
 /**
- * This is the model implementation of Recursive Loop Start node.
+ * This is the model implementation of Recursive Loop Start node (2ports).
  *
  *
  * @author Iris Adae, University of Konstanz, Germany
+ * @deprecated superseded by {@link RecursiveLoopStartDynamicNodeFactory}
  */
-public class RecursiveLoopStartNodeModel extends NodeModel implements LoopStartNode {
+@Deprecated(since = "4.5")
+public class RecursiveLoopStart2NodeModel extends NodeModel implements LoopStartNode {
 
     private int m_currentiteration;
 
     /**
      * Constructor for the node model.
      */
-    protected RecursiveLoopStartNodeModel() {
-        super(1, 1);
+    protected RecursiveLoopStart2NodeModel() {
+        super(2, 2);
     }
 
     /**
@@ -86,48 +85,28 @@ public class RecursiveLoopStartNodeModel extends NodeModel implements LoopStartN
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 
-        BufferedDataTable result;
+        BufferedDataTable[] result;
         if (m_currentiteration == 0) {
-            // just output the complete data table.
-            result = inData[0];
+            // just output the complete data.
+            result = inData;
         } else {
 
-            if (!(this.getLoopEndNode() instanceof RecursiveLoopEndNodeModel)
-                    || (this.getLoopEndNode() instanceof RecursiveLoopEnd2NodeModel)) {
+            if (!(this.getLoopEndNode() instanceof RecursiveLoopEnd2NodeModel)) {
                 throw new IllegalStateException("Loop Start is not connected"
-                        + " to matching/corresponding Recursive Loop End (1 port) node.");
+                        + " to matching/corresponding Recursive Loop End (2 ports) node.");
             }
-
             //otherwise we get the data from the loop end node
-            RecursiveLoopEndNodeModel end = (RecursiveLoopEndNodeModel)getLoopEndNode();
-            result = cloneTableFromLoopEndNode(end.getInData(), exec, exec);
+            RecursiveLoopEnd2NodeModel end = (RecursiveLoopEnd2NodeModel)getLoopEndNode();
+            BufferedDataTable copiedFromEndNode1 = RecursiveLoopStartNodeModel
+                .cloneTableFromLoopEndNode(end.getInData(1), exec, exec.createSubProgress(0.5));
+            BufferedDataTable copiedFromEndNode2 = RecursiveLoopStartNodeModel
+                    .cloneTableFromLoopEndNode(end.getInData(2), exec, exec.createSubProgress(0.5));
+            result = new BufferedDataTable[]{copiedFromEndNode1, copiedFromEndNode2};
         }
         pushFlowVariableInt("currentIteration", m_currentiteration);
 
         m_currentiteration++;
-        return new BufferedDataTable[]{result};
-    }
-
-    /** Added as part of AP-13748 ("Error when saving workflow with failure in Recursive Loop End") -- it copies the
-     * table retrieved from the end node. Necessary so that the loop start node can claim ownership of the data.
-     * This code may become obsolete when AP-8712 is implemented (data created in the loop is then automatically
-     * associated with the outmost loop start node).
-     */
-    static BufferedDataTable cloneTableFromLoopEndNode(final BufferedDataTable table, final ExecutionContext exec,
-        final ExecutionMonitor progress) {
-        final BufferedDataContainer cloneContainer = exec.createDataContainer(table.getSpec(), true);
-        try (CloseableRowIterator iterator = table.iterator()) {
-            for (long rowIndex = 0L, rowCount = table.size(); iterator.hasNext(); rowIndex++) {
-                DataRow r = iterator.next();
-                // this does not "copy" file stores since they are already associated with the correct loop start node
-                cloneContainer.addRowToTable(r);
-                final long rowIndexFinal = rowIndex + 1; // only for progress message
-                progress.setProgress((double)rowIndex / rowCount,
-                    () -> String.format("Row %d/%d (\"%s\")", rowIndexFinal, rowCount, r.getKey()));
-            }
-            cloneContainer.close();
-        }
-        return cloneContainer.getTable();
+        return result;
     }
 
     /**
@@ -147,7 +126,7 @@ public class RecursiveLoopStartNodeModel extends NodeModel implements LoopStartN
 
         pushFlowVariableInt("currentIteration", m_currentiteration);
 
-        return new DataTableSpec[]{inSpecs[0]};
+        return new DataTableSpec[]{inSpecs[0], inSpecs[1]};
     }
 
     /**

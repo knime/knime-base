@@ -50,19 +50,22 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * <code>NodeFactory</code> for the Recursive Loop Start Node (2 ports).
+ * <code>NodeFactory</code> for the Recursive Loop End Node (1 port).
  *
  *
  * @author Iris Adae, University of Konstanz, Germany
+ * @deprecated superseded by {@link RecursiveLoopEndDynamicNodeFactory}
  */
-public class RecursiveLoopStart2NodeFactory extends NodeFactory<RecursiveLoopStart2NodeModel> {
+@Deprecated(since = "4.5")
+public class RecursiveLoopEndNodeFactory
+        extends NodeFactory<RecursiveLoopEndNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public RecursiveLoopStart2NodeModel createNodeModel() {
-        return new RecursiveLoopStart2NodeModel();
+    public RecursiveLoopEndNodeModel createNodeModel() {
+        return new RecursiveLoopEndNodeModel(2, 1);
     }
 
     /**
@@ -77,9 +80,9 @@ public class RecursiveLoopStart2NodeFactory extends NodeFactory<RecursiveLoopSta
      * {@inheritDoc}
      */
     @Override
-    public NodeView<RecursiveLoopStart2NodeModel> createNodeView(
+    public NodeView<RecursiveLoopEndNodeModel> createNodeView(
             final int viewIndex,
-            final RecursiveLoopStart2NodeModel nodeModel) {
+            final RecursiveLoopEndNodeModel nodeModel) {
         return null;
     }
 
@@ -88,7 +91,7 @@ public class RecursiveLoopStart2NodeFactory extends NodeFactory<RecursiveLoopSta
      */
     @Override
     public boolean hasDialog() {
-        return false;
+        return true;
     }
 
     /**
@@ -96,7 +99,7 @@ public class RecursiveLoopStart2NodeFactory extends NodeFactory<RecursiveLoopSta
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return null;
+        return new RecursiveLoopEndNodeDialog();
     }
 
 }

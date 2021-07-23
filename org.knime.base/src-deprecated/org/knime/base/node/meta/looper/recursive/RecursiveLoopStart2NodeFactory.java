@@ -50,20 +50,21 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * <code>NodeFactory</code> for the Recursive Loop Start Node.
- * 
+ * <code>NodeFactory</code> for the Recursive Loop Start Node (2 ports).
+ *
  *
  * @author Iris Adae, University of Konstanz, Germany
+ * @deprecated superseded by {@link RecursiveLoopStartDynamicNodeFactory}
  */
-public class RecursiveLoopStartNodeFactory 
-        extends NodeFactory<RecursiveLoopStartNodeModel> {
+@Deprecated(since = "4.5")
+public class RecursiveLoopStart2NodeFactory extends NodeFactory<RecursiveLoopStart2NodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public RecursiveLoopStartNodeModel createNodeModel() {
-        return new RecursiveLoopStartNodeModel();
+    public RecursiveLoopStart2NodeModel createNodeModel() {
+        return new RecursiveLoopStart2NodeModel();
     }
 
     /**
@@ -78,9 +79,9 @@ public class RecursiveLoopStartNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<RecursiveLoopStartNodeModel> createNodeView(
+    public NodeView<RecursiveLoopStart2NodeModel> createNodeView(
             final int viewIndex,
-            final RecursiveLoopStartNodeModel nodeModel) {
+            final RecursiveLoopStart2NodeModel nodeModel) {
         return null;
     }
 

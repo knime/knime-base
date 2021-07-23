@@ -55,7 +55,9 @@ import org.knime.core.node.ExecutionContext;
  *
  *
  * @author Iris Adae, University of Konstanz, Germany
+ * @deprecated superseded by {@link RecursiveLoopEndDynamicNodeFactory}
  */
+@Deprecated(since = "4.5")
 final class RecursiveLoopEnd2NodeModel extends RecursiveLoopEndNodeModel {
 
     private static final int PORT_INDEX_RESULTING_IN2 = 2;
