@@ -54,6 +54,7 @@ import org.knime.base.node.mine.svm.kernel.Kernel;
 import org.knime.base.node.mine.svm.util.DoubleVector;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * This class is the implementation of a binary SVM learning algorithm.
@@ -547,8 +548,7 @@ public class SvmAlgorithm {
                 m_iLow = i;
             }
         }
-        assert m_iUp != -1 : "Input data doesn't contain two classes";
-        assert m_iLow != -1 : "Input data doesn't contain two classes";
+        CheckUtils.checkArgument((m_iUp != -1) && (m_iLow != -1), "Input data doesn't contain two classes");
         m_fcache[m_iLow] = 1;
         m_fcache[m_iUp] = -1;
 
