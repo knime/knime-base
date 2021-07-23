@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./delegateloopstart.png" type="LoopStart" xmlns="http://knime.org/node/v4.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+    <name>Recursive Loop Start</name>
+
+    <shortDescription>
+        The loop start node for recursion. This type of loop enables you to receive two data tables from the loop end.
+    </shortDescription>
+
+    <fullDescription>
+        <intro>
+        <p>
+            The Recursive Loop node pair enables the passing of data tables from the <i>Recursive Loop End</i> back to the <i>Recursive Loop Start.</i>
+        </p>
+        <p>
+            The <i>Recursive Loop Start</i> requires initialized tables. This tables are output by the <i>Recursive Loop Start</i> in the first iteration of the loop.
+        </p>
+        <p>
+            The tables received by the corresponding <i>Recursive Loop End</i> are passed back to the <i>Recursive Loop Start</i> node.
+            Starting with the second iteration, the <i>Recursive Loop Start</i> node outputs the data as received by the <i>Recursive Loop End.</i>
+        </p>
+        <p>
+            You can add more initialized input tables and recursion output tables using the &#8220;&#8230;&#8221; menu.
+            The number of recursion ports must be the same as the number of recursion ports of the corresponding <i>Recursive
+            Loop End</i> node.
+        </p>
+        </intro>
+
+        <link href="https://www.knime.com/knime-introductory-course/chapter7/section2">
+            KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops
+        </link>
+    </fullDescription>
+
+    <ports>
+        <inPort index="0" name="Initialization data">
+                The data tables used as initial values.
+        </inPort>
+        <dynInPort name="Initialization data" group-identifier="Recursion" insert-before="0">
+                The data tables used as initial values.
+        </dynInPort>
+        <outPort index="0" name="Recursion data">
+                The data from the loop end.
+        </outPort>
+        <dynOutPort name="Recursion data" group-identifier="Recursion" insert-before="0">
+                The data from the loop end.
+        </dynOutPort>
+    </ports>
+</knimeNode>

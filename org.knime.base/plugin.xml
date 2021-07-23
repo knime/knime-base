@@ -1992,22 +1992,36 @@
       </node>
       <node
             category-path="/flowcontrol/loopsupport"
+            factory-class="org.knime.base.node.meta.looper.recursive.RecursiveLoopStartDynamicNodeFactory"
+            >
+      </node>
+      <node
+            category-path="/flowcontrol/loopsupport"
+            factory-class="org.knime.base.node.meta.looper.recursive.RecursiveLoopEndDynamicNodeFactory"
+            >
+      </node>
+      <node
+            category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.recursive.RecursiveLoopStartNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.recursive.RecursiveLoopEndNodeFactory"
+            deprecated="true"
             >
       </node>
       <node
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.recursive.RecursiveLoopStart2NodeFactory"
+            deprecated="true"
             >
       </node>
       <node
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.recursive.RecursiveLoopEnd2NodeFactory"
+            deprecated="true"
             >
       </node>
       <node
