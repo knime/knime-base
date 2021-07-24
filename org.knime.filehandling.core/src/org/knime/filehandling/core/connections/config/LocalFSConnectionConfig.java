@@ -65,9 +65,13 @@ public class LocalFSConnectionConfig extends BaseFSConnectionConfig {
 
     /**
      * Constructor that sets the KNIME workspace path as the working directory.
+     *
+     * @param isConnectedFileSystem
+     *            <code>true</code> for file systems that need to be connected via
+     *            input port
      */
-    public LocalFSConnectionConfig() {
-        super(WORKSPACE_PATH, false);
+    public LocalFSConnectionConfig(final boolean isConnectedFileSystem) {
+        super(WORKSPACE_PATH, isConnectedFileSystem);
     }
 
     /**

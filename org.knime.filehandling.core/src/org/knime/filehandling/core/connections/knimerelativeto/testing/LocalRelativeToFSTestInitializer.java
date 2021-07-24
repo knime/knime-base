@@ -56,7 +56,7 @@ import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToFileSystem;
 import org.knime.filehandling.core.connections.knimerelativeto.RelativeToPath;
-import org.knime.filehandling.core.connections.local.BasicLocalTestInitializer;
+import org.knime.filehandling.core.connections.local.fs.BasicLocalTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.WorkflowAwareFSTestInitializer;
 

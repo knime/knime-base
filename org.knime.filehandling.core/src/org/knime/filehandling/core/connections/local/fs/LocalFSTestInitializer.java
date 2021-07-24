@@ -44,41 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Dec 17, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.local.fs;
 
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
- * Wraps the platform default file system.
+ * Implementation of a local file system test initializer.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-class LocalFSConnection implements FSConnection {
+class LocalFSTestInitializer extends BasicLocalTestInitializer<LocalPath, LocalFileSystem> {
 
-    private final LocalFileSystem m_fileSystem;
-
-    LocalFSConnection(final LocalFSConnectionConfig config) {
-        m_fileSystem = new LocalFileSystem(new LocalFileSystemProvider(), config);
+    /**
+     * Creates a new instance with a test root folder in the systems temporary directory.
+     *
+     * @throws IOException
+     */
+    public LocalFSTestInitializer(final LocalFSConnection fsConnection) throws IOException {
+        super(fsConnection, ((LocalPath)fsConnection.getFileSystem().getWorkingDirectory()).getWrappedPath());
     }
 
     @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_fileSystem;
+    protected void beforeTestCaseInternal() throws IOException {
+        Files.createDirectories(getLocalTestCaseScratchDir());
     }
 
+    @SuppressWarnings("resource")
     @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        if (getFileSystem().getFileSystemCategory() == FSCategory.CONNECTED) {
-            return new LocalFileSystemBrowser(m_fileSystem, new NioFileSystemView(this));
-        } else {
-            return new LocalFileSystemBrowser(m_fileSystem);
-        }
+    protected LocalPath toFSPath(final Path localPath) {
+        return getFileSystem().getPath(localPath.toString());
     }
 }

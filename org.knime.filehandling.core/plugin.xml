@@ -84,7 +84,7 @@
    <extension
          point="org.knime.filehandling.core.FSDescriptorProvider">
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.local.LocalFSDescriptorProvider">
+            class="org.knime.filehandling.core.connections.local.fs.LocalFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
             class="org.knime.filehandling.core.connections.knimeremote.MountpointFSDescriptorProvider">
