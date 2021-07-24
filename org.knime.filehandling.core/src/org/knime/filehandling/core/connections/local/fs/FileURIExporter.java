@@ -42,53 +42,30 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Apr 30, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.local.fs;
 
-import java.nio.file.FileSystems;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.knime.filehandling.core.connections.meta.FSDescriptor;
-import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
-import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
-import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * Provides an {@link FSDescriptor} for the Local File System.
+ * {@link URIExporter} implementation using file scheme.
  *
- * @author Bjoern Lohrmann, KNIME Gmbh
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalFSDescriptorProvider extends BaseFSDescriptorProvider {
+final class FileURIExporter extends NoConfigURIExporterFactory {
 
-    /**
-     * Constructor.
-     */
-    @SuppressWarnings("resource")
-    public LocalFSDescriptorProvider() {
-        super(FSType.LOCAL_FS, //
-            new BaseFSDescriptor.Builder() //
-                .withSeparator(FileSystems.getDefault().getSeparator()) //
-                .withConnectionFactory(LocalFSConnection::new) //
-                .withCanGetPosixAttributes(runningOnUnixOrMac()) //
-                .withCanSetPosixAttributes(runningOnUnixOrMac()) //
-                .withCanCheckAccessReadOnFiles(true) //
-                .withCanCheckAccessReadOnDirectories(true) //
-                .withCanCheckAccessWriteOnFiles(true) //
-                .withCanCheckAccessWriteOnDirectories(true) //
-                .withCanCheckAccessExecuteOnFiles(true) //
-                .withCanCheckAccessExecuteOnDirectories(true) //
-                .withURIExporterFactory(URIExporterIDs.DEFAULT, FileURIExporter.getInstance()) //
-                .withURIExporterFactory(URIExporterIDs.DEFAULT_HADOOP, FileURIExporter.getInstance()) //
-                .withURIExporterFactory(URIExporterIDs.KNIME_FILE, FileURIExporter.getInstance()) //
-                .withTestInitializerProvider(new LocalFSTestInitializerProvider()) //
-                .build());
+    private static final BaseURIExporterMetaInfo META_INFO =
+        new BaseURIExporterMetaInfo("File URI", "Exports the path as file URI.");
+
+    private static final FileURIExporter INSTANCE = new FileURIExporter();
+
+    private FileURIExporter() {
+        super(META_INFO, p -> ((LocalPath)p.toAbsolutePath()).getWrappedPath().toUri());
     }
 
-    private static boolean runningOnUnixOrMac() {
-        return SystemUtils.IS_OS_UNIX || SystemUtils.IS_OS_MAC_OSX;
+    public static FileURIExporter getInstance() {
+        return INSTANCE;
     }
 }

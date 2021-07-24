@@ -71,22 +71,23 @@ public final class DefaultFSConnectionFactory {
     }
 
     public static FSConnection createLocalFSConnection() {
-        try {
-            return FSDescriptorRegistry.getFSDescriptor(FSType.LOCAL_FS) // NOSONAR connection closed later
-                .orElseThrow(() -> new IllegalStateException("Local file system is not registered")) //
-                .<LocalFSConnectionConfig> getConnectionFactory() //
-                .createConnection(new LocalFSConnectionConfig());
-        } catch (IOException ex) {
-            throw new IllegalStateException("IOException thrown where it should never happen", ex);
-        }
+        return createLocalFSConnection(false);
+    }
+
+    public static FSConnection createLocalFSConnection(final boolean isConnected) {
+        return createLocalFSConnection(new LocalFSConnectionConfig(isConnected));
     }
 
     public static FSConnection createLocalFSConnection(final String workingDir) {
+        return createLocalFSConnection(new LocalFSConnectionConfig(workingDir));
+    }
+
+    private static FSConnection createLocalFSConnection(final LocalFSConnectionConfig config) {
         try {
             return FSDescriptorRegistry.getFSDescriptor(FSType.LOCAL_FS) // NOSONAR connection closed later
-                .orElseThrow(() -> new IllegalStateException("Local file system is not registered")) //
-                .<LocalFSConnectionConfig> getConnectionFactory() //
-                .createConnection(new LocalFSConnectionConfig(workingDir));
+                    .orElseThrow(() -> new IllegalStateException("Local file system is not registered")) //
+                    .<LocalFSConnectionConfig>getConnectionFactory() //
+                    .createConnection(config);
         } catch (IOException ex) {
             throw new IllegalStateException("IOException thrown where it should never happen", ex);
         }

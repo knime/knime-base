@@ -44,42 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 2, 2021 (bjoern): created
+ *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.connections.local.fs;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * {@link FSConnectionConfig} for the local file system. It is unlikely that you will have to use this class directly.
- * To create a configured local file system, please use {@link DefaultFSConnectionFactory}.
+ * Wraps the platform default file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalFSConnectionConfig extends BaseFSConnectionConfig {
+class LocalFSConnection implements FSConnection {
 
-    private static final String WORKSPACE_PATH = System.getProperty("user.home");
+    private final LocalFileSystem m_fileSystem;
 
-    /**
-     * Constructor that sets the KNIME workspace path as the working directory.
-     *
-     * @param isConnectedFileSystem
-     *            <code>true</code> for file systems that need to be connected via
-     *            input port
-     */
-    public LocalFSConnectionConfig(final boolean isConnectedFileSystem) {
-        super(WORKSPACE_PATH, isConnectedFileSystem);
+    LocalFSConnection(final LocalFSConnectionConfig config) {
+        m_fileSystem = new LocalFileSystem(new LocalFileSystemProvider(), config);
     }
 
-    /**
-     * Constructor.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    @Override
+    public FSFileSystem<?> getFileSystem() {
+        return m_fileSystem;
+    }
+
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        if (getFileSystem().getFileSystemCategory() == FSCategory.CONNECTED) {
+            return new LocalFileSystemBrowser(m_fileSystem, new NioFileSystemView(this));
+        } else {
+            return new LocalFileSystemBrowser(m_fileSystem);
+        }
     }
 }

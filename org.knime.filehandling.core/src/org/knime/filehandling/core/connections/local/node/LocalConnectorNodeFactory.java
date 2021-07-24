@@ -42,30 +42,46 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   2021-07-23 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.local.node;
 
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
-import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * {@link URIExporter} implementation using file scheme.
+ * Factory class for the Local FS Connector node.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author Alexander Bondaletov
  */
-final class FileURIExporter extends NoConfigURIExporterFactory {
+public class LocalConnectorNodeFactory extends NodeFactory<LocalConnectorNodeModel> {
 
-    private static final BaseURIExporterMetaInfo META_INFO =
-        new BaseURIExporterMetaInfo("File URI", "Exports the path as file URI.");
-
-    private static final FileURIExporter INSTANCE = new FileURIExporter();
-
-    private FileURIExporter() {
-        super(META_INFO, p -> ((LocalPath)p.toAbsolutePath()).getWrappedPath().toUri());
+    @Override
+    public LocalConnectorNodeModel createNodeModel() {
+        return new LocalConnectorNodeModel();
     }
 
-    public static FileURIExporter getInstance() {
-        return INSTANCE;
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
     }
+
+    @Override
+    public NodeView<LocalConnectorNodeModel> createNodeView(final int viewIndex, final LocalConnectorNodeModel nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new LocalConnectorNodeDialog();
+    }
+
 }

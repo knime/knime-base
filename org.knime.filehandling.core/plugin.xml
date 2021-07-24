@@ -84,7 +84,7 @@
    <extension
          point="org.knime.filehandling.core.FSDescriptorProvider">
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.local.LocalFSDescriptorProvider">
+            class="org.knime.filehandling.core.connections.local.fs.LocalFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
             class="org.knime.filehandling.core.connections.knimeremote.MountpointFSDescriptorProvider">
@@ -107,5 +107,11 @@
       <FSDescriptorProvider
             class="org.knime.filehandling.core.connections.knimerelativeto.RelativeToWorkflowFSDescriptorProvider">
       </FSDescriptorProvider>
+   </extension>
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/io/connectors"
+            factory-class="org.knime.filehandling.core.connections.local.node.LocalConnectorNodeFactory"/>
    </extension>
 </plugin>

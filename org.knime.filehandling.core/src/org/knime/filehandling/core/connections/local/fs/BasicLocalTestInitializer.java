@@ -46,7 +46,7 @@
  * History
  *   Dec 17, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.local.fs;
 
 import java.io.IOException;
 import java.nio.file.Files;

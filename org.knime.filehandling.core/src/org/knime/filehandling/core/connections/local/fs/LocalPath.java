@@ -46,7 +46,7 @@
  * History
  *   Apr 6, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.local.fs;
 
 import java.io.File;
 import java.io.IOException;

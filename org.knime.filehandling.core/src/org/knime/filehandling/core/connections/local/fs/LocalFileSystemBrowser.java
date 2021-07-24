@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  */
-package org.knime.filehandling.core.connections.local;
+package org.knime.filehandling.core.connections.local.fs;
 
 import java.io.File;
 import java.nio.file.InvalidPathException;
