@@ -425,10 +425,10 @@ final class CreateDateTimeNodeDialog extends NodeDialogPane {
                 throw new IllegalStateException("Either duration or period must not be null!");
             }
 
-            if (compareDates(type, start, end) >= 0 && isDurationNegative) {
+            if (compareDates(type, start, end) < 0 && isDurationNegative) {
                 return Optional.of("Start is before end, but the interval is negative.");
             }
-            if (compareDates(type, start, end) < 0 && !isDurationNegative) {
+            if (compareDates(type, start, end) > 0 && !isDurationNegative) {
                 return Optional.of("Start is after end, but the interval is positive.");
             }
         }
