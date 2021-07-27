@@ -62,7 +62,7 @@ final class FileURIExporter extends NoConfigURIExporterFactory {
     private static final FileURIExporter INSTANCE = new FileURIExporter();
 
     private FileURIExporter() {
-        super(META_INFO, p -> ((LocalPath)p.toAbsolutePath()).getWrappedPath().toUri());
+        super(META_INFO, p -> ((LocalPath)p.toAbsolutePath().normalize()).getWrappedPath().toUri());
     }
 
     public static FileURIExporter getInstance() {
