@@ -44,38 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.local.fs;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Wraps the platform default file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+class LocalFSConnection implements FSConnection {
 
-    private static final String PATH_SEPARATOR = "/";
+    private final LocalFileSystem m_fileSystem;
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    LocalFSConnection(final LocalFSConnectionConfig config) {
+        m_fileSystem = new LocalFileSystem(new LocalFileSystemProvider(), config);
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    public FSFileSystem<?> getFileSystem() {
+        return m_fileSystem;
+    }
+
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        if (getFileSystem().getFileSystemCategory() == FSCategory.CONNECTED) {
+            return new LocalFileSystemBrowser(m_fileSystem, new NioFileSystemView(this));
+        } else {
+            return new LocalFileSystemBrowser(m_fileSystem);
+        }
     }
 }

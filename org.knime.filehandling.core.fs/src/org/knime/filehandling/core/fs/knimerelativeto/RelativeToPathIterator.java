@@ -42,40 +42,72 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimerelativeto;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Iterates over all the files and folders of the path on a relative-to file system.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+final class RelativeToPathIterator implements Iterator<RelativeToPath> {
 
-    private static final String PATH_SEPARATOR = "/";
+    private final RelativeToPath[] m_paths;
+
+    private int m_currIdx = 0;
 
     /**
-     * Constructor for a connected file system with the given working directory.
+     * Creates an iterator over all the files and folder in the given paths location.
      *
-     * @param workingDirectory The working directory to use.
+     * @param knimePath relative-to path to iterate over
+     * @param realPath real file system version of the path to iterate over
+     * @param filter
+     * @throws IOException on I/O errors
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    RelativeToPathIterator(final RelativeToPath knimePath, final Path realPath,
+        final Filter<? super Path> filter) throws IOException {
+
+        try (final Stream<Path> stream = Files.list(realPath)) {
+            m_paths =  stream//
+                .map(p -> (RelativeToPath)knimePath.resolve(p.getFileName().toString())) //
+                .filter(p -> {
+                    try {
+                        return filter.accept(p);
+                    } catch (final IOException ex) { // wrap exception
+                        throw new UncheckedIOException(ex);
+                    }
+                }).toArray(RelativeToPath[]::new);
+        } catch (final UncheckedIOException ex) { // unwrap exception
+            if (ex.getCause() != null) {
+                throw ex.getCause();
+            } else {
+                throw ex;
+            }
+        }
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    public boolean hasNext() {
+        return m_currIdx < m_paths.length;
+    }
+
+    @Override
+    public RelativeToPath next() {
+        if (m_currIdx >= m_paths.length) {
+            throw new NoSuchElementException();
+        }
+
+        final RelativeToPath next = m_paths[m_currIdx];
+        m_currIdx++;
+        return next;
     }
 }

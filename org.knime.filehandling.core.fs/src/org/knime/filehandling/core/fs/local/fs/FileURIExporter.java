@@ -42,40 +42,30 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.local.fs;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * {@link URIExporter} implementation using file scheme.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Sascha Wolke, KNIME GmbH
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+final class FileURIExporter extends NoConfigURIExporterFactory {
 
-    private static final String PATH_SEPARATOR = "/";
+    private static final BaseURIExporterMetaInfo META_INFO =
+        new BaseURIExporterMetaInfo("File URI", "Exports the path as file URI.");
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    private static final FileURIExporter INSTANCE = new FileURIExporter();
+
+    private FileURIExporter() {
+        super(META_INFO, p -> ((LocalPath)p.toAbsolutePath().normalize()).getWrappedPath().toUri());
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    public static FileURIExporter getInstance() {
+        return INSTANCE;
     }
 }

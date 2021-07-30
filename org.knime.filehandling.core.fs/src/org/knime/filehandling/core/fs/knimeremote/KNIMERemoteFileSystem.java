@@ -44,38 +44,84 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimeremote;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.Collections;
+
+import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.connections.base.UnixStylePathUtil;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * The Explorer-based Mountpoint file system.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+class KNIMERemoteFileSystem extends BaseFileSystem<KNIMERemotePath> {
 
-    private static final String PATH_SEPARATOR = "/";
+    static final String SEPARATOR = "/";
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    private final MountpointFSConnectionConfig m_config;
+
+    KNIMERemoteFileSystem(final MountpointFSConnectionConfig config) {
+        super(new KNIMERemoteFileSystemProvider(), //
+            0, //
+            config.getWorkingDirectory(), //
+            config.createFSLocationSpec());
+
+        m_config = config;
+    }
+
+    @Override
+    public String getSeparator() {
+        return SEPARATOR;
+    }
+
+    @Override
+    public Iterable<Path> getRootDirectories() {
+        return Collections.singletonList(new KNIMERemotePath(this, URI.create(UnixStylePathUtil.SEPARATOR)));
+    }
+
+    @Override
+    public KNIMERemotePath getPath(final String first, final String... more) {
+        return new KNIMERemotePath(this, first, more);
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * Returns the mount point of this remote KNIME file system.
+     *
+     * @return the mount point of this remote KNIME file system
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    String getMountpoint() {
+        return m_config.getMountID();
+    }
+
+    URI getKNIMEProtocolURL() {
+        try {
+            return new URI("knime", m_config.getMountID(), null, null);
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Illegal mountpoint: " + m_config.getMountID(), ex);
+        }
+    }
+
+    /**
+     * Returns the default directory of this file system.
+     *
+     * @return the default directory of this file system
+     */
+    public KNIMERemotePath getDefaultDirectory() {
+        return new KNIMERemotePath(this,
+            MountPointFileSystemAccessService.instance().getDefaultDirectory(getKNIMEProtocolURL()));
+    }
+
+    @Override
+    public void prepareClose() {
+        //Nothing to do.
     }
 }

@@ -44,38 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Aug 29, 2019 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.url;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.nio.file.attribute.FileStoreAttributeView;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Dummy singleton {@link FileStoreAttributeView} implementation.s
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+final class URIFileStoreAttributeView implements FileStoreAttributeView {
 
-    private static final String PATH_SEPARATOR = "/";
+    private static final URIFileStoreAttributeView SINGLETON_INSTANCE = new URIFileStoreAttributeView();
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    private URIFileStoreAttributeView() {
+    }
+
+    @Override
+    public String name() {
+        return "CustomURIFileStoreAttributeView";
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * @return the singleton instance of this {@link URIFileStoreAttributeView}.
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    static URIFileStoreAttributeView getInstance() {
+        return SINGLETON_INSTANCE;
     }
 }

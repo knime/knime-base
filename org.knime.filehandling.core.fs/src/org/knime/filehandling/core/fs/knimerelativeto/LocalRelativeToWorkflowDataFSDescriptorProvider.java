@@ -46,36 +46,29 @@
  * History
  *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimerelativeto;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.fs.knimerelativeto.testing.RelativeToWorkflowDataFSTestInitializerProvider;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+public class LocalRelativeToWorkflowDataFSDescriptorProvider extends RelativeToFSDescriptorProvider {
 
     /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
+     * Constructor.
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
-    }
-
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    public LocalRelativeToWorkflowDataFSDescriptorProvider() {
+        super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(LocalRelativeToWorkflowDataFSConnection::new,
+                    new LocalRelativeToFSConnectionConfig()) // DefaultFSConnectionFactory.createRelativeToConnection() will pass null
+                .withTestInitializerProvider(new RelativeToWorkflowDataFSTestInitializerProvider()));
     }
 }

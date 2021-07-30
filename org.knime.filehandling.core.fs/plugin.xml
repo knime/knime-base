@@ -1,4 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+	<extension
+         point="org.knime.filehandling.core.FSDescriptorProvider">
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.local.fs.LocalFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.knimeremote.MountpointFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.url.URIFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.knimerelativeto.LocalRelativeToMountpointFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.knimerelativeto.LocalRelativeToWorkflowFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.knimerelativeto.LocalRelativeToWorkflowDataFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.knimerelativeto.RelativeToMountpointFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.knimerelativeto.RelativeToWorkflowFSDescriptorProvider">
+      </FSDescriptorProvider>
+   </extension>
 </plugin>

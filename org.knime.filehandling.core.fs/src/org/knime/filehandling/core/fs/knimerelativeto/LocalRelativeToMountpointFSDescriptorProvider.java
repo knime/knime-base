@@ -46,36 +46,33 @@
  * History
  *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimerelativeto;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.fs.knimerelativeto.testing.LocalRelativeToMountpointFSTestInitializerProvider;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+public class LocalRelativeToMountpointFSDescriptorProvider extends RelativeToFSDescriptorProvider {
 
-    private static final String PATH_SEPARATOR = "/";
-
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
-    }
+    static final FSType FS_TYPE =
+        FSTypeRegistry.getOrCreateFSType("knime-local-relative-mountpoint", "Relative to Mountpoint (Local)");
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * Constructor.
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    public LocalRelativeToMountpointFSDescriptorProvider() {
+        super(FS_TYPE, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(LocalRelativeToMountpointFSConnection::new,
+                    new LocalRelativeToFSConnectionConfig()) // DefaultFSConnectionFactory.createRelativeToConnection() will pass null
+                .withTestInitializerProvider(new LocalRelativeToMountpointFSTestInitializerProvider(FS_TYPE)));
     }
 }

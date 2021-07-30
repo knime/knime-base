@@ -44,38 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Mar 16, 2021 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.url;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * URI Exporter Factory for Custom URIs
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+final class CustomURIExporterFactory extends NoConfigURIExporterFactory {
 
-    private static final String PATH_SEPARATOR = "/";
+    static final URIExporterID ID = new URIExporterID("knime-customurl");
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
-    }
+    private static final BaseURIExporterMetaInfo META_INFO =
+        new BaseURIExporterMetaInfo("Custom/KNIME URL", "Provides the Custom/KNIME URL");
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    static final CustomURIExporterFactory INSTANCE = new CustomURIExporterFactory();
+
+    private CustomURIExporterFactory() {
+        super(META_INFO, p -> ((URIPath)p).getURI());
     }
 }

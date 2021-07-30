@@ -3,6 +3,7 @@
 <plugin>
    <extension-point id="org.knime.filehandling.core.MountPointFileSystemAccess" name="MountPointFileSystemAccess" schema="schema/org.knime.filehandling.core.MountPointFileSystemAccess.exsd"/>
    <extension-point id="org.knime.filehandling.core.FSDescriptorProvider" name="FSDescriptorProvider" schema="schema/FSDescriptorProvider.exsd"/>
+   <extension-point id="org.knime.filehandling.core.ConvenienceFileSystemsAccess" name="ConvenienceFileSystemsAccess" schema="schema/org.knime.filehandling.core.ConvenienceFileSystemsAccess.exsd"/>
    
    <extension
          point="org.knime.workbench.repository.categories">
@@ -80,33 +81,6 @@
       <VariableType
             extension="org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType$FSLocationSpecVariableTypeExtension">
       </VariableType>
-   </extension>
-   <extension
-         point="org.knime.filehandling.core.FSDescriptorProvider">
-      <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.local.fs.LocalFSDescriptorProvider">
-      </FSDescriptorProvider>
-      <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.knimeremote.MountpointFSDescriptorProvider">
-      </FSDescriptorProvider>
-      <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.url.URIFSDescriptorProvider">
-      </FSDescriptorProvider>
-      <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToMountpointFSDescriptorProvider">
-      </FSDescriptorProvider>
-      <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowFSDescriptorProvider">
-      </FSDescriptorProvider>
-      <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.knimerelativeto.LocalRelativeToWorkflowDataFSDescriptorProvider">
-      </FSDescriptorProvider>
-      <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.knimerelativeto.RelativeToMountpointFSDescriptorProvider">
-      </FSDescriptorProvider>
-      <FSDescriptorProvider
-            class="org.knime.filehandling.core.connections.knimerelativeto.RelativeToWorkflowFSDescriptorProvider">
-      </FSDescriptorProvider>
    </extension>
    <extension
          point="org.knime.workbench.repository.nodes">

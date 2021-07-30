@@ -44,38 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimeremote;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.Path;
+import java.util.Iterator;
+import java.util.List;
+
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Iterates over all the files and folders of the path on a remote KNIME mount point.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+final class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
 
-    private static final String PATH_SEPARATOR = "/";
+    private final KNIMERemoteFileSystem m_fileSystem;
+
+    private Iterator<KNIMERemotePath> m_iterator;
 
     /**
-     * Constructor for a connected file system with the given working directory.
+     * Creates an iterator over all the files and folder in the given paths location.
      *
-     * @param workingDirectory The working directory to use.
+     * @param path destination to iterate over
+     * @param filter
+     * @throws IOException
+     * @throws UncheckedIOException on I/O errors
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    KNIMERemotePathIterator(final KNIMERemotePath path, final Filter<? super Path> filter) throws IOException {
+        final KNIMERemotePath knimePath = path;
+        m_fileSystem = knimePath.getFileSystem();
+
+        final List<URI> uriList = MountPointFileSystemAccessService.instance().listFiles(path.toKNIMEProtocolURI());
+        m_iterator = uriList.stream()
+            .map(p -> new KNIMERemotePath(m_fileSystem, p))
+            .filter(p -> {
+                try {
+                    return filter.accept(p);
+                } catch (final IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }})
+            .iterator();
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * {@inheritDoc}
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    public boolean hasNext() {
+        return m_iterator.hasNext();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public KNIMERemotePath next() {
+        return m_iterator.next();
+    }
+
 }

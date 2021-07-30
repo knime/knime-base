@@ -44,38 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Dec 17, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.local.fs;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Implementation of a local file system test initializer.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+class LocalFSTestInitializer extends BasicLocalTestInitializer<LocalPath, LocalFileSystem> {
 
     /**
-     * Constructor for a connected file system with the given working directory.
+     * Creates a new instance with a test root folder in the systems temporary directory.
      *
-     * @param workingDirectory The working directory to use.
+     * @throws IOException
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    public LocalFSTestInitializer(final LocalFSConnection fsConnection) throws IOException {
+        super(fsConnection, ((LocalPath)fsConnection.getFileSystem().getWorkingDirectory()).getWrappedPath());
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    protected void beforeTestCaseInternal() throws IOException {
+        Files.createDirectories(getLocalTestCaseScratchDir());
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    protected LocalPath toFSPath(final Path localPath) {
+        return getFileSystem().getPath(localPath.toString());
     }
 }
