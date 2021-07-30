@@ -46,36 +46,41 @@
  * History
  *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimerelativeto;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_MOUNTPOINT}, that provides either a local or
+ * server-side Relative-to {@link FSDescriptor}, depending on the context of the calling thread.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+public class RelativeToMountpointFSDescriptorProvider implements FSDescriptorProvider {
 
-    private static final String PATH_SEPARATOR = "/";
+    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-mountpoint";
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    @Override
+    public FSType getFSType() {
+        return FSType.RELATIVE_TO_MOUNTPOINT;
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    public FSDescriptor getFSDescriptor() {
+        FSType fsType = LocalRelativeToMountpointFSDescriptorProvider.FS_TYPE;
+
+        if (WorkflowContextUtil.isServerContext()) {
+            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
+                .orElseThrow(
+                    () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
+        }
+
+        return FSDescriptorRegistry.getFSDescriptor(fsType) //
+            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
     }
 }

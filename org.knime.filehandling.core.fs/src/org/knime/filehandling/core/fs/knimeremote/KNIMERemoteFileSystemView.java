@@ -44,38 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Nov 12, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimeremote;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * File System view for the Explorer-based Mountpoint file system.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+class KNIMERemoteFileSystemView extends NioFileSystemView {
 
     /**
-     * Constructor for a connected file system with the given working directory.
+     * File System view for {@link KNIMERemoteFileSystem}
      *
-     * @param workingDirectory The working directory to use.
+     * @param fileSystem the {@link KNIMERemoteFileSystem}
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    KNIMERemoteFileSystemView(final KNIMERemoteFileSystem fileSystem) {
+        super(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getDefaultDirectory());
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
-    }
 }

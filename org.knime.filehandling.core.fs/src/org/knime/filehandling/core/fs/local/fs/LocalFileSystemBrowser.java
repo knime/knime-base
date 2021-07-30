@@ -43,39 +43,81 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.local.fs;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.File;
+import java.nio.file.InvalidPathException;
+
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileSystemView;
+import javax.swing.filechooser.FileView;
+
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * A file system browser that makes use of the {@link JFileChooser} to browse the local file system.
+ *
+ * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
 
     /**
-     * Constructor for a connected file system with the given working directory.
      *
-     * @param workingDirectory The working directory to use.
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(LocalFileSystemBrowser.class);
+
+    private final FileSystemView m_fileSystemView;
+
+    private final LocalFileSystem m_fileSystem;
+
+    /**
+     * Constructor that will use the system default {@link FileSystemView}.
+     *
+     * @param fileSystem the {@link LocalFileSystem} to resolve paths with
+     */
+    public LocalFileSystemBrowser(final LocalFileSystem fileSystem) {
+        this(fileSystem, null);
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * Constructor that allows to pass in a custom {@link FileSystemView}.
+     *
+     * @param fileSystem the {@link LocalFileSystem} to resolve paths with
+     * @param fileSystemView to use in the {@link JFileChooser}
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    public LocalFileSystemBrowser(final LocalFileSystem fileSystem, final FileSystemView fileSystemView) {
+        m_fileSystemView = fileSystemView;
+        m_fileSystem = fileSystem;
     }
+
+    @Override
+    public boolean isCompatible() {
+        return NodeContext.getContext().getNodeContainer() != null;
+    }
+
+    @Override
+    protected FileSystemView getFileSystemView() {
+        return m_fileSystemView;
+    }
+
+    @Override
+    protected FileView getFileView() {
+        return null;
+    }
+
+    @Override
+    protected File createFileFromPath(final String path) {
+        try {
+            return m_fileSystem.getPath(path).toAbsolutePath().toFile();
+        } catch (InvalidPathException ex) {
+            LOGGER.debug(String.format("Creating a path from the string '%s' failed.", path), ex);
+            return null;
+        }
+    }
+
 }

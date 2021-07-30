@@ -42,40 +42,46 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimerelativeto.testing;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.IOException;
+import java.util.Map;
+
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.fs.knimerelativeto.BaseRelativeToFileSystem;
+import org.knime.filehandling.core.fs.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
+import org.knime.filehandling.core.fs.knimerelativeto.export.RelativeToFileSystemConstants;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * {@link FSTestInitializerProvider} for testing the workflow data area. It will create a
+ * {@link FSCategory#CONNECTED} file system with a randomized working directory.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+public final class RelativeToWorkflowDataFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
     /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
+     * Constructor.
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    public RelativeToWorkflowDataFSTestInitializerProvider() {
+        super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA,
+            RelativeToFileSystemConstants.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC);
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @SuppressWarnings("resource")
+    @Override
+    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
+        throws IOException {
+
+        final String workingDir = generateRandomizedWorkingDir(BaseRelativeToFileSystem.PATH_SEPARATOR,
+            BaseRelativeToFileSystem.PATH_SEPARATOR);
+        final LocalRelativeToFSConnectionConfig config = new LocalRelativeToFSConnectionConfig(workingDir);
+        return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(config));
     }
 }

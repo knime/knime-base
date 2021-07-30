@@ -44,38 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Jun 4, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimerelativeto;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.filehandling.core.connections.config.LocalRelativeToFSConnectionConfig;
+import org.knime.filehandling.core.testing.WorkflowTestUtil;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Tests the {@link LocalRelativeToFileSystem}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+public class LocalRelativeToFileSystemTestBase {
 
-    private static final String PATH_SEPARATOR = "/";
+    @Rule
+    public final TemporaryFolder m_tempFolder = new TemporaryFolder();
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    File m_mountpointRoot;
+
+    WorkflowManager m_workflowManager;
+
+    @Before
+    public void beforeTestCase() throws IOException {
+        m_mountpointRoot = m_tempFolder.newFolder("mountpoint-root");
+        final Path currentWorkflow = WorkflowTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "current-workflow");
+        WorkflowTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "other-workflow");
+        m_workflowManager = WorkflowTestUtil.getWorkflowManager(m_mountpointRoot, currentWorkflow, false);
+        NodeContext.pushContext(m_workflowManager);
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @After
+    public void afterTestCase() {
+        try {
+            WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
+        } finally {
+            NodeContext.removeLastContext();
+        }
+    }
+
+    @SuppressWarnings("resource")
+    static LocalRelativeToFileSystem getMountpointRelativeFS() throws IOException {
+        return new LocalRelativeToMountpointFSConnection(new LocalRelativeToFSConnectionConfig()) //
+                .getFileSystem(); // NOSONAR must not be closed here
+    }
+
+    @SuppressWarnings("resource")
+    static LocalRelativeToFileSystem getWorkflowRelativeFS() throws IOException {
+        return new LocalRelativeToWorkflowFSConnection(new LocalRelativeToFSConnectionConfig()) //
+                .getFileSystem(); // NOSONAR must not be closed here
     }
 }

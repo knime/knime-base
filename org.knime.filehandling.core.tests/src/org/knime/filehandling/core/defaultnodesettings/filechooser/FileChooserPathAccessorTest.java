@@ -69,12 +69,12 @@ import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.knimerelativeto.testing.LocalRelativeToTestUtil;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FilterOptionsSettings;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.testing.WorkflowTestUtil;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -136,7 +136,7 @@ public class FileChooserPathAccessorTest {
      */
     @Test
     public void testLinkBehaviorOfGetFSPaths() throws IOException, InvalidSettingsException {
-        final WorkflowManager workflowManager = LocalRelativeToTestUtil.createAndLoadDummyWorkflow(m_tempDir);
+        final WorkflowManager workflowManager = WorkflowTestUtil.createAndLoadDummyWorkflow(m_tempDir);
         FilterMode filterMode = FilterMode.FILES_IN_FOLDERS;
         when(m_portsConfig.getInputPortLocation()).thenReturn(Collections.emptyMap());
         SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("test", m_portsConfig,
@@ -223,7 +223,7 @@ public class FileChooserPathAccessorTest {
             new TestConfig(filterMode, FilterOption.SUBFOLDERS, FilterOption.FOLLOW, FilterOption.SPECIAL), m_fileLink,
             m_folderLink, m_folderLinkToContentFile, m_ordinaryFile);
 
-        LocalRelativeToTestUtil.shutdownWorkflowManager(workflowManager);
+        WorkflowTestUtil.shutdownWorkflowManager(workflowManager);
     }
 
     private static void testGetFSPathsBehavior(final SettingsModelReaderFileChooser settingsModel,

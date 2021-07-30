@@ -44,38 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Jun 2, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.url;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * {@link FSDescriptorProvider} implementation for the Custom/KNIME URL file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+public class URIFSDescriptorProvider extends BaseFSDescriptorProvider {
 
     /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
+     * Constructor.
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
-    }
-
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    public URIFSDescriptorProvider() {
+        super(FSType.CUSTOM_URL, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(URIFSConnection::new) //
+                .withCanBrowse(false) //
+                .withCanCreateDirectories(false) //
+                .withCanDeleteDirectories(false) //
+                .withCanDeleteFiles(false) //
+                .withCanListDirectories(false) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, CustomURIExporterFactory.INSTANCE) //
+                .withURIExporterFactory(CustomURIExporterFactory.ID, CustomURIExporterFactory.INSTANCE) //
+                .build());
     }
 }

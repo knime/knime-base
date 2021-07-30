@@ -44,38 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Nov 12, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimeremote;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import javax.swing.filechooser.FileView;
+
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileView;
+import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * File system browser for the Explorer-based Mountpoint file system.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+class KNIMERemoteFileSystemBrowser extends NioFileSystemBrowser {
 
     /**
-     * Constructor for a connected file system with the given working directory.
+     * Creates a file system browser for remote KNIME mount points.
      *
-     * @param workingDirectory The working directory to use.
+     * @param fileSystemView the file system view to wrap
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    KNIMERemoteFileSystemBrowser(final NioFileSystemView fileSystemView) {
+        super(fileSystemView);
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * {@inheritDoc}
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    protected FileView getFileView() {
+        return new WorkflowAwareFileView();
     }
 }

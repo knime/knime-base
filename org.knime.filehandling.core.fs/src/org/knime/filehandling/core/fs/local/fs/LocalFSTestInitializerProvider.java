@@ -44,38 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Dec 18, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.local.fs;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
+
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Test initializer provider for the local file system.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+class LocalFSTestInitializerProvider implements FSTestInitializerProvider {
 
-    private static final String PATH_SEPARATOR = "/";
-
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    @SuppressWarnings("resource")
+    @Override
+    public LocalFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
+        final Path workingDir = Files.createTempDirectory("knime-localfs-test").toAbsolutePath();
+        final LocalFSConnection fsConn =
+            new LocalFSConnection(new LocalFSConnectionConfig(workingDir.toString()));
+        return new LocalFSTestInitializer(fsConn);
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    public FSType getFSType() {
+        return FSType.LOCAL_FS;
+    }
+
+    @Override
+    public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
+        return LocalFileSystem.CONNECTED_FS_LOCATION_SPEC;
     }
 }

@@ -42,40 +42,45 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimeremote;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import static org.junit.Assert.assertEquals;
 
-/**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
- *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
- */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-    private static final String PATH_SEPARATOR = "/";
+import org.junit.Before;
+import org.junit.Test;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+public class KNIMERemotePathTest {
+
+    private KNIMERemoteFileSystemProvider m_fsProvider;
+
+    private KNIMERemoteFileSystem m_fs;
+
+    @Before
+    public void setup() {
+        m_fsProvider = new KNIMERemoteFileSystemProvider();
+        m_fs = new KNIMERemoteFileSystem(new MountpointFSConnectionConfig("LOCAL"));
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Test
+    public void get_url_when_hash_sign_in_path() throws URISyntaxException, MalformedURLException {
+        get_url_from_path("/somepathwith#hashsign");
     }
+
+    @Test
+    public void get_url_when_hash_signs_in_path() throws URISyntaxException, MalformedURLException {
+        get_url_from_path("/some#path#with#hash#signs");
+    }
+
+    private void get_url_from_path(final String path) throws URISyntaxException, MalformedURLException {
+        final KNIMERemotePath knimePath = new KNIMERemotePath(m_fs, path);
+        final URI uri = knimePath.toKNIMEProtocolURI();
+        assertEquals(path, uri.getPath());
+    }
+
 }

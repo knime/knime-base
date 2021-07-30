@@ -44,38 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Aug 8, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.url;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Creates a pseudo file system that allows to read user-provided URLs.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+class URIFSConnection implements FSConnection {
 
-    private static final String PATH_SEPARATOR = "/";
+    final URIFileSystem m_uriFileSystem;
 
     /**
-     * Constructor for a connected file system with the given working directory.
+     * Constructor.
      *
-     * @param workingDirectory The working directory to use.
+     * @param config The file system configuration to use.
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    URIFSConnection(final URIFSConnectionConfig config) {
+        CheckUtils.checkArgumentNotNull(config.getURI(), "URI must not be provided");
+        CheckUtils.checkArgumentNotNull(config.getTimeout(), "Timeout must be provided");
+        CheckUtils.checkArgument(config.getTimeout().toMillis() > 0, "Timeout must be positive");
+        CheckUtils.checkArgument(config.getTimeout().toMillis() <= Integer.MAX_VALUE, "Timeout must be an integer number");
+        m_uriFileSystem = new URIFileSystem(config);
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    public FSFileSystem<?> getFileSystem() {
+        return m_uriFileSystem;
+    }
+
+    @Override
+    public boolean supportsBrowsing() {
+        return false;
+    }
+
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        return null;
     }
 }

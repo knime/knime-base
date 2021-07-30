@@ -44,38 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Apr 30, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.local.fs;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.nio.file.FileSystems;
+
+import org.apache.commons.lang3.SystemUtils;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * Provides an {@link FSDescriptor} for the Local File System.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Bjoern Lohrmann, KNIME Gmbh
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+public class LocalFSDescriptorProvider extends BaseFSDescriptorProvider {
 
     /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
+     * Constructor.
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    @SuppressWarnings("resource")
+    public LocalFSDescriptorProvider() {
+        super(FSType.LOCAL_FS, //
+            new BaseFSDescriptor.Builder() //
+                .withSeparator(FileSystems.getDefault().getSeparator()) //
+                .withConnectionFactory(LocalFSConnection::new) //
+                .withCanGetPosixAttributes(runningOnUnixOrMac()) //
+                .withCanSetPosixAttributes(runningOnUnixOrMac()) //
+                .withCanCheckAccessReadOnFiles(true) //
+                .withCanCheckAccessReadOnDirectories(true) //
+                .withCanCheckAccessWriteOnFiles(true) //
+                .withCanCheckAccessWriteOnDirectories(true) //
+                .withCanCheckAccessExecuteOnFiles(true) //
+                .withCanCheckAccessExecuteOnDirectories(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, FileURIExporter.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT_HADOOP, FileURIExporter.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.KNIME_FILE, FileURIExporter.getInstance()) //
+                .withTestInitializerProvider(new LocalFSTestInitializerProvider()) //
+                .build());
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    private static boolean runningOnUnixOrMac() {
+        return SystemUtils.IS_OS_UNIX || SystemUtils.IS_OS_MAC_OSX;
     }
 }

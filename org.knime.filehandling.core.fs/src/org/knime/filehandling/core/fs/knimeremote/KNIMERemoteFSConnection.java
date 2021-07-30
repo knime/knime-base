@@ -44,38 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Apr 6, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimeremote;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * {@link FSConnection} for the Explorer-based Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+final class KNIMERemoteFSConnection implements FSConnection {
 
-    private static final String PATH_SEPARATOR = "/";
+    private final KNIMERemoteFileSystem m_fileSystem;
 
-    /**
-     * Constructor for a connected file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    private final KNIMERemoteFileSystemBrowser m_browser;
+
+    public KNIMERemoteFSConnection(final MountpointFSConnectionConfig config) {
+        m_fileSystem = new KNIMERemoteFileSystem(config);
+
+        try {
+            boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(m_fileSystem.getKNIMEProtocolURL());
+            if (isReadable) {
+                final KNIMERemoteFileSystemView fsView = new KNIMERemoteFileSystemView(m_fileSystem);
+                m_browser = new KNIMERemoteFileSystemBrowser(fsView);
+            } else {
+                m_browser = null;
+            }
+        } catch (IOException ex) {
+            // should never happen
+            throw new UncheckedIOException(ex);
+        }
     }
 
-    /**
-     * Constructor for a convenience file system with the default working directory.
-     */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    public FSFileSystem<?> getFileSystem() {
+        return m_fileSystem;
+    }
+
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        return m_browser;
     }
 }

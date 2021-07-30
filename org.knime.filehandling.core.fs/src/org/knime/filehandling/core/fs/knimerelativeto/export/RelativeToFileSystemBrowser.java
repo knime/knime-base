@@ -44,38 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimerelativeto.export;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import javax.swing.filechooser.FileView;
+
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileView;
+import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
+import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative-to file system.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Sascha Wolke, KNIME GmbH
  * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+public final class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
 
-    private static final String PATH_SEPARATOR = "/";
+    private final FSFileSystem<?> m_fileSystem;
 
     /**
-     * Constructor for a connected file system with the given working directory.
+     * Creates a new local KNIME relative-to file system browser. The "home directory" and the initial directory of the
+     * browser are the working directory of the given file system.
      *
-     * @param workingDirectory The working directory to use.
+     * @param fileSystem the file system to use
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem) {
+        this(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getWorkingDirectory());
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * Creates a new local KNIME relative-to file system browser. The "home directory" and the "default directory" of
+     * the browser are the working directory of the given file system.
+     *
+     * @param fileSystem the file system to use
+     * @param homeDir The "home directory" that the browser jumps to when the user presses the "home" button.
+     * @param defaultDir The default directory, where the user starts to browse.
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
+        final FSPath defaultDir) {
+        super(new NioFileSystemView(fileSystem, defaultDir, homeDir));
+        m_fileSystem = fileSystem;
+    }
+
+    @Override
+    protected FileView getFileView() {
+        return new WorkflowAwareFileView();
+    }
+
+    /**
+     * Convert the selected file to a relative path in workflow relative mode.
+     */
+    @Override
+    protected String postprocessSelectedFilePath(final String selectedFile) {
+        return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
     }
 }

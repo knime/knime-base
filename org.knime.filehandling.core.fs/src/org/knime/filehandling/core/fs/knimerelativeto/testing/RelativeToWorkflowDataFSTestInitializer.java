@@ -44,38 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Jul 1, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knimerelativeto.testing;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.fs.knimerelativeto.LocalRelativeToWorkflowDataFSConnection;
+import org.knime.filehandling.core.testing.WorkflowTestUtil;
 
 /**
- * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
- * class directly. To create a configured Relative-to file system, please use {@link DefaultFSConnectionFactory}.
+ * It will create a {@link FSCategory#CONNECTED} file system with a randomized working directory. *
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public class LocalRelativeToFSConnectionConfig extends BaseFSConnectionConfig {
-
-    private static final String PATH_SEPARATOR = "/";
+final class RelativeToWorkflowDataFSTestInitializer extends LocalRelativeToFSTestInitializer {
 
     /**
-     * Constructor for a connected file system with the given working directory.
+     * Creates a new instance.
      *
-     * @param workingDirectory The working directory to use.
+     * @param fsConnection
      */
-    public LocalRelativeToFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    RelativeToWorkflowDataFSTestInitializer(final LocalRelativeToWorkflowDataFSConnection fsConnection) {
+        super(fsConnection);
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * We override this method because we actually don't have to load any workflow.
      */
-    public LocalRelativeToFSConnectionConfig() {
-        super(PATH_SEPARATOR, false);
+    @Override
+    protected void beforeTestCaseInternal() throws IOException {
+        Files.createDirectories(getLocalTestCaseScratchDir());
+    }
+
+    /**
+     * We override this method because we actually don't have to unload any workflow.
+     */
+    @SuppressWarnings("resource")
+    @Override
+    protected void afterTestCaseInternal() throws IOException {
+        WorkflowTestUtil.clearDirectoryContents(getFileSystem().getLocalRoot());
     }
 }
