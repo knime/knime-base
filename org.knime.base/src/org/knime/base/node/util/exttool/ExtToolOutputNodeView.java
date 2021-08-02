@@ -197,8 +197,8 @@ public abstract class ExtToolOutputNodeView<T extends ExtToolOutputNodeModel>
 
         try {
             // insertString is thread safe
-            doc.insertString(doc.getEndPosition().getOffset(), s, null);
-            doc.insertString(doc.getEndPosition().getOffset(), "\n", null);
+            doc.insertString(doc.getLength(), s, null);
+            doc.insertString(doc.getLength(), "\n", null);
             m_numOfLines++;
             if (m_numOfLines > CommandExecution.MAX_OUTLINES_STORED) {
                 removefirstLine();
