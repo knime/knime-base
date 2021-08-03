@@ -49,6 +49,7 @@ Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.node.table.reader.type.hierarchy,
  org.knime.filehandling.core.node.table.reader.type.mapping,
  org.knime.filehandling.core.node.table.reader.util,
+ org.knime.filehandling.core.node.table.writer,
  org.knime.filehandling.core.port,
  org.knime.filehandling.core.testing,
  org.knime.filehandling.core.util
