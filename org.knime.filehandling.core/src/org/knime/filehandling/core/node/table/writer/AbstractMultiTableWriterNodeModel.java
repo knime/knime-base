@@ -103,7 +103,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.Mess
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiTableWriterNodeConfig<? extends DataValue>, //
+public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiTableWriterNodeConfig<? extends DataValue, C>, //
         F extends AbstractMultiTableWriterCellFactory<? extends DataValue>>
     extends NodeModel {
 
@@ -168,7 +168,7 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        final DataTableSpec dataTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
+        final var dataTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
 
         autoGuessSourceColumn(dataTableSpec);
         validateFilenameColumnExistence(dataTableSpec, m_filenameColumnSelection.getStringValue());
@@ -188,7 +188,7 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
     }
 
     private ColumnRearranger createColumnRearranger(final DataTableSpec in) {
-        final ColumnRearranger c = new ColumnRearranger(in);
+        final var c = new ColumnRearranger(in);
         c.append(m_multiFileWriterCellFactory);
         if (m_removeSourceColumn.getBooleanValue()) {
             c.remove(m_sourceColumnSelection.getStringValue());
@@ -264,15 +264,14 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
     private DataColumnSpec[] getNewColumnsSpec(final DataTableSpec spec) {
         final FSLocationSpec location = m_outputLocationSettings.getLocation();
 
-        final FSLocationValueMetaData metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
+        final var metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
             location.getFileSystemSpecifier().orElse(null));
 
         final String newColName = DataTableSpec.getUniqueColumnName(spec, DATA_TABLE_OUTPUT_COLUMN_NAME);
-        final DataColumnSpecCreator fsLocationSpec =
-            new DataColumnSpecCreator(newColName, SimpleFSLocationCellFactory.TYPE);
+        final var fsLocationSpec = new DataColumnSpecCreator(newColName, SimpleFSLocationCellFactory.TYPE);
 
         final String statusCol = DataTableSpec.getUniqueColumnName(spec, DATA_TABLE_STATUS_COLUMN_NAME);
-        final DataColumnSpecCreator statusColumnSpec = new DataColumnSpecCreator(statusCol, StringCell.TYPE);
+        final var statusColumnSpec = new DataColumnSpecCreator(statusCol, StringCell.TYPE);
 
         fsLocationSpec.addMetaData(metaData, true);
 
@@ -282,9 +281,9 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
     @Override
     protected BufferedDataTable[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         final BufferedDataTable inputDataTable = (BufferedDataTable)inObjects[m_inputTableIdx];
-        final DataTableSpec dataTableSpec = inputDataTable.getDataTableSpec();
+        final var dataTableSpec = inputDataTable.getDataTableSpec();
 
-        try (final WritePathAccessor writePathAccessor = m_outputLocationSettings.createWritePathAccessor()) {
+        try (final var writePathAccessor = m_outputLocationSettings.createWritePathAccessor()) {
             final FSPath outputPath = writePathAccessor.getOutputPath(m_statusConsumer);
             m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
@@ -343,7 +342,7 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
     private FileNameGenerator createFileNameGenerator(final DataTableSpec dataTableSpec) {
         final FileNameGenerator filenameGenerator;
         if (m_nodeConfig.shouldGenerateFilename()) {
-            final String generatedFilenamePattern = m_filenamePattern.getStringValue();
+            final var generatedFilenamePattern = m_filenamePattern.getStringValue();
             filenameGenerator = new UserPatternFileNameGenerator(generatedFilenamePattern);
         } else {
             final boolean isRowIdSelected = m_nodeConfig.getFilenameColumn().useRowID();
@@ -362,14 +361,14 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 
-        final DataTableSpec dataTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
+        final var dataTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
         final WritePathAccessor writePathAccessor = m_outputLocationSettings.createWritePathAccessor(); //NOSONAR
 
         final FSPath outputPath = writePathAccessor.getOutputPath(m_statusConsumer);
 
         updateCellFactory(dataTableSpec, outputPath);
 
-        final StreamableFunction wrappedFunction = m_columnRearranger.createStreamableFunction();
+        final var wrappedFunction = m_columnRearranger.createStreamableFunction();
 
         return new StreamableFunction(m_inputTableIdx, 0) {
 

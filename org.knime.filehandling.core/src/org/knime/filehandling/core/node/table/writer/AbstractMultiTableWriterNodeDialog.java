@@ -76,7 +76,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Folder
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
- * An abstract implementation of a node dialoge for table writer nodes.
+ * An abstract implementation of a node dialog for table writer nodes.
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
@@ -87,7 +87,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMultiTableWriterNodeConfig<? extends DataValue>>
+public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMultiTableWriterNodeConfig<? extends DataValue, C>>
     extends NodeDialogPane {
 
     private final String m_fileHistoryId;
@@ -96,13 +96,13 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
 
     private final DialogComponentWriterFileChooser m_folderChooser;
 
-    private final DialogComponentColumnNameSelection m_sourceColumnSelection;
+    private final DialogComponentColumnNameSelection m_sourceColumn;
 
     private final DialogComponentBoolean m_removeSourceColumn;
 
     private final DialogComponentString m_filenamePattern;
 
-    private final DialogComponentColumnNameSelection m_filenameColumnSelection;
+    private final DialogComponentColumnNameSelection m_filenameColumn;
 
     private final JRadioButton m_generateFilenameRadio;
 
@@ -136,13 +136,13 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
         m_folderChooser = new DialogComponentWriterFileChooser(m_nodeConfig.getOutputLocation(), m_fileHistoryId, fvm,
             FolderStatusMessageReporter::new);
 
-        m_sourceColumnSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getSourceColumn(), "Column",
-            inputTableIdx, m_nodeConfig.getValueClass());
+        m_sourceColumn = new DialogComponentColumnNameSelection(m_nodeConfig.getSourceColumn(), "Column", inputTableIdx,
+            m_nodeConfig.getValueClass());
 
         m_removeSourceColumn = new DialogComponentBoolean(m_nodeConfig.getRemoveSourceColumn(),
             String.format("Remove %s column", m_writerTypeName));
 
-        final ButtonGroup buttonGrp = new ButtonGroup();
+        final var buttonGrp = new ButtonGroup();
         m_generateFilenameRadio = new JRadioButton("Generate");
         m_columnFilenameRadio = new JRadioButton("From column");
         buttonGrp.add(m_generateFilenameRadio);
@@ -150,8 +150,8 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
 
         m_filenamePattern = new DialogComponentString(m_nodeConfig.getFilenamePattern(), "", true, 25);
 
-        m_filenameColumnSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getFilenameColumn(), "",
-            inputTableIdx, false, StringValue.class);
+        m_filenameColumn = new DialogComponentColumnNameSelection(m_nodeConfig.getFilenameColumn(), "", inputTableIdx,
+            false, StringValue.class);
 
         if (m_compressionSupported) {
             m_compressFiles = new DialogComponentBoolean(m_nodeConfig.getCompressFiles(),
@@ -167,8 +167,8 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
      * concrete implementation
      */
     protected final void createSettingsTab() {
-        final JPanel settingsPanel = new JPanel(new GridBagLayout());
-        final GBCBuilder gbcBuilder = new GBCBuilder(new Insets(5, 0, 5, 0));
+        final var settingsPanel = new JPanel(new GridBagLayout());
+        final var gbcBuilder = new GBCBuilder(new Insets(5, 0, 5, 0));
         settingsPanel.add(createOutputLocationPanel(),
             gbcBuilder.setX(0).setY(0).setWeightX(1.0).fillHorizontal().build());
         settingsPanel.add(createSourceColumnPanel(), gbcBuilder.incY().build());
@@ -182,18 +182,18 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
     }
 
     private Component createSourceColumnPanel() {
-        final JPanel columnSelectionPanel = new JPanel(new GridBagLayout());
-        final GBCBuilder gbcBuilder = new GBCBuilder();
+        final var columnSelectionPanel = new JPanel(new GridBagLayout());
+        final var gbcBuilder = new GBCBuilder();
 
         columnSelectionPanel
             .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), m_writerTypeName));
 
-        columnSelectionPanel.add(m_sourceColumnSelection.getComponentPanel(),
+        columnSelectionPanel.add(m_sourceColumn.getComponentPanel(),
             gbcBuilder.anchorFirstLineStart().setX(0).setY(0).build());
 
         columnSelectionPanel.add(m_removeSourceColumn.getComponentPanel(), gbcBuilder.incY().insetLeft(-3).build());
 
-        if(m_compressionSupported) {
+        if (m_compressionSupported) {
             columnSelectionPanel.add(m_compressFiles.getComponentPanel(), gbcBuilder.incY().insetLeft(-3).build());
         }
 
@@ -203,8 +203,8 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
     }
 
     private Component createFilenamePanel() {
-        final JPanel fileNamePanel = new JPanel(new GridBagLayout());
-        final GBCBuilder gbcBuilder = new GBCBuilder();
+        final var fileNamePanel = new JPanel(new GridBagLayout());
+        final var gbcBuilder = new GBCBuilder();
         fileNamePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "File names"));
 
         fileNamePanel.add(m_generateFilenameRadio, gbcBuilder.anchorLineStart().setX(0).setY(0).build());
@@ -213,7 +213,7 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
 
         fileNamePanel.add(m_columnFilenameRadio,
             gbcBuilder.anchorLineStart().setX(0).setWeightX(0).incY().fillNone().build());
-        fileNamePanel.add(m_filenameColumnSelection.getComponentPanel(), gbcBuilder.incX().build());
+        fileNamePanel.add(m_filenameColumn.getComponentPanel(), gbcBuilder.incX().build());
         fileNamePanel.add(new JPanel(), gbcBuilder.incX().setWeightX(1.0).fillHorizontal().build());
 
         m_generateFilenameRadio.addActionListener(l -> toggleGenerateMode());
@@ -223,8 +223,8 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
     }
 
     private Component createOutputLocationPanel() {
-        final JPanel outputPanel = new JPanel(new GridBagLayout());
-        final GBCBuilder gbcBuilder = new GBCBuilder();
+        final var outputPanel = new JPanel(new GridBagLayout());
+        final var gbcBuilder = new GBCBuilder();
 
         outputPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output location"));
 
@@ -235,39 +235,25 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
     }
 
     private void toggleGenerateMode() {
-        m_filenameColumnSelection.getModel().setEnabled(m_columnFilenameRadio.isSelected());
+        m_filenameColumn.getModel().setEnabled(m_columnFilenameRadio.isSelected());
         m_filenamePattern.getModel().setEnabled(m_generateFilenameRadio.isSelected());
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_folderChooser.saveSettingsTo(settings);
-        m_sourceColumnSelection.saveSettingsTo(settings);
-        m_removeSourceColumn.saveSettingsTo(settings);
-        if (m_compressionSupported) {
-            m_compressFiles.saveSettingsTo(settings);
+        m_nodeConfig.setShouldGenerateFilename(m_generateFilenameRadio.isSelected());
+        if (customDialogSettingsSave(settings)) {
+            m_nodeConfig.saveSettingsForDialog(settings);
         }
-        m_nodeConfig.saveFileNameRadioSelectionForDialog(settings, m_generateFilenameRadio.isSelected());
-        m_filenamePattern.saveSettingsTo(settings);
-        m_filenameColumnSelection.saveSettingsTo(settings);
-        saveWriterSpecificSettingsTo(settings);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-        m_sourceColumnSelection.loadSettingsFrom(settings, specs);
-        m_removeSourceColumn.loadSettingsFrom(settings, specs);
-        if (m_compressionSupported) {
-            m_compressFiles.loadSettingsFrom(settings, specs);
-        }
-        m_nodeConfig.loadFileNameRadioSelectionForDialog(settings);
-        m_filenamePattern.loadSettingsFrom(settings, specs);
-        m_filenameColumnSelection.loadSettingsFrom(settings, specs);
+        m_nodeConfig.loadSettingsForDialog(settings, specs);
         m_generateFilenameRadio.setSelected(m_nodeConfig.shouldGenerateFilename());
         m_columnFilenameRadio.setSelected(!m_nodeConfig.shouldGenerateFilename());
-        m_folderChooser.loadSettingsFrom(settings, specs);
-        loadWriterSpecificSettingsFrom(settings, specs);
+        customDialogSettingsLoad(settings, specs);
     }
 
     @Override
@@ -284,28 +270,48 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
     protected abstract Optional<Component> addWriterSpecificSettingsDialogs();
 
     /**
-     * Save writer specific settings.
-     *
-     * @param settings node settings to save
-     * @throws InvalidSettingsException
-     */
-    protected abstract void saveWriterSpecificSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException;
-
-    /**
-     * Load writer specific settings.
-     *
-     * @param settings node settings to load
-     * @param specs {@link PortObjectSpec}
-     * @throws NotConfigurableException
-     */
-    protected abstract void loadWriterSpecificSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs)
-        throws NotConfigurableException;
-
-    /**
      * @return the nodeConfig
      */
     public C getNodeConfig() {
         return m_nodeConfig;
     }
 
+    /**
+     * <p>
+     * This method can be overridden to perform custom save operations on top of the saving them in the models provided
+     * by the {@link AbstractMultiTableWriterNodeConfig}. This can be useful if one wants to save the settings from the
+     * dialog components, perform additional checks or update the dialog components correctly according to the settings
+     * models.
+     * </p>
+     * <p>
+     * This method is called before the settings models are passed down to the serializer and only returns {@code true}
+     * in the default implementation.
+     * </p>
+     *
+     * @param settings node settings to save to
+     * @return {@code true} if the serializer should be called after this method is called
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    protected boolean customDialogSettingsSave(final NodeSettingsWO settings) throws InvalidSettingsException {
+        // override if necessary
+        return true;
+    }
+
+    /**
+     * <p>
+     * This method can be overridden to perform custom load operations after the models provided by the
+     * {@link AbstractMultiTableWriterNodeConfig} were loaded. This can be useful if one wants to load the settings from
+     * the dialog components to update them correctly or perform additional checks.
+     * </p>
+     * <p>
+     * This method is called after the settings models were passed down to the serializer.
+     * </p>
+     *
+     * @param settings node settings to load from
+     * @throws NotConfigurableException if the dialog cnanot be configured in the current state
+     */
+    protected void customDialogSettingsLoad(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        // override if necessary
+    }
 }

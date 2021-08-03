@@ -75,9 +75,9 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractMultiTableWriterNodeFactory<T extends DataValue, C extends AbstractMultiTableWriterNodeConfig<T>, //
+public abstract class AbstractMultiTableWriterNodeFactory<T extends DataValue, C extends AbstractMultiTableWriterNodeConfig<T, C>, //
         M extends AbstractMultiTableWriterNodeModel<C, ? extends AbstractMultiTableWriterCellFactory<T>>, //
-        D extends AbstractMultiTableWriterNodeDialog<? extends AbstractMultiTableWriterNodeConfig<T>>>
+        D extends AbstractMultiTableWriterNodeDialog<C>>
     extends ConfigurableNodeFactory<M> {
 
     private static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
@@ -86,7 +86,7 @@ public abstract class AbstractMultiTableWriterNodeFactory<T extends DataValue, C
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final PortsConfigurationBuilder builder = new PortsConfigurationBuilder();
+        final var builder = new PortsConfigurationBuilder();
         builder.addOptionalInputPortGroup(CONNECTION_INPUT_PORT_GRP_NAME, FileSystemPortObject.TYPE);
         builder.addFixedInputPortGroup(DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
         builder.addFixedOutputPortGroup("Output Table", BufferedDataTable.TYPE);
