@@ -57,29 +57,34 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.node.table.ConfigSerializer;
 
 /**
  * An abstract implementation of a node config for multitable writer nodes.
  *
  * @param <T> the type of {@link DataValue}
+ * @param <S> The concrete implementation type (S for self), i.e. the class that is extending this class
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  */
-public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
-    // Allows one instance of ?, file extension will be automatically detected, no spaces are allowed in filenames.
+public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue, S extends AbstractMultiTableWriterNodeConfig<T, S>> {
+    // Allows one instance of ?, file extension will be automatically detected, spaces are allowed in filenames.
     private static final Predicate<String> CFG_FILENAME_PREDICATE =
-        Pattern.compile("[^?\\s/\\00]*\\?[^?\\s/\\00]*", Pattern.UNICODE_CHARACTER_CLASS).asMatchPredicate();
+        Pattern.compile("[^?/\\00]*\\?[^?/\\00]*", Pattern.UNICODE_CHARACTER_CLASS).asMatchPredicate();
 
     private static final Pattern WHITESPACES_PATTERN = Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
 
@@ -88,8 +93,6 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
     private static final String CFG_OUTPUT_FILENAME_PATTERN = "filename_pattern";
 
     private static final String CFG_OUTPUT_FILENAME_COLUMN_NAME = "filename_column";
-
-    private static final String CFG_GENERATE_FILE_NAMES = "generate_file_names";
 
     private static final String DEFAULT_WRITER_TYPE_NAME = "src";
 
@@ -111,35 +114,44 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
 
     private boolean m_shouldGenerateFilename;
 
+    private final ConfigSerializer<S> m_serializer;
+
     /**
      * Constructor.
      *
-     * @param portsConfig
-     * @param connectionInputPortGrouptName
-     * @param dataValueClass
-     * @param enableCompression Whether the multi-file writer should support compressing the files it writes.
+     * @param portsConfig the ports configuration used in the {@link SettingsModelWriterFileChooser}
+     * @param connectionInputPortGroupName the name of the port group containing the file system port (used by the
+     *            {@link SettingsModelWriterFileChooser})
+     * @param dataValueClass the class of the data value
+     * @param serializer the {@link ConfigSerializer} used to serialize the model's and dialog's settings which are
+     *            saved in this object. If the extending class does not introduce any additional settings or wants to
+     *            change the format of the settings somehow, it can use a simple
+     *            {@link DefaultMultiTableWriterNodeConfigSerializer}{@code<S>} to serialize the settings.
+     * @param enableCompression whether the multi-file writer should support compressing the files it writes.
+     * @see #getDefaultSerializer()
      */
     protected AbstractMultiTableWriterNodeConfig(final PortsConfiguration portsConfig,
-        final String connectionInputPortGrouptName, final Class<T> dataValueClass, final boolean enableCompression) {
+        final String connectionInputPortGroupName, final Class<T> dataValueClass, final ConfigSerializer<S> serializer,
+        final boolean enableCompression) {
 
         m_compressionSupported = enableCompression;
         m_dataValueClass = dataValueClass;
 
+        m_serializer = serializer;
+
         m_outputLocation = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, //
             portsConfig, //
-            connectionInputPortGrouptName, //
+            connectionInputPortGroupName, //
             EnumConfig.create(FilterMode.FOLDER), //
             EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE), //
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
 
-        final String lowercaseTypeName= getConfigTypeString().toLowerCase();
+        final var configTypeString = getConfigTypeString();
+        final var cfgWriterTypeNameString = String.format("%s_column", configTypeString);
+        final var cfgRemoveWriterColumnString = String.format("remove_%s_column", configTypeString);
 
-        final String cfgWriterTypeNameString = String.format("%s_column",lowercaseTypeName);
-
-        final String cfgRemoveWriterColumnString = String.format("remove_%s_column", lowercaseTypeName);
-
-        if(m_compressionSupported) {
-            final String cfgCompressFilesString = String.format("compress_%s_files", lowercaseTypeName);
+        if (m_compressionSupported) {
+            final var cfgCompressFilesString = String.format("compress_%s_files", configTypeString);
             m_compressFiles = new SettingsModelBoolean(cfgCompressFilesString, false);
         } else {
             m_compressFiles = null;
@@ -172,95 +184,107 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
         return m_dataValueClass;
     }
 
-    SettingsModelWriterFileChooser getOutputLocation() {
+    /**
+     * @return the SettingsModel containing the output location.
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final SettingsModelWriterFileChooser getOutputLocation() {
         return m_outputLocation;
     }
 
-    SettingsModelString getSourceColumn() {
+    /**
+     * @return the SettingsModel containing the selected source column.
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final SettingsModelString getSourceColumn() {
         return m_sourceColumn;
     }
 
-    SettingsModelBoolean getRemoveSourceColumn() {
+    /**
+     * @return the SettingsModel containing whether the source column should be removed.
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final SettingsModelBoolean getRemoveSourceColumn() {
         return m_removeSourceColumn;
     }
 
-    SettingsModelBoolean getCompressFiles() {
+    /**
+     * @return the SettingsModel containing whether compression is enabled for the files
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final SettingsModelBoolean getCompressFiles() {
         return m_compressFiles;
     }
 
-    boolean isCompressionSupported() {
+    /**
+     * @return whether the multi-file writer supports compressing the files it writes
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final boolean isCompressionSupported() {
         return m_compressionSupported;
     }
 
-    SettingsModelString getFilenamePattern() {
+    /**
+     * @return the SettingsModel containing the configured filename pattern.
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final SettingsModelString getFilenamePattern() {
         return m_filenamePattern;
     }
 
-    SettingsModelColumnName getFilenameColumn() {
+    /**
+     * @return the SettingsModel containing the name of the column which contains the file names.
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final SettingsModelColumnName getFilenameColumn() {
         return m_filenameColumn;
     }
 
-    private void setShouldGenerateFilename(final boolean shouldGenerateFilename) {
-        m_shouldGenerateFilename = shouldGenerateFilename;
-    }
-
-    boolean shouldGenerateFilename() {
+    /**
+     * @return whether a file name should be generated
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final boolean shouldGenerateFilename() {
         return m_shouldGenerateFilename;
     }
 
+    /**
+     * @param shouldGenerateFilename whether a file name should be generated
+     * @apiNote This method should only ever be called by the serializer.
+     */
+    public final void setShouldGenerateFilename(final boolean shouldGenerateFilename) {
+        m_shouldGenerateFilename = shouldGenerateFilename;
+    }
+
+    @SuppressWarnings("unchecked") // this forces the extender to specify the correct type
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_outputLocation.loadSettingsFrom(settings);
-        m_sourceColumn.loadSettingsFrom(settings);
-        m_removeSourceColumn.loadSettingsFrom(settings);
-        if (m_compressionSupported) {
-            m_compressFiles.loadSettingsFrom(settings);
-        }
-
-        setShouldGenerateFilename(settings.getBoolean(CFG_GENERATE_FILE_NAMES));
-        m_filenamePattern.loadSettingsFrom(settings);
-        m_filenameColumn.loadSettingsFrom(settings);
-        loadWriterSpecificSettingsForModel(settings);
+        m_serializer.loadInModel((S)this, settings);
     }
 
+    @SuppressWarnings("unchecked")
     void saveSettingsForModel(final NodeSettingsWO settings) {
-        m_outputLocation.saveSettingsTo(settings);
-        m_sourceColumn.saveSettingsTo(settings);
-        m_removeSourceColumn.saveSettingsTo(settings);
-        if (m_compressionSupported) {
-            m_compressFiles.saveSettingsTo(settings);
-        }
-
-        saveFileNameRadioSelectionToSettings(settings);
-        m_filenamePattern.saveSettingsTo(settings);
-        m_filenameColumn.saveSettingsTo(settings);
-        saveWriterSpecificSettingsForModel(settings);
+        m_serializer.saveInModel((S)this, settings);
     }
 
+    @SuppressWarnings("unchecked")
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_outputLocation.validateSettings(settings);
-        m_sourceColumn.validateSettings(settings);
-        m_removeSourceColumn.validateSettings(settings);
-        if(m_compressionSupported) {
-            m_compressFiles.validateSettings(settings);
-        }
-
-        settings.getBoolean(CFG_GENERATE_FILE_NAMES);
-        m_filenamePattern.validateSettings(settings);
-        m_filenameColumn.validateSettings(settings);
-        validateWriterSpecificSettingsForModel(settings);
+        m_serializer.validate((S)this, settings);
     }
 
-    void saveFileNameRadioSelectionForDialog(final NodeSettingsWO settings, final boolean generateFileNameRadio) {
-        setShouldGenerateFilename(generateFileNameRadio);
-        saveFileNameRadioSelectionToSettings(settings);
+    @SuppressWarnings("unchecked")
+    void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+        throws NotConfigurableException {
+        m_serializer.loadInDialog((S)this, settings, specs);
     }
 
-    void loadFileNameRadioSelectionForDialog(final NodeSettingsRO settings) {
-        setShouldGenerateFilename(settings.getBoolean(CFG_GENERATE_FILE_NAMES, true));
+    @SuppressWarnings("unchecked")
+    void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_serializer.saveInDialog((S)this, settings);
     }
 
-    private void saveFileNameRadioSelectionToSettings(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_GENERATE_FILE_NAMES, shouldGenerateFilename());
+    @SuppressWarnings("unchecked")
+    void validateSettingsForDialog(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_serializer.validate((S)this, settings);
     }
 
     private static boolean isValidFilenamePattern(final String incomingFilename) {
@@ -270,56 +294,46 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
     /**
      * replaces the whitespaces with _ for the flow variable keys.
      *
-     * @return
+     * @return the writer type name with “_” for every sequence of whitespace encountered
      */
     private String getConfigTypeString() {
-        return WHITESPACES_PATTERN.matcher(getWriterTypeName()).replaceAll("_");
+        return WHITESPACES_PATTERN.matcher(getWriterTypeName()).replaceAll("_").toLowerCase();
     }
 
     String getWriterTypeName() {
-        if (getWriterSpecificTypeName() != null && !StringUtils.isBlank(getWriterSpecificTypeName())) {
-            return getWriterSpecificTypeName();
+        final var specificName = getWriterSpecificTypeName();
+        if (!StringUtils.isBlank(specificName)) {
+            return specificName;
         }
         return DEFAULT_WRITER_TYPE_NAME;
     }
 
     /**
      * Returns the writer specific type name, which is used to create flow variable keys (e.g. m_sourceColumnSelection,
-     * writerSpecificTypeName_column) and text for the dialog border. E.g. the writer specific type name for the
-     * ImageWriter would be <i>image</i>.
+     * writerSpecificTypeName_column) and text for the dialog border. It should be in a form that would also appear in
+     * normal text. The name will be converted to all lower case and any white space will be replaced by an ‘_’ for the
+     * flow variable keys. The first letter will be capitalized for the node dialog border and the name will be used as
+     * is in other parts of the dialog.
      *
-     * The name can be separated by spaces, which will be replaced by _ when creating flow variables and capitalized for
-     * the dialog panels (Do not use _ ).
+     * E.g. the writer specific type name for the ImageWriter would be <i>image</i> and for the XMLWriter it would be
+     * <i>XML</i>.
      *
      * @return writer specific name used to create flow variable keys and dialog border text
      */
     protected abstract String getWriterSpecificTypeName();
 
     /**
-     * Saves additional settings for the model. Implement if there are additional settings specific to the writer node
-     * implementation.
+     * Return a serializer that can handle the default settings if no changes to settings serialization are required.
+     * This is a convenience method to avoid having to create an instance of
+     * {@link DefaultMultiTableWriterNodeConfigSerializer}.
      *
-     * @param settings
+     * @param <S> The concrete implementation type that should be serialized (S for self), i.e. the class that is
+     *            extending the {@link AbstractMultiTableWriterNodeConfig} and trying to use the serializer
+     * @return a serializer that handles the default settings.
      */
-    protected abstract void saveWriterSpecificSettingsForModel(NodeSettingsWO settings);
-
-    /**
-     * Loads additional settings for the model. Implement if there are additional settings specific to the writer node
-     * implementation.
-     *
-     * @param settings
-     * @throws InvalidSettingsException
-     */
-    protected abstract void loadWriterSpecificSettingsForModel(NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Validates additional settings for the model. Implement if there are additional settings specific to the writer
-     * node implementation.
-     *
-     * @param settings
-     * @throws InvalidSettingsException
-     */
-    protected abstract void validateWriterSpecificSettingsForModel(NodeSettingsRO settings)
-        throws InvalidSettingsException;
-
+    @SuppressWarnings("unchecked")
+    protected static <S extends AbstractMultiTableWriterNodeConfig<?, S>> DefaultMultiTableWriterNodeConfigSerializer<S>
+        getDefaultSerializer() {
+        return DefaultMultiTableWriterNodeConfigSerializer.DEFAULT_SERIALIZER;
+    }
 }
