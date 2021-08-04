@@ -61,7 +61,7 @@ import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNod
  * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
  */
 final class ImageWriterTableNodeConfig extends AbstractMultiTableWriterNodeConfig<ImageValue> {
-    private static final String WRITER_SPECIFIC_TYPE_NAME = "image";
+    private static final String WRITER_SPECIFIC_TYPE_NAME = "Image";
 
     /**
      * @param portsConfig
