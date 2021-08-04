@@ -58,7 +58,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.FlowVariableModel;
@@ -186,8 +185,8 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
         final JPanel columnSelectionPanel = new JPanel(new GridBagLayout());
         final GBCBuilder gbcBuilder = new GBCBuilder();
 
-        columnSelectionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
-            StringUtils.capitalize(m_writerTypeName)));
+        columnSelectionPanel
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), m_writerTypeName));
 
         columnSelectionPanel.add(m_sourceColumnSelection.getComponentPanel(),
             gbcBuilder.anchorFirstLineStart().setX(0).setY(0).build());

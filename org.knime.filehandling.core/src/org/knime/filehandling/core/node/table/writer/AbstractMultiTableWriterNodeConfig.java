@@ -132,12 +132,14 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
             EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE), //
             EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
 
-        final String cfgWriterTypeNameString = String.format("%s_column", getConfigTypeString());
+        final String lowercaseTypeName= getConfigTypeString().toLowerCase();
 
-        final String cfgRemoveWriterColumnString = String.format("remove_%s_column", getConfigTypeString());
+        final String cfgWriterTypeNameString = String.format("%s_column",lowercaseTypeName);
+
+        final String cfgRemoveWriterColumnString = String.format("remove_%s_column", lowercaseTypeName);
 
         if(m_compressionSupported) {
-            final String cfgCompressFilesString = String.format("compress_%s_files", getConfigTypeString());
+            final String cfgCompressFilesString = String.format("compress_%s_files", lowercaseTypeName);
             m_compressFiles = new SettingsModelBoolean(cfgCompressFilesString, false);
         } else {
             m_compressFiles = null;
@@ -276,7 +278,7 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
 
     String getWriterTypeName() {
         if (getWriterSpecificTypeName() != null && !StringUtils.isBlank(getWriterSpecificTypeName())) {
-            return getWriterSpecificTypeName().toLowerCase();
+            return getWriterSpecificTypeName();
         }
         return DEFAULT_WRITER_TYPE_NAME;
     }
