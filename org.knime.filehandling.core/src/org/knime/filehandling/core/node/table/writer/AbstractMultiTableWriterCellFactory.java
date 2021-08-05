@@ -48,10 +48,12 @@
  */
 package org.knime.filehandling.core.node.table.writer;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.zip.GZIPOutputStream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -91,6 +93,8 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
 
     private FSPath m_outputPath;
 
+    private boolean m_enableCompression = false;
+
     /**
      * Constructor for a concrete subclass instantiation of {@link AbstractMultiTableWriterCellFactory}.
      *
@@ -98,8 +102,8 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
      * @param sourceColumnIndex index of source column
      * @param overwritePolicy policy how to proceed when output file exists according to {@link FileOverwritePolicy}
      */
-    protected AbstractMultiTableWriterCellFactory(final DataColumnSpec[] outputColumnsSpecs, final int sourceColumnIndex,
-        final FileOverwritePolicy overwritePolicy) {
+    protected AbstractMultiTableWriterCellFactory(final DataColumnSpec[] outputColumnsSpecs,
+        final int sourceColumnIndex, final FileOverwritePolicy overwritePolicy) {
         super(outputColumnsSpecs);
         m_sourceColumnIndex = sourceColumnIndex;
         m_multiFSLocationCellFactory = new MultiSimpleFSLocationCellFactory();
@@ -117,7 +121,10 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
 
         @SuppressWarnings("unchecked")
         final T value = (T)valueCell;
-        final String fileExtension = getOutputFileExtension(value);
+        String fileExtension = getOutputFileExtension(value);
+        if (m_enableCompression) {
+            fileExtension = fileExtension.concat(".gz");
+        }
         final FSPath outputFilePath = createOutputPath(row, fileExtension);
         m_rowIndex++;
 
@@ -135,8 +142,7 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
             throw new IllegalStateException(accessDeniedException.getMessage(), accessDeniedException);
         }
 
-        try (final OutputStream outputStream =
-            FSFiles.newOutputStream(outputPath, m_overwritePolicy.getOpenOptions())) {
+        try (final OutputStream outputStream = getOutputStream(outputPath)) {
             writeFile(outputStream, value);
         } catch (FileAlreadyExistsException fileAlreadyExistsException) {
             if (m_overwritePolicy == FileOverwritePolicy.FAIL) {
@@ -151,6 +157,14 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
                 String.format("An IOException occured while writing '%s'", outputPath.toString()), writeImageException);
         }
         return status;
+    }
+
+    private OutputStream getOutputStream(final FSPath outputPath) throws IOException {
+        if (m_enableCompression) {
+            return new GZIPOutputStream(new BufferedOutputStream(FSFiles.newOutputStream(outputPath, m_overwritePolicy.getOpenOptions())));
+        } else {
+            return new BufferedOutputStream(FSFiles.newOutputStream(outputPath, m_overwritePolicy.getOpenOptions()));
+        }
     }
 
     int getMissingCellCount() {
@@ -169,6 +183,10 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
         m_overwritePolicy = overwritePolicy;
     }
 
+    void setEnableCompression(final boolean enableCompression) {
+        m_enableCompression = enableCompression;
+    }
+
     private FSPath createOutputPath(final DataRow row, final String fileExtension) {
         return (FSPath)m_outputPath
             .resolve(String.format("%s.%s", m_fileNameGenerator.getOutputFilename(row, m_rowIndex), fileExtension));
@@ -182,7 +200,8 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
      * imgValue.getImageContent().save(outputStream);
      * </pre>
      *
-     * @param outputStream
+     * @param outputStream The stream to write to (the stream can be assumed to be already buffered, so there is no need
+     *            to wrap it into a {@link BufferedOutputStream}).
      * @param value concrete subclass instantiation of {@link DataValue}
      * @throws IOException
      */
