@@ -77,7 +77,7 @@ final class NameingColumnFileNameGenerator implements FileNameGenerator {
         final DataCell outputFilenameDataCell = row.getCell(m_filenameColIdx);
         if (outputFilenameDataCell.isMissing()) {
             throw new MissingValueException((MissingValue)outputFilenameDataCell,
-                "Missing values are not supported for output names");
+                "Missing values are not supported for output file names");
         }
 
         final StringValue outputFilename = (StringValue)outputFilenameDataCell;
