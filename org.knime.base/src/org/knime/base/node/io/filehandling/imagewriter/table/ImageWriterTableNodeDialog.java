@@ -51,11 +51,6 @@ package org.knime.base.node.io.filehandling.imagewriter.table;
 import java.awt.Component;
 import java.util.Optional;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNodeDialog;
 
 /**
@@ -79,17 +74,6 @@ final class ImageWriterTableNodeDialog extends AbstractMultiTableWriterNodeDialo
     @Override
     protected Optional<Component> addWriterSpecificSettingsDialogs() {
         return Optional.empty();
-    }
-
-    @Override
-    protected void saveWriterSpecificSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        // Nothing to do here
-    }
-
-    @Override
-    protected void loadWriterSpecificSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        // Nothing to do here
     }
 
 }

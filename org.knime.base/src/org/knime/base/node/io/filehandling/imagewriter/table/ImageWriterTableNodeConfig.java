@@ -49,9 +49,6 @@
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
 import org.knime.core.data.image.ImageValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNodeConfig;
 
@@ -60,8 +57,9 @@ import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNod
  *
  * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
  */
-final class ImageWriterTableNodeConfig extends AbstractMultiTableWriterNodeConfig<ImageValue> {
-    private static final String WRITER_SPECIFIC_TYPE_NAME = "Image";
+final class ImageWriterTableNodeConfig
+    extends AbstractMultiTableWriterNodeConfig<ImageValue, ImageWriterTableNodeConfig> {
+    private static final String WRITER_SPECIFIC_TYPE_NAME = "image";
 
     /**
      * @param portsConfig
@@ -70,28 +68,11 @@ final class ImageWriterTableNodeConfig extends AbstractMultiTableWriterNodeConfi
      */
     protected ImageWriterTableNodeConfig(final PortsConfiguration portsConfig,
         final String connectionInputPortGrouptName, final Class<ImageValue> dataValueClass) {
-        super(portsConfig, connectionInputPortGrouptName, dataValueClass, false);
+        super(portsConfig, connectionInputPortGrouptName, dataValueClass, getDefaultSerializer(), false);
     }
 
     @Override
     protected String getWriterSpecificTypeName() {
         return WRITER_SPECIFIC_TYPE_NAME;
     }
-
-    @Override
-    protected void saveWriterSpecificSettingsForModel(final NodeSettingsWO settings) {
-        // Nothing to do
-    }
-
-    @Override
-    protected void loadWriterSpecificSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // Nothing to do
-    }
-
-    @Override
-    protected void validateWriterSpecificSettingsForModel(final NodeSettingsRO settings)
-        throws InvalidSettingsException {
-        // Nothing to do
-    }
-
 }
