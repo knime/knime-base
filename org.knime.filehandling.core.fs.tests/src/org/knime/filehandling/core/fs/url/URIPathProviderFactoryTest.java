@@ -37,11 +37,11 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
      */
     @Test
     public void test_https_location() throws IOException {
-        final String url = "https://tools.ietf.org/rfc/rfc1.txt";
+        final String url = "https://www.rfc-editor.org/rfc/rfc1.txt";
 
         final byte[] expectedBytes = readUrl(url);
 
-        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", url);
+        final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "5000", url);
 
         testReadFSLocation(Optional.empty(), loc, expectedBytes, "/rfc/rfc1.txt");
     }
