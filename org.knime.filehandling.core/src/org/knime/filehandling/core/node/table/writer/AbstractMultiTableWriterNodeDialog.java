@@ -111,6 +111,10 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
 
     private final String m_writerTypeName;
 
+    private final boolean m_compressionSupported;
+
+    private final DialogComponentBoolean m_compressFiles;
+
     /**
      * Constructor.
      *
@@ -122,17 +126,19 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
     protected AbstractMultiTableWriterNodeDialog(final C nodeConfig, final int inputTableIdx) {
         m_nodeConfig = nodeConfig;
 
+        m_compressionSupported = m_nodeConfig.isCompressionSupported();
+
         m_writerTypeName = m_nodeConfig.getWriterTypeName();
 
         m_fileHistoryId = String.format("%s_table_reader_writer", m_writerTypeName);
 
         final FlowVariableModel fvm = createFlowVariableModel( // NOSONAR standard API usage
             m_nodeConfig.getOutputLocation().getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_folderChooser = new DialogComponentWriterFileChooser(m_nodeConfig.getOutputLocation(),
-            m_fileHistoryId, fvm, FolderStatusMessageReporter::new);
+        m_folderChooser = new DialogComponentWriterFileChooser(m_nodeConfig.getOutputLocation(), m_fileHistoryId, fvm,
+            FolderStatusMessageReporter::new);
 
-        m_sourceColumnSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getSourceColumn(),
-            "Column", inputTableIdx, m_nodeConfig.getValueClass());
+        m_sourceColumnSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getSourceColumn(), "Column",
+            inputTableIdx, m_nodeConfig.getValueClass());
 
         m_removeSourceColumn = new DialogComponentBoolean(m_nodeConfig.getRemoveSourceColumn(),
             String.format("Remove %s column", m_writerTypeName));
@@ -145,8 +151,16 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
 
         m_filenamePattern = new DialogComponentString(m_nodeConfig.getFilenamePattern(), "", true, 25);
 
-        m_filenameColumnSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getFilenameColumn(),
-            "", inputTableIdx, false, StringValue.class);
+        m_filenameColumnSelection = new DialogComponentColumnNameSelection(m_nodeConfig.getFilenameColumn(), "",
+            inputTableIdx, false, StringValue.class);
+
+        if (m_compressionSupported) {
+            m_compressFiles = new DialogComponentBoolean(m_nodeConfig.getCompressFiles(),
+                String.format("Compress %s files (gzip)", m_writerTypeName));
+        } else {
+            m_compressFiles = null;
+        }
+
     }
 
     /**
@@ -179,6 +193,10 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
             gbcBuilder.anchorFirstLineStart().setX(0).setY(0).build());
 
         columnSelectionPanel.add(m_removeSourceColumn.getComponentPanel(), gbcBuilder.incY().insetLeft(-3).build());
+
+        if(m_compressionSupported) {
+            columnSelectionPanel.add(m_compressFiles.getComponentPanel(), gbcBuilder.incY().insetLeft(-3).build());
+        }
 
         columnSelectionPanel.add(new JPanel(), gbcBuilder.incX().setWeightX(1.0).fillHorizontal().build());
 
@@ -227,6 +245,9 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
         m_folderChooser.saveSettingsTo(settings);
         m_sourceColumnSelection.saveSettingsTo(settings);
         m_removeSourceColumn.saveSettingsTo(settings);
+        if (m_compressionSupported) {
+            m_compressFiles.saveSettingsTo(settings);
+        }
         m_nodeConfig.saveFileNameRadioSelectionForDialog(settings, m_generateFilenameRadio.isSelected());
         m_filenamePattern.saveSettingsTo(settings);
         m_filenameColumnSelection.saveSettingsTo(settings);
@@ -238,6 +259,9 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
         throws NotConfigurableException {
         m_sourceColumnSelection.loadSettingsFrom(settings, specs);
         m_removeSourceColumn.loadSettingsFrom(settings, specs);
+        if (m_compressionSupported) {
+            m_compressFiles.loadSettingsFrom(settings, specs);
+        }
         m_nodeConfig.loadFileNameRadioSelectionForDialog(settings);
         m_filenamePattern.loadSettingsFrom(settings, specs);
         m_filenameColumnSelection.loadSettingsFrom(settings, specs);

@@ -105,8 +105,11 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
 
     private final Class<T> m_dataValueClass;
 
-    private boolean m_shouldGenerateFilename;
+    private final boolean m_compressionSupported;
 
+    private final SettingsModelBoolean m_compressFiles;
+
+    private boolean m_shouldGenerateFilename;
 
     /**
      * Constructor.
@@ -114,10 +117,12 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
      * @param portsConfig
      * @param connectionInputPortGrouptName
      * @param dataValueClass
+     * @param enableCompression Whether the multi-file writer should support compressing the files it writes.
      */
     protected AbstractMultiTableWriterNodeConfig(final PortsConfiguration portsConfig,
-        final String connectionInputPortGrouptName, final Class<T> dataValueClass) {
+        final String connectionInputPortGrouptName, final Class<T> dataValueClass, final boolean enableCompression) {
 
+        m_compressionSupported = enableCompression;
         m_dataValueClass = dataValueClass;
 
         m_outputLocation = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, //
@@ -130,6 +135,13 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
         final String cfgWriterTypeNameString = String.format("%s_column", getConfigTypeString());
 
         final String cfgRemoveWriterColumnString = String.format("remove_%s_column", getConfigTypeString());
+
+        if(m_compressionSupported) {
+            final String cfgCompressFilesString = String.format("compress_%s_files", getConfigTypeString());
+            m_compressFiles = new SettingsModelBoolean(cfgCompressFilesString, false);
+        } else {
+            m_compressFiles = null;
+        }
 
         m_sourceColumn = new SettingsModelString(cfgWriterTypeNameString, null);
 
@@ -170,6 +182,14 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
         return m_removeSourceColumn;
     }
 
+    SettingsModelBoolean getCompressFiles() {
+        return m_compressFiles;
+    }
+
+    boolean isCompressionSupported() {
+        return m_compressionSupported;
+    }
+
     SettingsModelString getFilenamePattern() {
         return m_filenamePattern;
     }
@@ -190,6 +210,9 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
         m_outputLocation.loadSettingsFrom(settings);
         m_sourceColumn.loadSettingsFrom(settings);
         m_removeSourceColumn.loadSettingsFrom(settings);
+        if (m_compressionSupported) {
+            m_compressFiles.loadSettingsFrom(settings);
+        }
 
         setShouldGenerateFilename(settings.getBoolean(CFG_GENERATE_FILE_NAMES));
         m_filenamePattern.loadSettingsFrom(settings);
@@ -201,6 +224,9 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
         m_outputLocation.saveSettingsTo(settings);
         m_sourceColumn.saveSettingsTo(settings);
         m_removeSourceColumn.saveSettingsTo(settings);
+        if (m_compressionSupported) {
+            m_compressFiles.saveSettingsTo(settings);
+        }
 
         saveFileNameRadioSelectionToSettings(settings);
         m_filenamePattern.saveSettingsTo(settings);
@@ -212,6 +238,9 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue> {
         m_outputLocation.validateSettings(settings);
         m_sourceColumn.validateSettings(settings);
         m_removeSourceColumn.validateSettings(settings);
+        if(m_compressionSupported) {
+            m_compressFiles.validateSettings(settings);
+        }
 
         settings.getBoolean(CFG_GENERATE_FILE_NAMES);
         m_filenamePattern.validateSettings(settings);

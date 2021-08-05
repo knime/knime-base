@@ -132,6 +132,10 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
 
     private ColumnRearranger m_columnRearranger;
 
+    private SettingsModelBoolean m_compressFiles;
+
+    private boolean m_compressionSupported;
+
     private F m_multiFileWriterCellFactory;
 
     /**
@@ -152,6 +156,10 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
         m_outputLocationSettings = m_nodeConfig.getOutputLocation();
         m_sourceColumnSelection = m_nodeConfig.getSourceColumn();
         m_removeSourceColumn = m_nodeConfig.getRemoveSourceColumn();
+        m_compressionSupported = m_nodeConfig.isCompressionSupported();
+        if (m_compressionSupported) {
+            m_compressFiles = m_nodeConfig.getCompressFiles();
+        }
         m_filenamePattern = m_nodeConfig.getFilenamePattern();
         m_filenameColumnSelection = m_nodeConfig.getFilenameColumn();
 
@@ -322,6 +330,11 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
 
     private void updateCellFactory(final DataTableSpec dataTableSpec, final FSPath outputPath) {
         final FileNameGenerator filenameGenerator = createFileNameGenerator(dataTableSpec);
+
+        if (m_compressionSupported) {
+            m_multiFileWriterCellFactory.setEnableCompression(m_compressFiles.getBooleanValue());
+        }
+
         m_multiFileWriterCellFactory.setOutputPath(outputPath);
         m_multiFileWriterCellFactory.setFileNameGenerator(filenameGenerator);
         m_multiFileWriterCellFactory.setOverwritePolicy(m_outputLocationSettings.getFileOverwritePolicy());
