@@ -46,7 +46,7 @@
  * History
  *   2021-07-23 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.connections.local.node;
+package org.knime.filehandling.core.fs.local.node;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

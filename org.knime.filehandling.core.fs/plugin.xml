@@ -28,4 +28,11 @@
             class="org.knime.filehandling.core.fs.knimerelativeto.RelativeToWorkflowFSDescriptorProvider">
       </FSDescriptorProvider>
    </extension>
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            category-path="/io/connectors"
+            factory-class="org.knime.filehandling.core.fs.local.node.LocalConnectorNodeFactory"/>
+   </extension>
+
 </plugin>

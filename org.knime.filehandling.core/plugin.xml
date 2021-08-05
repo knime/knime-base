@@ -82,10 +82,4 @@
             extension="org.knime.filehandling.core.data.location.variable.FSLocationSpecVariableType$FSLocationSpecVariableTypeExtension">
       </VariableType>
    </extension>
-   <extension
-         point="org.knime.workbench.repository.nodes">
-      <node
-            category-path="/io/connectors"
-            factory-class="org.knime.filehandling.core.connections.local.node.LocalConnectorNodeFactory"/>
-   </extension>
 </plugin>
