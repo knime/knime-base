@@ -75,9 +75,10 @@ import org.knime.filehandling.core.port.FileSystemPortObject;
  * @noreference non-public API
  * @noextend non-public API
  */
-public abstract class AbstractMultiTableWriterNodeFactory<T extends DataValue, C extends AbstractMultiTableWriterNodeConfig<T, C>, //
+public abstract class AbstractMultiTableWriterNodeFactory<
+        T extends DataValue, C extends AbstractMultiTableWriterNodeConfig<T, C>, //
         M extends AbstractMultiTableWriterNodeModel<C, ? extends AbstractMultiTableWriterCellFactory<T>>, //
-        D extends AbstractMultiTableWriterNodeDialog<C>>
+        D extends AbstractMultiTableWriterNodeDialog<C>> //
     extends ConfigurableNodeFactory<M> {
 
     private static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
@@ -121,7 +122,7 @@ public abstract class AbstractMultiTableWriterNodeFactory<T extends DataValue, C
 
     private C createNodeConfig(final NodeCreationConfiguration creationConfig) {
         final PortsConfiguration portConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return getNodeConfig(portConfig, CONNECTION_INPUT_PORT_GRP_NAME, getDataValueClass());
+        return getNodeConfig(portConfig, CONNECTION_INPUT_PORT_GRP_NAME);
     }
 
     private static int getDataTableInputIdx(final NodeCreationConfiguration creationConfig) {
@@ -135,11 +136,9 @@ public abstract class AbstractMultiTableWriterNodeFactory<T extends DataValue, C
      *
      * @param portConfig storing the ports configurations
      * @param portGroupName data-table-input-port-group-name
-     * @param dataValue class type of written data
      * @return concrete subclass instantiation of {@link AbstractMultiTableWriterNodeConfig}
      */
-    protected abstract C getNodeConfig(final PortsConfiguration portConfig, final String portGroupName,
-        final Class<T> dataValue);
+    protected abstract C getNodeConfig(final PortsConfiguration portConfig, final String portGroupName);
 
     /**
      * Creates the node model.
@@ -162,11 +161,4 @@ public abstract class AbstractMultiTableWriterNodeFactory<T extends DataValue, C
      * @return concrete subclass instantiation of {@link AbstractMultiTableWriterNodeDialog}
      */
     protected abstract D getDialog(C nodeConfig, int dataTableInputIdx);
-
-    /**
-     * Get the value class of the written file.
-     *
-     * @return concrete subclass of {@link DataValue}
-     */
-    protected abstract Class<T> getDataValueClass();
 }
