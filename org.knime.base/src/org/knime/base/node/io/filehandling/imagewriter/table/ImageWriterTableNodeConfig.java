@@ -59,16 +59,16 @@ import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNod
  */
 final class ImageWriterTableNodeConfig
     extends AbstractMultiTableWriterNodeConfig<ImageValue, ImageWriterTableNodeConfig> {
+
     private static final String WRITER_SPECIFIC_TYPE_NAME = "image";
 
     /**
      * @param portsConfig
      * @param connectionInputPortGrouptName
-     * @param dataValueClass
      */
     protected ImageWriterTableNodeConfig(final PortsConfiguration portsConfig,
-        final String connectionInputPortGrouptName, final Class<ImageValue> dataValueClass) {
-        super(portsConfig, connectionInputPortGrouptName, dataValueClass, getDefaultSerializer(), false);
+        final String connectionInputPortGrouptName) {
+        super(portsConfig, connectionInputPortGrouptName, ImageValue.class, getDefaultSerializer(), false);
     }
 
     @Override

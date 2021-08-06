@@ -62,9 +62,8 @@ public final class ImageWriterTableNodeFactory
             ImageWriterTableNodeModel, ImageWriterTableNodeDialog> {
 
     @Override
-    protected ImageWriterTableNodeConfig getNodeConfig(final PortsConfiguration portConfig, final String portGroupName,
-        final Class<ImageValue> dataValue) {
-        return new ImageWriterTableNodeConfig(portConfig, portGroupName, dataValue);
+    protected ImageWriterTableNodeConfig getNodeConfig(final PortsConfiguration portConfig, final String portGroupName) {
+        return new ImageWriterTableNodeConfig(portConfig, portGroupName);
     }
 
     @Override
@@ -78,10 +77,4 @@ public final class ImageWriterTableNodeFactory
         final int dataTableInputIndex) {
         return new ImageWriterTableNodeDialog(nodeConfig, dataTableInputIndex);
     }
-
-    @Override
-    protected Class<ImageValue> getDataValueClass() {
-        return ImageValue.class;
-    }
-
 }
