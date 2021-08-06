@@ -58,44 +58,39 @@ import org.knime.core.node.NodeView;
  * @author Nicolas Cebron, University of Konstanz
  */
 public final class MLPPredictorNodeFactory extends NodeFactory<MLPPredictorNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new PredictorNodeDialog(MLPPredictorNodeModel.createAppendProbs()) {
-        };
+        return new MLPPredictorNodeDialog();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public MLPPredictorNodeModel createNodeModel() {
         return new MLPPredictorNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<MLPPredictorNodeModel> createNodeView(final int viewIndex, final MLPPredictorNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
+
+    private static final class MLPPredictorNodeDialog extends PredictorNodeDialog {
+
+        protected MLPPredictorNodeDialog() {
+            super(MLPPredictorNodeModel.createAppendProbs());
+            setAppendProbabilitiesLabel("Append columns with class probabilities");
+        }
+
+    }
+
 }
