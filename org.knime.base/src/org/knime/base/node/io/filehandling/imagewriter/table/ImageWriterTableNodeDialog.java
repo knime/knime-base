@@ -48,9 +48,6 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
-import java.awt.Component;
-import java.util.Optional;
-
 import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNodeDialog;
 
 /**
@@ -70,10 +67,4 @@ final class ImageWriterTableNodeDialog extends AbstractMultiTableWriterNodeDialo
         super(nodeConfig, inputTableIndex);
         createSettingsTab();
     }
-
-    @Override
-    protected Optional<Component> addWriterSpecificSettingsDialogs() {
-        return Optional.empty();
-    }
-
 }
