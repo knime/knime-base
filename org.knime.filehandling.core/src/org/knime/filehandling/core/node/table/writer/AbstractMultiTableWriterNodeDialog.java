@@ -58,8 +58,10 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -173,7 +175,7 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
             gbcBuilder.setX(0).setY(0).setWeightX(1.0).fillHorizontal().build());
         settingsPanel.add(createSourceColumnPanel(), gbcBuilder.incY().build());
         settingsPanel.add(createFilenamePanel(), gbcBuilder.incY().build());
-        final Optional<Component> additonalWriterSpecificPanels = addWriterSpecificSettingsDialogs();
+        final Optional<Component> additonalWriterSpecificPanels = addWriterSpecificSettingsDialog();
         if (additonalWriterSpecificPanels.isPresent()) {
             settingsPanel.add(additonalWriterSpecificPanels.get(), gbcBuilder.incY().build());
         }
@@ -264,12 +266,15 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
     }
 
     /**
-     * Add writer specific settings component after default setting components (outputLocationPanel, srcColPanel,
-     * FileNamePanel) in the settings tab.
+     * Add writer specific settings component after default setting components (output location, source column and
+     * filename) in the settings tab. Subclasses can override this method if they need to provide UI for additional
+     * settings.
      *
      * @return Optional of additional settings component
      */
-    protected abstract Optional<Component> addWriterSpecificSettingsDialogs();
+    protected Optional<Component> addWriterSpecificSettingsDialog() {
+        return Optional.empty();
+    }
 
     /**
      * @return the nodeConfig
@@ -310,6 +315,10 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
      * </p>
      *
      * @param settings node settings to load from
+     * @param specs The input data table specs. Items of the array could be null if no spec is available from the
+     *            corresponding input port (i.e. not connected or upstream node does not produce an output spec). If a
+     *            port is of type {@link BufferedDataTable#TYPE} and no spec is available the framework will replace
+     *            null by an empty {@link DataTableSpec} (no columns) unless the port is marked as optional.
      * @throws NotConfigurableException if the dialog cnanot be configured in the current state
      */
     protected void customDialogSettingsLoad(final NodeSettingsRO settings, final PortObjectSpec[] specs)
