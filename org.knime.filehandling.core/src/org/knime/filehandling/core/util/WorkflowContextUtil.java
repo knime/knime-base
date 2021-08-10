@@ -77,13 +77,13 @@ public final class WorkflowContextUtil {
      */
     @SuppressWarnings("null")
     public static WorkflowContext getWorkflowContext() {
-        final NodeContext nodeContext = NodeContext.getContext();
+        final var nodeContext = NodeContext.getContext();
         checkState(nodeContext != null, "Node context required.");
 
-        WorkflowManager wfm = nodeContext.getWorkflowManager();
+        final var wfm = nodeContext.getWorkflowManager();
         checkState(wfm != null, "Can't access workflow instance (is it a remotely edited workflow?).");
 
-        final WorkflowContext workflowContext = wfm.getContext();
+        final var workflowContext = wfm.getContext();
         checkState(workflowContext != null, "Workflow context required.");
 
         return workflowContext;

@@ -52,12 +52,11 @@ import java.net.URI;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.FSPluginConfig;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Utility class that contains methods for validating {@link FSPath} objects.</br>
@@ -153,25 +152,9 @@ public final class ValidationUtils {
      * @throws InvalidSettingsException if local file system access is invalid
      */
     public static void validateLocalFsAccess() throws InvalidSettingsException {
-        final NodeContext nodeContext = NodeContext.getContext();
-
-        if (nodeContext == null) {
-            throw new InvalidSettingsException("No node context available");
-        }
-
-        final WorkflowContext workflowContext = nodeContext.getWorkflowManager().getContext();
-        if (workflowContext == null) {
-            throw new InvalidSettingsException("No workflow context available");
-        }
-
-        if (isOnServer(workflowContext) && !FSPluginConfig.load().allowLocalFsAccessOnServer()) {
+        if (WorkflowContextUtil.isServerContext() && !FSPluginConfig.load().allowLocalFsAccessOnServer()) {
             throw new InvalidSettingsException(
                 "Direct access to the local file system is not allowed on KNIME Server.");
         }
     }
-
-    private static boolean isOnServer(final WorkflowContext context) {
-        return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
-    }
-
 }

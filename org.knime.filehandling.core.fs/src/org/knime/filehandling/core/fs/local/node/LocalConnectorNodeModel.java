@@ -65,6 +65,7 @@ import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
@@ -90,6 +91,7 @@ public class LocalConnectorNodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         m_settings.validate();
+        ValidationUtils.validateLocalFsAccess();
         m_fsId = FSConnectionRegistry.getInstance().getKey();
         m_fsConnection = createFSConnection();
 
@@ -113,6 +115,8 @@ public class LocalConnectorNodeModel extends NodeModel {
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
+        ValidationUtils.validateLocalFsAccess();
+
         FSConnectionRegistry.getInstance().register(m_fsId, m_fsConnection);
 
         return new PortObject[] { new FileSystemPortObject(createSpec()) };

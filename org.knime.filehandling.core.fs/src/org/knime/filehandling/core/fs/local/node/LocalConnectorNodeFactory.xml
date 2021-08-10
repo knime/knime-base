@@ -35,8 +35,8 @@
 
 	        <option name="Working directory">
 		        Specify the <i>working directory</i> of the resulting file system connection, using the <b>Path syntax</b> explained above. The working
-		        directory must be specified as an absolute path. A working directory allows downstream nodes to access files/folders using <i>relative</i>
-		        paths, i.e. paths that do not have a leading backslash. The default working directory is "\".
+		        directory must be specified as an absolute path, for example <tt>C:\Users\joe</tt>. A working directory allows downstream nodes to access files/folders using <i>relative</i>
+		        paths.
 		    </option>
         </tab>
     </fullDescription>
