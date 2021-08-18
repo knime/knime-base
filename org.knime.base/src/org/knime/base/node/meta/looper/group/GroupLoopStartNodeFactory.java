@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- * 
+ *
  * History
  *   10.05.2012 (kilian): created
  */
@@ -52,48 +52,34 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * 
+ * NodeFactory for the Group Loop Start node.
+ *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
 public class GroupLoopStartNodeFactory extends
         NodeFactory<GroupLoopStartNodeModel> {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GroupLoopStartNodeModel createNodeModel() {
         return new GroupLoopStartNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<GroupLoopStartNodeModel> createNodeView(final int viewIndex,
             final GroupLoopStartNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
         return new GroupLoopStartNodeDialog();
