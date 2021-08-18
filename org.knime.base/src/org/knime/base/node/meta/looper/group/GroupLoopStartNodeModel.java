@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.knime.base.node.meta.looper.group.GroupDuplicateCheckers.GroupDuplicateChecker;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -76,8 +77,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
-import org.knime.core.util.DuplicateChecker;
-import org.knime.core.util.DuplicateKeyException;
 
 /**
  * The node model of the group loop start node. Optionally sorting data and
@@ -132,7 +131,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
     private CloseableRowIterator m_iterator;
     private DataTableSpec m_spec;
     private int[] m_groupColIndices;
-    private DuplicateChecker m_duplicateChecker;
+    private GroupDuplicateChecker m_duplicateChecker;
 
     // loop variants
     private int m_iteration;
@@ -191,7 +190,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
 
         // parameters
         m_groupColIndices = getGroupColIndices(table.getDataTableSpec());
-        boolean checkDuplicates = m_sortedInputTableModel.getBooleanValue();
 
         // remember table and sort table if necessary
         if (m_iteration == 0) {
@@ -230,7 +228,8 @@ final class GroupLoopStartNodeModel extends NodeModel implements
 
         // create new duplicate checker if null
         if (m_duplicateChecker == null) {
-            m_duplicateChecker = new DuplicateChecker();
+            m_duplicateChecker =
+                GroupDuplicateCheckers.createGroupDuplicateChecker(m_sortedInputTableModel.getBooleanValue());
         }
         // initialize grouping states if null
         if (m_currentGroupingState == null) {
@@ -270,10 +269,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
             // to duplicate checker.
             if (m_lastRow == null) {
                 m_lastGroupingState = m_currentGroupingState;
-                if (checkDuplicates) {
-                    m_duplicateChecker.addKey(
-                            m_currentGroupingState.getGroupIdentifier());
-                }
+                m_duplicateChecker.addGroup(m_currentGroupingState.getGroupIdentifier());
             }
             m_lastRow = row;
 
@@ -282,20 +278,10 @@ final class GroupLoopStartNodeModel extends NodeModel implements
                 cont.addRowToTable(row);
                 m_lastGroupingState = m_currentGroupingState;
 
-            // if group end has been reached add identifier of new group to
-            // duplicate checker
             } else {
-                if (checkDuplicates) {
-                    try {
-                        m_duplicateChecker.addKey(
-                            m_currentGroupingState.getGroupIdentifier());
-                    } catch (DuplicateKeyException e) {
-                        throw new DuplicateKeyException("Input table was "
-                             + "not sorted, found duplicate (group identifier:"
-                             + m_currentGroupingState.getGroupIdentifier()
-                             + ")");
-                    }
-                }
+                // if group end has been reached add identifier of new group to
+                // duplicate checker
+                m_duplicateChecker.addGroup(m_currentGroupingState.getGroupIdentifier());
             }
 
             // if current row was the final row of an additional group it has
@@ -314,14 +300,10 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         cont.close();
 
         if (m_endLoop) {
-            // check for duplicates and throw exception if duplicate exist
             try {
                 m_duplicateChecker.checkForDuplicates();
-            } catch (DuplicateKeyException e) {
-                throw new DuplicateKeyException(
-                    "Input table was not sorted, found duplicate group identifier " + e.getKey());
             } finally {
-                m_duplicateChecker.clear();
+                m_duplicateChecker.close();
                 m_duplicateChecker = null;
             }
         }
@@ -349,7 +331,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
             m_iterator = null;
         }
         if (m_duplicateChecker != null) {
-            m_duplicateChecker.clear();
+            m_duplicateChecker.close();
             m_duplicateChecker = null;
         }
 
