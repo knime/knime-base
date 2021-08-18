@@ -519,19 +519,8 @@ final class GroupLoopStartNodeModel extends NodeModel implements
      * @return An array containing the indices of the included columns.
      */
     private int[] getIncludedColIndices(final DataTableSpec dataSpec) {
-        List<String> includedColNames = Arrays.asList(
-                m_filterGroupColModel.applyTo(dataSpec).getIncludes());
-        int[] includedColIndices = new int[includedColNames.size()];
-        int noCols = dataSpec.getNumColumns();
-        int j = 0;
-        for (int i = 0; i < noCols; i++) {
-            String currColName = dataSpec.getColumnSpec(i).getName();
-            if (includedColNames.contains(currColName)) {
-                includedColIndices[j] = i;
-                j++;
-            }
-        }
-        return includedColIndices;
+        final var filterResult = m_filterGroupColModel.applyTo(dataSpec);
+        return dataSpec.columnsToIndices(filterResult.getIncludes());
     }
 
     @Override
