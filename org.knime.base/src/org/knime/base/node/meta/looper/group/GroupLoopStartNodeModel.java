@@ -128,7 +128,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
     // loop invariants
     private BufferedDataTable m_table;
     private BufferedDataTable m_sortedTable;
-    private CloseableRowIterator m_iterator;
+    private PeekableCloseableRowIterator m_iterator;
     private DataTableSpec m_spec;
     private int[] m_groupColIndices;
     private GroupDuplicateChecker m_duplicateChecker;
@@ -136,11 +136,8 @@ final class GroupLoopStartNodeModel extends NodeModel implements
     // loop variants
     private int m_iteration;
 
-    private DataRow m_lastRow;
     private GroupingState m_currentGroupingState;
-    private GroupingState m_lastGroupingState;
 
-    private boolean m_isFinalRow = false;
     private boolean m_endLoop = false;
 
     /**
@@ -197,7 +194,9 @@ final class GroupLoopStartNodeModel extends NodeModel implements
             m_table = table;
             m_spec = m_table.getDataTableSpec();
             m_sortedTable = getSortedTable(exec, table, spec);
-            m_iterator = m_sortedTable.iterator();
+            @SuppressWarnings("resource") // closed by the PeekableCloseableRowIterator
+            CloseableRowIterator iterator = m_sortedTable.iterator();
+            m_iterator = new PeekableCloseableRowIterator(iterator);
         } else {
             assert getLoopEndNode() != null : "No end node set";
             assert table == m_table : "Input tables differ between iterations";
@@ -209,7 +208,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         /// INIT
         //
         ///////////////////////////
-        BufferedDataContainer cont = exec.createDataContainer(table.getSpec());
 
         // create new duplicate checker if null
         if (m_duplicateChecker == null) {
@@ -218,10 +216,8 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         }
         // initialize grouping states if null
         if (m_currentGroupingState == null) {
-            m_currentGroupingState = new GroupingState("", false, null);
+            m_currentGroupingState = new GroupingState("", null);
         }
-        m_lastGroupingState = m_currentGroupingState;
-
 
         ///////////////////////////
         //
@@ -229,62 +225,11 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         //
         ///////////////////////////
 
-        // if there is one last row left, which did not fit in the last group
-        // add now to new group
-        if (m_lastRow != null) {
-            cont.addRowToTable(m_lastRow);
-        }
-        // if the final row has been reached and added set end loop flag
-        if (m_isFinalRow) {
+        final BufferedDataTable groupTable = createNextGroupTable(exec, table);
+
+        // check if there are more groups
+        if (!m_iterator.hasNext()) {
             m_endLoop = true;
-        }
-
-        // walk trough input table and group data
-        // as long as new row fits into the current group or there are no more
-        // rows left.
-        boolean groupEnd = false;
-        while (!groupEnd && m_iterator.hasNext()) {
-            DataRow row = m_iterator.next();
-
-            // get grouping state according to new row
-            m_currentGroupingState = getGroupingState(row);
-            groupEnd = m_currentGroupingState.isGroupEnd();
-
-            // if first row in table remember grouping state and add identifier
-            // to duplicate checker.
-            if (m_lastRow == null) {
-                m_lastGroupingState = m_currentGroupingState;
-                m_duplicateChecker.addGroup(m_currentGroupingState.getGroupIdentifier());
-            }
-            m_lastRow = row;
-
-            // if group end has not been reached add row
-            if (!groupEnd) {
-                cont.addRowToTable(row);
-                m_lastGroupingState = m_currentGroupingState;
-
-            } else {
-                // if group end has been reached add identifier of new group to
-                // duplicate checker
-                m_duplicateChecker.addGroup(m_currentGroupingState.getGroupIdentifier());
-            }
-
-            // if current row was the final row of an additional group it has
-            // not been added so far. A final iteration needs to be done in
-            // which row will be added.
-            if (!m_iterator.hasNext() && !m_isFinalRow) {
-                m_isFinalRow = true;
-
-                // if group end is not reached, row has been already added
-                // thus end loop
-                if (!groupEnd) {
-                    m_endLoop = true;
-                }
-            }
-        }
-        cont.close();
-
-        if (m_endLoop) {
             try {
                 m_duplicateChecker.checkForDuplicates();
             } finally {
@@ -295,12 +240,38 @@ final class GroupLoopStartNodeModel extends NodeModel implements
 
         // push variables
         pushFlowVariableInt("currentIteration", m_iteration);
-        pushGroupColumnValuesAsFlowVariables(m_lastGroupingState);
+        pushGroupColumnValuesAsFlowVariables(m_currentGroupingState);
         pushFlowVariableString("groupIdentifier",
-                m_lastGroupingState.getGroupIdentifier());
+            m_currentGroupingState.getGroupIdentifier());
         m_iteration++;
 
-        return new BufferedDataTable[] {cont.getTable()};
+        return new BufferedDataTable[] {groupTable};
+    }
+
+    private BufferedDataTable createNextGroupTable(final ExecutionContext exec, final BufferedDataTable table)
+        throws IOException {
+        final BufferedDataContainer cont = exec.createDataContainer(table.getSpec());
+        // walk trough input table and group data
+        // as long as new rows fit into the current group
+        DataRow firstInGroup = null;
+        while (m_iterator.hasNext()) {
+            if (firstInGroup == null) {
+                firstInGroup = m_iterator.next();
+                m_currentGroupingState = getGroupingState(firstInGroup);
+                m_duplicateChecker.addGroup(m_currentGroupingState.getGroupIdentifier());
+                cont.addRowToTable(firstInGroup);
+            } else {
+                final DataRow nextInGroup = m_iterator.peek();
+                if (areFromDifferentGroups(firstInGroup, nextInGroup)) {
+                    break;
+                } else {
+                    m_iterator.next();
+                    cont.addRowToTable(nextInGroup);
+                }
+            }
+        }
+        cont.close();
+        return cont.getTable();
     }
 
     private BufferedDataTable getSortedTable(final ExecutionContext exec, final BufferedDataTable table, final DataTableSpec spec)
@@ -341,14 +312,10 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         m_iteration = 0;
         m_table = null;
         m_sortedTable = null;
-        m_lastRow = null;
         m_spec = null;
         m_groupColIndices = null;
 
         m_endLoop = false;
-        m_isFinalRow = false;
-
-        m_lastGroupingState = null;
         m_currentGroupingState = null;
     }
 
@@ -445,20 +412,11 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         CheckUtils.checkState(m_groupColIndices != null, "Indices of included columns may not be null!");
         CheckUtils.checkState(m_spec != null, "Data table spec may not be null!");
 
-        // check for end of group and create group identifier
-        boolean isGroupEnd = false;
-
         final List<DataCell> groupCells = new ArrayList<>(m_groupColIndices.length);
 
         // walk through grouping columns, compare values and update grouping
         // identifier
         for (int c : m_groupColIndices) {
-                final DataCell newCell = row.getCell(c);
-                // compare only if last row exists
-                if (m_lastRow != null) {
-                    isGroupEnd |= isDifferentGroupAsInLastRow(c, newCell);
-                }
-                // get current group cell
                 groupCells.add(row.getCell(c));
         }
 
@@ -466,15 +424,18 @@ final class GroupLoopStartNodeModel extends NodeModel implements
                 .map(DataCell::toString)//
                 .collect(Collectors.joining(GROUP_SEPARATOR, GROUP_SEPARATOR, GROUP_SEPARATOR));
 
-        return new GroupingState(groupIdentifier, isGroupEnd, groupCells.toArray(DataCell[]::new));
+        return new GroupingState(groupIdentifier, groupCells.toArray(DataCell[]::new));
     }
 
-    private boolean isDifferentGroupAsInLastRow(final int c, final DataCell newCell) {
-        final DataCell lastCell = m_lastRow.getCell(c);
-        // compare last and new values, if one value differs, group
-        // end is reached
-        return m_spec.getColumnSpec(c).getType().getComparator()
-                .compare(lastCell, newCell) != 0;
+    private boolean areFromDifferentGroups(final DataRow left, final DataRow right) {
+        for (int c : m_groupColIndices) {
+            final DataCell leftCell = left.getCell(c);
+            final DataCell rightCell = right.getCell(c);
+            if (m_spec.getColumnSpec(c).getType().getComparator().compare(leftCell, rightCell) != 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -532,25 +493,19 @@ final class GroupLoopStartNodeModel extends NodeModel implements
      */
     private static class GroupingState {
         private String m_groupIdentifier;
-        private boolean m_groupEnd;
         private DataCell[] m_cells;
 
-        public GroupingState(final String groupIdentifier,
-                final boolean groupEnd, final DataCell[] cells) {
+        GroupingState(final String groupIdentifier,
+                final DataCell[] cells) {
             m_groupIdentifier = groupIdentifier;
-            m_groupEnd = groupEnd;
             m_cells = cells;
         }
 
-        public boolean isGroupEnd() {
-            return m_groupEnd;
-        }
-
-        public String getGroupIdentifier() {
+        String getGroupIdentifier() {
             return m_groupIdentifier;
         }
 
-        public DataCell[] getGroupCells() {
+        DataCell[] getGroupCells() {
             return m_cells;
         }
     }
