@@ -49,8 +49,10 @@ package org.knime.base.node.meta.looper.group;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
@@ -454,61 +456,40 @@ final class GroupLoopStartNodeModel extends NodeModel implements
 
     private GroupingState getGroupingState(final DataRow row) {
         // sanity checks
-        if (row == null) {
-            throw new IllegalArgumentException(
-                    "Row to check for group end may not be null!");
-        }
-        if (m_includedColIndices == null) {
-            throw new IllegalStateException(
-                    "Indices of included columns may not be null!");
-        }
-        if (m_spec == null) {
-            throw new IllegalStateException("Data table spec may not be null!");
-        }
+        CheckUtils.checkArgumentNotNull(row, "Row to check for group end may not be null!");
+        CheckUtils.checkState(m_includedColIndices != null, "Indices of included columns may not be null!");
+        CheckUtils.checkState(m_spec != null, "Data table spec may not be null!");
 
         // check for end of group and create group identifier
         boolean isGroupEnd = false;
-        String groupIdentifier = "";
-        DataCell[] groupCells = new DataCell[m_includedColIndices.length];
 
-        int currIncludedColIndex = 0;
-        int nextIncludedColIndex = m_includedColIndices[currIncludedColIndex];
+        final List<DataCell> groupCells = new ArrayList<>(m_includedColIndices.length);
 
-        // walk through all columns, compare values and update grouping
+        // walk through grouping columns, compare values and update grouping
         // identifier
-        for (int c = 0; c < row.getNumCells(); c++) {
-
-            // if column is included for grouping
-            if (c == nextIncludedColIndex) {
+        for (int c : m_includedColIndices) {
+                final DataCell newCell = row.getCell(c);
                 // compare only if last row exists
                 if (m_lastRow != null) {
-                    DataCell lastCell = m_lastRow.getCell(c);
-                    DataCell newCell = row.getCell(c);
-
-                    // compare last and new values, if one value differs, group
-                    // end is reached
-                    if (m_spec.getColumnSpec(c).getType().getComparator()
-                            .compare(lastCell, newCell) != 0) {
-                        isGroupEnd = true;
-                    }
+                    isGroupEnd |= isDifferentGroupAsInLastRow(c, newCell);
                 }
-
-                groupIdentifier += GROUP_SEPARATOR + row.getCell(c).toString()
-                                 + GROUP_SEPARATOR;
-
                 // get current group cell
-                groupCells[currIncludedColIndex] = row.getCell(c);
-
-                // get index of next included column
-                currIncludedColIndex++;
-                if (currIncludedColIndex < m_includedColIndices.length) {
-                    nextIncludedColIndex =
-                        m_includedColIndices[currIncludedColIndex];
-                }
-            }
+                groupCells.add(row.getCell(c));
         }
 
-        return new GroupingState(groupIdentifier, isGroupEnd, groupCells);
+        final String groupIdentifier = groupCells.stream()//
+                .map(DataCell::toString)//
+                .collect(Collectors.joining(GROUP_SEPARATOR, GROUP_SEPARATOR, GROUP_SEPARATOR));
+
+        return new GroupingState(groupIdentifier, isGroupEnd, groupCells.toArray(DataCell[]::new));
+    }
+
+    private boolean isDifferentGroupAsInLastRow(final int c, final DataCell newCell) {
+        final DataCell lastCell = m_lastRow.getCell(c);
+        // compare last and new values, if one value differs, group
+        // end is reached
+        return m_spec.getColumnSpec(c).getType().getComparator()
+                .compare(lastCell, newCell) != 0;
     }
 
     /**
