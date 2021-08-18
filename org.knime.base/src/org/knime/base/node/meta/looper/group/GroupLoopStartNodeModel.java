@@ -148,9 +148,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         super(1, 1);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
@@ -181,9 +178,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         return inSpecs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
@@ -346,18 +340,12 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         return new BufferedDataTable[] {cont.getTable()};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean terminateLoop() {
         boolean continueLoop = m_iterator == null || !m_endLoop;
         return !continueLoop;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         if (m_iterator != null) {
@@ -383,7 +371,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         m_currentGroupingState = null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public BufferedDataTable[] getInternalTables() {
         if (!m_endLoop) {
@@ -392,7 +379,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setInternalTables(final BufferedDataTable[] tables) {
         // ignore, can't persist loop start anyway
@@ -554,18 +540,12 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         return includedColIndices;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_filterGroupColModel.saveSettingsTo(settings);
         m_sortedInputTableModel.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
@@ -573,9 +553,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         m_sortedInputTableModel.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
@@ -584,9 +561,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir,
             final ExecutionMonitor exec)
@@ -594,9 +568,6 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         // Nothing to do ...
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir,
             final ExecutionMonitor exec)
