@@ -72,6 +72,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 import org.knime.core.util.DuplicateChecker;
 import org.knime.core.util.DuplicateKeyException;
@@ -158,17 +159,10 @@ final class GroupLoopStartNodeModel extends NodeModel implements
                 Arrays.asList(m_filterGroupColModel.applyTo(m_spec)
                         .getIncludes());
 
-        // at least one column containing double values must be specified
-        if (includedColNames.size() <= 0) {
-            throw new InvalidSettingsException(
-                    "Select at least one column containing group information!");
-        }
+        CheckUtils.checkSetting(!includedColNames.isEmpty(), "Select at least one column containing group information!");
 
         for (String colName : includedColNames) {
-            if (!m_spec.containsName(colName)) {
-                throw new InvalidSettingsException("Column \"" + colName
-                        + "\" is not available!");
-            }
+            CheckUtils.checkSetting(m_spec.containsName(colName), "Column \"%s\" is not available!", colName);
         }
 
         assert m_iteration == 0;
