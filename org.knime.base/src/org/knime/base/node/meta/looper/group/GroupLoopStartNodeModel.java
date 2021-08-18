@@ -85,7 +85,7 @@ import org.knime.core.util.DuplicateKeyException;
  *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
-class GroupLoopStartNodeModel extends NodeModel implements
+final class GroupLoopStartNodeModel extends NodeModel implements
         LoopStartNodeTerminator, BufferedDataTableHolder {
 
     /**
@@ -98,11 +98,30 @@ class GroupLoopStartNodeModel extends NodeModel implements
      */
     public static final String GROUP_SEPARATOR = "%";
 
-    private final SettingsModelColumnFilter2 m_filterGroupColModel =
-        GroupLoopStartNodeDialog.getFilterDoubleColModel();
+    /**
+     * Creates and returns the settings model, storing the selected columns.
+     *
+     * @return The settings model with the selected columns.
+     */
+    static final SettingsModelColumnFilter2 getFilterDoubleColModel() {
+        return new SettingsModelColumnFilter2(GroupLoopStartConfigKeys.COLUMN_NAMES);
+    }
 
-    private final SettingsModelBoolean m_sortedInputTableModel =
-        GroupLoopStartNodeDialog.getSortedInputTableModel();
+    /**
+     * Creates and returns the settings model, storing the "sorted input table"
+     * flag.
+     *
+     * @return The settings model with the "sorted input table" flag.
+     */
+    static final SettingsModelBoolean getSortedInputTableModel() {
+        return new SettingsModelBoolean(
+                GroupLoopStartConfigKeys.SORTED_INPUT_TABLE,
+                GroupLoopStartNodeModel.DEF_SORTED_INPUT_TABLE);
+    }
+
+    private final SettingsModelColumnFilter2 m_filterGroupColModel = getFilterDoubleColModel();
+
+    private final SettingsModelBoolean m_sortedInputTableModel = getSortedInputTableModel();
 
     // loop invariants
     private BufferedDataTable m_table;

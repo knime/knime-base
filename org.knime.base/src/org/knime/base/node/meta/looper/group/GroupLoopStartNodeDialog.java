@@ -50,8 +50,6 @@ package org.knime.base.node.meta.looper.group;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 
 /**
  * Creates the dialog of the group loop start node and provides static methods
@@ -59,29 +57,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
  *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
-class GroupLoopStartNodeDialog extends DefaultNodeSettingsPane {
-
-    /**
-     * Creates and returns the settings model, storing the selected columns.
-     *
-     * @return The settings model with the selected columns.
-     */
-    @SuppressWarnings("unchecked")
-    static final SettingsModelColumnFilter2 getFilterDoubleColModel() {
-        return new SettingsModelColumnFilter2(GroupLoopStartConfigKeys.COLUMN_NAMES);
-    }
-
-    /**
-     * Creates and returns the settings model, storing the "sorted input table"
-     * flag.
-     *
-     * @return The settings model with the "sorted input table" flag.
-     */
-    static final SettingsModelBoolean getSortedInputTableModel() {
-        return new SettingsModelBoolean(
-                GroupLoopStartConfigKeys.SORTED_INPUT_TABLE,
-                GroupLoopStartNodeModel.DEF_SORTED_INPUT_TABLE);
-    }
+final class GroupLoopStartNodeDialog extends DefaultNodeSettingsPane {
 
     /**
      * Creates new instance of <code>GroupLoopStartNodeDialog</code>.
@@ -90,11 +66,11 @@ class GroupLoopStartNodeDialog extends DefaultNodeSettingsPane {
 
         // column selection
         addDialogComponent(new DialogComponentColumnFilter2(
-                getFilterDoubleColModel(), 0));
+                GroupLoopStartNodeModel.getFilterDoubleColModel(), 0));
 
         // sorted input table
         addDialogComponent(
-                new DialogComponentBoolean(getSortedInputTableModel(),
+                new DialogComponentBoolean(GroupLoopStartNodeModel.getSortedInputTableModel(),
                         "Input is already sorted by group column(s) "
                         + "[execution fails if not correctly sorted]"));
     }
