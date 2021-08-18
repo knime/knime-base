@@ -196,22 +196,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
             assert getLoopEndNode() == null : "1st iteration but end node set";
             m_table = table;
             m_spec = m_table.getDataTableSpec();
-
-            // sort if not already sorted
-            if (!m_sortedInputTableModel.getBooleanValue()) {
-                // asc
-                final String[] includes = m_filterGroupColModel.applyTo(spec).getIncludes();
-                boolean[] sortAsc = new boolean[includes.length];
-                Arrays.fill(sortAsc, true);
-                BufferedDataTableSorter tableSorter =
-                    new BufferedDataTableSorter(table,
-                            Arrays.asList(includes), sortAsc, false);
-                m_sortedTable = tableSorter.sort(exec);
-            } else {
-                // no sort necessary
-                m_sortedTable = table;
-            }
-
+            m_sortedTable = getSortedTable(exec, table, spec);
             m_iterator = m_sortedTable.iterator();
         } else {
             assert getLoopEndNode() != null : "No end node set";
@@ -316,6 +301,24 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         m_iteration++;
 
         return new BufferedDataTable[] {cont.getTable()};
+    }
+
+    private BufferedDataTable getSortedTable(final ExecutionContext exec, final BufferedDataTable table, final DataTableSpec spec)
+        throws CanceledExecutionException {
+        // sort if not already sorted
+        if (m_sortedInputTableModel.getBooleanValue()) {
+            // no sort necessary
+            return table;
+        } else {
+            // asc
+            final String[] includes = m_filterGroupColModel.applyTo(spec).getIncludes();
+            boolean[] sortAsc = new boolean[includes.length];
+            Arrays.fill(sortAsc, true);
+            BufferedDataTableSorter tableSorter =
+                    new BufferedDataTableSorter(table,
+                        Arrays.asList(includes), sortAsc, false);
+            return tableSorter.sort(exec);
+        }
     }
 
     @Override
