@@ -131,7 +131,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
     private BufferedDataTable m_sortedTable;
     private CloseableRowIterator m_iterator;
     private DataTableSpec m_spec;
-    private int[] m_includedColIndices;
+    private int[] m_groupColIndices;
     private DuplicateChecker m_duplicateChecker;
 
     // loop variants
@@ -190,7 +190,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         }
 
         // parameters
-        m_includedColIndices = getIncludedColIndices(table.getDataTableSpec());
+        m_groupColIndices = getGroupColIndices(table.getDataTableSpec());
         boolean checkDuplicates = m_sortedInputTableModel.getBooleanValue();
 
         // remember table and sort table if necessary
@@ -358,7 +358,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         m_sortedTable = null;
         m_lastRow = null;
         m_spec = null;
-        m_includedColIndices = null;
+        m_groupColIndices = null;
 
         m_endLoop = false;
         m_isFinalRow = false;
@@ -391,7 +391,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
             if (cells != null) {
                 for (int i = 0; i < cells.length; i++) {
                     DataCell c = cells[i];
-                    int j = m_includedColIndices[i];
+                    int j = m_groupColIndices[i];
                     pushVariable(c.getType(), m_spec.getColumnSpec(j).getName(),
                             c);
                 }
@@ -457,17 +457,17 @@ final class GroupLoopStartNodeModel extends NodeModel implements
     private GroupingState getGroupingState(final DataRow row) {
         // sanity checks
         CheckUtils.checkArgumentNotNull(row, "Row to check for group end may not be null!");
-        CheckUtils.checkState(m_includedColIndices != null, "Indices of included columns may not be null!");
+        CheckUtils.checkState(m_groupColIndices != null, "Indices of included columns may not be null!");
         CheckUtils.checkState(m_spec != null, "Data table spec may not be null!");
 
         // check for end of group and create group identifier
         boolean isGroupEnd = false;
 
-        final List<DataCell> groupCells = new ArrayList<>(m_includedColIndices.length);
+        final List<DataCell> groupCells = new ArrayList<>(m_groupColIndices.length);
 
         // walk through grouping columns, compare values and update grouping
         // identifier
-        for (int c : m_includedColIndices) {
+        for (int c : m_groupColIndices) {
                 final DataCell newCell = row.getCell(c);
                 // compare only if last row exists
                 if (m_lastRow != null) {
@@ -499,7 +499,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
      * @param dataSpec The input data table spec.
      * @return An array containing the indices of the included columns.
      */
-    private int[] getIncludedColIndices(final DataTableSpec dataSpec) {
+    private int[] getGroupColIndices(final DataTableSpec dataSpec) {
         final var filterResult = m_filterGroupColModel.applyTo(dataSpec);
         return dataSpec.columnsToIndices(filterResult.getIncludes());
     }
