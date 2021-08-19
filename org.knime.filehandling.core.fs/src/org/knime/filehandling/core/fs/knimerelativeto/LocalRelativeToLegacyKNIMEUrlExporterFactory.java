@@ -46,29 +46,26 @@
  * History
  *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knimerelativeto.export;
+package org.knime.filehandling.core.fs.knimerelativeto;
 
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
 import org.knime.filehandling.core.connections.uriexport.base.LegacyKNIMEUriExporterHelper;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
-import org.knime.filehandling.core.fs.knimerelativeto.RelativeToPath;
 
 /**
  * {@link URIExporter} that provides legacy knime:// URLs.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
- * @noextend non-public API
  */
-public final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
+final class LocalRelativeToLegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
 
     private static final BaseURIExporterMetaInfo META_INFO =
         new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
 
-    private static final LegacyKNIMEUrlExporterFactory INSTANCE = new LegacyKNIMEUrlExporterFactory();
+    private static final LocalRelativeToLegacyKNIMEUrlExporterFactory INSTANCE = new LocalRelativeToLegacyKNIMEUrlExporterFactory();
 
-    private LegacyKNIMEUrlExporterFactory() {
+    private LocalRelativeToLegacyKNIMEUrlExporterFactory() {
         super(META_INFO, p -> LegacyKNIMEUriExporterHelper
             .createRelativeKNIMEProtocolURI(((RelativeToPath)p).getFileSystem().getType(), p));
     }
@@ -76,7 +73,7 @@ public final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFact
     /**
      * @return the singleton instance
      */
-    public static LegacyKNIMEUrlExporterFactory getInstance() {
+    static LocalRelativeToLegacyKNIMEUrlExporterFactory getInstance() {
         return INSTANCE;
     }
 }

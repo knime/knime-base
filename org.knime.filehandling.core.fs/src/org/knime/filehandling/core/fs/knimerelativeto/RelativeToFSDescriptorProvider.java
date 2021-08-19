@@ -52,7 +52,6 @@ import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.fs.knimerelativeto.export.LegacyKNIMEUrlExporterFactory;
 
 class RelativeToFSDescriptorProvider extends BaseFSDescriptorProvider {
 
@@ -60,8 +59,8 @@ class RelativeToFSDescriptorProvider extends BaseFSDescriptorProvider {
         super(fsType, //
             builder //
                 .withIsWorkflowAware(true) //
-                .withURIExporterFactory(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getInstance()) //
-                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, LocalRelativeToLegacyKNIMEUrlExporterFactory.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LocalRelativeToLegacyKNIMEUrlExporterFactory.getInstance()) //
                 .build());
     }
 }
