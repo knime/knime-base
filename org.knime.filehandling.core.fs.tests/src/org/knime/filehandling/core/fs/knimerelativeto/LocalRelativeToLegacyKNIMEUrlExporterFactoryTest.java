@@ -54,17 +54,16 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import org.junit.Test;
-import org.knime.filehandling.core.fs.knimerelativeto.export.LegacyKNIMEUrlExporterFactory;
 
 /**
- * Tests the {@link LegacyKNIMEUrlExporterFactory} which generates (relative) knime:// URLs.
+ * Tests the {@link LocalRelativeToLegacyKNIMEUrlExporterFactory} which generates (relative) knime:// URLs.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LegacyKNIMEUrlExporterFactoryTest extends LocalRelativeToFileSystemTestBase {
+public class LocalRelativeToLegacyKNIMEUrlExporterFactoryTest extends LocalRelativeToFileSystemTestBase {
 
     private static String toKNIMEProtocolURI(final RelativeToPath path) throws URISyntaxException {
-        return LegacyKNIMEUrlExporterFactory.getInstance().getExporter().toUri(path).toString();
+        return LocalRelativeToLegacyKNIMEUrlExporterFactory.getInstance().getExporter().toUri(path).toString();
     }
 
     @Test
