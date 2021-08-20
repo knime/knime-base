@@ -45,6 +45,7 @@
  */
 package org.knime.filehandling.core.fs.tests.integration.filesystemprovider;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -214,5 +215,13 @@ public class AttributesTest extends AbstractParameterizedFSTest {
     public void test_get_file_attributes_for_funny_file2() throws Exception {
         final Path file = getFileSystem().getPath("X:\\AA\\B C\\ X~\\#\\doesnotexist?!");
         Files.readAttributes(file, BasicFileAttributes.class);
+    }
+
+    @Test
+    public void test_get_file_size() throws IOException {
+        String content = "some content";
+        Path file = m_testInitializer.createFileWithContent(content, "file");
+
+        assertEquals(content.length(), Files.size(file));
     }
 }
