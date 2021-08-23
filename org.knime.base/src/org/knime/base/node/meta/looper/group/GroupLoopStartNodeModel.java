@@ -182,68 +182,26 @@ final class GroupLoopStartNodeModel extends NodeModel implements
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
 
-        ///////////////////////////
-        //
-        /// DATA TABLES (SORTING)
-        //
-        ///////////////////////////
         BufferedDataTable table = inData[0];
-        DataTableSpec spec = table.getDataTableSpec();
         if (table.size() <= 0) {
             m_endLoop = true;
         }
 
-        // parameters
-        m_groupColIndices = getGroupColIndices(table.getDataTableSpec());
-
         // remember table and sort table if necessary
         if (m_iteration == 0) {
             assert getLoopEndNode() == null : "1st iteration but end node set";
-            m_table = table;
-            m_spec = m_table.getDataTableSpec();
-            m_sortedTable = getSortedTable(exec, table, spec);
-            @SuppressWarnings("resource") // closed by the PeekableCloseableRowIterator
-            CloseableRowIterator iterator = m_sortedTable.iterator();
-            m_iterator = new PeekableCloseableRowIterator(iterator);
+            initializeInFirstIteration(exec, table);
         } else {
             assert getLoopEndNode() != null : "No end node set";
             assert table == m_table : "Input tables differ between iterations";
         }
 
-
-        ///////////////////////////
-        //
-        /// INIT
-        //
-        ///////////////////////////
-
-        // create new duplicate checker if null
-        if (m_duplicateChecker == null) {
-            m_duplicateChecker =
-                GroupDuplicateCheckers.createGroupDuplicateChecker(m_sortedInputTableModel.getBooleanValue());
-        }
-        // initialize grouping states if null
-        if (m_currentGroupingState == null) {
-            m_currentGroupingState = new GroupingState("", null);
-        }
-
-        ///////////////////////////
-        //
-        /// GROUPING / ROW COLLECTION
-        //
-        ///////////////////////////
-
         final BufferedDataTable groupTable = createNextGroupTable(exec, table);
 
         // check if there are more groups
-        if (!m_iterator.hasNext()) {
+        if (noMoreGroups()) {
             m_endLoop = true;
-            try {
-                m_duplicateChecker.checkForDuplicates();
-            } finally {
-                m_duplicateChecker.close();
-                m_duplicateChecker = null;
-            }
+            cleanupDuplicateChecker();
         }
 
         // push variables
@@ -255,6 +213,38 @@ final class GroupLoopStartNodeModel extends NodeModel implements
 
         return new BufferedDataTable[] {groupTable};
     }
+
+    private void initializeInFirstIteration(final ExecutionContext exec, final BufferedDataTable table)
+        throws CanceledExecutionException {
+        m_table = table;
+        m_spec = m_table.getDataTableSpec();
+        m_groupColIndices = getGroupColIndices(m_spec);
+        m_sortedTable = getSortedTable(exec, table);
+        @SuppressWarnings("resource") // closed by the PeekableCloseableRowIterator
+        CloseableRowIterator iterator = m_sortedTable.iterator();
+        m_iterator = new PeekableCloseableRowIterator(iterator);
+        m_duplicateChecker =
+                GroupDuplicateCheckers.createGroupDuplicateChecker(m_sortedInputTableModel.getBooleanValue());
+        m_currentGroupingState = new GroupingState("", null);
+    }
+
+    private BufferedDataTable getSortedTable(final ExecutionContext exec, final BufferedDataTable table)
+            throws CanceledExecutionException {
+            // sort if not already sorted
+            if (m_sortedInputTableModel.getBooleanValue()) {
+                // no sort necessary
+                return table;
+            } else {
+                // asc
+                final String[] includes = m_filterGroupColModel.applyTo(table.getDataTableSpec()).getIncludes();
+                boolean[] sortAsc = new boolean[includes.length];
+                Arrays.fill(sortAsc, true);
+                BufferedDataTableSorter tableSorter =
+                        new BufferedDataTableSorter(table,
+                            Arrays.asList(includes), sortAsc, false);
+                return tableSorter.sort(exec);
+            }
+        }
 
     private BufferedDataTable createNextGroupTable(final ExecutionContext exec, final BufferedDataTable table)
         throws IOException {
@@ -282,21 +272,16 @@ final class GroupLoopStartNodeModel extends NodeModel implements
         return cont.getTable();
     }
 
-    private BufferedDataTable getSortedTable(final ExecutionContext exec, final BufferedDataTable table, final DataTableSpec spec)
-        throws CanceledExecutionException {
-        // sort if not already sorted
-        if (m_sortedInputTableModel.getBooleanValue()) {
-            // no sort necessary
-            return table;
-        } else {
-            // asc
-            final String[] includes = m_filterGroupColModel.applyTo(spec).getIncludes();
-            boolean[] sortAsc = new boolean[includes.length];
-            Arrays.fill(sortAsc, true);
-            BufferedDataTableSorter tableSorter =
-                    new BufferedDataTableSorter(table,
-                        Arrays.asList(includes), sortAsc, false);
-            return tableSorter.sort(exec);
+    private boolean noMoreGroups() {
+        return !m_iterator.hasNext();
+    }
+
+    private void cleanupDuplicateChecker() throws IOException {
+        try {
+            m_duplicateChecker.checkForDuplicates();
+        } finally {
+            m_duplicateChecker.close();
+            m_duplicateChecker = null;
         }
     }
 
