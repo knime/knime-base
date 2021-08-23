@@ -96,9 +96,17 @@ final class GroupLoopStartNodeModel extends NodeModel implements
     public static final boolean DEF_SORTED_INPUT_TABLE = false;
 
     /**
-     * The separator to separate groups in group identifier.
+     * Character inserted at the beginning and end of the group identifier.
+     * TODO this only exists for backwards compatibility. If this node is deprecated, we should get rid of it
+     * and only use a single % as the group separator.
      */
-    public static final String GROUP_SEPARATOR = "%";
+    private static final String GROUP_PRE_SUFFIX = "%";
+
+    /**
+     * The separator to separate groups in group identifier.
+     * TODO should be a single % but is kept this way for backwards compatibility. Change on deprecation
+     */
+    private static final String GROUP_SEPARATOR = GROUP_PRE_SUFFIX + GROUP_PRE_SUFFIX;
 
     /**
      * Creates and returns the settings model, storing the selected columns.
@@ -422,7 +430,7 @@ final class GroupLoopStartNodeModel extends NodeModel implements
 
         final String groupIdentifier = groupCells.stream()//
                 .map(DataCell::toString)//
-                .collect(Collectors.joining(GROUP_SEPARATOR, GROUP_SEPARATOR, GROUP_SEPARATOR));
+                .collect(Collectors.joining(GROUP_SEPARATOR, GROUP_PRE_SUFFIX, GROUP_PRE_SUFFIX));
 
         return new GroupingState(groupIdentifier, groupCells.toArray(DataCell[]::new));
     }
