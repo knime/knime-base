@@ -60,6 +60,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.swing.JLabel;
@@ -78,6 +79,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.property.hilite.HiLiteListener;
 import org.knime.core.node.property.hilite.KeyEvent;
+import org.knime.core.util.Pair;
 
 /**
  * This view displays the scoring results. It needs to be hooked up with a scoring model.
@@ -166,18 +168,16 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
         labelPanel.add(new JLabel("Accuracy:"));
         m_accuracy = new JLabel("n/a");
         labelPanel.add(m_accuracy);
-        labelPanel.add(new JLabel("%"));
         summary.add(labelPanel);
 
         labelPanel = new JPanel(new FlowLayout());
         labelPanel.add(new JLabel("Error:"));
         m_error = new JLabel("n/a");
         labelPanel.add(m_error);
-        labelPanel.add(new JLabel("%"));
         summary.add(labelPanel);
 
         labelPanel = new JPanel(new FlowLayout());
-        labelPanel.add(new JLabel("Cohen's kappa (\u03BA)"));
+        labelPanel.add(new JLabel("Cohen's kappa (\u03BA): "));
         m_cohenKappa = new JLabel("n/a");
         labelPanel.add(m_cohenKappa);
         summary.add(labelPanel);
@@ -224,12 +224,25 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
      * @param accuracy the accuracy
      * @param kappa cohen's kappa
      */
-    protected void setLabels(final int correctCount, final int wrongCount, final double error, final double accuracy,
-        final double kappa) {
+    @SuppressWarnings("java:S3553") // Optional parameters
+    protected void setLabels(final int correctCount, final int wrongCount, final Optional<Double> error,
+        final Optional<Double> accuracy, final Optional<Double> kappa) {
         NumberFormat nf = NumberFormat.getInstance();
-        setLabels(nf.format(correctCount), nf.format(wrongCount), nf.format(error), "Error: " + error + " %",
-            nf.format(accuracy), "Accuracy: " + accuracy + " %", nf.format(kappa), "Cohen's \u03BA: " + kappa);
 
+        Pair<String, String> err = formatDisplayTooltip(error.map(v -> v * 100));
+        Pair<String, String> acc = formatDisplayTooltip(accuracy.map(v -> v * 100));
+        Pair<String, String> kapp = formatDisplayTooltip(kappa);
+
+        setLabels(nf.format(correctCount), nf.format(wrongCount), err.getFirst(), err.getSecond(), acc.getFirst(),
+            acc.getSecond(), kapp.getFirst(), kapp.getSecond());
+    }
+
+    @SuppressWarnings("java:S3553") // Optional parameters
+    private static Pair<String, String> formatDisplayTooltip(final Optional<Double> container) {
+        NumberFormat nf = NumberFormat.getInstance();
+        return new Pair<>(
+            container.map(nf::format).map(s -> s + "%").orElse(AccuracyScorerCalculator.UNDEFINED_NUM_REPR),
+            container.map(s -> s + "%").orElse(AccuracyScorerCalculator.UNDEFINED_NUM_REPR));
     }
 
     /**
@@ -373,10 +386,8 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
 
         setTableViewModel(dataModel);
 
-        double error = 100.0 * viewData.getError();
-        double accuracy = 100.0 * viewData.getAccuracy();
-        double cohenKappa = viewData.getCohenKappa();
-        setLabels(viewData.getCorrectCount(), viewData.getFalseCount(), error, accuracy, cohenKappa);
+        setLabels(viewData.getCorrectCount(), viewData.getFalseCount(), viewData.getError(), viewData.getAccuracy(),
+            viewData.getCohenKappa());
 
     }
 

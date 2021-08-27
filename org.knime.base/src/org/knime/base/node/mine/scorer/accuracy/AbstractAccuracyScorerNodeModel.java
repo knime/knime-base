@@ -52,6 +52,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Collator;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -62,6 +63,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -333,7 +335,9 @@ public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implemen
 
         // print info
         int missing = numberOfRows - correctCount - falseCount;
-        LOGGER.info("error=" + viewData.getError() + ", #correct=" + viewData.getCorrectCount() + ", #false="
+        String errorReadable =
+                viewData.getError().map(v -> v*100).map(NumberFormat.getInstance()::format).map(s -> s + "%").orElse(AccuracyScorerCalculator.UNDEFINED_NUM_REPR);
+        LOGGER.info("error=" + errorReadable + ", #correct=" + viewData.getCorrectCount() + ", #false="
             + viewData.getFalseCount() + ", #rows=" + numberOfRows + ", #missing=" + missing);
         // our view displays the table - we must keep a reference in the model.
         BufferedDataTable result = container.getTable();
@@ -364,7 +368,7 @@ public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implemen
                 specificity = DataType.getMissingCell();
             }
             final DataCell fmeasure; // 2 * Prec. * Recall / (Prec. + Recall)
-            if (recall != null && prec != null) {
+            if (recall != null && prec != null && recall.getDoubleValue() + prec.getDoubleValue() > 0) {
                 fmeasure = new DoubleCell(2.0 * prec.getDoubleValue() * recall.getDoubleValue()
                     / (prec.getDoubleValue() + recall.getDoubleValue()));
             } else {
@@ -385,11 +389,13 @@ public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implemen
             overallID = new RowKey("Overall (#" + (uniquifier++) + ")");
         }
         // append additional row for overall accuracy
+        DataCell accuracyCell = AccuracyScorerCalculator.getOptionalDoubleCell(viewData.getAccuracy());
+        DataCell kappaCell = AccuracyScorerCalculator.getOptionalDoubleCell(viewData.getCohenKappa());
         accTable.addRowToTable(new DefaultRow(overallID,
             new DataCell[]{DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(),
                 DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(),
                 DataType.getMissingCell(), DataType.getMissingCell(), DataType.getMissingCell(),
-                new DoubleCell(viewData.getAccuracy()), new DoubleCell(viewData.getCohenKappa())}));
+                accuracyCell, kappaCell}));
         accTable.close();
 
         m_viewData = viewData;
@@ -428,11 +434,12 @@ public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implemen
             addWarning("A flow variable was replaced!");
         }
 
-        double accu = isConfigureOnly ? 0.0 : m_viewData.getAccuracy();
-        double error = isConfigureOnly ? 0.0 : m_viewData.getError();
+        double defaultValue = Double.NaN;
+        double accu = isConfigureOnly ? 0.0 : m_viewData.getAccuracy().orElse(defaultValue);
+        double error = isConfigureOnly ? 0.0 : m_viewData.getError().orElse(defaultValue);
         int correctCount = isConfigureOnly ? 0 : m_viewData.getCorrectCount();
         int falseCount = isConfigureOnly ? 0 : m_viewData.getFalseCount();
-        double kappa = isConfigureOnly ? 0 : m_viewData.getCohenKappa();
+        double kappa = isConfigureOnly ? 0 : m_viewData.getCohenKappa().orElse(defaultValue);
         pushFlowVariableDouble(accuracyName, accu);
         pushFlowVariableDouble(errorName, error);
         pushFlowVariableInt(correctName, correctCount);
@@ -864,7 +871,7 @@ public abstract class AbstractAccuracyScorerNodeModel extends NodeModel implemen
      * @deprecated use {@link #getViewData()} instead
      */
     @Deprecated
-    public double getCohenKappa() {
+    public Optional<Double> getCohenKappa() {
         return m_viewData.getCohenKappa();
     }
 

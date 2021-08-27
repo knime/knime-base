@@ -49,6 +49,7 @@
 package org.knime.base.node.mine.scorer.accuracy;
 
 import java.text.Collator;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -56,6 +57,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.base.util.SortingStrategy;
@@ -94,6 +96,13 @@ public class AccuracyScorerCalculator {
 
     /** The node logger for this class. */
     protected static final NodeLogger LOGGER = NodeLogger.getLogger(AccuracyScorerCalculator.class);
+
+    /**
+     * String representation of a numerical value that is undefined, for display in views and dialogs.
+     *
+     * @since 4.5
+     */
+    protected static final String UNDEFINED_NUM_REPR = "undefined";
 
     private final ScorerCalculatorConfiguration m_config;
 
@@ -381,7 +390,7 @@ public class AccuracyScorerCalculator {
                     specificity = DataType.getMissingCell();
                 }
                 DataCell fmeasure = null; // 2 * Prec. * Recall / (Prec. + Recall)
-                if (recall != null && precision != null) {
+                if (recall != null && precision != null && recall.getDoubleValue() + precision.getDoubleValue() > 0) {
                     fmeasure = new DoubleCell(2.0 * precision.getDoubleValue() * recall.getDoubleValue()
                         / (precision.getDoubleValue() + recall.getDoubleValue()));
                 } else {
@@ -464,13 +473,13 @@ public class AccuracyScorerCalculator {
             container = exec.createDataContainer(createOverallStatsSpec(config));
             List<DataCell> cellList = new ArrayList<DataCell>();
             if (config.isOverallAccuracyCalculated()) {
-                cellList.add(new DoubleCell(getOverallAccuracy()));
+                cellList.add(getOptionalDoubleCell(getOverallAccuracy()));
             }
             if (config.isOverallErrorCalculated()) {
-                cellList.add(new DoubleCell(getOverallError()));
+                cellList.add(getOptionalDoubleCell(getOverallError()));
             }
             if (config.isCohensKappaCalculated()) {
-                cellList.add(new DoubleCell(getCohenKappa()));
+                cellList.add(getOptionalDoubleCell(getCohenKappa()));
             }
             if (config.isCorrectClassifiedCalculated()) {
                 cellList.add(new IntCell(m_correctCount));
@@ -492,6 +501,15 @@ public class AccuracyScorerCalculator {
             throw new NullPointerException();
         }
         return container.getTable();
+    }
+
+    /**
+     * @param container A double value or no value / undefined.
+     * @return A <code>DataCell</code> carrying the contained value or a <code>MissingCell</code> if empty.
+     */
+    @SuppressWarnings("java:S3553") // Optional parameters
+    static DataCell getOptionalDoubleCell(final Optional<Double> container) {
+        return container.map(v -> (DataCell)new DoubleCell(v)).orElse(DataType.getMissingCell());
     }
 
     /**
@@ -595,7 +613,9 @@ public class AccuracyScorerCalculator {
                 "There were " + missing + " missing values in the reference or in the prediction class columns.");
         }
         // print info
-        LOGGER.info("overall error=" + getOverallError() + ", #correct=" + m_correctCount + ", #false=" + m_falseCount
+        String errorReadable = getOverallError().map(v -> v * 100).map(NumberFormat.getInstance()::format)
+            .map(s -> s + "%").orElse(AccuracyScorerCalculator.UNDEFINED_NUM_REPR);
+        LOGGER.info("overall error=" + errorReadable + ", #correct=" + m_correctCount + ", " + "#false=" + m_falseCount
             + ", #rows=" + rowsNumber + ", #missing=" + missing);
         return;
     }
@@ -603,7 +623,7 @@ public class AccuracyScorerCalculator {
     /**
      * Called to determine all possible values in the respective columns.
      *
-     * @param specification of the input table
+     * @param inSpec of the input table
      * @param index1 the first column to compare
      * @param index2 the second column to compare
      * @return the order of rows and columns in the confusion matrix
@@ -752,12 +772,12 @@ public class AccuracyScorerCalculator {
      *
      * @return ratio of correct classified and all patterns
      */
-    private double getOverallAccuracy() {
+    private Optional<Double> getOverallAccuracy() {
         double totalNumberDataSets = m_falseCount + m_correctCount;
         if (totalNumberDataSets == 0) {
-            return Double.NaN;
+            return Optional.empty();
         } else {
-            return m_correctCount / totalNumberDataSets;
+            return Optional.of(m_correctCount / totalNumberDataSets);
         }
     }
 
@@ -766,22 +786,28 @@ public class AccuracyScorerCalculator {
      *
      * @return ratio of wrong classified and all patterns
      */
-    private double getOverallError() {
+    private Optional<Double> getOverallError() {
         double totalNumberDataSets = m_falseCount + m_correctCount;
         if (totalNumberDataSets == 0) {
-            return Double.NaN;
+            return Optional.empty();
         } else {
-            return m_falseCount / totalNumberDataSets;
+            return Optional.of(m_falseCount / totalNumberDataSets);
         }
     }
 
     /**
-     * Returns Cohen's Kappa Coefficient of the prediciton.
+     * Returns Cohen's Kappa Coefficient of the prediction. Cohen's Kappa expresses the level of agreement between
+     * two classifiers.
+     *
+     * Note that the returned value is NaN if both classifiers predict the same single class in all cases. This is
+     * consistent with other libraries like scikit-learn.
      *
      * @return Cohen's Kappa
      */
-    private double getCohenKappa() {
+    private Optional<Double> getCohenKappa() {
+        // rowSum[i]: number of times classifier A predicted class i
         long[] rowSum = new long[m_scorerCount[0].length];
+        // colSum[i]: number of times classifier B predicted class i
         long[] colSum = new long[m_scorerCount.length];
         //Based on: https://en.wikipedia.org/wiki/Cohen%27s_kappa#
         long agreement = 0, sum = 0;
@@ -791,7 +817,7 @@ public class AccuracyScorerCalculator {
                 colSum[j] += m_scorerCount[i][j];
                 sum += m_scorerCount[i][j];
             }
-            //number of correct agreements
+            // number of agreements between classifiers A and B (diagonal sum)
             agreement += m_scorerCount[i][i];
         }
         //relative observed agreement among raters
@@ -803,7 +829,8 @@ public class AccuracyScorerCalculator {
             pe += 1d * rowSum[i] * colSum[i] / sum / sum;
         }
         //kappa
-        return (p0 - pe) / (1 - pe);
+        double k = (p0 - pe) / (1 - pe);
+        return !Double.isNaN(k) ? Optional.of(k) : Optional.empty();
     }
 
     /**
