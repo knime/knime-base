@@ -62,7 +62,6 @@ import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableC
 import org.knime.base.node.flowvariable.converter.celltovariable.MissingValueHandler;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -333,10 +332,8 @@ public class TableToVariable3NodeModel extends NodeModel {
 
             // 'name' to be determined independent of whether value is missing (name clash handling)
             final String name = variableNameGenerator.newName(getBaseName(colIdx, selectedColumnName));
-            final DataColumnSpec spec = variablesSpec.getColumnSpec(selectedColumnName);
-            final DataType type = spec.getType();
             try {
-                CellToVariableConverterFactory.createConverter(type)
+                CellToVariableConverterFactory.createConverter(row[colIdx].getType())
                     .createFlowVariable(name, row[colIdx], getHandler(selectedColumnName, i))
                     .ifPresent(varsToPush::addFirst);
             } catch (IllegalArgumentException e) {
