@@ -25,6 +25,9 @@
 				the
 				filter. It is only optional, i.e. if no start is defined, there
 				is no lower bound.
+				The
+				selected date has the format <i>yyyy-MM-dd</i>, the selected time can either have the format
+				<i>HH:mm:ss</i>	or <i>HH:mm:ss.SSS</i> (where <i>SSS</i> stands for milliseconds).
 			</option>
 			<option name="Now">
 				Inserts the current time formatted according to
@@ -54,6 +57,9 @@
 				determines the upper
 				bound of the
 				filter.
+				The
+				selected date has the format <i>yyyy-MM-dd</i>, the selected time can either have the format
+				<i>HH:mm:ss</i>	or <i>HH:mm:ss.SSS</i> (where <i>SSS</i> stands for milliseconds).
 			</option>
 			<option name="End: Duration">
 				Select to insert a format string  to use

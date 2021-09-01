@@ -44,7 +44,7 @@
 			<option name="Start">
 				The starting point can be chosen. If the execution time shall be used, the checkbox can be checked. The
 				selected date has the format <i>yyyy-MM-dd</i>, the selected time can either have the format
-				<i>HH:mm:ss</i>	or <i>HH:mm:ss.SSS</i>.
+				<i>HH:mm:ss</i>	or <i>HH:mm:ss.SSS</i> (where <i>SSS</i> stands for milliseconds).
 			</option>
 	     </tab>
 		 <tab name="Ending Point">
@@ -98,7 +98,7 @@
 			<option name="End">
 				The end point can be chosen. If the execution time shall be used, the checkbox can be checked. The
 				selected date has the format <i>yyyy-MM-dd</i>, the selected time can either have the format
-				<i>HH:mm:ss</i>	or <i>HH:mm:ss.SSS</i>.
+				<i>HH:mm:ss</i>	or <i>HH:mm:ss.SSS</i> (where <i>SSS</i> stands for milliseconds).
 				If zoned date&amp;time cells shall be created, the time zone will be the same as the time zone of the
 				starting point.
 			</option>
