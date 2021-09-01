@@ -135,8 +135,8 @@ public final class CellToVariableConverterFactory {
             .map(Supplier::get) //
             .findFirst() //
             .orElseThrow(() -> new IllegalArgumentException(
-                String.format("There is no Cell to Variable converter associated with the provided cell type '%s'",
-                    getTypeName(type))));
+                String.format("Can not convert cell with %s type to a flow variable.",
+                    getTypeName(type).equals("?") ? "unknown" : getTypeName(type))));
     }
 
     /**
