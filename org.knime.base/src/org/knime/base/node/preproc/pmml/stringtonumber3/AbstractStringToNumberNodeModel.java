@@ -205,7 +205,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
         BufferedDataTable inData = (BufferedDataTable)inObjects[0];
         DataTableSpec inSpec = inData.getDataTableSpec();
         // find indices to work on.
-        String[] inclCols = getStoredInclCols(inSpec);
+        String[] inclCols = getInclCols(inSpec);
         BufferedDataTable resultTable = null;
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
@@ -232,7 +232,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
         // the optional PMML in port (can be null)
         PMMLPortObject inPMMLPort = m_pmmlInEnabled ? (PMMLPortObject)inObjects[1] : null;
         PMMLStringConversionTranslator trans = new PMMLStringConversionTranslator(
-            Arrays.asList(getStoredInclCols(inSpec)), m_parseType, new DerivedFieldMapper(inPMMLPort));
+            Arrays.asList(getInclCols(inSpec)), m_parseType, new DerivedFieldMapper(inPMMLPort));
 
         PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(inPMMLPort, inSpec);
         PMMLPortObject outPMMLPort = new PMMLPortObject(creator.createSpec(), inPMMLPort, inSpec);
@@ -242,7 +242,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     }
 
     private int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
-        final String[] inclCols = getStoredInclCols(spec);
+        final String[] inclCols = getInclCols(spec);
         final StringBuilder warnings = new StringBuilder();
         if (inclCols.length == 0) {
             warnings.append("No columns selected");
@@ -260,13 +260,12 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
     }
 
     /**
-     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns
-     * which were previously of a compatible spec but not anymore.
+     * Returns all present includes from a DataTableSpec.
      *
      * @param inSpec the current DataTableSpec
      * @return a String array with the included columns
      */
-    protected abstract String[] getStoredInclCols(final DataTableSpec inSpec);
+    protected abstract String[] getInclCols(final DataTableSpec inSpec);
 
     /**
      * @return returns true if the keep all selected checkbox is checked, false if it is not checked or not present

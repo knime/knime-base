@@ -47,9 +47,6 @@
  */
 package org.knime.base.node.preproc.colconvert.numbertostring2;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
@@ -91,10 +88,8 @@ public class NumberToString2NodeModel extends AbstractNumberToStringNodeModel<Se
      * {@inheritDoc}
      */
     @Override
-    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
-        String[] inclCols = getInclCols().applyTo(inSpec).getIncludes();
-        String[] remInclCols = getInclCols().applyTo(inSpec).getRemovedFromIncludes();
-        return Stream.concat(Arrays.stream(inclCols), Arrays.stream(remInclCols)).toArray(String[]::new);
+    protected String[] getInclCols(final DataTableSpec inSpec) {
+        return getInclCols().applyTo(inSpec).getIncludes();
     }
 
     /**
@@ -129,7 +124,7 @@ public class NumberToString2NodeModel extends AbstractNumberToStringNodeModel<Se
         StringBuilder warnings = new StringBuilder();
         // find indices to work on.
         DataTableSpec inSpec = inData[0].getDataTableSpec();
-        String[] inclCols = getStoredInclCols(inSpec);
+        String[] inclCols = getInclCols(inSpec);
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
             setWarningMessage("No columns selected,"

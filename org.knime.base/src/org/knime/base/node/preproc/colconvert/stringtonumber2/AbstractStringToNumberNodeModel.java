@@ -187,7 +187,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws Exception {
         DataTableSpec inspec = inData[0].getDataTableSpec();
-        String[] inclcols = getStoredInclCols(inspec);
+        String[] inclcols = getInclCols(inspec);
         if (inclcols.length == 0) {
             // nothing to convert, let's return the input table.
             setWarningMessage("No columns selected," + " returning input DataTable.");
@@ -211,7 +211,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
      *
      */
     public int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
-        final String[] inclCols = getStoredInclCols(spec);
+        final String[] inclCols = getInclCols(spec);
         final StringBuilder warnings = new StringBuilder();
         if (inclCols.length == 0) {
             warnings.append("No columns selected");
@@ -256,13 +256,12 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
     }
 
     /**
-     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns
-     * which were previously of a compatible spec but not anymore.
+     * Returns all present includes from a DataTableSpec.
      *
      * @param inSpec the current DataTableSpec
      * @return a String array with the included columns
      */
-    protected abstract String[] getStoredInclCols(final DataTableSpec inSpec);
+    protected abstract String[] getInclCols(final DataTableSpec inSpec);
 
     /**
      * @return returns true if the keep all selected checkbox is checked, false if it is not checked or not present
@@ -298,7 +297,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
         int[] indices = findColumnIndices(spec);
         ConverterFactory converterFac = new ConverterFactory(indices, spec, m_parseType, emptyInternals);
         ColumnRearranger colre = new ColumnRearranger(spec);
-        String[] inclcols = getStoredInclCols(spec);
+        String[] inclcols = getInclCols(spec);
         if (inclcols.length == 0) {
             // nothing to convert, let's return the input table.
             emptyInternals.getConfig().addString(CFG_KEY_ERROR_MESSAGES,

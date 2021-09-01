@@ -48,7 +48,6 @@
 package org.knime.base.node.preproc.pmml.numbertostring3;
 
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 import org.knime.base.node.preproc.pmml.PMMLStringConversionTranslator;
 import org.knime.core.data.DataTableSpec;
@@ -110,11 +109,8 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
      * {@inheritDoc}
      */
     @Override
-    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
-        String[] inclCols = getInclCols().applyTo(inSpec).getIncludes();
-        String[] remInclCols = getInclCols().applyTo(inSpec).getRemovedFromIncludes();
-        return Stream.concat(Arrays.stream(inclCols), Arrays.stream(remInclCols)).toArray(String[]::new);
-
+    protected String[] getInclCols(final DataTableSpec inSpec) {
+        return getInclCols().applyTo(inSpec).getIncludes();
     }
 
     /**
@@ -157,7 +153,7 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
         BufferedDataTable inData = (BufferedDataTable)inObjects[0];
         DataTableSpec inSpec = inData.getDataTableSpec();
         // find indices to work on.
-        String[] inclCols = getStoredInclCols(inSpec);
+        String[] inclCols = getInclCols(inSpec);
         BufferedDataTable resultTable = null;
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
@@ -187,7 +183,7 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
         PMMLPortObject inPMMLPort = m_pmmlInEnabled ? (PMMLPortObject)inObjects[1] : null;
         PMMLStringConversionTranslator trans
                 = new PMMLStringConversionTranslator(
-                        Arrays.asList(getStoredInclCols(inSpec)), StringCell.TYPE,
+                        Arrays.asList(getInclCols(inSpec)), StringCell.TYPE,
                         new DerivedFieldMapper(inPMMLPort));
 
         PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(
