@@ -84,7 +84,7 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
      * {@inheritDoc}
      */
     @Override
-    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
+    protected String[] getInclCols(final DataTableSpec inSpec) {
         // casting List<String> to String[] array
         return getInclCols().getIncludeList().toArray(new String[0]);
     }
@@ -121,7 +121,7 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
         StringBuilder warnings = new StringBuilder();
         // find indices to work on.
         DataTableSpec inspec = inData[0].getDataTableSpec();
-        String[] inclCols = getStoredInclCols(inspec);
+        String[] inclCols = getInclCols(inspec);
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
             setWarningMessage("No columns selected,"

@@ -106,7 +106,7 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
      * {@inheritDoc}
      */
     @Override
-    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
+    protected String[] getInclCols(final DataTableSpec inSpec) {
         // casting List<String> to String[] array
         return getInclCols().getIncludeList().toArray(new String[0]);
     }
@@ -152,7 +152,7 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
         BufferedDataTable inData = (BufferedDataTable)inObjects[0];
         DataTableSpec inSpec = inData.getDataTableSpec();
         // find indices to work on.
-        String[] inclCols = getStoredInclCols(inSpec);
+        String[] inclCols = getInclCols(inSpec);
         BufferedDataTable resultTable = null;
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
@@ -182,7 +182,7 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
         PMMLPortObject inPMMLPort = m_pmmlInEnabled ? (PMMLPortObject)inObjects[1] : null;
         PMMLStringConversionTranslator trans
                 = new PMMLStringConversionTranslator(
-                        Arrays.asList(getStoredInclCols(inSpec)), StringCell.TYPE,
+                        Arrays.asList(getInclCols(inSpec)), StringCell.TYPE,
                         new DerivedFieldMapper(inPMMLPort));
 
         PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(

@@ -79,7 +79,7 @@ public class StringToNumberNodeModel extends AbstractStringToNumberNodeModel<Set
      * {@inheritDoc}
      */
     @Override
-    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
+    protected String[] getInclCols(final DataTableSpec inSpec) {
         // casting List<String> to String[] array
         return getInclCols().getIncludeList().toArray(new String[0]);
     }

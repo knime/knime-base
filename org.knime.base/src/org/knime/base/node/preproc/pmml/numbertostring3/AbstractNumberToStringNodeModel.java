@@ -126,7 +126,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
      * @throws InvalidSettingsException
      */
     protected int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
-        final String[] inclCols = getStoredInclCols(spec);
+        final String[] inclCols = getInclCols(spec);
         final StringBuilder warnings = new StringBuilder();
         if (inclCols.length == 0) {
             warnings.append("No columns selected");
@@ -144,13 +144,12 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
     }
 
     /**
-     * Returns all stored includes (present and not currently available) from a DataTableSpec. This can contain columns
-     * which were previously of a compatible spec but not anymore.
+     * Returns all present includes from a DataTableSpec.
      *
      * @param inSpec the current DataTableSpec
      * @return a String array with the included columns
      */
-    protected abstract String[] getStoredInclCols(final DataTableSpec inSpec);
+    protected abstract String[] getInclCols(final DataTableSpec inSpec);
 
     /**
      * @return returns true if the keep all selected checkbox is checked, false if it is not checked or not present

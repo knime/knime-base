@@ -47,9 +47,6 @@
  */
 package org.knime.base.node.preproc.colconvert.stringtonumber2;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
@@ -82,10 +79,8 @@ public class StringToNumber2NodeModel extends AbstractStringToNumberNodeModel<Se
      * {@inheritDoc}
      */
     @Override
-    protected String[] getStoredInclCols(final DataTableSpec inSpec) {
-        String[] inclCols = getInclCols().applyTo(inSpec).getIncludes();
-        String[] remInclCols = getInclCols().applyTo(inSpec).getRemovedFromIncludes();
-        return Stream.concat(Arrays.stream(inclCols), Arrays.stream(remInclCols)).toArray(String[]::new);
+    protected String[] getInclCols(final DataTableSpec inSpec) {
+        return getInclCols().applyTo(inSpec).getIncludes();
     }
 
     /**
