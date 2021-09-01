@@ -340,7 +340,7 @@ public class TableToVariable3NodeModel extends NodeModel {
                     .createFlowVariable(name, row[colIdx], getHandler(selectedColumnName, i))
                     .ifPresent(varsToPush::addFirst);
             } catch (IllegalArgumentException e) {
-                setWarningMessage(e.getMessage() + " (column \"" + selectedColumnName + "\" (index " + i + "))");
+                setWarningMessage(String.format("%s (Column \"%s\" at offset %d)", e.getMessage(), selectedColumnName, i));
             }
         }
 
