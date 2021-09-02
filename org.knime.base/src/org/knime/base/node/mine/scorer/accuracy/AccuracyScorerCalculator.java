@@ -326,9 +326,14 @@ public class AccuracyScorerCalculator {
     /**
      * This is a getter method which creates a buffered data table and fills it with the class statistics.
      *
-     * the following values can be calculated for each class: True Positives False Positives True Negatives False
-     * Negatives Accuracy Balanced Accuracy Error Rate False Negative Rate Recall Precision Sensitivity Specificity
-     * F-measure
+     * The following values can be calculated for each class:
+     * <ul>
+     *     <li>True Positives, False Positives True Negatives False Negatives</li>
+     *     <li>Accuracy, Balanced Accuracy, Error Rate, False Negative Rate</li>
+     *     <li>Recall, Precision, Sensitivity, Specificity, F-Measure</li>
+     * </ul>
+     * If a value is undefined for the given data (e.g. due to division by zero), it is represented as
+     * <code>Datatype.getMissingCell()</code>.
      *
      * The values which will be effectively present in the data table are the one chosen in the node configuration, in
      * the Class Statistics Options tab.
