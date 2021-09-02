@@ -41,13 +41,12 @@
             <option name="Output options">
                 Select the format in which the join results are output and whether hiliting is enabled.  
                 <br/>
-                <b>Route unmatched rows to separate ports:</b>
+                <b>Split join result into multiple tables:</b>
                 If selected, the node will produce three output tables instead of one. The top output port contains
                 the joined rows (matches only), the middle output port contains the unmatched rows from the left input 
                 table, and the bottom port contains the unmatched rows from the right input table.
-                Note that this settings does <b>not</b> override the "Include in output" settings. If unmatched rows are
-                not selected for inclusion in the output they will not be computed and the according extra output ports 
-                will output empty tables.
+                Note that empty tables will be produced for join result types (i.e., matches, left unmatched rows, 
+                right unmatched rows) that are not selected for inclusion in the output.
                 <br/>
                 <b>Merge join columns:</b> 
                 If active, the join columns of the right input table are merged into their join partners of the left 
