@@ -64,6 +64,7 @@ import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.FileS
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.InputStreamTest;
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.MoveTest;
 import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.OutputStreamTest;
+import org.knime.filehandling.core.fs.tests.integration.filesystemprovider.PosixAttributesTest;
 import org.knime.filehandling.core.fs.tests.integration.location.FSLocationTest;
 import org.knime.filehandling.core.fs.tests.integration.path.CompareTest;
 import org.knime.filehandling.core.fs.tests.integration.path.EndsStartsWithTest;
@@ -94,6 +95,7 @@ import org.knime.filehandling.core.fs.tests.integration.workflowaware.WorkflowAw
     MoveTest.class, //
     OutputStreamTest.class,//
     PathTest.class, //
+    PosixAttributesTest.class,//
     RandomizedDirectoriesTest.class, //
     SubPathTest.class, //
     TempDirectoriesTest.class,//
