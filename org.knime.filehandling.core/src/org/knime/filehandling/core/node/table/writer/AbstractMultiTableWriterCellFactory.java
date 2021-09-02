@@ -121,9 +121,11 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
 
         @SuppressWarnings("unchecked")
         final T value = (T)valueCell;
-        String fileExtension = getOutputFileExtension(value);
-        if (m_enableCompression) {
+        var fileExtension = getOutputFileExtension(value);
+        if (m_enableCompression && fileExtension != null) {
             fileExtension = fileExtension.concat(".gz");
+        } else if (m_enableCompression) {
+            fileExtension = "gz";
         }
         final FSPath outputFilePath = createOutputPath(row, fileExtension);
         m_rowIndex++;
@@ -142,7 +144,7 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
             throw new IllegalStateException(accessDeniedException.getMessage(), accessDeniedException);
         }
 
-        try (final OutputStream outputStream = getOutputStream(outputPath)) {
+        try (final var outputStream = getOutputStream(outputPath)) {
             writeFile(outputStream, value);
         } catch (FileAlreadyExistsException fileAlreadyExistsException) {
             if (m_overwritePolicy == FileOverwritePolicy.FAIL) {
@@ -161,7 +163,8 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
 
     private OutputStream getOutputStream(final FSPath outputPath) throws IOException {
         if (m_enableCompression) {
-            return new GZIPOutputStream(new BufferedOutputStream(FSFiles.newOutputStream(outputPath, m_overwritePolicy.getOpenOptions())));
+            return new GZIPOutputStream(
+                new BufferedOutputStream(FSFiles.newOutputStream(outputPath, m_overwritePolicy.getOpenOptions())));
         } else {
             return new BufferedOutputStream(FSFiles.newOutputStream(outputPath, m_overwritePolicy.getOpenOptions()));
         }
@@ -188,8 +191,12 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
     }
 
     private FSPath createOutputPath(final DataRow row, final String fileExtension) {
-        return (FSPath)m_outputPath
-            .resolve(String.format("%s.%s", m_fileNameGenerator.getOutputFilename(row, m_rowIndex), fileExtension));
+        if (fileExtension != null) {
+            return (FSPath)m_outputPath
+                .resolve(String.format("%s.%s", m_fileNameGenerator.getOutputFilename(row, m_rowIndex), fileExtension));
+        } else {
+            return (FSPath)m_outputPath.resolve(m_fileNameGenerator.getOutputFilename(row, m_rowIndex));
+        }
     }
 
     /**
@@ -208,11 +215,23 @@ public abstract class AbstractMultiTableWriterCellFactory<T extends DataValue> e
     protected abstract void writeFile(final OutputStream outputStream, final T value) throws IOException;
 
     /**
-     * Resolves the file extension against a given {@link DataValue}
+     * Resolves the file extension against a given {@link DataValue}. The file extension shouln't include the dot prefix.
+     * If the special value <code>null</code> is used, the resulting files will have no dot and extension appended. In the latter
+     * case there may still be an ".gz" extension if the user selects that the files should be compressed.
      *
      * <pre>
      * // example for images
      * return value.getImageExtension();
+     * </pre>
+     *
+     * Example output file names for file with the base name {@code "file"}:
+     * <pre>
+     * return "png"; // (no compression): "file.png"
+     * return null;  // (no compression): "file"
+     * return "";    // (no compression): "file."
+     * return "png"; // (do compression): "file.png.gz"
+     * return null;  // (do compression): "file.gz"
+     * return "";    // (do compression): "file..gz"
      * </pre>
      *
      * @param value concrete subclass instantiation of {@link DataValue}

@@ -328,7 +328,7 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
     }
 
     private void updateCellFactory(final DataTableSpec dataTableSpec, final FSPath outputPath) {
-        final FileNameGenerator filenameGenerator = createFileNameGenerator(dataTableSpec);
+        final var filenameGenerator = createFileNameGenerator(dataTableSpec);
 
         if (m_compressionSupported) {
             m_multiFileWriterCellFactory.setEnableCompression(m_compressFiles.getBooleanValue());
@@ -350,7 +350,7 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
                 filenameGenerator = RowIdFileNameGenerator.getInstance();
             } else {
                 final int filenameColIdx = dataTableSpec.findColumnIndex(m_filenameColumnSelection.getStringValue());
-                filenameGenerator = new NameingColumnFileNameGenerator(filenameColIdx);
+                filenameGenerator = new NamingColumnFileNameGenerator(filenameColIdx);
             }
         }
         return filenameGenerator;

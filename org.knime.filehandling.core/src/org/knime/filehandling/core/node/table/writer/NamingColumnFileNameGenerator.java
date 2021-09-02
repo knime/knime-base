@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.writer;
 
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.MissingValue;
 import org.knime.core.data.MissingValueException;
@@ -59,7 +58,7 @@ import org.knime.core.data.StringValue;
  *
  * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
  */
-final class NameingColumnFileNameGenerator implements FileNameGenerator {
+final class NamingColumnFileNameGenerator implements FileNameGenerator {
 
     private final int m_filenameColIdx;
 
@@ -68,13 +67,13 @@ final class NameingColumnFileNameGenerator implements FileNameGenerator {
      *
      * @param filenameColIdx
      */
-    NameingColumnFileNameGenerator(final int filenameColIdx) {
+    NamingColumnFileNameGenerator(final int filenameColIdx) {
         m_filenameColIdx = filenameColIdx;
     }
 
     @Override
     public String getOutputFilename(final DataRow row, final int rowIdx) {
-        final DataCell outputFilenameDataCell = row.getCell(m_filenameColIdx);
+        final var outputFilenameDataCell = row.getCell(m_filenameColIdx);
         if (outputFilenameDataCell.isMissing()) {
             throw new MissingValueException((MissingValue)outputFilenameDataCell,
                 "Missing values are not supported for output file names");

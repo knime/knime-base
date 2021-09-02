@@ -58,6 +58,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
@@ -188,7 +189,7 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
         final var gbcBuilder = new GBCBuilder();
 
         columnSelectionPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), m_writerTypeName));
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), StringUtils.capitalize(m_writerTypeName)));
 
         columnSelectionPanel.add(m_sourceColumn.getComponentPanel(),
             gbcBuilder.anchorFirstLineStart().setX(0).setY(0).build());
