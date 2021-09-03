@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   2021-07-23 (Alexander Bondaletov): created
+ *   2021-07-25 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.fs.local.node;
+package org.knime.filehandling.core.fs.knime.node.dataarea;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,73 +64,69 @@ import org.knime.core.node.port.PortType;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
-import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
- * Local FS Connector node.
+ * Relative To Connector node.
  *
  * @author Alexander Bondaletov
  */
-public class LocalConnectorNodeModel extends NodeModel {
+public class WorkflowDataAreaConnectorNodeModel extends NodeModel {
 
     private String m_fsId;
     private FSConnection m_fsConnection;
-    private final LocalConnectorSettings m_settings;
+    private final WorkflowDataAreaConnectorNodeSettings m_settings;
 
     /**
-     * Creates new instance
+     * Creates new instance.
      */
-    protected LocalConnectorNodeModel() {
+    protected WorkflowDataAreaConnectorNodeModel() {
         super(new PortType[] {}, new PortType[] { FileSystemPortObject.TYPE });
-        m_settings = new LocalConnectorSettings();
+        m_settings = new WorkflowDataAreaConnectorNodeSettings();
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_settings.validate();
-        ValidationUtils.validateLocalFsAccess();
         m_fsId = FSConnectionRegistry.getInstance().getKey();
+
         return new PortObjectSpec[] { createSpec() };
     }
 
     private FSConnection createFSConnection() {
-        if (m_settings.isUseCustomWorkingDirectory()) {
-            return DefaultFSConnectionFactory.createLocalFSConnection(m_settings.getWorkingDirectory());
-        } else {
-            return DefaultFSConnectionFactory.createLocalFSConnection(true);
-        }
+        return DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW_DATA, m_settings.getWorkingDirectory());
     }
 
-    @SuppressWarnings("resource")
     private FileSystemPortObjectSpec createSpec() {
-        return new FileSystemPortObjectSpec(FSType.LOCAL_FS.getName(), //
+        return new FileSystemPortObjectSpec(RelativeTo.WORKFLOW_DATA.toFSType().getName(), //
                 m_fsId, //
-                m_fsConnection.getFileSystem().getFSLocationSpec());
+                getFSLocationSpec());
+    }
+
+    private static FSLocationSpec getFSLocationSpec() {
+        return RelativeToFileSystemConstants.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        ValidationUtils.validateLocalFsAccess();
-
         m_fsConnection = createFSConnection();
         FSConnectionRegistry.getInstance().register(m_fsId, m_fsConnection);
 
         return new PortObject[] { new FileSystemPortObject(createSpec()) };
     }
 
-
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+            throws IOException, CanceledExecutionException {
         setWarningMessage("Connection no longer available. Please re-execute the node.");
     }
 
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+            throws IOException, CanceledExecutionException {
         // nothing to save
     }
 

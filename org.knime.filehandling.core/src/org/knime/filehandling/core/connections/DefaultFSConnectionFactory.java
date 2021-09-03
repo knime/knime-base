@@ -134,6 +134,11 @@ public final class DefaultFSConnectionFactory {
     public static FSConnection createRelativeToConnection(final RelativeTo type) {
         return createRelativeToConnection(new RelativeToFSConnectionConfig(type));
     }
+
+    public static FSConnection createRelativeToConnection(final RelativeTo type, final String workingDir) {
+        return createRelativeToConnection(new RelativeToFSConnectionConfig(workingDir, type));
+    }
+
     private static FSConnection createRelativeToConnection(final RelativeToFSConnectionConfig config) {
         final var fsType = config.getType().toFSType();
 

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./file_system_connector.png"
+	type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+
+    <name>KNIME Workflow Data Area Connector</name>
+    
+    <shortDescription>
+        Provides a file system connection with access to the data area of the current KNIME workflow.
+    </shortDescription>
+    
+    <fullDescription>
+         <intro>
+            <p>Provides a file system connection with access to the data area of the current KNIME workflow.
+            The resulting output port allows downstream nodes to access <i>files</i>, e.g. to read or write, or to perform other file system operations
+            (browse/list files, copy, move, ...).
+            </p>
+            
+            <p><b>Note:</b>In many cases it is not necessary to use this connector node. Nodes that require
+            file system access (e.g. the File Reader node) already provide the same level of access by choosing <i>Read from</i> >
+            <i>Relative To</i> > <i>Current workflow data area.</i>. The purpose of this connector node is that the <i>working directory</i> can be configured explicitly, which
+            makes file access with <i>relative</i> paths more convenient.  
+            </p>
+            
+            
+            
+        </intro>
+        <tab name="Settings">
+	        <option name="Working directory">
+		        Specify the <i>working directory</i> of the resulting file system connection, using the <b>Path syntax</b> explained above. The working
+		        directory must be specified as an absolute path. A working directory allows downstream nodes to access files/folders using <i>relative</i>
+		        paths, i.e. paths that do not have a leading slash. The default working directory is "/".
+		    </option>
+        </tab>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Workflow Data Area File System Connection">
+             File system connection to the workflow data area of the current KNIME workflow.
+        </outPort>
+    </ports>    
+</knimeNode>

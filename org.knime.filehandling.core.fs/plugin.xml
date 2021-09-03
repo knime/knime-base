@@ -33,5 +33,8 @@
       <node
             category-path="/io/connectors"
             factory-class="org.knime.filehandling.core.fs.local.node.LocalConnectorNodeFactory"/>
+      <node
+            category-path="/io/connectors"
+            factory-class="org.knime.filehandling.core.fs.knime.node.dataarea.WorkflowDataAreaConnectorNodeFactory"/>
    </extension>
 </plugin>
