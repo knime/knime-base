@@ -7,32 +7,31 @@
             class="org.knime.filehandling.core.fs.local.fs.LocalFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knimeremote.MountpointFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.remote.MountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
             class="org.knime.filehandling.core.fs.url.URIFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knimerelativeto.LocalRelativeToMountpointFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToMountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knimerelativeto.LocalRelativeToWorkflowFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knimerelativeto.LocalRelativeToWorkflowDataFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowDataFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knimerelativeto.RelativeToMountpointFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.relativeto.fs.RelativeToMountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knimerelativeto.RelativeToWorkflowFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.relativeto.fs.RelativeToWorkflowFSDescriptorProvider">
       </FSDescriptorProvider>
    </extension>
-   <extension
-         point="org.knime.workbench.repository.nodes">
+   
+   <extension point="org.knime.workbench.repository.nodes">
       <node
             category-path="/io/connectors"
             factory-class="org.knime.filehandling.core.fs.local.node.LocalConnectorNodeFactory"/>
    </extension>
-
 </plugin>

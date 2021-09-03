@@ -57,6 +57,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
@@ -131,11 +132,16 @@ public final class DefaultFSConnectionFactory {
     }
 
     public static FSConnection createRelativeToConnection(final RelativeTo type) {
+        return createRelativeToConnection(new RelativeToFSConnectionConfig(type));
+    }
+    private static FSConnection createRelativeToConnection(final RelativeToFSConnectionConfig config) {
+        final var fsType = config.getType().toFSType();
+
         try {
-            return FSDescriptorRegistry.getFSDescriptor(type.toFSType()) //
-                .orElseThrow(() -> new IllegalStateException(type.toFSType().getName() + " file system is not registered"))
+            return FSDescriptorRegistry.getFSDescriptor(fsType) //
+                .orElseThrow(() -> new IllegalStateException(fsType.getName() + " file system is not registered"))
                 .getConnectionFactory() //
-                .createConnection(null);
+                .createConnection(config);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
