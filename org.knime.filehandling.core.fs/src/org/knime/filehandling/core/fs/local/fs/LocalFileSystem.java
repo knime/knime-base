@@ -62,8 +62,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
-import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
@@ -84,16 +82,6 @@ final class LocalFileSystem extends FSFileSystem<LocalPath> {
 
     private static final URI BASE_URI = URI.create(FS_TYPE.getTypeId() + ":///");
 
-    /**
-     * The {@link FSLocationSpec} for the local convenience file system.
-     */
-    static final FSLocationSpec CONVENIENCE_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.LOCAL);
-
-    /**
-     * The {@link FSLocationSpec} for the local convenience file system.
-     */
-    static final FSLocationSpec CONNECTED_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.CONNECTED, FS_TYPE.getTypeId());
-
     private final LocalFileSystemProvider m_provider;
 
     LocalFileSystem(final LocalFileSystemProvider provider, final LocalFSConnectionConfig config) {
@@ -104,9 +92,9 @@ final class LocalFileSystem extends FSFileSystem<LocalPath> {
 
     private static FSLocationSpec createFSLocationSpec(final LocalFSConnectionConfig config) {
         if(config.isConnectedFileSystem()) {
-            return CONNECTED_FS_LOCATION_SPEC;
+            return LocalFileSystemConstants.CONNECTED_FS_LOCATION_SPEC;
         } else {
-            return CONVENIENCE_FS_LOCATION_SPEC;
+            return LocalFileSystemConstants.CONVENIENCE_FS_LOCATION_SPEC;
         }
     }
 

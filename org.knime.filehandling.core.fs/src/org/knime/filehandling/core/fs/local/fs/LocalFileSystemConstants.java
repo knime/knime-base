@@ -44,43 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 18, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Sep 3, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.fs.local.fs;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
-
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * Test initializer provider for the local file system.
+ * Constant values required by the Local File System.
  *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-class LocalFSTestInitializerProvider implements FSTestInitializerProvider {
+public final class LocalFileSystemConstants {
 
-    @SuppressWarnings("resource")
-    @Override
-    public LocalFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
-        final Path workingDir = Files.createTempDirectory("knime-localfs-test").toAbsolutePath();
-        final LocalFSConnection fsConn =
-            new LocalFSConnection(new LocalFSConnectionConfig(workingDir.toString()));
-        return new LocalFSTestInitializer(fsConn);
+    private LocalFileSystemConstants() {
     }
 
-    @Override
-    public FSType getFSType() {
-        return FSType.LOCAL_FS;
-    }
+    /**
+     * The {@link FSLocationSpec} for the local convenience file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_FS_LOCATION_SPEC = new DefaultFSLocationSpec(FSCategory.LOCAL);
 
-    @Override
-    public FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
-        return LocalFileSystemConstants.CONNECTED_FS_LOCATION_SPEC;
-    }
+    /**
+     * The {@link FSLocationSpec} for the local connected file system.
+     */
+    public static final FSLocationSpec CONNECTED_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, LocalFileSystem.FS_TYPE.getTypeId());
+
 }

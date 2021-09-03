@@ -66,6 +66,7 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
+import org.knime.filehandling.core.fs.local.fs.LocalFileSystemConstants;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
@@ -104,11 +105,10 @@ public class LocalConnectorNodeModel extends NodeModel {
         }
     }
 
-    @SuppressWarnings("resource")
     private FileSystemPortObjectSpec createSpec() {
         return new FileSystemPortObjectSpec(FSType.LOCAL_FS.getName(), //
                 m_fsId, //
-                m_fsConnection.getFileSystem().getFSLocationSpec());
+                LocalFileSystemConstants.CONNECTED_FS_LOCATION_SPEC);
     }
 
     @Override
