@@ -88,11 +88,11 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue, S 
 
     private static final Pattern WHITESPACES_PATTERN = Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
 
-    private static final String CFG_OUTPUT_LOCATION = "output_location";
+    protected static final String CFG_OUTPUT_LOCATION = "output_location";
 
-    private static final String CFG_OUTPUT_FILENAME_PATTERN = "filename_pattern";
+    protected static final String CFG_OUTPUT_FILENAME_PATTERN = "filename_pattern";
 
-    private static final String CFG_OUTPUT_FILENAME_COLUMN_NAME = "filename_column";
+    protected static final String CFG_OUTPUT_FILENAME_COLUMN_NAME = "filename_column";
 
     private static final String DEFAULT_WRITER_TYPE_NAME = "src";
 

@@ -60,6 +60,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
@@ -107,10 +108,15 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
         F extends AbstractMultiTableWriterCellFactory<? extends DataValue>>
     extends NodeModel {
 
-    /** The table cell name of the file output location. */
-    private static final String DATA_TABLE_OUTPUT_COLUMN_NAME = "Output Location";
+    /** The table column name of the file output location. */
+    protected static final String DEFAULT_DATA_TABLE_OUTPUT_LOCATION_COLUMN_NAME = "Output Location";
 
-    private static final String DATA_TABLE_STATUS_COLUMN_NAME = "Status";
+    /** The table column name of the status. */
+    protected static final String DEFAULT_DATA_TABLE_STATUS_COLUMN_NAME = "Status";
+
+    private final String m_columnNameOutputLocation;
+
+    private final String m_columnNameStatus;
 
     private final int m_inputTableIdx;
 
@@ -139,7 +145,7 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
     private F m_multiFileWriterCellFactory;
 
     /**
-     * Constructor.
+     * Constructor with the default column names.
      *
      * @param portConfig storing the ports configurations
      * @param nodeConfig storing the user settings (concrete subclass instantiation of
@@ -148,7 +154,26 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
      */
     protected AbstractMultiTableWriterNodeModel(final PortsConfiguration portConfig, final C nodeConfig,
         final int inputTableIdx) {
+        this(portConfig, nodeConfig, inputTableIdx, DEFAULT_DATA_TABLE_OUTPUT_LOCATION_COLUMN_NAME,
+            DEFAULT_DATA_TABLE_STATUS_COLUMN_NAME);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param portConfig storing the ports configurations
+     * @param nodeConfig storing the user settings (concrete subclass instantiation of
+     *            {@link AbstractMultiTableWriterNodeConfig})
+     * @param inputTableIdx index of data-table-input-port group name
+     * @param columnNameOutputLocation the name of the column that stores the output location path
+     * @param columnNameStatus the name of the column that stores the status
+     */
+    protected AbstractMultiTableWriterNodeModel(final PortsConfiguration portConfig, final C nodeConfig,
+        final int inputTableIdx, final String columnNameOutputLocation, final String columnNameStatus) {
         super(portConfig.getInputPorts(), portConfig.getOutputPorts());
+
+        m_columnNameOutputLocation = columnNameOutputLocation;
+        m_columnNameStatus = columnNameStatus;
 
         m_inputTableIdx = inputTableIdx;
         m_nodeConfig = nodeConfig;
@@ -171,7 +196,7 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
         final var dataTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
 
         autoGuessSourceColumn(dataTableSpec);
-        validateFilenameColumnExistence(dataTableSpec, m_filenameColumnSelection.getStringValue());
+        validateFilenameColumn(dataTableSpec, m_filenameColumnSelection.getStringValue());
 
         final int selectedColumnIndex = getColumnIndexOfSourceColumn(dataTableSpec);
 
@@ -224,7 +249,7 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
         }
     }
 
-    private void validateFilenameColumnExistence(final DataTableSpec dataTableSpec, final String selectedFilenameColumn)
+    private void validateFilenameColumn(final DataTableSpec dataTableSpec, final String selectedFilenameColumn)
         throws InvalidSettingsException {
 
         final boolean isFileNameColumnSelected = !m_nodeConfig.shouldGenerateFilename();
@@ -236,6 +261,11 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
                 if (filenameColumnIndex < 0) {
                     throw new InvalidSettingsException(
                         String.format("The selected %s naming column '%s' is not part of the input",
+                            m_nodeConfig.getWriterTypeName(), selectedFilenameColumn));
+                }
+                if (!dataTableSpec.getColumnSpec(filenameColumnIndex).getType().isCompatible(StringValue.class)) {
+                    throw new InvalidSettingsException(
+                        String.format("The selected %s naming column '%s' is not a string column",
                             m_nodeConfig.getWriterTypeName(), selectedFilenameColumn));
                 }
             }
@@ -267,10 +297,10 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
         final var metaData = new FSLocationValueMetaData(location.getFileSystemCategory(),
             location.getFileSystemSpecifier().orElse(null));
 
-        final String newColName = DataTableSpec.getUniqueColumnName(spec, DATA_TABLE_OUTPUT_COLUMN_NAME);
+        final String newColName = DataTableSpec.getUniqueColumnName(spec, m_columnNameOutputLocation);
         final var fsLocationSpec = new DataColumnSpecCreator(newColName, SimpleFSLocationCellFactory.TYPE);
 
-        final String statusCol = DataTableSpec.getUniqueColumnName(spec, DATA_TABLE_STATUS_COLUMN_NAME);
+        final String statusCol = DataTableSpec.getUniqueColumnName(spec, m_columnNameStatus);
         final var statusColumnSpec = new DataColumnSpecCreator(statusCol, StringCell.TYPE);
 
         fsLocationSpec.addMetaData(metaData, true);
