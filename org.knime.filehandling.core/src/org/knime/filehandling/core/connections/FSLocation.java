@@ -55,6 +55,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 
 /**
@@ -173,8 +174,12 @@ public final class FSLocation implements FSLocationSpec, Serializable {
     @Override
     public int hashCode() {
         if (m_hashCode == null) {
-            m_hashCode = new HashCodeBuilder().append(m_fileSystemCategory).append(m_fileSystemSpecifier).append(m_path)
-                .toHashCode();
+            final FSLocation thisCanonicalized = canonicalizeForEquals();
+            m_hashCode = new HashCodeBuilder() //
+                    .append(thisCanonicalized.m_fileSystemCategory) //
+                    .append(thisCanonicalized.m_fileSystemSpecifier) //
+                    .append(thisCanonicalized.m_path) //
+                    .toHashCode();
         }
         return m_hashCode;
     }
@@ -187,10 +192,32 @@ public final class FSLocation implements FSLocationSpec, Serializable {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final FSLocation fsLocation = (FSLocation)obj;
-        return Objects.equals(m_fileSystemCategory, fsLocation.m_fileSystemCategory)
-            && Objects.equals(m_fileSystemSpecifier, fsLocation.m_fileSystemSpecifier)
-            && Objects.equals(m_path, fsLocation.m_path);
+
+        final FSLocation thisCanonicalized = canonicalizeForEquals();
+        final FSLocation otherCanonicalized = ((FSLocation)obj).canonicalizeForEquals();
+
+        return Objects.equals(thisCanonicalized.m_fileSystemCategory, otherCanonicalized.m_fileSystemCategory)
+            && Objects.equals(thisCanonicalized.m_fileSystemSpecifier, otherCanonicalized.m_fileSystemSpecifier)
+            && Objects.equals(thisCanonicalized.m_path, otherCanonicalized.m_path);
     }
 
+    private FSLocation canonicalizeForEquals() {
+        switch (getFSCategory()) {
+            case LOCAL:
+            case RELATIVE:
+                return new FSLocation(FSCategory.CONNECTED, //
+                    getFSType().getTypeId(), //
+                    getPath());
+            case MOUNTPOINT:
+                return new FSLocation(FSCategory.CONNECTED, //
+                    String.format("%s:%s", FSType.MOUNTPOINT.getTypeId(), getFileSystemSpecifier()), //
+                    getPath());
+            case CUSTOM_URL:
+                return new FSLocation(FSCategory.CUSTOM_URL, //
+                    "0", //
+                    getPath());
+            default:
+                return this;
+        }
+    }
 }
