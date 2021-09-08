@@ -80,7 +80,7 @@ public final class FSType {
         FSTypeRegistry.getOrCreateFSType("knime-relative-mountpoint", "Relative to current mountpoint");
 
     public static final FSType RELATIVE_TO_WORKFLOW_DATA_AREA =
-        FSTypeRegistry.getOrCreateFSType("knime-relative-workflow-data", "Relative to current workflow data area");
+        FSTypeRegistry.getOrCreateFSType("knime-relative-workflow-data", "Current workflow data area");
 
     /**
      * The file system type for the (convenience) Custom/KNIME URL file system.
