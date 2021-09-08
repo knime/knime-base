@@ -51,11 +51,11 @@ package org.knime.filehandling.core.data.location.variable;
 import static org.junit.Assert.*;
 import static org.knime.filehandling.core.connections.FSLocation.NULL;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_SPECIFIER;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_TYPE;
+import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_CATEGORY;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_LOCATION_PRESENT;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_PATH;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.FS_SPECIFIER;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.FS_TYPE;
+import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.FS_CATEGORY;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.LOCATION_WITH_SPECIFIER;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.PATH;
 import static org.mockito.Mockito.mock;
@@ -107,7 +107,7 @@ public class FSLocationSpecVariableTypeTest {
         NodeSettingsWO settings = mock(NodeSettingsWO.class);
         TEST_INSTANCE.saveValue(settings, TEST_INSTANCE.newValue(LOCATION_WITH_SPECIFIER));
         verify(settings).addBoolean(CFG_LOCATION_PRESENT, true);
-        verify(settings).addString(CFG_FS_TYPE, FS_TYPE);
+        verify(settings).addString(CFG_FS_CATEGORY, FS_CATEGORY);
         verify(settings).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
     }
 
@@ -139,7 +139,7 @@ public class FSLocationSpecVariableTypeTest {
         TEST_INSTANCE.overwrite(LOCATION_WITH_SPECIFIER, config, KEY);
         Config locationConfig = config.getConfig(KEY);
         assertTrue(locationConfig.getBoolean(CFG_LOCATION_PRESENT));
-        assertEquals(FS_TYPE, locationConfig.getString(CFG_FS_TYPE));
+        assertEquals(FS_CATEGORY, locationConfig.getString(CFG_FS_CATEGORY));
         assertEquals(FS_SPECIFIER, locationConfig.getString(CFG_FS_SPECIFIER));
     }
 

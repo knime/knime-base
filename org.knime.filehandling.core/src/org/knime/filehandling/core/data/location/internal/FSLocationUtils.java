@@ -54,6 +54,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 
@@ -81,9 +82,9 @@ public final class FSLocationUtils {
     public static final String CFG_FS_SPECIFIER = "file_system_specifier";
 
     /**
-     * Config key for the file system type part of an {@link FSLocation}.
+     * Config key for {@link FSCategory} part of an {@link FSLocation}.
      */
-    public static final String CFG_FS_TYPE = "file_system_type";
+    public static final String CFG_FS_CATEGORY = "file_system_type";
 
     /**
      * Config key for the boolean indicating whether a location is present or not.
@@ -100,10 +101,10 @@ public final class FSLocationUtils {
      */
     public static FSLocation loadFSLocation(final ConfigRO config) throws InvalidSettingsException {
         if (config.getBoolean(CFG_LOCATION_PRESENT)) {
-            final String fsType = config.getString(CFG_FS_TYPE);
+            final String fsCategory = config.getString(CFG_FS_CATEGORY);
             final String fsSpecifier = config.getString(CFG_FS_SPECIFIER, null);
             final String path = config.getString(CFG_PATH);
-            return new FSLocation(fsType, fsSpecifier, path);
+            return new FSLocation(fsCategory, fsSpecifier, path);
         } else {
             return FSLocation.NULL;
         }
@@ -120,9 +121,9 @@ public final class FSLocationUtils {
      */
     public static FSLocationSpec loadFSLocationSpec(final ConfigRO config) throws InvalidSettingsException {
         if (config.getBoolean(CFG_LOCATION_PRESENT)) {
-            final String fsType = config.getString(CFG_FS_TYPE);
+            final String fsCategory = config.getString(CFG_FS_CATEGORY);
             final String fsSpecifier = config.getString(CFG_FS_SPECIFIER, null);
-            return new DefaultFSLocationSpec(fsType, fsSpecifier);
+            return new DefaultFSLocationSpec(fsCategory, fsSpecifier);
         } else {
             return FSLocationSpec.NULL;
         }
@@ -137,7 +138,7 @@ public final class FSLocationUtils {
     public static void saveFSLocation(final FSLocation location, final ConfigWO config) {
         config.addBoolean(CFG_LOCATION_PRESENT, location != FSLocation.NULL);
         if (location != FSLocation.NULL) {
-            config.addString(CFG_FS_TYPE, location.getFileSystemCategory());
+            config.addString(CFG_FS_CATEGORY, location.getFileSystemCategory());
             Optional<String> fileSystemSpecifier = location.getFileSystemSpecifier();
             if (fileSystemSpecifier.isPresent()) {
                 config.addString(CFG_FS_SPECIFIER, fileSystemSpecifier.get());
@@ -156,7 +157,7 @@ public final class FSLocationUtils {
         // TODO reference check doesn't solve the issue since FSLocation.NULL is also valid NULL FSLocationSpec
         config.addBoolean(CFG_LOCATION_PRESENT, locationSpec != FSLocationSpec.NULL);
         if (locationSpec != FSLocationSpec.NULL) {
-            config.addString(CFG_FS_TYPE, locationSpec.getFileSystemCategory());
+            config.addString(CFG_FS_CATEGORY, locationSpec.getFileSystemCategory());
             Optional<String> fileSystemSpecifier = locationSpec.getFileSystemSpecifier();
             if (fileSystemSpecifier.isPresent()) {
                 config.addString(CFG_FS_SPECIFIER, fileSystemSpecifier.get());
@@ -175,7 +176,7 @@ public final class FSLocationUtils {
     public static boolean isFSLocation(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {
-                config.getString(CFG_FS_TYPE);
+                config.getString(CFG_FS_CATEGORY);
                 config.getString(CFG_PATH);
                 // the specifier is not necessarily present
                 final String fsSpecifier = config.getString(CFG_FS_SPECIFIER, null);
@@ -200,7 +201,7 @@ public final class FSLocationUtils {
     public static boolean canOverwriteWithFSLocation(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {
-                config.getString(CFG_FS_TYPE);
+                config.getString(CFG_FS_CATEGORY);
                 int expectedChildren = 2;
                 // the path must not be present if we are overwriting an FSLocationSpec
                 if (config.getString(CFG_PATH, null) != null) {
@@ -241,7 +242,7 @@ public final class FSLocationUtils {
     public static boolean isFSLocationSpec(final ConfigRO config) {
         try {
             if (config.getBoolean(CFG_LOCATION_PRESENT)) {
-                config.getString(CFG_FS_TYPE);
+                config.getString(CFG_FS_CATEGORY);
                 // the specifier is not necessarily present
                 String specifier = config.getString(CFG_FS_SPECIFIER, null);
                 return config.getChildCount() == (specifier == null ? 2 : 3);

@@ -48,9 +48,14 @@
  */
 package org.knime.filehandling.core.data.location.internal;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.knime.filehandling.core.connections.FSLocation.NULL;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.*;
+import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_SPECIFIER;
+import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_CATEGORY;
+import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_LOCATION_PRESENT;
+import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_PATH;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -60,31 +65,33 @@ import org.junit.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.ConfigWO;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.RelativeTo;
 
 /**
  * Unit tests for {@link FSLocationUtils}.
- * 
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class FSLocationUtilsTest {
 
+    public static final String FS_CATEGORY = FSCategory.RELATIVE.toString();
+
+    public static final String FS_SPECIFIER = RelativeTo.WORKFLOW_DATA.getSettingsValue();
+
     public static final String PATH = "bla";
 
-    public static final String FS_SPECIFIER = "bar";
+    public static final FSLocation LOCATION_WITHOUT_SPECIFIER = new FSLocation(FS_CATEGORY, PATH);
 
-    public static final String FS_TYPE = "foo";
+    public static final FSLocation LOCATION_WITH_SPECIFIER = new FSLocation(FS_CATEGORY, FS_SPECIFIER, PATH);
 
-    public static final FSLocation LOCATION_WITHOUT_SPECIFIER = new FSLocation(FS_TYPE, PATH);
-
-    public static final FSLocation LOCATION_WITH_SPECIFIER = new FSLocation(FS_TYPE, FS_SPECIFIER, PATH);
-
-    private static ConfigRO mockConfigRO(boolean present, boolean includeSpecifier, boolean mockChildCount)
+    private static ConfigRO mockConfigRO(final boolean present, final boolean includeSpecifier, final boolean mockChildCount)
         throws InvalidSettingsException {
         ConfigRO config = mock(ConfigRO.class);
         when(config.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(present);
         if (present) {
-            when(config.getString(CFG_FS_TYPE)).thenReturn(FS_TYPE);
+            when(config.getString(CFG_FS_CATEGORY)).thenReturn(FS_CATEGORY);
             if (includeSpecifier) {
                 when(config.getString(CFG_FS_SPECIFIER, null)).thenReturn(FS_SPECIFIER);
             }
@@ -160,7 +167,7 @@ public class FSLocationUtilsTest {
         ConfigWO config = mock(ConfigWO.class);
         FSLocationUtils.saveFSLocation(LOCATION_WITH_SPECIFIER, config);
         verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
-        verify(config).addString(CFG_FS_TYPE, FS_TYPE);
+        verify(config).addString(CFG_FS_CATEGORY, FS_CATEGORY);
         verify(config).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
         verify(config).addString(CFG_PATH, PATH);
         verifyNoMoreInteractions(config);
@@ -170,7 +177,7 @@ public class FSLocationUtilsTest {
         ConfigWO config = mock(ConfigWO.class);
         FSLocationUtils.saveFSLocation(LOCATION_WITHOUT_SPECIFIER, config);
         verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
-        verify(config).addString(CFG_FS_TYPE, FS_TYPE);
+        verify(config).addString(CFG_FS_CATEGORY, FS_CATEGORY);
         verify(config).addString(CFG_PATH, PATH);
         verifyNoMoreInteractions(config);
     }

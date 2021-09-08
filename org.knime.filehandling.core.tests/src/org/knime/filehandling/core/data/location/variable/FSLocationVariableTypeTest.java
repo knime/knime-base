@@ -48,14 +48,15 @@
  */
 package org.knime.filehandling.core.data.location.variable;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.knime.filehandling.core.connections.FSLocation.NULL;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_SPECIFIER;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_TYPE;
+import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_CATEGORY;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_LOCATION_PRESENT;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_PATH;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.FS_SPECIFIER;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.FS_TYPE;
+import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.FS_CATEGORY;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.LOCATION_WITH_SPECIFIER;
 import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.PATH;
 import static org.mockito.Mockito.mock;
@@ -68,11 +69,13 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.Config;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType.InvalidConfigEntryException;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.RelativeTo;
 
 /**
  * Unit tests for {@link FSLocationVariableType}.
- * 
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public class FSLocationVariableTypeTest {
@@ -93,7 +96,9 @@ public class FSLocationVariableTypeTest {
     @Test
     public void testloadValue() throws InvalidSettingsException {
         NodeSettings settings = new NodeSettings("Test");
-        FSLocation location = new FSLocation("foo", "bar", "baz");
+        FSLocation location = new FSLocation(FSCategory.RELATIVE, //
+            RelativeTo.WORKFLOW_DATA.getSettingsValue(), //
+            "baz");
         FlowVariable before = new FlowVariable("var", TEST_INSTANCE, location);
         before.save(settings);
         FlowVariable after = FlowVariable.load(settings);
@@ -105,7 +110,7 @@ public class FSLocationVariableTypeTest {
         NodeSettingsWO settings = mock(NodeSettingsWO.class);
         TEST_INSTANCE.saveValue(settings, TEST_INSTANCE.newValue(LOCATION_WITH_SPECIFIER));
         verify(settings).addBoolean(CFG_LOCATION_PRESENT, true);
-        verify(settings).addString(CFG_FS_TYPE, FS_TYPE);
+        verify(settings).addString(CFG_FS_CATEGORY, FS_CATEGORY);
         verify(settings).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
         verify(settings).addString(CFG_PATH, PATH);
     }
@@ -138,7 +143,7 @@ public class FSLocationVariableTypeTest {
         TEST_INSTANCE.overwrite(LOCATION_WITH_SPECIFIER, config, KEY);
         Config locationConfig = config.getConfig(KEY);
         assertTrue(locationConfig.getBoolean(CFG_LOCATION_PRESENT));
-        assertEquals(FS_TYPE, locationConfig.getString(CFG_FS_TYPE));
+        assertEquals(FS_CATEGORY, locationConfig.getString(CFG_FS_CATEGORY));
         assertEquals(FS_SPECIFIER, locationConfig.getString(CFG_FS_SPECIFIER));
         assertEquals(PATH, locationConfig.getString(CFG_PATH));
     }
