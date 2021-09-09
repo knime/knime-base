@@ -54,7 +54,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.Optional;
 
 import org.knime.core.data.RowKey;
 
@@ -206,12 +205,12 @@ public final class ScorerViewData {
      * 
      * @return ratio of correct classified and all patterns
      */
-    public Optional<Double> getAccuracy() {
+    public double getAccuracy() {
         double totalNumberDataSets = m_falseCount + m_correctCount;
         if (totalNumberDataSets == 0) {
-            return Optional.empty();
+            return Double.NaN;
         } else {
-            return Optional.of(m_correctCount / totalNumberDataSets);
+            return m_correctCount / totalNumberDataSets;
         }
     }
 
@@ -220,12 +219,12 @@ public final class ScorerViewData {
      * 
      * @return ratio of wrong classified and all patterns
      */
-    public Optional<Double> getError() {
+    public double getError() {
         double totalNumberDataSets = m_falseCount + m_correctCount;
         if (totalNumberDataSets == 0) {
-            return Optional.empty();
+            return Double.NaN;
         } else {
-            return Optional.of(m_falseCount / totalNumberDataSets);
+            return m_falseCount / totalNumberDataSets;
         }
     }
 
@@ -235,7 +234,7 @@ public final class ScorerViewData {
      * @return Cohen's Kappa
      * @since 2.9
      */
-    public Optional<Double> getCohenKappa() {
+    public double getCohenKappa() {
         long[] rowSum = new long[m_scorerCount[0].length];
         long[] colSum = new long[m_scorerCount.length];
         //Based on: https://en.wikipedia.org/wiki/Cohen%27s_kappa#
@@ -258,8 +257,7 @@ public final class ScorerViewData {
             pe += 1d * rowSum[i] * colSum[i] / sum / sum;
         }
         //kappa
-        double k = (p0 - pe) / (1 - pe);
-        return !Double.isNaN(k) ? Optional.of(k) : Optional.empty();
+        return (p0 - pe) / (1 - pe);
     }
 
     /**

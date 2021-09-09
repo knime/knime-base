@@ -60,7 +60,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.swing.JLabel;
@@ -224,25 +223,31 @@ public abstract class AbstractAccuracyScorerNodeView<M extends NodeModel> extend
      * @param accuracy the accuracy
      * @param kappa cohen's kappa
      */
-    @SuppressWarnings("java:S3553") // Optional parameters
-    protected void setLabels(final int correctCount, final int wrongCount, final Optional<Double> error,
-        final Optional<Double> accuracy, final Optional<Double> kappa) {
+    protected void setLabels(final int correctCount, final int wrongCount, final double error, final double accuracy,
+        final double kappa) {
         NumberFormat nf = NumberFormat.getInstance();
 
-        Pair<String, String> err = formatDisplayTooltip(error.map(v -> v * 100));
-        Pair<String, String> acc = formatDisplayTooltip(accuracy.map(v -> v * 100));
+        Pair<String, String> err = formatDisplayTooltip(error * 100);
+        Pair<String, String> acc = formatDisplayTooltip(accuracy * 100);
         Pair<String, String> kapp = formatDisplayTooltip(kappa);
 
         setLabels(nf.format(correctCount), nf.format(wrongCount), err.getFirst(), err.getSecond(), acc.getFirst(),
             acc.getSecond(), kapp.getFirst(), kapp.getSecond());
     }
 
-    @SuppressWarnings("java:S3553") // Optional parameters
-    private static Pair<String, String> formatDisplayTooltip(final Optional<Double> container) {
+    private static Pair<String, String> formatDisplayTooltip(final double value) {
         NumberFormat nf = NumberFormat.getInstance();
-        return new Pair<>(
-            container.map(nf::format).map(s -> s + "%").orElse(AccuracyScorerCalculator.UNDEFINED_NUM_REPR),
-            container.map(s -> s + "%").orElse(AccuracyScorerCalculator.UNDEFINED_NUM_REPR));
+
+        String first;
+        String second;
+        if (!Double.isNaN(value)) {
+            first = nf.format(value) + "%";
+            second = value + "%";
+        } else {
+            first = second = AccuracyScorerCalculator.UNDEFINED_NUM_REPR;
+        }
+
+        return new Pair<>(first, second);
     }
 
     /**
