@@ -464,7 +464,7 @@ public class PredictorNodeDialog extends NodeDialogPane {
      * Allows subclasses to alter the label of the append probabilities checkbox.
      *
      * @param label the label to use for the append probabilities checkbox
-     * @since 4.4.1
+     * @since 4.5
      */
     protected final void setAppendProbabilitiesLabel(final String label) {
         m_addProbs.setText(label);

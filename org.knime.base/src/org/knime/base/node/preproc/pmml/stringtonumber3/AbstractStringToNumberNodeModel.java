@@ -264,6 +264,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
      *
      * @param inSpec the current DataTableSpec
      * @return a String array with the included columns
+     * @since 4.5
      */
     protected abstract String[] getInclCols(final DataTableSpec inSpec);
 

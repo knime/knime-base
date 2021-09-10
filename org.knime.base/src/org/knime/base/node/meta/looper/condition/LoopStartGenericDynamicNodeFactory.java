@@ -58,6 +58,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
  * This factory creates all necessary classes for the condition loop head node.
  *
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @since 4.5
  */
 public final class LoopStartGenericDynamicNodeFactory extends
         ConfigurableNodeFactory<LoopStartGenericDynamicNodeModel> {
