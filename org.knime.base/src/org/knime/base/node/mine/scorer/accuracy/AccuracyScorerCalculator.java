@@ -102,7 +102,7 @@ public class AccuracyScorerCalculator {
      *
      * @since 4.5
      */
-    protected static final String UNDEFINED_NUM_REPR = "undefined";
+    static final String UNDEFINED_NUM_REPR = "undefined";
 
     private final ScorerCalculatorConfiguration m_config;
 
