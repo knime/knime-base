@@ -49,99 +49,50 @@
 package org.knime.filehandling.core.connections.base.attributes;
 
 import java.io.IOException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.FileTime;
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.UserPrincipal;
-import java.util.Set;
 
 /**
- * Basic implementation of <{@link BasicFileAttributeView}.
+ * Simple implementation of <{@link BasicFileAttributeView}.
  *
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class BaseFileAttributeView implements PosixFileAttributeView {
+public final class BaseFileAttributeView implements BasicFileAttributeView {
 
     private final Path m_path;
 
-    private final Class<? extends FileAttributeView> m_type;
+    private final LinkOption[] m_linkOptions;
 
     /**
      * Constructs a file attribute view for a path.
      *
      * @param path the path this attributes view belongs to
-     * @param type the Class object corresponding to the file attribute view
+     * @param linkOptions whether to following symbolic links or not.
      */
-    public BaseFileAttributeView(final Path path, final Class<? extends FileAttributeView> type) {
+    public BaseFileAttributeView(final Path path, final LinkOption[] linkOptions) {
         m_path = path;
-        m_type = type;
+        m_linkOptions = linkOptions;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String name() {
-        return "posix";
+        return "basic";
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void setTimes(final FileTime lastModifiedTime, final FileTime lastAccessTime, final FileTime createTime)
         throws IOException {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @SuppressWarnings("resource")
     @Override
-    public UserPrincipal getOwner() throws IOException {
-        return readAttributes().owner();
+    public BasicFileAttributes readAttributes() throws IOException {
+        return m_path.getFileSystem().provider().readAttributes(m_path, BasicFileAttributes.class, m_linkOptions);
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setOwner(final UserPrincipal owner) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PosixFileAttributes readAttributes() throws IOException {
-        final Class<? extends BasicFileAttributes> type =
-            m_type == PosixFileAttributeView.class ? PosixFileAttributes.class : BasicFileAttributes.class;
-        return (PosixFileAttributes)m_path.getFileSystem().provider().readAttributes(m_path, type);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setPermissions(final Set<PosixFilePermission> perms) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setGroup(final GroupPrincipal group) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
 }

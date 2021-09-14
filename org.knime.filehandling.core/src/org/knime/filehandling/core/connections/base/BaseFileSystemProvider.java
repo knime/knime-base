@@ -74,6 +74,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.AttributeView;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -676,27 +677,45 @@ public abstract class BaseFileSystemProvider<P extends FSPath, F extends BaseFil
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
     @Override
     public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type,
         final LinkOption... options) {
 
         // allowed during closing (part of recursive temp dir deletion)
         checkFileSystemOpenOrClosing();
-
         checkPathProvider(path);
-        if (type == BasicFileAttributeView.class || type == PosixFileAttributeView.class) {
-            return (V)new BaseFileAttributeView(path, type);
-        }
-        return null;
+
+        final var checkedPath = checkCastAndAbsolutizePath(path);
+        return getFileAttributeViewInternal(checkedPath, type, options);
     }
 
     /**
-     * {@inheritDoc}
+     * Internal method to be overriden by subclasses that need to provide something more than a
+     * {@link BasicFileAttributeView}, for example a {@link PosixFileAttributeView}. Implementations can assume that the
+     * file system is open and that the given path is absolute and normalized. Implementations still need to check
+     * whether they support the the given view type.
+     *
+     * <p>
+     * The default implementation of this method returns a {@link BasicFileAttributeView}.
+     * </p>
+     *
+     * @param <V>
+     * @param path The absolute and normalized path.
+     * @param type The expected view type (implementations need to check whether they support a given view type).
+     * @param options Options how symbolic links are handled (see {@link LinkOption#NOFOLLOW_LINKS NOFOLLOW_LINKS}).
+     * @return a view of the given type, or null, if the given view type is not supported.
      */
+    @SuppressWarnings("unchecked")
+    protected <V extends FileAttributeView> V getFileAttributeViewInternal(final P path, final Class<V> type,
+        final LinkOption... options) {
+
+        if (type == AttributeView.class || type == BasicFileAttributeView.class) {
+            return (V)new BaseFileAttributeView(path, options);
+        } else {
+            return null;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <A extends BasicFileAttributes> A readAttributes(final Path path, final Class<A> type,
