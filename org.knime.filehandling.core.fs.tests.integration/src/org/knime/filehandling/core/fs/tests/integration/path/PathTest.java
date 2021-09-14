@@ -323,6 +323,7 @@ public class PathTest extends AbstractParameterizedFSTest {
 
     public void testNormalizeToEmpty2() {
         ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", AMAZON_S3);
+        ignoreWithReason("S3 differentiates between paths with and without trailing slashes.", AMAZON_S3_COMPATIBLE);
         ignoreWithReason("Google storage differentiates between paths with and without trailing slashes.", GOOGLE_CS);
         final FileSystem fileSystem = getFileSystem();
         final Path path = fileSystem.getPath(".");
@@ -331,7 +332,7 @@ public class PathTest extends AbstractParameterizedFSTest {
     }
 
     public void testNormalizeToEmpty2BlobStore() {
-        ignoreAllExcept(AMAZON_S3, GOOGLE_CS);
+        ignoreAllExcept(AMAZON_S3, AMAZON_S3_COMPATIBLE, GOOGLE_CS);
         final FileSystem fileSystem = getFileSystem();
         final Path path = fileSystem.getPath(".");
 

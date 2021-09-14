@@ -98,9 +98,11 @@ public class DeleteTest extends AbstractParameterizedFSTest {
         assertFalse(Files.isRegularFile(file));
         assertFalse(Files.exists(file));
 
-        // list dir-A again and ensure that file-B is not listed anymore
-        try (Stream<Path> directoryStream = Files.list(fileParent)) {
-            assertEquals(0, directoryStream.count());
+        if (!m_fsType.equals(AMAZON_S3_COMPATIBLE)) { // empty directories are removed automatically by MinIO
+            // list dir-A again and ensure that file-B is not listed anymore
+            try (Stream<Path> directoryStream = Files.list(fileParent)) {
+                assertEquals(0, directoryStream.count());
+            }
         }
     }
 
@@ -140,6 +142,8 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_delete_empty_directory() throws IOException {
+        ignoreWithReason("empty directories are removed automatically by MinIO", AMAZON_S3_COMPATIBLE);
+
         Files.createDirectories(m_testInitializer.makePath("folder", "with"));
 
         final Path file = m_testInitializer.createFile("folder", "with", "file");
@@ -157,6 +161,8 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_parent_of_deleted_file_is_not_deleted() throws IOException {
+        ignoreWithReason("empty directories are removed automatically by MinIO", AMAZON_S3_COMPATIBLE);
+
         Files.createDirectories(m_testInitializer.makePath("path", "to"));
         final Path file = m_testInitializer.createFile("path", "to", "file");
 
