@@ -80,9 +80,9 @@ import org.knime.core.node.workflow.VariableType.CredentialsType;
 public class UserPasswordAuthProviderPanel extends AuthProviderPanel<UserPasswordAuthProviderSettings> {
     private static final int LEFT_INSET = 23;
 
-    private final JLabel m_usernameLabel = new JLabel("Username:");
+    private final JLabel m_usernameLabel;
 
-    private final JLabel m_passwordLabel = new JLabel("Password:");
+    private final JLabel m_passwordLabel;
 
     private DialogComponentBoolean m_useCredentials; // NOSONAR not using serialization
 
@@ -103,9 +103,26 @@ public class UserPasswordAuthProviderPanel extends AuthProviderPanel<UserPasswor
      */
     public UserPasswordAuthProviderPanel(final UserPasswordAuthProviderSettings settings,
         final NodeDialogPane parentDialog) {
+        this(settings, parentDialog, "Username", "Password");
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param settings Authentication settings.
+     * @param parentDialog The parent dialog pane (required by flow variable dialog component to list all flow
+     *            variables).
+     * @param usernameLabel custom username field label
+     * @param passwordLabel custom password field label
+     *
+     */
+    public UserPasswordAuthProviderPanel(final UserPasswordAuthProviderSettings settings,
+        final NodeDialogPane parentDialog, final String usernameLabel, final String passwordLabel) {
+
         super(new GridBagLayout(), settings);
         m_flowVariablesSupplier = () -> parentDialog.getAvailableFlowVariables(CredentialsType.INSTANCE);
-
+        m_usernameLabel = new JLabel(usernameLabel + ":");
+        m_passwordLabel = new JLabel(passwordLabel + ":");
         initFields();
         initLayout();
     }
