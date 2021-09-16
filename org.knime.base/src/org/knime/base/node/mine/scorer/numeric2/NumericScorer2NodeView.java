@@ -52,6 +52,7 @@ package org.knime.base.node.mine.scorer.numeric2;
  * predicted values.
  *
  * @author Ole Ostergaard
+ * @author Eric Axt
  * @since 4.0
  */
 class NumericScorer2NodeView extends AbstractNumericScorerNodeView<NumericScorer2NodeModel> {
@@ -72,6 +73,6 @@ class NumericScorer2NodeView extends AbstractNumericScorerNodeView<NumericScorer
     protected void modelChanged() {
         NumericScorer2NodeModel model = getNodeModel();
         setLabels(model.getRSquare(), model.getMeanAbsError(), model.getMeanSquaredError(), model.getRmsd(),
-            model.getMeanSignedDifference(), model.getMeanAbsolutePercentageError());
+            model.getMeanSignedDifference(), model.getMeanAbsolutePercentageError(), model.getAdjustedRSquare());
     }
 }

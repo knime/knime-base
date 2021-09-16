@@ -59,6 +59,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
 
@@ -66,6 +67,7 @@ import org.knime.core.node.port.PortObjectSpec;
  * This class holds the dialog components for the {@link NumericScorer2NodeDialog}.
  *
  * @author Ole Ostergaard, KNIME.com
+ * @author Eric Axt
  * @since 4.0
  */
 public class NumericScorer2DialogComponents {
@@ -73,28 +75,43 @@ public class NumericScorer2DialogComponents {
     private final NumericScorer2Settings m_numericScorerSettings;
 
     private final DialogComponentColumnNameSelection m_referenceComponent;
+
     private final DialogComponentColumnNameSelection m_predictionComponent;
+
     private final DialogComponentBoolean m_overrideComponent;
+
     private final DialogComponentString m_outputComponent;
+
     private final DialogComponentBoolean m_flowVarComponent;
+
     private final DialogComponentString m_useNamePrefixComponent;
+
+    private final DialogComponentNumber m_adjustedRSquarePredictors;
 
     private final DialogComponent[] m_components;
 
     /**
      * Constructor. Initializes the NumericScorer dialog components
+     *
      * @param settings the {@link NumericScorer2Settings}
      */
     public NumericScorer2DialogComponents(final NumericScorer2Settings settings) {
         m_numericScorerSettings = settings;
-        m_referenceComponent = new DialogComponentColumnNameSelection(m_numericScorerSettings.getReferenceModel(), "Reference column",  0, DoubleValue.class);
-        m_predictionComponent = new DialogComponentColumnNameSelection(m_numericScorerSettings.getPredictedModel(), "Predicted column", 0, DoubleValue.class);
-        m_overrideComponent = new DialogComponentBoolean(m_numericScorerSettings.getOverrideModel(), "Change column name");
+        m_referenceComponent = new DialogComponentColumnNameSelection(m_numericScorerSettings.getReferenceModel(),
+            "Reference column", 0, DoubleValue.class);
+        m_predictionComponent = new DialogComponentColumnNameSelection(m_numericScorerSettings.getPredictedModel(),
+            "Predicted column", 0, DoubleValue.class);
+        m_overrideComponent =
+            new DialogComponentBoolean(m_numericScorerSettings.getOverrideModel(), "Change column name");
         m_outputComponent = new DialogComponentString(m_numericScorerSettings.getOutputModel(), "Output column name");
-        m_flowVarComponent = new DialogComponentBoolean(m_numericScorerSettings.getFlowVarModel(), "Output scores as flow variables");
-        m_useNamePrefixComponent = new DialogComponentString(m_numericScorerSettings.getUseNamePrefixModel(), "Prefix of flow variables");
-        m_components = new DialogComponent[] {m_referenceComponent,
-            m_predictionComponent, m_overrideComponent, m_outputComponent, m_flowVarComponent, m_useNamePrefixComponent};
+        m_flowVarComponent =
+            new DialogComponentBoolean(m_numericScorerSettings.getFlowVarModel(), "Output scores as flow variables");
+        m_useNamePrefixComponent =
+            new DialogComponentString(m_numericScorerSettings.getUseNamePrefixModel(), "Prefix of flow variables");
+        m_adjustedRSquarePredictors =
+            new DialogComponentNumber(m_numericScorerSettings.getNumberOfPredictors(), "Number of predictors", 1);
+        m_components = new DialogComponent[]{m_referenceComponent, m_predictionComponent, m_overrideComponent,
+            m_outputComponent, m_flowVarComponent, m_useNamePrefixComponent, m_adjustedRSquarePredictors};
 
         m_predictionComponent.getModel().addChangeListener(new ChangeListener() {
             @Override
@@ -192,5 +209,15 @@ public class NumericScorer2DialogComponents {
      */
     public NumericScorer2Settings getSettings() {
         return m_numericScorerSettings;
+    }
+
+    /**
+     * Get the adjusted R square dialog component.
+     *
+     * @return the adjustedRSquarePredictors
+     * @since 4.5
+     */
+    public DialogComponentNumber getAdjustedRSquare() {
+        return m_adjustedRSquarePredictors;
     }
 }

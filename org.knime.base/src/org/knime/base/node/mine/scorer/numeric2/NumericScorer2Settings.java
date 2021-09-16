@@ -56,12 +56,15 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
  * This class holds the settings for numeric scorers like NumericScorerNodeModel.
  *
  * @author Ole Ostergaard, KNIME.com
+ * @author Eric Axt
  * @since 4.0
  */
 public class NumericScorer2Settings {
@@ -78,10 +81,17 @@ public class NumericScorer2Settings {
 
     static final boolean DEFAULT_OVERRIDE_OUTPUT = false;
 
+    static final String CFG_KEY_NUM_PREDICTORS = "number_of_predictors";
+
     /**
      * The default string for the predicted
      */
     public static final String DEFAULT_PREDICTED = "";
+
+    /**
+     * The default string for the adjusted R square predictors
+     */
+    private static final Integer DEFAULT_NUM = 0;
 
     /**
      * The default string for the reference
@@ -102,6 +112,26 @@ public class NumericScorer2Settings {
     private final SettingsModelBoolean m_flowVarModel = new SettingsModelBoolean("generate flow variables", false);
 
     private final SettingsModelString m_useNamePrefixModel = createFlowPrefixModel(m_flowVarModel);
+
+    // the number of predictors relate to the adjusted r square
+    private final SettingsModelIntegerBounded m_numberOfPredictors =
+        new SettingsModelIntegerBounded(CFG_KEY_NUM_PREDICTORS, DEFAULT_NUM, 0, Integer.MAX_VALUE) {
+
+            @Override
+            protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+
+                if (settings.containsKey(CFG_KEY_NUM_PREDICTORS)) {
+                    super.validateSettingsForModel(settings);
+                }
+            }
+
+            @Override
+            protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_KEY_NUM_PREDICTORS)) {
+                    super.loadSettingsForModel(settings);
+                }
+            }
+        };
 
     /**
      * Constructor.
@@ -217,6 +247,7 @@ public class NumericScorer2Settings {
 
         m_useNamePrefixModel.saveSettingsTo(settings);
         m_flowVarModel.saveSettingsTo(settings);
+        m_numberOfPredictors.saveSettingsTo(settings);
     }
 
     /**
@@ -230,6 +261,7 @@ public class NumericScorer2Settings {
         m_predictedModel.loadSettingsFrom(settings);
         m_overrideModel.loadSettingsFrom(settings);
         m_outputModel.loadSettingsFrom(settings);
+        m_numberOfPredictors.loadSettingsFrom(settings);
 
         // since 3.2
         if (settings.containsKey(m_useNamePrefixModel.getKey())) {
@@ -253,6 +285,7 @@ public class NumericScorer2Settings {
         m_outputModel.validateSettings(settings);
         m_useNamePrefixModel.validateSettings(settings);
         m_flowVarModel.validateSettings(settings);
+        m_numberOfPredictors.validateSettings(settings);
     }
 
     /**
@@ -307,6 +340,16 @@ public class NumericScorer2Settings {
      */
     public SettingsModelString getUseNamePrefixModel() {
         return m_useNamePrefixModel;
+    }
+
+    /**
+     * Returns the number of predictors.
+     *
+     * @return the adjusted R square Integer
+     * @since 4.5
+     */
+    public SettingsModelInteger getNumberOfPredictors() {
+        return m_numberOfPredictors;
     }
 
 }
