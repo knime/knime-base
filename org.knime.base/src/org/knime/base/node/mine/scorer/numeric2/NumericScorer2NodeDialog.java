@@ -62,6 +62,7 @@ import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 public class NumericScorer2NodeDialog extends DefaultNodeSettingsPane {
 
     private final NumericScorer2Settings m_settings = new NumericScorer2Settings();
+
     private final NumericScorer2DialogComponents m_components = new NumericScorer2DialogComponents(m_settings);
 
     /**
@@ -74,10 +75,14 @@ public class NumericScorer2NodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(m_components.getOverrideComponent());
         addDialogComponent(m_components.getOutputComponent());
 
-
         createNewGroup("Provide scores as flow variables");
         addDialogComponent(m_components.getUseNamePrefixComponent());
         addDialogComponent(m_components.getFlowVarComponent());
+
+        createNewGroup("Adjusted R squared");
+        addDialogComponent(m_components.getAdjustedRSquare());
+
+
     }
 
     /**

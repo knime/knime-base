@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="./scorer.png" type="Other" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
+<knimeNode icon="./scorer.png" type="Other" 
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Numeric Scorer</name>
     
     <shortDescription>
@@ -17,7 +20,8 @@
 	<a href="http://en.wikipedia.org/wiki/Root-mean-square_deviation">Root mean squared error</a> (sqrt(1/n*&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)&#xb2;)),
 	<a href="http://en.wikipedia.org/wiki/Mean_signed_difference">Mean signed difference</a> (1/n*&#x3A3;(p<sub>i</sub>-r<sub>i</sub>)),
 	<a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Mean absolute percentage error</a>  1/n * &#x3A3;((|r<sub>i</sub> - p<sub>i</sub>|)/ |r<sub>i</sub>|),
-
+	<a href="https://en.wikipedia.org/wiki/Coefficient_of_determination#Adjusted_R2">Adjusted R&#xb2;</a>=1-(1-R&#xb2;)(n-1)/(n-p-1) (can be negative!).
+	
 	The computed values can be inspected in the node's view and/or further
 	processed using the output table.
 		</intro>
@@ -40,6 +44,7 @@
 			<li><a href="http://en.wikipedia.org/wiki/Root-mean-square_deviation">Root mean squared error</a> - Sqrt(1/n*&#x3A3;((p_i-r_i)&#xb2;))</li>
 			<li><a href="http://en.wikipedia.org/wiki/Mean_signed_difference">Mean signed difference</a> - 1/n*&#x3A3;(p_i - r_i)</li>
 			<li><a href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Mean absolute percentage error</a> 1/n * &#x3A3;((|r_i - p_i|)/|r_i|)</li>
+			<li><a href="https://en.wikipedia.org/wiki/Coefficient_of_determination#Adjusted_R2">Adjusted R&#xb2;</a>1-(1-R&#xb2;)(n-1)/(n-p-1)</li>
 			</ul>
 		</outPort>
 	</ports>

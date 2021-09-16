@@ -71,17 +71,19 @@ import org.knime.core.node.NodeView;
  */
 public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends NodeView<M> {
 
-    private JLabel m_rSquared;
+    private final JLabel m_rSquared;
 
-    private JLabel m_meanAbsError;
+    private final JLabel m_meanAbsError;
 
-    private JLabel m_meanSquaredError;
+    private final JLabel m_meanSquaredError;
 
-    private JLabel m_rootMeanSquaredError;
+    private final JLabel m_rootMeanSquaredError;
 
-    private JLabel m_meanSignedDifference;
+    private final JLabel m_meanSignedDifference;
 
-    private JLabel m_meanAbsolutePercentageError;
+    private final JLabel m_meanAbsolutePercentageError;
+
+    private final JLabel m_adjustedrSquared;
 
     /**
      * Creates a new view.
@@ -138,6 +140,13 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
         c.gridx = 1;
         summary.add(m_meanAbsolutePercentageError, c);
 
+        c.gridx = 0;
+        c.gridy++;
+        summary.add(new JLabel("Adjusted R\u00b2: "), c);
+        m_adjustedrSquared = new JLabel("n/a");
+        c.gridx = 1;
+        summary.add(m_adjustedrSquared, c);
+
         setComponent(summary);
     }
 
@@ -150,11 +159,30 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
      * @param rootMeanSquaredDeviation the rootMeanSquaredError to set
      * @param meanSignedDifference the meanSignedDifference to set
      * @param meanAbsoluteErrorPercentage the meanAbsoluteErrorPercentage to set
+     * @deprecated use new setLabels since it introduces adjusted R square.
      * @since 4.0
      */
+    @Deprecated
     protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError,
         final double rootMeanSquaredDeviation, final double meanSignedDifference,
         final double meanAbsoluteErrorPercentage) {
+      setLabels(rSquare, meanAbsError, meanSquaredError, rootMeanSquaredDeviation, meanSignedDifference, meanAbsoluteErrorPercentage, Double.NaN);
+    }
+
+    /**
+     * Sets all the labels in the nodeView with the values of the numeric scorers outcome.
+     *
+     * @param rSquare the rSquared to set
+     * @param meanAbsError the meanAbsError to set
+     * @param meanSquaredError the meanSquaredError to set
+     * @param rootMeanSquaredDeviation the rootMeanSquaredError to set
+     * @param meanSignedDifference the meanSignedDifference to set
+     * @param meanAbsoluteErrorPercentage the meanAbsoluteErrorPercentage to set
+     * @since 4.5.0
+     */
+    protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError,
+        final double rootMeanSquaredDeviation, final double meanSignedDifference,
+        final double meanAbsoluteErrorPercentage, final double adjustedrSquare) {
         NumberFormat nf = NumberFormat.getNumberInstance();
         m_rSquared.setText(nf.format(rSquare));
         m_meanAbsError.setText(nf.format(meanAbsError));
@@ -162,6 +190,7 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
         m_rootMeanSquaredError.setText(nf.format(rootMeanSquaredDeviation));
         m_meanSignedDifference.setText(nf.format(meanSignedDifference));
         m_meanAbsolutePercentageError.setText(nf.format(meanAbsoluteErrorPercentage));
+        m_adjustedrSquared.setText(nf.format(adjustedrSquare));
     }
 
     /**
