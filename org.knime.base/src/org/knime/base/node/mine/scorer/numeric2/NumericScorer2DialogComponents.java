@@ -67,6 +67,7 @@ import org.knime.core.node.port.PortObjectSpec;
  * This class holds the dialog components for the {@link NumericScorer2NodeDialog}.
  *
  * @author Ole Ostergaard, KNIME.com
+ * @author Eric Axt
  * @since 4.0
  */
 public class NumericScorer2DialogComponents {
@@ -108,7 +109,7 @@ public class NumericScorer2DialogComponents {
         m_useNamePrefixComponent =
             new DialogComponentString(m_numericScorerSettings.getUseNamePrefixModel(), "Prefix of flow variables");
         m_adjustedRSquarePredictors =
-            new DialogComponentNumber(m_numericScorerSettings.getAdjustedRSquare(), "Number of predictors", 1);
+            new DialogComponentNumber(m_numericScorerSettings.getNumberOfPredictors(), "Number of predictors", 1);
         m_components = new DialogComponent[]{m_referenceComponent, m_predictionComponent, m_overrideComponent,
             m_outputComponent, m_flowVarComponent, m_useNamePrefixComponent, m_adjustedRSquarePredictors};
 
@@ -214,7 +215,7 @@ public class NumericScorer2DialogComponents {
      * Get the adjusted R square dialog component.
      *
      * @return the adjustedRSquarePredictors
-     * @since 4.5.0
+     * @since 4.5
      */
     public DialogComponentNumber getAdjustedRSquare() {
         return m_adjustedRSquarePredictors;

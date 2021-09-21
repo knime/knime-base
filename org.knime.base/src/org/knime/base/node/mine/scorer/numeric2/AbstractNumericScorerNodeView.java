@@ -66,6 +66,7 @@ import org.knime.core.node.NodeView;
  *
  * @author Gabor Bakos
  * @author Ole Ostergaard
+ * @author Eric Axt
  * @param <M> the extended numeric scorer node model
  * @since 4.0
  */
@@ -166,7 +167,8 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
     protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError,
         final double rootMeanSquaredDeviation, final double meanSignedDifference,
         final double meanAbsoluteErrorPercentage) {
-      setLabels(rSquare, meanAbsError, meanSquaredError, rootMeanSquaredDeviation, meanSignedDifference, meanAbsoluteErrorPercentage, Double.NaN);
+        setLabels(rSquare, meanAbsError, meanSquaredError, rootMeanSquaredDeviation, meanSignedDifference,
+            meanAbsoluteErrorPercentage, Double.NaN);
     }
 
     /**
@@ -178,7 +180,8 @@ public abstract class AbstractNumericScorerNodeView<M extends NodeModel> extends
      * @param rootMeanSquaredDeviation the rootMeanSquaredError to set
      * @param meanSignedDifference the meanSignedDifference to set
      * @param meanAbsoluteErrorPercentage the meanAbsoluteErrorPercentage to set
-     * @since 4.5.0
+     * @param adjustedrSquare
+     * @since 4.5
      */
     protected void setLabels(final double rSquare, final double meanAbsError, final double meanSquaredError,
         final double rootMeanSquaredDeviation, final double meanSignedDifference,

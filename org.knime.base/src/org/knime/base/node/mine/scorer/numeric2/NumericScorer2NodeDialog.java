@@ -57,6 +57,7 @@ import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
  * components. If you need a more complex dialog please derive directly from {@link org.knime.core.node.NodeDialogPane}.
  *
  * @author Gabor Bakos
+ * @author Eric Axt
  * @since 4.0
  */
 public class NumericScorer2NodeDialog extends DefaultNodeSettingsPane {

@@ -52,8 +52,8 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * <code>NodeFactory</code> for the "NumericScorer" Node.
- * Computes the distance between the a numeric column's values and predicted values.
+ * <code>NodeFactory</code> for the "NumericScorer" Node. Computes the distance between the a numeric column's values
+ * and predicted values.
  *
  * @author Gabor Bakos
  * @since 4.0
@@ -80,7 +80,7 @@ public class NumericScorer2NodeFactory extends NodeFactory<NumericScorer2NodeMod
      */
     @Override
     public NodeView<NumericScorer2NodeModel> createNodeView(final int viewIndex,
-            final NumericScorer2NodeModel nodeModel) {
+        final NumericScorer2NodeModel nodeModel) {
         return new NumericScorer2NodeView(nodeModel);
     }
 
@@ -101,4 +101,3 @@ public class NumericScorer2NodeFactory extends NodeFactory<NumericScorer2NodeMod
     }
 
 }
-

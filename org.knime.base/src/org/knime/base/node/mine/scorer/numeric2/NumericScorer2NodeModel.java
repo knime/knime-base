@@ -85,6 +85,7 @@ import org.knime.core.node.workflow.FlowVariable;
  * predicted values.
  *
  * @author Gabor Bakos
+ * @author Eric Axt
  * @since 4.0
  */
 class NumericScorer2NodeModel extends NodeModel {
@@ -192,7 +193,7 @@ class NumericScorer2NodeModel extends NodeModel {
             ssRes.increment(ref - pred);
         }
 
-        final int p = m_numericScorerSettings.getAdjustedRSquare().getIntValue();
+        final int p = m_numericScorerSettings.getNumberOfPredictors().getIntValue();
         var n = inData[0].size();
         // create final values
         m_rSquare = 1 - (ssRes.getResult() / ssTot.getResult());
@@ -209,7 +210,7 @@ class NumericScorer2NodeModel extends NodeModel {
         container.addRowToTable(new DefaultRow("root mean squared error", m_rmsd));
         container.addRowToTable(new DefaultRow("mean signed difference", m_meanSignedDifference));
         container.addRowToTable(new DefaultRow("mean absolute percentage error", m_meanAbsolutePercentageError));
-        container.addRowToTable(new DefaultRow("Adjusted R^2", m_adjustedrSquare));
+        container.addRowToTable(new DefaultRow("adjusted R^2", m_adjustedrSquare));
 
         container.close();
         if (skippedRowCount > 0) {

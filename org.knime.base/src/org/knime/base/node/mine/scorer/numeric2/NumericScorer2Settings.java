@@ -64,6 +64,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * This class holds the settings for numeric scorers like NumericScorerNodeModel.
  *
  * @author Ole Ostergaard, KNIME.com
+ * @author Eric Axt
  * @since 4.0
  */
 public class NumericScorer2Settings {
@@ -345,9 +346,9 @@ public class NumericScorer2Settings {
      * Returns the number of predictors.
      *
      * @return the adjusted R square Integer
-     * @since 4.5.0
+     * @since 4.5
      */
-    public SettingsModelInteger getAdjustedRSquare() {
+    public SettingsModelInteger getNumberOfPredictors() {
         return m_numberOfPredictors;
     }
 
