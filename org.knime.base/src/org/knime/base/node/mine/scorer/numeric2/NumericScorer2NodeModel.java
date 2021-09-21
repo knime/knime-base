@@ -245,15 +245,16 @@ class NumericScorer2NodeModel extends NodeModel {
 
             final String prefix = m_numericScorerSettings.getFlowVariablePrefix();
             final String rsquareName = prefix + "R^2";
-            final String adjustedRSquareName = prefix + "Adjusted R^2";
+            final String adjustedRSquareName = prefix + "adjusted R^2";
             final String meanAbsName = prefix + "mean absolute error";
             final String meanSquareName = prefix + "mean squared error";
             final String rootmeanName = prefix + "root mean squared error";
             final String meanSignedName = prefix + "mean signed difference";
             final String meanAPEName = prefix + "mean absolute percentage error";
-            if (isConfigureOnly && (vars.containsKey(rsquareName) || vars.containsKey(meanAbsName)
-                || vars.containsKey(meanSquareName) || vars.containsKey(rootmeanName)
-                || vars.containsKey(meanSignedName) || vars.containsKey(meanAPEName))) {
+            if (isConfigureOnly
+                && (vars.containsKey(rsquareName) || vars.containsKey(meanAbsName) || vars.containsKey(meanSquareName)
+                    || vars.containsKey(rootmeanName) || vars.containsKey(meanSignedName)
+                    || vars.containsKey(meanAPEName) || vars.containsKey(adjustedRSquareName))) {
                 addWarning("A flow variable was replaced!");
             }
 
