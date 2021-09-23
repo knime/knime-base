@@ -71,7 +71,7 @@ class NumericScorer2NodeView extends AbstractNumericScorerNodeView<NumericScorer
      */
     @Override
     protected void modelChanged() {
-        NumericScorer2NodeModel model = getNodeModel();
+        Metrics model = new Metrics();
         setLabels(model.getRSquare(), model.getMeanAbsError(), model.getMeanSquaredError(), model.getRmsd(),
             model.getMeanSignedDifference(), model.getMeanAbsolutePercentageError(), model.getAdjustedRSquare());
     }
