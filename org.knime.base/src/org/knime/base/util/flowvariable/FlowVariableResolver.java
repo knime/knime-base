@@ -113,7 +113,8 @@ public final class FlowVariableResolver {
                     break;
                 case 'S':
                     s = escaper.readString(model, var);
-                    command = command.replace("$${S" + var + "}$$", s);
+                    // for reasons of backwards compatibility, flow variables of type String can be null
+                    command = command.replace("$${S" + var + "}$$", s != null ? s : "");
                     break;
                 default:
                     String badVarName;
