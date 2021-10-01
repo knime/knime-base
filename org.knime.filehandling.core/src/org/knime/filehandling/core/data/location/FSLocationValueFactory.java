@@ -58,6 +58,10 @@ import org.knime.core.table.access.StructAccess.StructReadAccess;
 import org.knime.core.table.access.StructAccess.StructWriteAccess;
 import org.knime.core.table.schema.DataSpec;
 import org.knime.core.table.schema.StructDataSpec;
+import org.knime.core.table.schema.traits.DataTrait.DictEncodingTrait;
+import org.knime.core.table.schema.traits.DataTrait.DictEncodingTrait.KeyType;
+import org.knime.core.table.schema.traits.DataTraits;
+import org.knime.core.table.schema.traits.DefaultStructDataTraits;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
 
@@ -83,15 +87,14 @@ public final class FSLocationValueFactory implements ValueFactory<StructReadAcce
         return new StructDataSpec(DataSpec.stringSpec(), DataSpec.stringSpec(), DataSpec.stringSpec());
     }
 
-    // TODO uncomment once logical types and struct-dict-encoding work together
-//    @Override
-//    public DataTraits getTraits() {
-//        return DefaultStructDataTraits.builder()//
-//            .addInnerTraits(new DictEncodingTrait(KeyType.BYTE_KEY))//
-//            .addInnerTraits(new DictEncodingTrait(KeyType.LONG_KEY))//
-//            .addInnerTraits(new DictEncodingTrait(KeyType.LONG_KEY))//
-//            .build();
-//    }
+    @Override
+    public DataTraits getTraits() {
+        return DefaultStructDataTraits.builder()//
+            .addInnerTraits(new DictEncodingTrait(KeyType.BYTE_KEY))//
+            .addInnerTraits(new DictEncodingTrait(KeyType.LONG_KEY))//
+            .addInnerTraits(new DictEncodingTrait(KeyType.LONG_KEY))//
+            .build();
+    }
 
     /**
      * {@link ReadValue} for {@link FSLocation FSLocations}.
