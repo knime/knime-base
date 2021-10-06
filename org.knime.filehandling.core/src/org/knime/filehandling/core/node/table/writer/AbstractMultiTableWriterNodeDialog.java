@@ -254,6 +254,7 @@ public abstract class AbstractMultiTableWriterNodeDialog<C extends AbstractMulti
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_nodeConfig.loadSettingsForDialog(settings, specs);
+        m_folderChooser.loadSettingsFrom(settings, specs);
         m_sourceColumn.loadSettingsFrom(settings, specs);
         m_filenameColumn.loadSettingsFrom(settings, specs);
         m_generateFilenameRadio.setSelected(m_nodeConfig.shouldGenerateFilename());
