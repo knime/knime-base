@@ -8,12 +8,15 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-			Parses the strings in the selected columns and converts them into
-			Date&amp;Time cells using the provided
-			format pattern.
-			<br />
-			Since dates may contain localized terms such as month or weekday
-			names, you can select a locale.
+			<p>
+				Parses the strings in the selected columns and converts them into
+				Date&amp;Time cells. The expected format can be selected from a number
+				of commonly used formats or specified manually (see section "Type and Format Selection").
+			</p>
+			<p>
+				Since dates may contain localized terms such as month or weekday
+				names, you can additionally specify a locale.
+			</p>
 		</intro>
 		<tab name="Column Selection">
 			<option name="Column Selector">
@@ -37,12 +40,39 @@
 				The type of the new data cells can be selected.
 			</option>
 			<option name="Date format">
-				A format string (defined by
-				<a
-					href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html">DateTimeFormatter</a>
-				).
-				<br />
-				<b>Examples:</b>
+				<p>
+					A template ("format string") that specifies how to interpret the input. This template may contain
+					placeholders for different descriptions of month names, weekday names, month and day numbers, year
+					numbers etc., as well as other non-alphabetic characters that are expected to appear in the input
+					string.
+				</p>
+				<p>
+					Commonly used placeholders are <code>y</code> for year, <code>M</code> for month,
+					<code>d</code> for day of month, <code>H</code> for hours, <code>m</code> for minutes and <code>s</code> for
+					seconds. A full list of placeholders can be found below.
+				</p>
+				<p>
+					The count of an individual placeholder letter defines the expected format. For example, a
+					weekday can be represented by its full name ("Monday"), a short name ("Mon") or a narrow name ("M").
+					Commonly used expressions are:
+				</p>
+				<ul>
+					<li>
+						<code>yyyy</code> matches "2021". <code>yy</code> matches years relative to the year 2000:
+						"21" will be interpreted as "2021".
+					</li>
+					<li>
+						<code>MM</code> matches month numbers like "01",
+						<code>MMM</code> matches short month names like "Jan", <code>MMMM</code> matches full month
+						names like "January".
+					</li>
+					<li>
+						<code>d</code> matches day numbers like "5" and "05".
+					</li>
+				</ul>
+				<p>
+					<b>Examples:</b>
+				</p>
 				<ul>
 					<li>"yyyy.MM.dd HH:mm:ss.SSS" parses dates like "2001.07.04
 						12:08:56.000"
@@ -54,20 +84,28 @@
 						"2001-07-04T12:08:56.235+02:00[Europe/Berlin]"
 					</li>
 				</ul>
-				If there is e.g. a time column which has both times with and without
-				milliseconds, optional parts in the format can be specified with
-				square brackets.
-				<b>Examples:</b>
+				<p>
+					Placeholders can be declared as optional by wrapping them in square brackets. This is useful
+					if it is unclear whether the input contains a certain field or not. For example:
+				</p>
 				<ul>
-					<li>"HH:mm:ss[.SSS]" parses times like "12:08:56.123" and
-						"12:08:56"
-					</li>
-					<li>"yyyy-MM-dd'T'HH:mm[:ss[.SSS]]" parses dates like
-						"2001-07-04T12:08:56.235", "2001-07-04T12:08:56" and
-						"2001-07-04T12:08"
-					</li>
+					  <li>"HH:mm:ss[.SSS]" parses times like "12:08:56.123" and
+							"12:08:56"
+					  </li>
+					  <li>"yyyy-MM-dd'T'HH:mm[:ss[.SSS]]" parses dates like
+							"2001-07-04T12:08:56.235", "2001-07-04T12:08:56" and
+							"2001-07-04T12:08"
+					  </li>
 				</ul>
-				<b>Supported placeholders in the pattern are:</b>
+				<p>
+					Optional placeholders can also be useful if different formats are to be expected. For example,
+					<code>[MMMM][MMM] dd, yyyy</code> matches both "April 02, 2021" and "Apr 02, 2021". Note that
+					this will also match when no month description is given whatsoever.
+				</p>
+				<p>
+					The full list of supported placeholders is given below. You can find a full, technical specification
+					<a href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html">here</a>.
+				</p>
 				<ul>
 					<li>G: era</li>
 					<li>u: year</li>
