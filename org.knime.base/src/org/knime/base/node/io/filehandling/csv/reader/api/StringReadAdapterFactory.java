@@ -149,19 +149,19 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
     private static LocalDate readLocalDateFromSource(final StringReadAdapter source,
         final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
         final String localDate = source.get(params);
-        return LocalDate.parse(localDate);
+        return localDate == null ? null : LocalDate.parse(localDate);
     }
 
     private static LocalTime readLocalTimeFromSource(final StringReadAdapter source,
         final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
         final String localTime = source.get(params);
-        return LocalTime.parse(localTime);
+        return localTime == null ? null : LocalTime.parse(localTime);
     }
 
     private static InputStream readByteFieldsFromSource(final StringReadAdapter source,
         final ReadAdapterParams<StringReadAdapter, CSVTableReaderConfig> params) {
         final String bytes = source.get(params);
-        return new ByteArrayInputStream(bytes.getBytes());
+        return bytes == null ? null : new ByteArrayInputStream(bytes.getBytes());
     }
 
     private abstract static class AbstractReadAdapterToPrimitiveCellValueProducer<S extends ReadAdapter<?, ?>, T>
