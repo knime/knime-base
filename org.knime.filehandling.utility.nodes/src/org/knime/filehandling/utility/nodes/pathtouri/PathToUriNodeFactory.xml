@@ -11,14 +11,22 @@
     </shortDescription>
 
 	<fullDescription>
-		<intro>This node generates a URI for each Path in a selected Path column. Each file system supports one or more 
-		URI formats. The specific URI format to use can be configured in the node dialog. Examples for URI formats are:
+		<intro>This node generates a URI for each path in a <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#path">path
+        column.</a> The supported URIs formats are specific to each file system. The URI format to use can be
+        configured in the node dialog. Examples for URI formats are:
          <ul>
                 <li><tt>file://</tt> URLs (supported by the "Local file system"). </li>
                 <li>presigned <tt>https://</tt> URLs (supported by the "Amazon S3 Connector").</li>
                 <li><tt>knime://</tt> URLs (supported by the "Mountpoint" and "Relative to" file systems).</li>
          </ul>
-		
+
+            <p>
+            <i>This node can access a variety of different</i>
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+
 		</intro>
 
 		<option name="Input column">

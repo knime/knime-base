@@ -9,17 +9,17 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-            <p><i>This node supports the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable</i></a>
-            <i> to specify the location to read from. To convert the created path column to a string column which is 
-            required by some nodes that have not been migrated yet you can use the </i>
-            <a href="https://kni.me/n/ZLCisQlHCzW4IiZG"><i>Path to String</i></a><i> node.</i>
-            <i> For further information about file handling in general see the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
-            
             <p>
 			List files and/or folders contained in the selected folder.
 			</p>
+
+            <p>
+            <i>This node can access a variety of different</i>
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+
 		</intro>
 		<option name="Read from">
 				Select a file system which stores the files/folders you want to list. There are

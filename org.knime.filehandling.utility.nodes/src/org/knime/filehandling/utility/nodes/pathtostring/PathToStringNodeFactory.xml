@@ -10,10 +10,14 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-			<p>This node converts a selected Path column into a column of the type String.</p>
-                     
-            <p><i> For further information about file handling in general see the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a></p>
+			<p>This node converts a <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#path">path
+			column</a> into a column of type string.</p>
+
+            <p>
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+
 		</intro>
 		<option name="Column selection">
 			The Path column that will be converted to a String column.

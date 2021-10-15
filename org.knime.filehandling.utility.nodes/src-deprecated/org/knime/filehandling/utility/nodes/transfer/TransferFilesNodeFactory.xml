@@ -11,20 +11,20 @@
 
 	<fullDescription>
 		<intro>
-            <p><i>This node supports the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable</i></a>
-            <i> to specify the source and destination location. To convert the created path column to a string column which is 
-            required by some nodes that have not been migrated yet you can use the </i>
-            <a href="https://kni.me/n/ZLCisQlHCzW4IiZG"><i>Path to String</i></a><i> node.
-             For further information about file handling in general see the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
-            
             <p>
 			This node copies or moves files from a source (folder or file) to another folder. The node offers options to
 			either copy or move a single file, a complete folder or the files in a selected folder, with the option to
 			include subfolders, to a specified folder. If the "Delete source files (move)" option is checked the node
 			performs a move operation for which the source files will be deleted after the copying process is done.
 			</p>
+
+            <p>
+            <i>This node can access a variety of different</i>
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+
 		</intro>
 		<option name="Read from">
 			Select a file system which stores the files/folders you want to copy/move. There are four default file

@@ -11,22 +11,13 @@
 
 	<fullDescription>
 		<intro>
-            <p><i>This node supports the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable</i></a>
-            <i> to specify the source and destination location. To convert the created path column to a string column which is 
-            required by some nodes that have not been migrated yet you can use the </i>
-            <a href="https://kni.me/n/ZLCisQlHCzW4IiZG"><i>Path to String</i></a><i> node.
-             For further information about file handling in general see the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
-            
             <p>
-			This node unpacks and decompresses files from archives. The path to the extracted
-			files
-			will
-			be contained in the output table.
-			<br />
-			<br />
-			Supported formats are:
+			This node unpacks and decompresses files from an archive file. The paths to the extracted files are provided
+			in the output table using a <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#path">path column.</a>
+			</p>
+			
+			<p>
+			Supported archive formats are:
 			<ul>
 				<li>.zip</li>
 				<li>.jar</li>
@@ -37,12 +28,22 @@
 				<li>.ar</li>
 				<li>.gz / .gzip</li>
 			</ul>
-			<br/>
+			</p>
+			
+			<p>
 			<b>Note:</b>This node cannot decompress KNIME artifacts such as workflows. In order to decompress
 			workflows please use a combination of 
 			<a href="https://hub.knime.com/knime/extensions/org.knime.features.buildworkflows/latest/org.knime.buildworkflows.reader.WorkflowReaderNodeFactory"><i>Workflow Reader</i></a> and 
 			<a href="https://kni.me/n/ouYgT_6spFNuvnv_"><i>Workflow Writer</i></a> instead.
 			</p>
+
+            <p>
+            <i>This node can access a variety of different</i>
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+
 		</intro>
 
 <option name="Read from">
