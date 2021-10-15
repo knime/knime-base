@@ -7,22 +7,28 @@
 	<shortDescription>Creates paths to files/folders and exposes them as flow variables.</shortDescription>
 	<fullDescription>
 		<intro>
-            <p><i>This node supports the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable</i></a>
-            <i> to specify the base location. To convert the created path variables to string variables which are 
-            required by some nodes that have not been migrated yet you can use the </i>
-            <a href="https://kni.me/n/7iP1GCKnb_WMgJ4V"><i>Path to String (Variable)</i></a><i> node.</i>
-            <i> For further information about file handling in general see the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
-            
+
             <p>
-			This node allows selecting a (existing) base folder and to define a list of locations pointing to
-			(existing) files/folders relative to the base location. After execution the specified list of file/folder
-			locations is accessible for subsequent nodes via flow variables.
-			<br />
-			<i>Note:</i>
-			By default the workflow data area is selected as folder, as defined by “.“ in the Folder field
+			This node allows to create <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">path flow variables.</a> 
+			This is done by selecting a base folder and then defining a list of paths pointing to
+			files/folders relative to the base folder. After executing the node the specified list of paths is accessible for subsequent nodes
+			via flow variables.
 			</p>
+			
+			<p>
+			<i>Note:</i>
+			The default base folder is the <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#working-directory">
+			working directory</a> of the <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#relative-to">
+			workflow data area</a>, as defined by “.“ in the Folder field.
+			</p>
+
+            <p>
+            <i>This node can access a variety of different</i>
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+
 		</intro>
 		<option name="Create for">
 			Select a file system to which your file names are related. There are three default file system options to

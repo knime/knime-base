@@ -11,10 +11,6 @@
 	
 	<fullDescription>
 		<intro>
-		<p><i>This node supports the
-		</i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
-		<i> For further information about file handling in general see the
-		</i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
 		This node can be used to read data from a file.
 		It can be configured to read various formats.<br />
 		When you open the node's configuration dialog and provide a filename, 
@@ -36,6 +32,15 @@
 		all files have the same format (e. g. separators, column headers, column types). 
 		The node saves the configuration only during the first execution. <br />
 		Alternatively, the <i>File Reader</i> node can be used.
+
+        <p>
+        <i>This node can access a variety of different</i>
+        <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+        <i>More information about file handling in KNIME can be found in the official</i> 
+        <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+        </p>
+
+
 		</intro>
 		<option name="Read from">
 			Select a file system which stores the model you want to read. There

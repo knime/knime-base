@@ -7,15 +7,19 @@
 	<shortDescription>Writes a image port object to a file.</shortDescription>
 	<fullDescription>
 		<intro>
-            <p><i>This node supports the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
-            <i> For further information about file handling in general see the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
             <p>
 		    Writes a image port object to a file or a remote location denoted by a URL. The image input object must
 	        contain a valid image as otherwise the node will fail 
 	        during executing.
 	        </p>
+
+            <p>
+            <i>This node can access a variety of different</i>
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+
         </intro>
 		<option name="Write to">
 				Select a file system in which you want to store the file. There

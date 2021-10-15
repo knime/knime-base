@@ -9,20 +9,24 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-            <p><i>This node supports the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
-            <i> For further information about file handling in general see the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
 			<p>
 			 Reads the most common text files. To auto-guess the structure of the file click the Autodetect format button. 
 			 If you encounter problems with incorrect guessed data types disable the Limit data rows scanned option in the Advanced Settings tab. 
-			 If the input file structure changes between different invocations, enable the Support changing file schemas option in the Advanced Settings tab. 
+			 If the input file structure changes between different invocations, enable the <i>Support changing file schemas</i> option in the Advanced Settings tab. 
 			 For further details see the KNIME File Handling Guide 
 			 <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide</i></a>.
 	        </p>
 	        <p>
 	          <b>Note:</b> If you find that this node can't read your file, try the <b>File Reader (Complex Format)</b> node. It offers more options for reading complex files.
 	        </p>
+
+            <p>
+            <i>This node can access a variety of different</i>
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+            
 		</intro>
 		<tab name="Settings">
 			<option name="Read from">

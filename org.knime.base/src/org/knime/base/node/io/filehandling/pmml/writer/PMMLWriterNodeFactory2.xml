@@ -11,16 +11,20 @@
 
 	<fullDescription>
 		<intro>
-            <p><i>This node supports the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path"><i>path flow variable.</i></a>
-            <i> For further information about file handling in general see the 
-            </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a><br/></p>
             <p>
 			This nodes writes a PMML model from a PMML model port into a PMML v4.2 compliant file or to a 
 			remote location denoted by an URL. If a PMML file from another version is read by the PMML Reader 
 			and directly written by this node, it is converted into PMML v4.2.
 			If the model is not valid (unknown data types, etc.) an exception is thrown during execution.
 			</p>
+
+            <p>
+            <i>This node can access a variety of different</i>
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a> 
+            <i>More information about file handling in KNIME can be found in the official</i> 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
+            </p>
+
 		</intro>
 		<option name="Write to">
 				Select a file system in which you want to store the file. There
