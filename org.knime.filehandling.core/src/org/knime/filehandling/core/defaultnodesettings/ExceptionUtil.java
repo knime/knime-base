@@ -218,6 +218,7 @@ public class ExceptionUtil {
 
         FormattedAccessDeniedException(final AccessDeniedException e) {
             super(e.getFile(), e.getOtherFile(), MSG_PREFIX);
+            initCause(e.getCause());
         }
 
         /**
