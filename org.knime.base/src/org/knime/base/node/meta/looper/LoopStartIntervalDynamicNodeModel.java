@@ -69,7 +69,7 @@ import org.knime.core.node.workflow.VariableType;
  * This is the model for the interval loop start node. It lets the user defined an interval in which a variable is
  * increased by a certain amount in each iteration.
  *
- * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author Jannik LÃ¶scher, KNIME GmbH, Konstanz, Germany
  * @author based on {@link LoopStartIntervalNodeModel} by Thorsten Meinl, University of Konstanz
  */
 final class LoopStartIntervalDynamicNodeModel extends NodeModel implements LoopStartNodeTerminator {
@@ -145,7 +145,7 @@ final class LoopStartIntervalDynamicNodeModel extends NodeModel implements LoopS
         final var newValue = BigDecimal.valueOf(m_value).add(BigDecimal.valueOf(m_settings.step())).doubleValue();
         CheckUtils.checkState(newValue != m_value, // NOSONAR: we only want to know if it was changed at all
             "Value did not change after adding step value! This is probably due to rounding errors."
-                + " Please change your “from”, “to” or “step” values (current value=%f, step=%f).",
+                + " Please change your 'from', 'to' or 'step' values (current value=%f, step=%f).",
             newValue, m_settings.step());
         // let's see if we have access to the tail: if we do, it's not the
         // first time we are doing this...
@@ -251,7 +251,7 @@ final class LoopStartIntervalDynamicNodeModel extends NodeModel implements LoopS
 
         @Override
         public String getToolTip() {
-            return "The variables are of type “" + m_text + "”";
+            return "The variables are of type â€œ" + m_text + "â€�";
         }
 
         @Override
