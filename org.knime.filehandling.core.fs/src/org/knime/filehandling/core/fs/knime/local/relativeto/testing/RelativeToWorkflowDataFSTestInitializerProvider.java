@@ -43,37 +43,36 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.fs.knime.relativeto.testing;
+package org.knime.filehandling.core.fs.knime.local.relativeto.testing;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Map;
 
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemConstants;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowDataFSConnection;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToMountpointFSConnection;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * {@link FSTestInitializerProvider} for testing the Relative-To mountpoint file system. It will create a
+ * {@link FSTestInitializerProvider} for testing the workflow data area. It will create a
  * {@link FSCategory#CONNECTED} file system with a randomized working directory.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class LocalRelativeToMountpointFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
+public final class RelativeToWorkflowDataFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
     /**
      * Constructor.
-     * @param fsType The {@link FSType} to use.
      */
-    public LocalRelativeToMountpointFSTestInitializerProvider(final FSType fsType) {
-        super(fsType, RelativeToFileSystemConstants.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC);
+    public RelativeToWorkflowDataFSTestInitializerProvider() {
+        super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA,
+            RelativeToFileSystemConstants.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC);
     }
 
     @SuppressWarnings("resource")
@@ -83,14 +82,7 @@ public final class LocalRelativeToMountpointFSTestInitializerProvider extends Lo
 
         final String workingDir = generateRandomizedWorkingDir(LocalWorkflowAwareFileSystem.PATH_SEPARATOR,
             LocalWorkflowAwareFileSystem.PATH_SEPARATOR);
-
-        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.MOUNTPOINT);
-
-        final LocalRelativeToMountpointFSConnection fsConnection =
-            new LocalRelativeToMountpointFSConnection(config); // NOSONAR must not be closed here
-
-        Files.createDirectories(fsConnection.getFileSystem().getWorkingDirectory());
-
-        return new LocalRelativeToFSTestInitializer(fsConnection);
+        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.WORKFLOW_DATA);
+        return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(config));
     }
 }

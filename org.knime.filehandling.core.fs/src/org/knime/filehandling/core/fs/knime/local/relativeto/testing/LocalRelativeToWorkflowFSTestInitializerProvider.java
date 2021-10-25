@@ -42,70 +42,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jun 4, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.testing;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToFileSystem;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToMountpointFSConnection;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowFSConnection;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemConstants;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowFSConnection;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * Tests the {@link LocalRelativeToFileSystem}.
+ * {@link FSTestInitializerProvider} for testing the Relative-To workflow file system. It will create a
+ * {@link FSCategory#CONNECTED} file system
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class LocalRelativeToFileSystemTestBase {
+public final class LocalRelativeToWorkflowFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
-    @Rule
-    public final TemporaryFolder m_tempFolder = new TemporaryFolder();
-
-    File m_mountpointRoot;
-
-    WorkflowManager m_workflowManager;
-
-    @Before
-    public void beforeTestCase() throws IOException {
-        m_mountpointRoot = m_tempFolder.newFolder("mountpoint-root");
-        final Path currentWorkflow = WorkflowTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "current-workflow");
-        WorkflowTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "other-workflow");
-        m_workflowManager = WorkflowTestUtil.getWorkflowManager(m_mountpointRoot, currentWorkflow, false);
-        NodeContext.pushContext(m_workflowManager);
-    }
-
-    @After
-    public void afterTestCase() {
-        try {
-            WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
-        } finally {
-            NodeContext.removeLastContext();
-        }
+    /**
+     * Constructor.
+     * @param fsType The {@link FSType} to use.
+     */
+    public LocalRelativeToWorkflowFSTestInitializerProvider(final FSType fsType) {
+        super(fsType, RelativeToFileSystemConstants.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC);
     }
 
     @SuppressWarnings("resource")
-    static LocalRelativeToFileSystem getMountpointRelativeFS() throws IOException {
-        return new LocalRelativeToMountpointFSConnection(new RelativeToFSConnectionConfig(RelativeTo.MOUNTPOINT)) //
-                .getFileSystem(); // NOSONAR must not be closed here
-    }
+    @Override
+    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
+        throws IOException {
 
-    @SuppressWarnings("resource")
-    static LocalRelativeToFileSystem getWorkflowRelativeFS() throws IOException {
-        return new LocalRelativeToWorkflowFSConnection(new RelativeToFSConnectionConfig(RelativeTo.WORKFLOW)) //
-                .getFileSystem(); // NOSONAR must not be closed here
+        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig("", RelativeTo.WORKFLOW);
+        final LocalRelativeToWorkflowFSConnection fsConnection = new LocalRelativeToWorkflowFSConnection(config);
+
+        return new LocalRelativeToFSTestInitializer(fsConnection) {
+            @Override
+            public Path getLocalTestCaseScratchDir() {
+                // we need to move the scratch dir out of the workflow because the workflow
+                // directory cannot be accessed
+                return getLocalWorkingDirectory().getParent().resolve(Integer.toString(getTestCaseId()));
+            }
+        };
     }
 }

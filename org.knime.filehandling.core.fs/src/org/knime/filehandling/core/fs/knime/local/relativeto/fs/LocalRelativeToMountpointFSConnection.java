@@ -46,7 +46,7 @@
  * History
  *   Mar 12, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import java.nio.file.Path;
 
@@ -57,8 +57,8 @@ import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
+import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemBrowser;
+import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**

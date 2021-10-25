@@ -46,27 +46,34 @@
  * History
  *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
-import org.knime.filehandling.core.fs.knime.relativeto.testing.RelativeToWorkflowDataFSTestInitializerProvider;
+import org.knime.filehandling.core.fs.knime.local.relativeto.testing.LocalRelativeToMountpointFSTestInitializerProvider;
 
 /**
  * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalRelativeToWorkflowDataFSDescriptorProvider extends RelativeToFSDescriptorProvider {
+public class LocalRelativeToMountpointFSDescriptorProvider extends RelativeToFSDescriptorProvider {
+
+    /**
+     * {@link FSType} for the local relative-to mountpoint file system.
+     */
+    public static final FSType FS_TYPE =
+        FSTypeRegistry.getOrCreateFSType("knime-local-relative-mountpoint", "Relative to Mountpoint (Local)");
 
     /**
      * Constructor.
      */
-    public LocalRelativeToWorkflowDataFSDescriptorProvider() {
-        super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA, //
+    public LocalRelativeToMountpointFSDescriptorProvider() {
+        super(FS_TYPE, //
             new BaseFSDescriptor.Builder() //
-                .withConnectionFactory(LocalRelativeToWorkflowDataFSConnection::new)
-                .withTestInitializerProvider(new RelativeToWorkflowDataFSTestInitializerProvider()));
+                .withConnectionFactory(LocalRelativeToMountpointFSConnection::new)
+                .withTestInitializerProvider(new LocalRelativeToMountpointFSTestInitializerProvider(FS_TYPE)));
     }
 }

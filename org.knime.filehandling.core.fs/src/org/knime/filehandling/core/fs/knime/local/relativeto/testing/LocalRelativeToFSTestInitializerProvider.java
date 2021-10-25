@@ -46,7 +46,7 @@
  * History
  *   Mar 12, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.testing;
+package org.knime.filehandling.core.fs.knime.local.relativeto.testing;
 
 import java.io.IOException;
 import java.nio.file.Files;

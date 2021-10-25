@@ -46,31 +46,44 @@
  * History
  *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.relativeto;
 
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
-import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
-import org.knime.filehandling.core.fs.knime.relativeto.testing.LocalRelativeToMountpointFSTestInitializerProvider;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToMountpointFSDescriptorProvider;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
- * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
+ * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_MOUNTPOINT}, that provides either a local or
+ * server-side Relative-to {@link FSDescriptor}, depending on the context of the calling thread.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalRelativeToMountpointFSDescriptorProvider extends RelativeToFSDescriptorProvider {
+public class RelativeToMountpointFSDescriptorProvider implements FSDescriptorProvider {
 
-    static final FSType FS_TYPE =
-        FSTypeRegistry.getOrCreateFSType("knime-local-relative-mountpoint", "Relative to Mountpoint (Local)");
+    private static final FSType LOCAL_FS_TYPE = LocalRelativeToMountpointFSDescriptorProvider.FS_TYPE;
 
-    /**
-     * Constructor.
-     */
-    public LocalRelativeToMountpointFSDescriptorProvider() {
-        super(FS_TYPE, //
-            new BaseFSDescriptor.Builder() //
-                .withConnectionFactory(LocalRelativeToMountpointFSConnection::new)
-                .withTestInitializerProvider(new LocalRelativeToMountpointFSTestInitializerProvider(FS_TYPE)));
+    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-mountpoint";
+
+    @Override
+    public FSType getFSType() {
+        return FSType.RELATIVE_TO_MOUNTPOINT;
+    }
+
+    @Override
+    public FSDescriptor getFSDescriptor() {
+        FSType fsType = LOCAL_FS_TYPE;
+
+        if (WorkflowContextUtil.isServerContext()) {
+            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
+                .orElseThrow(
+                    () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
+        }
+
+        return FSDescriptorRegistry.getFSDescriptor(fsType) //
+            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
     }
 }

@@ -43,7 +43,7 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -62,6 +62,7 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToFileSystem;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwarePath;
 import org.knime.filehandling.core.testing.WorkflowTestUtil;
 

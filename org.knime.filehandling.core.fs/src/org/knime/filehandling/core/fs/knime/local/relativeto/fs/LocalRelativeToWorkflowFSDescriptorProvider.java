@@ -44,55 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.08.2021 (jl): created
+ *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.export;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.fs.knime.local.relativeto.testing.LocalRelativeToWorkflowFSTestInitializerProvider;
 
 /**
- * Contains constants related to the “relative to” file systems
+ * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noextend non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class RelativeToFileSystemConstants {
-
-    private RelativeToFileSystemConstants() {}
+public class LocalRelativeToWorkflowFSDescriptorProvider extends RelativeToFSDescriptorProvider {
 
     /**
-     * {@link FSLocationSpec} for the convenience relative-to workflow file system.
+     * {@link FSType} for the local relative-to workflow file system.
      */
-    public static final FSLocationSpec CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW.getSettingsValue());
+    public static final FSType FS_TYPE =
+        FSTypeRegistry.getOrCreateFSType("knime-local-relative-workflow", "Relative to Workflow (Local)");
+
     /**
-     * {@link FSLocationSpec} for the convenience relative-to workflow data area file system.
+     * Constructor.
      */
-    public static final FSLocationSpec CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue());
-    /**
-     * {@link FSLocationSpec} for the convenience relative-to mountpoint file system.
-     */
-    public static final FSLocationSpec CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.MOUNTPOINT.getSettingsValue());
-    /**
-     * {@link FSLocationSpec} for the connected relative-to workflow file system.
-     */
-    public static final FSLocationSpec CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW.getTypeId());
-    /**
-     * {@link FSLocationSpec} for the connected relative-to mountpoint file system.
-     */
-    public static final FSLocationSpec CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_MOUNTPOINT.getTypeId());
-    /**
-     * {@link FSLocationSpec} for the connected relative-to workflow data area file system.
-     */
-    public static final FSLocationSpec CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW_DATA_AREA.getTypeId());
+    public LocalRelativeToWorkflowFSDescriptorProvider() {
+        super(FS_TYPE, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(LocalRelativeToWorkflowFSConnection::new)
+                .withTestInitializerProvider(new LocalRelativeToWorkflowFSTestInitializerProvider(FS_TYPE)));
+    }
 }

@@ -46,7 +46,7 @@
  * History
  *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import java.io.IOException;
 import java.nio.file.Path;

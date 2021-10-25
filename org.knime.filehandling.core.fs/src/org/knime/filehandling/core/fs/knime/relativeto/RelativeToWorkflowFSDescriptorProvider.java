@@ -44,47 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 1, 2020 (bjoern): created
+ *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.testing;
+package org.knime.filehandling.core.fs.knime.relativeto;
 
-import java.io.IOException;
-import java.nio.file.Files;
-
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowDataFSConnection;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.connections.meta.FSDescriptor;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowFSDescriptorProvider;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
- * It will create a {@link FSCategory#CONNECTED} file system with a randomized working directory. *
+ * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_WORKFLOW}, that provides either a local or
+ * server-side Relative-to  {@link FSDescriptor}, depending on the context of the calling thread.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class RelativeToWorkflowDataFSTestInitializer extends LocalRelativeToFSTestInitializer {
+public class RelativeToWorkflowFSDescriptorProvider implements FSDescriptorProvider {
 
-    /**
-     * Creates a new instance.
-     *
-     * @param fsConnection
-     */
-    RelativeToWorkflowDataFSTestInitializer(final LocalRelativeToWorkflowDataFSConnection fsConnection) {
-        super(fsConnection);
+    private static final FSType LOCAL_FS_TYPE = LocalRelativeToWorkflowFSDescriptorProvider.FS_TYPE;
+
+    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-workflow";
+
+    @Override
+    public FSType getFSType() {
+        return FSType.RELATIVE_TO_WORKFLOW;
     }
 
-    /**
-     * We override this method because we actually don't have to load any workflow.
-     */
     @Override
-    protected void beforeTestCaseInternal() throws IOException {
-        Files.createDirectories(getLocalTestCaseScratchDir());
-    }
+    public FSDescriptor getFSDescriptor() {
+        FSType fsType = LOCAL_FS_TYPE;
 
-    /**
-     * We override this method because we actually don't have to unload any workflow.
-     */
-    @SuppressWarnings("resource")
-    @Override
-    protected void afterTestCaseInternal() throws IOException {
-        WorkflowTestUtil.clearDirectoryContents(getFileSystem().getLocalRoot());
+        if (WorkflowContextUtil.isServerContext()) {
+            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
+                .orElseThrow(
+                    () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
+        }
+
+        return FSDescriptorRegistry.getFSDescriptor(fsType) //
+            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
     }
 }

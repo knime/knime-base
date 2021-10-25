@@ -44,23 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   Jul 1, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.testing;
 
-import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
-import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
-import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import java.io.IOException;
+import java.nio.file.Files;
 
-class RelativeToFSDescriptorProvider extends BaseFSDescriptorProvider {
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowDataFSConnection;
+import org.knime.filehandling.core.testing.WorkflowTestUtil;
 
-    protected RelativeToFSDescriptorProvider(final FSType fsType, final BaseFSDescriptor.Builder builder) {
-        super(fsType, //
-            builder //
-                .withIsWorkflowAware(true) //
-                .withURIExporterFactory(URIExporterIDs.DEFAULT, LocalRelativeToLegacyKNIMEUrlExporterFactory.getInstance()) //
-                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LocalRelativeToLegacyKNIMEUrlExporterFactory.getInstance()) //
-                .build());
+/**
+ * It will create a {@link FSCategory#CONNECTED} file system with a randomized working directory. *
+ *
+ * @author Bjoern Lohrmann, KNIME GmbH
+ */
+final class RelativeToWorkflowDataFSTestInitializer extends LocalRelativeToFSTestInitializer {
+
+    /**
+     * Creates a new instance.
+     *
+     * @param fsConnection
+     */
+    RelativeToWorkflowDataFSTestInitializer(final LocalRelativeToWorkflowDataFSConnection fsConnection) {
+        super(fsConnection);
+    }
+
+    /**
+     * We override this method because we actually don't have to load any workflow.
+     */
+    @Override
+    protected void beforeTestCaseInternal() throws IOException {
+        Files.createDirectories(getLocalTestCaseScratchDir());
+    }
+
+    /**
+     * We override this method because we actually don't have to unload any workflow.
+     */
+    @SuppressWarnings("resource")
+    @Override
+    protected void afterTestCaseInternal() throws IOException {
+        WorkflowTestUtil.clearDirectoryContents(getFileSystem().getLocalRoot());
     }
 }

@@ -44,31 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 25, 2021 (bjoern): created
+ *   Jun 4, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystemProvider;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToFileSystem;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToMountpointFSConnection;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowFSConnection;
+import org.knime.filehandling.core.testing.WorkflowTestUtil;
 
 /**
+ * Tests the {@link LocalRelativeToFileSystem}.
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalRelativeToFileSystemProvider extends LocalWorkflowAwareFileSystemProvider<LocalRelativeToFileSystem> {
+public class LocalRelativeToFileSystemTestBase {
+
+    @Rule
+    public final TemporaryFolder m_tempFolder = new TemporaryFolder();
+
+    File m_mountpointRoot;
+
+    WorkflowManager m_workflowManager;
+
+    @Before
+    public void beforeTestCase() throws IOException {
+        m_mountpointRoot = m_tempFolder.newFolder("mountpoint-root");
+        final Path currentWorkflow = WorkflowTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "current-workflow");
+        WorkflowTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "other-workflow");
+        m_workflowManager = WorkflowTestUtil.getWorkflowManager(m_mountpointRoot, currentWorkflow, false);
+        NodeContext.pushContext(m_workflowManager);
+    }
+
+    @After
+    public void afterTestCase() {
+        try {
+            WorkflowManager.ROOT.removeProject(m_workflowManager.getID());
+        } finally {
+            NodeContext.removeLastContext();
+        }
+    }
 
     @SuppressWarnings("resource")
-    @Override
-    public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
-        throws IOException {
+    static LocalRelativeToFileSystem getMountpointRelativeFS() throws IOException {
+        return new LocalRelativeToMountpointFSConnection(new RelativeToFSConnectionConfig(RelativeTo.MOUNTPOINT)) //
+                .getFileSystem(); // NOSONAR must not be closed here
+    }
 
-        if (getFileSystemInternal().isWorkflowDataFileSystem()) {
-            throw new UnsupportedOperationException("Cannot deploy workflow to the workflow data area.");
-        }
-
-        super.deployWorkflow(source, dest, overwrite, attemptOpen);
+    @SuppressWarnings("resource")
+    static LocalRelativeToFileSystem getWorkflowRelativeFS() throws IOException {
+        return new LocalRelativeToWorkflowFSConnection(new RelativeToFSConnectionConfig(RelativeTo.WORKFLOW)) //
+                .getFileSystem(); // NOSONAR must not be closed here
     }
 }

@@ -44,12 +44,11 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 24, 2020 (bjoern): created
+ *   Mar 12, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.knime.core.node.util.FileSystemBrowser;
@@ -59,65 +58,71 @@ import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
+import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemBrowser;
+import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
- * {@link FSConnection} for the Relative-to workflow data area file system. It is possible to create a connected or
- * convenience file system, also the working directory is configurable. The location of the workflow data area in the
- * underyling local file system is determined using the KNIME {@link WorkflowContext}.
+ * {@link FSConnection} for the Relative-to workflow file system. It is possible to create a connected or convenience
+ * file system, but the working directory is fixed. The location of the current workflow in the underyling local file
+ * system is determined using the KNIME {@link WorkflowContext}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class LocalRelativeToWorkflowDataFSConnection implements FSConnection {
+public class LocalRelativeToWorkflowFSConnection implements FSConnection {
 
     private final LocalRelativeToFileSystem m_fileSystem;
 
     private final RelativeToFileSystemBrowser m_browser;
 
     /**
-     * Creates a new connection using the given config.
+     * Creates a new connection using the given config. Note that the working directory of the given config is ignored,
+     * as it is always the location of the current workflow within the mountpoint.
      *
      * @param config The config to use.
      * @throws IOException If the folder for the workflow data area could not be created.
      */
-    public LocalRelativeToWorkflowDataFSConnection(final RelativeToFSConnectionConfig config) throws IOException {
+    public LocalRelativeToWorkflowFSConnection(final RelativeToFSConnectionConfig config) throws IOException {
         if (CheckNodeContextUtil.isInComponentProject()) {
             throw new IllegalStateException(
-                "Nodes in a shared component don't have access to the workflow data area.");
+                "Nodes in a shared component don't have access to workflow-relative locations.");
         }
 
         final WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
-        final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
 
-        m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, //
-            config.isConnectedFileSystem(), //
-            config.getWorkingDirectory());
+        if (WorkflowContextUtil.isServerContext(workflowContext)) {
+            throw new UnsupportedOperationException(
+                "Unsupported temporary copy of workflow detected. LocalRelativeTo does not support server execution.");
+        }
 
-        final FSPath browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
+        final Path localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
+        final Path localWorkflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
+        m_fileSystem = createWorkflowRelativeFs(localMountpointRoot, localWorkflowLocation, config.isConnectedFileSystem());
+
+        // in the workflow-relative file system the working "dir" is the workflow, but it is not a directory,
+        // so we need to take the parent
+        final FSPath browsingHomeAndDefault = (FSPath)m_fileSystem.getWorkingDirectory().getParent();
         m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
     }
 
-    private static LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
-        final boolean isConnected, final String workingDir) throws IOException {
+    private static LocalRelativeToFileSystem createWorkflowRelativeFs(final Path localMountpointRoot,
+        final Path workflowLocation, final boolean isConnected) {
 
-        final Path workflowDataDir = workflowLocation.resolve("data");
-
-        Files.createDirectories(workflowDataDir);
+        final String workingDir =
+            LocalRelativeToFileSystem.localToRelativeToPathSeparator(localMountpointRoot.relativize(workflowLocation));
 
         final FSLocationSpec fsLocationSpec;
         if (isConnected) {
-            fsLocationSpec = RelativeToFileSystemConstants.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+            fsLocationSpec = RelativeToFileSystemConstants.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
         } else {
-            fsLocationSpec = RelativeToFileSystemConstants.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+            fsLocationSpec = RelativeToFileSystemConstants.CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
         }
 
-        return new LocalRelativeToFileSystem(workflowDataDir, //
-            RelativeTo.WORKFLOW_DATA, //
+        return new LocalRelativeToFileSystem(localMountpointRoot, //
+            RelativeTo.WORKFLOW, //
             workingDir, //
             fsLocationSpec);
     }

@@ -44,45 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Oct 25, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.export;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
-import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystemProvider;
 
 /**
- * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative-to file system.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author bjoern
  */
-public final class RelativeToFileSystemBrowser extends WorkflowAwareFileSystemBrowser {
+public class LocalRelativeToFileSystemProvider extends LocalWorkflowAwareFileSystemProvider<LocalRelativeToFileSystem> {
 
-    private final FSFileSystem<?> m_fileSystem;
-
-    /**
-     * Creates a new local KNIME relative-to file system browser. The "home directory" and the "default directory" of
-     * the browser are the working directory of the given file system.
-     *
-     * @param fileSystem the file system to use
-     * @param homeDir The "home directory" that the browser jumps to when the user presses the "home" button.
-     * @param defaultDir The default directory, where the user starts to browse.
-     */
-    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
-        final FSPath defaultDir) {
-        super(fileSystem, defaultDir, homeDir);
-        m_fileSystem = fileSystem;
-    }
-
-    /**
-     * Convert the selected file to a relative path in workflow relative mode.
-     */
+    @SuppressWarnings("resource")
     @Override
-    protected String postprocessSelectedFilePath(final String selectedFile) {
-        return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
+    public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
+        throws IOException {
+
+        if (getFileSystemInternal().isWorkflowDataFileSystem()) {
+            throw new UnsupportedOperationException("Cannot deploy workflow to the workflow data area.");
+        }
+
+        super.deployWorkflow(source, dest, overwrite, attemptOpen);
     }
 }

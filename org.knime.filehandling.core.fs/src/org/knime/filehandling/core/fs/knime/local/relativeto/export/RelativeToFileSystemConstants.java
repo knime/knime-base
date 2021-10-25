@@ -44,43 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 3, 2021 (bjoern): created
+ *   02.08.2021 (jl): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.export;
 
-import org.knime.filehandling.core.connections.meta.FSDescriptor;
-import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
-import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
- * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_WORKFLOW}, that provides either a local or
- * server-side Relative-to  {@link FSDescriptor}, depending on the context of the calling thread.
+ * Contains constants related to the “relative to” file systems
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
+ * @noextend non-public API
  */
-public class RelativeToWorkflowFSDescriptorProvider implements FSDescriptorProvider {
+public final class RelativeToFileSystemConstants {
 
-    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-workflow";
+    private RelativeToFileSystemConstants() {}
 
-    @Override
-    public FSType getFSType() {
-        return FSType.RELATIVE_TO_WORKFLOW;
-    }
-
-    @Override
-    public FSDescriptor getFSDescriptor() {
-        FSType fsType = LocalRelativeToWorkflowFSDescriptorProvider.FS_TYPE;
-
-        if (WorkflowContextUtil.isServerContext()) {
-            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
-                .orElseThrow(
-                    () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
-        }
-
-        return FSDescriptorRegistry.getFSDescriptor(fsType) //
-            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
-    }
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to workflow file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW.getSettingsValue());
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to workflow data area file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue());
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to mountpoint file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.MOUNTPOINT.getSettingsValue());
+    /**
+     * {@link FSLocationSpec} for the connected relative-to workflow file system.
+     */
+    public static final FSLocationSpec CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW.getTypeId());
+    /**
+     * {@link FSLocationSpec} for the connected relative-to mountpoint file system.
+     */
+    public static final FSLocationSpec CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_MOUNTPOINT.getTypeId());
+    /**
+     * {@link FSLocationSpec} for the connected relative-to workflow data area file system.
+     */
+    public static final FSLocationSpec CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW_DATA_AREA.getTypeId());
 }

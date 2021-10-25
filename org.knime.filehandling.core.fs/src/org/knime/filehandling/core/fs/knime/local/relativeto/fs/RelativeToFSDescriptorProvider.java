@@ -44,36 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
+ *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
-import org.knime.filehandling.core.connections.uriexport.base.LegacyKNIMEUriExporterHelper;
-import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 
-/**
- * {@link URIExporter} that provides legacy knime:// URLs.
- *
- * @author Bjoern Lohrmann, KNIME GmbH
- */
-final class LocalRelativeToLegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
+class RelativeToFSDescriptorProvider extends BaseFSDescriptorProvider {
 
-    private static final BaseURIExporterMetaInfo META_INFO =
-        new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
-
-    private static final LocalRelativeToLegacyKNIMEUrlExporterFactory INSTANCE = new LocalRelativeToLegacyKNIMEUrlExporterFactory();
-
-    private LocalRelativeToLegacyKNIMEUrlExporterFactory() {
-        super(META_INFO, p -> LegacyKNIMEUriExporterHelper
-            .createRelativeKNIMEProtocolURI(((LocalRelativeToFileSystem)p.getFileSystem()).getType(), p));
-    }
-
-    /**
-     * @return the singleton instance
-     */
-    static LocalRelativeToLegacyKNIMEUrlExporterFactory getInstance() {
-        return INSTANCE;
+    protected RelativeToFSDescriptorProvider(final FSType fsType, final BaseFSDescriptor.Builder builder) {
+        super(fsType, //
+            builder //
+                .withIsWorkflowAware(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, LocalRelativeToLegacyKNIMEUrlExporterFactory.getInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LocalRelativeToLegacyKNIMEUrlExporterFactory.getInstance()) //
+                .build());
     }
 }

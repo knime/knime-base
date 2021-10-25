@@ -1,4 +1,4 @@
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -13,19 +13,19 @@
             class="org.knime.filehandling.core.fs.url.URIFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToMountpointFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToMountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowDataFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowDataFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knime.relativeto.fs.RelativeToMountpointFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.relativeto.RelativeToMountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knime.relativeto.fs.RelativeToWorkflowFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.relativeto.RelativeToWorkflowFSDescriptorProvider">
       </FSDescriptorProvider>
    </extension>
    

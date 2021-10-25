@@ -46,7 +46,7 @@
  * History
  *   Jun 4, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import static org.junit.Assert.assertEquals;
 
@@ -54,6 +54,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import org.junit.Test;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToFileSystem;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToLegacyKNIMEUrlExporterFactory;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwarePath;
 
 /**

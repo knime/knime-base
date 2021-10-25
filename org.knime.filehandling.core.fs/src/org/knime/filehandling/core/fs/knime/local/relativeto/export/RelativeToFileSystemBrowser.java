@@ -42,54 +42,47 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.testing;
+package org.knime.filehandling.core.fs.knime.local.relativeto.export;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Map;
-
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowFSConnection;
-import org.knime.filehandling.core.testing.FSTestInitializerProvider;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
+import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
 
 /**
- * {@link FSTestInitializerProvider} for testing the Relative-To workflow file system. It will create a
- * {@link FSCategory#CONNECTED} file system
+ * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative-to file system.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Sascha Wolke, KNIME GmbH
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class LocalRelativeToWorkflowFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
+public final class RelativeToFileSystemBrowser extends WorkflowAwareFileSystemBrowser {
+
+    private final FSFileSystem<?> m_fileSystem;
 
     /**
-     * Constructor.
-     * @param fsType The {@link FSType} to use.
+     * Creates a new local KNIME relative-to file system browser. The "home directory" and the "default directory" of
+     * the browser are the working directory of the given file system.
+     *
+     * @param fileSystem the file system to use
+     * @param homeDir The "home directory" that the browser jumps to when the user presses the "home" button.
+     * @param defaultDir The default directory, where the user starts to browse.
      */
-    public LocalRelativeToWorkflowFSTestInitializerProvider(final FSType fsType) {
-        super(fsType, RelativeToFileSystemConstants.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC);
+    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
+        final FSPath defaultDir) {
+        super(fileSystem, defaultDir, homeDir);
+        m_fileSystem = fileSystem;
     }
 
-    @SuppressWarnings("resource")
+    /**
+     * Convert the selected file to a relative path in workflow relative mode.
+     */
     @Override
-    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
-        throws IOException {
-
-        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig("", RelativeTo.WORKFLOW);
-        final LocalRelativeToWorkflowFSConnection fsConnection = new LocalRelativeToWorkflowFSConnection(config);
-
-        return new LocalRelativeToFSTestInitializer(fsConnection) {
-            @Override
-            public Path getLocalTestCaseScratchDir() {
-                // we need to move the scratch dir out of the workflow because the workflow
-                // directory cannot be accessed
-                return getLocalWorkingDirectory().getParent().resolve(Integer.toString(getTestCaseId()));
-            }
-        };
+    protected String postprocessSelectedFilePath(final String selectedFile) {
+        return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
     }
 }

@@ -42,47 +42,31 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.testing;
+package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
-import java.io.IOException;
-import java.util.Map;
-
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowDataFSConnection;
-import org.knime.filehandling.core.testing.FSTestInitializerProvider;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.fs.knime.local.relativeto.testing.RelativeToWorkflowDataFSTestInitializerProvider;
 
 /**
- * {@link FSTestInitializerProvider} for testing the workflow data area. It will create a
- * {@link FSCategory#CONNECTED} file system with a randomized working directory.
+ * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
  */
-public final class RelativeToWorkflowDataFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
+public class LocalRelativeToWorkflowDataFSDescriptorProvider extends RelativeToFSDescriptorProvider {
 
     /**
      * Constructor.
      */
-    public RelativeToWorkflowDataFSTestInitializerProvider() {
-        super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA,
-            RelativeToFileSystemConstants.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC);
-    }
-
-    @SuppressWarnings("resource")
-    @Override
-    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
-        throws IOException {
-
-        final String workingDir = generateRandomizedWorkingDir(LocalWorkflowAwareFileSystem.PATH_SEPARATOR,
-            LocalWorkflowAwareFileSystem.PATH_SEPARATOR);
-        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.WORKFLOW_DATA);
-        return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(config));
+    public LocalRelativeToWorkflowDataFSDescriptorProvider() {
+        super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(LocalRelativeToWorkflowDataFSConnection::new)
+                .withTestInitializerProvider(new RelativeToWorkflowDataFSTestInitializerProvider()));
     }
 }

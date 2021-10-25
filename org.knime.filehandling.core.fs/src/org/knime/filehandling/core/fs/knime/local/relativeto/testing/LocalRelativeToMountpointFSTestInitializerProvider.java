@@ -42,45 +42,55 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jun 3, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.relativeto.testing;
 
-import org.knime.filehandling.core.connections.meta.FSDescriptor;
-import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
-import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Map;
+
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
+import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemConstants;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToMountpointFSConnection;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_MOUNTPOINT}, that provides either a local or
- * server-side Relative-to {@link FSDescriptor}, depending on the context of the calling thread.
+ * {@link FSTestInitializerProvider} for testing the Relative-To mountpoint file system. It will create a
+ * {@link FSCategory#CONNECTED} file system with a randomized working directory.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-public class RelativeToMountpointFSDescriptorProvider implements FSDescriptorProvider {
+public final class LocalRelativeToMountpointFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
 
-    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-mountpoint";
-
-    @Override
-    public FSType getFSType() {
-        return FSType.RELATIVE_TO_MOUNTPOINT;
+    /**
+     * Constructor.
+     * @param fsType The {@link FSType} to use.
+     */
+    public LocalRelativeToMountpointFSTestInitializerProvider(final FSType fsType) {
+        super(fsType, RelativeToFileSystemConstants.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC);
     }
 
+    @SuppressWarnings("resource")
     @Override
-    public FSDescriptor getFSDescriptor() {
-        FSType fsType = LocalRelativeToMountpointFSDescriptorProvider.FS_TYPE;
+    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
+        throws IOException {
 
-        if (WorkflowContextUtil.isServerContext()) {
-            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
-                .orElseThrow(
-                    () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
-        }
+        final String workingDir = generateRandomizedWorkingDir(LocalWorkflowAwareFileSystem.PATH_SEPARATOR,
+            LocalWorkflowAwareFileSystem.PATH_SEPARATOR);
 
-        return FSDescriptorRegistry.getFSDescriptor(fsType) //
-            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
+        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.MOUNTPOINT);
+
+        final LocalRelativeToMountpointFSConnection fsConnection =
+            new LocalRelativeToMountpointFSConnection(config); // NOSONAR must not be closed here
+
+        Files.createDirectories(fsConnection.getFileSystem().getWorkingDirectory());
+
+        return new LocalRelativeToFSTestInitializer(fsConnection);
     }
 }
