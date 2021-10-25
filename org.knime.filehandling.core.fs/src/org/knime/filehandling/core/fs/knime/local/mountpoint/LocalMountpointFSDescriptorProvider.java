@@ -46,21 +46,16 @@
  * History
  *   Jun 23, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.remote;
+package org.knime.filehandling.core.fs.knime.local.mountpoint;
 
-import java.io.IOException;
-
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
-import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
+import org.knime.filehandling.core.fs.knime.local.mountpoint.testing.LocalMountpointFSTestInitializerProvider;
+import org.knime.filehandling.core.fs.knime.mountpoint.LegacyKNIMEUrlExporterFactory;
 
 /**
  * Special {@link FSDescriptorProvider} for {@link FSType#MOUNTPOINT}, which usually delegates to a KNIME Explorer-based
@@ -70,44 +65,25 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
  * @author Bjoern Lohrmann, KNIME GmbH
  *
  */
-public final class MountpointFSDescriptorProvider extends BaseFSDescriptorProvider {
+public final class LocalMountpointFSDescriptorProvider extends BaseFSDescriptorProvider {
 
-    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-absolute-mountpoint";
+    /**
+     * {@link FSType} for the local mountpoint file system.
+     */
+    public static final FSType FS_TYPE =
+        FSTypeRegistry.getOrCreateFSType("knime-local-mountpoint", "Mountpoint (Local)");
 
     /**
      * Constructor.
      */
-    public MountpointFSDescriptorProvider() {
-        super(FSType.MOUNTPOINT, //
+    public LocalMountpointFSDescriptorProvider() {
+        super(FS_TYPE, //
             new BaseFSDescriptor.Builder() //
-                .withConnectionFactory(MountpointFSDescriptorProvider::getActualFSConnection) //
+                .withConnectionFactory(LocalMountpointFSConnection::new) //
                 .withIsWorkflowAware(true) //
                 .withURIExporterFactory(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getInstance()) //
                 .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getInstance()) //
+                .withTestInitializerProvider(new LocalMountpointFSTestInitializerProvider())
                 .build());
-    }
-
-
-    private static FSConnection getActualFSConnection(final MountpointFSConnectionConfig config) throws IOException {
-        final var workflowContext = WorkflowContextUtil.getWorkflowContext();
-
-        if (WorkflowContextUtil.isServerContext(workflowContext)) {
-            final String remoteMountId = workflowContext.getRemoteMountId() //
-                .orElseThrow(() -> new IllegalStateException("No remote mount ID"));
-
-            if (config.getMountID().equals(remoteMountId)) {
-                return getRestFSDescriptor().getConnectionFactory().createConnection(config);
-            }
-        }
-
-        return new KNIMERemoteFSConnection(config);
-    }
-
-    private static FSDescriptor getRestFSDescriptor() {
-        final FSType restFsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
-                .orElseThrow(() -> new IllegalStateException("REST-based Mountpoint FSType not registered"));
-
-        return FSDescriptorRegistry.getFSDescriptor(restFsType) //
-                .orElseThrow(() -> new IllegalStateException("REST-based Mountpoint file system not registered"));
     }
 }

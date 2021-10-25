@@ -44,36 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
+ *   Mar 12, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.remote;
+package org.knime.filehandling.core.fs.knime.local.mountpoint.testing;
 
-import org.knime.filehandling.core.connections.WorkflowAware;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
-import org.knime.filehandling.core.connections.uriexport.base.LegacyKNIMEUriExporterHelper;
-import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import java.io.IOException;
+import java.util.Map;
+
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.fs.knime.local.mountpoint.LocalMountpointFSConnection;
+import org.knime.filehandling.core.fs.knime.local.mountpoint.LocalMountpointFileSystem;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
+import org.knime.filehandling.core.testing.DefaultFSTestInitializerProvider;
+import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
- * {@link URIExporter} that provides mountpoint-absolute knime:// URLs.
+ * {@link FSTestInitializerProvider} for the {@link LocalMountpointFileSystem}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
+public final class LocalMountpointFSTestInitializerProvider extends DefaultFSTestInitializerProvider {
 
-    private static final BaseURIExporterMetaInfo META_INFO =
-        new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
+    @SuppressWarnings("resource")
+    @Override
+    public final LocalMountpointFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
 
-    private static final LegacyKNIMEUrlExporterFactory INSTANCE = new LegacyKNIMEUrlExporterFactory();
+        final String workingDir = generateRandomizedWorkingDir(LocalWorkflowAwareFileSystem.PATH_SEPARATOR,
+            LocalWorkflowAwareFileSystem.PATH_SEPARATOR);
 
-    private LegacyKNIMEUrlExporterFactory() {
-        super(META_INFO, p -> LegacyKNIMEUriExporterHelper.createAbsoluteKNIMEProtocolURI( //
-            ((WorkflowAware)p.getFileSystem().provider()).getMountID()
-                .orElseThrow(() -> new IllegalArgumentException("File system does not supply mountpoint name")), //
-            p));
+        final MountpointFSConnectionConfig config = new MountpointFSConnectionConfig(workingDir, "LOCAL");
+        return new LocalMountpointFSTestInitializer(new LocalMountpointFSConnection(config));
     }
 
-    public static LegacyKNIMEUrlExporterFactory getInstance() {
-        return INSTANCE;
+    @Override
+    public final FSType getFSType() {
+        return FSType.MOUNTPOINT;
+    }
+
+    @Override
+    public final FSLocationSpec createFSLocationSpec(final Map<String, String> configuration) {
+        return new MountpointFSConnectionConfig("/ignore", "LOCAL").createFSLocationSpec();
     }
 }

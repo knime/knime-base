@@ -7,7 +7,10 @@
             class="org.knime.filehandling.core.fs.local.fs.LocalFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knime.remote.MountpointFSDescriptorProvider">
+            class="org.knime.filehandling.core.fs.knime.mountpoint.MountpointFSDescriptorProvider">
+      </FSDescriptorProvider>
+      <FSDescriptorProvider
+            class="org.knime.filehandling.core.fs.knime.local.mountpoint.LocalMountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
             class="org.knime.filehandling.core.fs.url.URIFSDescriptorProvider">

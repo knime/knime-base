@@ -44,37 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 12, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
+ *   Oct 25, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.remote;
+package org.knime.filehandling.core.fs.knime.local.mountpoint;
 
-import javax.swing.filechooser.FileView;
+import java.util.Optional;
 
-import org.knime.filehandling.core.connections.base.WorkflowAwareFileView;
-import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystemProvider;
 
 /**
- * File system browser for the Explorer-based Mountpoint file system.
- *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
+ * File system provider of the KNIME Mountpoint file system implementation for local-disk based mountpoints.
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-class KNIMERemoteFileSystemBrowser extends NioFileSystemBrowser {
+public class LocalMountpointFileSystemProvider extends LocalWorkflowAwareFileSystemProvider<LocalMountpointFileSystem> {
 
-    /**
-     * Creates a file system browser for remote KNIME mount points.
-     *
-     * @param fileSystemView the file system view to wrap
-     */
-    KNIMERemoteFileSystemBrowser(final NioFileSystemView fileSystemView) {
-        super(fileSystemView);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
+    @SuppressWarnings("resource")
     @Override
-    protected FileView getFileView() {
-        return new WorkflowAwareFileView();
+    public Optional<String> getMountID() {
+        return Optional.of(getFileSystemInternal().getMountID());
     }
 }

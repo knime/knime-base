@@ -42,71 +42,57 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Nov 11, 2019 (Tobias Urhaug, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.fs.knime.remote;
+package org.knime.filehandling.core.fs.knime.mountpoint;
+
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.List;
+import java.net.URISyntaxException;
 
-import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.junit.Before;
+import org.junit.Test;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToFileSystemTestBase;
 
-/**
- * Iterates over all the files and folders of the path on a remote KNIME mount point.
- *
- * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
- */
-final class KNIMERemotePathIterator implements Iterator<KNIMERemotePath> {
+public class LegacyKNIMEUrlExporterFactoryTest extends LocalRelativeToFileSystemTestBase {
 
-    private final KNIMERemoteFileSystem m_fileSystem;
+    private FSConnection m_fsConnection;
 
-    private Iterator<KNIMERemotePath> m_iterator;
-
-    /**
-     * Creates an iterator over all the files and folder in the given paths location.
-     *
-     * @param path destination to iterate over
-     * @param filter
-     * @throws IOException
-     * @throws UncheckedIOException on I/O errors
-     */
-    KNIMERemotePathIterator(final KNIMERemotePath path, final Filter<? super Path> filter) throws IOException {
-        final KNIMERemotePath knimePath = path;
-        m_fileSystem = knimePath.getFileSystem();
-
-        final List<URI> uriList = MountPointFileSystemAccessService.instance().listFiles(path.toKNIMEProtocolURI());
-        m_iterator = uriList.stream()
-            .map(p -> new KNIMERemotePath(m_fileSystem, p))
-            .filter(p -> {
-                try {
-                    return filter.accept(p);
-                } catch (final IOException ex) {
-                    throw new UncheckedIOException(ex);
-                }})
-            .iterator();
+    @Before
+    public void setup() throws IllegalStateException, IOException {
+        m_fsConnection = FSDescriptorRegistry.getFSDescriptor(FSType.MOUNTPOINT)
+                .orElseThrow(() -> new IllegalStateException("Mountpoint file system is not registered"))
+                .getConnectionFactory() //
+                .createConnection(new MountpointFSConnectionConfig("LOCAL"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasNext() {
-        return m_iterator.hasNext();
+    @Test
+    public void get_url_when_hash_sign_in_path() throws URISyntaxException, MalformedURLException {
+        get_url_from_path("/somepathwith#hashsign");
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public KNIMERemotePath next() {
-        return m_iterator.next();
+    @Test
+    public void get_url_when_hash_signs_in_path() throws URISyntaxException, MalformedURLException {
+        get_url_from_path("/some#path#with#hash#signs");
+    }
+
+    private void get_url_from_path(final String path) throws URISyntaxException, MalformedURLException {
+        final FSPath fsPath = m_fsConnection.getFileSystem().getPath(path);
+
+        final URI uri = ((NoConfigURIExporterFactory) m_fsConnection.getURIExporterFactory(URIExporterIDs.DEFAULT)) //
+                .getExporter() //
+                .toUri(fsPath);
+
+        assertEquals(path, uri.getPath());
     }
 
 }

@@ -42,48 +42,41 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.remote;
+package org.knime.filehandling.core.fs.knime.mountpoint;
 
-import static org.junit.Assert.assertEquals;
+import org.knime.filehandling.core.connections.WorkflowAware;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.base.LegacyKNIMEUriExporterHelper;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
+/**
+ * {@link URIExporter} that generates mountpoint-absolute knime:// URLs.
+ *
+ * @author Bjoern Lohrmann, KNIME GmbH
+ */
+public final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
 
-import org.junit.Before;
-import org.junit.Test;
-import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
-import org.knime.filehandling.core.fs.knime.remote.KNIMERemoteFileSystem;
-import org.knime.filehandling.core.fs.knime.remote.KNIMERemoteFileSystemProvider;
-import org.knime.filehandling.core.fs.knime.remote.KNIMERemotePath;
+    private static final BaseURIExporterMetaInfo META_INFO =
+        new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
 
-public class KNIMERemotePathTest {
+    private static final LegacyKNIMEUrlExporterFactory INSTANCE = new LegacyKNIMEUrlExporterFactory();
 
-    private KNIMERemoteFileSystemProvider m_fsProvider;
-
-    private KNIMERemoteFileSystem m_fs;
-
-    @Before
-    public void setup() {
-        m_fsProvider = new KNIMERemoteFileSystemProvider();
-        m_fs = new KNIMERemoteFileSystem(new MountpointFSConnectionConfig("LOCAL"));
+    private LegacyKNIMEUrlExporterFactory() {
+        super(META_INFO, p -> LegacyKNIMEUriExporterHelper.createAbsoluteKNIMEProtocolURI( //
+            ((WorkflowAware)p.getFileSystem().provider()).getMountID()
+                .orElseThrow(() -> new IllegalArgumentException("File system does not supply mountpoint name")), //
+            p));
     }
 
-    @Test
-    public void get_url_when_hash_sign_in_path() throws URISyntaxException, MalformedURLException {
-        get_url_from_path("/somepathwith#hashsign");
+    /**
+     * @return the singleton instance
+     */
+    public static LegacyKNIMEUrlExporterFactory getInstance() {
+        return INSTANCE;
     }
-
-    @Test
-    public void get_url_when_hash_signs_in_path() throws URISyntaxException, MalformedURLException {
-        get_url_from_path("/some#path#with#hash#signs");
-    }
-
-    private void get_url_from_path(final String path) throws URISyntaxException, MalformedURLException {
-        final KNIMERemotePath knimePath = new KNIMERemotePath(m_fs, path);
-        final URI uri = knimePath.toKNIMEProtocolURI();
-        assertEquals(path, uri.getPath());
-    }
-
 }

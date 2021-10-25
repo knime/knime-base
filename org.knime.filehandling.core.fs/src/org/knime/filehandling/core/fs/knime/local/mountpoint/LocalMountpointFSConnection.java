@@ -44,49 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 30, 2020 (bjoern): created
+ *   Apr 6, 2020 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.remote;
+package org.knime.filehandling.core.fs.knime.local.mountpoint;
 
-import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.Set;
+import java.util.Optional;
 
-import org.knime.filehandling.core.connections.base.TempFileSeekableByteChannel;
+import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.core.util.pathresolve.ResolverUtil;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
+import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 
 /**
- * Seekable channel implementation for the KNIME remote file system.
+ * {@link FSConnection} for the Explorer-based Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class KNIMERemoteTempFileSeekableChannel extends TempFileSeekableByteChannel<KNIMERemotePath> {
+public final class LocalMountpointFSConnection implements FSConnection {
 
-    /**
-     * Constructs an {@link TempFileSeekableByteChannel} for an {@link URIPath}.
-     *
-     * @param file the file for the channel
-     * @param options the open options
-     * @throws IOException if an I/O Error occurred
-     */
-    KNIMERemoteTempFileSeekableChannel(final KNIMERemotePath file, final Set<? extends OpenOption> options) throws IOException {
-        super(file, options);
+    private final LocalMountpointFileSystem m_fileSystem;
+
+    private final WorkflowAwareFileSystemBrowser m_browser;
+
+    public LocalMountpointFSConnection(final MountpointFSConnectionConfig config) throws IOException {
+
+        final Path localRoot = determineLocalRootFolder(config.getMountID());
+
+        m_fileSystem = new LocalMountpointFileSystem(config, localRoot);
+        m_browser = new WorkflowAwareFileSystemBrowser(m_fileSystem, //
+            m_fileSystem.getWorkingDirectory(), //
+            m_fileSystem.getWorkingDirectory());
     }
 
-    @Override
-    public void copyFromRemote(final KNIMERemotePath remoteFile, final Path tempFile) throws IOException {
-        Files.copy(remoteFile, tempFile);
+    private static Path determineLocalRootFolder(final String mountID) throws IOException {
 
-    }
+        try {
+            final URI knimeUrl = new URI(String.format("knime://%s/", mountID));
+            final File localFile = ResolverUtil.resolveURItoLocalFile(knimeUrl);
 
-    @Override
-    public void copyToRemote(final KNIMERemotePath remoteFile, final Path tempFile) throws IOException {
-        try (final OutputStream out = new BufferedOutputStream(Files.newOutputStream(remoteFile))) {
-            Files.copy(tempFile, out);
+            return Optional.ofNullable(localFile) //
+                .orElseThrow(() -> new IllegalArgumentException(
+                    String.format("Mountpoint %s is unknown or a remote mountpoint", mountID))) //
+                .toPath();
+        } catch (IOException | URISyntaxException ex) {
+            throw new IOException("Could not determine local folder of mountpoint " + mountID, ex);
         }
     }
 
+    @Override
+    public FSFileSystem<?> getFileSystem() {
+        return m_fileSystem;
+    }
+
+    @Override
+    public FileSystemBrowser getFileSystemBrowser() {
+        return m_browser;
+    }
 }

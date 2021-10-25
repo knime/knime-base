@@ -89,9 +89,12 @@ public final class WorkflowAwareErrorHandling {
              * A (shared) meta node.
              */
             METANODE("Metanode", EnumSet.noneOf(Operation.class)),
-
             /**
-             * The KNIME Server can't distinguish between a component and a metanode, hence we need to inform the user
+             * A Hub Space.
+             */
+            SPACE("Space", EnumSet.of(Operation.CREATE_FOLDER, Operation.LIST_FOLDER_CONTENT)),
+            /**
+             * KNIME Server can't distinguish between a component and a metanode, hence we need to inform the user
              * that we might be dealing with either of the two.
              * TODO remove once the hub replaces the server and we can distinguish between components and metanodes.
              */
@@ -100,6 +103,7 @@ public final class WorkflowAwareErrorHandling {
              * A data item. Essentially anything that isn't one of the other entities.
              */
             DATA("Data item", EnumSet.of(Operation.NEW_INPUT_STREAM, Operation.NEW_OUTPUT_STREAM));
+
 
         private final EnumSet<Operation> m_supportedOperations;
 

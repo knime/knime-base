@@ -134,4 +134,20 @@ public final class WorkflowContextUtil {
         return isServerContext(getWorkflowContext());
     }
 
+    /**
+     * Checks whether the currently executing workflow is running on KNIME Server, and whether the given mountID belongs
+     * to its remote workflow repository.
+     *
+     * @param mountID The mount ID to check.
+     * @return true, if the currently executing workflow is running on KNIME Server and whether the given mountID
+     *         belongs to its remote workflow repository; false otherwise.
+     */
+    public static boolean isServerWorkflowConnectingToRemoteRepository(final String mountID) {
+        return WorkflowContextUtil.isServerContext() && //
+            WorkflowContextUtil.getWorkflowContext() //
+                .getRemoteMountId() //
+                .orElseThrow(
+                    () -> new IllegalStateException("Workflow context on Server does not contain remote mount ID")) //
+                .equals(mountID);
+    }
 }

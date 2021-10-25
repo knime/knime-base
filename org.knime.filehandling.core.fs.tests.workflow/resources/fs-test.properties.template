@@ -29,10 +29,12 @@
 #   hdfs
 #   hdfs-knox
 #   hdfs-local-nio-wrapper
+#   knime-local-mountpoint
 #   knime-local-relative-mountpoint
 #   knime-local-relative-workflow
 #   knime-relative-workflow-data
 #   knime-rest
+#   knime-rest-mountpoint
 #   knime-rest-relative-mountpoint
 #   knime-rest-relative-workflow
 #   microsoft-blobstorage

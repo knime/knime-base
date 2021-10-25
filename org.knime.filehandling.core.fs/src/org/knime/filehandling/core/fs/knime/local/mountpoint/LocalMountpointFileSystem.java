@@ -44,54 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2020 (bjoern): created
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.remote;
+package org.knime.filehandling.core.fs.knime.local.mountpoint;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.nio.file.Path;
 
-import org.knime.core.node.util.FileSystemBrowser;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
-import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwarePath;
 
 /**
- * {@link FSConnection} for the Explorer-based Mountpoint file system.
+ * KNIME Mountpoint file system implementation for local-disk based mountpoints, e.g. LOCAL, but also Team Space
+ * mountpoints.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class KNIMERemoteFSConnection implements FSConnection {
+public final class LocalMountpointFileSystem extends LocalWorkflowAwareFileSystem {
 
-    private final KNIMERemoteFileSystem m_fileSystem;
+    private final MountpointFSConnectionConfig m_config;
 
-    private final KNIMERemoteFileSystemBrowser m_browser;
+    LocalMountpointFileSystem(final MountpointFSConnectionConfig config, //
+        final Path localRoot) {
 
-    public KNIMERemoteFSConnection(final MountpointFSConnectionConfig config) {
-        m_fileSystem = new KNIMERemoteFileSystem(config);
+        super(new LocalMountpointFileSystemProvider(), //
+            localRoot, //
+            config.getWorkingDirectory(), //
+            config.createFSLocationSpec());
 
-        try {
-            boolean isReadable = MountPointFileSystemAccessService.instance().isReadable(m_fileSystem.getKNIMEProtocolURL());
-            if (isReadable) {
-                final KNIMERemoteFileSystemView fsView = new KNIMERemoteFileSystemView(m_fileSystem);
-                m_browser = new KNIMERemoteFileSystemBrowser(fsView);
-            } else {
-                m_browser = null;
-            }
-        } catch (IOException ex) {
-            // should never happen
-            throw new UncheckedIOException(ex);
-        }
+        m_config = config;
     }
 
     @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_fileSystem;
+    public LocalWorkflowAwarePath getPath(final String first, final String... more) {
+        return new LocalWorkflowAwarePath(this, first, more);
     }
 
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return m_browser;
+    /**
+     * @return the mount ID within KNIME, under which the mountpoint is registered.
+     */
+    public String getMountID() {
+        return m_config.getMountID();
     }
 }
