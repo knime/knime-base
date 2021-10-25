@@ -54,9 +54,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import org.junit.Test;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToFileSystem;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToLegacyKNIMEUrlExporterFactory;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.RelativeToPath;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwarePath;
 
 /**
  * Tests the {@link LocalRelativeToLegacyKNIMEUrlExporterFactory} which generates (relative) knime:// URLs.
@@ -65,7 +63,7 @@ import org.knime.filehandling.core.fs.knime.relativeto.fs.RelativeToPath;
  */
 public class LocalRelativeToLegacyKNIMEUrlExporterFactoryTest extends LocalRelativeToFileSystemTestBase {
 
-    private static String toKNIMEProtocolURI(final RelativeToPath path) throws URISyntaxException {
+    private static String toKNIMEProtocolURI(final LocalWorkflowAwarePath path) throws URISyntaxException {
         return LocalRelativeToLegacyKNIMEUrlExporterFactory.getInstance().getExporter().toUri(path).toString();
     }
 

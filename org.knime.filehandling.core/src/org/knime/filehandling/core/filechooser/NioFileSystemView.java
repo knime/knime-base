@@ -129,6 +129,7 @@ public class NioFileSystemView extends FileSystemView {
      * @param defaultDirectory
      * @param homeDirectory
      */
+    @SuppressWarnings("unchecked")
     public NioFileSystemView(final FSFileSystem<?> fileSystem, final FSPath defaultDirectory,
         final FSPath homeDirectory) {
         m_fileSystem = (FSFileSystem<FSPath>)fileSystem;

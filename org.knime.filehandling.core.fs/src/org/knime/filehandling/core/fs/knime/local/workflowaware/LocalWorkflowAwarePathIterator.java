@@ -43,46 +43,71 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.filehandling.core.fs.knime.relativeto.testing;
+package org.knime.filehandling.core.fs.knime.local.workflowaware;
 
 import java.io.IOException;
-import java.util.Map;
-
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToWorkflowDataFSConnection;
-import org.knime.filehandling.core.testing.FSTestInitializerProvider;
+import java.io.UncheckedIOException;
+import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 /**
- * {@link FSTestInitializerProvider} for testing the workflow data area. It will create a
- * {@link FSCategory#CONNECTED} file system with a randomized working directory.
+ * Iterates over the contents of a folder (workflow group) in a {@link LocalWorkflowAwareFileSystem}.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Sascha Wolke, KNIME GmbH
  */
-public final class RelativeToWorkflowDataFSTestInitializerProvider extends LocalRelativeToFSTestInitializerProvider {
+final class LocalWorkflowAwarePathIterator implements Iterator<LocalWorkflowAwarePath> {
+
+    private final LocalWorkflowAwarePath[] m_paths;
+
+    private int m_currIdx = 0;
 
     /**
-     * Constructor.
+     * Creates an iterator over all the files and folder in the given paths location.
+     *
+     * @param folder Folder (workflow group) whose contents should be listed.
+     * @param filter
+     * @throws IOException on I/O errors
      */
-    public RelativeToWorkflowDataFSTestInitializerProvider() {
-        super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA,
-            RelativeToFileSystemConstants.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC);
+    LocalWorkflowAwarePathIterator(final LocalWorkflowAwarePath folder,
+        final Filter<? super Path> filter) throws IOException {
+
+        try (@SuppressWarnings("resource")
+        final Stream<Path> stream = Files.list(folder.getFileSystem().toLocalPathWithAccessibilityCheck(folder))) {
+            m_paths =  stream//
+                .map(p -> (LocalWorkflowAwarePath)folder.resolve(p.getFileName().toString())) //
+                .filter(p -> {
+                    try {
+                        return filter.accept(p);
+                    } catch (final IOException ex) { // wrap exception
+                        throw new UncheckedIOException(ex);
+                    }
+                }).toArray(LocalWorkflowAwarePath[]::new);
+        } catch (final UncheckedIOException ex) { // unwrap exception
+            if (ex.getCause() != null) {
+                throw ex.getCause();
+            } else {
+                throw ex;
+            }
+        }
     }
 
-    @SuppressWarnings("resource")
     @Override
-    protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
-        throws IOException {
+    public boolean hasNext() {
+        return m_currIdx < m_paths.length;
+    }
 
-        final String workingDir = generateRandomizedWorkingDir(LocalWorkflowAwareFileSystem.PATH_SEPARATOR,
-            LocalWorkflowAwareFileSystem.PATH_SEPARATOR);
-        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.WORKFLOW_DATA);
-        return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(config));
+    @Override
+    public LocalWorkflowAwarePath next() {
+        if (m_currIdx >= m_paths.length) {
+            throw new NoSuchElementException();
+        }
+
+        final LocalWorkflowAwarePath next = m_paths[m_currIdx];
+        m_currIdx++;
+        return next;
     }
 }

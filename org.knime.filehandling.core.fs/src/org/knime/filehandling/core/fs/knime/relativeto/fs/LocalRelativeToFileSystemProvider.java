@@ -44,29 +44,21 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Oct 25, 2021 (bjoern): created
  */
 package org.knime.filehandling.core.fs.knime.relativeto.fs;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.Optional;
 
-import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.filehandling.core.connections.WorkflowAware;
-import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystemProvider;
 
 /**
- * Local KNIME relative to File System provider.
  *
- * @author Sascha Wolke, KNIME GmbH
+ * @author bjoern
  */
-final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemProvider<LocalRelativeToFileSystem>
-    implements WorkflowAware {
+public class LocalRelativeToFileSystemProvider extends LocalWorkflowAwareFileSystemProvider<LocalRelativeToFileSystem> {
 
     @SuppressWarnings("resource")
     @Override
@@ -77,62 +69,6 @@ final class LocalRelativeToFileSystemProvider extends BaseRelativeToFileSystemPr
             throw new UnsupportedOperationException("Cannot deploy workflow to the workflow data area.");
         }
 
-        final RelativeToPath absoluteDest = checkCastAndAbsolutizePath(dest);
-
-        final String currentMountpoint = getCurrentMountpoint();
-        try {
-            MountPointFileSystemAccessService.instance().deployWorkflow( //
-                source, //
-                new URI("knime", currentMountpoint, absoluteDest.toString(), null), //
-               overwrite, //
-               attemptOpen);
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
-        }
-    }
-
-    private static String getCurrentMountpoint() {
-        final WorkflowContext context = WorkflowContextUtil.getWorkflowContext();
-        return context.getMountpointURI() //
-                .orElseThrow(() -> new IllegalStateException("Cannot determine name of mountpoint to deploy workflow.")) //
-                .getAuthority();
-    }
-
-    @Override
-    public File toLocalWorkflowDir(final Path src) throws IOException {
-        final Path absoluteSrc = src.toAbsolutePath().normalize();
-        String currentMountpoint = getCurrentMountpoint();
-        URI uri;
-        try {
-            uri = new URI("knime", currentMountpoint, absoluteSrc.toString(), null);
-            return MountPointFileSystemAccessService.instance().toLocalWorkflowDir(uri);
-        } catch (URISyntaxException ex) {
-            throw new IOException(ex);
-        }
-    }
-
-    /**
-     * Converts a given local file system path into a path string using virtual relative-to path separators.
-     *
-     * Note: The local (windows) file system might use other separators than the relative-to file system.
-     *
-     * @param localPath path in local file system
-     * @return absolute path in virtual relative to file system
-     */
-    static String localToRelativeToPathSeperator(final Path localPath) {
-        final StringBuilder sb = new StringBuilder();
-        final String[] parts = new String[localPath.getNameCount()];
-        for (int i = 0; i < parts.length; i++) {
-            sb.append(BaseRelativeToFileSystem.PATH_SEPARATOR).append(localPath.getName(i).toString());
-        }
-
-        return sb.toString();
-    }
-
-    @Override
-    public Optional<String> getMountID() {
-        // currently this is unused code, but it will need to be made functional
-        // for AP-16355
-        return Optional.empty();
+        super.deployWorkflow(source, dest, overwrite, attemptOpen);
     }
 }

@@ -54,7 +54,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.BaseRelativeToFileSystem;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
 
 /**
  * Relative To Connector node settings.
@@ -120,7 +120,7 @@ final class WorkflowDataAreaConnectorNodeSettings {
      */
     void validate() throws InvalidSettingsException {
         final var workDir = getWorkingDirectory();
-        if (StringUtils.isBlank(workDir) || !workDir.startsWith(BaseRelativeToFileSystem.PATH_SEPARATOR)) {
+        if (StringUtils.isBlank(workDir) || !workDir.startsWith(LocalWorkflowAwareFileSystem.PATH_SEPARATOR)) {
             throw new InvalidSettingsException("Working directory must be set to an absolute path.");
         }
     }

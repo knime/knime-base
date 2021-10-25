@@ -42,72 +42,47 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.fs.knime.local.workflowaware;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.stream.Stream;
+
+import org.knime.filehandling.core.connections.WorkflowAwarePath;
+import org.knime.filehandling.core.connections.base.UnixStylePath;
 
 /**
- * Iterates over all the files and folders of the path on a relative-to file system.
+ * Path implementation for {@link LocalWorkflowAwareFileSystem}.
  *
  * @author Sascha Wolke, KNIME GmbH
+ * @noreference non-public API
+ * @noinstantiate non-public API
  */
-final class RelativeToPathIterator implements Iterator<RelativeToPath> {
-
-    private final RelativeToPath[] m_paths;
-
-    private int m_currIdx = 0;
+public final class LocalWorkflowAwarePath extends UnixStylePath implements WorkflowAwarePath {
 
     /**
-     * Creates an iterator over all the files and folder in the given paths location.
+     * Creates a path using a given file system and path parts.
      *
-     * @param knimePath relative-to path to iterate over
-     * @param realPath real file system version of the path to iterate over
-     * @param filter
-     * @throws IOException on I/O errors
+     * @param fileSystem the file system
+     * @param first first part of the path
+     * @param more subsequent parts of the path
      */
-    RelativeToPathIterator(final RelativeToPath knimePath, final Path realPath,
-        final Filter<? super Path> filter) throws IOException {
-
-        try (final Stream<Path> stream = Files.list(realPath)) {
-            m_paths =  stream//
-                .map(p -> (RelativeToPath)knimePath.resolve(p.getFileName().toString())) //
-                .filter(p -> {
-                    try {
-                        return filter.accept(p);
-                    } catch (final IOException ex) { // wrap exception
-                        throw new UncheckedIOException(ex);
-                    }
-                }).toArray(RelativeToPath[]::new);
-        } catch (final UncheckedIOException ex) { // unwrap exception
-            if (ex.getCause() != null) {
-                throw ex.getCause();
-            } else {
-                throw ex;
-            }
-        }
+    public LocalWorkflowAwarePath(final LocalWorkflowAwareFileSystem fileSystem, final String first,
+        final String... more) {
+        super(fileSystem, first, more);
     }
 
     @Override
-    public boolean hasNext() {
-        return m_currIdx < m_paths.length;
+    public LocalWorkflowAwareFileSystem getFileSystem() {
+        return (LocalWorkflowAwareFileSystem)super.getFileSystem();
     }
 
     @Override
-    public RelativeToPath next() {
-        if (m_currIdx >= m_paths.length) {
-            throw new NoSuchElementException();
-        }
-
-        final RelativeToPath next = m_paths[m_currIdx];
-        m_currIdx++;
-        return next;
+    @SuppressWarnings("resource")
+    public boolean isWorkflow() throws IOException {
+        final LocalWorkflowAwareFileSystem fs = getFileSystem();
+        return fs.isWorkflow(this);
     }
 }

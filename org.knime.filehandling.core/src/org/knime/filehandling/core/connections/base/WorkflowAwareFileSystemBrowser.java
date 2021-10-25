@@ -44,44 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Oct 21, 2021 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.fs;
+package org.knime.filehandling.core.connections.base;
 
-import java.io.IOException;
+import javax.swing.filechooser.FileView;
 
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
-import org.knime.filehandling.core.connections.base.UnixStylePath;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.WorkflowAware;
+import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
+import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
- * KNIME relative-to file system path.
+ * Base implementation for workflow-aware file system browsers, which will display KNIME workflows with a special icon,
+ * so as to distinguish them from regular files.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class RelativeToPath extends UnixStylePath implements WorkflowAwarePath {
+public class WorkflowAwareFileSystemBrowser extends NioFileSystemBrowser {
 
     /**
-     * Creates a path using a given file system and path parts.
+     * Creates a file system browser for workflow-aware file systems.
      *
-     * @param fileSystem the file system
-     * @param first first part of the path
-     * @param more subsequent parts of the path
+     * @param fileSystem
+     * @param defaultDirectory
+     * @param homeDirectory
      */
-    public RelativeToPath(final BaseRelativeToFileSystem fileSystem, final String first, final String... more) {
-        super(fileSystem, first, more);
+    public WorkflowAwareFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath defaultDirectory,
+        final FSPath homeDirectory) {
+        super(new NioFileSystemView(fileSystem, defaultDirectory, homeDirectory));
+        CheckUtils.checkArgument(fileSystem.provider() instanceof WorkflowAware,
+            "FileSystemProvider must be WorkflowAware");
     }
 
     @Override
-    public BaseRelativeToFileSystem getFileSystem() {
-        return (BaseRelativeToFileSystem)super.getFileSystem();
-    }
-
-    @Override
-    @SuppressWarnings("resource")
-    public boolean isWorkflow() throws IOException {
-        final BaseRelativeToFileSystem fs = getFileSystem();
-        return fs.isWorkflowDirectory(this);
+    protected FileView getFileView() {
+        return new WorkflowAwareFileView();
     }
 }

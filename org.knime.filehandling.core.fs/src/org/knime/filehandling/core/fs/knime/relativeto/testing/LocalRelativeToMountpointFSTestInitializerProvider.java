@@ -53,8 +53,8 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
 import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.BaseRelativeToFileSystem;
 import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToMountpointFSConnection;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
@@ -81,8 +81,8 @@ public final class LocalRelativeToMountpointFSTestInitializerProvider extends Lo
     protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
         throws IOException {
 
-        final String workingDir = generateRandomizedWorkingDir(BaseRelativeToFileSystem.PATH_SEPARATOR,
-            BaseRelativeToFileSystem.PATH_SEPARATOR);
+        final String workingDir = generateRandomizedWorkingDir(LocalWorkflowAwareFileSystem.PATH_SEPARATOR,
+            LocalWorkflowAwareFileSystem.PATH_SEPARATOR);
 
         final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.MOUNTPOINT);
 

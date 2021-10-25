@@ -48,14 +48,10 @@
  */
 package org.knime.filehandling.core.fs.knime.relativeto.export;
 
-import javax.swing.filechooser.FileView;
-
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.base.WorkflowAwareFileView;
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
-import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
  * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative-to file system.
@@ -64,19 +60,9 @@ import org.knime.filehandling.core.filechooser.NioFileSystemView;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
+public final class RelativeToFileSystemBrowser extends WorkflowAwareFileSystemBrowser {
 
     private final FSFileSystem<?> m_fileSystem;
-
-    /**
-     * Creates a new local KNIME relative-to file system browser. The "home directory" and the initial directory of the
-     * browser are the working directory of the given file system.
-     *
-     * @param fileSystem the file system to use
-     */
-    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem) {
-        this(fileSystem, fileSystem.getWorkingDirectory(), fileSystem.getWorkingDirectory());
-    }
 
     /**
      * Creates a new local KNIME relative-to file system browser. The "home directory" and the "default directory" of
@@ -88,13 +74,8 @@ public final class RelativeToFileSystemBrowser extends NioFileSystemBrowser {
      */
     public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
         final FSPath defaultDir) {
-        super(new NioFileSystemView(fileSystem, defaultDir, homeDir));
+        super(fileSystem, defaultDir, homeDir);
         m_fileSystem = fileSystem;
-    }
-
-    @Override
-    protected FileView getFileView() {
-        return new WorkflowAwareFileView();
     }
 
     /**

@@ -54,19 +54,19 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwarePath;
 import org.knime.filehandling.core.fs.knime.relativeto.fs.LocalRelativeToFileSystem;
-import org.knime.filehandling.core.fs.knime.relativeto.fs.RelativeToPath;
 import org.knime.filehandling.core.fs.local.fs.BasicLocalTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializer;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
 import org.knime.filehandling.core.testing.WorkflowAwareFSTestInitializer;
+import org.knime.filehandling.core.testing.WorkflowTestUtil;
 
 /**
  * {@link FSTestInitializer} for file systems based on {@link LocalRelativeToFileSystem}.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<RelativeToPath, LocalRelativeToFileSystem>
+class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<LocalWorkflowAwarePath, LocalRelativeToFileSystem>
     implements WorkflowAwareFSTestInitializer {
 
     private WorkflowManager m_workflowManager;
@@ -82,6 +82,7 @@ class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<Relativ
             ((LocalRelativeToFileSystem)fsConnection.getFileSystem()).getLocalWorkingDir());
     }
 
+    @SuppressWarnings("resource")
     @Override
     protected void beforeTestCaseInternal() throws IOException {
         // repopulate mountpoint with test fixture and load workflow
@@ -89,6 +90,7 @@ class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<Relativ
         Files.createDirectories(getLocalTestCaseScratchDir());
     }
 
+    @SuppressWarnings("resource")
     @Override
     protected void afterTestCaseInternal() throws IOException {
         try {
@@ -100,13 +102,14 @@ class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<Relativ
         WorkflowTestUtil.clearDirectoryContents(getFileSystem().getLocalRoot());
     }
 
+    @SuppressWarnings("resource")
     @Override
-    protected RelativeToPath toFSPath(final Path localPath) {
+    protected LocalWorkflowAwarePath toFSPath(final Path localPath) {
         final Path relLocalPath = getFileSystem().getLocalRoot().relativize(localPath.toAbsolutePath().normalize());
 
-        RelativeToPath toReturn = getFileSystem().getRoot();
+        LocalWorkflowAwarePath toReturn = getFileSystem().getRoot();
         for (Path localPathComp : relLocalPath) {
-            toReturn = (RelativeToPath)toReturn.resolve(localPathComp.toString());
+            toReturn = (LocalWorkflowAwarePath)toReturn.resolve(localPathComp.toString());
         }
 
         return toReturn;
@@ -118,7 +121,7 @@ class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<Relativ
     }
 
     @Override
-    public RelativeToPath deployWorkflow(final Path tmpWf, final String ... pathComponents) throws IOException {
+    public LocalWorkflowAwarePath deployWorkflow(final Path tmpWf, final String ... pathComponents) throws IOException {
         final Path workflowFilePath = tmpWf.resolve("workflow.knime");
         final String workflowFile = Files.readString(workflowFilePath);
         final String[] pathComponentsWithExtraComponent = Arrays.copyOf(pathComponents, pathComponents.length + 1);
@@ -132,6 +135,4 @@ class LocalRelativeToFSTestInitializer extends BasicLocalTestInitializer<Relativ
         }
         return makePath(pathComponents);
     }
-
-
 }

@@ -111,8 +111,8 @@ public class LocalRelativeToWorkflowFSConnection implements FSConnection {
     private static LocalRelativeToFileSystem createWorkflowRelativeFs(final Path localMountpointRoot,
         final Path workflowLocation, final boolean isConnected) {
 
-        final String workingDir = LocalRelativeToFileSystemProvider
-            .localToRelativeToPathSeperator(localMountpointRoot.relativize(workflowLocation));
+        final String workingDir =
+            LocalRelativeToFileSystem.localToRelativeToPathSeparator(localMountpointRoot.relativize(workflowLocation));
 
         final FSLocationSpec fsLocationSpec;
         if (isConnected) {

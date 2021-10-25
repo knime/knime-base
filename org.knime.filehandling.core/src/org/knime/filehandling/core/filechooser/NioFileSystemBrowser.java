@@ -88,25 +88,16 @@ public class NioFileSystemBrowser extends AbstractFileChooserBrowser {
         m_fileSystemView = fileSystemView;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isCompatible() {
         return NodeContext.getContext().getNodeContainer() != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected FileSystemView getFileSystemView() {
         return m_fileSystemView;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected FileView getFileView() {
         return new NioFileView();
@@ -126,9 +117,6 @@ public class NioFileSystemBrowser extends AbstractFileChooserBrowser {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected File addFileExtension(final File file, final String fileExtension) {
         if (file instanceof NioFile) {

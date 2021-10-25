@@ -67,7 +67,7 @@ final class LocalRelativeToLegacyKNIMEUrlExporterFactory extends NoConfigURIExpo
 
     private LocalRelativeToLegacyKNIMEUrlExporterFactory() {
         super(META_INFO, p -> LegacyKNIMEUriExporterHelper
-            .createRelativeKNIMEProtocolURI(((RelativeToPath)p).getFileSystem().getType(), p));
+            .createRelativeKNIMEProtocolURI(((LocalRelativeToFileSystem)p.getFileSystem()).getType(), p));
     }
 
     /**

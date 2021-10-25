@@ -49,34 +49,22 @@
 package org.knime.filehandling.core.fs.knime.relativeto.fs;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.workflow.MetaNodeTemplateInformation;
-import org.knime.core.node.workflow.WorkflowPersistor;
-import org.knime.core.util.workflowalizer.MetadataConfig;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Entity;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
+import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwarePath;
 
 /**
  * Local KNIME relative to File System implementation.
  *
  * @author Sascha Wolke, KNIME GmbH
  */
-public final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
+public final class LocalRelativeToFileSystem extends LocalWorkflowAwareFileSystem {
 
-    /**
-     * Where this file system is rooted in the local (platform default) file system.
-     */
-    private final Path m_localRoot;
+    private final RelativeTo m_type;
+
 
     /**
      * Default constructor.
@@ -87,120 +75,69 @@ public final class LocalRelativeToFileSystem extends BaseRelativeToFileSystem {
      * @param workingDir Path (in this file system) that specifies the working directory.
      * @throws IOException
      */
-    @SuppressWarnings("resource")
     LocalRelativeToFileSystem(final Path localRoot, //
         final RelativeTo type, //
         final String workingDir, //
         final FSLocationSpec fsLocationSpec) {
 
         super(new LocalRelativeToFileSystemProvider(), //
-            type, //
+            localRoot, //
             workingDir, //
             fsLocationSpec);
 
-        CheckUtils.checkArgument(localRoot.getFileSystem() == FileSystems.getDefault(),
-            "The local root of a LocalRelativeToFileSystem must be a path in the platform default file system");
-        m_localRoot = localRoot.toAbsolutePath().normalize();
+        m_type = type;
     }
+
 
     @Override
-    public boolean isWorkflowDirectory(final RelativeToPath path) throws IOException {
-        return isLocalWorkflowDirectory(toLocalPath(path));
-    }
-
-    @Override
-    public Path toRealPathWithAccessibilityCheck(final RelativeToPath path) throws IOException {
-        if (!isPathAccessible(path)) {
-            throw new NoSuchFileException(path.toString());
-        } else {
-            return toLocalPath(path);
-        }
-    }
-
-    @Override
-    protected Optional<Entity> getEntity(final RelativeToPath path) throws IOException {
-        // throws NoSuchFileException if it points into a workflow
-        final Path localPath = toRealPathWithAccessibilityCheck(path);
-        if (!Files.exists(localPath)) {
-            return Optional.empty();
-        } else if (!Files.isDirectory(localPath)) {
-            return Optional.of(Entity.DATA);
-        } else {
-            // directories can be either workflows, meta nodes, components or workflow groups
-            if (hasWorkflowFile(localPath)) {
-                if (hasTemplateFile(localPath)) {
-                    final Entity entity = getTemplateEntity(localPath);
-                    return Optional.of(entity);
-                } else {
-                    return Optional.of(Entity.WORKFLOW);
-                }
-            } else {
-                return Optional.of(Entity.WORKFLOW_GROUP);
-            }
-        }
-    }
-
-    private static Entity getTemplateEntity(final Path localPath) throws IOException {
-        if (isComponent(localPath.resolve(WorkflowPersistor.TEMPLATE_FILE))) {
-            return Entity.COMPONENT;
-        } else {
-            return Entity.METANODE;
-        }
-    }
-
-    private static boolean hasTemplateFile(final Path localPath) {
-        return Files.exists(localPath.resolve(WorkflowPersistor.TEMPLATE_FILE));
-    }
-
-    private static boolean hasWorkflowFile(final Path localPath) {
-        return Files.exists(localPath.resolve(WorkflowPersistor.WORKFLOW_FILE));
-    }
-
-    private static boolean isComponent(final Path pathToTemplateFile) throws IOException {
-        assert pathToTemplateFile.endsWith(WorkflowPersistor.TEMPLATE_FILE);
-        final MetadataConfig c = new MetadataConfig("ignored");
-        try (final InputStream s = Files.newInputStream(pathToTemplateFile)) {
-            c.load(s);
-            return c.getConfigBase("workflow_template_information").getString("templateType")
-                    .equals(MetaNodeTemplateInformation.TemplateType.SubNode.toString());
-        } catch (InvalidSettingsException ex) {
-            throw new IOException("Invalid template.knime file.", ex);
-        }
+    public LocalWorkflowAwarePath getPath(final String first, final String... more) {
+        return new LocalWorkflowAwarePath(this, first, more);
     }
 
     /**
-     * Maps a path from relative-to file system to a path in the local file system.
+     * @return {@code true} if this is a workflow relative and {@code false} otherwise.
+     */
+    boolean isWorkflowRelativeFileSystem() {
+        return m_type == RelativeTo.WORKFLOW;
+    }
+
+    /**
+     * @return {@code true} if this is a mountpoint relative and {@code false} otherwise.
+     */
+    boolean isMountpointRelativeFileSystem() {
+        return m_type == RelativeTo.MOUNTPOINT;
+    }
+
+    /**
+     * @return {@code true} if this is a workflow data area file system, and {@code false} otherwise.
+     */
+    boolean isWorkflowDataFileSystem() {
+        return m_type == RelativeTo.WORKFLOW_DATA;
+    }
+
+    /**
+     * @return the {@link RelativeTo} type of this file system.
+     */
+     RelativeTo getType() {
+        return m_type;
+    }
+
+    /**
+     * Converts a given local file system path into a path string using virtual relative-to path separators.
      *
-     * @param path a relative-to path inside relative-to file system
-     * @return an absolute path in the local file system (default FS provider) that corresponds to this path.
+     * Note: The local (windows) file system might use other separators than the relative-to file system.
+     *
+     * @param localPath path in local file system
+     * @return absolute path in virtual relative to file system
      */
-    public Path toLocalPath(final RelativeToPath path) {
-        final RelativeToPath absolutePath = (RelativeToPath)path.toAbsolutePath().normalize();
-        return Paths.get(m_localRoot.toString(), absolutePath.stringStream().toArray(String[]::new));
+    static String localToRelativeToPathSeparator(final Path localPath) {
+        final StringBuilder sb = new StringBuilder();
+        final String[] parts = new String[localPath.getNameCount()];
+        for (int i = 0; i < parts.length; i++) {
+            sb.append(LocalWorkflowAwareFileSystem.PATH_SEPARATOR).append(localPath.getName(i).toString());
+        }
+
+        return sb.toString();
     }
 
-    /**
-     * @return where this file system is rooted in the local (platform default) file system.
-     */
-    public Path getLocalRoot() {
-        return m_localRoot;
-    }
-
-    /**
-     * @return where this file system's working directory is at in the local (platform default) file system.
-     */
-    public Path getLocalWorkingDir() {
-        return toLocalPath(getWorkingDirectory()).toAbsolutePath().normalize();
-    }
-
-    @Override
-    protected boolean existsWithAccessibilityCheck(final RelativeToPath path) throws IOException {
-        final Path localPath = toLocalPath(path);
-        return isPathAccessible(path) && Files.exists(localPath);
-    }
-
-    @Override
-    protected void prepareClose() {
-        // Nothing to do
-    }
 }
