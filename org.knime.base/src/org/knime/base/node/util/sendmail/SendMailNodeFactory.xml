@@ -25,6 +25,9 @@
         <option name="BCC">
           Blind Carbon Copy: Additional recipients to receive discrete copies of the message (TO and CC recipients will not see who is BCC'd).
         </option>
+        <option name="REPLY TO">
+          Email address that the reply message is sent (different email address than the FROM)
+        </option>
         <option name="Subject">
          The Subject of your message.
         </option>

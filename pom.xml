@@ -22,6 +22,7 @@
 
 	<modules>
 		<module>org.knime.base</module>
+		<module>org.knime.base.tests/lib/fetch_jars</module>
 		<module>org.knime.base.tests</module>
 		<module>org.knime.deprecated</module>
 		<module>org.knime.features.base</module>

@@ -177,6 +177,8 @@ final class SendMailConfiguration {
 
     private String m_bcc;
 
+    private String m_replyTo;
+
     private String m_subject;
 
     private String m_text;
@@ -210,6 +212,7 @@ final class SendMailConfiguration {
             settings.addString("to", m_to);
             settings.addString("cc", m_cc);
             settings.addString("bcc", m_bcc);
+            settings.addString("replyTo", m_replyTo);
             settings.addString("subject", m_subject);
             settings.addString("text", m_text);
             String[] urlsAsArray = new String[m_attachedURLs.length];
@@ -275,6 +278,7 @@ final class SendMailConfiguration {
         m_to = settings.getString("to", System.getProperty("user.name"));
         m_cc = settings.getString("cc", "");
         m_bcc = settings.getString("bcc", "");
+        m_replyTo = settings.getString("replyTo", "");
         m_subject = settings.getString("subject", "Workflow finished");
         m_text = settings.getString("text", "");
         String[] urlAsArray = settings.getStringArray("attachedURLs", (String[])null);
@@ -347,6 +351,10 @@ final class SendMailConfiguration {
         m_to = settings.getString("to");
         m_cc = settings.getString("cc");
         m_bcc = settings.getString("bcc");
+        // only load if key is contained in settings (for backwards compatibility)
+        if (settings.containsKey("replyTo")) {
+            m_replyTo = settings.getString("replyTo");
+        }
         m_subject = settings.getString("subject");
         m_text = settings.getString("text");
         String[] urlAsArray = settings.getStringArray("attachedURLs", (String[])null);
@@ -528,6 +536,16 @@ final class SendMailConfiguration {
     /** @param bcc the bcc to set */
     void setBcc(final String bcc) {
         m_bcc = bcc;
+    }
+
+    /** @return the replyTo */
+    String getReplyTo() {
+        return m_replyTo;
+    }
+
+    /** @param replyTo the replyTo to set */
+    void setReplyTo(final String replyTo) {
+        m_replyTo = replyTo;
     }
 
     /** @return the subject */
@@ -743,6 +761,9 @@ final class SendMailConfiguration {
         }
         if (!StringUtils.isBlank(getBcc())) {
             message.addRecipients(Message.RecipientType.BCC, parseAndValidateRecipients(getBcc()));
+        }
+        if (!StringUtils.isBlank(getReplyTo())) {
+            message.setReplyTo(parseAndValidateRecipients(getReplyTo()));
         }
         if (message.getAllRecipients() == null) {
             throw new InvalidSettingsException("No recipients specified");

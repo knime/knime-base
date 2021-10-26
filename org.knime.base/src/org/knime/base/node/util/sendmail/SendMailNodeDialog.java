@@ -117,6 +117,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
     private final StringHistoryPanel m_toPanel;
     private final StringHistoryPanel m_ccPanel;
     private final StringHistoryPanel m_bccPanel;
+    private final StringHistoryPanel m_replyToPanel;
     private final StringHistoryPanel m_subjectPanel;
     private final JList m_flowVarList;
     private final JTextArea m_textArea;
@@ -142,6 +143,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
         m_toPanel = new StringHistoryPanel(SendMailConfiguration.getToStringHistoryID());
         m_ccPanel = new StringHistoryPanel(SendMailConfiguration.getToStringHistoryID());
         m_bccPanel = new StringHistoryPanel(SendMailConfiguration.getToStringHistoryID());
+        m_replyToPanel = new StringHistoryPanel(SendMailConfiguration.getToStringHistoryID());
         m_subjectPanel = new StringHistoryPanel(SendMailConfiguration.getSubjectStringHistoryID());
         final ItemListener itemListener = new ItemListener() {
             @Override
@@ -229,6 +231,14 @@ final class SendMailNodeDialog extends NodeDialogPane {
         gbc.gridx += 1;
         gbc.weightx = 1.0;
         p.add(m_bccPanel, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy += 1;
+        gbc.weightx = 0.0;
+        p.add(new JLabel("Reply To:"), gbc);
+        gbc.gridx += 1;
+        gbc.weightx = 1.0;
+        p.add(m_replyToPanel, gbc);
 
         gbc.gridx = 0;
         gbc.gridy += 1;
@@ -401,6 +411,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
         setValueInStringHistoryPanel(m_toPanel, config.getTo());
         setValueInStringHistoryPanel(m_ccPanel, config.getCc());
         setValueInStringHistoryPanel(m_bccPanel, config.getBcc());
+        setValueInStringHistoryPanel(m_replyToPanel, config.getReplyTo());
         setValueInStringHistoryPanel(m_subjectPanel, config.getSubject());
         DefaultListModel listModel = (DefaultListModel)m_flowVarList.getModel();
         listModel.removeAllElements();
@@ -445,6 +456,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
         config.setTo(m_toPanel.getSelectedString());
         config.setCc(m_ccPanel.getSelectedString());
         config.setBcc(m_bccPanel.getSelectedString());
+        config.setReplyTo(m_replyToPanel.getSelectedString());
         config.setSubject(m_subjectPanel.getSelectedString());
         config.setText(m_textArea.getText());
         config.setFormat(m_formatHTMLButton.isSelected() ? EMailFormat.Html : EMailFormat.Text);
@@ -469,6 +481,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
         m_toPanel.commitSelectedToHistory();
         m_ccPanel.commitSelectedToHistory();
         m_bccPanel.commitSelectedToHistory();
+        m_replyToPanel.commitSelectedToHistory();
         m_subjectPanel.commitSelectedToHistory();
     }
 
