@@ -84,7 +84,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.node.workflow.CredentialsProvider;
-import org.knime.core.node.workflow.ICredentials;
 import org.knime.core.util.FileUtil;
 
 /**
@@ -215,8 +214,8 @@ final class SendMailConfiguration {
             settings.addString("replyTo", m_replyTo);
             settings.addString("subject", m_subject);
             settings.addString("text", m_text);
-            String[] urlsAsArray = new String[m_attachedURLs.length];
-            for (int i = 0; i < urlsAsArray.length; i++) {
+            var urlsAsArray = new String[m_attachedURLs.length];
+            for (var i = 0; i < urlsAsArray.length; i++) {
                 urlsAsArray[i] = m_attachedURLs[i].toString();
             }
             settings.addStringArray("attachedURLs", urlsAsArray);
@@ -234,7 +233,7 @@ final class SendMailConfiguration {
     void loadConfigurationInDialog(final NodeSettingsRO settings) {
         int defaultPort;
         try {
-            String lastPortString = getLastUsedHistoryElement(getSmtpPortStringHistoryID());
+            var lastPortString = getLastUsedHistoryElement(getSmtpPortStringHistoryID());
             defaultPort = Integer.parseInt(lastPortString);
         } catch (Exception e) { // NOSONAR backwards compatible loading
             defaultPort = 25;
@@ -250,7 +249,7 @@ final class SendMailConfiguration {
         } else {
             m_smtpPassword = settings.getPassword("smtpPasswordWeaklyEncrypted", "0=d#Fs64h", "");
         }
-        String connectionSecurityS = settings.getString("connectionSecurity", ConnectionSecurity.NONE.name());
+        var connectionSecurityS = settings.getString("connectionSecurity", ConnectionSecurity.NONE.name());
         ConnectionSecurity connectionSecurity;
         try {
             connectionSecurity = ConnectionSecurity.valueOf(connectionSecurityS);
@@ -258,7 +257,7 @@ final class SendMailConfiguration {
             connectionSecurity = ConnectionSecurity.NONE;
         }
         m_connectionSecurity = connectionSecurity;
-        String formatS = settings.getString("emailFormat", EMailFormat.Text.name());
+        var formatS = settings.getString("emailFormat", EMailFormat.Text.name());
         EMailFormat format;
         try {
             format = EMailFormat.valueOf(formatS);
@@ -266,7 +265,7 @@ final class SendMailConfiguration {
             format = EMailFormat.Text;
         }
         m_format = format;
-        String priorityS = settings.getString("emailPriority", EMailPriority.Normal.name());
+        var priorityS = settings.getString("emailPriority", EMailPriority.Normal.name());
         EMailPriority priority;
         try {
             priority = EMailPriority.valueOf(priorityS);
@@ -285,8 +284,8 @@ final class SendMailConfiguration {
         if (urlAsArray == null) {
             urlAsArray = new String[0];
         }
-        List<URL> attachedURLsList = new ArrayList<URL>(urlAsArray.length);
-        for (int i = 0; i < urlAsArray.length; i++) {
+        List<URL> attachedURLsList = new ArrayList<>(urlAsArray.length);
+        for (var i = 0; i < urlAsArray.length; i++) {
             URL url;
             try {
                 url = new URL(urlAsArray[i]);
@@ -329,20 +328,20 @@ final class SendMailConfiguration {
             m_smtpPassword = "";
         }
         m_from = settings.getString("from");
-        String connectionSecurityS = settings.getString("connectionSecurity");
+        var connectionSecurityS = settings.getString("connectionSecurity");
         try {
             m_connectionSecurity = ConnectionSecurity.valueOf(connectionSecurityS);
         } catch (Exception e) {
             throw new InvalidSettingsException("Invalid connection security: " + connectionSecurityS, e);
         }
-        String formatS = settings.getString("emailFormat");
+        var formatS = settings.getString("emailFormat");
         try {
             m_format = EMailFormat.valueOf(formatS);
         } catch (Exception e) {
             throw new InvalidSettingsException("Invalid email format: " + formatS, e);
         }
         // added after preview was sent to customer
-        String priorityS = settings.getString("emailPriority", EMailPriority.Normal.name());
+        var priorityS = settings.getString("emailPriority", EMailPriority.Normal.name());
         try {
             m_priority = EMailPriority.valueOf(priorityS);
         } catch (Exception e) {
@@ -361,8 +360,19 @@ final class SendMailConfiguration {
         if (urlAsArray == null) {
             urlAsArray = new String[0];
         }
+        setUrls(urlAsArray);
+
+        m_smtpConnectionTimeout = settings.getInt("smtpConnectionTimeout", DEFAULT_SMTP_CONNECTION_TIMEOUT);
+        m_smtpReadTimeout = settings.getInt("smtpReadTimeout", DEFAULT_SMTP_READ_TIMEOUT);
+    }
+
+    /**
+     * @param urlAsArray
+     * @throws InvalidSettingsException
+     */
+    private void setUrls(final String[] urlAsArray) throws InvalidSettingsException {
         m_attachedURLs = new URL[urlAsArray.length];
-        for (int i = 0; i < urlAsArray.length; i++) {
+        for (var i = 0; i < urlAsArray.length; i++) {
             URL url;
             try {
                 url = new URL(urlAsArray[i]);
@@ -375,9 +385,6 @@ final class SendMailConfiguration {
             }
             m_attachedURLs[i] = url;
         }
-
-        m_smtpConnectionTimeout = settings.getInt("smtpConnectionTimeout", DEFAULT_SMTP_CONNECTION_TIMEOUT);
-        m_smtpReadTimeout = settings.getInt("smtpReadTimeout", DEFAULT_SMTP_READ_TIMEOUT);
     }
 
     /** @return the smtpHost */
@@ -605,9 +612,9 @@ final class SendMailConfiguration {
      * @throws AddressException If parsing fails.
      * @thorws InvalidSettingsException If domain not allowed.
      */
-    private InternetAddress[] parseAndValidateRecipients(final String addressString)
+    private static InternetAddress[] parseAndValidateRecipients(final String addressString)
         throws InvalidSettingsException, AddressException {
-        String validDomainListString = System.getProperty(PROPERTY_ALLOWED_RECIPIENT_DOMAINS);
+        var validDomainListString = System.getProperty(PROPERTY_ALLOWED_RECIPIENT_DOMAINS);
         InternetAddress[] addressArray = InternetAddress.parse(addressString, false);
         String[] validDomains =
             StringUtils.isEmpty(validDomainListString) ? new String[0] : validDomainListString.toLowerCase().split(",");
@@ -636,14 +643,14 @@ final class SendMailConfiguration {
     void send(final FlowVariableProvider flowVarResolver, final CredentialsProvider credProvider)
         throws MessagingException, IOException, InvalidSettingsException {
         final String flowVarCorrectedText = getVarCorrectedText(flowVarResolver);
-        Properties properties = new Properties(System.getProperties());
+        var properties = new Properties(System.getProperties());
         final String protocol = addPropertiesAndGetProtocol(properties);
 
         // Make sure TLS is used. Available protocols can be obtained via:
         // SSLContext.getDefault().getSupportedSSLParameters().getProtocols()
         addMailProtocol(properties, protocol);
 
-        final Session session = Session.getInstance(properties, null);
+        final var session = Session.getInstance(properties, null);
         final MimeMessage message = initMessage(session);
 
         // text or html message part
@@ -657,7 +664,7 @@ final class SendMailConfiguration {
         throws IOException, InvalidSettingsException, MessagingException {
         List<File> tempDirs = new ArrayList<>();
         Transport t = null;
-        ClassLoader oldContextClassLoader = Thread.currentThread().getContextClassLoader();
+        var oldContextClassLoader = Thread.currentThread().getContextClassLoader();
         // make sure to set class loader to javax.mail - this has caused problems in the past, see bug 5316
         Thread.currentThread().setContextClassLoader(Session.class.getClassLoader());
         try {
@@ -692,7 +699,7 @@ final class SendMailConfiguration {
     }
 
     private String addPropertiesAndGetProtocol(final Properties properties) {
-        String protocol = "smtp";
+        var protocol = "smtp";
         switch (getConnectionSecurity()) {
             case NONE:
                 break;
@@ -729,7 +736,7 @@ final class SendMailConfiguration {
     }
 
     private void addMailProtocol(final Properties properties, final String protocol) {
-        final String mail = "mail.";
+        final var mail = "mail.";
         properties.setProperty(mail + "smtp.ssl.protocols", "TLSv1 TLSv1.1 TLSv1.2");
 
         properties.setProperty(mail + protocol + ".host", getSmtpHost());
@@ -746,7 +753,7 @@ final class SendMailConfiguration {
 
     private MimeMessage initMessage(final Session session) throws MessagingException, InvalidSettingsException {
 
-        final MimeMessage message = new MimeMessage(session);
+        final var message = new MimeMessage(session);
 
         if (!StringUtils.isBlank(getFrom())) {
             message.setFrom(new InternetAddress(getFrom()));
@@ -777,7 +784,7 @@ final class SendMailConfiguration {
     }
 
     private Multipart initMessageBody(final String flowVarCorrectedText) throws MessagingException {
-        MimeBodyPart contentBody = new MimeBodyPart();
+        var contentBody = new MimeBodyPart();
         String textType;
         switch (getFormat()) {
             case Html:
@@ -797,7 +804,7 @@ final class SendMailConfiguration {
 
     private static void addAttachments(final Multipart mp, final List<File> tempDirs, final URL url)
         throws IOException, MessagingException {
-        MimeBodyPart filePart = new MimeBodyPart();
+        var filePart = new MimeBodyPart();
         File file;
         if ("file".equals(url.getProtocol())) {
             try {
@@ -806,7 +813,7 @@ final class SendMailConfiguration {
                 throw new IOException("Invalid attachment: " + url, e);
             }
         } else {
-            File tempDir = FileUtil.createTempDir("send-mail-attachment");
+            var tempDir = FileUtil.createTempDir("send-mail-attachment");
             tempDirs.add(tempDir);
             try {
                 file = new File(tempDir, FilenameUtils.getName(url.toURI().getSchemeSpecificPart()));
@@ -836,7 +843,7 @@ final class SendMailConfiguration {
             String user;
             String pass;
             if (isUseCredentials()) {
-                ICredentials iCredentials = credProvider.get(getCredentialsId());
+                var iCredentials = credProvider.get(getCredentialsId());
                 user = iCredentials.getLogin();
                 pass = iCredentials.getPassword();
             } else {
@@ -859,7 +866,7 @@ final class SendMailConfiguration {
      * @return ...
      */
     static String getLastUsedHistoryElement(final String historyID) {
-        StringHistory instance = StringHistory.getInstance(historyID);
+        var instance = StringHistory.getInstance(historyID);
         String[] history = instance.getHistory();
         if (history.length > 0) {
             return history[0];
