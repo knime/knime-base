@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd" >
-<knimeNode icon="stringtotime.png" type="Manipulator">
+<knimeNode icon="stringtotime.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>String to Date&amp;Time</name>
 	<shortDescription>
 		Parses date and/or time strings into Date&amp;Time
@@ -47,8 +46,8 @@
 					string.
 				</p>
 				<p>
-					Commonly used placeholders are <code>y</code> for year, <code>M</code> for month,
-					<code>d</code> for day of month, <code>H</code> for hours, <code>m</code> for minutes and <code>s</code> for
+					Commonly used placeholders are <tt>y</tt> for year, <tt>M</tt> for month,
+					<tt>d</tt> for day of month, <tt>H</tt> for hours, <tt>m</tt> for minutes and <tt>s</tt> for
 					seconds. A full list of placeholders can be found below.
 				</p>
 				<p>
@@ -58,29 +57,29 @@
 				</p>
 				<ul>
 					<li>
-						<code>yyyy</code> matches "2021". <code>yy</code> matches years relative to the year 2000:
+						<tt>yyyy</tt> matches "2021". <tt>yy</tt> matches years relative to the year 2000:
 						"21" will be interpreted as "2021".
 					</li>
 					<li>
-						<code>MM</code> matches month numbers like "01",
-						<code>MMM</code> matches short month names like "Jan", <code>MMMM</code> matches full month
+						<tt>MM</tt> matches month numbers like "01",
+						<tt>MMM</tt> matches short month names like "Jan", <tt>MMMM</tt> matches full month
 						names like "January".
 					</li>
 					<li>
-						<code>d</code> matches day numbers like "5" and "05".
+						<tt>d</tt> matches day numbers like "5" and "05".
 					</li>
 				</ul>
 				<p>
 					<b>Examples:</b>
 				</p>
 				<ul>
-					<li>"yyyy.MM.dd HH:mm:ss.SSS" parses dates like "2001.07.04
+					<li><tt>yyyy.MM.dd HH:mm:ss.SSS</tt> parses dates like "2001.07.04
 						12:08:56.000"
 					</li>
-					<li>"yyyy-MM-dd'T'HH:mm:ss.SSSZ" parses dates like
+					<li><tt>yyyy-MM-dd'T'HH:mm:ss.SSSZ</tt> parses dates like
 						"2001-07-04T12:08:56.235-0700"
 					</li>
-					<li>"yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'" parses dates like
+					<li><tt>yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'</tt> parses dates like
 						"2001-07-04T12:08:56.235+02:00[Europe/Berlin]"
 					</li>
 				</ul>
@@ -89,17 +88,17 @@
 					if it is unclear whether the input contains a certain field or not. For example:
 				</p>
 				<ul>
-					  <li>"HH:mm:ss[.SSS]" parses times like "12:08:56.123" and
+					<li><tt>HH:mm:ss[.SSS]</tt> parses times like "12:08:56.123" and
 							"12:08:56"
 					  </li>
-					  <li>"yyyy-MM-dd'T'HH:mm[:ss[.SSS]]" parses dates like
+					  <li><tt>yyyy-MM-dd'T'HH:mm[:ss[.SSS]]</tt> parses dates like
 							"2001-07-04T12:08:56.235", "2001-07-04T12:08:56" and
 							"2001-07-04T12:08"
 					  </li>
 				</ul>
 				<p>
 					Optional placeholders can also be useful if different formats are to be expected. For example,
-					<code>[MMMM][MMM] dd, yyyy</code> matches both "April 02, 2021" and "Apr 02, 2021". Note that
+					<tt>[MMMM][MMM] dd, yyyy</tt> matches both "April 02, 2021" and "Apr 02, 2021". Note that
 					this will also match when no month description is given whatsoever.
 				</p>
 				<p>
@@ -107,44 +106,44 @@
 					<a href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html">here</a>.
 				</p>
 				<ul>
-					<li>G: era</li>
-					<li>u: year</li>
-					<li>y: year of era</li>
-					<li>D: day of year</li>
-					<li>M: month in year (context sensitive)</li>
-					<li>L: month in year (standalone form)</li>
-					<li>d: day of month</li>
-					<li>Q: quarter of year</li>
-					<li>q: quarter of year</li>
-					<li>Y: week based year</li>
-					<li>w: week of week based year</li>
-					<li>W: week of month</li>
-					<li>E: day of week</li>
-					<li>e: localized day of week</li>
-					<li>c: localized day of week</li>
-					<li>F: week of month</li>
-					<li>a: am/pm of day</li>
-					<li>h: clock hour of am/pm (1-12)</li>
-					<li>K: hour of am/pm (0-11)</li>
-					<li>k: clock hour of am/pm (1-24)</li>
-					<li>H: hour of day (0-23)</li>
-					<li>m: minute of hour</li>
-					<li>s: second of minute</li>
-					<li>S: fraction of second</li>
-					<li>A: milli of day</li>
-					<li>n: nano of second</li>
-					<li>N: nano of second</li>
-					<li>V: time zone ID</li>
-					<li>z: time zone name</li>
-					<li>O: localized zone offset</li>
-					<li>X zone offset ('Z' for zero)</li>
-					<li>x: zone offset</li>
-					<li>Z: zone offset</li>
-					<li>p: pad next</li>
-					<li>' : escape for text</li>
-					<li>'': single quote</li>
-					<li>[: optional section start</li>
-					<li>]: optional section end</li>
+					<li><tt>G</tt>: era</li>
+					<li><tt>u</tt>: year</li>
+					<li><tt>y</tt>: year of era</li>
+					<li><tt>D</tt>: day of year</li>
+					<li><tt>M</tt>: month in year (context sensitive)</li>
+					<li><tt>L</tt>: month in year (standalone form)</li>
+					<li><tt>d</tt>: day of month</li>
+					<li><tt>Q</tt>: quarter of year</li>
+					<li><tt>q</tt>: quarter of year</li>
+					<li><tt>Y</tt>: week based year</li>
+					<li><tt>w</tt>: week of week based year</li>
+					<li><tt>W</tt>: week of month</li>
+					<li><tt>E</tt>: day of week</li>
+					<li><tt>e</tt>: localized day of week</li>
+					<li><tt>c</tt>: localized day of week</li>
+					<li><tt>F</tt>: week of month</li>
+					<li><tt>a</tt>: am/pm of day</li>
+					<li><tt>h</tt>: clock hour of am/pm (1-12)</li>
+					<li><tt>K</tt>: hour of am/pm (0-11)</li>
+					<li><tt>k</tt>: clock hour of am/pm (1-24)</li>
+					<li><tt>H</tt>: hour of day (0-23)</li>
+					<li><tt>m</tt>: minute of hour</li>
+					<li><tt>s</tt>: second of minute</li>
+					<li><tt>S</tt>: fraction of second</li>
+					<li><tt>A</tt>: milli of day</li>
+					<li><tt>n</tt>: nano of second</li>
+					<li><tt>N</tt>: nano of second</li>
+					<li><tt>V</tt>: time zone ID</li>
+					<li><tt>z</tt>: time zone name</li>
+					<li><tt>O</tt>: localized zone offset</li>
+					<li><tt>X</tt>: zone offset (<tt>Z</tt> for zero)</li>
+					<li><tt>x</tt>: zone offset</li>
+					<li><tt>Z</tt>: zone offset</li>
+					<li><tt>p</tt>: pad next</li>
+					<li><tt>'</tt>: escape for text</li>
+					<li><tt>''</tt>: single quote</li>
+					<li><tt>[</tt>: optional section start</li>
+					<li><tt>]</tt>: optional section end</li>
 				</ul>
 			</option>
 			<option name="Locale">
