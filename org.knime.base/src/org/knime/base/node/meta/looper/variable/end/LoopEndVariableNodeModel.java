@@ -112,7 +112,7 @@ final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel im
         if (terminateLoop()) {
             m_container.close();
             out = m_container.getTable();
-            clear();
+            clear(false);
         } else {
             m_rowCount++;
             continueLoop();
@@ -134,7 +134,7 @@ final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel im
                 buildDiffColStructErrors(curSpec, predSpec, error);
             }
             error.append(". Have the input variables changed in number, name or type?");
-            clear();
+            clear(true);
             throw new IllegalArgumentException(error.toString());
         }
     }
@@ -154,7 +154,7 @@ final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel im
     boolean terminateLoop() {
         return ((LoopStartNodeTerminator)this.getLoopStartNode()).terminateLoop();
     }
-    
+
     @Override
     public boolean shouldPropagateModifiedVariables() {
         return m_propagateLoopVariablesModel.getBooleanValue();
@@ -162,16 +162,16 @@ final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel im
 
     @Override
     protected void onDispose() {
-        clear();
+        clear(true);
         super.onDispose();
     }
 
     @Override
     protected void reset() {
-        clear();
+        clear(true);
     }
 
-    private void clear() {
+    private void clear(final boolean deleteData) {
         m_rowCount = 0;
         if (m_converter != null) {
             m_converter.close();
@@ -179,6 +179,9 @@ final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel im
         m_converter = null;
         if (m_container != null) {
             m_container.close();
+            if (deleteData) {
+                m_container.getCloseableTable().close();
+            }
         }
         m_container = null;
     }
