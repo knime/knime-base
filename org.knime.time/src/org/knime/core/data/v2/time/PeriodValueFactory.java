@@ -12,9 +12,12 @@ import org.knime.core.data.time.period.PeriodValue;
 import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
 import org.knime.core.data.v2.WriteValue;
-import org.knime.core.table.access.PeriodAccess.PeriodReadAccess;
-import org.knime.core.table.access.PeriodAccess.PeriodWriteAccess;
-import org.knime.core.table.schema.PeriodDataSpec;
+import org.knime.core.table.access.IntAccess.IntReadAccess;
+import org.knime.core.table.access.IntAccess.IntWriteAccess;
+import org.knime.core.table.access.StructAccess.StructReadAccess;
+import org.knime.core.table.access.StructAccess.StructWriteAccess;
+import org.knime.core.table.schema.DataSpec;
+import org.knime.core.table.schema.StructDataSpec;
 
 /**
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link PeriodCell}.
@@ -22,24 +25,25 @@ import org.knime.core.table.schema.PeriodDataSpec;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @since 4.3
  */
-public final class PeriodValueFactory implements ValueFactory<PeriodReadAccess, PeriodWriteAccess> {
+public final class PeriodValueFactory implements ValueFactory<StructReadAccess, StructWriteAccess> {
 
     /** A stateless instance of {@link PeriodValueFactory} */
     public static final PeriodValueFactory INSTANCE = new PeriodValueFactory();
 
     @Override
-    public PeriodReadValue createReadValue(final PeriodReadAccess access) {
+    public PeriodReadValue createReadValue(final StructReadAccess access) {
         return new DefaultPeriodReadValue(access);
     }
 
     @Override
-    public PeriodWriteValue createWriteValue(final PeriodWriteAccess access) {
+    public PeriodWriteValue createWriteValue(final StructWriteAccess access) {
         return new DefaultPeriodWriteValue(access);
     }
 
     @Override
-    public PeriodDataSpec getSpec() {
-        return PeriodDataSpec.INSTANCE;
+    public StructDataSpec getSpec() {
+        // years, months, days
+        return new StructDataSpec(DataSpec.intSpec(), DataSpec.intSpec(), DataSpec.intSpec());
     }
 
     /**
@@ -66,45 +70,59 @@ public final class PeriodValueFactory implements ValueFactory<PeriodReadAccess, 
 
     private static final class DefaultPeriodReadValue implements PeriodReadValue {
 
-        private final PeriodReadAccess m_access;
+        private final IntReadAccess m_years;
 
-        private DefaultPeriodReadValue(final PeriodReadAccess access) {
-            m_access = access;
+        private final IntReadAccess m_months;
+
+        private final IntReadAccess m_days;
+
+        private DefaultPeriodReadValue(final StructReadAccess access) {
+            m_years = access.getAccess(0);
+            m_months = access.getAccess(1);
+            m_days = access.getAccess(2);
         }
 
         @Override
         public DataCell getDataCell() {
-            return PeriodCellFactory.create(m_access.getPeriodValue());
+            return PeriodCellFactory.create(getPeriod());
         }
 
         @Override
         public Period getPeriod() {
-            return m_access.getPeriodValue();
+            return Period.of(m_years.getIntValue(), m_months.getIntValue(), m_days.getIntValue());
         }
 
         @Override
         public String getStringValue() {
-            return m_access.getPeriodValue().toString();
+            return getPeriod().toString();
         }
 
     }
 
     private static final class DefaultPeriodWriteValue implements PeriodWriteValue {
 
-        private final PeriodWriteAccess m_access;
+        private final IntWriteAccess m_years;
 
-        private DefaultPeriodWriteValue(final PeriodWriteAccess access) {
-            m_access = access;
+        private final IntWriteAccess m_months;
+
+        private final IntWriteAccess m_days;
+
+        private DefaultPeriodWriteValue(final StructWriteAccess access) {
+            m_years = access.getWriteAccess(0);
+            m_months = access.getWriteAccess(1);
+            m_days = access.getWriteAccess(2);
         }
 
         @Override
         public void setValue(final PeriodValue value) {
-            m_access.setPeriodValue(value.getPeriod());
+            setPeriod(value.getPeriod());
         }
 
         @Override
         public void setPeriod(final Period period) {
-            m_access.setPeriodValue(period);
+            m_years.setIntValue(period.getYears());
+            m_months.setIntValue(period.getMonths());
+            m_days.setIntValue(period.getDays());
         }
 
     }

@@ -1,6 +1,7 @@
 package org.knime.core.data.v2.time;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoField;
 
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataCell;
@@ -12,9 +13,10 @@ import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
 import org.knime.core.data.v2.WriteValue;
-import org.knime.core.table.access.LocalDateAccess.LocalDateReadAccess;
-import org.knime.core.table.access.LocalDateAccess.LocalDateWriteAccess;
-import org.knime.core.table.schema.LocalDateDataSpec;
+import org.knime.core.table.access.LongAccess.LongReadAccess;
+import org.knime.core.table.access.LongAccess.LongWriteAccess;
+import org.knime.core.table.schema.DataSpec;
+import org.knime.core.table.schema.LongDataSpec;
 
 /**
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link LocalDateCell}.
@@ -23,24 +25,24 @@ import org.knime.core.table.schema.LocalDateDataSpec;
  * @since 4.3
  */
 public final class LocalDateValueFactory
-    implements ValueFactory<LocalDateReadAccess, LocalDateWriteAccess> {
+    implements ValueFactory<LongReadAccess, LongWriteAccess> {
 
     /** A stateless instance of {@link LocalDateValueFactory} */
     public static final LocalDateValueFactory INSTANCE = new LocalDateValueFactory();
 
     @Override
-    public LocalDateReadValue createReadValue(final LocalDateReadAccess access) {
+    public LocalDateReadValue createReadValue(final LongReadAccess access) {
         return new DefaultLocalDateReadValue(access);
     }
 
     @Override
-    public LocalDateWriteValue createWriteValue(final LocalDateWriteAccess access) {
+    public LocalDateWriteValue createWriteValue(final LongWriteAccess access) {
         return new DefaultLocalDateWriteValue(access);
     }
 
     @Override
-    public LocalDateDataSpec getSpec() {
-        return LocalDateDataSpec.INSTANCE;
+    public LongDataSpec getSpec() {
+        return DataSpec.longSpec();
     }
 
     /**
@@ -67,45 +69,45 @@ public final class LocalDateValueFactory
 
     private static final class DefaultLocalDateReadValue implements LocalDateReadValue {
 
-        private final LocalDateReadAccess m_access;
+        private final LongReadAccess m_dayOfEpoch;
 
-        private DefaultLocalDateReadValue(final LocalDateReadAccess access) {
-            m_access = access;
+        private DefaultLocalDateReadValue(final LongReadAccess access) {
+            m_dayOfEpoch = access;
         }
 
         @Override
         public DataCell getDataCell() {
-            return LocalDateCellFactory.create(m_access.getLocalDateValue());
+            return LocalDateCellFactory.create(getLocalDate());
         }
 
         @Override
         public LocalDate getLocalDate() {
-            return m_access.getLocalDateValue();
+            return LocalDate.ofEpochDay(m_dayOfEpoch.getLongValue());
         }
 
         @Override
         public String getStringValue() {
-            return m_access.getLocalDateValue().toString();
+            return getLocalDate().toString();
         }
 
     }
 
     private static final class DefaultLocalDateWriteValue implements LocalDateWriteValue {
 
-        private final LocalDateWriteAccess m_access;
+        private final LongWriteAccess m_dayOfEpoch;
 
-        private DefaultLocalDateWriteValue(final LocalDateWriteAccess access) {
-            m_access = access;
+        private DefaultLocalDateWriteValue(final LongWriteAccess access) {
+            m_dayOfEpoch = access;
         }
 
         @Override
         public void setValue(final LocalDateValue value) {
-            m_access.setLocalDateValue(value.getLocalDate());
+            setLocalDate(value.getLocalDate());
         }
 
         @Override
         public void setLocalDate(final LocalDate date) {
-            m_access.setLocalDateValue(date);
+            m_dayOfEpoch.setLongValue(date.getLong(ChronoField.EPOCH_DAY));
         }
 
     }

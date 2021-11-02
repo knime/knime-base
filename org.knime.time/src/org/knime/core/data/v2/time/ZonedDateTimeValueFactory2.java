@@ -18,10 +18,10 @@ import org.knime.core.table.access.IntAccess.IntReadAccess;
 import org.knime.core.table.access.IntAccess.IntWriteAccess;
 import org.knime.core.table.access.LongAccess.LongReadAccess;
 import org.knime.core.table.access.LongAccess.LongWriteAccess;
+import org.knime.core.table.access.StringAccess.StringReadAccess;
+import org.knime.core.table.access.StringAccess.StringWriteAccess;
 import org.knime.core.table.access.StructAccess.StructReadAccess;
 import org.knime.core.table.access.StructAccess.StructWriteAccess;
-import org.knime.core.table.access.VarBinaryAccess.VarBinaryReadAccess;
-import org.knime.core.table.access.VarBinaryAccess.VarBinaryWriteAccess;
 import org.knime.core.table.schema.DataSpec;
 import org.knime.core.table.schema.StructDataSpec;
 
@@ -29,13 +29,13 @@ import org.knime.core.table.schema.StructDataSpec;
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link ZonedDateTimeCell}.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
- * @since 4.3
+ * @since 4.5
  */
-public final class ZonedDateTimeValueFactory
+public final class ZonedDateTimeValueFactory2
     implements ValueFactory<StructReadAccess, StructWriteAccess> {
 
-    /** A stateless instance of {@link ZonedDateTimeValueFactory} */
-    public static final ZonedDateTimeValueFactory INSTANCE = new ZonedDateTimeValueFactory();
+    /** A stateless instance of {@link ZonedDateTimeValueFactory2} */
+    public static final ZonedDateTimeValueFactory2 INSTANCE = new ZonedDateTimeValueFactory2();
 
     @Override
     public ZonedDateTimeReadValue createReadValue(final StructReadAccess access) {
@@ -50,19 +50,20 @@ public final class ZonedDateTimeValueFactory
     @Override
     public StructDataSpec getSpec() {
         // day of epoch, nano of day, zone offset, zone id
-        return new StructDataSpec(DataSpec.longSpec(), DataSpec.longSpec(), DataSpec.intSpec(),
-            DataSpec.varBinarySpec());
+        // TODO nano of day used to be time nano (and should probably still be for backwards compatibility)
+        return new StructDataSpec(DataSpec.longSpec(), DataSpec.longSpec(), DataSpec.intSpec(), DataSpec.stringSpec());
     }
 
     private static final class DefaultZonedDateTimeReadValue implements ZonedDateTimeReadValue {
 
         private final LongReadAccess m_dayOfEpoch;
 
+        // TODO TimeNanoReadAccess
         private final LongReadAccess m_nanoOfDay;
 
         private final IntReadAccess m_zoneOffset;
 
-        private final VarBinaryReadAccess m_zoneId;
+        private final StringReadAccess m_zoneId;
 
         private DefaultZonedDateTimeReadValue(final StructReadAccess access) {
             m_dayOfEpoch = access.getAccess(0);
@@ -82,7 +83,7 @@ public final class ZonedDateTimeValueFactory
             var localTime = LocalTime.ofNanoOfDay(m_nanoOfDay.getLongValue());
             var localDateTime = LocalDateTime.of(localDate, localTime);
             var zoneOffset = ZoneOffset.ofTotalSeconds(m_zoneOffset.getIntValue());
-            var zoneId = ZoneId.of(m_zoneId.getObject(d -> d.readUTF()));
+            var zoneId = ZoneId.of(m_zoneId.getStringValue());
             return ZonedDateTime.ofInstant(localDateTime, zoneOffset, zoneId);
         }
 
@@ -97,11 +98,12 @@ public final class ZonedDateTimeValueFactory
 
         private final LongWriteAccess m_dayOfEpoch;
 
+        // TODO TimeNanoWriteAccess
         private final LongWriteAccess m_nanoOfDay;
 
         private final IntWriteAccess m_zoneOffset;
 
-        private final VarBinaryWriteAccess m_zoneId;
+        private final StringWriteAccess m_zoneId;
 
         private DefaultZonedDateTimeWriteValue(final StructWriteAccess access) {
             m_dayOfEpoch = access.getWriteAccess(0);
@@ -120,7 +122,7 @@ public final class ZonedDateTimeValueFactory
             m_dayOfEpoch.setLongValue(date.getLong(ChronoField.EPOCH_DAY));
             m_nanoOfDay.setLongValue(date.getLong(ChronoField.NANO_OF_DAY));
             m_zoneOffset.setIntValue(date.getOffset().get(ChronoField.OFFSET_SECONDS));
-            m_zoneId.setObject(date.getZone().getId(), (d, t) -> d.writeUTF(t));
+            m_zoneId.setStringValue(date.getZone().getId());
         }
 
     }

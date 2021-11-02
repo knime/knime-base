@@ -12,9 +12,14 @@ import org.knime.core.data.time.duration.DurationValue;
 import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
 import org.knime.core.data.v2.WriteValue;
-import org.knime.core.table.access.DurationAccess.DurationReadAccess;
-import org.knime.core.table.access.DurationAccess.DurationWriteAccess;
-import org.knime.core.table.schema.DurationDataSpec;
+import org.knime.core.table.access.IntAccess.IntReadAccess;
+import org.knime.core.table.access.IntAccess.IntWriteAccess;
+import org.knime.core.table.access.LongAccess.LongReadAccess;
+import org.knime.core.table.access.LongAccess.LongWriteAccess;
+import org.knime.core.table.access.StructAccess.StructReadAccess;
+import org.knime.core.table.access.StructAccess.StructWriteAccess;
+import org.knime.core.table.schema.DataSpec;
+import org.knime.core.table.schema.StructDataSpec;
 
 /**
  * {@link ValueFactory} implementation for {@link ListCell} with elements of type {@link DurationCell}.
@@ -23,24 +28,25 @@ import org.knime.core.table.schema.DurationDataSpec;
  * @since 4.3
  */
 public final class DurationValueFactory
-    implements ValueFactory<DurationReadAccess, DurationWriteAccess> {
+    implements ValueFactory<StructReadAccess, StructWriteAccess> {
 
     /** A stateless instance of {@link DurationValueFactory} */
     public static final DurationValueFactory INSTANCE = new DurationValueFactory();
 
     @Override
-    public DurationReadValue createReadValue(final DurationReadAccess access) {
+    public DurationReadValue createReadValue(final StructReadAccess access) {
         return new DefaultDurationReadValue(access);
     }
 
     @Override
-    public DurationWriteValue createWriteValue(final DurationWriteAccess access) {
+    public DurationWriteValue createWriteValue(final StructWriteAccess access) {
         return new DefaultDurationWriteValue(access);
     }
 
     @Override
-    public DurationDataSpec getSpec() {
-        return DurationDataSpec.INSTANCE;
+    public StructDataSpec getSpec() {
+        // FIXME we used the Arrow duration for the seconds before
+        return new StructDataSpec(DataSpec.longSpec(), DataSpec.intSpec());
     }
 
     /**
@@ -67,45 +73,55 @@ public final class DurationValueFactory
 
     private static final class DefaultDurationReadValue implements DurationReadValue {
 
-        private final DurationReadAccess m_access;
+        // TODO used to be a duration in arrow
+        private final LongReadAccess m_seconds;
 
-        private DefaultDurationReadValue(final DurationReadAccess access) {
-            m_access = access;
+        private final IntReadAccess m_nanos;
+
+        private DefaultDurationReadValue(final StructReadAccess access) {
+            m_seconds = access.getAccess(0);
+            m_nanos = access.getAccess(1);
         }
 
         @Override
         public DataCell getDataCell() {
-            return DurationCellFactory.create(m_access.getDurationValue());
+            return DurationCellFactory.create(getDuration());
         }
 
         @Override
         public Duration getDuration() {
-            return m_access.getDurationValue();
+            // TODO Duration.ofSeconds accepts to long values. Should we also use a long access for the nanos?
+            return Duration.ofSeconds(m_seconds.getLongValue(), m_nanos.getIntValue());
         }
 
         @Override
         public String getStringValue() {
-            return m_access.getDurationValue().toString();
+            return getDuration().toString();
         }
 
     }
 
     private static final class DefaultDurationWriteValue implements DurationWriteValue {
 
-        private final DurationWriteAccess m_access;
+        // TODO used to be a duration in arrow
+        private final LongWriteAccess m_seconds;
 
-        private DefaultDurationWriteValue(final DurationWriteAccess access) {
-            m_access = access;
+        private final IntWriteAccess m_nanos;
+
+        private DefaultDurationWriteValue(final StructWriteAccess access) {
+            m_seconds = access.getWriteAccess(0);
+            m_nanos = access.getWriteAccess(1);
         }
 
         @Override
         public void setValue(final DurationValue value) {
-            m_access.setDurationValue(value.getDuration());
+            setDuration(value.getDuration());
         }
 
         @Override
         public void setDuration(final Duration duration) {
-            m_access.setDurationValue(duration);
+            m_seconds.setLongValue(duration.getSeconds());
+            m_nanos.setIntValue(duration.getNano());
         }
 
     }

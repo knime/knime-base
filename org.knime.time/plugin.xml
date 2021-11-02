@@ -266,12 +266,19 @@
       </DataType>
       <DataType
             cellClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell"
-            factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory"
-            factoryValue="org.knime.core.data.v2.time.ZonedDateTimeValueFactory">
+            factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory">
          <serializer
                cellClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell"
                serializerClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellSerializer">
          </serializer>
+         <ValueFactory
+               deprecated="true"
+               valueFactoryClass="org.knime.core.data.v2.time.ZonedDateTimeValueFactory">
+         </ValueFactory>
+         <ValueFactory
+               deprecated="false"
+               valueFactoryClass="org.knime.core.data.v2.time.ZonedDateTimeValueFactory2">
+         </ValueFactory>
       </DataType>
       <DataType
             cellClass="org.knime.core.data.time.duration.DurationCell"
