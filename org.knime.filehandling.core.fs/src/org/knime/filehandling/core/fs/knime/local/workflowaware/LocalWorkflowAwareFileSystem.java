@@ -151,9 +151,8 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
      *
      * @param path A path (from the workflow-aware FS).
      * @return true when the given path can be accessed with the workflow-aware file system, false otherwise.
-     * @throws IOException
      */
-    public boolean isPathAccessible(final LocalWorkflowAwarePath path) throws IOException {
+    public boolean isPathAccessible(final LocalWorkflowAwarePath path) {
         // we must not access files outside of the mountpoint
         if (!isInMountPoint(path)) {
             return false;
@@ -177,9 +176,8 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
      *
      * @param path path to check
      * @return {@code true} if the path represents a workflow, meta node or component directory.
-     * @throws IOException
      */
-    public boolean isWorkflow(final LocalWorkflowAwarePath path) throws IOException {
+    public boolean isWorkflow(final LocalWorkflowAwarePath path) {
         return isLocalWorkflowDirectory(toLocalPath(path));
     }
 
@@ -272,9 +270,8 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
      *
      * @param path workflow-aware file system path to check
      * @return {@code true} if given path or a parent path is part of a workflow
-     * @throws IOException
      */
-    public boolean isPartOfWorkflow(final LocalWorkflowAwarePath path) throws IOException {
+    public boolean isPartOfWorkflow(final LocalWorkflowAwarePath path) {
         LocalWorkflowAwarePath current = (LocalWorkflowAwarePath)path.toAbsolutePath().normalize();
 
         while (isInMountPoint(current)) {
@@ -322,10 +319,9 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
      *
      * @param path workflow-aware path to check
      * @return {@code true} if path exists and is accessible
-     * @throws IOException
      */
-    protected boolean existsWithAccessibilityCheck(final LocalWorkflowAwarePath path) throws IOException {
-        final Path localPath = toLocalPath(path);
+    protected boolean existsWithAccessibilityCheck(final LocalWorkflowAwarePath path) {
+        final var localPath = toLocalPath(path);
         return isPathAccessible(path) && Files.exists(localPath);
     }
 

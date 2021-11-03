@@ -88,7 +88,7 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
  * @noreference non-public API
  * @noextend non-public API
  */
-public class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkflowAwareFileSystem>
+public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkflowAwareFileSystem>
     extends BaseFileSystemProvider<LocalWorkflowAwarePath, F> implements WorkflowAware {
 
     @SuppressWarnings("resource") // the file system has to stay open for further use
@@ -103,7 +103,7 @@ public class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkflowAwareFi
     }
 
     @SuppressWarnings("resource")// the file system has to stay open for further use
-    private boolean isPartOfWorkflow(final LocalWorkflowAwarePath path) throws IOException {
+    private boolean isPartOfWorkflow(final LocalWorkflowAwarePath path) {
         return getFileSystemInternal().isPartOfWorkflow(path);
     }
 
@@ -240,7 +240,7 @@ public class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkflowAwareFi
     }
 
     @SuppressWarnings("resource")// the file system has to stay open for further use
-    private boolean isWorkflow(final LocalWorkflowAwarePath path) throws IOException {
+    private boolean isWorkflow(final LocalWorkflowAwarePath path) {
         return getFileSystemInternal().isWorkflow(path);
     }
 
@@ -257,12 +257,11 @@ public class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkflowAwareFi
         throws IOException {
 
         final LocalWorkflowAwarePath absoluteDest = checkCastAndAbsolutizePath(dest);
-
-        final String currentMountpoint = getCurrentMountpoint();
+        final String localMountId = getMountID().orElseThrow(() -> new IOException("Cannot deploy workflow because target file system does not have a mount ID"));
         try {
             MountPointFileSystemAccessService.instance().deployWorkflow( //
                 source, //
-                new URI("knime", currentMountpoint, absoluteDest.toString(), null), //
+                new URI("knime", localMountId, absoluteDest.toString(), null), //
                overwrite, //
                attemptOpen);
         } catch (URISyntaxException e) {
@@ -288,12 +287,5 @@ public class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkflowAwareFi
         } catch (URISyntaxException ex) {
             throw new IOException(ex);
         }
-    }
-
-    @Override
-    public Optional<String> getMountID() {
-        // currently this is unused code, but it will need to be made functional
-        // for AP-16355
-        return Optional.empty();
     }
 }

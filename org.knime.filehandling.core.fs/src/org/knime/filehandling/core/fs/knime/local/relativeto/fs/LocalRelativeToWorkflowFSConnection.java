@@ -91,16 +91,16 @@ public class LocalRelativeToWorkflowFSConnection implements FSConnection {
                 "Nodes in a shared component don't have access to workflow-relative locations.");
         }
 
-        final WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
-
+        final var workflowContext = WorkflowContextUtil.getWorkflowContext();
         if (WorkflowContextUtil.isServerContext(workflowContext)) {
             throw new UnsupportedOperationException(
                 "Unsupported temporary copy of workflow detected. LocalRelativeTo does not support server execution.");
         }
 
-        final Path localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
-        final Path localWorkflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
-        m_fileSystem = createWorkflowRelativeFs(localMountpointRoot, localWorkflowLocation, config.isConnectedFileSystem());
+        final var localMountId = workflowContext.getMountpointURI().orElseThrow(() -> new IllegalStateException("Cannot determine ID of local mountpoint")).getAuthority();
+        final var localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
+        final var localWorkflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
+        m_fileSystem = createWorkflowRelativeFs(localMountId, localMountpointRoot, localWorkflowLocation, config.isConnectedFileSystem());
 
         // in the workflow-relative file system the working "dir" is the workflow, but it is not a directory,
         // so we need to take the parent
@@ -108,7 +108,7 @@ public class LocalRelativeToWorkflowFSConnection implements FSConnection {
         m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
     }
 
-    private static LocalRelativeToFileSystem createWorkflowRelativeFs(final Path localMountpointRoot,
+    private static LocalRelativeToFileSystem createWorkflowRelativeFs(final String localMountId, final Path localMountpointRoot,
         final Path workflowLocation, final boolean isConnected) {
 
         final String workingDir =
@@ -121,7 +121,8 @@ public class LocalRelativeToWorkflowFSConnection implements FSConnection {
             fsLocationSpec = RelativeToFileSystemConstants.CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
         }
 
-        return new LocalRelativeToFileSystem(localMountpointRoot, //
+        return new LocalRelativeToFileSystem(localMountId, //
+            localMountpointRoot, //
             RelativeTo.WORKFLOW, //
             workingDir, //
             fsLocationSpec);

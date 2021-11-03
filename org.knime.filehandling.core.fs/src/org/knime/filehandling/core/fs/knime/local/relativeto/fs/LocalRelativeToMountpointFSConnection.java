@@ -54,7 +54,6 @@ import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemBrowser;
@@ -83,22 +82,24 @@ public class LocalRelativeToMountpointFSConnection implements FSConnection {
      */
     public LocalRelativeToMountpointFSConnection(final RelativeToFSConnectionConfig config) {
 
-        final WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
+        final var workflowContext = WorkflowContextUtil.getWorkflowContext();
         if (WorkflowContextUtil.isServerContext(workflowContext)) {
             throw new UnsupportedOperationException(
                 "Unsupported temporary copy of workflow detected. Relative to does not support server execution.");
         }
 
-        final Path localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
-        m_fileSystem = createMountpointRelativeFs(localMountpointRoot, //
+        final var localMountId = workflowContext.getMountpointURI().orElseThrow(() -> new IllegalStateException("Cannot determine ID of local mountpoint")).getAuthority();
+        final var localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
+        m_fileSystem = createMountpointRelativeFs(localMountId, //
+            localMountpointRoot, //
             config.isConnectedFileSystem(), //
             config.getWorkingDirectory());
 
-        final FSPath browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
+        final var browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
         m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
     }
 
-    private static LocalRelativeToFileSystem createMountpointRelativeFs(final Path localMountpointRoot,
+    private static LocalRelativeToFileSystem createMountpointRelativeFs(final String localMountId, final Path localMountpointRoot,
         final boolean isConnected, final String workingDir) {
 
         final FSLocationSpec fsLocationSpec;
@@ -108,7 +109,8 @@ public class LocalRelativeToMountpointFSConnection implements FSConnection {
             fsLocationSpec = RelativeToFileSystemConstants.CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
         }
 
-        return new LocalRelativeToFileSystem(localMountpointRoot, //
+        return new LocalRelativeToFileSystem(localMountId, //
+            localMountpointRoot, //
             RelativeTo.MOUNTPOINT, //
             workingDir, //
             fsLocationSpec);

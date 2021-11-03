@@ -63,19 +63,22 @@ import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwa
  */
 public final class LocalRelativeToFileSystem extends LocalWorkflowAwareFileSystem {
 
-    private final RelativeTo m_type;
+    private final String m_mountId;
 
+    private final RelativeTo m_type;
 
     /**
      * Default constructor.
+     * @param localMountId
      *
-     * @param uri URI without a path
+     * @param localMountId Mount ID of this local mountpoint.
      * @param localRoot Where this file system is rooted in the local (platform default) file system.
      * @param type The relative-to type of this file system (workflow, mountpoint, ...).
      * @param workingDir Path (in this file system) that specifies the working directory.
      * @throws IOException
      */
-    LocalRelativeToFileSystem(final Path localRoot, //
+    LocalRelativeToFileSystem(final String localMountId, //
+        final Path localRoot, //
         final RelativeTo type, //
         final String workingDir, //
         final FSLocationSpec fsLocationSpec) {
@@ -85,6 +88,7 @@ public final class LocalRelativeToFileSystem extends LocalWorkflowAwareFileSyste
             workingDir, //
             fsLocationSpec);
 
+        m_mountId = localMountId;
         m_type = type;
     }
 
@@ -118,8 +122,15 @@ public final class LocalRelativeToFileSystem extends LocalWorkflowAwareFileSyste
     /**
      * @return the {@link RelativeTo} type of this file system.
      */
-     RelativeTo getType() {
+    RelativeTo getType() {
         return m_type;
+    }
+
+    /**
+     * @return the mountId
+     */
+    public String getMountId() {
+        return m_mountId;
     }
 
     /**

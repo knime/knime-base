@@ -51,12 +51,13 @@ package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystemProvider;
 
 /**
  *
- * @author bjoern
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
 public class LocalRelativeToFileSystemProvider extends LocalWorkflowAwareFileSystemProvider<LocalRelativeToFileSystem> {
 
@@ -70,5 +71,11 @@ public class LocalRelativeToFileSystemProvider extends LocalWorkflowAwareFileSys
         }
 
         super.deployWorkflow(source, dest, overwrite, attemptOpen);
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    public Optional<String> getMountID() {
+        return Optional.of(getFileSystemInternal().getMountId());
     }
 }

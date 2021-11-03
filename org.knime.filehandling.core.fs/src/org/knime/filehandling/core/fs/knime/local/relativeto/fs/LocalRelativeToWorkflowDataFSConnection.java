@@ -56,7 +56,6 @@ import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemBrowser;
@@ -91,21 +90,21 @@ public final class LocalRelativeToWorkflowDataFSConnection implements FSConnecti
                 "Nodes in a shared component don't have access to the workflow data area.");
         }
 
-        final WorkflowContext workflowContext = WorkflowContextUtil.getWorkflowContext();
-        final Path workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
+        final var workflowContext = WorkflowContextUtil.getWorkflowContext();
+        final var workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
 
         m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, //
             config.isConnectedFileSystem(), //
             config.getWorkingDirectory());
 
-        final FSPath browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
+        final var browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
         m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
     }
 
     private static LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
         final boolean isConnected, final String workingDir) throws IOException {
 
-        final Path workflowDataDir = workflowLocation.resolve("data");
+        final var workflowDataDir = workflowLocation.resolve("data");
 
         Files.createDirectories(workflowDataDir);
 
@@ -116,7 +115,8 @@ public final class LocalRelativeToWorkflowDataFSConnection implements FSConnecti
             fsLocationSpec = RelativeToFileSystemConstants.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
         }
 
-        return new LocalRelativeToFileSystem(workflowDataDir, //
+        return new LocalRelativeToFileSystem(null, //
+            workflowDataDir, //
             RelativeTo.WORKFLOW_DATA, //
             workingDir, //
             fsLocationSpec);
