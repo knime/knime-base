@@ -63,7 +63,7 @@ import org.eclipse.core.runtime.Platform;
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  *
  */
-public class FSTestPropertiesResolver {
+public final class FSTestPropertiesResolver {
 
     /**
      * Expected file name for the file system test configuration.
@@ -72,8 +72,11 @@ public class FSTestPropertiesResolver {
 
     private static final String TEST_PROPERTIES_ENV_VARIABLE_NAME = "KNIME_FS_TEST_PROPERTIES";
 
-    private final static String DEFAULT_PATH_WORKSPACE =
+    private static final String DEFAULT_PATH_WORKSPACE =
         Platform.getLocation().append("/" + TEST_PROPERTIES_FILE_NAME).toString();
+
+    private FSTestPropertiesResolver() {
+    }
 
     /**
      * Resolves the properties for integration tests from the environment variable KNIME_FS_TEST_PROPERTIES.

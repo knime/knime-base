@@ -61,10 +61,8 @@ class LocalFSTestInitializer extends BasicLocalTestInitializer<LocalPath, LocalF
 
     /**
      * Creates a new instance with a test root folder in the systems temporary directory.
-     *
-     * @throws IOException
      */
-    public LocalFSTestInitializer(final LocalFSConnection fsConnection) throws IOException {
+    public LocalFSTestInitializer(final LocalFSConnection fsConnection) {
         super(fsConnection, ((LocalPath)fsConnection.getFileSystem().getWorkingDirectory()).getWrappedPath());
     }
 

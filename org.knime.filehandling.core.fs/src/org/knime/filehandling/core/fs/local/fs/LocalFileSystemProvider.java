@@ -148,55 +148,62 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
             PLATFORM_DEFAULT_PROVIDER.newByteChannel(localPath.getWrappedPath(), options, attrs), m_fileSystem);
     }
 
-    @SuppressWarnings("resource")
     @Override
     public DirectoryStream<Path> newDirectoryStream(final Path path, final Filter<? super Path> filter)
         throws IOException {
 
         checkFileSystemOpenOrClosing();
-
-        final LocalPath checkedPath = checkCastAndAbsolutizePath(path);
-        final DirectoryStream<Path> wrappedStream =
-            PLATFORM_DEFAULT_PROVIDER.newDirectoryStream(checkedPath.getWrappedPath(), filter);
-
-        final DirectoryStream<Path> toReturn = new DirectoryStream<Path>() {
-            @Override
-            public void close() throws IOException {
-                try {
-                    wrappedStream.close();
-                } finally {
-                    m_fileSystem.unregisterCloseable(this);
-                }
-            }
-
-            @Override
-            public Iterator<Path> iterator() {
-                Iterator<Path> wrappedIterator = getWrappingIterator();
-                if (!path.isAbsolute()) {
-                    wrappedIterator = new RelativizingPathIterator(wrappedIterator, //
-                        path);
-                }
-                return wrappedIterator;
-            }
-
-            private Iterator<Path> getWrappingIterator() {
-                final Iterator<Path> toWrap = wrappedStream.iterator();
-                return new Iterator<Path>() {
-
-                    @Override
-                    public boolean hasNext() {
-                        return toWrap.hasNext();
-                    }
-
-                    @Override
-                    public Path next() {
-                        return new LocalPath(m_fileSystem, toWrap.next());
-                    }
-                };
-            }
-        };
+        final DirectoryStream<Path> toReturn = new DirectoryStreamWrapper(path, filter);
         m_fileSystem.registerCloseable(toReturn);
         return toReturn;
+    }
+
+    private class DirectoryStreamWrapper implements DirectoryStream<Path> {
+
+        private final Path m_path;
+
+        private final DirectoryStream<Path> m_wrappedStream;
+
+        DirectoryStreamWrapper(final Path path, final Filter<? super Path> filter) throws IOException {
+            m_path = path;
+            final var checkedPath = checkCastAndAbsolutizePath(path);
+            m_wrappedStream = PLATFORM_DEFAULT_PROVIDER.newDirectoryStream(checkedPath.getWrappedPath(), filter);
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                m_wrappedStream.close();
+            } finally {
+                m_fileSystem.unregisterCloseable(this);
+            }
+        }
+
+        @Override
+        public Iterator<Path> iterator() {
+            Iterator<Path> wrappedIterator = getWrappingIterator();
+            if (!m_path.isAbsolute()) {
+                wrappedIterator = new RelativizingPathIterator(wrappedIterator, //
+                    m_path);
+            }
+            return wrappedIterator;
+        }
+
+        private Iterator<Path> getWrappingIterator() {
+            final Iterator<Path> toWrap = m_wrappedStream.iterator();
+            return new Iterator<Path>() {
+
+                @Override
+                public boolean hasNext() {
+                    return toWrap.hasNext();
+                }
+
+                @Override
+                public Path next() {
+                    return new LocalPath(m_fileSystem, toWrap.next());
+                }
+            };
+        }
     }
 
     @Override
@@ -246,8 +253,7 @@ class LocalFileSystemProvider extends FSFileSystemProvider<LocalPath, LocalFileS
 
         try {
             return PLATFORM_DEFAULT_PROVIDER.isHidden(localPath.getWrappedPath());
-        } catch (final NoSuchFileException e) {
-            // Windows throws an exception on missing files instead of returning false.
+        } catch (final NoSuchFileException e) { // NOSONAR Windows throws an exception on missing files instead of returning false.
             // To be in sync with the UNIX and KNIME file system implementations, return false here.
             return false;
         }
