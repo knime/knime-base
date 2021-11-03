@@ -73,6 +73,8 @@ import org.knime.filehandling.core.fs.tests.integration.path.PathTest;
 import org.knime.filehandling.core.fs.tests.integration.path.SubPathTest;
 import org.knime.filehandling.core.fs.tests.integration.path.ToStringTest;
 import org.knime.filehandling.core.fs.tests.integration.path.ToUriTest;
+import org.knime.filehandling.core.fs.tests.integration.uriexport.DefaultURIExporterTest;
+import org.knime.filehandling.core.fs.tests.integration.uriexport.FileURIExporterTest;
 import org.knime.filehandling.core.fs.tests.integration.workflowaware.WorkflowAwareTest;
 
 @RunWith(Suite.class)
@@ -83,6 +85,8 @@ import org.knime.filehandling.core.fs.tests.integration.workflowaware.WorkflowAw
     CompareTest.class, //
     CopyTest.class, //
     CreateTest.class, //
+    DefaultURIExporterTest.class, //
+    FileURIExporterTest.class, //
     DeleteTest.class, //
     DirectoryStreamTest.class, //
     EndsStartsWithTest.class, //
