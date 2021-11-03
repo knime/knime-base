@@ -120,7 +120,7 @@ public final class WorkflowContextUtil {
      * @return {@code true} if the given context is a server context
      */
     public static boolean isServerContext(final WorkflowContext context) {
-        return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthToken().isPresent();
+        return context.getRemoteRepositoryAddress().isPresent() && context.getServerAuthenticator().isPresent();
     }
 
     /**

@@ -272,7 +272,7 @@ public class KNIMEConnection {
                     .equals(getId());
 
             if (isRemoteMountID && workflowContext.getRemoteRepositoryAddress().isPresent()
-                && workflowContext.getServerAuthToken().isPresent()) {
+                && workflowContext.getServerAuthenticator().isPresent()) {
                 return true;
             }
         }
