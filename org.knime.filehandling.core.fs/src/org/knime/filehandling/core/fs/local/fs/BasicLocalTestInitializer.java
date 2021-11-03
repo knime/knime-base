@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.fs.local.fs;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -77,7 +78,7 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
      * @param fsConnection The underlying connection.
      * @param localWorkingDir The working directory in the local file system (default FS provider).
      */
-    public BasicLocalTestInitializer(final FSConnection fsConnection, final Path localWorkingDir) {
+    protected BasicLocalTestInitializer(final FSConnection fsConnection, final Path localWorkingDir) {
         super(fsConnection);
         m_localWorkingDir = localWorkingDir;
     }
@@ -135,10 +136,10 @@ public abstract class BasicLocalTestInitializer<P extends FSPath, F extends FSFi
             throw new IllegalArgumentException("path components can not be empty or null");
         }
 
-        final Path file = Paths.get(getLocalTestCaseScratchDir().toString(), pathComponents);
+        final var file = Paths.get(getLocalTestCaseScratchDir().toString(), pathComponents);
 
         Files.createDirectories(file.getParent());
-        Files.write(file, content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.write(file, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
         return file;
     }
