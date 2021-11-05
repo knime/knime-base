@@ -58,8 +58,8 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemBrowser;
-import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemConstants;
+import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
+import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 

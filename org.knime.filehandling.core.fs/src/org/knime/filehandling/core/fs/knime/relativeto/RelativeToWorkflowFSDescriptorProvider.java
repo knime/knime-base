@@ -48,42 +48,62 @@
  */
 package org.knime.filehandling.core.fs.knime.relativeto;
 
+import java.io.IOException;
+
+import org.knime.core.util.KNIMERuntimeContext;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowFSDescriptorProvider;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
+import org.knime.filehandling.core.fs.knime.relativeto.export.LegacyKNIMEUrlExporterFactory;
 
 /**
  * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_WORKFLOW}, that provides either a local or
- * server-side Relative-to  {@link FSDescriptor}, depending on the context of the calling thread.
+ * server-side Relative-to {@link FSDescriptor}, depending on the context of the calling thread.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class RelativeToWorkflowFSDescriptorProvider implements FSDescriptorProvider {
+public class RelativeToWorkflowFSDescriptorProvider extends BaseFSDescriptorProvider {
 
-    private static final FSType LOCAL_FS_TYPE = LocalRelativeToWorkflowFSDescriptorProvider.FS_TYPE;
+    private static final FSType LOCAL_FSTYPE = LocalRelativeToWorkflowFSDescriptorProvider.FS_TYPE;
 
-    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-workflow";
+    private static final String REST_FSTYPE = "knime-rest-relative-workflow";
 
-    @Override
-    public FSType getFSType() {
-        return FSType.RELATIVE_TO_WORKFLOW;
+    /**
+     * Constructor.
+     */
+    public RelativeToWorkflowFSDescriptorProvider() {
+        super(FSType.RELATIVE_TO_WORKFLOW, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(RelativeToWorkflowFSDescriptorProvider::getActualFSConnection) //
+                .withIsWorkflowAware(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT,
+                    LegacyKNIMEUrlExporterFactory.getWorkflowRelativeInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL,
+                    LegacyKNIMEUrlExporterFactory.getWorkflowRelativeInstance()) //
+                .build());
     }
 
-    @Override
-    public FSDescriptor getFSDescriptor() {
-        FSType fsType = LOCAL_FS_TYPE;
+    private static FSConnection getActualFSConnection(final RelativeToFSConnectionConfig config) throws IOException {
 
-        if (WorkflowContextUtil.isServerContext()) {
-            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
+        var fsType = LOCAL_FSTYPE;
+
+        if (KNIMERuntimeContext.INSTANCE.runningInServerContext()) {
+            fsType = FSTypeRegistry.getFSType(REST_FSTYPE) //
                 .orElseThrow(
                     () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
         }
 
         return FSDescriptorRegistry.getFSDescriptor(fsType) //
-            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
+            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered")) //
+            .getConnectionFactory() //
+            .createConnection(config);
     }
 }

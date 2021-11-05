@@ -48,13 +48,21 @@
  */
 package org.knime.filehandling.core.fs.knime.relativeto;
 
+import java.io.IOException;
+
+import org.knime.core.util.KNIMERuntimeContext;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToMountpointFSDescriptorProvider;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
+import org.knime.filehandling.core.fs.knime.relativeto.export.LegacyKNIMEUrlExporterFactory;
 
 /**
  * Special {@link FSDescriptorProvider} for {@link FSType#RELATIVE_TO_MOUNTPOINT}, that provides either a local or
@@ -62,28 +70,38 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class RelativeToMountpointFSDescriptorProvider implements FSDescriptorProvider {
+public class RelativeToMountpointFSDescriptorProvider extends BaseFSDescriptorProvider {
 
-    private static final FSType LOCAL_FS_TYPE = LocalRelativeToMountpointFSDescriptorProvider.FS_TYPE;
+    private static final FSType LOCAL_FSTYPE = LocalRelativeToMountpointFSDescriptorProvider.FS_TYPE;
 
-    private static final String SERVER_SIDE_FS_TYPE = "knime-rest-relative-mountpoint";
+    private static final String REST_FSTYPE = "knime-rest-relative-mountpoint";
 
-    @Override
-    public FSType getFSType() {
-        return FSType.RELATIVE_TO_MOUNTPOINT;
+    /**
+     * Constructor.
+     */
+    public RelativeToMountpointFSDescriptorProvider() {
+        super(FSType.RELATIVE_TO_MOUNTPOINT, //
+            new BaseFSDescriptor.Builder() //
+                .withConnectionFactory(RelativeToMountpointFSDescriptorProvider::getActualFSConnection) //
+                .withIsWorkflowAware(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getMountpointRelativeInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getMountpointRelativeInstance()) //
+                .build());
     }
 
-    @Override
-    public FSDescriptor getFSDescriptor() {
-        FSType fsType = LOCAL_FS_TYPE;
+    private static FSConnection getActualFSConnection(final RelativeToFSConnectionConfig config) throws IOException {
 
-        if (WorkflowContextUtil.isServerContext()) {
-            fsType = FSTypeRegistry.getFSType(SERVER_SIDE_FS_TYPE) //
+        var fsType = LOCAL_FSTYPE;
+
+        if (KNIMERuntimeContext.INSTANCE.runningInServerContext()) {
+            fsType = FSTypeRegistry.getFSType(REST_FSTYPE) //
                 .orElseThrow(
                     () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
         }
 
         return FSDescriptorRegistry.getFSDescriptor(fsType) //
-            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered"));
+            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered")) //
+            .getConnectionFactory() //
+            .createConnection(config);
     }
 }

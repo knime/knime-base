@@ -52,9 +52,9 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowDataFSConnection;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
+import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**

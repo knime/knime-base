@@ -46,9 +46,10 @@ public final class WorkflowTestUtil {
      * @throws IOException
      */
     public static WorkflowManager createAndLoadDummyWorkflow(final Path localMountpointRoot) throws IOException {
-        final Path currentWorkflow = WorkflowTestUtil.createWorkflowDir(localMountpointRoot, "current-workflow");
-        final WorkflowManager workflowManager =
-            WorkflowTestUtil.getWorkflowManager(localMountpointRoot.toFile(), currentWorkflow, false);
+        final var workflowName = "current-workflow";
+        createWorkflowDir(localMountpointRoot, workflowName);
+
+        final var workflowManager = WorkflowTestUtil.getWorkflowManager(localMountpointRoot, workflowName, false);
         NodeContext.pushContext(workflowManager);
         return workflowManager;
     }
@@ -91,20 +92,24 @@ public final class WorkflowTestUtil {
     }
 
     /**
-     * Creates a {@link WorkflowManager} for the workflow in the given workflow directory.
+     * Creates a {@link WorkflowManager} for the workflow located at <code>knime://LOCAL/workflowName</code>,
+     * where the LOCAL mountpoint is root at mountpointRoot in the local file system.
      *
-     * @param mountpointRoot
-     * @param currentWorkflowDirectory
+     * @param mountpointRoot Path in local file system where the LOCAL mountpoint should be rooted at.
+     * @param workflowName Name of the workflow
      * @param serverMode
      * @return the newly created {@link WorkflowManager}.
      * @throws IOException
      */
-    public static WorkflowManager getWorkflowManager(final File mountpointRoot, final Path currentWorkflowDirectory,
+    public static WorkflowManager getWorkflowManager(final Path mountpointRoot, final String workflowName,
         final boolean serverMode) throws IOException {
+
+        final File workflowFile = mountpointRoot.resolve(workflowName).toFile();
         try {
-            final ExecutionMonitor exec = new ExecutionMonitor();
-            final WorkflowContext.Factory fac = new WorkflowContext.Factory(currentWorkflowDirectory.toFile());
-            fac.setMountpointRoot(mountpointRoot);
+            final var exec = new ExecutionMonitor();
+            final var fac = new WorkflowContext.Factory(workflowFile);
+            fac.setMountpointURI(URI.create("knime://LOCAL/" + workflowName));
+            fac.setMountpointRoot(mountpointRoot.toFile());
             fac.setTemporaryCopy(serverMode);
             if (serverMode) {
                 fac.setRemoteAddress(URI.create("http://test-test-test:-1"), "test-test-test");
@@ -112,7 +117,7 @@ public final class WorkflowTestUtil {
             }
             final WorkflowLoadHelper loadHelper = new WorkflowLoadHelper(fac.createContext());
             final WorkflowLoadResult loadResult =
-                WorkflowManager.ROOT.load(currentWorkflowDirectory.toFile(), exec, loadHelper, false);
+                WorkflowManager.ROOT.load(workflowFile, exec, loadHelper, false);
             return loadResult.getWorkflowManager();
         } catch (final InvalidSettingsException | CanceledExecutionException | UnsupportedWorkflowVersionException
                 | LockFailedException e) {

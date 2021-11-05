@@ -52,14 +52,17 @@ import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.fs.knime.local.relativeto.testing.LocalRelativeToMountpointFSTestInitializerProvider;
+import org.knime.filehandling.core.fs.knime.relativeto.export.LegacyKNIMEUrlExporterFactory;
 
 /**
  * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalRelativeToMountpointFSDescriptorProvider extends RelativeToFSDescriptorProvider {
+public class LocalRelativeToMountpointFSDescriptorProvider extends BaseFSDescriptorProvider {
 
     /**
      * {@link FSType} for the local relative-to mountpoint file system.
@@ -74,6 +77,10 @@ public class LocalRelativeToMountpointFSDescriptorProvider extends RelativeToFSD
         super(FS_TYPE, //
             new BaseFSDescriptor.Builder() //
                 .withConnectionFactory(LocalRelativeToMountpointFSConnection::new)
-                .withTestInitializerProvider(new LocalRelativeToMountpointFSTestInitializerProvider(FS_TYPE)));
+                .withIsWorkflowAware(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getMountpointRelativeInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getMountpointRelativeInstance()) //
+                .withTestInitializerProvider(new LocalRelativeToMountpointFSTestInitializerProvider(FS_TYPE)) //
+                .build());
     }
 }

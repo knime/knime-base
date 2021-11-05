@@ -56,8 +56,8 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemBrowser;
-import org.knime.filehandling.core.fs.knime.local.relativeto.export.RelativeToFileSystemConstants;
+import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
+import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
@@ -88,7 +88,8 @@ public class LocalRelativeToMountpointFSConnection implements FSConnection {
                 "Unsupported temporary copy of workflow detected. Relative to does not support server execution.");
         }
 
-        final var localMountId = workflowContext.getMountpointURI().orElseThrow(() -> new IllegalStateException("Cannot determine ID of local mountpoint")).getAuthority();
+        final var localMountId = workflowContext.getMountpointURI()
+            .orElseThrow(() -> new IllegalStateException("Cannot determine ID of local mountpoint")).getAuthority();
         final var localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
         m_fileSystem = createMountpointRelativeFs(localMountId, //
             localMountpointRoot, //

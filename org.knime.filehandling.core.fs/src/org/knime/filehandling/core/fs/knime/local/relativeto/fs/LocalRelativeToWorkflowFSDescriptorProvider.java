@@ -52,14 +52,17 @@ import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.fs.knime.local.relativeto.testing.LocalRelativeToWorkflowFSTestInitializerProvider;
+import org.knime.filehandling.core.fs.knime.relativeto.export.LegacyKNIMEUrlExporterFactory;
 
 /**
  * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalRelativeToWorkflowFSDescriptorProvider extends RelativeToFSDescriptorProvider {
+public class LocalRelativeToWorkflowFSDescriptorProvider extends BaseFSDescriptorProvider {
 
     /**
      * {@link FSType} for the local relative-to workflow file system.
@@ -73,7 +76,13 @@ public class LocalRelativeToWorkflowFSDescriptorProvider extends RelativeToFSDes
     public LocalRelativeToWorkflowFSDescriptorProvider() {
         super(FS_TYPE, //
             new BaseFSDescriptor.Builder() //
-                .withConnectionFactory(LocalRelativeToWorkflowFSConnection::new)
-                .withTestInitializerProvider(new LocalRelativeToWorkflowFSTestInitializerProvider(FS_TYPE)));
+                .withConnectionFactory(LocalRelativeToWorkflowFSConnection::new) //
+                .withIsWorkflowAware(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT,
+                    LegacyKNIMEUrlExporterFactory.getWorkflowRelativeInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL,
+                    LegacyKNIMEUrlExporterFactory.getWorkflowRelativeInstance()) //
+                .withTestInitializerProvider(new LocalRelativeToWorkflowFSTestInitializerProvider(FS_TYPE)) //
+                .build());
     }
 }

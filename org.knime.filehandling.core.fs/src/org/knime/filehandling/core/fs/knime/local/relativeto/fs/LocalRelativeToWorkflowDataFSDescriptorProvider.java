@@ -51,14 +51,17 @@ package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
+import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.fs.knime.local.relativeto.testing.RelativeToWorkflowDataFSTestInitializerProvider;
+import org.knime.filehandling.core.fs.knime.relativeto.export.LegacyKNIMEUrlExporterFactory;
 
 /**
  * {@link FSDescriptorProvider} for the local Relative-to Mountpoint file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalRelativeToWorkflowDataFSDescriptorProvider extends RelativeToFSDescriptorProvider {
+public class LocalRelativeToWorkflowDataFSDescriptorProvider extends BaseFSDescriptorProvider {
 
     /**
      * Constructor.
@@ -67,6 +70,12 @@ public class LocalRelativeToWorkflowDataFSDescriptorProvider extends RelativeToF
         super(FSType.RELATIVE_TO_WORKFLOW_DATA_AREA, //
             new BaseFSDescriptor.Builder() //
                 .withConnectionFactory(LocalRelativeToWorkflowDataFSConnection::new)
-                .withTestInitializerProvider(new RelativeToWorkflowDataFSTestInitializerProvider()));
+                .withIsWorkflowAware(true) //
+                .withURIExporterFactory(URIExporterIDs.DEFAULT,
+                    LegacyKNIMEUrlExporterFactory.getWorkflowDataRelativeInstance()) //
+                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL,
+                    LegacyKNIMEUrlExporterFactory.getWorkflowDataRelativeInstance()) //
+                .withTestInitializerProvider(new RelativeToWorkflowDataFSTestInitializerProvider()) //
+                .build());
     }
 }

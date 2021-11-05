@@ -44,45 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.local.relativeto.export;
+package org.knime.filehandling.core.fs.knime.relativeto.export;
 
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
-import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
+import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
+import org.knime.filehandling.core.connections.uriexport.base.LegacyKNIMEUriExporterHelper;
+import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative-to file system.
+ * {@link URIExporter} that provides legacy knime:// URLs.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class RelativeToFileSystemBrowser extends WorkflowAwareFileSystemBrowser {
+public final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFactory {
 
-    private final FSFileSystem<?> m_fileSystem;
+    private static final BaseURIExporterMetaInfo META_INFO =
+        new BaseURIExporterMetaInfo("knime:// URL", "Generates a knime:// URL");
 
-    /**
-     * Creates a new local KNIME relative-to file system browser. The "home directory" and the "default directory" of
-     * the browser are the working directory of the given file system.
-     *
-     * @param fileSystem the file system to use
-     * @param homeDir The "home directory" that the browser jumps to when the user presses the "home" button.
-     * @param defaultDir The default directory, where the user starts to browse.
-     */
-    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
-        final FSPath defaultDir) {
-        super(fileSystem, defaultDir, homeDir);
-        m_fileSystem = fileSystem;
+    private static final LegacyKNIMEUrlExporterFactory WORKFLOW_RELATIVE_INSTANCE =
+        new LegacyKNIMEUrlExporterFactory(RelativeTo.WORKFLOW);
+
+    private static final LegacyKNIMEUrlExporterFactory WORKFLOW_DATA_RELATIVE_INSTANCE =
+            new LegacyKNIMEUrlExporterFactory(RelativeTo.WORKFLOW_DATA);
+
+    private static final LegacyKNIMEUrlExporterFactory MOUNTPOINT_RELATIVE_INSTANCE =
+        new LegacyKNIMEUrlExporterFactory(RelativeTo.MOUNTPOINT);
+
+    private LegacyKNIMEUrlExporterFactory(final RelativeTo type) {
+        super(META_INFO, p -> LegacyKNIMEUriExporterHelper.createRelativeKNIMEProtocolURI(type, p));
     }
 
     /**
-     * Convert the selected file to a relative path in workflow relative mode.
+     * @return the singleton instance for the {@link URIExporterFactory} that generates workflow-relative knime:// URLs
      */
-    @Override
-    protected String postprocessSelectedFilePath(final String selectedFile) {
-        return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
+    public static NoConfigURIExporterFactory getWorkflowRelativeInstance() {
+        return WORKFLOW_RELATIVE_INSTANCE;
+    }
+
+    /**
+     * @return the singleton instance for the {@link URIExporterFactory} that generates mountpoint-relative knime://
+     *         URLs
+     */
+    public static NoConfigURIExporterFactory getMountpointRelativeInstance() {
+        return MOUNTPOINT_RELATIVE_INSTANCE;
+    }
+
+    /**
+     * @return the singleton instance for the {@link URIExporterFactory} that generates workflow-data-area-relative
+     *         knime:// URLs
+     */
+    public static NoConfigURIExporterFactory getWorkflowDataRelativeInstance() {
+        return WORKFLOW_DATA_RELATIVE_INSTANCE;
     }
 }

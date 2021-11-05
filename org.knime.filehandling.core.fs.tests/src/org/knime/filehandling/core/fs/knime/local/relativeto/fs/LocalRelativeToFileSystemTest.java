@@ -49,7 +49,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
@@ -62,7 +61,6 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToFileSystem;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwarePath;
 import org.knime.filehandling.core.testing.WorkflowTestUtil;
 
@@ -77,9 +75,10 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
     public void unsupportedServerSideExecution() throws IOException {
         // replace the current workflow manager with a server side workflow manager
         NodeContext.removeLastContext();
-        final File mountpointRoot = m_tempFolder.newFolder("other-mountpoint-root");
-        final Path currentWorkflow = WorkflowTestUtil.createWorkflowDir(mountpointRoot.toPath(), "current-workflow");
-        m_workflowManager = WorkflowTestUtil.getWorkflowManager(mountpointRoot, currentWorkflow, true);
+        final var mountpointRoot = m_tempFolder.newFolder("other-mountpoint-root").toPath();
+        final var workflowName = "current-workflow";
+        WorkflowTestUtil.createWorkflowDir(mountpointRoot, workflowName);
+        m_workflowManager = WorkflowTestUtil.getWorkflowManager(mountpointRoot, workflowName, true);
         NodeContext.pushContext(m_workflowManager);
 
         // initialization should fail
@@ -208,7 +207,7 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
         final LocalWorkflowAwarePath mountpointPath = mountpointFS.getPath(filename);
         final Path convertedLocalPath = mountpointFS.toLocalPathWithAccessibilityCheck(mountpointPath);
-        final Path realLocalPath = m_mountpointRoot.toPath().resolve("some-dir").resolve("some-file.txt");
+        final Path realLocalPath = m_mountpointRoot.resolve("some-dir").resolve("some-file.txt");
         assertEquals(realLocalPath, convertedLocalPath);
     }
 

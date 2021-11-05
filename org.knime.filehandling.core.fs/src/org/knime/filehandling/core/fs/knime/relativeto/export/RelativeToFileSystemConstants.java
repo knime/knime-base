@@ -46,7 +46,7 @@
  * History
  *   02.08.2021 (jl): created
  */
-package org.knime.filehandling.core.fs.knime.local.relativeto.export;
+package org.knime.filehandling.core.fs.knime.relativeto.export;
 
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;

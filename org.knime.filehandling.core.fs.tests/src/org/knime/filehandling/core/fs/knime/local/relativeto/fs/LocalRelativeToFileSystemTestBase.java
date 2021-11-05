@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -60,9 +59,6 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToFileSystem;
-import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToMountpointFSConnection;
-import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowFSConnection;
 import org.knime.filehandling.core.testing.WorkflowTestUtil;
 
 /**
@@ -75,16 +71,18 @@ public class LocalRelativeToFileSystemTestBase {
     @Rule
     public final TemporaryFolder m_tempFolder = new TemporaryFolder();
 
-    File m_mountpointRoot;
+    Path m_mountpointRoot;
 
     WorkflowManager m_workflowManager;
 
     @Before
     public void beforeTestCase() throws IOException {
-        m_mountpointRoot = m_tempFolder.newFolder("mountpoint-root");
-        final Path currentWorkflow = WorkflowTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "current-workflow");
-        WorkflowTestUtil.createWorkflowDir(m_mountpointRoot.toPath(), "other-workflow");
-        m_workflowManager = WorkflowTestUtil.getWorkflowManager(m_mountpointRoot, currentWorkflow, false);
+        m_mountpointRoot = m_tempFolder.newFolder("mountpoint-root").toPath();
+        final var workflowName = "current-workflow";
+        
+        WorkflowTestUtil.createWorkflowDir(m_mountpointRoot, workflowName);
+        WorkflowTestUtil.createWorkflowDir(m_mountpointRoot, "other-workflow");
+        m_workflowManager = WorkflowTestUtil.getWorkflowManager(m_mountpointRoot, workflowName, false);
         NodeContext.pushContext(m_workflowManager);
     }
 
