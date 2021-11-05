@@ -55,7 +55,7 @@ import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
 import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.fs.knime.local.mountpoint.testing.LocalMountpointFSTestInitializerProvider;
-import org.knime.filehandling.core.fs.knime.mountpoint.LegacyKNIMEUrlExporterFactory;
+import org.knime.filehandling.core.fs.knime.mountpoint.export.LegacyKNIMEUrlExporterFactory;
 
 /**
  * Special {@link FSDescriptorProvider} for {@link FSType#MOUNTPOINT}, which usually delegates to a KNIME Explorer-based

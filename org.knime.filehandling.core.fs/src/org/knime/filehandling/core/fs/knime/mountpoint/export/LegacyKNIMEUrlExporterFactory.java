@@ -46,7 +46,7 @@
  * History
  *   Nov 27, 2020 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.core.fs.knime.mountpoint;
+package org.knime.filehandling.core.fs.knime.mountpoint.export;
 
 import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
