@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.fs.knime.mountpoint;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -66,6 +65,7 @@ import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvide
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.fs.knime.local.mountpoint.LocalMountpointFSDescriptorProvider;
+import org.knime.filehandling.core.fs.knime.mountpoint.export.LegacyKNIMEUrlExporterFactory;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
@@ -78,9 +78,9 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
  */
 public final class MountpointFSDescriptorProvider extends BaseFSDescriptorProvider {
 
-    private static final FSType MOUNTPOINT_LOCAL_FS_TYPE = LocalMountpointFSDescriptorProvider.FS_TYPE;
+    private static final FSType LOCAL_FSTYPE = LocalMountpointFSDescriptorProvider.FS_TYPE;
 
-    private static final String MOUNTPOINT_REST_FS_TYPE = "knime-rest-mountpoint";
+    private static final String REST_FSTYPE = "knime-rest-mountpoint";
 
     /**
      * Constructor.
@@ -98,7 +98,7 @@ public final class MountpointFSDescriptorProvider extends BaseFSDescriptorProvid
     private static FSConnection getActualFSConnection(final MountpointFSConnectionConfig config) throws IOException {
 
         try {
-            final File localFile = ResolverUtil.resolveURItoLocalFile(new URI(String.format("knime://%s/", config.getMountID())));
+            final var localFile = ResolverUtil.resolveURItoLocalFile(new URI(String.format("knime://%s/", config.getMountID())));
             if (WorkflowContextUtil.isServerWorkflowConnectingToRemoteRepository(config.getMountID())
                 || localFile == null) {
                 return getRestFSDescriptor().getConnectionFactory().createConnection(config);
@@ -111,12 +111,12 @@ public final class MountpointFSDescriptorProvider extends BaseFSDescriptorProvid
     }
 
     private static FSDescriptor getLocalFSDescriptor() {
-        return FSDescriptorRegistry.getFSDescriptor(MOUNTPOINT_LOCAL_FS_TYPE) //
+        return FSDescriptorRegistry.getFSDescriptor(LOCAL_FSTYPE) //
                 .orElseThrow(() -> new IllegalStateException("Local Mountpoint file system not registered"));
     }
 
     private static FSDescriptor getRestFSDescriptor() {
-        final FSType restFsType = FSTypeRegistry.getFSType(MOUNTPOINT_REST_FS_TYPE) //
+        final var restFsType = FSTypeRegistry.getFSType(REST_FSTYPE) //
             .orElseThrow(() -> new IllegalStateException("REST-based Mountpoint FSType not registered"));
 
         return FSDescriptorRegistry.getFSDescriptor(restFsType) //
