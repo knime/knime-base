@@ -14,6 +14,8 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.data.v2.ValueFactory;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.ZonedDateTimeReadValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.ZonedDateTimeWriteValue;
 import org.knime.core.table.access.IntAccess.IntReadAccess;
 import org.knime.core.table.access.IntAccess.IntWriteAccess;
 import org.knime.core.table.access.LongAccess.LongReadAccess;
@@ -49,8 +51,7 @@ public final class ZonedDateTimeValueFactory2
 
     @Override
     public StructDataSpec getSpec() {
-        // day of epoch, nano of day, zone offset, zone id
-        // TODO nano of day used to be time nano (and should probably still be for backwards compatibility)
+        // [day of epoch, nano of day, zone offset, zone id]
         return new StructDataSpec(DataSpec.longSpec(), DataSpec.longSpec(), DataSpec.intSpec(), DataSpec.stringSpec());
     }
 
@@ -58,7 +59,6 @@ public final class ZonedDateTimeValueFactory2
 
         private final LongReadAccess m_dayOfEpoch;
 
-        // TODO TimeNanoReadAccess
         private final LongReadAccess m_nanoOfDay;
 
         private final IntReadAccess m_zoneOffset;
@@ -98,7 +98,6 @@ public final class ZonedDateTimeValueFactory2
 
         private final LongWriteAccess m_dayOfEpoch;
 
-        // TODO TimeNanoWriteAccess
         private final LongWriteAccess m_nanoOfDay;
 
         private final IntWriteAccess m_zoneOffset;

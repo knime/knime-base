@@ -14,6 +14,8 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue;
 import org.knime.core.data.v2.ValueFactory;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.ZonedDateTimeReadValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.ZonedDateTimeWriteValue;
 import org.knime.core.table.access.IntAccess.IntReadAccess;
 import org.knime.core.table.access.IntAccess.IntWriteAccess;
 import org.knime.core.table.access.LongAccess.LongReadAccess;

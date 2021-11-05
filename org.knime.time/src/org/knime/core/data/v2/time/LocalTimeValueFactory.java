@@ -3,16 +3,14 @@ package org.knime.core.data.v2.time;
 import java.time.LocalTime;
 import java.time.temporal.ChronoField;
 
-import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.time.localtime.LocalTimeCell;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.data.time.localtime.LocalTimeValue;
-import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
-import org.knime.core.data.v2.WriteValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.LocalTimeReadValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.LocalTimeWriteValue;
 import org.knime.core.table.access.LongAccess.LongReadAccess;
 import org.knime.core.table.access.LongAccess.LongWriteAccess;
 import org.knime.core.table.schema.DataSpec;
@@ -41,30 +39,7 @@ public final class LocalTimeValueFactory implements ValueFactory<LongReadAccess,
 
     @Override
     public LongDataSpec getSpec() {
-        // TODO introduce time nano data spec
         return DataSpec.longSpec();
-    }
-
-    /**
-     * {@link ReadValue} equivalent to {@link LocalTimeCell}.
-     *
-     * @since 4.3
-     */
-    public static interface LocalTimeReadValue extends ReadValue, LocalTimeValue, BoundedValue, StringValue {
-    }
-
-    /**
-     * {@link WriteValue} equivalent to {@link LocalTimeCell}.
-     *
-     * @since 4.3
-     */
-    public static interface LocalTimeWriteValue extends WriteValue<LocalTimeValue> {
-
-        /**
-         * @param time the time to set
-         */
-        void setLocalTime(LocalTime time);
-
     }
 
     private static final class DefaultLocalTimeReadValue implements LocalTimeReadValue {

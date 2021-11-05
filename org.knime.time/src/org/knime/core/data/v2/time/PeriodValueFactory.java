@@ -2,16 +2,14 @@ package org.knime.core.data.v2.time;
 
 import java.time.Period;
 
-import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.time.period.PeriodCell;
 import org.knime.core.data.time.period.PeriodCellFactory;
 import org.knime.core.data.time.period.PeriodValue;
-import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
-import org.knime.core.data.v2.WriteValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.PeriodReadValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.PeriodWriteValue;
 import org.knime.core.table.access.IntAccess.IntReadAccess;
 import org.knime.core.table.access.IntAccess.IntWriteAccess;
 import org.knime.core.table.access.StructAccess.StructReadAccess;
@@ -44,28 +42,6 @@ public final class PeriodValueFactory implements ValueFactory<StructReadAccess, 
     public StructDataSpec getSpec() {
         // years, months, days
         return new StructDataSpec(DataSpec.intSpec(), DataSpec.intSpec(), DataSpec.intSpec());
-    }
-
-    /**
-     * {@link ReadValue} equivalent to {@link PeriodCell}.
-     *
-     * @since 4.3
-     */
-    public static interface PeriodReadValue extends ReadValue, PeriodValue, StringValue, BoundedValue {
-    }
-
-    /**
-     * {@link WriteValue} equivalent to {@link PeriodCell}.
-     *
-     * @since 4.3
-     */
-    public static interface PeriodWriteValue extends WriteValue<PeriodValue> {
-
-        /**
-         * @param period the period to set
-         */
-        void setPeriod(Period period);
-
     }
 
     private static final class DefaultPeriodReadValue implements PeriodReadValue {

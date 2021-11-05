@@ -3,16 +3,14 @@ package org.knime.core.data.v2.time;
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 
-import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.time.localdate.LocalDateCell;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.data.time.localdate.LocalDateValue;
-import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
-import org.knime.core.data.v2.WriteValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.LocalDateReadValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.LocalDateWriteValue;
 import org.knime.core.table.access.LongAccess.LongReadAccess;
 import org.knime.core.table.access.LongAccess.LongWriteAccess;
 import org.knime.core.table.schema.DataSpec;
@@ -43,28 +41,6 @@ public final class LocalDateValueFactory
     @Override
     public LongDataSpec getSpec() {
         return DataSpec.longSpec();
-    }
-
-    /**
-     * {@link ReadValue} equivalent to {@link LocalDateCell}.
-     *
-     * @since 4.3
-     */
-    public static interface LocalDateReadValue extends ReadValue, LocalDateValue, BoundedValue, StringValue {
-    }
-
-    /**
-     * {@link WriteValue} equivalent to {@link LocalDateCell}.
-     *
-     * @since 4.3
-     */
-    public static interface LocalDateWriteValue extends WriteValue<LocalDateValue> {
-
-        /**
-         * @param date the date to set
-         */
-        void setLocalDate(LocalDate date);
-
     }
 
     private static final class DefaultLocalDateReadValue implements LocalDateReadValue {

@@ -5,16 +5,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoField;
 
-import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
-import org.knime.core.data.v2.ReadValue;
 import org.knime.core.data.v2.ValueFactory;
-import org.knime.core.data.v2.WriteValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.LocalDateTimeReadValue;
+import org.knime.core.data.v2.time.DateTimeValueInterfaces.LocalDateTimeWriteValue;
 import org.knime.core.table.access.LongAccess.LongReadAccess;
 import org.knime.core.table.access.LongAccess.LongWriteAccess;
 import org.knime.core.table.access.StructAccess.StructReadAccess;
@@ -46,31 +44,8 @@ public final class LocalDateTimeValueFactory
 
     @Override
     public StructDataSpec getSpec() {
-        // TODO introduce time nano dataspec for second field
         // [epoch day, nano of day]
         return new StructDataSpec(DataSpec.longSpec(), DataSpec.longSpec());
-    }
-
-    /**
-     * {@link ReadValue} equivalent to {@link LocalDateTimeCell}.
-     *
-     * @since 4.3
-     */
-    public static interface LocalDateTimeReadValue extends ReadValue, LocalDateTimeValue, StringValue, BoundedValue {
-    }
-
-    /**
-     * {@link WriteValue} equivalent to {@link LocalDateTimeCell}.
-     *
-     * @since 4.3
-     */
-    public static interface LocalDateTimeWriteValue extends WriteValue<LocalDateTimeValue> {
-
-        /**
-         * @param dateTime the date and time to set
-         */
-        void setLocalDateTime(LocalDateTime dateTime);
-
     }
 
     private static final class DefaultLocalDateTimeReadValue implements LocalDateTimeReadValue {
