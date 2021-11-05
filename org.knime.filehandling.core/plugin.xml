@@ -46,12 +46,15 @@
       </DataType>
       <DataType
             cellClass="org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell"
-            factoryClass="org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell$Factory"
-            factoryValue="org.knime.filehandling.core.data.location.FSLocationValueFactory">
+            factoryClass="org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell$Factory">
          <serializer
                cellClass="org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell"
                serializerClass="org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell$SimpleFSLocationCellSerializer">
          </serializer>
+         <ValueFactory
+               deprecated="false"
+               valueFactoryClass="org.knime.filehandling.core.data.location.FSLocationValueFactory">
+         </ValueFactory>
       </DataType>
    </extension>
    <extension
