@@ -22,6 +22,8 @@ import org.knime.core.table.schema.StructDataSpec;
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @since 4.3
+ * @noreference This class is not intended to be referenced by clients.
+ * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public final class PeriodValueFactory implements ValueFactory<StructReadAccess, StructWriteAccess> {
 

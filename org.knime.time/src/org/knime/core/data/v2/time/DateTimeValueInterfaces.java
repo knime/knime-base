@@ -76,6 +76,7 @@ import org.knime.core.data.v2.WriteValue;
  * Defines all the {@link ReadValue} and {@link WriteValue} interfaces for date & time data types.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients.
  */
 public final class DateTimeValueInterfaces {
 
@@ -83,6 +84,8 @@ public final class DateTimeValueInterfaces {
      * {@link ReadValue} equivalent to {@link DurationCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface DurationReadValue extends ReadValue, DurationValue, BoundedValue, StringValue {
     }
@@ -91,6 +94,8 @@ public final class DateTimeValueInterfaces {
      * {@link WriteValue} equivalent to {@link DurationCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface DurationWriteValue extends WriteValue<DurationValue> {
 
@@ -105,6 +110,8 @@ public final class DateTimeValueInterfaces {
      * {@link ReadValue} equivalent to {@link LocalDateTimeCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface LocalDateTimeReadValue extends ReadValue, LocalDateTimeValue, StringValue, BoundedValue {
     }
@@ -113,6 +120,8 @@ public final class DateTimeValueInterfaces {
      * {@link WriteValue} equivalent to {@link LocalDateTimeCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface LocalDateTimeWriteValue extends WriteValue<LocalDateTimeValue> {
 
@@ -127,6 +136,8 @@ public final class DateTimeValueInterfaces {
      * {@link ReadValue} equivalent to {@link LocalDateCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface LocalDateReadValue extends ReadValue, LocalDateValue, BoundedValue, StringValue {
     }
@@ -135,6 +146,8 @@ public final class DateTimeValueInterfaces {
      * {@link WriteValue} equivalent to {@link LocalDateCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface LocalDateWriteValue extends WriteValue<LocalDateValue> {
 
@@ -149,6 +162,8 @@ public final class DateTimeValueInterfaces {
      * {@link ReadValue} equivalent to {@link LocalTimeCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface LocalTimeReadValue extends ReadValue, LocalTimeValue, BoundedValue, StringValue {
     }
@@ -157,6 +172,8 @@ public final class DateTimeValueInterfaces {
      * {@link WriteValue} equivalent to {@link LocalTimeCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface LocalTimeWriteValue extends WriteValue<LocalTimeValue> {
 
@@ -171,6 +188,8 @@ public final class DateTimeValueInterfaces {
      * {@link ReadValue} equivalent to {@link PeriodCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface PeriodReadValue extends ReadValue, PeriodValue, StringValue, BoundedValue {
     }
@@ -179,6 +198,8 @@ public final class DateTimeValueInterfaces {
      * {@link WriteValue} equivalent to {@link PeriodCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public static interface PeriodWriteValue extends WriteValue<PeriodValue> {
 
@@ -193,6 +214,8 @@ public final class DateTimeValueInterfaces {
      * {@link WriteValue} equivalent to {@link ZonedDateTimeCell}.
      *
      * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public interface ZonedDateTimeWriteValue extends WriteValue<ZonedDateTimeValue> {
 
@@ -206,7 +229,9 @@ public final class DateTimeValueInterfaces {
     /**
      * {@link ReadValue} equivalent to {@link ZonedDateTimeCell}.
      *
-     * @since 4.3
+     * @since 4.5
+     * @noreference This interface is not intended to be referenced by clients.
+     * @noimplement This interface is not intended to be implemented by clients.
      */
     public interface ZonedDateTimeReadValue extends ReadValue, ZonedDateTimeValue {
     }
