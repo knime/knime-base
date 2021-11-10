@@ -153,9 +153,11 @@ public final class DefaultFSConnectionFactory {
     }
 
     public static FSConnection createMountpointConnection(final String mountID) {
-        try {
-            final var config = new MountpointFSConnectionConfig(mountID);
+        return createMountpointConnection(new MountpointFSConnectionConfig(mountID));
+    }
 
+    public static FSConnection createMountpointConnection(final MountpointFSConnectionConfig config) {
+        try {
             return FSDescriptorRegistry.getFSDescriptor(FSType.MOUNTPOINT) //
                 .orElseThrow(() -> new IllegalStateException(FSType.MOUNTPOINT.getName() + " file system is not registered"))
                 .getConnectionFactory() //

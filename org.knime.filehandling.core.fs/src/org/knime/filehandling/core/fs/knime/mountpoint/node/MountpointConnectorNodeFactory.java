@@ -44,76 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 2, 2021 (bjoern): created
+ *   2021-08-04 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.connections.config;
+package org.knime.filehandling.core.fs.knime.mountpoint.node;
 
-import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * {@link FSConnectionConfig} for the Mountpoint file system. It is unlikely that you will have to use this class
- * directly. To create a configured Mountpoint file system, please use {@link DefaultFSConnectionFactory}.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * Factory class for the {@link MountpointConnectorNodeModel} node.
+ *
+ * @author Alexander Bondaletov
  */
-public final class MountpointFSConnectionConfig extends BaseFSConnectionConfig {
+public class MountpointConnectorNodeFactory extends NodeFactory<MountpointConnectorNodeModel> {
 
-    /**
-     * Path separator character
-     */
-    public static final String PATH_SEPARATOR = "/";
-
-    private final String m_mountID;
-
-    /**
-     * Constructor that creates a convenience file system with the default working directory (mountpoint root).
-     *
-     * @param mountID The mount ID to connect to.
-     */
-    public MountpointFSConnectionConfig(final String mountID) {
-        super(PATH_SEPARATOR, false);
-        m_mountID = mountID;
+    @Override
+    public MountpointConnectorNodeModel createNodeModel() {
+        return new MountpointConnectorNodeModel();
     }
 
-    /**
-     * Constructor that creates a CONNECTED file system with the given working directory.
-     *
-     * @param workingDirectory The working directory to use.
-     * @param mountID The mount ID to connect to.
-     */
-    public MountpointFSConnectionConfig(final String workingDirectory, final String mountID) {
-        super(workingDirectory, true);
-        m_mountID = mountID;
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
     }
 
-    /**
-     * @return the mount ID to connect to.
-     */
-    public String getMountID() {
-        return m_mountID;
+    @Override
+    public NodeView<MountpointConnectorNodeModel> createNodeView(final int viewIndex,
+        final MountpointConnectorNodeModel nodeModel) {
+        return null;
     }
 
-    /**
-     * @return the {@link FSLocationSpec} for the Mountpoint file system which uses this configuration.
-     */
-    public FSLocationSpec createFSLocationSpec() {
-        final FSCategory category;
-        final String specifier;
-
-        if (isConnectedFileSystem()) {
-            category = FSCategory.CONNECTED;
-            specifier = String.format("%s:%s", FSType.MOUNTPOINT.getTypeId(), getMountID());
-        } else {
-            category = FSCategory.MOUNTPOINT;
-            specifier = getMountID();
-        }
-        return new DefaultFSLocationSpec(category, specifier);
+    @Override
+    protected boolean hasDialog() {
+        return true;
     }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new MountpointConnectorNodeDialog();
+    }
+
 }
