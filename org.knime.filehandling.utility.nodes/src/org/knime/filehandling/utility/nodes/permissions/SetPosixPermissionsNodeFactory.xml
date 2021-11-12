@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="set_posix_permissions_16x16.png" type="Other"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1
+	http://knime.org/node/v4.1.xsd">
+	<name>Set Files/Folder Permissions</name>
+	<shortDescription>
+		Sets permissions for the files/folders.
+	</shortDescription>
+	<fullDescription>
+		<intro>
+            <p>
+			This node sets POSIX permissions for the files and folders referenced by the selected column.
+			</p>
+
+		</intro>
+		<option name="Column name">
+			Column containing the paths to the files/folders whose permissions must be edited.
+		</option>
+		<option name="Fail if file/folder does not exist">
+			If checked, the node fails, if a file/folder from the input table does not exist.
+		</option>
+        <option name="Fail if setting POSIX permissions on a file/folder fails">
+            If checked, the node fails, if there is a failure while setting POSIX permissions for a file/folder from the input table.
+        </option>
+		<option name="Permissions">
+			Select read/write/execute permissions for the owner/group/other categories.
+		</option>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Input Table">Table that contains a path column.
+		</inPort>
+		<dynInPort insert-before="0" name="File system connection"
+			group-identifier="File System Connection">
+			The file system connection.
+		</dynInPort>
+		<outPort name="Output Table" index="0">
+			Input table plus additional column reflecting the status of the operation.
+		</outPort>
+	</ports>
+</knimeNode>

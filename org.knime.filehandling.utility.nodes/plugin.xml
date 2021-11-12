@@ -137,6 +137,12 @@
             factory-class="org.knime.filehandling.utility.nodes.compress.CompressNodeFactory"
             hidden="false">
       </node>
+      <node
+            category-path="/io/f-f-util"
+            deprecated="false"
+            factory-class="org.knime.filehandling.utility.nodes.permissions.SetPosixPermissionsNodeFactory"
+            hidden="false">
+      </node>
    </extension>
    <extension
          point="org.knime.core.NodeFactoryClassMapper">
