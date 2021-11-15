@@ -50,6 +50,7 @@ package org.knime.filehandling.core.data.location;
 
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.knime.core.data.meta.DataColumnMetaData;
@@ -100,6 +101,23 @@ public final class FSLocationValueMetaData implements DataColumnMetaData {
      */
     public Set<DefaultFSLocationSpec> getFSLocationSpecs() {
         return m_specs;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if(o == this) {
+            return true;
+        }
+        if (o instanceof FSLocationValueMetaData) {
+            final FSLocationValueMetaData other = (FSLocationValueMetaData)o;
+            return m_specs.equals(other.m_specs);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(m_specs);
     }
 
     /**
