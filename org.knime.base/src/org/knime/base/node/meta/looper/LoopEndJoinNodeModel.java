@@ -136,7 +136,9 @@ final class LoopEndJoinNodeModel extends NodeModel implements LoopEndNode {
                 ExecutionContext ctx = exec.createSubExecutionContext(amount);
                 //copy the whole table every 50 columns (avoids wrapping to much individual tables)
                 //In this case the whole table is copied and column names DON'T need to be made unique (bugfix 6544)
+                var oldCurrentTable = m_currentAppendTable;
                 m_currentAppendTable = copy(m_currentAppendTable, m_appendIterSuffixForBackwardComp, ctx);
+                exec.clearTable(oldCurrentTable);
                 ctx.setProgress(1.0);
             }
         } else {
