@@ -55,6 +55,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -161,6 +162,17 @@ public abstract class KNIMEFileAttributes {
      */
     final long size() {
         return m_size;
+    }
+
+    /**
+     * @return The {@link PosixFileAttributes} for the file, if ones are available. Throws an exception otherwise.
+     */
+    final PosixFileAttributes getPosixAttributes() {
+        if (m_fileAttributes instanceof PosixFileAttributes) {
+            return (PosixFileAttributes)m_fileAttributes;
+        } else {
+            throw new UnsupportedOperationException("POSIX attributes are not available.");
+        }
     }
 
     /**

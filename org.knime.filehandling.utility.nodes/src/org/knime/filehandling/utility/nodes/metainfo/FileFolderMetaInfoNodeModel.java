@@ -54,7 +54,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -89,7 +92,9 @@ import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.MultiFSPathProviderFactory;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.data.location.FSLocationValue;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
 import org.knime.filehandling.utility.nodes.metainfo.attributes.BasicKNIMEFileAttributesConverter;
@@ -98,6 +103,7 @@ import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttribu
 import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttributesWithPermissions;
 import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttributesWithoutPermissions;
 import org.knime.filehandling.utility.nodes.metainfo.attributes.PermissionsKNIMEFileAttributesConverter;
+import org.knime.filehandling.utility.nodes.metainfo.attributes.PosixKNIMEFileAttributesConverter;
 
 /**
  * The node model allowing to extract meta information about files and folders.
@@ -107,6 +113,8 @@ import org.knime.filehandling.utility.nodes.metainfo.attributes.PermissionsKNIME
 final class FileFolderMetaInfoNodeModel extends NodeModel {
 
     private static final String CFG_APPEND_PERMISSIONS = "append_permissions";
+
+    private static final String CFG_APPEND_POSIX_ATTRS = "append_posix_attrs";
 
     private final int m_inputFsConnectionIdx;
 
@@ -119,6 +127,8 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
     private final SettingsModelBoolean m_calculateOverallFolderSize;
 
     private final SettingsModelBoolean m_appendPermissions;
+
+    private final SettingsModelBoolean m_appendPosixAttrs;
 
     static SettingsModelString createColumnSettingsModel() {
         return new SettingsModelString("column", null);
@@ -136,6 +146,10 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         return new SettingsModelBoolean(CFG_APPEND_PERMISSIONS, false);
     }
 
+    static SettingsModelBoolean createAppendPosixAttrsSettingsModel() {
+        return new SettingsModelBoolean(CFG_APPEND_POSIX_ATTRS, false);
+    }
+
     FileFolderMetaInfoNodeModel(final PortsConfiguration config) {
         super(config.getInputPorts(), config.getOutputPorts());
         final Map<String, int[]> inputPortLocation = config.getInputPortLocation();
@@ -148,6 +162,7 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         m_failIfPathNotExists = createFailIfPathNotExistsSettingsModel();
         m_calculateOverallFolderSize = createCalculateOverallFolderSizeSettingsModel();
         m_appendPermissions = createAppendPermissionsSettingsModel();
+        m_appendPosixAttrs = createAppendPosixAttrsSettingsModel();
     }
 
     @Override
@@ -162,23 +177,41 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         validateSettings(inSpecs);
 
         final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
-        final KNIMEFileAttributesConverter[] fileAttrConverters = getFileAttributesConverter();
+        final KNIMEFileAttributesConverter[] fileAttrConverters = getFileAttributesConverter(inSpecs);
         try (final FileAttributesFactory fac = new FileAttributesFactory(fileAttrConverters,
             createNewColumns(inputTableSpec, fileAttrConverters), pathColIdx, getFSConnection(inSpecs), false)) {
             return new PortObjectSpec[]{createColumnRearranger(inputTableSpec, fac).createSpec()};
         }
     }
 
-    private KNIMEFileAttributesConverter[] getFileAttributesConverter() {
+    private KNIMEFileAttributesConverter[] getFileAttributesConverter(final PortObjectSpec[] inSpecs) {
+        List<KNIMEFileAttributesConverter> converters = new ArrayList<>();
+        converters.addAll(Arrays.asList(BasicKNIMEFileAttributesConverter.values()));
+
         if (m_appendPermissions.getBooleanValue()) {
-            return Stream.concat(//
-                Arrays.stream(BasicKNIMEFileAttributesConverter.values()),
-                Arrays.stream(PermissionsKNIMEFileAttributesConverter.values())//
-            )//
-                .toArray(KNIMEFileAttributesConverter[]::new);
-        } else {
-            return BasicKNIMEFileAttributesConverter.values();
+            converters.addAll(Arrays.asList(PermissionsKNIMEFileAttributesConverter.values()));
         }
+
+        if (m_appendPosixAttrs.getBooleanValue() && checkPosixCapabilities(inSpecs)) {
+            converters.addAll(Arrays.asList(PosixKNIMEFileAttributesConverter.values()));
+        }
+
+        return converters.toArray(KNIMEFileAttributesConverter[]::new);
+    }
+
+    private boolean checkPosixCapabilities(final PortObjectSpec[] inSpecs) {
+        final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
+        final String pathColName = m_selectedColumn.getStringValue();
+        final DataColumnSpec pathColSpec = inSpec.getColumnSpec(pathColName);
+
+        FSLocationValueMetaData metaData =
+            pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class).orElseThrow(() -> new IllegalStateException(
+                String.format("Path column '%s' without meta data encountered.", pathColName)));
+
+        return metaData.getFSLocationSpecs().stream()
+            .allMatch(spec -> FSDescriptorRegistry.getFSDescriptor(spec.getFSType())
+                .map(d -> d.getCapabilities().canGetPosixAttributes())
+                .orElseThrow(() -> new IllegalStateException("File system not found: " + spec.getFSType().getName())));
     }
 
     @Override
@@ -189,7 +222,7 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
 
         final DataTableSpec inputTableSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
         final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
-        final KNIMEFileAttributesConverter[] fileAttrConverters = getFileAttributesConverter();
+        final KNIMEFileAttributesConverter[] fileAttrConverters = getFileAttributesConverter(inSpecs);
 
         try (final FileAttributesFactory fac = new FileAttributesFactory(fileAttrConverters,
             createNewColumns(inputTableSpec, fileAttrConverters), pathColIdx, getFSConnection(inSpecs), true)) {
@@ -250,6 +283,7 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         m_failIfPathNotExists.saveSettingsTo(settings);
         m_calculateOverallFolderSize.saveSettingsTo(settings);
         m_appendPermissions.saveSettingsTo(settings);
+        m_appendPosixAttrs.saveSettingsTo(settings);
     }
 
     @Override
@@ -261,6 +295,9 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         if (settings.containsKey(CFG_APPEND_PERMISSIONS)) {
             m_appendPermissions.validateSettings(settings);
         }
+        if (settings.containsKey(CFG_APPEND_POSIX_ATTRS)) {
+            m_appendPosixAttrs.validateSettings(settings);
+        }
     }
 
     @Override
@@ -271,6 +308,9 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         // load backwards compatible see AP-15123
         if (settings.containsKey(CFG_APPEND_PERMISSIONS)) {
             m_appendPermissions.loadSettingsFrom(settings);
+        }
+        if (settings.containsKey(CFG_APPEND_POSIX_ATTRS)) {
+            m_appendPosixAttrs.loadSettingsFrom(settings);
         }
     }
 
@@ -358,7 +398,10 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
         }
 
         private KNIMEFileAttributes getFileAttributes(final FSPath path) throws IOException {
-            final BasicFileAttributes basicAttributes = Files.readAttributes(path, BasicFileAttributes.class);
+            Class<? extends BasicFileAttributes> attrsClass =
+                m_appendPosixAttrs.getBooleanValue() ? PosixFileAttributes.class : BasicFileAttributes.class;
+            final BasicFileAttributes basicAttributes = Files.readAttributes(path, attrsClass);
+
             if (m_appendPermissions.getBooleanValue()) {
                 return new KNIMEFileAttributesWithPermissions(path, m_calculateOverallFolderSize.getBooleanValue(),
                     basicAttributes);

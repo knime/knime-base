@@ -85,6 +85,8 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_appendPermissions;
 
+    private final DialogComponentBoolean m_appendPosixAttrs;
+
     FileFolderMetaInfoNodeDialog(final PortsConfiguration portsConfiguration) {
         final ColumnFilter filter = new ColumnFilter() {
             @Override
@@ -115,6 +117,8 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
         m_appendPermissions = new DialogComponentBoolean(
             FileFolderMetaInfoNodeModel.createAppendPermissionsSettingsModel(), "Append permissions");
 
+        m_appendPosixAttrs = new DialogComponentBoolean(FileFolderMetaInfoNodeModel.createAppendPosixAttrsSettingsModel(), "Append POSIX attributes");
+
         addTab("Settings", createDialog());
 
     }
@@ -142,6 +146,9 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
         p.add(m_appendPermissions.getComponentPanel(), gbc);
 
         ++gbc.gridy;
+        p.add(m_appendPosixAttrs.getComponentPanel(), gbc);
+
+        ++gbc.gridy;
         gbc.weightx = 1;
         gbc.weighty = 1;
         gbc.fill = GridBagConstraints.BOTH;
@@ -156,6 +163,7 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
         m_failIfFilePathNotExists.saveSettingsTo(settings);
         m_calculateOverallFolderSize.saveSettingsTo(settings);
         m_appendPermissions.saveSettingsTo(settings);
+        m_appendPosixAttrs.saveSettingsTo(settings);
     }
 
     @Override
@@ -165,5 +173,6 @@ final class FileFolderMetaInfoNodeDialog extends NodeDialogPane {
         m_failIfFilePathNotExists.loadSettingsFrom(settings, specs);
         m_calculateOverallFolderSize.loadSettingsFrom(settings, specs);
         m_appendPermissions.loadSettingsFrom(settings, specs);
+        m_appendPosixAttrs.loadSettingsFrom(settings, specs);
     }
 }
