@@ -53,20 +53,27 @@
 			Column containing the paths to the files/folders whose meta information must be extracted.
 		</option>
 		<option name="Fail if file/folder does not exist">
-			If checked the node fails if any of the referenced files or folders does not exist.
+			If checked, the node fails if any of the referenced files or folders does not exist.
 		</option>
 		<option name="Calculate overall folder size">
-			If checked the size of the folder itself plus everything located within this folder is being calculated,
+			If checked, the size of the folder itself plus everything located within this folder is being calculated,
 			otherwise solely the folder's size is being calculated.
 		</option>
 		<option name="Append permissions">
-			If checked the the file/folder permissions, i.e., <i>readable</i>, <i>writable</i>, and <i>executable</i> 
-			flags will be appended to the output. In case the file system does not allow to access these attributes 
+			If checked, the file/folder permissions, i.e., <i>readable</i>, <i>writable</i>, and <i>executable</i> 
+			flags will be appended to the output. In case the file system does not provide access to these attributes 
 			missing values are written to the output. 
 			<br/>
 			<i>Note:</i> The meaning of the executable flag with respect to folders is file system depended, e.g., on 
 			UNIX systems this flag is <tt>true</tt> if the JVM has permissions to search the directory.
 		</option>
+        <option name="Append POSIX attributes">
+            If checked, a set of columns that capture POSIX attributes (owner, group and permission bits) will be appended to the output.
+            In case the file system does not provide access to these attributes missing values are written to the output.
+            <br/>
+            <i>Note:</i> The meaning of the permission bits depend on the actual file system.
+        </option>
+
 	</fullDescription>
 
 	<ports>
