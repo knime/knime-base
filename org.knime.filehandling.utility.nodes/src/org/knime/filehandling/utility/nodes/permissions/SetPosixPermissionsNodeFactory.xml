@@ -4,9 +4,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://knime.org/node/v4.1
 	http://knime.org/node/v4.1.xsd">
-	<name>Set Files/Folder Permissions</name>
+	<name>Set Files/Folders Permissions</name>
 	<shortDescription>
-		Sets permissions for the files/folders.
+		Sets permissions for files/folders of a path column.
 	</shortDescription>
 	<fullDescription>
 		<intro>
