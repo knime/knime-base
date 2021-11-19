@@ -90,7 +90,7 @@ public final class FSLocationValueFactory implements ValueFactory<StructReadAcce
     @Override
     public DataTraits getTraits() {
         return DefaultStructDataTraits.builder()//
-            .addInnerTraits(new DictEncodingTrait(KeyType.BYTE_KEY))//
+            .addInnerTraits(new DictEncodingTrait(KeyType.INT_KEY))//
             .addInnerTraits(new DictEncodingTrait(KeyType.LONG_KEY))//
             .addInnerTraits(new DictEncodingTrait(KeyType.LONG_KEY))//
             .build();
