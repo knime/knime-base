@@ -53,12 +53,12 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * This class is the dialog for the looper node.
@@ -91,7 +91,7 @@ final class LoopStartCountDynamicNodeDialog extends NodeDialogPane {
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final DataTableSpec[] specs) throws NotConfigurableException {
+            final PortObjectSpec[] specs) throws NotConfigurableException {
         m_settings.loadSettingsFrom(settings);
         m_loops.setValue(m_settings.loops());
     }

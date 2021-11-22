@@ -54,13 +54,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * This is the dialog for the interval looper node.
@@ -133,7 +133,7 @@ final class LoopStartIntervalDynamicNodeDialog extends NodeDialogPane {
     }
 
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
         m_settings.loadSettingsForDialog(settings);
         m_prefix.setText(m_settings.prefix());
