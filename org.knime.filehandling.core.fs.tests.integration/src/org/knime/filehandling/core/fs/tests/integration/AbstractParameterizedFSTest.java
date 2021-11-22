@@ -86,7 +86,7 @@ public abstract class AbstractParameterizedFSTest {
 
     protected static final String AMAZON_S3 = "amazon-s3";
 
-    protected static final String AMAZON_S3_COMPATIBLE = "amazon-s3-compatible";
+    protected static final String GENERIC_S3 = "generic-s3";
 
     protected static final String FTP = "ftp";
 
