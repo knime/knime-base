@@ -256,6 +256,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         final String defaultName = transformation.getOriginalName();
         if (!transformation.getName().equals(defaultName)) {
             m_nameChecker.rename(transformation.getName(), defaultName);
+            transformation.setName(defaultName);
             return true;
         }
         return false;
@@ -426,7 +427,10 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
                     getPositionForUnknownColumns(), keepUnknownColumns());
             }
             m_bySpec.put(column, transformation);
-            m_nameChecker.add(transformation.getName());
+            //only add names for columns we are keeping
+            if (transformation.keep()) {
+                m_nameChecker.add(transformation.getName());
+            }
             m_transformations.add(transformation);
             idx++;
         }
@@ -550,7 +554,9 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         if (columnIndex == REORDER) {
             throw new IllegalArgumentException("Can't set the reorder column.");
         } else if (columnIndex == KEEP) {
-            transformation.setKeep((boolean)aValue);
+            final var keep = (boolean)aValue;
+            updateNameChecker(keep, transformation.getName());
+            transformation.setKeep(keep);
         } else if (columnIndex == COLUMN) {
             throw new IllegalArgumentException("Can't set the default column.");
         } else if (columnIndex == RENAME) {
@@ -562,6 +568,21 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         }
         if (!alreadyFiredTableDataChange && !Objects.equals(oldValue, aValue)) {
             fireTableCellUpdated(rowIndex, columnIndex);
+            fireTableDataChanged();
+        }
+    }
+
+    /**
+     * Adds/removes names to/from the name checker depending whether the column is selected or not.
+     *
+     * @param keep flag indicating whether to keep or remove the column name
+     * @param name of the column
+     */
+    private void updateNameChecker(final boolean keep, final String name) {
+        if (keep) {
+            m_nameChecker.add(name);
+        } else {
+            m_nameChecker.remove(name);
         }
     }
 
@@ -586,7 +607,10 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
         final String oldName = transformation.getName();
         boolean fireEventForOtherRows = false;
         if (!newName.equals(oldName)) {
-            fireEventForOtherRows = m_nameChecker.rename(transformation.getName(), newName) == Affected.ALL;
+            //only update the NameChecker if we have selected the column
+            if (transformation.keep()) {
+                fireEventForOtherRows = m_nameChecker.rename(transformation.getName(), newName) == Affected.ALL;
+            }
             transformation.setName(newName);
         }
         if (fireEventForOtherRows) {
@@ -600,7 +624,7 @@ public final class TableTransformationTableModel<T> extends AbstractTableModel
             return true;
         } else {
             final String currentName = m_transformations.get(rowIndex).getName();
-            return currentName.equals(name) || !m_nameChecker.isTaken(name);
+            return !m_transformations.get(rowIndex).keep() || currentName.equals(name) || !m_nameChecker.isTaken(name);
         }
     }
 

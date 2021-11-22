@@ -70,6 +70,15 @@ final class NameChecker {
         getCount(name).incrementAndGet();
     }
 
+    void remove(final String name) {
+        if (isTaken(name)) {
+            final int tmp = getCount(name).decrementAndGet();
+            if (tmp == 0) {
+                m_nameCounts.remove(name);
+            }
+        }
+    }
+
     private AtomicInteger getCount(final String name) {
         return m_nameCounts.computeIfAbsent(name, n -> new AtomicInteger());
     }
