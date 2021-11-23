@@ -24,6 +24,7 @@
 #   local
 #   ftp
 #   ftp-embedded
+#   generic-s3
 #   google-cs
 #   google-drive
 #   hdfs
@@ -82,6 +83,14 @@ ftp.password = <PASSWORD>
 ftp-embedded.workingDirPrefix = <PATH-ON-LOCAL-SYSTEM>
 ftp-embedded.username = <USERNAME>
 ftp-embedded.password = <PASSWORD>
+
+################ Generic S3 ################ 
+generic-s3.workingDirPrefix = /my-test-bucket
+generic-s3.endpoint = https://<S3-COMPATIBLE-ENDPOINT>
+# region can be empty, but must be set
+generic-s3.region = 
+generic-s3.accessKeyId = <YOUR-ACCESS_KEY-ID>
+generic-s3.accessKeySecret = <SECRET-FOR-YOUR-ACCESS-KEY>
 
 ################ Google CS (Cloud Storage) ################
 google-cs.workingDirPrefix = /knime-filehandling-test-bucket
