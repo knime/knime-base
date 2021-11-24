@@ -67,6 +67,7 @@ import javax.swing.filechooser.FileSystemView;
 import javax.swing.filechooser.FileView;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.AbstractJFileChooserBrowser;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.util.SimpleFileFilter;
@@ -84,6 +85,8 @@ import org.knime.filehandling.core.connections.WorkflowAwarePath;
  * @noextend non-public API
  */
 public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractFileChooserBrowser.class);
 
     private static final String[] WORKFLOW_FILTER = new String[0];
 
@@ -106,8 +109,8 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
     @Override
     public String openDialogAndGetSelectedWorkflow(final DialogType dialogType, final Component parent,
         final String selectedFile) {
-        return openDialogAndGetSelectedFileName(FileSelectionMode.FILES_ONLY, dialogType, parent, null,
-            selectedFile, WORKFLOW_FILTER);
+        return openDialogAndGetSelectedFileName(FileSelectionMode.FILES_ONLY, dialogType, parent, null, selectedFile,
+            WORKFLOW_FILTER);
     }
 
     private String processUserSelection(final FileSelectionMode fileSelectionMode, final DialogType dialogType,
@@ -182,18 +185,25 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
         }
     }
 
-    private void setupSelectedFile(final String selectedFile, final JFileChooser fileChooser) {
-        if (StringUtils.isBlank(selectedFile)) {
-            fileChooser.setSelectedFile(null);
-        } else {
-            final File selected = createFileFromPath(selectedFile);
-            if (selected.isDirectory()) {
-                fileChooser.setSelectedFile(null);
-                fileChooser.setCurrentDirectory(selected.getAbsoluteFile());
-            } else {
-                fileChooser.setSelectedFile(selected.getAbsoluteFile());
+    private void setupSelectedFile(final String selectedFileString, final JFileChooser fileChooser) {
+        File fileToSelect = null;
+        try {
+            if (!StringUtils.isBlank(selectedFileString)) {
+                final var fileFromPath = createFileFromPath(selectedFileString);
+                if (fileFromPath != null && fileFromPath.isDirectory()) {
+                    fileChooser.setCurrentDirectory(fileFromPath.getAbsoluteFile());
+                } else if (fileFromPath != null) {
+                    fileToSelect = fileFromPath.getAbsoluteFile();
+                }
             }
+        } catch (Exception e) { //NOSONAR we want to catch everything in here
+            LOGGER.debug(
+                String.format("The selected path '%s' is invalid. The file browser opens in the working directory.",
+                    selectedFileString), //
+                e);
         }
+
+        fileChooser.setSelectedFile(fileToSelect);
     }
 
     private static void setupFilters(final DialogType dialogType, final String[] suffixes,
