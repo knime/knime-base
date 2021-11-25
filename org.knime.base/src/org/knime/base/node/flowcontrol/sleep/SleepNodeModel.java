@@ -57,6 +57,7 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Calendar;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import org.knime.core.node.CanceledExecutionException;
@@ -223,26 +224,7 @@ public class SleepNodeModel extends NodeModel {
                     }
                     parent.register(w, e);
 
-                    boolean keepLooking = true;
-
-                    while (keepLooking) {
-                        // watch file until the event appears
-                        WatchKey key;
-                        // wait for a key to be available
-                        key = w.take();
-
-                        for (final WatchEvent<?> event : key.pollEvents()) {
-                            if (fileName.equals(event.context())) {
-                                keepLooking = false;
-                            }
-                        }
-
-                        // reset key
-                        final boolean valid = key.reset();
-                        if (!valid) {
-                            break;
-                        }
-                    }
+                    waitUntil(fileName, w);
                 }
             }
         }
@@ -259,6 +241,36 @@ public class SleepNodeModel extends NodeModel {
             Thread.sleep(delay);
             return null;
         });
+    }
+
+    private static void waitUntil(final Path fileName, final WatchService w) throws ExecutionException {
+        final var submitter = new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                var keepLooking = true;
+
+                while (keepLooking) {
+                    // watch file until the event appears
+                    WatchKey key;
+                    // wait for a key to be available
+                    key = w.take();
+
+                    for (final WatchEvent<?> event : key.pollEvents()) {
+                        if (fileName.equals(event.context())) {
+                            keepLooking = false;
+                        }
+                    }
+
+                    // reset key
+                    final boolean valid = key.reset();
+                    if (!valid) {
+                        break;
+                    }
+                }
+                return null;
+            }
+        };
+        KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(submitter);
     }
 
     /**
