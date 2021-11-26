@@ -1,0 +1,7 @@
+-Duser.name=knime
+-Dknime.tablebackend=org.knime.core.data.columnar.ColumnarTableBackend
+-Dknime.tablebackend.force=true
+-Darrow.enable_unsafe_memory_access=false
+-Darrow.memory.debug.allocator=false
+-Darrow.enable_null_check_for_get=false
+-Dknime.logfile.maxsize=3000m
