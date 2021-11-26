@@ -30,15 +30,15 @@ try {
                     "knime-timeseries", "knime-python", "knime-python-legacy", "knime-conda", "knime-stats", "knime-h2o", "knime-weka", "knime-birt", "knime-svm",
                     "knime-js-labs", "knime-optimization", "knime-streaming", "knime-textprocessing", "knime-chemistry", "knime-python", "knime-testing-internal",
                     "knime-exttool", "knime-parquet", "knime-bigdata", "knime-bigdata-externals", "knime-cloud", "knime-js-core", "knime-office365",
-                    "knime-database-proprietary","knime-svg", "knime-excel", "knime-wide-data", "knime-aws"],
-                    ius: ["org.knime.features.chem.types.feature.group"]
+                    "knime-database-proprietary","knime-svg", "knime-excel", "knime-wide-data", "knime-core-arrow", "knime-core-columnar", "knime-aws"],
+                    ius: ["org.knime.features.chem.types.feature.group", "org.knime.features.core.columnar.feature.group"]
                 ],
                 sidecarContainers: [
                     [ image: SSHD_IMAGE, namePrefix: "SSHD", port: 22 ]
                 ]
             )
         },
-        FileHandlingTests: {
+        /*FileHandlingTests: {
             workflowTests.runFilehandlingTests (
                 dependencies: [
                     repositories: [
@@ -50,10 +50,7 @@ try {
                     ]
                 ],
             )
-        },
-        'Integrated Workflowtests': {
-            workflowTests.runIntegratedWorkflowTests(profile: 'test',  nodeType: 'maven', configurations: workflowTests.DEFAULT_FEATURE_BRANCH_CONFIGURATIONS)
-         },
+        }*/
     ]
 
     parallel testConfigs
