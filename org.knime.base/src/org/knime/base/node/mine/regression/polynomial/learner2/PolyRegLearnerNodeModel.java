@@ -270,7 +270,7 @@ public class PolyRegLearnerNodeModel extends NodeModel implements DataProvider {
             double[] tValues = PolyRegViewData.mapToArray(polyRegContent.getTValues(), m_columnNames, m_settings.getDegree(), polyRegContent.getInterceptTValue());
             double[] pValues = PolyRegViewData.mapToArray(polyRegContent.getPValues(), m_columnNames, m_settings.getDegree(), polyRegContent.getInterceptPValue());
             m_viewData =
-                new PolyRegViewData(m_meanValues, m_betas, stdErrors, tValues, pValues, m_squaredError, polyRegContent.getAdjustedRSquared(), m_columnNames, m_settings.getDegree(),
+                new PolyRegViewData(m_meanValues, m_betas, stdErrors, tValues, pValues, polyRegContent.getRSquared(), polyRegContent.getAdjustedRSquared(), m_columnNames, m_settings.getDegree(),
                     m_settings.getTargetColumn(), rowContainer);
             return bdt;
         } catch (ModelSpecificationException e) {

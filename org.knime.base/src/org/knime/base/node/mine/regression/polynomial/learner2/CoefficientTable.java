@@ -168,7 +168,7 @@ public class CoefficientTable extends JPanel {
                 buffer.append("</tr>\n");
                 buffer.append("</tr>\n");
             buffer.append("</table>\n");
-            buffer.append("Multiple R-Squared: ");
+            buffer.append("R-Squared: ");
             String rSquared = DoubleFormat.formatDouble(m_viewData.squaredError);
             buffer.append(rSquared);
             buffer.append("<br/>");

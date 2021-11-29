@@ -182,7 +182,7 @@ class LinReg2LearnerNodeView extends NodeView<LinReg2LearnerNodeModel> {
                 buffer.append(offsetValue);
                 buffer.append("<br/>");
             }
-            buffer.append("Multiple R-Squared: ");
+            buffer.append("R-Squared: ");
             String rSquared = DoubleFormat.formatDouble(content.getRSquared());
             buffer.append(rSquared);
             buffer.append("<br/>");
