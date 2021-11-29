@@ -20,8 +20,13 @@
             
             <p><b>Note:</b>In many cases it is not necessary to use this connector node. Nodes that require
             file system access (e.g. the File Reader node) already provide the same level of access by choosing <i>Read from</i> >
-            <i>Relative To</i> > <i>Current workflow data area.</i>. The purpose of this connector node is that the <i>working directory</i> can be configured explicitly, which
-            makes file access with <i>relative</i> paths more convenient.  
+            <i>Relative To</i> > <i>Current workflow data area.</i>. The purpose of this connector node is to make file access with
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path-syntax">relative paths</a>
+            more flexible, by allowing to explicitly configure the 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#working-directory">working
+            directory</a> of the resulting file system connection. For example,
+            this makes it easier to relocate (or change) the files that your workflow accesses, because you only need to change
+            the working directory.
             </p>
             
             

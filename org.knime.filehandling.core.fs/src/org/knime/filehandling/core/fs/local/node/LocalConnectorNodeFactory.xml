@@ -19,8 +19,13 @@
             
             <p><b>Note:</b>In many cases it is not necessary to use this connector node to access the local file system. Nodes that require
             file system access (e.g. the File Reader node) typically provide local file system access, for example by choosing <i>Read from</i> >
-            <i>Local File System.</i> The purpose of this connector node is that the <i>working directory</i> can be chosen, which makes file access with <i>relative</i> paths more
-            convenient.  
+            <i>Local File System.</i> The purpose of this connector node is to make file access with
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path-syntax">relative paths</a>
+            more flexible, by allowing to explicitly configure the 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#working-directory">working
+            directory</a> of the resulting file system connection. For example,
+            this makes it easier to relocate (or change) the files that your workflow accesses, because you only need to change
+            the working directory.
             </p>
             
             <p><b>Path syntax:</b>The path syntax is identical to the one used by the operating system of the machine where this node is running, e.g.
