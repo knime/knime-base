@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.fs.knime.local.mountpoint;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -73,6 +72,12 @@ public final class LocalMountpointFSConnection implements FSConnection {
 
     private final WorkflowAwareFileSystemBrowser m_browser;
 
+    /**
+     * Constructor.
+     *
+     * @param config The config for this {@link FSConnection}.
+     * @throws IOException
+     */
     public LocalMountpointFSConnection(final MountpointFSConnectionConfig config) throws IOException {
 
         final Path localRoot = determineLocalRootFolder(config.getMountID());
@@ -86,8 +91,8 @@ public final class LocalMountpointFSConnection implements FSConnection {
     private static Path determineLocalRootFolder(final String mountID) throws IOException {
 
         try {
-            final URI knimeUrl = new URI(String.format("knime://%s/", mountID));
-            final File localFile = ResolverUtil.resolveURItoLocalFile(knimeUrl);
+            final var knimeUrl = new URI(String.format("knime://%s/", mountID));
+            final var localFile = ResolverUtil.resolveURItoLocalFile(knimeUrl);
 
             return Optional.ofNullable(localFile) //
                 .orElseThrow(() -> new IllegalArgumentException(

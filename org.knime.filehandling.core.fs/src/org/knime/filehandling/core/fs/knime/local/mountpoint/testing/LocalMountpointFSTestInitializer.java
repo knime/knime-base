@@ -78,7 +78,6 @@ class LocalMountpointFSTestInitializer extends BasicLocalTestInitializer<LocalWo
             ((LocalMountpointFileSystem)fsConnection.getFileSystem()).getLocalWorkingDir());
     }
 
-    @SuppressWarnings("resource")
     @Override
     protected void beforeTestCaseInternal() throws IOException {
         Files.createDirectories(getLocalTestCaseScratchDir());
@@ -93,7 +92,7 @@ class LocalMountpointFSTestInitializer extends BasicLocalTestInitializer<LocalWo
     @SuppressWarnings("resource")
     @Override
     protected LocalWorkflowAwarePath toFSPath(final Path localPath) {
-        final Path relLocalPath = getFileSystem().getLocalRoot().relativize(localPath.toAbsolutePath().normalize());
+        final var relLocalPath = getFileSystem().getLocalRoot().relativize(localPath.toAbsolutePath().normalize());
 
         LocalWorkflowAwarePath toReturn = getFileSystem().getRoot();
         for (Path localPathComp : relLocalPath) {
@@ -110,14 +109,14 @@ class LocalMountpointFSTestInitializer extends BasicLocalTestInitializer<LocalWo
 
     @Override
     public LocalWorkflowAwarePath deployWorkflow(final Path tmpWf, final String ... pathComponents) throws IOException {
-        final Path workflowFilePath = tmpWf.resolve("workflow.knime");
-        final String workflowFile = Files.readString(workflowFilePath);
+        final var workflowFilePath = tmpWf.resolve("workflow.knime");
+        final var workflowFile = Files.readString(workflowFilePath);
         final String[] pathComponentsWithExtraComponent = Arrays.copyOf(pathComponents, pathComponents.length + 1);
         pathComponentsWithExtraComponent[pathComponents.length] = WorkflowPersistor.WORKFLOW_FILE;
         createFileWithContent(workflowFile, pathComponentsWithExtraComponent);
-        final Path templateFilePath = tmpWf.resolve("template.knime");
+        final var templateFilePath = tmpWf.resolve("template.knime");
         if (Files.exists(templateFilePath)) {
-            final String templateFile = Files.readString(templateFilePath);
+            final var templateFile = Files.readString(templateFilePath);
             pathComponentsWithExtraComponent[pathComponents.length] = WorkflowPersistor.TEMPLATE_FILE;
             createFileWithContent(templateFile, pathComponentsWithExtraComponent);
         }

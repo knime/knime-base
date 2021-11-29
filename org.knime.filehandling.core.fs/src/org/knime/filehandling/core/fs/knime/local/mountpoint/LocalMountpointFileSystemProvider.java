@@ -54,9 +54,10 @@ import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwa
 
 /**
  * File system provider of the KNIME Mountpoint file system implementation for local-disk based mountpoints.
+ *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class LocalMountpointFileSystemProvider extends LocalWorkflowAwareFileSystemProvider<LocalMountpointFileSystem> {
+final class LocalMountpointFileSystemProvider extends LocalWorkflowAwareFileSystemProvider<LocalMountpointFileSystem> {
 
     @SuppressWarnings("resource")
     @Override
