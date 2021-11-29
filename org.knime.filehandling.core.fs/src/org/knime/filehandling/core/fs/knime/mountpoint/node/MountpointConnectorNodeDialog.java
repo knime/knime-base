@@ -51,6 +51,7 @@ package org.knime.filehandling.core.fs.knime.mountpoint.node;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.net.URI;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -60,7 +61,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
@@ -71,8 +72,11 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.base.ui.WorkingDirectoryChooser;
+import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.MountpointFileSystemDialog;
 import org.knime.filehandling.core.fs.knime.mountpoint.node.MountpointConnectorNodeSettings.MountpointMode;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Mountpoint Connector node dialog
@@ -85,13 +89,13 @@ public class MountpointConnectorNodeDialog extends NodeDialogPane {
 
     private final WorkingDirectoryChooser m_workingDirChooser;
 
-    private final ChangeListener m_workdirListener;
-
     private final MountpointFileSystemDialog m_mountpointSelector;
 
     private final JRadioButton m_radioCurrentMountpoint;
 
     private final JRadioButton m_radioOtherMountpoint;
+
+    private boolean m_ignoreChangeEvents;
 
     /**
      * Creates new instance.
@@ -107,14 +111,44 @@ public class MountpointConnectorNodeDialog extends NodeDialogPane {
         m_radioOtherMountpoint = createRadioButton(group, MountpointMode.OTHER);
 
         m_workingDirChooser = new WorkingDirectoryChooser("mountpoint.workingDir", this::createFSConnection);
-        m_workdirListener = e -> {
-            final var workDir = m_workingDirChooser.getSelectedWorkingDirectory();
-            m_settings.getWorkingDirectoryModel().setStringValue(workDir);
-        };
+        m_workingDirChooser.addListener(e -> {
+            if (!m_ignoreChangeEvents) {
+                final var workDir = m_workingDirChooser.getSelectedWorkingDirectory();
+                m_settings.getWorkingDirectoryModel().setStringValue(workDir);
+            }
+        });
 
         m_mountpointSelector = new MountpointFileSystemDialog(m_settings.getMountpoint());
 
+
+        m_settings.getMountpoint().addChangeListener(this::onMountpointChanged);
+        m_settings.getMountpointModeModel().addChangeListener(this::onMountpointChanged);
+        m_ignoreChangeEvents = false;
+
         addTab("Settings", createSettingsPanel());
+    }
+
+    private void onMountpointChanged(@SuppressWarnings("unused") final ChangeEvent e) {
+        if (m_ignoreChangeEvents) {
+            return;
+        }
+
+        KNIMEConnection currMountpoint = null;
+        if (m_settings.getMountpointMode() == MountpointMode.CURRENT && !m_settings.getWorkflowRelativeWorkingDirModel().getBooleanValue()) {
+            currMountpoint = WorkflowContextUtil.getWorkflowContextOptional() //
+                .map(ctx -> ctx.getMountpointURI().orElse(null)) //
+                .map(URI::getHost) //
+                .map(KNIMEConnection::getConnection).orElse(null);
+        } else if (m_settings.getMountpointMode() == MountpointMode.OTHER) {
+            currMountpoint = m_settings.getMountpoint().getMountpoint();
+        }
+
+        if (currMountpoint != null) {
+            final var defaultDirUri = MountPointFileSystemAccessService.instance() //
+                .getDefaultDirectory(URI.create(currMountpoint.getSchemeAndHost()));
+            m_settings.getWorkingDirectoryModel().setStringValue(defaultDirUri.getPath());
+            m_workingDirChooser.setSelectedWorkingDirectory(defaultDirUri.getPath());
+        }
     }
 
     private JRadioButton createRadioButton(final ButtonGroup group, final MountpointMode mode) {
@@ -194,15 +228,19 @@ public class MountpointConnectorNodeDialog extends NodeDialogPane {
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
-        m_settings.loadInDialog(settings, specs);
 
-        settingsLoaded();
+        try {
+            m_ignoreChangeEvents = true;
+            m_settings.loadInDialog(settings, specs);
+            settingsLoaded();
+        } finally {
+            m_ignoreChangeEvents = false;
+        }
+
     }
 
     private void settingsLoaded() {
         m_workingDirChooser.setSelectedWorkingDirectory(m_settings.getWorkingDirectoryModel().getStringValue());
-        m_workingDirChooser.addListener(m_workdirListener);
-
         updateComponentsEnabled();
     }
 
@@ -221,7 +259,6 @@ public class MountpointConnectorNodeDialog extends NodeDialogPane {
 
     @Override
     public void onClose() {
-        m_workingDirChooser.removeListener(m_workdirListener);
         m_workingDirChooser.onClose();
     }
 }

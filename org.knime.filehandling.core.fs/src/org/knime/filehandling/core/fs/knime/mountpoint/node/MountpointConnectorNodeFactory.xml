@@ -16,13 +16,18 @@
             <p>Provides a file system connection with access to a KNIME Mountpoint, for example "LOCAL", or "My-KNIME-Hub".
             It can also provide a file system connection with access to the mountpoint which contains the current workflow.
             The resulting output port allows downstream nodes to access <i>files</i>, e.g. to read or write, or to perform other file system operations
-            (browse/list files, copy, move, ...).
+            (browse/list files, copy, move, ...) in the selected mountpoint.
             </p>
             
             <p><b>Note:</b>In many cases it is not necessary to use this connector node. Nodes that require
             file system access (e.g. the File Reader node) already provide the same level of access, by choosing for example 
-            <i>Read from</i> > <i>Mountpoint.</i> The purpose of this connector node is to be able to explicitly configure the <i>working directory,</i>
-            which makes file access with <i>relative</i> paths more convenient.  
+            <i>Read from</i> > <i>Mountpoint.</i> The purpose of this connector node is to make file access with
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path-syntax">relative paths</a>
+            more flexible, by allowing to explicitly configure the 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#working-directory">working
+            directory</a> of the resulting file system connection. For example,
+            this makes it easier to relocate (or change) the files that your workflow accesses, because you only need to change
+            the working directory.
             </p>
             
             <p><b>Path syntax:</b> Paths for this connector are specified with a UNIX-like syntax such as /myfolder/myfile. An absolute
