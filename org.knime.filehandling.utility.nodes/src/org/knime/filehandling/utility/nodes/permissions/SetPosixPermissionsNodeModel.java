@@ -202,7 +202,7 @@ public class SetPosixPermissionsNodeModel extends NodeModel {
                 .canSetPosixAttributes()) //
             .findFirst();
 
-        if (!fsWithoutPosix.isEmpty()) {
+        if (!fsWithoutPosix.isEmpty() && m_settings.failIfSetPermissionsFails()) {
             if (m_inputFsConnectionIdx != -1) {
                 throw new IllegalStateException("The connected file system does not support setting POSIX permissions");
             } else {
@@ -333,6 +333,12 @@ public class SetPosixPermissionsNodeModel extends NodeModel {
                         formattedException.getMessage()), formattedException);
                 } else {
                     status = "Failed: " + e.getMessage();
+                }
+            } catch (UnsupportedOperationException e) {
+                if(m_settings.failIfSetPermissionsFails()) {
+                    throw e;
+                } else {
+                    status = "Failed: The file system does not support setting POSIX permissions";
                 }
             }
             return new StringCell(status);

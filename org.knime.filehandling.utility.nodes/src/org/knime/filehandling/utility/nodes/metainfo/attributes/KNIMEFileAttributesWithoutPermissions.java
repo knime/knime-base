@@ -73,7 +73,23 @@ public final class KNIMEFileAttributesWithoutPermissions extends KNIMEFileAttrib
      */
     public KNIMEFileAttributesWithoutPermissions(final Path p, final boolean calcFolderSize,
         final BasicFileAttributes fileAttributes) throws IOException {
-        super(p, calcFolderSize, fileAttributes);
+        this(p, calcFolderSize, fileAttributes, false);
+    }
+
+    /**
+     * Constructor allowing to calculate the overall size of the provided path if it is a folder, but not the
+     * file/folder permissions. When invoking any method related to file permissions an
+     * {@link UnsupportedOperationException} is thrown.
+     *
+     * @param p the path
+     * @param calcFolderSize if {@code true} the size of overall size of the folder will be calculated
+     * @param fileAttributes the path's {@link BasicFileAttributes}
+     * @param hasPosixAttrs whether the posix file attributes are provided
+     * @throws IOException - If anything went wrong while calculating the folders size
+     */
+    public KNIMEFileAttributesWithoutPermissions(final Path p, final boolean calcFolderSize,
+        final BasicFileAttributes fileAttributes, final boolean hasPosixAttrs) throws IOException {
+        super(p, calcFolderSize, fileAttributes, hasPosixAttrs);
     }
 
     private static UnsupportedOperationException unsupportedOperation() {

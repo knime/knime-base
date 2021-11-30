@@ -73,16 +73,19 @@ public abstract class KNIMEFileAttributes {
 
     private final long m_size;
 
+    private final boolean m_hasPosixAttributes;
+
     /**
      * Constructor allowing to calculate the overall size of the provided path if it is a folder.
      *
      * @param p the path
      * @param calcFolderSize if {@code true} the size of overall size of the folder will be calculated
      * @param fileAttributes the path's {@link BasicFileAttributes}
+     * @param hasPosixAttrs whether the posix file attributes are provided
      * @throws IOException - If anything went wrong while calculating the folders size
      */
-    KNIMEFileAttributes(final Path p, final boolean calcFolderSize, final BasicFileAttributes fileAttributes)
-        throws IOException {
+    KNIMEFileAttributes(final Path p, final boolean calcFolderSize, final BasicFileAttributes fileAttributes,
+        final boolean hasPosixAttrs) throws IOException {
         CheckUtils.checkNotNull(p, "The path cannot be null");
         CheckUtils.checkNotNull(fileAttributes, "The fileAttributes cannot be null");
         m_fileAttributes = fileAttributes;
@@ -91,6 +94,7 @@ public abstract class KNIMEFileAttributes {
         } else {
             m_size = m_fileAttributes.size();
         }
+        m_hasPosixAttributes = hasPosixAttrs;
     }
 
     private static long size(final Path path) throws IOException {
@@ -168,7 +172,7 @@ public abstract class KNIMEFileAttributes {
      * @return The {@link PosixFileAttributes} for the file, if ones are available. Throws an exception otherwise.
      */
     final PosixFileAttributes getPosixAttributes() {
-        if (m_fileAttributes instanceof PosixFileAttributes) {
+        if (m_hasPosixAttributes) {
             return (PosixFileAttributes)m_fileAttributes;
         } else {
             throw new UnsupportedOperationException("POSIX attributes are not available.");

@@ -81,11 +81,12 @@ public final class KNIMEFileAttributesWithPermissions extends KNIMEFileAttribute
      * @param p the path
      * @param calcFolderSize if {@code true} the size of overall size of the folder will be calculated
      * @param fileAttributes the path's {@link BasicFileAttributes}
+     * @param hasPosixAttrs whether the posix file attributes are provided
      * @throws IOException - If anything went wrong while calculating the folders size
      */
     public KNIMEFileAttributesWithPermissions(final FSPath p, final boolean calcFolderSize,
-        final BasicFileAttributes fileAttributes) throws IOException {
-        super(p, calcFolderSize, fileAttributes);
+        final BasicFileAttributes fileAttributes, final boolean hasPosixAttrs) throws IOException {
+        super(p, calcFolderSize, fileAttributes, hasPosixAttrs);
         final Optional<FSCapabilities> capabilities = getCapabilities(p);
         if (fileAttributes.isDirectory()) {
             m_isReadable = supportsOperation(capabilities, FSCapabilities::canCheckAccessReadOnDirectories)
@@ -107,7 +108,7 @@ public final class KNIMEFileAttributesWithPermissions extends KNIMEFileAttribute
     KNIMEFileAttributesWithPermissions(final Path p, final boolean calcFolderSize,
         final BasicFileAttributes fileAttributes, final Boolean isReadable, final Boolean isWritable,
         final Boolean isExecutable) throws IOException {
-        super(p, calcFolderSize, fileAttributes);
+        super(p, calcFolderSize, fileAttributes, false);
         m_isReadable = isReadable;
         m_isWritable = isWritable;
         m_isExecutable = isExecutable;

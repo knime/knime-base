@@ -54,6 +54,7 @@ import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.StringCell;
@@ -69,11 +70,11 @@ public enum PosixKNIMEFileAttributesConverter implements KNIMEFileAttributesConv
         /**
          * The owner of the file
          */
-        OWNER("Owner", a -> StringCellFactory.create(a.getPosixAttributes().owner().getName())),
+        OWNER("Owner", a -> StringCellFactory.create(a.owner().getName())),
         /**
          * The file group owner
          */
-        GROUP("Group", a -> StringCellFactory.create(a.getPosixAttributes().group().getName())),
+        GROUP("Group", a -> StringCellFactory.create(a.group().getName())),
         /**
          * Read permission, owner.
          */
@@ -115,7 +116,7 @@ public enum PosixKNIMEFileAttributesConverter implements KNIMEFileAttributesConv
 
     private final DataType m_type;
 
-    private final Function<KNIMEFileAttributes, DataCell> m_cellCreator;
+    private final Function<PosixFileAttributes, DataCell> m_cellCreator;
 
     /**
      * Constructor.
@@ -124,7 +125,7 @@ public enum PosixKNIMEFileAttributesConverter implements KNIMEFileAttributesConv
      * @param cellCreator function to create the data cell
      */
     private PosixKNIMEFileAttributesConverter(final String name,
-        final Function<KNIMEFileAttributes, DataCell> cellCreator) {
+        final Function<PosixFileAttributes, DataCell> cellCreator) {
         m_name = name;
         m_type = StringCell.TYPE;
         m_cellCreator = cellCreator;
@@ -133,7 +134,7 @@ public enum PosixKNIMEFileAttributesConverter implements KNIMEFileAttributesConv
     private PosixKNIMEFileAttributesConverter(final String name, final PosixFilePermission permission) {
         m_name = name;
         m_type = BooleanCell.TYPE;
-        m_cellCreator = a -> BooleanCellFactory.create(a.getPosixAttributes().permissions().contains(permission));
+        m_cellCreator = a -> BooleanCellFactory.create(a.permissions().contains(permission));
     }
 
     @Override
@@ -148,7 +149,11 @@ public enum PosixKNIMEFileAttributesConverter implements KNIMEFileAttributesConv
 
     @Override
     public DataCell createCell(final KNIMEFileAttributes attributes) {
-        return m_cellCreator.apply(attributes);
+        try {
+            return m_cellCreator.apply(attributes.getPosixAttributes());
+        } catch (UnsupportedOperationException e) {
+            return new MissingCell(e.getMessage());
+        }
     }
 
 }
