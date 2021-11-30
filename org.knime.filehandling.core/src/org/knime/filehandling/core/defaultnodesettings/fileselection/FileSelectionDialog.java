@@ -53,6 +53,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -402,6 +403,12 @@ public class FileSelectionDialog {
                     m_historyModel.addCurrentSelectionToHistory();
                 }
                 notifyListeners();
+            } catch (UncheckedIOException e) {
+                final var ioe = e.getCause();
+                LOGGER.error("IOException while creating browser.", e);
+                final String message = Optional.ofNullable(ExceptionUtil.getDeepestErrorMessage(ioe, true))
+                        .orElse("No error message provided. Please see KNIME log for more information");
+                JOptionPane.showMessageDialog(m_panel, message, "Error while creating browser", JOptionPane.ERROR_MESSAGE);
             } catch (ExecutionException ee) {
                 m_executionExceptionConsumer.accept(ee);
                 LOGGER.error("ExecutionException while creating browser.", ee);
