@@ -504,7 +504,7 @@ public final class FSFiles {
      * @throws IOException
      * @throws IllegalArgumentException if the given source path is not a directory.
      */
-    public static void copyRecursively(final FSPath source, final FSPath target, final CopyOption... options)
+    public static void copyRecursively(final Path source, final Path target, final CopyOption... options)
         throws IOException {
         if (!Files.readAttributes(source, BasicFileAttributes.class).isDirectory()) {
             throw new IllegalArgumentException("Only directories can be copied recursively");
@@ -515,15 +515,15 @@ public final class FSFiles {
 
     private static final class RecursiveCopyVisitor implements FileVisitor<Path> {
 
-        private final FSPath m_source;
+        private final Path m_source;
 
-        private final FSPath m_target;
+        private final Path m_target;
 
         private final CopyOption[] m_options;
 
         private final boolean m_replaceExisting;
 
-        private RecursiveCopyVisitor(final FSPath source, final FSPath target, final CopyOption[] options) {
+        private RecursiveCopyVisitor(final Path source, final Path target, final CopyOption[] options) {
             m_source = source;
             m_target = target;
             m_options = options;
@@ -552,12 +552,12 @@ public final class FSFiles {
             return FileVisitResult.CONTINUE;
         }
 
-        private FSPath toTargetPath(final Path sourcePath) {
+        private Path toTargetPath(final Path sourcePath) {
             Path targetPath = m_target;
             for (Path sourceComp : m_source.relativize(sourcePath)) {
                 targetPath = targetPath.resolve(sourceComp.toString());
             }
-            return (FSPath)targetPath;
+            return targetPath;
         }
 
         @Override

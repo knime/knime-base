@@ -49,12 +49,17 @@
 package org.knime.filehandling.core.fs.tests.integration.workflowaware;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 import org.junit.Test;
 import org.knime.filehandling.core.connections.FSFiles;
@@ -63,6 +68,7 @@ import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Entity;
 import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Operation;
 import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.WorkflowAwareFSException;
+import org.knime.filehandling.core.connections.WorkflowAwarePath;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.WorkflowAwareFSTestInitializer;
@@ -112,7 +118,7 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_open_input_stream_on_workflow() throws IOException {
-        test_operation_on_knime_object(this::createWorkflow, FSFiles::newInputStream, Entity.WORKFLOW,
+        test_failing_operation_on_knime_object(this::createWorkflow, FSFiles::newInputStream, Entity.WORKFLOW,
             Operation.NEW_INPUT_STREAM);
     }
 
@@ -121,7 +127,7 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         if (!isWorkflowAware()) {
             return;
         }
-        test_operation_on_knime_object(this::createComponent, FSFiles::newInputStream, getExpectedEntityForComponent(),
+        test_failing_operation_on_knime_object(this::createComponent, FSFiles::newInputStream, getExpectedEntityForComponent(),
             Operation.NEW_INPUT_STREAM);
     }
 
@@ -130,13 +136,13 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         if (!isWorkflowAware()) {
             return;
         }
-        test_operation_on_knime_object(this::createMetanode, FSFiles::newInputStream, getExpectedEntityForMetanode(),
+        test_failing_operation_on_knime_object(this::createMetanode, FSFiles::newInputStream, getExpectedEntityForMetanode(),
             Operation.NEW_INPUT_STREAM);
     }
 
     @Test
     public void test_open_output_stream_on_workflow() throws IOException {
-        test_operation_on_knime_object(this::createWorkflow, FSFiles::newOutputStream, Entity.WORKFLOW,
+        test_failing_operation_on_knime_object(this::createWorkflow, FSFiles::newOutputStream, Entity.WORKFLOW,
             Operation.NEW_OUTPUT_STREAM);
     }
 
@@ -145,7 +151,7 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         if (!isWorkflowAware()) {
             return;
         }
-        test_operation_on_knime_object(this::createComponent, FSFiles::newOutputStream, getExpectedEntityForComponent(),
+        test_failing_operation_on_knime_object(this::createComponent, FSFiles::newOutputStream, getExpectedEntityForComponent(),
             Operation.NEW_OUTPUT_STREAM);
     }
 
@@ -154,11 +160,229 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         if (!isWorkflowAware()) {
             return;
         }
-        test_operation_on_knime_object(this::createMetanode, FSFiles::newOutputStream, getExpectedEntityForMetanode(),
+        test_failing_operation_on_knime_object(this::createMetanode, FSFiles::newOutputStream, getExpectedEntityForMetanode(),
             Operation.NEW_OUTPUT_STREAM);
     }
 
-    private void test_operation_on_knime_object(final CheckedExceptionSupplier<FSPath, IOException> objectCreator,
+    @Test
+    public void test_delete_workflow() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        test_successful_operation_on_knime_object(this::createWorkflow, Files::delete,
+            p -> assertFalse(Files.exists(p)));
+    }
+
+    @Test
+    public void test_delete_component() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        test_successful_operation_on_knime_object(this::createComponent, Files::delete,
+            p -> assertFalse(Files.exists(p)));
+    }
+
+    @Test
+    public void test_delete_metanode() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+        test_successful_operation_on_knime_object(this::createMetanode, Files::delete,
+            p -> assertFalse(Files.exists(p)));
+    }
+
+    @Test
+    public void test_copy_workflow() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        test_successful_operation_on_knime_object(this::createWorkflow, //
+            p -> Files.copy(p, p.getFileSystem().getPath(p.toString() + "_copy")),
+            p -> {
+                assertTrue(Files.exists(p));
+                assertTrue(((WorkflowAwarePath)p).isWorkflow());
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_copy");
+                assertTrue(Files.exists(copyPath));
+                assertTrue(((WorkflowAwarePath) copyPath).isWorkflow());
+            });
+    }
+
+    @Test
+    public void test_copy_component() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        test_successful_operation_on_knime_object(this::createComponent, //
+            p -> Files.copy(p, p.getFileSystem().getPath(p.toString() + "_copy")),
+            p -> {
+                assertTrue(Files.exists(p));
+                assertTrue(((WorkflowAwarePath)p).isWorkflow());
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_copy");
+                assertTrue(Files.exists(copyPath));
+                assertTrue(((WorkflowAwarePath) copyPath).isWorkflow());
+            });
+    }
+
+    @Test
+    public void test_copy_metanode() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+        test_successful_operation_on_knime_object(this::createMetanode, //
+            p -> Files.copy(p, p.getFileSystem().getPath(p.toString() + "_copy")),
+            p -> {
+                assertTrue(Files.exists(p));
+                assertTrue(((WorkflowAwarePath)p).isWorkflow());
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_copy");
+                assertTrue(Files.exists(copyPath));
+                assertTrue(((WorkflowAwarePath) copyPath).isWorkflow());
+            });
+    }
+
+    @Test
+    public void test_copy_workflow_to_existing_target_fails() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        final var copySource = createWorkflow();
+        final var workflowPath2 = createWorkflow();
+        final var existingFile = m_testInitializer.createFile("testfile");
+
+        try {
+            Files.copy(copySource, workflowPath2);
+            fail("The operation was expected to fail.");
+        } catch (FileAlreadyExistsException e) {
+            assertTrue(e.getFile().contains(workflowPath2.toString()));
+        }
+
+        try {
+            Files.copy(copySource, existingFile);
+            fail("The operation was expected to fail.");
+        } catch (FileAlreadyExistsException e) {
+            assertTrue(e.getFile().contains(existingFile.toString()));
+        }
+    }
+
+    @Test
+    public void test_copy_workflow_to_existing_target_with_replace_succeeds() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        final var copySource = createWorkflow();
+        final var workflowPath2 = createWorkflow();
+        final var existingFile = m_testInitializer.createFile("testfile");
+
+        assertTrue(((WorkflowAwarePath)workflowPath2).isWorkflow());
+        Files.copy(copySource, workflowPath2, StandardCopyOption.REPLACE_EXISTING);
+        assertTrue(((WorkflowAwarePath)workflowPath2).isWorkflow());
+
+        assertFalse(((WorkflowAwarePath)existingFile).isWorkflow());
+        Files.copy(copySource, existingFile, StandardCopyOption.REPLACE_EXISTING);
+        assertTrue(((WorkflowAwarePath)existingFile).isWorkflow());
+    }
+
+    @Test
+    public void test_move_workflow() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        test_successful_operation_on_knime_object(this::createWorkflow, //
+            p -> Files.move(p, p.getFileSystem().getPath(p.toString() + "_moved")), p -> {
+                assertFalse(Files.exists(p));
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_moved");
+                assertTrue(Files.exists(copyPath));
+                assertTrue(((WorkflowAwarePath)copyPath).isWorkflow());
+            });
+    }
+
+    @Test
+    public void test_move_component() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        test_successful_operation_on_knime_object(this::createComponent, //
+            p -> Files.move(p, p.getFileSystem().getPath(p.toString() + "_moved")), p -> {
+                assertFalse(Files.exists(p));
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_moved");
+                assertTrue(Files.exists(copyPath));
+                assertTrue(((WorkflowAwarePath)copyPath).isWorkflow());
+            });
+    }
+
+    @Test
+    public void test_move_metanode() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+        test_successful_operation_on_knime_object(this::createMetanode, //
+            p -> Files.move(p, p.getFileSystem().getPath(p.toString() + "_moved")), p -> {
+                assertFalse(Files.exists(p));
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_moved");
+                assertTrue(Files.exists(copyPath));
+                assertTrue(((WorkflowAwarePath)copyPath).isWorkflow());
+            });
+    }
+
+    @Test
+    public void test_move_workflow_to_existing_target_fails() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        final var moveSource = createWorkflow();
+        final var workflowPath2 = createWorkflow();
+        final var existingFile = m_testInitializer.createFile("testfile");
+
+        try {
+            Files.move(moveSource, workflowPath2);
+            fail("The operation was expected to fail.");
+        } catch (FileAlreadyExistsException e) {
+            assertTrue(e.getFile().contains(workflowPath2.toString()));
+            assertTrue(Files.exists(moveSource));
+            assertTrue(Files.exists(workflowPath2));
+        }
+
+        try {
+            Files.move(moveSource, existingFile);
+            fail("The operation was expected to fail.");
+        } catch (FileAlreadyExistsException e) {
+            assertTrue(e.getFile().contains(existingFile.toString()));
+            assertTrue(Files.exists(moveSource));
+            assertTrue(Files.exists(existingFile));
+        }
+    }
+
+    @Test
+    public void test_move_workflow_to_existing_target_with_replace_succeeds() throws IOException {
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        final var moveSource1 = createWorkflow();
+        final var workflowPath2 = createWorkflow();
+
+        assertTrue(((WorkflowAwarePath)workflowPath2).isWorkflow());
+        Files.move(moveSource1, workflowPath2, StandardCopyOption.REPLACE_EXISTING);
+        assertFalse(Files.exists(moveSource1));
+        assertTrue(((WorkflowAwarePath)workflowPath2).isWorkflow());
+
+        final var moveSource2 = createWorkflow();
+        final var existingFile = m_testInitializer.createFile("testfile");
+        assertFalse(((WorkflowAwarePath)existingFile).isWorkflow());
+        Files.move(moveSource2, existingFile, StandardCopyOption.REPLACE_EXISTING);
+        assertFalse(Files.exists(moveSource2));
+        assertTrue(((WorkflowAwarePath)existingFile).isWorkflow());
+    }
+
+    private void test_failing_operation_on_knime_object(final CheckedExceptionSupplier<FSPath, IOException> objectCreator,
         final CheckedExceptionConsumer<FSPath, IOException> operation, final Entity expectedEntity,
         final Operation expectedOperation) throws IOException {
         if (!isWorkflowAware()) {
@@ -171,6 +395,23 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         } catch (WorkflowAwareFSException wfEx) {
             assertEquals(expectedEntity, wfEx.getEntity());
             assertEquals(expectedOperation, wfEx.getOperation());
+        }
+    }
+
+    private void test_successful_operation_on_knime_object(final CheckedExceptionSupplier<FSPath, IOException> objectCreator, //
+        final CheckedExceptionConsumer<FSPath, IOException> operation, //
+        final CheckedExceptionConsumer<FSPath, IOException> successChecker) throws IOException {
+
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        FSPath path = objectCreator.get();
+        try {
+            operation.accept(path);
+            successChecker.accept(path);
+        } catch (WorkflowAwareFSException wfEx) {
+            fail("The operation was expected to succeed.");
         }
     }
 
@@ -190,7 +431,7 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         final CheckedExceptionBiConsumer<String, Path, IOException> resourceLoader) throws IOException {
         Path tmpWf = Files.createTempDirectory(resourceName);
         resourceLoader.accept(resourceName, tmpWf);
-        return getWfAwareInitializer().deployWorkflow(tmpWf, resourceName);
+        return getWfAwareInitializer().deployWorkflow(tmpWf, resourceName + UUID.randomUUID().toString().substring(20));
     }
 
     private void loadWfConfigIntoTmpWf(final String resourceName, final Path tmpWf) throws IOException {

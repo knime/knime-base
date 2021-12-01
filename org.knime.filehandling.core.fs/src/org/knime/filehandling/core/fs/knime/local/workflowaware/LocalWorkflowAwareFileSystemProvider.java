@@ -70,6 +70,7 @@ import java.util.Set;
 
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowPersistor;
+import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling;
 import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Entity;
@@ -140,11 +141,13 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
 
     @Override
     protected void deleteInternal(final LocalWorkflowAwarePath path) throws IOException {
-        if (isPartOfWorkflow(path)) {
+        if (isWorkflow(path)) {
+            FSFiles.deleteRecursively(toLocalPathWithAccessibilityCheck(path));
+        } else if (isPartOfWorkflow(path)) {
             throw new IOException(path.toString()  + " points to/into a workflow. Cannot delete data from a workflow");
+        } else {
+            Files.delete(toLocalPathWithAccessibilityCheck(path));
         }
-
-        Files.delete(toLocalPathWithAccessibilityCheck(path));
     }
 
     @Override
@@ -168,29 +171,41 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     protected void copyInternal(final LocalWorkflowAwarePath source, final LocalWorkflowAwarePath target,
         final CopyOption... options) throws IOException {
 
-        if (isPartOfWorkflow(source)) {
-            throw new IOException(source.toString()  + " points to/into a workflow. Cannot copy files from workflows.");
+        final var sourceIsWorkflow = isWorkflow(source);
+        if (!sourceIsWorkflow && isPartOfWorkflow(source)) {
+            throw new IOException(
+                source.toString() + " points into a workflow. Cannot copy files from inside workflows.");
         }
 
-        if (isPartOfWorkflow(target)) {
-            throw new IOException(source.toString()  + " points to/into a workflow. Cannot copy files to workflows.");
+        if (!isWorkflow(target) && isPartOfWorkflow(target)) {
+            throw new IOException(source.toString() + " points into a workflow. Cannot copy files into workflows.");
         }
 
-        Files.copy(toLocalPathWithAccessibilityCheck(source), toLocalPathWithAccessibilityCheck(target), options);
+        Files.deleteIfExists(target); // this also deletes a workflow/metanode/component
+
+        if (sourceIsWorkflow) {
+            FSFiles.copyRecursively(toLocalPathWithAccessibilityCheck(source),
+                toLocalPathWithAccessibilityCheck(target));
+        } else {
+            Files.copy(toLocalPathWithAccessibilityCheck(source), toLocalPathWithAccessibilityCheck(target), options);
+        }
     }
 
     @Override
     protected void moveInternal(final LocalWorkflowAwarePath source, final LocalWorkflowAwarePath target,
         final CopyOption... options) throws IOException {
 
-        if (isPartOfWorkflow(source)) {
-            throw new IOException(source.toString()  + " points to/into a workflow. Cannot move files from workflows.");
+        final var sourceIsWorkflow = isWorkflow(source);
+        if (!sourceIsWorkflow && isPartOfWorkflow(source)) {
+            throw new IOException(
+                source.toString() + " points into a workflow. Cannot move files from inside workflows.");
         }
 
-        if (isPartOfWorkflow(target)) {
-            throw new IOException(source.toString()  + " points to/into a workflow. Cannot move files to workflows.");
+        if (!isWorkflow(target) && isPartOfWorkflow(target)) {
+            throw new IOException(source.toString() + " points into a workflow. Cannot move files into workflows.");
         }
 
+        Files.deleteIfExists(target); // this also deletes a workflow/metanode/component
         Files.move(toLocalPathWithAccessibilityCheck(source), toLocalPathWithAccessibilityCheck(target), options);
     }
 
