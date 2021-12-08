@@ -826,7 +826,7 @@ final class SendMailConfiguration {
             throw new IOException("Unable to file attachment \"" + url + "\"");
         }
         filePart.attachFile(file);
-        String encodedFileName = MimeUtility.encodeText(file.getName());
+        String encodedFileName = MimeUtility.encodeText(file.getName(), StandardCharsets.UTF_8.name(), null);
         filePart.setFileName(encodedFileName);
         // java 7u7 is missing mimemtypes.default file:
         // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7096063
