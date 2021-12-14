@@ -51,6 +51,7 @@ package org.knime.filehandling.core.connections;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
@@ -69,11 +70,9 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
@@ -347,14 +346,31 @@ public final class FSFiles {
     public static void deleteRecursively(final Path toDelete) throws IOException {
         AtomicReference<IOException> ioeRef = new AtomicReference<>();
 
-        final Path[] pathsToDelete;
-        try (Stream<Path> stream = Files.walk(toDelete)) {
-            pathsToDelete = stream.sorted(Comparator.reverseOrder()).toArray(Path[]::new);
-        }
+        Files.walkFileTree(toDelete, new FileVisitor<Path>() { // NOSONAR allow anonymous inner class
+            @Override
+            public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+                return FileVisitResult.CONTINUE;
+            }
 
-        for (Path currToDelete : pathsToDelete) {
-            deleteSafely(currToDelete, ioeRef);
-        }
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                deleteSafely(file, ioeRef);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(final Path file, final IOException exception) throws IOException {
+                ioeRef.compareAndSet(null, exception);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(final Path dir, final IOException exception) throws IOException {
+                ioeRef.compareAndSet(null, exception);
+                deleteSafely(dir, ioeRef);
+                return FileVisitResult.CONTINUE;
+            }
+        });
 
         if (ioeRef.get() != null) {
             throw ioeRef.get();
@@ -374,6 +390,10 @@ public final class FSFiles {
     private static void deleteSafely(final Path toDelete, final AtomicReference<IOException> ioeRef) {
         try {
             Files.deleteIfExists(toDelete);
+        } catch (final UncheckedIOException uioe) { // NOSONAR we use the cause
+            if (ioeRef != null) {
+                ioeRef.compareAndSet(null, uioe.getCause());
+            }
         } catch (final IOException ioe) {
             if (ioeRef != null) {
                 ioeRef.compareAndSet(null, ioe);
