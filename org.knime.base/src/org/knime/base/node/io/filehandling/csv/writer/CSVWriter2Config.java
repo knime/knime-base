@@ -118,7 +118,7 @@ final class CSVWriter2Config {
 
     private static final boolean DEFAULT_WRITE_ROW_HEADER = false;
 
-    private static final String DEFAULT_CHAR_ENCODING = null;
+    private static final String DEFAULT_CHAR_ENCODING = Charset.defaultCharset().name();
 
     private final SettingsModelWriterFileChooser m_fileChooserModel;
 

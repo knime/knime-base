@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader.api;
 
+import java.nio.charset.Charset;
+
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 
@@ -100,7 +102,7 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
     private long m_numLinesToSkip = 1L;
 
     /** Setting used to store the character set name (encoding) */
-    private String m_charSet = null;
+    private String m_charSet = Charset.defaultCharset().name();
 
     /** Setting used to store the buffer size (autodetection) */
     private int m_bufferSize;

@@ -69,7 +69,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.knime.base.node.io.csvwriter.FileWriterNodeSettings.FileOverwritePolicy;
-import org.knime.base.node.io.filereader.CharsetNamePanel;
+import org.knime.base.node.io.filereader.FileReaderCharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.data.DataTableSpec;
@@ -113,7 +113,7 @@ public class CSVWriterNodeDialog extends NodeDialogPane {
 
     private final AdvancedPanel m_advancedPanel;
 
-    private final CharsetNamePanel m_encodingPanel;
+    private final FileReaderCharsetNamePanel m_encodingPanel;
 
     private final CommentPanel m_commentPanel;
 
@@ -224,7 +224,7 @@ public class CSVWriterNodeDialog extends NodeDialogPane {
         m_decSeparatorPanel = new DecimalSeparatorPanel();
         addTab("Number Format", m_decSeparatorPanel);
 
-        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
+        m_encodingPanel = new FileReaderCharsetNamePanel();
         addTab("Encoding", m_encodingPanel);
 
     }
@@ -342,7 +342,7 @@ public class CSVWriterNodeDialog extends NodeDialogPane {
         m_advancedPanel.loadValuesIntoPanel(newValues);
         m_commentPanel.loadValuesIntoPanel(newValues);
         m_decSeparatorPanel.loadValuesIntoPanel(newValues);
-        m_encodingPanel.loadSettings(getEncodingSettings(newValues));
+        m_encodingPanel.loadSettings(getEncodingSettings(newValues).getCharsetName());
         checkCheckerState();
     }
 

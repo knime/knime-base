@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.linereader;
 
+import java.nio.charset.Charset;
+
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 
 /**
@@ -58,7 +60,7 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 final class LineReaderConfig2 implements ReaderSpecificConfig<LineReaderConfig2> {
 
     /** Setting used to store the character set name (encoding) */
-    private String m_charSet = null;
+    private String m_charSet = Charset.defaultCharset().name();
 
     /** Setting to store the name of the column header */
     private String m_columnHeaderName = "Column";

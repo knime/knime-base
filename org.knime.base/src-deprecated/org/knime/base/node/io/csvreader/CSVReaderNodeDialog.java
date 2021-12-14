@@ -67,7 +67,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 
-import org.knime.base.node.io.filereader.CharsetNamePanel;
+import org.knime.base.node.io.filereader.FileReaderCharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.data.DataTableSpec;
@@ -105,7 +105,7 @@ public final class CSVReaderNodeDialog extends NodeDialogPane {
     private final JSpinner m_skipFirstLinesSpinner;
     private final JCheckBox m_limitAnalysisChecker;
     private final JSpinner m_limitAnalysisSpinner;
-    private final CharsetNamePanel m_encodingPanel;
+    private final FileReaderCharsetNamePanel m_encodingPanel;
 
 
     /** Create new dialog, init layout.*/
@@ -156,7 +156,7 @@ public final class CSVReaderNodeDialog extends NodeDialogPane {
 
         addTab("Limit Rows", getLimitRowsPanel());
 
-        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
+        m_encodingPanel = new FileReaderCharsetNamePanel();
         addTab("Encoding", m_encodingPanel);
     }
 
@@ -304,7 +304,7 @@ public final class CSVReaderNodeDialog extends NodeDialogPane {
             m_limitAnalysisChecker.setSelected(false);
             m_limitAnalysisSpinner.setValue(50);
         }
-        m_encodingPanel.loadSettings(getEncodingSettings(config));
+        m_encodingPanel.loadSettings(getEncodingSettings(config).getCharsetName());
     }
 
     private FileReaderSettings getEncodingSettings(final CSVReaderConfig settings) {

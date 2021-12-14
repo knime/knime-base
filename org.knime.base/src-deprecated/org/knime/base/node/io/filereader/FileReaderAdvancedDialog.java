@@ -105,7 +105,7 @@ public class FileReaderAdvancedDialog extends JDialog {
 
     private LimitRowsPanel m_limitRowsPanel;
 
-    private CharsetNamePanel m_charsetNamePanel;
+    private FileReaderCharsetNamePanel m_charsetNamePanel;
 
     private MissingValuePanel m_missValPanel;
 
@@ -478,9 +478,9 @@ public class FileReaderAdvancedDialog extends JDialog {
         return m_limitRowsPanel;
     }
 
-    private CharsetNamePanel getCharsetNamePanel() {
+    private FileReaderCharsetNamePanel getCharsetNamePanel() {
         if (m_charsetNamePanel == null) {
-            m_charsetNamePanel = new CharsetNamePanel(m_settings);
+            m_charsetNamePanel = new FileReaderCharsetNamePanel(m_settings.getCharsetName());
         }
         return m_charsetNamePanel;
     }

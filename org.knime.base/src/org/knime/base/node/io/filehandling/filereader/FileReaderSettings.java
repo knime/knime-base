@@ -259,7 +259,7 @@ class FileReaderSettings extends TokenizerSettings {
         m_globalMissPatternStrCols = null; // no global missing value pattern
         m_columnNumberDeterminingLine = -1;
 
-        m_charsetName = null; // uses the default char set name
+        m_charsetName = Charset.defaultCharset().name(); // uses the default char set name
 
     }
 

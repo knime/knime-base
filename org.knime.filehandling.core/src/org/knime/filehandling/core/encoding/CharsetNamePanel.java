@@ -45,7 +45,7 @@
  * History
  *   21.08.2007 (ohl): created
  */
-package org.knime.base.node.io.filehandling.filereader;
+package org.knime.filehandling.core.encoding;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -79,7 +79,7 @@ import org.knime.core.node.util.SharedIcons;
  *
  * @author Peter Ohl, University of Konstanz
  */
-final class CharsetNamePanel extends JPanel {
+public class CharsetNamePanel extends JPanel {
 
     private static final long serialVersionUID = 2016L;
 
@@ -134,22 +134,10 @@ final class CharsetNamePanel extends JPanel {
     }
 
     /** Init UI. */
-    private CharsetNamePanel() {
+    private void initUI() {
         this.setSize(520, 375);
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(getSelectionPanel());
-        m_listeners = new CopyOnWriteArrayList<>();
-        registerChangeListeners();
-    }
-
-    /**
-     * Creates a panel to select the character set name and initializes it from the passed object.
-     *
-     * @param settings the settings to initialize to panel from
-     */
-    CharsetNamePanel(final FileReaderSettings settings) {
-        this();
-        loadSettings(settings);
     }
 
     /**
@@ -157,13 +145,23 @@ final class CharsetNamePanel extends JPanel {
      *
      * @param charsetName the name of the charset, possibly null, see {@link #setCharsetName(String)}.
      */
-    CharsetNamePanel(final String charsetName) {
+    public CharsetNamePanel(final String charsetName) {
         this();
         setCharsetName(charsetName);
     }
 
+    /**
+     * Creates a panel to select the character set name with the default charset of the JVM.
+     */
+    public CharsetNamePanel() {
+        initUI();
+        m_listeners = new CopyOnWriteArrayList<>();
+        registerChangeListeners();
+        setCharsetName(Charset.defaultCharset().name());
+    }
+
     private JRadioButton createButton(final String label, final String tooltip) {
-        final JRadioButton button = new JRadioButton(label);
+        final var button = new JRadioButton(label);
         button.setToolTipText(tooltip);
         button.addChangeListener(e -> buttonsChanged());
         m_group.add(button);
@@ -171,7 +169,7 @@ final class CharsetNamePanel extends JPanel {
     }
 
     private JTextField createTextField() {
-        final JTextField textField = new JTextField(20);
+        final var textField = new JTextField(20);
         textField.setPreferredSize(new Dimension(250, 25));
         textField.setMaximumSize(new Dimension(250, 25));
         textField.getDocument().addDocumentListener(new DocumentListener() {
@@ -194,7 +192,7 @@ final class CharsetNamePanel extends JPanel {
     }
 
     private Container getSelectionPanel() {
-        JPanel result = new JPanel(new GridBagLayout());
+        final var result = new JPanel(new GridBagLayout());
         result.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
             "Select a character set for the encoding type:"));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -230,7 +228,7 @@ final class CharsetNamePanel extends JPanel {
     }
 
     private JPanel createCustomPanel() {
-        final JPanel customItems = new JPanel(new GridBagLayout());
+        final var customItems = new JPanel(new GridBagLayout());
         final GridBagConstraints gbcCustom = new GridBagConstraints();
         gbcCustom.gridx = 0;
         gbcCustom.insets = new Insets(0, 25, 0, 0);
@@ -286,10 +284,11 @@ final class CharsetNamePanel extends JPanel {
     }
 
     /**
-     * @param settings
+     * Loads the settings by a {@link Charset} name.
+     *
+     * @param csName name of the {@link Charset}
      */
-    void loadSettings(final FileReaderSettings settings) {
-        final String csName = settings.getCharsetName();
+    public void loadSettings(final String csName) {
         if (csName != null) {
             // in case of a known charset we want to automatically select the correct button
             // Example: utf8 is an alias for the canonical name UTF-8
@@ -318,7 +317,7 @@ final class CharsetNamePanel extends JPanel {
      *
      * @param charsetName Name of charset or null
      */
-    final void setCharsetName(final String charsetName) {
+    private final void setCharsetName(final String charsetName) {
         if (charsetName == null) {
             // the default
             m_default.setSelected(true);
@@ -347,7 +346,7 @@ final class CharsetNamePanel extends JPanel {
      * @return null if all settings are okay, or an error message if settings can't be taken over.
      *
      */
-    String checkSettings() {
+    public String checkSettings() {
         Enumeration<AbstractButton> buttons = m_group.getElements();
         while (buttons.hasMoreElements()) {
             AbstractButton b = buttons.nextElement();
@@ -368,36 +367,11 @@ final class CharsetNamePanel extends JPanel {
     }
 
     /**
-     * Writes the current settings of the panel into the passed settings object.
-     *
-     * @param settings the object to write settings in
-     * @return true if the new settings are different from the one passed in.
-     */
-    boolean overrideSettings(final FileReaderNodeSettings settings) {
-        String oldCSN = settings.getCharsetName();
-        String newCSN = getSelectedCharsetName().orElse(null);
-
-        settings.setCharsetName(newCSN);
-
-        boolean changed;
-        if (oldCSN == null) {
-            changed = newCSN != null;
-        } else {
-            changed = !oldCSN.equals(newCSN);
-        }
-        if (changed) {
-            settings.setCharsetUserSet(true);
-        }
-
-        return changed;
-    }
-
-    /**
      * Get the name of the selected charset or an empty optional if 'default' was chosen.
      *
      * @return that value
      */
-    final Optional<String> getSelectedCharsetName() {
+    public final Optional<String> getSelectedCharsetName() {
         Enumeration<AbstractButton> buttons = m_group.getElements();
         while (buttons.hasMoreElements()) {
             AbstractButton b = buttons.nextElement();
@@ -444,7 +418,7 @@ final class CharsetNamePanel extends JPanel {
      *
      * @param l listener to add
      */
-    void addChangeListener(final ChangeListener l) {
+    public void addChangeListener(final ChangeListener l) {
         if (!m_listeners.contains(l)) {
             m_listeners.add(l);
         }
@@ -455,7 +429,7 @@ final class CharsetNamePanel extends JPanel {
      *
      * @param l listener to remove
      */
-    void removeChangeListener(final ChangeListener l) {
+    public void removeChangeListener(final ChangeListener l) {
         m_listeners.remove(l);
     }
 

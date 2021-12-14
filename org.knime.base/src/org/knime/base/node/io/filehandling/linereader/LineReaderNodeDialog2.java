@@ -66,9 +66,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.knime.base.node.io.filereader.CharsetNamePanel;
-import org.knime.base.node.io.filereader.FileReaderNodeSettings;
-import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -81,6 +78,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Dialog
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.encoding.CharsetNamePanel;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
@@ -158,7 +156,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         m_sourceFilePanel = new DialogComponentReaderFileChooser(m_settingsModelReaderFileChooser, "source_chooser", sourceFvm);
         m_sourceFilePanel.getSettingsModel().getFilterModeModel().addChangeListener(l -> failOnDiffSpecsListener());
 
-        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
+        m_encodingPanel = new CharsetNamePanel();
 
         m_regexChecker = new JCheckBox("Match input against regex");
         m_regexChecker.addChangeListener(l -> m_regexField.setEnabled(m_regexChecker.isSelected()));
@@ -485,9 +483,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
         m_limitRowsSpinner.setValue(tableReadConfig.getMaxRows());
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
 
-        final FileReaderSettings fReadSettings = new FileReaderSettings();
-        fReadSettings.setCharsetName(lineReaderConfig.getCharSetName());
-        m_encodingPanel.loadSettings(fReadSettings);
+        m_encodingPanel.loadSettings(lineReaderConfig.getCharSetName());
         m_pathColumnPanel.load(m_config.appendItemIdentifierColumn(), m_config.getItemIdentifierColumnName());
         return m_config;
 
@@ -499,9 +495,7 @@ final class LineReaderNodeDialog2 extends AbstractPathTableReaderNodeDialog<Line
      * @param config the {@link LineReaderConfig2}
      */
     private void saveLineReaderSettings(final LineReaderConfig2 config) {
-        final FileReaderNodeSettings s = new FileReaderNodeSettings();
-        m_encodingPanel.overrideSettings(s);
-        config.setCharSetName(s.getCharsetName());
+        config.setCharSetName(m_encodingPanel.getSelectedCharsetName().orElse(null));
         config.setColumnHeaderName(m_columnHeaderField.getText());
         config.setRegex(m_regexField.getText());
         config.setUseRegex(m_regexChecker.isSelected());

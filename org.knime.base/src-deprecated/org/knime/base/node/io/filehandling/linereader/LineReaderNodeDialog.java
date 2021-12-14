@@ -58,7 +58,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
-import org.knime.base.node.io.filereader.CharsetNamePanel;
+import org.knime.base.node.io.filereader.FileReaderCharsetNamePanel;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
 import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.FlowVariableModel;
@@ -106,7 +106,7 @@ final class LineReaderNodeDialog extends NodeDialogPane {
 
     private final DialogComponentBoolean m_useRegexButton;
 
-    private final CharsetNamePanel m_encodingPanel;
+    private final FileReaderCharsetNamePanel m_encodingPanel;
 
     /** Create new dialog, init layout. */
     LineReaderNodeDialog() {
@@ -139,7 +139,7 @@ final class LineReaderNodeDialog extends NodeDialogPane {
 
         addTab("Settings", initLayout());
 
-        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
+        m_encodingPanel = new FileReaderCharsetNamePanel();
         addTab("Encoding", m_encodingPanel);
     }
 
@@ -220,7 +220,7 @@ final class LineReaderNodeDialog extends NodeDialogPane {
             m_config.loadConfiguration(settings);
             m_filePanel.loadSettingsFrom(settings, specs);
 
-            m_encodingPanel.loadSettings(getEncodingSettings());
+            m_encodingPanel.loadSettings(getEncodingSettings().getCharsetName());
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }

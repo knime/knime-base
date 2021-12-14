@@ -65,9 +65,6 @@ import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.writer.config.LineBreakTypes;
 import org.knime.base.node.io.filehandling.csv.writer.panel.AdvancedPanel;
 import org.knime.base.node.io.filehandling.csv.writer.panel.CommentPanel;
-import org.knime.base.node.io.filereader.CharsetNamePanel;
-import org.knime.base.node.io.filereader.FileReaderNodeSettings;
-import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialog;
@@ -79,6 +76,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
+import org.knime.filehandling.core.encoding.CharsetNamePanel;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
@@ -147,7 +145,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
 
         m_advancedPanel = new AdvancedPanel();
         m_commentPanel = new CommentPanel();
-        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
+        m_encodingPanel = new CharsetNamePanel();
 
         initLayout();
         checkCheckerState();
@@ -299,9 +297,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_quoteField.setText(EscapeUtils.escape(String.valueOf(m_writerConfig.getQuoteChar())));
         m_quoteEscapeField.setText(EscapeUtils.escape(String.valueOf(m_writerConfig.getQuoteEscapeChar())));
 
-        FileReaderSettings fReadSettings = new FileReaderSettings();
-        fReadSettings.setCharsetName(m_writerConfig.getCharsetName());
-        m_encodingPanel.loadSettings(fReadSettings);
+        m_encodingPanel.loadSettings(m_writerConfig.getCharsetName());
 
         m_advancedPanel.readFromConfig(m_writerConfig.getAdvancedConfig());
         m_commentPanel.readFromConfig(m_writerConfig.getCommentConfig());
@@ -321,9 +317,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_writerConfig.setQuoteChar(EscapeUtils.unescape(m_quoteField.getText()));
         m_writerConfig.setQuoteEscapeChar(EscapeUtils.unescape(m_quoteEscapeField.getText()));
 
-        final FileReaderNodeSettings s = new FileReaderNodeSettings();
-        m_encodingPanel.overrideSettings(s);
-        m_writerConfig.setCharSetName(s.getCharsetName());
+        m_writerConfig.setCharSetName(m_encodingPanel.getSelectedCharsetName().orElse(null));
 
         m_advancedPanel.writeToConfig(m_writerConfig.getAdvancedConfig());
         m_commentPanel.writeToConfig(m_writerConfig.getCommentConfig());

@@ -84,9 +84,6 @@ import javax.swing.event.DocumentListener;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
-import org.knime.base.node.io.filereader.CharsetNamePanel;
-import org.knime.base.node.io.filereader.FileReaderNodeSettings;
-import org.knime.base.node.io.filereader.FileReaderSettings;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -96,6 +93,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.SharedIcons;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.encoding.CharsetNamePanel;
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
@@ -320,7 +318,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         addTab("Advanced Settings", createAdvancedOptionsPanel());
         addTab("Limit Rows", getLimitRowsPanel());
 
-        m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
+        m_encodingPanel = new CharsetNamePanel();
         addTab("Encoding", createEncodingPanel());
 
         m_config = config;
@@ -904,9 +902,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         csvReaderConfig
             .setQuoteOption(QuoteOption.valueOf(m_quoteOptionsButtonGroup.getSelection().getActionCommand()));
 
-        FileReaderNodeSettings s = new FileReaderNodeSettings();
-        m_encodingPanel.overrideSettings(s);
-        csvReaderConfig.setCharSetName(s.getCharsetName());
+        csvReaderConfig.setCharSetName(m_encodingPanel.getSelectedCharsetName().orElse(null));
 
         csvReaderConfig.setAutoDetectionBufferSize(m_autoDetectionBufferSize);
 
@@ -1030,9 +1026,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
         setQuoteOption(csvReaderConfig.getQuoteOption());
 
-        FileReaderSettings fReadSettings = new FileReaderSettings();
-        fReadSettings.setCharsetName(csvReaderConfig.getCharSetName());
-        m_encodingPanel.loadSettings(fReadSettings);
+        m_encodingPanel.loadSettings(csvReaderConfig.getCharSetName());
+
         m_autoDetectionBufferSize = csvReaderConfig.getAutoDetectionBufferSize();
 
         m_numberFormatDialog.load(csvReaderConfig);
