@@ -54,6 +54,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
@@ -74,6 +75,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.core.runtime.CoreException;
@@ -276,10 +279,29 @@ class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFileSyste
     @Override
     protected InputStream newInputStreamInternal(final URIPath path, final OpenOption... options) throws IOException {
         try {
-            return doWithNodeContext(() -> path.openURLConnection(m_timeoutInMillis).getInputStream());
+            return doWithNodeContext(() -> createInputStream(path.openURLConnection(m_timeoutInMillis)));
         } catch (IOException e) {
             throw convertToFileSystemExceptionIfPossible(path, e);
         }
+    }
+
+    private static InputStream createInputStream(final URLConnection urlConnection) throws IOException {
+        final String contentEncoding = urlConnection.getContentEncoding();
+        final var inputStream = urlConnection.getInputStream();
+        if (contentEncoding != null) {
+            switch (contentEncoding) {
+                case "gzip":
+                    return new GZIPInputStream(inputStream);
+                case "deflate":
+                    return new InflaterInputStream(inputStream);
+                case "identity":
+                    return inputStream;
+                default:
+                    throw new UnsupportedOperationException(
+                        String.format("Content encoding '%s' not supported.", contentEncoding));
+            }
+        }
+        return inputStream;
     }
 
     private static boolean isNoSuchFileOnServerMountpoint(final Throwable rootCause) {
