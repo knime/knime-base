@@ -19,7 +19,7 @@
             <p>
                 <i>This legacy file handling node has been replaced by the
                 </i><a href="https://kni.me/n/wCzvAb6n1kWy3KjT"><i>Create Temp Folder</i></a><i>
-                and will become deprecated in the foreseeable future. For further information about the 
+                and will be deprecated in the foreseeable future. For further information about the 
                 new file handling framework see the
                 </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.
                 </i></a><br/>
