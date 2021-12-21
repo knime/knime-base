@@ -17,8 +17,7 @@
             some data is written, which is later downloaded by means of, e.g. a web
             link.
             <p>
-                <i>This legacy file handling node has been replaced by the
-                </i><a href="https://kni.me/n/wCzvAb6n1kWy3KjT"><i>Create Temp Folder</i></a><i>
+                <i>This legacy file handling node has been replaced by </i><a href="https://kni.me/n/wCzvAb6n1kWy3KjT"><i>Create Temp Folder</i></a><i>
                 and will be deprecated in the foreseeable future. For further information about the 
                 new file handling framework see the
                 </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.
