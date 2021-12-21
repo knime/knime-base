@@ -11,7 +11,7 @@
 			a flow variable, which can typically be used as input for a writer
 			node (e.g CSV Writer, Table Writer, etc).
             <p>
-                <i>This legacy file handling node has been replaced by the
+                <i>This legacy file handling node has been replaced by
                 </i><a href="https://kni.me/n/EgOX1gHkh6df_n56"><i>Create File/Folder Variables</i></a><i>
                 and will be deprecated in the foreseeable future. For further information about the 
                 new file handling framework see the
