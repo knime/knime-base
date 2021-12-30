@@ -175,7 +175,7 @@ public class RowFilterComponent {
     }
 
     /**
-     * Loads configuration from the Node settings.
+     * Loads configuration from the Node settings and sets a table specification.
      *
      * @param settings the {@link NodeSettingsRO}
      * @param tableSpec the {@linkplain DataTableSpec table specification}
@@ -188,6 +188,20 @@ public class RowFilterComponent {
         throws InvalidSettingsException {
 
         m_config.loadValidatedSettingsFrom(settings);
+        setDataTableSpec(tableSpec, operatorPanelConfig, operatorRegistry);
+    }
+
+    /**
+     * Sets a table specification.
+     *
+     * @param tableSpec the {@linkplain DataTableSpec table specification}
+     * @param operatorPanelConfig the {@link OperatorPanelParameters}
+     * @param operatorRegistry the {@link OperatorRegistry}
+     * @since 4.6
+     */
+    public void setDataTableSpec(final DataTableSpec tableSpec,
+        final OperatorPanelParameters operatorPanelConfig, final OperatorRegistry<?> operatorRegistry) {
+
         final DataTableSpec additionalColumnsTableSpec = addSpecialColumns(tableSpec);
         m_treePanelConfig.setDataTableSpec(additionalColumnsTableSpec);
         m_treePanelConfig.setOperatorRegistry(operatorRegistry);
@@ -197,7 +211,6 @@ public class RowFilterComponent {
         m_editorPanelConfig.setColumnSpecList(createColumnSpecList(tableSpec));
         m_editorPanelConfig.setOperatorRegistry(operatorRegistry);
         m_editorPanelConfig.setOperatorPanelParameters(operatorPanelConfig);
-
         m_elementFactory.setLastGroupId(m_config.findLastGroupId());
         m_elementFactory.setLastConditionId(m_config.findLastConditionId());
 
