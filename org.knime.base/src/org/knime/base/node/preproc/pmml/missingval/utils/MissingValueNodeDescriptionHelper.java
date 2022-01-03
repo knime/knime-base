@@ -50,7 +50,9 @@ package org.knime.base.node.preproc.pmml.missingval.utils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Optional;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -64,6 +66,8 @@ import javax.xml.transform.stream.StreamResult;
 import org.knime.base.node.preproc.pmml.missingval.MissingCellHandlerFactory;
 import org.knime.base.node.preproc.pmml.missingval.MissingCellHandlerFactoryManager;
 import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeLogger;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -117,25 +121,30 @@ public final class MissingValueNodeDescriptionHelper {
     public static NodeDescription createNodeDescription(final NodeDescription parentDescription,
         final MissingCellHandlerFactoryManager manager) throws SAXException, IOException {
 
-        NodeDescription createNodeDescription = parentDescription;
-        Element knimeNode = createNodeDescription.getXMLDescription();
-
-        Element fullDescription = findFullDescription(knimeNode);
-
-        if (fullDescription != null) {
-            if (manager == null) {
-                MissingCellHandlerDescriptionFactory.addShortDescriptionToNodeDescription(fullDescription);
-            } else {
-                List<MissingCellHandlerFactory> factories = manager.getFactories();
-                MissingCellHandlerDescriptionFactory.addShortDescriptionToNodeDescription(fullDescription, factories);
-            }
-            //a deep copy is created and returned as there exist some trouble
-            //with the namespaces and the following xslt transformation
-            return new NodeDescriptionXmlProxy(createNodeDescription, deepCopy(knimeNode));
+        Element knimeNode = parentDescription.getXMLDescription();
+        Element fullDescription = findFullDescription(knimeNode).orElseThrow(IOException::new);
+        if (manager == null) {
+            MissingCellHandlerDescriptionFactory.addShortDescriptionToNodeDescription(fullDescription);
+        } else {
+            List<MissingCellHandlerFactory> factories = manager.getFactories();
+            MissingCellHandlerDescriptionFactory.addShortDescriptionToNodeDescription(fullDescription, factories);
         }
 
-        return createNodeDescription;
+        try {
+            // use a deep copy of the Element because there exists some trouble
+            // with the namespaces and the following xslt transformation
+            return parentDescription
+                    .getClass()
+                    .getConstructor(Document.class)
+                    .newInstance(deepCopy(knimeNode).getOwnerDocument());
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            NodeLogger.getLogger(MissingValueNodeDescriptionHelper.class).error(
+                    "Could not create node description", e
+            );
+            throw new IOException(e.getCause());
+        }
     }
+
 
     /**
      * @return a deep copy of the knimeNode with the added option tag
@@ -146,9 +155,9 @@ public final class MissingValueNodeDescriptionHelper {
     private static Element deepCopy(final Element knimeNode) throws SAXException, IOException {
         try {
             TransformerFactory transFactory = TransformerFactory.newInstance();
-            Transformer transformerer = transFactory.newTransformer();
+            Transformer transformer = transFactory.newTransformer();
             StringWriter buffer = new StringWriter();
-            transformerer.transform(new DOMSource(knimeNode), new StreamResult(buffer));
+            transformer.transform(new DOMSource(knimeNode), new StreamResult(buffer));
             String str = buffer.toString();
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -164,15 +173,15 @@ public final class MissingValueNodeDescriptionHelper {
     /**
      * @return the fullDescrption element of the given xmlDescription
      */
-    private static Element findFullDescription(final Element xmlDescription) {
+    private static Optional<Element> findFullDescription(final Element xmlDescription) {
         NodeList childNodes = xmlDescription.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node item = childNodes.item(i);
             if ("fullDescription".equals(item.getNodeName())) {
-                return (Element)item;
+                return Optional.of( (Element)item);
             }
 
         }
-        return null;
+        return Optional.empty();
     }
 }
