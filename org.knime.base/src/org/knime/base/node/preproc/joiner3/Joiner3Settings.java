@@ -52,13 +52,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.join.JoinSpecification;
 import org.knime.core.data.join.JoinSpecification.DataCellComparisonMode;
+import org.knime.core.data.join.JoinSpecification.InputTable;
+import org.knime.core.data.join.JoinTableSettings;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
+import org.knime.core.data.join.KeepRowKeysFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -67,6 +71,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 
@@ -393,6 +398,46 @@ class Joiner3Settings {
             throw new InvalidSettingsException("No suffix for duplicate columns provided");
         }
     }
+
+    /**
+     * Create the join specification for the given table specs.
+     *
+     * @throws InvalidSettingsException
+     */
+    JoinSpecification joinSpecificationForSpecs(final PortObjectSpec... portSpecs) throws InvalidSettingsException {
+
+        // left (top port) input table
+        DataTableSpec left = (DataTableSpec)portSpecs[0];
+        String[] leftIncludes = getLeftColumnSelectionConfig().applyTo(left).getIncludes();
+        var leftSettings = new JoinTableSettings(isIncludeLeftUnmatched(),
+            getLeftJoinColumns(), leftIncludes, InputTable.LEFT, left);
+
+        // right (bottom port) input table
+        DataTableSpec right = (DataTableSpec)portSpecs[1];
+        String[] rightIncludes = getRightColumnSelectionConfig().applyTo(right).getIncludes();
+        var rightSettings = new JoinTableSettings(isIncludeRightUnmatched(),
+            getRightJoinColumns(), rightIncludes, InputTable.RIGHT, right);
+
+        BiFunction<DataRow, DataRow, RowKey> rowKeysFactory = getRowKeyFactory().getFactory(getRowKeySeparator());
+
+        UnaryOperator<String> columnNameDisambiguator;
+        // replace with custom
+        if (getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.APPEND_SUFFIX) {
+            columnNameDisambiguator = s -> s.concat(getDuplicateColumnSuffix());
+        } else {
+            columnNameDisambiguator = s -> s.concat(" (#1)");
+        }
+
+        return new JoinSpecification.Builder(leftSettings, rightSettings)
+            .conjunctive(getCompositionMode() == CompositionModeButtonGroup.MATCH_ALL)
+            .outputRowOrder(getOutputRowOrder())
+            .retainMatched(isIncludeMatches())
+            .mergeJoinColumns(isMergeJoinColumns()).columnNameDisambiguator(columnNameDisambiguator)
+            .dataCellComparisonMode(getDataCellComparisonMode())
+            .rowKeyFactory(rowKeysFactory)
+            .build();
+    }
+
 
     /**
      * Saves the settings into the node settings object.

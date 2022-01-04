@@ -56,18 +56,15 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.UnaryOperator;
 
 import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguationButtonGroup;
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.CompositionModeButtonGroup;
+import org.knime.base.node.preproc.joiner3.Joiner3Settings.RowKeyFactoryButtonGroup;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.join.JoinSpecification;
 import org.knime.core.data.join.JoinSpecification.InputTable;
-import org.knime.core.data.join.JoinTableSettings;
+import org.knime.core.data.join.KeepRowKeysFactory;
 import org.knime.core.data.join.implementation.JoinImplementation;
 import org.knime.core.data.join.implementation.JoinerFactory.JoinAlgorithm;
 import org.knime.core.data.join.results.JoinResult;
@@ -112,8 +109,8 @@ class Joiner3NodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 
-        JoinSpecification joinSpecification = joinSpecificationForSpecs(inSpecs);
-        DataTableSpec matchSpec = joinSpecification.specForMatchTable();
+        var joinSpecification = m_settings.joinSpecificationForSpecs(inSpecs);
+
         // RowIDs can only be kept if they are guaranteed to be equal for each pair of matching rows
         if (m_settings.getRowKeyFactory() == RowKeyFactoryButtonGroup.KEEP_ROWID) {
             Optional<String> problem = KeepRowKeysFactory.applicable(//
@@ -128,11 +125,13 @@ class Joiner3NodeModel extends NodeModel {
             if (duplicateColumn.isPresent()) {
                 throw new InvalidSettingsException(
                     String.format("Do not execute with ambiguous column names is selected: "
-                        + "Column %s appears both in left and right table.", duplicateColumn.get()));
+                            + "Column %s appears both in left and right table.", duplicateColumn.get()));
             }
         }
 
-        PortObjectSpec[] portObjectSpecs = new PortObjectSpec[3];
+        DataTableSpec matchSpec = joinSpecification.specForMatchTable();
+
+        var portObjectSpecs = new PortObjectSpec[3];
         if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
             // split output
             portObjectSpecs[portIndex(ResultType.MATCHES)] = matchSpec;
@@ -154,13 +153,13 @@ class Joiner3NodeModel extends NodeModel {
         BufferedDataTable left = (BufferedDataTable)inPortObjects[0];
         BufferedDataTable right = (BufferedDataTable)inPortObjects[1];
 
-        JoinSpecification joinSpecification = joinSpecificationForTables(left, right);
+        var joinSpecification = joinSpecificationForTables(left, right);
 
         JoinImplementation implementation = JoinAlgorithm.AUTO.getFactory().create(joinSpecification, exec);
         implementation.setMaxOpenFiles(m_settings.getMaxOpenFiles());
         implementation.setEnableHiliting(m_settings.isHilitingEnabled());
 
-        final PortObject[] outPortObjects = new PortObject[3];
+        final var outPortObjects = new PortObject[3];
         if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
             // split output
             // do the join
@@ -179,47 +178,6 @@ class Joiner3NodeModel extends NodeModel {
             m_hiliter.setResults(joinedTable);
         }
         return outPortObjects;
-    }
-
-    /**
-     * Create the join specification from the {@link #m_settings} for the given table specs.
-     *
-     * @throws InvalidSettingsException
-     */
-    private JoinSpecification joinSpecificationForSpecs(final PortObjectSpec... portSpecs)
-        throws InvalidSettingsException {
-
-        DataTableSpec left = (DataTableSpec)portSpecs[0];
-        DataTableSpec right = (DataTableSpec)portSpecs[1];
-
-        // left (top port) input table
-        String[] leftIncludes = m_settings.getLeftColumnSelectionConfig().applyTo(left).getIncludes();
-        JoinTableSettings leftSettings = new JoinTableSettings(m_settings.isIncludeLeftUnmatched(),
-            m_settings.getLeftJoinColumns(), leftIncludes, InputTable.LEFT, left);
-
-        // right (bottom port) input table
-        String[] rightIncludes = m_settings.getRightColumnSelectionConfig().applyTo(right).getIncludes();
-        JoinTableSettings rightSettings = new JoinTableSettings(m_settings.isIncludeRightUnmatched(),
-            m_settings.getRightJoinColumns(), rightIncludes, InputTable.RIGHT, right);
-
-        BiFunction<DataRow, DataRow, RowKey> rowKeysFactory = m_settings.getRowKeyFactory().getFactory(m_settings.getRowKeySeparator());
-
-        UnaryOperator<String> columnNameDisambiguator;
-        // replace with custom
-        if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.APPEND_SUFFIX) {
-            columnNameDisambiguator = s -> s.concat(m_settings.getDuplicateColumnSuffix());
-        } else {
-            columnNameDisambiguator = s -> s.concat(" (#1)");
-        }
-
-        return new JoinSpecification.Builder(leftSettings, rightSettings)
-            .conjunctive(m_settings.getCompositionMode() == CompositionModeButtonGroup.MATCH_ALL)
-            .outputRowOrder(m_settings.getOutputRowOrder())
-            .retainMatched(m_settings.isIncludeMatches())
-            .mergeJoinColumns(m_settings.isMergeJoinColumns()).columnNameDisambiguator(columnNameDisambiguator)
-            .dataCellComparisonMode(m_settings.getDataCellComparisonMode())
-            .rowKeyFactory(rowKeysFactory)
-            .build();
     }
 
     /**
@@ -245,7 +203,7 @@ class Joiner3NodeModel extends NodeModel {
     private JoinSpecification joinSpecificationForTables(final BufferedDataTable left, final BufferedDataTable right)
         throws InvalidSettingsException {
 
-        JoinSpecification joinSpecification = joinSpecificationForSpecs(left.getSpec(), right.getSpec());
+        var joinSpecification = m_settings.joinSpecificationForSpecs(left.getSpec(), right.getSpec());
         joinSpecification.getSettings(InputTable.LEFT).setTable(left);
         joinSpecification.getSettings(InputTable.RIGHT).setTable(right);
 
@@ -278,7 +236,7 @@ class Joiner3NodeModel extends NodeModel {
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        Joiner3Settings validationSettings = new Joiner3Settings();
+        var validationSettings = new Joiner3Settings();
         validationSettings.loadSettingsInModel(settings);
         validationSettings.validateSettings();
     }
@@ -328,7 +286,7 @@ class Joiner3NodeModel extends NodeModel {
     }
 
     private int portIndex(final ResultType resultType) {
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
             if (resultType(i).orElse(null) == resultType) {
                 return i;
             }
@@ -444,7 +402,7 @@ class Joiner3NodeModel extends NodeModel {
                 return;
             }
 
-            try (FileInputStream in = new FileInputStream(new File(nodeInternDir, INTERNALS_FILE_NAME))) {
+            try (var in = new FileInputStream(new File(nodeInternDir, INTERNALS_FILE_NAME))) {
                 NodeSettingsRO settings = NodeSettings.loadFromXML(in);
 
                 if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
@@ -472,7 +430,7 @@ class Joiner3NodeModel extends NodeModel {
             final ResultType outPort) throws InvalidSettingsException {
 
             String settingsName = hiliteConfigurationName(inPort, outPort);
-            DefaultHiLiteMapper mapper = DefaultHiLiteMapper.load(settings.getNodeSettings(settingsName));
+            var mapper = DefaultHiLiteMapper.load(settings.getNodeSettings(settingsName));
 
             m_translators.computeIfAbsent(inPort, k -> new EnumMap<>(ResultType.class))
                 .computeIfAbsent(outPort, k -> new HiLiteTranslator()).setMapper(mapper);
@@ -488,9 +446,9 @@ class Joiner3NodeModel extends NodeModel {
                 return;
             }
 
-            final NodeSettings internalSettings = new NodeSettings("hilite_mapping");
+            final var internalSettings = new NodeSettings("hilite_mapping");
 
-            for (InputTable inPort : m_translators.keySet()) {
+            for (InputTable inPort : m_translators.keySet()) { // NOSONAR more readable, performance not critical
                 for (ResultType outPort : m_translators.get(inPort).keySet()) {
 
                     String configurationName = hiliteConfigurationName(inPort, outPort);
@@ -504,8 +462,8 @@ class Joiner3NodeModel extends NodeModel {
                 }
             }
 
-            File f = new File(nodeInternDir, INTERNALS_FILE_NAME);
-            try (FileOutputStream out = new FileOutputStream(f)) {
+            var f = new File(nodeInternDir, INTERNALS_FILE_NAME);
+            try (var out = new FileOutputStream(f)) {
                 internalSettings.saveToXML(out);
             } catch (IOException e) {
                 LOGGER.warn(e);
