@@ -337,7 +337,7 @@ class Joiner3NodeDialog extends NodeDialogPane {
     }
 
     private JPanel createRowKeysPanel() {
-        JPanel p = new JPanel(new GridLayout(2, 1));
+        JPanel p = new JPanel(new GridLayout(3, 1));
         p.setBorder(BorderFactory.createTitledBorder("Row Keys"));
 
         // two elements in one row: button for concat and field for separator
@@ -348,6 +348,8 @@ class Joiner3NodeDialog extends NodeDialogPane {
         p.add(concatRowKeys);
 
         p.add(m_rowKeyFactory.getButton(RowKeyFactoryButtonGroup.SEQUENTIAL.name()));
+
+        p.add(m_rowKeyFactory.getButton(RowKeyFactoryButtonGroup.KEEP_ROWID.name()));
 
         return p;
     }

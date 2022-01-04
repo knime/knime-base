@@ -114,6 +114,14 @@ class Joiner3NodeModel extends NodeModel {
 
         JoinSpecification joinSpecification = joinSpecificationForSpecs(inSpecs);
         DataTableSpec matchSpec = joinSpecification.specForMatchTable();
+        // RowIDs can only be kept if they are guaranteed to be equal for each pair of matching rows
+        if (m_settings.getRowKeyFactory() == RowKeyFactoryButtonGroup.KEEP_ROWID) {
+            Optional<String> problem = KeepRowKeysFactory.applicable(//
+                joinSpecification, m_settings.isOutputUnmatchedRowsToSeparateOutputPort());
+            if (problem.isPresent()) {
+                throw new InvalidSettingsException("Cannot reuse input row keys for output. " + problem.get()); // NOSONAR
+            }
+        }
 
         if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.DO_NOT_EXECUTE) {
             Optional<String> duplicateColumn = checkForDuplicateColumn(joinSpecification);

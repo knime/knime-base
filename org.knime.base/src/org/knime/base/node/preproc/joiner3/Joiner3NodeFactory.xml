@@ -76,6 +76,12 @@
                 produced, e.g., the first row in the join result is assigned row key Row0, the second row is assigned
                 key Row1, etc.
                 <br/>
+                <b>Keep row keys: </b> Only available if the join criteria guarantee the equality of matching rows' keys.
+                Combined rows are assigned the row key of the input rows.
+                To guarantee equality, a) the join criteria assert row key equality and b) if the output is a single table,
+                it can not contain unmatched rows from both left and right input. 
+                Note that this a sufficient but not a necessary condition to guarantee equal and unique row keys. 
+                However, for performance reasons, keeping row keys is only enabled when the conditions hold.
             </option>        
         </tab>
         <tab name="Column selection">

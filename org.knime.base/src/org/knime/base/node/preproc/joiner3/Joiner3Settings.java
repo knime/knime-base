@@ -173,7 +173,10 @@ class Joiner3Settings {
                 JoinSpecification::createConcatRowKeysFactory),
             SEQUENTIAL("Assign new row keys sequentially",
                 "Output rows are assigned sequential row keys, e.g., Row0, Row1, etc. ",
-                s -> JoinSpecification.createSequenceRowKeysFactory());
+                s -> JoinSpecification.createSequenceRowKeysFactory()),
+            KEEP_ROWID("Keep row keys",
+                "Only available when join criteria ensure that matching rows have the same row keys.",
+                s -> new KeepRowKeysFactory());
 
         private final String m_label;
 
