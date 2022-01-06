@@ -317,7 +317,7 @@ public class CharsetNamePanel extends JPanel {
      *
      * @param charsetName Name of charset or null
      */
-    private final void setCharsetName(final String charsetName) {
+    public final void setCharsetName(final String charsetName) {
         if (charsetName == null) {
             // the default
             m_default.setSelected(true);
