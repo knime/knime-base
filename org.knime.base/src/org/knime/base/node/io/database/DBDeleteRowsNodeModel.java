@@ -152,7 +152,7 @@ final class DBDeleteRowsNodeModel extends NodeModel {
         final String updateColumn = DataTableSpec.getUniqueColumnName(inSpec, DELETE_ROWS_COLUMN);
         final DataColumnSpec cspec = new DataColumnSpecCreator(updateColumn, IntCell.TYPE).createSpec();
         final ColumnRearranger rearr = new ColumnRearranger(inSpec);
-        rearr.append(new SingleCellFactory(cspec) {
+        rearr.append(new SingleCellFactory(cspec, 0) {
             private int m_rowCount = 0;
             @Override
             public DataCell getCell(final DataRow row) {

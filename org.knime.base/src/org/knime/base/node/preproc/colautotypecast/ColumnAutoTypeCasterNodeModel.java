@@ -244,7 +244,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
 
     private SingleCellFactory
         createNumberConverter(final int colIdx, final DataType type, final DataColumnSpec colSpec) {
-        return new SingleCellFactory(colSpec) {
+        return new SingleCellFactory(colSpec, colIdx) {
             private final DataCellFactory m_fac = new DataCellFactory();
 
             @Override
@@ -277,7 +277,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
     }
 
     private SingleCellFactory createLongConverter(final int colIdx, final DataColumnSpec colSpec) {
-        return new SingleCellFactory(colSpec) {
+        return new SingleCellFactory(colSpec, colIdx) {
             @Override
             public DataCell getCell(final DataRow row) {
 
@@ -305,7 +305,7 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
     }
 
     private SingleCellFactory createDateAndTimeConverter(final int colIdx, final DataColumnSpec colSpec) {
-        return new SingleCellFactory(colSpec) {
+        return new SingleCellFactory(colSpec, colIdx) {
             private final Calendar m_cal = Calendar.getInstance(TimeZone.getDefault());
 
             private final SimpleDateFormat m_format = new SimpleDateFormat(m_dateFormat);

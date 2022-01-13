@@ -296,7 +296,7 @@ public class ClusterAssignerNodeModel extends NodeModel {
                 final List<Prototype> prototypes,
                 final DataColumnSpec newColspec,
                 final int[] learnedCols) {
-            super(newColspec);
+            super(newColspec, learnedCols.clone());
             m_measure = measure;
             m_prototypes = prototypes;
             m_colIndices = learnedCols;

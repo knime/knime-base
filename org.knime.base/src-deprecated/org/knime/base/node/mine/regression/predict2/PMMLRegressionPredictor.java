@@ -397,7 +397,7 @@ public final class PMMLRegressionPredictor implements PMMLTablePredictor {
 
         RegPredictorCellFactory(final DataColumnSpec colSpec, final RegressionTable regressionTable,
             final int[] colIndices) {
-            super(colSpec);
+            super(colSpec, colIndices);
             m_regressionTable = regressionTable;
             m_colIndices = colIndices;
         }

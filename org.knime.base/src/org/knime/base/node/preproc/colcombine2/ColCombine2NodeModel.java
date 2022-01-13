@@ -141,7 +141,7 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
         // "  " -> "  " (do not let the resulting string be empty)
         // " bla bla " -> "bla bla"
         final String delimTrim = trimDelimString(m_delimString);
-        result.append(new SingleCellFactory(append) {
+        result.append(new SingleCellFactory(append, indices) {
            @Override
             public DataCell getCell(final DataRow row) {
                String[] cellContents = new String[indices.length];

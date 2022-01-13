@@ -171,7 +171,7 @@ public class CollectionCreate2NodeModel extends SimpleStreamableFunctionNodeMode
                 new DataColumnSpecCreator(newColName, type);
         newColSpecC.setElementNames(names);
         DataColumnSpec newColSpec = newColSpecC.createSpec();
-        CellFactory appendFactory = new SingleCellFactory(newColSpec) {
+        CellFactory appendFactory = new SingleCellFactory(newColSpec, colIndices) {
             /** {@inheritDoc} */
             @Override
             public DataCell getCell(final DataRow row) {

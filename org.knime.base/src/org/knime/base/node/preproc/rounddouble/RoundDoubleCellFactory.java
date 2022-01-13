@@ -92,7 +92,7 @@ class RoundDoubleCellFactory extends AbstractCellFactory {
     RoundDoubleCellFactory(final int precision, final NumberMode numberMode, final RoundingMode roundingMode,
                            final RoundOutputType outputType, final int[] colIndexToRound,
        final DataColumnSpec[] newColSpecs) {
-        super(newColSpecs);
+        super(colIndexToRound, newColSpecs);
 
         // check for invalid arguments
         if (roundingMode == null) {

@@ -114,7 +114,7 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
         }
         DataColumnSpec outColSpec =
             new DataColumnSpecCreator(name, commonType).createSpec();
-        SingleCellFactory fac = new SingleCellFactory(outColSpec) {
+        SingleCellFactory fac = new SingleCellFactory(outColSpec, primColIndex, secColIndex) {
             /** {@inheritDoc} */
             @Override
             public DataCell getCell(final DataRow row) {

@@ -48,6 +48,7 @@
 package org.knime.base.node.preproc.columntrans2;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.data.DataCell;
@@ -107,6 +108,11 @@ public abstract class AbstractMany2OneCellFactory implements CellFactory {
      */
     public int[] getIncludedColIndices() {
         return m_includedColsIndices.clone();
+    }
+
+    @Override
+    public Optional<int[]> getRequiredColumns() {
+        return Optional.of(getIncludedColIndices());
     }
 
     /**

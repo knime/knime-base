@@ -143,7 +143,7 @@ public class ColumnComparatorNodeModel extends SimpleStreamableFunctionNodeModel
         DataColumnSpec rightSpec = spec.getColumnSpec(
             idx2);
         ColumnRearranger colRe = new ColumnRearranger(spec);
-        colRe.append(new SingleCellFactory(createSpec(leftSpec, rightSpec)) {
+        colRe.append(new SingleCellFactory(createSpec(leftSpec, rightSpec), idx1, idx2) {
 
             private final StringCell m_matchRepl = new StringCell(
                 m_matchValue.getStringValue());

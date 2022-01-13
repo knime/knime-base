@@ -111,7 +111,7 @@ final class ConstantValueColumnNodeModel extends SimpleStreamableFunctionNodeMod
         final DataCell constantCell = m_config.getCellFactory().createCell(value, m_config.getDateFormat());
 
         ColumnRearranger rearranger = new ColumnRearranger(in);
-        CellFactory fac = new SingleCellFactory(outColumnSpec) {
+        CellFactory fac = new SingleCellFactory(outColumnSpec, 0) {
             @Override
             public DataCell getCell(final DataRow row) {
                 return constantCell;

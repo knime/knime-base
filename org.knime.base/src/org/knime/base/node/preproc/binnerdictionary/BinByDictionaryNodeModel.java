@@ -251,9 +251,10 @@ final class BinByDictionaryNodeModel extends NodeModel {
             }
         }
         ruleSet.close();
-        SingleCellFactory fac = new SingleCellFactory(ruleSet.getSize() > 100, labelColSpec) {
+        SingleCellFactory fac =
+            new SingleCellFactory(ruleSet.getSize() > 100, labelColSpec, valueColIndexPort0) {
 
-            @Override
+                @Override
             public DataCell getCell(final DataRow row) {
                 DataCell value = row.getCell(valueColIndexPort0);
                 if (value.isMissing()) {
