@@ -115,6 +115,12 @@ class RoundDoubleCellFactory extends AbstractCellFactory {
         m_numberMode = numberMode;
     }
 
+    @Override
+    public boolean hasState() {
+        // doesn't have state but isn't parallelized because rounding is a comparatively cheap operation
+        return false;
+    }
+
     /**
      * {@inheritDoc}
      */
