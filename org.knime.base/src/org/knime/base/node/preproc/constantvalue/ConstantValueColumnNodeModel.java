@@ -45,6 +45,8 @@
  */
 package org.knime.base.node.preproc.constantvalue;
 
+import java.util.Optional;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -111,10 +113,20 @@ final class ConstantValueColumnNodeModel extends SimpleStreamableFunctionNodeMod
         final DataCell constantCell = m_config.getCellFactory().createCell(value, m_config.getDateFormat());
 
         ColumnRearranger rearranger = new ColumnRearranger(in);
-        CellFactory fac = new SingleCellFactory(outColumnSpec, 0) {
+        CellFactory fac = new SingleCellFactory(outColumnSpec) {
             @Override
             public DataCell getCell(final DataRow row) {
                 return constantCell;
+            }
+
+            @Override
+            public boolean hasState() {
+                return false;
+            }
+
+            @Override
+            public Optional<int[]> getRequiredColumns() {
+                return Optional.of(new int[0]);
             }
         };
 
