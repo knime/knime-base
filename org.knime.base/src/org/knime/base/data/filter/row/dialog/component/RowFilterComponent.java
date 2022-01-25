@@ -170,7 +170,7 @@ public class RowFilterComponent {
     public void saveSettingsTo(final NodeSettingsWO settings) {
         m_editorPanel.saveChanges();
 
-        m_config.setRoot(getRoot());
+        m_config.setRoot(getRootNode());
         m_config.saveSettingsTo(settings);
     }
 
@@ -217,7 +217,13 @@ public class RowFilterComponent {
         setRoot(m_config.getRoot());
     }
 
-    private Node getRoot() {
+    /**
+     * Gets current root node of the operator tree with all its children.
+     *
+     * @return root node
+     * @since 4.6
+     */
+    public Node getRootNode() {
         return NodeConverterHelper.convertToNode(m_treePanel.getRoot());
     }
 
