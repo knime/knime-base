@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.example.node.reader.csv;
 
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
@@ -71,16 +73,16 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
  * {@link String} as the value from the reader
  */
 public class ExampleCSVReaderNodeFactory
-        extends AbstractTableReaderNodeFactory<ExampleCSVReaderConfig, Class<?>, String> {
+        extends AbstractTableReaderNodeFactory<ExampleCSVReaderConfig, DataType, String> {
     // File extensions for the file browser
     private static final String[] FILE_SUFFIXES = new String[] { ".csv" };
 
     // Only have String values in the simple csv reading
-    private static final TypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY = TreeTypeHierarchy
-            .builder(createTypeTester(String.class)).build();
+    private static final TypeHierarchy<DataType, DataType> TYPE_HIERARCHY = TreeTypeHierarchy
+            .builder(createTypeTester(StringCell.TYPE)).build();
 
     // We can convert everything as a String
-    private static TypeTester<Class<?>, Class<?>> createTypeTester(final Class<?> type) {
+    private static TypeTester<DataType, DataType> createTypeTester(final DataType type) {
         return TypeTester.createTypeTester(type, s -> true);
     }
 
@@ -92,12 +94,12 @@ public class ExampleCSVReaderNodeFactory
     }
 
     @Override
-    protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
+    protected ReadAdapterFactory<DataType, String> getReadAdapterFactory() {
         return ExampleCSVReadAdapterFactory.INSTANCE;
     }
 
     @Override
-    protected TableReader<ExampleCSVReaderConfig, Class<?>, String> createReader() {
+    protected TableReader<ExampleCSVReaderConfig, DataType, String> createReader() {
         return new ExampleCSVReader();
     }
 
@@ -107,15 +109,15 @@ public class ExampleCSVReaderNodeFactory
     }
 
     @Override
-    protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
+    protected TypeHierarchy<DataType, DataType> getTypeHierarchy() {
         return TYPE_HIERARCHY;
     }
 
     @Override
-    protected AbstractPathTableReaderNodeDialog<ExampleCSVReaderConfig, Class<?>> createNodeDialogPane(
+    protected AbstractPathTableReaderNodeDialog<ExampleCSVReaderConfig, DataType> createNodeDialogPane(
             final NodeCreationConfiguration creationConfig,
-            final MultiTableReadFactory<FSPath, ExampleCSVReaderConfig, Class<?>> readFactory,
-            final ProductionPathProvider<Class<?>> defaultProductionPathFn) {
+            final MultiTableReadFactory<FSPath, ExampleCSVReaderConfig, DataType> readFactory,
+            final ProductionPathProvider<DataType> defaultProductionPathFn) {
 
         return new ExampleCSVReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),
                 readFactory, defaultProductionPathFn);

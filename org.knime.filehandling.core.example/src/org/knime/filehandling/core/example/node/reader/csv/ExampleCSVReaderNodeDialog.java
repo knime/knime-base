@@ -64,6 +64,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.knime.core.data.DataType;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -86,17 +87,17 @@ import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * Node dialog of the example CSV reader node.
- * 
+ *
  * {@link Class} is used to identify external types
  *
  * This displays a simple dialog with a file browser for CSV files which reads
  * and displays the preview using the table reader framework.
- * 
+ *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
- * 
+ *
  *
  */
-final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog<ExampleCSVReaderConfig, Class<?>> {
+final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog<ExampleCSVReaderConfig, DataType> {
 
     private static final Long ROW_START = Long.valueOf(0);
 
@@ -138,8 +139,8 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
      */
     ExampleCSVReaderNodeDialog(final SettingsModelReaderFileChooser settingsModelFileChooser,
             final ExampleCSVMultiTableReadConfig config,
-            final MultiTableReadFactory<FSPath, ExampleCSVReaderConfig, Class<?>> multiReader,
-            final ProductionPathProvider<Class<?>> productionPathProvider) {
+            final MultiTableReadFactory<FSPath, ExampleCSVReaderConfig, DataType> multiReader,
+            final ProductionPathProvider<DataType> productionPathProvider) {
         super(multiReader, productionPathProvider, true);
 
         m_settingsModelReaderFileChooser = settingsModelFileChooser;
@@ -312,7 +313,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         return m_config;
     }
 
-    private void saveExampleReaderSettings(ExampleCSVReaderConfig config) {
+    private void saveExampleReaderSettings(final ExampleCSVReaderConfig config) {
         config.setColumnHeaderPrefix(m_columnHeaderPrefix.getText());
     }
 
@@ -346,7 +347,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
     /**
      * Saves the {@link DefaultTableReadConfig}. We do not use the column header
-     * 
+     *
      * @param config
      *            the {@link DefaultTableReadConfig}
      */

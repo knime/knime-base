@@ -48,10 +48,10 @@
  */
 package org.knime.filehandling.core.example.node.reader.csv;
 
+import org.knime.core.data.DataType;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 
 /**
  * {@link MultiTableReadConfig} for the Example CSV reader.
@@ -59,11 +59,11 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
 final class ExampleCSVMultiTableReadConfig extends
-        AbstractMultiTableReadConfig<ExampleCSVReaderConfig, DefaultTableReadConfig<ExampleCSVReaderConfig>, Class<?>, ExampleCSVMultiTableReadConfig> {
+    AbstractMultiTableReadConfig<ExampleCSVReaderConfig, DefaultTableReadConfig<ExampleCSVReaderConfig>, DataType, ExampleCSVMultiTableReadConfig> {
 
     ExampleCSVMultiTableReadConfig() {
         super(new DefaultTableReadConfig<>(new ExampleCSVReaderConfig()),
-                ExampleCSVMultiTableReadConfigSerializer.INSTANCE, ExampleCSVMultiTableReadConfigSerializer.INSTANCE);
+            ExampleCSVMultiTableReadConfigSerializer.INSTANCE, ExampleCSVMultiTableReadConfigSerializer.INSTANCE);
 
         final DefaultTableReadConfig<ExampleCSVReaderConfig> config = this.getTableReadConfig();
         // You can change the default table read values here

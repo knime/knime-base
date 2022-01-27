@@ -50,6 +50,8 @@ package org.knime.filehandling.core.example.node.reader.csv;
 
 import java.io.IOException;
 
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -62,13 +64,13 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.T
 
 /**
  * Reader for the example CSV reader node.
- * 
+ *
  * Here we can manipulate the spec of the reader. In this case we read the first
  * row of the CSV to count the number of columns.
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Germany, Germany
  */
-final class ExampleCSVReader implements TableReader<ExampleCSVReaderConfig, Class<?>, String> {
+final class ExampleCSVReader implements TableReader<ExampleCSVReaderConfig, DataType, String> {
 
     @Override
     public Read<String> read(final FSPath path, final TableReadConfig<ExampleCSVReaderConfig> config)
@@ -88,6 +90,7 @@ final class ExampleCSVReader implements TableReader<ExampleCSVReaderConfig, Clas
      * @throws IOException
      *             if a stream can not be created from the provided file.
      */
+    @SuppressWarnings("resource") // it's the responsibility of the caller to close the Read
     private static Read<String> decorateForReading(final ExampleCSVRead read,
             final TableReadConfig<ExampleCSVReaderConfig> config) {
         Read<String> filtered = read;
@@ -107,15 +110,15 @@ final class ExampleCSVReader implements TableReader<ExampleCSVReaderConfig, Clas
      * String
      */
     @Override
-    public TypedReaderTableSpec<Class<?>> readSpec(final FSPath path,
+    public TypedReaderTableSpec<DataType> readSpec(final FSPath path,
             final TableReadConfig<ExampleCSVReaderConfig> config, final ExecutionMonitor exec) throws IOException {
         try (final ExampleCSVRead read = new ExampleCSVRead(path, config)) {
-            TypedReaderTableSpecBuilder<Class<?>> specBuilder = new TypedReaderTableSpecBuilder<>();
+            TypedReaderTableSpecBuilder<DataType> specBuilder = new TypedReaderTableSpecBuilder<>();
             final RandomAccessible<String> columns = read.next();
             for (int i = 0; i < columns.size(); i++) {
                 specBuilder.addColumn(
                         String.format("%s%x", config.getReaderSpecificConfig().getColumnHeaderPrefix(), i),
-                        String.class, true);
+                        StringCell.TYPE, true);
             }
             return specBuilder.build();
         }
