@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.example.node.reader.csv;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
@@ -61,9 +60,7 @@ import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 
 /**
  * This is an example implementation of the node factory of the
@@ -76,15 +73,6 @@ public class ExampleCSVReaderNodeFactory
         extends AbstractTableReaderNodeFactory<ExampleCSVReaderConfig, DataType, String> {
     // File extensions for the file browser
     private static final String[] FILE_SUFFIXES = new String[] { ".csv" };
-
-    // Only have String values in the simple csv reading
-    private static final TypeHierarchy<DataType, DataType> TYPE_HIERARCHY = TreeTypeHierarchy
-            .builder(createTypeTester(StringCell.TYPE)).build();
-
-    // We can convert everything as a String
-    private static TypeTester<DataType, DataType> createTypeTester(final DataType type) {
-        return TypeTester.createTypeTester(type, s -> true);
-    }
 
     @Override
     protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
@@ -110,7 +98,7 @@ public class ExampleCSVReaderNodeFactory
 
     @Override
     protected TypeHierarchy<DataType, DataType> getTypeHierarchy() {
-        return TYPE_HIERARCHY;
+        return ExampleCSVReadAdapterFactory.TYPE_HIERARCHY;
     }
 
     @Override
