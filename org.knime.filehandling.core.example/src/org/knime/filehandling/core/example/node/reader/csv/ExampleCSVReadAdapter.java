@@ -46,7 +46,7 @@
  * History
  *   Feb 5, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.example.node;
+package org.knime.filehandling.core.example.node.reader.csv;
 
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 

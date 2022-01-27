@@ -46,7 +46,7 @@
  * History
  *   28 Jun 2021 (Moditha Hewasinghage, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.core.example.node;
+package org.knime.filehandling.core.example.node.reader.csv;
 
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 

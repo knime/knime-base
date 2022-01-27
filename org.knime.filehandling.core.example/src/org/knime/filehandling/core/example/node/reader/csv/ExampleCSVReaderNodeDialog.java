@@ -46,7 +46,7 @@
  * History
  *   28 Jun 2021 (Moditha Hewasinghaget): created
  */
-package org.knime.filehandling.core.example.node;
+package org.knime.filehandling.core.example.node.reader.csv;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;

@@ -18,7 +18,7 @@
          point="org.knime.workbench.repository.nodes">
       <node
             category-path="/"
-            factory-class="org.knime.filehandling.core.example.node.ExampleCSVReaderNodeFactory">
+            factory-class="org.knime.filehandling.core.example.node.reader.csv.ExampleCSVReaderNodeFactory">
       </node>
    </extension>
    

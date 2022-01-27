@@ -1,4 +1,4 @@
-package org.knime.filehandling.core.example.node;
+package org.knime.filehandling.core.example.node.reader.csv;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.MappingFramework;
