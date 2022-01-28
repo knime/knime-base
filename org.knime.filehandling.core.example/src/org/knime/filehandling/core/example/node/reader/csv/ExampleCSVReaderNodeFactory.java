@@ -58,9 +58,8 @@ import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFact
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 
 /**
  * This is an example implementation of the node factory of the
@@ -87,7 +86,7 @@ public class ExampleCSVReaderNodeFactory
     }
 
     @Override
-    protected TableReader<ExampleCSVReaderConfig, DataType, String> createReader() {
+    protected ExampleCSVReader createReader() {
         return new ExampleCSVReader();
     }
 
@@ -97,8 +96,13 @@ public class ExampleCSVReaderNodeFactory
     }
 
     @Override
-    protected TypeHierarchy<DataType, DataType> getTypeHierarchy() {
+    protected TreeTypeHierarchy<DataType, DataType> getTypeHierarchy() {
         return ExampleCSVReadAdapterFactory.TYPE_HIERARCHY;
+    }
+
+    @Override
+    protected ProductionPathProvider<DataType> createProductionPathProvider() {
+        return ExampleCSVReadAdapterFactory.createProductionPathProvider();
     }
 
     @Override

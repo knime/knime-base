@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.example.node.reader.csv;
 
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -59,13 +60,17 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConf
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultProductionPathSerializer;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsSerializer;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * The {@link ConfigSerializer} for the example CSV reader node. This class
  * serializes the settings for the reader node.
- * 
+ *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
 enum ExampleCSVMultiTableReadConfigSerializer
@@ -90,15 +95,60 @@ enum ExampleCSVMultiTableReadConfigSerializer
 
     private static final String CFG_NUMBER_OF_ROWS_TO_SKIP = "skip_rows";
 
+    /*
+     * Appending SettingsModel.CFGKEY_INTERNAL hides the setting in the flow variable tab of the dialog.
+     */
+
     private static final String CFG_APPEND_PATH_COLUMN = "append_path_column" + SettingsModel.CFGKEY_INTERNAL;
 
     private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
+
+    private static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
+
+    private final TableSpecConfigSerializer<DataType> m_tableSpecConfigSerializer;
+
+    /**
+     * Constructor for the singleton instance. Invoked by Java when the class is loaded.
+     */
+    private ExampleCSVMultiTableReadConfigSerializer() {
+        m_tableSpecConfigSerializer =
+                TableSpecConfigSerializer
+                    .createStartingV44(//
+                        // loads and saves the production paths specified by the user
+                        new DefaultProductionPathSerializer(ExampleCSVReadAdapterFactory.INSTANCE.getProducerRegistry()),
+                        // loads and saves an identifier of the config that allows to check if the config changed
+                        this,
+                        // used to save the type of columns
+                    new NodeSettingsSerializer<DataType>() {
+
+                        @Override
+                        public void save(final DataType object, final NodeSettingsWO settings) {
+                            settings.addDataType("type", object);
+                        }
+
+                        @Override
+                        public DataType load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                            return settings.getDataType("type");
+                        }
+                    }
+                            );
+    }
 
     @Override
     public void loadInDialog(final ExampleCSVMultiTableReadConfig config, final NodeSettingsRO settings,
             final PortObjectSpec[] specs) {
         loadSettingsTabInDialog(config, SettingsUtils.getOrEmpty(settings, SettingsUtils.CFG_SETTINGS_TAB));
         loadLimitRowsTabInDialog(config, SettingsUtils.getOrEmpty(settings, CFG_LIMIT_ROWS_TAB));
+        loadTransformationTabInDialog(config, settings);
+    }
+
+    private void loadTransformationTabInDialog(final ExampleCSVMultiTableReadConfig config,
+        final NodeSettingsRO settings) {
+        try {
+            loadTransformationTabInModel(config, settings);
+        } catch (InvalidSettingsException ex) { //NOSONAR
+            // can be ignored, then the dialog will create a new TableSpecConfig when it parsed the input file.
+        }
     }
 
     private static void loadSettingsTabInDialog(final ExampleCSVMultiTableReadConfig config,
@@ -127,6 +177,21 @@ enum ExampleCSVMultiTableReadConfigSerializer
             throws InvalidSettingsException {
         loadSettingsTabInModel(config, settings.getNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
         loadLimitRowsTabInModel(config, settings.getNodeSettings(CFG_LIMIT_ROWS_TAB));
+        loadTransformationTabInModel(config, settings);
+    }
+
+    private TableSpecConfig<DataType> loadTableSpecConfig(final NodeSettingsRO settings)
+        throws InvalidSettingsException {
+        if (settings.containsKey(CFG_TABLE_SPEC_CONFIG)) {
+            return m_tableSpecConfigSerializer.load(settings.getNodeSettings(CFG_TABLE_SPEC_CONFIG));
+        } else {
+            return null;
+        }
+    }
+
+    private void loadTransformationTabInModel(final ExampleCSVMultiTableReadConfig config,
+        final NodeSettingsRO settings) throws InvalidSettingsException {
+        config.setTableSpecConfig(loadTableSpecConfig(settings));
     }
 
     private static void loadSettingsTabInModel(final ExampleCSVMultiTableReadConfig config,
@@ -149,6 +214,10 @@ enum ExampleCSVMultiTableReadConfigSerializer
 
     @Override
     public void saveInModel(final ExampleCSVMultiTableReadConfig config, final NodeSettingsWO settings) {
+        if (config.hasTableSpecConfig()) {
+            m_tableSpecConfigSerializer.save(config.getTableSpecConfig(),
+                settings.addNodeSettings(CFG_TABLE_SPEC_CONFIG));
+        }
         saveSettingsTab(config, SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
         saveLimitRowsTab(config, settings.addNodeSettings(CFG_LIMIT_ROWS_TAB));
     }
@@ -197,7 +266,7 @@ enum ExampleCSVMultiTableReadConfigSerializer
 
     @Override
     public ConfigID createFromConfig(final ExampleCSVMultiTableReadConfig config) {
-        final NodeSettings settings = new NodeSettings(KEY);
+        final var settings = new NodeSettings(KEY);
         saveConfigIDSettingsTab(config, settings.addNodeSettings(SettingsUtils.CFG_SETTINGS_TAB));
         saveConfigIDLimitRowsTab(config, settings.addNodeSettings(CFG_LIMIT_ROWS_TAB));
         return new NodeSettingsConfigID(settings);

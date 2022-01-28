@@ -205,7 +205,8 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
     private void createDialogPanels() {
         addTab("Settings", createSettingsPanel());
         addTab("Limit Rows", createLimitRowsPanel());
-
+        // adds the Transformation tab to the dialog
+        addTab("Transformation", createTransformationTab());
     }
 
     /**
@@ -300,7 +301,10 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        // commits the changes of the transformation tab
+        super.saveSettingsTo(settings);
         m_sourceFilePanel.saveSettingsTo(SettingsUtils.getOrAdd(settings, SettingsUtils.CFG_SETTINGS_TAB));
+
         getConfig().saveInDialog(settings);
     }
 
@@ -310,6 +314,10 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         saveExampleReaderSettings(m_config.getTableReadConfig().getReaderSpecificConfig());
         m_config.setAppendItemIdentifierColumn(m_pathColumnPanel.isAppendSourceIdentifierColumn());
         m_config.setItemIdentifierColumnName(m_pathColumnPanel.getSourceIdentifierColumnName());
+        // save the settings of the transformation tab if they need to be saved
+        if (m_config.saveTableSpecConfig()) {
+            m_config.setTableSpecConfig(getTableSpecConfig());
+        }
         return m_config;
     }
 
@@ -352,7 +360,6 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
      *            the {@link DefaultTableReadConfig}
      */
     private void saveTableReadSettings(final DefaultTableReadConfig<ExampleCSVReaderConfig> config) {
-        config.setUseColumnHeaderIdx(false);
         config.setLimitRows(m_limitRowsChecker.isSelected());
         config.setMaxRows((long) m_limitRowsSpinner.getValue());
         config.setSkipRows(m_skipRowsChecker.isSelected());

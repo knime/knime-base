@@ -54,7 +54,13 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConf
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 
 /**
- * {@link MultiTableReadConfig} for the Example CSV reader.
+ * {@link MultiTableReadConfig} for the Example CSV reader. This class serves two purposes:
+ * <ul>
+ * <li>It reduces boilerplate in classes that use it that otherwise would have to define the generics of
+ * MultiTableReadConfig.
+ * <li>It's the place to change default values in the configuration that (a) either deviate from the defaults in the
+ * framework or (b) can't be changed in the dialog of this particular node.
+ * <ul>
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
@@ -66,11 +72,15 @@ final class ExampleCSVMultiTableReadConfig extends
             ExampleCSVMultiTableReadConfigSerializer.INSTANCE, ExampleCSVMultiTableReadConfigSerializer.INSTANCE);
 
         final DefaultTableReadConfig<ExampleCSVReaderConfig> config = this.getTableReadConfig();
+        // we assume that the first row contains the column names
+        config.setColumnHeaderIdx(0);
+        config.setUseColumnHeaderIdx(true);
+
         // You can change the default table read values here
         // This is true by default
-        config.setUseColumnHeaderIdx(false);
         // By default this is set to true. We are reading 1 row in the example
         config.setLimitRowsForSpec(false);
+
     }
 
     @Override

@@ -49,29 +49,43 @@
 package org.knime.filehandling.core.example.node.reader.csv;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
-import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
+import org.knime.filehandling.core.node.table.reader.spec.TableSpecGuesser;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 
 /**
  * Reader for the example CSV reader node.
  *
- * Here we can manipulate the spec of the reader. In this case we read the first
- * row of the CSV to count the number of columns.
+ * The TableReader can read the spec and table from a single file.
+ * We use the {@link TableSpecGuesser} to guess the column types based on the file content.
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Germany, Germany
  */
 final class ExampleCSVReader implements TableReader<ExampleCSVReaderConfig, DataType, String> {
 
+    /**
+     * Column names are generated with Column prefix All the columns have the type
+     * String
+     */
+    @Override
+    public TypedReaderTableSpec<DataType> readSpec(final FSPath path,
+            final TableReadConfig<ExampleCSVReaderConfig> config, final ExecutionMonitor exec) throws IOException {
+        try (final var read = new ExampleCSVRead(path, config)) {
+            var specGuesser =
+                new TableSpecGuesser<>(ExampleCSVReadAdapterFactory.VALUE_TYPE_HIERARCHY, Function.identity());
+            return specGuesser.guessSpec(read, config, exec, path);
+        }
+    }
+
+    @SuppressWarnings("resource") // the caller must close the Read when it is no longer needed
     @Override
     public Read<String> read(final FSPath path, final TableReadConfig<ExampleCSVReaderConfig> config)
             throws IOException {
@@ -103,26 +117,6 @@ final class ExampleCSVReader implements TableReader<ExampleCSVReaderConfig, Data
             filtered = ReadUtils.limit(filtered, numRowsToKeep);
         }
         return filtered;
-    }
-
-    /**
-     * Column names are generated with Column prefix All the columns have the type
-     * String
-     */
-    @Override
-    public TypedReaderTableSpec<DataType> readSpec(final FSPath path,
-            final TableReadConfig<ExampleCSVReaderConfig> config, final ExecutionMonitor exec) throws IOException {
-        try (final ExampleCSVRead read = new ExampleCSVRead(path, config)) {
-            TypedReaderTableSpecBuilder<DataType> specBuilder = new TypedReaderTableSpecBuilder<>();
-            final RandomAccessible<String> columns = read.next();
-            for (int i = 0; i < columns.size(); i++) {
-                specBuilder.addColumn(
-                        String.format("%s%x", config.getReaderSpecificConfig().getColumnHeaderPrefix(), i),
-                        StringCell.TYPE, true);
-            }
-            return specBuilder.build();
-        }
-
     }
 
 }
