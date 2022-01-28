@@ -52,15 +52,14 @@ import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig
 
 /**
  * {@link ReaderSpecificConfig} for the Example CSV reader node.
- * 
+ *
  * Here we keep the configurations specific to this reader node
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
 final class ExampleCSVReaderConfig implements ReaderSpecificConfig<ExampleCSVReaderConfig> {
 
-    /** Setting to store the name of the column header prefix */
-    private String m_columnHeaderPrefix = "Column";
+    private String m_columnDelimiter = ",";
 
     /**
      * Constructor.
@@ -69,7 +68,7 @@ final class ExampleCSVReaderConfig implements ReaderSpecificConfig<ExampleCSVRea
     }
 
     private ExampleCSVReaderConfig(final ExampleCSVReaderConfig toCopy) {
-        setColumnHeaderPrefix(toCopy.getColumnHeaderPrefix());
+        setColumnDelimiter(toCopy.getColumnDelimiter());
     }
 
     @Override
@@ -77,12 +76,12 @@ final class ExampleCSVReaderConfig implements ReaderSpecificConfig<ExampleCSVRea
         return new ExampleCSVReaderConfig(this);
     }
 
-    public String getColumnHeaderPrefix() {
-        return m_columnHeaderPrefix;
+    String getColumnDelimiter() {
+        return m_columnDelimiter;
     }
 
-    public void setColumnHeaderPrefix(final String columnHeaderPrefix) {
-        m_columnHeaderPrefix = columnHeaderPrefix;
+    void setColumnDelimiter(final String delimiter) {
+        m_columnDelimiter = delimiter;
     }
 
 }

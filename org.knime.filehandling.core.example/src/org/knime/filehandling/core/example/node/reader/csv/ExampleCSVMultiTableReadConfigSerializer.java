@@ -69,7 +69,12 @@ import org.knime.filehandling.core.util.SettingsUtils;
 
 /**
  * The {@link ConfigSerializer} for the example CSV reader node. This class
- * serializes the settings for the reader node.
+ * serializes the settings for the reader node. <br>
+ * Abstracting the settings loading in this way allows for:
+ * <ul>
+ * <li> Flexibility e.g. for backwards compatible loading
+ * <li> Storing the settings in such a way that they reflect the tabs and naming of the dialog.
+ * </ul>
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
@@ -83,7 +88,7 @@ enum ExampleCSVMultiTableReadConfigSerializer
 
     private static final String KEY = "example_csv_reader";
 
-    private static final String CFG_COL_HEADER_PREFIX = "col_header_prefix";
+    private static final String CFG_COL_DELIMITER = "column_delimiter";
 
     private static final String CFG_LIMIT_ROWS_TAB = "limit_rows";
 
@@ -154,8 +159,7 @@ enum ExampleCSVMultiTableReadConfigSerializer
     private static void loadSettingsTabInDialog(final ExampleCSVMultiTableReadConfig config,
             final NodeSettingsRO settings) {
         final ExampleCSVReaderConfig csvReaderCfg = config.getReaderSpecificConfig();
-        csvReaderCfg.setColumnHeaderPrefix(settings.getString(CFG_COL_HEADER_PREFIX, "Column"));
-
+        csvReaderCfg.setColumnDelimiter(settings.getString(CFG_COL_DELIMITER, csvReaderCfg.getColumnDelimiter()));
         config.setAppendItemIdentifierColumn(
                 settings.getBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn()));
         config.setItemIdentifierColumnName(
@@ -197,8 +201,7 @@ enum ExampleCSVMultiTableReadConfigSerializer
     private static void loadSettingsTabInModel(final ExampleCSVMultiTableReadConfig config,
             final NodeSettingsRO settings) throws InvalidSettingsException {
         final ExampleCSVReaderConfig csvReaderCfg = config.getReaderSpecificConfig();
-        csvReaderCfg.setColumnHeaderPrefix(settings.getString(CFG_COL_HEADER_PREFIX, "Column"));
-
+        csvReaderCfg.setColumnDelimiter(settings.getString(CFG_COL_DELIMITER));
         config.setAppendItemIdentifierColumn(settings.getBoolean(CFG_APPEND_PATH_COLUMN));
         config.setItemIdentifierColumnName(settings.getString(CFG_PATH_COLUMN_NAME));
     }
@@ -224,7 +227,7 @@ enum ExampleCSVMultiTableReadConfigSerializer
 
     private static void saveSettingsTab(final ExampleCSVMultiTableReadConfig config, final NodeSettingsWO settings) {
         final ExampleCSVReaderConfig exampleReaderCfg = config.getReaderSpecificConfig();
-        settings.addString(CFG_COL_HEADER_PREFIX, exampleReaderCfg.getColumnHeaderPrefix());
+        settings.addString(CFG_COL_DELIMITER, exampleReaderCfg.getColumnDelimiter());
 
         settings.addBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn());
         settings.addString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName());
@@ -252,7 +255,7 @@ enum ExampleCSVMultiTableReadConfigSerializer
     }
 
     public static void validateSettingsTab(final NodeSettingsRO settings) throws InvalidSettingsException {
-        settings.getString(CFG_COL_HEADER_PREFIX);
+        settings.getString(CFG_COL_DELIMITER);
         settings.getBoolean(CFG_APPEND_PATH_COLUMN);
         settings.getString(CFG_PATH_COLUMN_NAME);
     }
@@ -274,7 +277,7 @@ enum ExampleCSVMultiTableReadConfigSerializer
 
     private static void saveConfigIDSettingsTab(final ExampleCSVMultiTableReadConfig config,
             final NodeSettingsWO settings) {
-        settings.addString(CFG_COL_HEADER_PREFIX, config.getReaderSpecificConfig().getColumnHeaderPrefix());
+        settings.addString(CFG_COL_DELIMITER, config.getReaderSpecificConfig().getColumnDelimiter());
     }
 
     private static void saveConfigIDLimitRowsTab(final ExampleCSVMultiTableReadConfig config,

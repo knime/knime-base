@@ -69,11 +69,9 @@ import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
  * {@link String} tokens.
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
- * 
+ *
  */
 final class ExampleCSVRead implements Read<String> {
-
-    private static final String COLUMN_DELIMITER = ",";
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ExampleCSVRead.class);
 
@@ -82,6 +80,8 @@ final class ExampleCSVRead implements Read<String> {
     private final CompressionAwareCountingInputStream m_compressionAwareStream;
 
     private final long m_size;
+
+    private final String m_columnDelimiter;
 
     /**
      * Constructor.
@@ -92,8 +92,9 @@ final class ExampleCSVRead implements Read<String> {
      *            the {@link TableReadConfig} of the node
      * @throws IOException
      */
-    ExampleCSVRead(final FSPath path, final TableReadConfig<ExampleCSVReaderConfig> config) throws IOException { //NOSONAR not using config yet
+    ExampleCSVRead(final FSPath path, final TableReadConfig<ExampleCSVReaderConfig> config) throws IOException {
 
+        m_columnDelimiter = config.getReaderSpecificConfig().getColumnDelimiter();
         m_size = Files.size(path);
 
         m_compressionAwareStream = new CompressionAwareCountingInputStream(path);
@@ -112,7 +113,7 @@ final class ExampleCSVRead implements Read<String> {
             // no more lines to read
             return null;
         } else {
-            return RandomAccessibleUtils.createFromArray(line.split(COLUMN_DELIMITER));
+            return RandomAccessibleUtils.createFromArray(line.split(m_columnDelimiter));
         }
     }
 

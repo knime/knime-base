@@ -65,7 +65,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.knime.core.data.DataType;
-import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -94,8 +93,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * and displays the preview using the table reader framework.
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
- *
- *
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog<ExampleCSVReaderConfig, DataType> {
 
@@ -111,7 +109,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
     private final SettingsModelReaderFileChooser m_settingsModelReaderFileChooser;
 
-    private final JTextField m_columnHeaderPrefix = new JTextField("######", 6);
+    private final JTextField m_columnDelimiter = new JTextField("###", 3);
 
     private final JCheckBox m_limitRowsChecker = new JCheckBox();
 
@@ -145,7 +143,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
         m_settingsModelReaderFileChooser = settingsModelFileChooser;
 
-        final FlowVariableModel sourceFvm = createFlowVariableModel(
+        final var sourceFvm = createFlowVariableModel(
                 Stream.concat(Stream.of(SettingsUtils.CFG_SETTINGS_TAB),
                         Arrays.stream(m_settingsModelReaderFileChooser.getKeysForFSLocation())).toArray(String[]::new),
                 FSLocationSpecVariableType.INSTANCE);
@@ -194,7 +192,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         };
 
         m_sourceFilePanel.getModel().addChangeListener(changeListener);
-        m_columnHeaderPrefix.getDocument().addDocumentListener(documentListener);
+        m_columnDelimiter.getDocument().addDocumentListener(documentListener);
         m_limitRowsChecker.getModel().addActionListener(actionListener);
         m_limitRowsSpinner.getModel().addChangeListener(changeListener);
         m_skipRowsChecker.getModel().addActionListener(actionListener);
@@ -224,10 +222,10 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
      * @return the settings panel {@link JPanel}
      */
     private JPanel createSettingsPanel() {
-        final JPanel panel = new JPanel(new GridBagLayout());
+        final var panel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = createGBCBuilder().fillHorizontal().setWeightX(1).anchorPageStart();
         panel.add(createSourcePanel(), gbc.build());
-        panel.add(createColHeaderPanel(), gbc.incY().build());
+        panel.add(createColumnDelimiterPanel(), gbc.incY().build());
         panel.add(m_pathColumnPanel, gbc.incY().build());
         gbc.setWeightY(1).resetX().widthRemainder().incY().fillBoth();
         // Adding the preview panel
@@ -241,7 +239,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
      * @return the source file {@link JPanel}
      */
     private JPanel createSourcePanel() {
-        final JPanel sourcePanel = new JPanel(new GridBagLayout());
+        final var sourcePanel = new JPanel(new GridBagLayout());
         sourcePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Input location"));
         GBCBuilder gbc = createGBCBuilder().setWeightX(1);
         sourcePanel.add(m_sourceFilePanel.getComponentPanel(), gbc.build());
@@ -253,13 +251,14 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
      *
      * @return the column header {@link JPanel}
      */
-    private JPanel createColHeaderPanel() {
-        final JPanel colHeaderPanel = new JPanel(new GridBagLayout());
+    private JPanel createColumnDelimiterPanel() {
+        final var colDelimPanel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = createGBCBuilder().fillHorizontal();
-        colHeaderPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Column Header"));
-        colHeaderPanel.add(m_columnHeaderPrefix, gbc.build());
-        colHeaderPanel.add(new JPanel(), gbc.incX().setWeightX(1.0).build());
-        return colHeaderPanel;
+        colDelimPanel
+            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Column Delimiter"));
+        colDelimPanel.add(m_columnDelimiter, gbc.build());
+        colDelimPanel.add(new JPanel(), gbc.incX().setWeightX(1.0).build());
+        return colDelimPanel;
     }
 
     /**
@@ -268,7 +267,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
      * @return the row {@link JPanel}
      */
     private JPanel createLimitRowsPanel() {
-        final JPanel limitPanel = new JPanel(new GridBagLayout());
+        final var limitPanel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = createGBCBuilder().fillHorizontal();
         limitPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Row Settings"));
 
@@ -322,7 +321,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
     }
 
     private void saveExampleReaderSettings(final ExampleCSVReaderConfig config) {
-        config.setColumnHeaderPrefix(m_columnHeaderPrefix.getText());
+        config.setColumnDelimiter(m_columnDelimiter.getText());
     }
 
     @Override
@@ -337,7 +336,7 @@ final class ExampleCSVReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         m_config.loadInDialog(settings, specs);
 
         final ExampleCSVReaderConfig exampleReaderConfig = m_config.getReaderSpecificConfig();
-        m_columnHeaderPrefix.setText(exampleReaderConfig.getColumnHeaderPrefix());
+        m_columnDelimiter.setText(exampleReaderConfig.getColumnDelimiter());
 
         final TableReadConfig<ExampleCSVReaderConfig> exampleCSVReaderConfig = m_config.getTableReadConfig();
         m_limitRowsChecker.setSelected(exampleCSVReaderConfig.limitRows());
