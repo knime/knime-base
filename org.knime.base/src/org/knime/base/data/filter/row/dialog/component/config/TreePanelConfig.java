@@ -72,6 +72,8 @@ public class TreePanelConfig extends AbstractPanelConfig {
 
     private Consumer<TreeConditionHandler> m_selectConditionConsumer;
 
+    private boolean m_addConditionIfEmpty = true;
+
     /**
      * Constructs an {@link TreePanelConfig}.
      *
@@ -161,6 +163,25 @@ public class TreePanelConfig extends AbstractPanelConfig {
      */
     public void setSelectConditionListener(final Consumer<TreeConditionHandler> consumer) {
         m_selectConditionConsumer = consumer;
+    }
+
+    /**
+     * Return <code>true</code> if the panel should always contain a condition even if only a dummy
+     * condition that needs to be filled by the user.
+     *
+     * @return <code>true</code> if a dummy condition should be added if none exists
+     */
+    public boolean isAddConditionIfEmpty() {
+        return m_addConditionIfEmpty;
+    }
+
+    /**
+     * Set to true if the panel should always contain a condition e.g. a dummy condition during first start.
+     *
+     * @param addConditionIfEmpty set to <code>true</code> to add a dummy condition if none exists
+     */
+    public void setAddCondtionIfEmpty(final boolean addConditionIfEmpty) {
+        m_addConditionIfEmpty = addConditionIfEmpty;
     }
 
 }

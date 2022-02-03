@@ -103,10 +103,11 @@ public class RowFilterComponent {
      * @param elementFactory the factory to create tree elements
      * @param specialColumns the additional columns (e.g. RowID) that should be selectable in addition
      * to the columns of the input table
-     * @since 4.1
+     * @param addConditionIfEmpty <code>true</code> if a placeholder condition should be added if none exists
+     * @since 4.6
      */
     public RowFilterComponent(final RowFilterConfig config, final RowFilterElementFactory elementFactory,
-        final Set<ColumnRole> specialColumns) {
+        final Set<ColumnRole> specialColumns, final boolean addConditionIfEmpty) {
         m_config = config;
         m_elementFactory = elementFactory;
         m_specialColumns = specialColumns == null ? Collections.emptySet() : specialColumns;
@@ -121,6 +122,7 @@ public class RowFilterComponent {
         m_treePanelConfig.setNoSelectionListener(m_editorPanel::hidePanel);
         m_treePanelConfig.setSelectGroupListener(m_editorPanel::showGroup);
         m_treePanelConfig.setSelectConditionListener(m_editorPanel::showCondition);
+        m_treePanelConfig.setAddCondtionIfEmpty(addConditionIfEmpty);
         m_treePanel = new TreePanel(m_treePanelConfig);
 
         m_mainPanel = new JPanel();
@@ -135,9 +137,35 @@ public class RowFilterComponent {
      *
      * @param config the {@linkplain RowFilterConfig configuration}
      * @param elementFactory the factory to create tree elements
+     * @param specialColumns the additional columns (e.g. RowID) that should be selectable in addition
+     * to the columns of the input table
+     * @since 4.1
+     */
+    public RowFilterComponent(final RowFilterConfig config, final RowFilterElementFactory elementFactory,
+        final Set<ColumnRole> specialColumns) {
+        this(config, elementFactory, specialColumns, true);
+    }
+    /**
+     * Constructs a {@link RowFilterComponent}.
+     *
+     * @param config the {@linkplain RowFilterConfig configuration}
+     * @param elementFactory the factory to create tree elements
+     * @param addConditionIfEmpty <code>true</code> if a placeholder condition should be added if none exists
+     * @since 4.6
+     */
+    public RowFilterComponent(final RowFilterConfig config, final RowFilterElementFactory elementFactory,
+        final boolean addConditionIfEmpty) {
+        this(config, elementFactory, EnumSet.noneOf(ColumnRole.class), addConditionIfEmpty);
+    }
+
+    /**
+     * Constructs a {@link RowFilterComponent}.
+     *
+     * @param config the {@linkplain RowFilterConfig configuration}
+     * @param elementFactory the factory to create tree elements
      */
     public RowFilterComponent(final RowFilterConfig config, final RowFilterElementFactory elementFactory) {
-        this(config, elementFactory, EnumSet.noneOf(ColumnRole.class));
+        this(config, elementFactory, true);
     }
 
     /**

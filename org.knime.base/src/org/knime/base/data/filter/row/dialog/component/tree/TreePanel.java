@@ -150,7 +150,7 @@ public final class TreePanel extends JPanel {
         m_tree.setModel(new DefaultTreeModel(root, true));
 
         // Add new condition if the dialog has been opened for the first time.
-        if (root == null) {
+        if (m_config.isAddConditionIfEmpty() && root == null) {
             m_panelActions.addCondition();
         } else {
             // Otherwise validate all existing conditions.
