@@ -208,7 +208,7 @@ final class TransferFilesTableNodeModel extends AbstractTransferFilesNodeModel<T
     private static FSConnection getFSConnection(final PortObject[] inObjects, final int connectionIdx) {
         return connectionIdx < 0 //
             ? null //
-            : ((FileSystemPortObject)inObjects[0]).getFileSystemConnection().orElse(null);
+            : ((FileSystemPortObject)inObjects[connectionIdx]).getFileSystemConnection().orElse(null);
     }
 
 }
