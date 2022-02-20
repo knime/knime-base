@@ -129,6 +129,10 @@ public final class DefaultMultiTableReadFactory<I, C extends ReaderSpecificConfi
     @Override
     public StagedMultiTableRead<I, T> create(final SourceGroup<I> sourceGroup, final MultiTableReadConfig<C, T> config,
         final ExecutionMonitor exec) throws IOException {
+        if (sourceGroup.size() == 0) {
+            throw new IllegalArgumentException("No source items");
+        }
+
         final Map<I, TypedReaderTableSpec<T>> specs = readIndividualSpecs(sourceGroup, config, exec);
         final DataColumnSpec itemIdColumn = createItemIdentifierColumn(sourceGroup, config);
         return create(specs, config, itemIdColumn);
