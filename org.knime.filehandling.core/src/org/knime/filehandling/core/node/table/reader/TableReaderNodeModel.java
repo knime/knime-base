@@ -194,6 +194,10 @@ public class TableReaderNodeModel<I, C extends ReaderSpecificConfig<C>, T> exten
     private List<I> getPaths(final GenericItemAccessor<I> accessor) throws IOException, InvalidSettingsException {
         final List<I> items = accessor.getItems(m_statusConsumer);
         m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+
+        if (items.isEmpty()) {
+            throw new InvalidSettingsException("No files/folders matched the filters");
+        }
         return items;
     }
 
