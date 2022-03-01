@@ -259,7 +259,7 @@ class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFileSyste
                     return true;
                 }
 
-                try (final InputStream in = path.openURLConnection(m_timeoutInMillis, "HEAD").getInputStream()) {
+                try (var in = path.openURLConnection(m_timeoutInMillis).getInputStream()) {
                     // yes, do nothing.
                 }
                 return true;
@@ -376,11 +376,14 @@ class URIFileSystemProvider extends BaseFileSystemProvider<URIPath, URIFileSyste
     }
 
     /**
-     * @return content-length from HTTP HEAD response or {@code -1} on failures or missing header
+     * @return content-length from HTTP GET response or {@code -1} on failures or missing header
      */
     private long getRemoteFileSize(final URIPath path) {
         try {
-            return path.openURLConnection(m_timeoutInMillis, "HEAD").getContentLength();
+            final var urlConn = path.openURLConnection(m_timeoutInMillis);
+            final var contentLength = urlConn.getContentLength();
+            urlConn.getInputStream().close(); // make sure any network resources are released
+            return contentLength;
         } catch (final IOException e) {  // NOSONAR
             return -1;
         }
