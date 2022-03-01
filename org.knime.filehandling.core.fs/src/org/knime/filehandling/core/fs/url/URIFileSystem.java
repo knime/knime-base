@@ -67,13 +67,15 @@ import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
  */
 class URIFileSystem extends BaseFileSystem<URIPath> {
 
+    private static final long CACHE_TTL = 6000;
+
     static final String PATH_SEPARATOR = "/";
 
     private final String m_baseUri;
 
     URIFileSystem(final URIFSConnectionConfig config) {
         super(new URIFileSystemProvider(config.getTimeout()), //
-            0L, //
+            CACHE_TTL, //
             PATH_SEPARATOR, //
             createFSLocationSpec(config));
 
