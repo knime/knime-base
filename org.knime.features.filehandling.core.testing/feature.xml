@@ -727,10 +727,6 @@
  propagated with or for interoperation with KNIME.
    </license>
 
-   <requires>
-      <import plugin="org.knime.filehandling.core" version="0.0.0" match="greaterOrEqual"/>
-   </requires>
-
    <plugin
          id="org.knime.filehandling.core.fs.tests.workflow"
          download-size="0"
@@ -738,5 +734,4 @@
          version="0.0.0"
          fragment="true"
          unpack="false"/>
-
 </feature>
