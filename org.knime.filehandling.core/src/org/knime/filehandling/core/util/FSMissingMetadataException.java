@@ -44,60 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 25, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Mar 12, 2022 (Zkriya Rakhimberdiyev): created
  */
-package org.knime.filehandling.utility.nodes.transfer.filechooser;
-
-import java.io.IOException;
-import java.util.Set;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
-import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeModel;
-import org.knime.filehandling.utility.nodes.transfer.iterators.TransferIterator;
+package org.knime.filehandling.core.util;
 
 /**
- * The Transfer Files/Folder node model.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * A {@link RuntimeException} indicating that no meta data could be found for a file system.
+ *
+ * @author Zkriya Rakhimberdiyev
  */
-final class TransferFilesFileChooserNodeModel
-    extends AbstractTransferFilesNodeModel<TransferFilesFileChooserNodeConfig> {
+public class FSMissingMetadataException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Constructor.
+     * Constructor with message and cause.
      *
-     * @param portsConfig the {@link PortsConfiguration}
-     * @param config the {@link TransferFilesFileChooserNodeConfig}
+     * @param message of the exception
+     * @param cause the causing {@link Throwable}
      */
-    TransferFilesFileChooserNodeModel(final PortsConfiguration portsConfig,
-        final TransferFilesFileChooserNodeConfig config) {
-        super(portsConfig, config);
+    public FSMissingMetadataException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 
-    @Override
-    protected TransferIterator getTransferIterator(final PortObject[] inObjects)
-        throws IOException, InvalidSettingsException {
-        final TransferFilesFileChooserNodeConfig cfg = getConfig();
-        return new TransferFileChooserIterator(cfg.getTruncationSettings(), cfg.getSourceFileChooserModel(),
-            cfg.getDestinationFileChooserModel(), getStatusConsumer());
+    /**
+     * Constructor with a message.
+     *
+     * @param message of the exception
+     */
+    public FSMissingMetadataException(final String message) {
+        super(message);
     }
-
-    @Override
-    protected PortObjectSpec[] doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        getConfig().getSourceFileChooserModel().configureInModel(inSpecs, getStatusConsumer());
-        getConfig().getDestinationFileChooserModel().configureInModel(inSpecs, getStatusConsumer());
-
-        getStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
-        return new PortObjectSpec[]{createOutputSpec(inSpecs)};
-    }
-
-    @Override
-    protected Set<DefaultFSLocationSpec> getSrcLocationSpecs(final PortObjectSpec[] inSpecs) {
-        return getLocationSpecs(getConfig().getSourceFileChooserModel().getLocation());
-    }
-
 }

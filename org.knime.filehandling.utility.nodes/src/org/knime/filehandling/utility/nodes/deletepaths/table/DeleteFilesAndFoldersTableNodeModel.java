@@ -67,6 +67,7 @@ import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
+import org.knime.filehandling.core.util.FSMissingMetadataException;
 import org.knime.filehandling.utility.nodes.deletepaths.AbstractDeleteFilesAndFoldersNodeConfig;
 import org.knime.filehandling.utility.nodes.deletepaths.AbstractDeleteFilesAndFoldersNodeModel;
 import org.knime.filehandling.utility.nodes.deletepaths.DeleteFilesFolderIterator;
@@ -102,13 +103,22 @@ final class DeleteFilesAndFoldersTableNodeModel
     }
 
     @Override
-    protected void doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+    protected PortObjectSpec[] doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final SettingsModelString pathCol = getConfig().getColumnSelection();
         if (pathCol.getStringValue() == null) {
             autoGuess(inSpecs);
             setWarningMessage(String.format("Auto-guessed column containing file/folder paths '%s'", pathCol.getStringValue()));
         }
-        validateSettings(inSpecs, pathCol);
+        try {
+            validateSettings(inSpecs, pathCol);
+            getStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
+            return new PortObjectSpec[]{createOutputSpec(inSpecs)};
+
+        } catch (FSMissingMetadataException ex) {
+            // AP-17965: ignore missing meta data
+            setWarningMessage(ex.getMessage());
+            return new PortObjectSpec[]{null};
+        }
     }
 
     /**

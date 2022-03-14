@@ -68,6 +68,7 @@ import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
+import org.knime.filehandling.core.util.FSMissingMetadataException;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeConfig;
 import org.knime.filehandling.utility.nodes.compress.AbstractCompressNodeModel;
 import org.knime.filehandling.utility.nodes.compress.iterator.CompressIterator;
@@ -102,7 +103,12 @@ final class CompressTableNodeModel extends AbstractCompressNodeModel<CompressTab
     @Override
     protected void doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         autoGuess(inSpecs);
-        validateSettings(inSpecs);
+        try {
+            validateSettings(inSpecs);
+        } catch (FSMissingMetadataException ex) {
+            // AP-17965: ignore missing meta data
+            setWarningMessage(ex.getMessage());
+        }
     }
 
     private void autoGuess(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {

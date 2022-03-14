@@ -158,7 +158,7 @@ public final class FSLocationColumnUtils {
     public static FSLocationValueMetaData validateAndGetMetaData(final DataColumnSpec fsLocationColSpec) {
         final String pathColName = fsLocationColSpec.getName();
         return fsLocationColSpec.getMetaDataOfType(FSLocationValueMetaData.class)
-            .orElseThrow(() -> new IllegalStateException(
+            .orElseThrow(() -> new FSMissingMetadataException(
                 String.format("Path column '%s' without meta data encountered.", pathColName)));
     }
 

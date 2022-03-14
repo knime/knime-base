@@ -69,6 +69,7 @@ import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
+import org.knime.filehandling.core.util.FSMissingMetadataException;
 import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeModel;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferIterator;
 
@@ -103,9 +104,19 @@ final class TransferFilesTableNodeModel extends AbstractTransferFilesNodeModel<T
     }
 
     @Override
-    protected void doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        doConfigureInput(inSpecs);
-        doConfigureOutput(inSpecs);
+    protected PortObjectSpec[] doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        try {
+            doConfigureInput(inSpecs);
+            doConfigureOutput(inSpecs);
+
+            getStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
+            return new PortObjectSpec[]{createOutputSpec(inSpecs)};
+
+        } catch (FSMissingMetadataException ex) {
+            // AP-17965: ignore missing meta data
+            setWarningMessage(ex.getMessage());
+            return new PortObjectSpec[]{null};
+        }
     }
 
     private void doConfigureInput(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {

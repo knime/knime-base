@@ -97,6 +97,7 @@ import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
+import org.knime.filehandling.core.util.FSMissingMetadataException;
 import org.knime.filehandling.utility.nodes.metainfo.attributes.BasicKNIMEFileAttributesConverter;
 import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttributes;
 import org.knime.filehandling.utility.nodes.metainfo.attributes.KNIMEFileAttributesConverter;
@@ -174,13 +175,19 @@ final class FileFolderMetaInfoNodeModel extends NodeModel {
             setWarningMessage(String.format("Auto-guessed column containing file/folder paths '%s'",
                 m_selectedColumn.getStringValue()));
         }
-        validateSettings(inSpecs);
+        try {
+            validateSettings(inSpecs);
 
-        final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
-        final KNIMEFileAttributesConverter[] fileAttrConverters = getFileAttributesConverter();
-        try (final FileAttributesFactory fac = new FileAttributesFactory(fileAttrConverters,
-            createNewColumns(inputTableSpec, fileAttrConverters), pathColIdx, getFSConnection(inSpecs), false)) {
-            return new PortObjectSpec[]{createColumnRearranger(inputTableSpec, fac).createSpec()};
+            final int pathColIdx = inputTableSpec.findColumnIndex(m_selectedColumn.getStringValue());
+            final KNIMEFileAttributesConverter[] fileAttrConverters = getFileAttributesConverter();
+            try (final FileAttributesFactory fac = new FileAttributesFactory(fileAttrConverters,
+                createNewColumns(inputTableSpec, fileAttrConverters), pathColIdx, getFSConnection(inSpecs), false)) {
+                return new PortObjectSpec[]{createColumnRearranger(inputTableSpec, fac).createSpec()};
+            }
+        } catch (FSMissingMetadataException ex) {
+            // AP-17965: ignore missing meta data
+            setWarningMessage(ex.getMessage());
+            return new PortObjectSpec[]{null};
         }
     }
 

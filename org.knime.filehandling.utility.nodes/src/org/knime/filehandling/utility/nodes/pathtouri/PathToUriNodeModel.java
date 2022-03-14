@@ -83,6 +83,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusCon
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
+import org.knime.filehandling.core.util.FSMissingMetadataException;
 
 /**
  * The node model allowing to convert paths to URIs.
@@ -146,11 +147,17 @@ final class PathToUriNodeModel extends NodeModel {
 
         // validate the path column and uri exporter settings
         m_modelHelper.setPortObjectSpecs(inSpecs);
-        m_modelHelper.validate(m_statusConsumer, false);
-        m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+        try {
+            m_modelHelper.validate(m_statusConsumer, false);
+            m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
 
-        try (final PathToUriCellFactory cellFactory = createCellFactory(inSpecs)) {
-            return new DataTableSpec[]{createColumnRearranger(inputTableSpec, cellFactory).createSpec()};
+            try (final PathToUriCellFactory cellFactory = createCellFactory(inSpecs)) {
+                return new DataTableSpec[]{createColumnRearranger(inputTableSpec, cellFactory).createSpec()};
+            }
+        } catch (FSMissingMetadataException ex) {
+            // AP-17965: ignore missing meta data
+            setWarningMessage(ex.getMessage());
+            return new PortObjectSpec[]{null};
         }
     }
 
