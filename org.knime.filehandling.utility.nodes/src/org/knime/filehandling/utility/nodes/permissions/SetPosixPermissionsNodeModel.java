@@ -141,9 +141,7 @@ public class SetPosixPermissionsNodeModel extends NodeModel {
                 getFSConnection(inSpecs), false)) {
                 return new PortObjectSpec[]{createColumnRearranger(inputTableSpec, fac).createSpec()};
             }
-        } catch (FSMissingMetadataException ex) {
-            // AP-17965: ignore missing meta data
-            setWarningMessage(ex.getMessage());
+        } catch (FSMissingMetadataException ex) { // NOSONAR AP-17965 ignore missing metadata
             return new PortObjectSpec[]{null};
         }
     }

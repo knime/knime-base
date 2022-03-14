@@ -105,9 +105,7 @@ final class CompressTableNodeModel extends AbstractCompressNodeModel<CompressTab
         autoGuess(inSpecs);
         try {
             validateSettings(inSpecs);
-        } catch (FSMissingMetadataException ex) {
-            // AP-17965: ignore missing meta data
-            setWarningMessage(ex.getMessage());
+        } catch (FSMissingMetadataException ex) { // NOSONAR AP-17965 ignore missing metadata
         }
     }
 

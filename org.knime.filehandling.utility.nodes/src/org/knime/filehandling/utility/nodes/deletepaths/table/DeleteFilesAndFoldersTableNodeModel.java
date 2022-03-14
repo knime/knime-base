@@ -114,9 +114,7 @@ final class DeleteFilesAndFoldersTableNodeModel
             getStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
             return new PortObjectSpec[]{createOutputSpec(inSpecs)};
 
-        } catch (FSMissingMetadataException ex) {
-            // AP-17965: ignore missing meta data
-            setWarningMessage(ex.getMessage());
+        } catch (FSMissingMetadataException ex) { // NOSONAR AP-17965 ignore missing metadata
             return new PortObjectSpec[]{null};
         }
     }
