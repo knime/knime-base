@@ -93,6 +93,7 @@ import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.FSLocationColumnUtils;
+import org.knime.filehandling.core.util.FSMissingMetadataException;
 
 /**
  * The node allows to assing POSIX permission for files and folders.
@@ -132,12 +133,18 @@ public class SetPosixPermissionsNodeModel extends NodeModel {
             setWarningMessage(
                 String.format("Auto-guessed column containing file/folder paths '%s'", m_settings.getColumn()));
         }
-        validateSettings(inSpecs);
+        try {
+            validateSettings(inSpecs);
 
-        final int pathColIdx = inputTableSpec.findColumnIndex(m_settings.getColumn());
-        try (final var fac = new SetPosixPermissionsFactory(createStatusColumn(inputTableSpec), pathColIdx,
-            getFSConnection(inSpecs), false)) {
-            return new PortObjectSpec[]{createColumnRearranger(inputTableSpec, fac).createSpec()};
+            final int pathColIdx = inputTableSpec.findColumnIndex(m_settings.getColumn());
+            try (final var fac = new SetPosixPermissionsFactory(createStatusColumn(inputTableSpec), pathColIdx,
+                getFSConnection(inSpecs), false)) {
+                return new PortObjectSpec[]{createColumnRearranger(inputTableSpec, fac).createSpec()};
+            }
+        } catch (FSMissingMetadataException ex) {
+            // AP-17965: ignore missing meta data
+            setWarningMessage(ex.getMessage());
+            return new PortObjectSpec[]{null};
         }
     }
 

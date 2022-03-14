@@ -132,26 +132,25 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
 
     @Override
     protected final PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        doConfigure(inSpecs);
-        getStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
-        return new PortObjectSpec[]{createOutputSpec(inSpecs)};
+        return doConfigure(inSpecs);
     }
 
     /**
-     * Allows for additional configuration required by the concrete node model instance.
+     * Configures the concrete node model instance.
      *
      * @param inSpecs the input specs
+     * @return the output objects specs or null
      * @throws InvalidSettingsException - If something goes wrong during configuration
      */
-    protected abstract void doConfigure(PortObjectSpec[] inSpecs) throws InvalidSettingsException;
+    protected abstract PortObjectSpec[] doConfigure(PortObjectSpec[] inSpecs) throws InvalidSettingsException;
 
     /**
      * Creates the output spec of the output of the node.
      *
-     * @param config the {@link AbstractTransferFilesNodeConfig}
+     * @param inSpecs The input data table specs
      * @return the output {@link DataTableSpec}
      */
-    private DataTableSpec createOutputSpec(final PortObjectSpec[] inSpecs) {
+    protected final DataTableSpec createOutputSpec(final PortObjectSpec[] inSpecs) {
         final ArrayList<DataColumnSpec> columnSpecs = new ArrayList<>();
         columnSpecs.add(createMetaColumnSpec(getSrcLocationSpecs(inSpecs), "Source Path"));
         columnSpecs.add(createMetaColumnSpec(getDestLocationSpecs(inSpecs), "Destination Path"));

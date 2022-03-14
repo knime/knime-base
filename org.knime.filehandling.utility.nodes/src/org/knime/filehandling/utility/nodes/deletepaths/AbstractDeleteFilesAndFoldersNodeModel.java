@@ -117,12 +117,13 @@ public abstract class AbstractDeleteFilesAndFoldersNodeModel<C extends AbstractD
     }
 
     /**
-     * Allows for additional configuration required by the concrete node model instance.
+     * Configures the concrete node model instance.
      *
      * @param inSpecs the input specs
+     * @return the output objects specs or null
      * @throws InvalidSettingsException - If something goes wrong during configuration
      */
-    protected abstract void doConfigure(PortObjectSpec[] inSpecs) throws InvalidSettingsException;
+    protected abstract PortObjectSpec[] doConfigure(PortObjectSpec[] inSpecs) throws InvalidSettingsException;
 
     /**
      * Returns the node specific implementation of the {@link AbstractDeleteFilesAndFoldersNodeConfig}.
@@ -163,9 +164,7 @@ public abstract class AbstractDeleteFilesAndFoldersNodeModel<C extends AbstractD
 
     @Override
     protected final PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        doConfigure(inSpecs);
-        getStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
-        return new PortObjectSpec[]{createOutputSpec(inSpecs)};
+        return doConfigure(inSpecs);
     }
 
     @Override
@@ -259,7 +258,7 @@ public abstract class AbstractDeleteFilesAndFoldersNodeModel<C extends AbstractD
      * @param specs the {@link PortObjectSpec}s
      * @return the {@link DataTableSpec}
      */
-    private final DataTableSpec createOutputSpec(final PortObjectSpec[] specs) {
+    protected final DataTableSpec createOutputSpec(final PortObjectSpec[] specs) {
         final List<DataColumnSpec> columnSpecs = new ArrayList<>(3);
         final FSLocationValueMetaData metaData = getFSLocationValueMetaData(specs);
         final DataColumnSpecCreator colCreator = new DataColumnSpecCreator("Path", SimpleFSLocationCellFactory.TYPE);

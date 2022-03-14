@@ -76,8 +76,10 @@ final class DeleteFilesAndFoldersNodeModel
     }
 
     @Override
-    protected void doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+    protected PortObjectSpec[] doConfigure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         getConfig().getFileChooserSettings().configureInModel(inSpecs, getStatusConsumer());
+        getStatusConsumer().setWarningsIfRequired(this::setWarningMessage);
+        return new PortObjectSpec[]{createOutputSpec(inSpecs)};
     }
 
     @Override
