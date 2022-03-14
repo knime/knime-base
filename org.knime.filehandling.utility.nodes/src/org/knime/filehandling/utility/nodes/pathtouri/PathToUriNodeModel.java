@@ -154,9 +154,7 @@ final class PathToUriNodeModel extends NodeModel {
             try (final PathToUriCellFactory cellFactory = createCellFactory(inSpecs)) {
                 return new DataTableSpec[]{createColumnRearranger(inputTableSpec, cellFactory).createSpec()};
             }
-        } catch (FSMissingMetadataException ex) {
-            // AP-17965: ignore missing meta data
-            setWarningMessage(ex.getMessage());
+        } catch (FSMissingMetadataException ex) { // NOSONAR AP-17965 ignore missing metadata
             return new PortObjectSpec[]{null};
         }
     }
