@@ -235,6 +235,8 @@ final class CaseEndAnyNodeModel extends NodeModel implements InactiveBranchConsu
                 m_hiliteTranslator.setMapper(new DefaultHiLiteMapper(map));
             }
             return new PortObject[]{inData[0]};
+        } else if (tables.size() == 1) {
+            return new BufferedDataTable[]{tables.get(0)};
         }
 
         // check compatibility of specs against first spec in list

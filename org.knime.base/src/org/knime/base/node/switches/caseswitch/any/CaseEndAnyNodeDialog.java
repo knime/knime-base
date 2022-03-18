@@ -163,7 +163,11 @@ final class CaseEndAnyNodeDialog extends NodeDialogPane {
         suffixButtonPanel.add(m_appendSuffixButton);
         suffixButtonPanel.add(m_suffixField);
         centerPanel.add(suffixButtonPanel);
-        m_skipRowButton.doClick();
+        if (CaseEndAnyNodeModel.DEF_APPEND_SUFFIX) {
+            m_appendSuffixButton.doClick();
+        } else {
+            m_skipRowButton.doClick();
+        }
         panel.add(centerPanel, constraints);
 
         final var hilitePanel = new JPanel(new BorderLayout());
@@ -213,15 +217,17 @@ final class CaseEndAnyNodeDialog extends NodeDialogPane {
         if (specs.length == 0) {
             throw new NotConfigurableException("Please select an output type!");
         }
-        final var appendSuffix = settings.getBoolean(CaseEndAnyNodeModel.CFG_APPEND_SUFFIX, false);
-        final var suffix = settings.getString(CaseEndAnyNodeModel.CFG_SUFFIX, "x");
+        final var appendSuffix =
+            settings.getBoolean(CaseEndAnyNodeModel.CFG_APPEND_SUFFIX, CaseEndAnyNodeModel.DEF_APPEND_SUFFIX);
+        final var suffix = settings.getString(CaseEndAnyNodeModel.CFG_SUFFIX, CaseEndAnyNodeModel.DEF_SUFFIX);
         if (appendSuffix) {
-            m_appendSuffixButton.doClick();
+            m_appendSuffixButton.setSelected(true);
         } else {
-            m_skipRowButton.doClick();
-        }
+            m_skipRowButton.setSelected(true);
+        } // m_suffixField is updated by setBufferedDataTableSettingsEnabled(JPanel) triggered when loading m_handling
         m_suffixField.setText(suffix);
-        m_enableHiliting.setSelected(settings.getBoolean(CaseEndAnyNodeModel.CFG_HILITING, false));
+        m_enableHiliting
+            .setSelected(settings.getBoolean(CaseEndAnyNodeModel.CFG_HILITING, CaseEndAnyNodeModel.DEF_HILITING));
 
         m_handling.loadSettingsFrom(settings, specs);
     }
