@@ -244,7 +244,7 @@ final class LoopEndConditionDynamicNodeModel extends NodeModel implements LoopEn
         } else {
             for (var i = 0; i < newStruc.getNumColumns(); i++) {
                 final var newCol = newStruc.getColumnSpec(i);
-                final var oldCol = newStruc.getColumnSpec(i);
+                final var oldCol = oldStruc.getColumnSpec(i);
                 if (!newCol.equalStructure(oldCol)) {
                     error.append("Column ").append(i).append(" [");
                     error.append(newCol).append("] vs. [");
