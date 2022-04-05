@@ -1,0 +1,5 @@
+library;                                library-url;                             licence;			     licence-url;                                                  copyright;										
+asn-one-0.4.0.jar;                      https://github.com/hierynomus/asn-one;   Apache 2.0 License;                 http://www.apache.org/licenses/LICENSE-2.0;                   asn-one contributors;
+mbassador-1.3.0.jar;                    https://github.com/bennidi/mbassador;    MIT License;                        https://github.com/bennidi/mbassador/blob/master/LICENSE;     Benjamin Diedrichsen;
+smbj-0.10.0.jar;                        https://github.com/hierynomus/smbj;      Apache 2.0 License;                 http://www.apache.org/licenses/LICENSE-2.0;                   SMBJ Contributors;
+
