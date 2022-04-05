@@ -732,29 +732,6 @@
    </requires>
 
    <plugin
-         id="org.knime.filehandling.core.fs"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.knime.filehandling.core.tests"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         fragment="true"
-         unpack="false"/>
-
-   <plugin
-         id="org.knime.filehandling.core.fs.tests.integration"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         fragment="true"
-         unpack="false"/>
-
-   <plugin
          id="org.knime.filehandling.core.fs.tests.workflow"
          download-size="0"
          install-size="0"

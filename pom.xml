@@ -20,26 +20,45 @@
 		<feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
 	</properties>
 
-	<modules>
-		<module>org.knime.base</module>
-		<module>org.knime.base.tests/lib/fetch_jars</module>
-		<module>org.knime.base.tests</module>
-		<module>org.knime.deprecated</module>
-		<module>org.knime.features.base</module>
-		<module>org.knime.features.base.testing</module>
-		<module>org.knime.features.filehandling.core.testing</module>
-		<module>org.knime.filehandling.core</module>
-		<module>org.knime.filehandling.core.tests</module>
-		<module>org.knime.filehandling.core.fs</module>
-		<module>org.knime.filehandling.core.fs.tests.integration</module>
-		<module>org.knime.filehandling.core.fs.tests.workflow</module>
-		<module>org.knime.filehandling.utility.nodes</module>
-		<module>org.knime.filehandling.utility.nodes.tests</module>
-		<module>org.knime.filehandling.core.example</module>
-		<module>org.knime.time</module>
-		<module>org.knime.time.tests</module>
-		<module>org.knime.update.base</module>
-	</modules>
+	<profiles>
+		<profile>
+			<id>build</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<modules>
+				<module>org.knime.base</module>
+				<module>org.knime.base.tests/lib/fetch_jars</module>
+				<module>org.knime.base.tests</module>
+				<module>org.knime.deprecated</module>
+				<module>org.knime.features.base</module>
+				<module>org.knime.features.base.testing</module>
+				<module>org.knime.features.filehandling.core.testing</module>
+				<module>org.knime.filehandling.core</module>
+				<module>org.knime.filehandling.core.tests</module>
+				<module>org.knime.filehandling.core.fs</module>
+				<module>org.knime.filehandling.core.fs.tests.workflow</module>
+				<module>org.knime.filehandling.utility.nodes</module>
+				<module>org.knime.filehandling.utility.nodes.tests</module>
+				<module>org.knime.filehandling.core.example</module>
+				<module>org.knime.time</module>
+				<module>org.knime.time.tests</module>
+				<module>org.knime.update.base</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>integration-tests</id>
+			<modules>
+				<module>org.knime.base</module>
+				<module>org.knime.deprecated</module>
+				<module>org.knime.filehandling.core</module>
+				<module>org.knime.filehandling.core.fs</module>
+				<module>org.knime.filehandling.core.fs.tests.integration</module>
+				<module>org.knime.filehandling.utility.nodes</module>
+				<module>org.knime.time</module>
+			</modules>
+		</profile>
+	</profiles>
 
 	<repositories>
 		<repository>
