@@ -471,11 +471,17 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
          */
         ConverterFactory(final int[] colindices, final DataTableSpec spec, final DataType type,
             final SimpleStreamableOperatorInternals internals) {
+            super(colindices);
             m_colindices = colindices;
             m_spec = spec;
             m_type = type;
             m_parseErrorCount = 0;
             m_internals = internals;
+        }
+
+        @Override
+        public boolean hasState() {
+            return false;
         }
 
         /**

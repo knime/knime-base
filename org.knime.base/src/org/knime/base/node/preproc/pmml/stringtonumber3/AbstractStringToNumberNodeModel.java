@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.pmml.stringtonumber3;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.knime.base.node.preproc.pmml.PMMLStringConversionTranslator;
@@ -397,6 +398,16 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel> e
             m_spec = spec;
             m_type = type;
             m_parseErrorCount = 0;
+        }
+
+        @Override
+        public Optional<int[]> getRequiredColumns() {
+            return Optional.of(m_colindices);
+        }
+
+        @Override
+        public boolean hasState() {
+            return false;
         }
 
         /**
