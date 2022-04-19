@@ -45,29 +45,57 @@
 package org.knime.base.node.preproc.transpose;
 
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
- * 
+ *
  * @author Thomas Gabriel, University of Konstanz
  */
 public class TransposeTableNodeDialogPane extends DefaultNodeSettingsPane {
+
+    static final String OPTION_GUESS_CHUNK_SIZE = "Guess chunk size based on available memory";
+
+    static final String OPTION_FIXED_CHUNK_SIZE = "Use fixed chunk size (columns)";
 
     /**
      * Create new dialog with option to set number of columns to chunk.
      */
     TransposeTableNodeDialogPane() {
-        super.addDialogComponent(new DialogComponentNumber(
-                createChunkSizeModel(), "Chunk size (columns): ", 10)); 
+        // add ButtonGroup for mode selection (auto-determine chunk size vs. fixed)
+        final var chunkSizeChooserModel = createChunkSizeChooserModel();
+        super.addDialogComponent(new DialogComponentButtonGroup(chunkSizeChooserModel, true, null,
+            OPTION_GUESS_CHUNK_SIZE, OPTION_FIXED_CHUNK_SIZE));
+
+        // add actual chunk size selector
+        super.addDialogComponent(new DialogComponentNumber(createChunkSizeModel(chunkSizeChooserModel), "Chunk size: ", 10));
     }
-    
+
     /**
-     * @return bounded integer model for chunk size
+     * Creates the SettingsModel for selecting a certain String.
+     * This selection will happen via the ButtonGroup instantiated in the constructor.
+     *
+     * @return SettingsModelString for guess-chunk-size mode
      */
-    static final SettingsModelIntegerBounded createChunkSizeModel() {
-        return new SettingsModelIntegerBounded(
-                "chunk_size", 10, 1, Integer.MAX_VALUE);
+    static final SettingsModelString createChunkSizeChooserModel() {
+        return new SettingsModelString("guess_or_fixed", OPTION_GUESS_CHUNK_SIZE);
     }
-    
+
+    /**
+     * Creates the SettingsModelIntegerBounded for storing the fixed chunk size value.
+     * This number selector is only enabled if the option
+     *
+     * @param chunkSizeChooserModel condition for activating this number selector field
+     * @return SettingsModelNumber for value of chunk size FIXED_CHUNK_SIZE is selected in the ButtonGroup.
+     */
+    static final SettingsModelIntegerBounded createChunkSizeModel(final SettingsModelString chunkSizeChooserModel) {
+        final var chunkSizeModel = new SettingsModelIntegerBounded("chunk_size", 10, 1, Integer.MAX_VALUE);
+        chunkSizeChooserModel.addChangeListener(
+            e -> chunkSizeModel.setEnabled(chunkSizeChooserModel.getStringValue().equals(OPTION_FIXED_CHUNK_SIZE)));
+        chunkSizeModel.setEnabled(false);
+        return chunkSizeModel;
+    }
+
 }

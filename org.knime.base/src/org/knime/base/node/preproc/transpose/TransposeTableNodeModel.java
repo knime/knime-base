@@ -47,19 +47,13 @@ package org.knime.base.node.preproc.transpose;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.transpose.AbstractTableTransposer;
+import org.knime.core.data.transpose.FixedChunksTransposer;
+import org.knime.core.data.transpose.MemoryAwareTransposer;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -70,6 +64,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.util.CheckUtils;
 
@@ -81,11 +76,14 @@ import org.knime.core.node.util.CheckUtils;
  */
 final class TransposeTableNodeModel extends NodeModel {
 
+
+
     /** Output hilite handler for new data generated during execute. */
     private final HiLiteHandler m_outHiLite;
 
-    /** Chunk size model. */
-    private final SettingsModelIntegerBounded m_chunkSize = TransposeTableNodeDialogPane.createChunkSizeModel();
+    /* Chunk size models. */
+    private final SettingsModelString m_isSizeGuessed = TransposeTableNodeDialogPane.createChunkSizeChooserModel();
+    private final SettingsModelIntegerBounded m_chunkSize = TransposeTableNodeDialogPane.createChunkSizeModel(m_isSizeGuessed);
 
     /**
      * Creates a transpose model with one data in- and output.
@@ -119,6 +117,7 @@ final class TransposeTableNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
+            m_isSizeGuessed.loadSettingsFrom(settings);
             m_chunkSize.loadSettingsFrom(settings);
         } catch (InvalidSettingsException ise) {
             // TODO (tg) before 2.0 this option was not available
@@ -151,7 +150,7 @@ final class TransposeTableNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws CanceledExecutionException, Exception {
         // input column spec that will be transposed the output row IDs
-        DataTableSpec spec = inData[0].getDataTableSpec();
+        var spec = inData[0].getDataTableSpec();
         // if the input table does not contain any column, create empty rows
         // only using the column header as row IDs
         if (inData[0].size() == 0) {
@@ -167,100 +166,17 @@ final class TransposeTableNodeModel extends NodeModel {
         // new number of columns = number of rows
         CheckUtils.checkState(inData[0].size() <= Integer.MAX_VALUE,
             "Transpose operation can't handle more rows than " + Integer.MAX_VALUE);
-        final int newNrCols = (int)inData[0].size();
-        // new column names
-        final ArrayList<String> colNames = new ArrayList<String>();
-        // new column types
-        final ArrayList<DataType> colTypes = new ArrayList<DataType>();
-        // over entire table
 
-        // index for unique colNames if row id only contains whitespace
-        int idx = 0;
-
-        try (final CloseableRowIterator iterator = inData[0].iterator()) {
-            while (iterator.hasNext()) {
-                final DataRow row = iterator.next();
-                exec.checkCanceled();
-                exec.setMessage("Determine most-general column type for row: " + row.getKey().getString());
-                DataType type = null;
-                // and all cells
-                for (int i = 0; i < row.getNumCells(); i++) {
-                    DataType newType = row.getCell(i).getType();
-                    if (type == null) {
-                        type = newType;
-                    } else {
-                        type = DataType.getCommonSuperType(type, newType);
-                    }
-                }
-                if (type == null) {
-                    type = DataType.getType(DataCell.class);
-                }
-                String colName = row.getKey().getString().trim();
-                if (colName.isEmpty()) {
-                    colName = "<empty_" + idx + ">";
-                    idx++;
-                }
-                colNames.add(colName);
-                colTypes.add(type);
-            }
+        AbstractTableTransposer transposer;
+        // based on node configuration, either use fixed chunk size transposition
+        // or guess chunk size based on memory availability
+        if (m_isSizeGuessed.getStringValue().equals(TransposeTableNodeDialogPane.OPTION_FIXED_CHUNK_SIZE)) {
+            transposer = new FixedChunksTransposer(inData[0], exec, m_chunkSize.getIntValue());
+        } else {
+            transposer = new MemoryAwareTransposer(inData[0], exec);
         }
-        // new number of rows
-        int newNrRows = spec.getNumColumns();
-        // create new specs
-        final DataColumnSpec[] colSpecs = new DataColumnSpec[newNrCols];
-        for (int c = 0; c < newNrCols; c++) {
-            colSpecs[c] = new DataColumnSpecCreator(colNames.get(c), colTypes.get(c)).createSpec();
-            exec.checkCanceled();
-        }
-        BufferedDataContainer cont = exec.createDataContainer(new DataTableSpec(colSpecs));
-        final int chunkSize = m_chunkSize.getIntValue();
-        // total number of chunks
-        final double nrChunks = Math.ceil((double)newNrRows / chunkSize);
-        for (int chunkIdx = 0; chunkIdx < nrChunks; chunkIdx++) {
-            // map of new row keys to cell arrays
-            Map<String, DataCell[]> map = new LinkedHashMap<String, DataCell[]>(newNrRows);
-            int colIdx = chunkIdx * chunkSize;
-            int rowIdx = 0;
-            final int[] indices = new int[Math.min(newNrRows - colIdx, chunkSize)];
-            for (int i = 0; i < indices.length; i++) {
-                indices[i] = chunkSize * chunkIdx + i;
-            }
-            try (CloseableRowIterator iterator =
-                inData[0].filter(new TableFilter.Builder().withMaterializeColumnIndices(indices).build()).iterator()) {
-                while (iterator.hasNext()) {
-                    DataRow row = iterator.next();
-                    exec.setProgress(((rowIdx + 1) * (chunkIdx + 1)) / (nrChunks * newNrCols),
-                        "Transpose row \"" + row.getKey().getString() + "\" to column.");
-                    // iterate chunk of columns
-                    for (int r = colIdx; r < colIdx + indices.length; r++) {
-                        String newRowKey = spec.getColumnSpec(r).getName();
-                        DataCell[] cellArray = map.get(newRowKey);
-                        if (cellArray == null) {
-                            cellArray = new DataCell[newNrCols];
-                            map.put(newRowKey, cellArray);
-                        }
-                        cellArray[rowIdx] = row.getCell(r);
-                    }
-                    try {
-                        exec.checkCanceled();
-                    } catch (CanceledExecutionException cee) {
-                        cont.close();
-                        throw cee;
-                    }
-                    rowIdx++;
-                }
-            }
-            // add chunk of rows to buffer
-            for (Map.Entry<String, DataCell[]> e : map.entrySet()) {
-                exec.setMessage("Adding row \"" + e.getKey() + "\" to table.");
-                DataRow row = new DefaultRow(e.getKey(), e.getValue());
-                cont.addRowToTable(row);
-            }
-        }
-        exec.setProgress(1.0, "Finished, closing buffer...");
-        cont.close();
-        return new BufferedDataTable[]{cont.getTable()};
-
+        transposer.transpose();
+        return new BufferedDataTable[]{transposer.getTransposedTable()};
     }
 
     /**

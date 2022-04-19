@@ -14,6 +14,10 @@
 		      number of columns read during one iteration over the table, increasing this
 		      value yields faster execution time but also increases memory consumption.
 		</option>
+		<option name="Guess chunk size based on available memory">
+		      uses a dynamic chunk size that adapts to the current memory available,
+			  the number of columns read will be maximized for performance.
+		</option>
 	</fullDescription>
     <ports>
         <inPort index="0" name="Table">Input data to transpose</inPort>
