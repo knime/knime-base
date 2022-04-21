@@ -59,6 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.event.ListDataEvent;
@@ -96,7 +97,9 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
 
     private static final String CFG_MOUNTPOINT = "mountpoint";
 
-    private KNIMEConnection m_mountpoint = getDefaultMountpoint();
+    private final Supplier<List<String>> m_mountedIdsSupplier;
+
+    private KNIMEConnection m_mountpoint;
 
     private final List<KNIMEConnection> m_availableMountpoints = new ArrayList<>();
 
@@ -110,7 +113,19 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
      * @param active flag indicating whether this config is active (i.e. selectable for the user)
      */
     public MountpointSpecificConfig(final boolean active) {
+        this(active, () -> MountPointFileSystemAccessService.instance().getAllMountedIDs());
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param active flag indicating whether this config is active (i.e. selectable for the user)
+     * @param mountedIdsSupplier mounted ids supplier
+     */
+    public MountpointSpecificConfig(final boolean active, final Supplier<List<String>> mountedIdsSupplier) {
         super(active);
+        m_mountedIdsSupplier = mountedIdsSupplier;
+        m_mountpoint = getDefaultMountpoint();
     }
 
     /**
@@ -120,6 +135,7 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
      */
     private MountpointSpecificConfig(final MountpointSpecificConfig toCopy) {
         super(toCopy.isActive());
+        m_mountedIdsSupplier = toCopy.m_mountedIdsSupplier;
         m_mountpoint = toCopy.m_mountpoint;
     }
 
@@ -170,7 +186,7 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
         m_mountpoint = mountpoint == null ? getDefaultMountpoint()
             : KNIMEConnection.getOrCreateMountpointAbsoluteConnection(mountpoint);
         m_availableMountpoints.clear();
-        MountPointFileSystemAccessService.instance().getAllMountedIDs().stream()
+        m_mountedIdsSupplier.get().stream()
             .map(KNIMEConnection::getOrCreateMountpointAbsoluteConnection).forEach(m_availableMountpoints::add);
         if (m_mountpoint != null && !m_mountpoint.isValid()) {
             // mountpoint is no longer available and therefore not among the available mountpoints
@@ -187,9 +203,9 @@ public final class MountpointSpecificConfig extends AbstractConvenienceFileSyste
         m_listListeners.forEach(l -> l.contentsChanged(listEvent));
     }
 
-    private static KNIMEConnection getDefaultMountpoint() {
+    private KNIMEConnection getDefaultMountpoint() {
         final List<KNIMEConnection> connections =
-            MountPointFileSystemAccessService.instance().getAllMountedIDs().stream()//
+                m_mountedIdsSupplier.get().stream()//
                 .map(KNIMEConnection::getOrCreateMountpointAbsoluteConnection)//
                 .collect(toList());
         final Optional<KNIMEConnection> connected =

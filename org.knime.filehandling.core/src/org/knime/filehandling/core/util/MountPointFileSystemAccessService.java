@@ -54,6 +54,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
@@ -141,6 +142,18 @@ public final class MountPointFileSystemAccessService {
             mountpointIDs.addAll(p.getMountedIDs());
         }
         return mountpointIDs;
+    }
+
+    /**
+     * @param providerFactoryIDs Provider factory IDs to accept.
+     * @return A list of all mount IDs that use one of the given provider factories.
+     */
+    public List<String> getAllMountedIDs(final Set<String> providerFactoryIDs) {
+        final List<String> hubMountpointIds = new ArrayList<>();
+        for (final MountPointFileSystemAccess p : m_providers) {
+            hubMountpointIds.addAll(p.getMountedIDs(providerFactoryIDs));
+        }
+        return hubMountpointIds;
     }
 
     /**

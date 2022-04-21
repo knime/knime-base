@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./file_system_connector.png"
+	type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+
+    <name>KNIME Space Connector</name>
+    
+    <shortDescription>
+        Provides a file system connection with access to a KNIME Space, for example "My-KNIME-Hub".
+    </shortDescription>
+    
+    <fullDescription>
+         <intro>
+            <p>Provides a file system connection with access to a KNIME Space, for example "My-KNIME-Hub".
+            It can also provide a file system connection with access to the mountpoint which contains the current workflow.
+            The resulting output port allows downstream nodes to access <i>files</i>, e.g. to read or write, or to perform other file system operations
+            (browse/list files, copy, move, ...) in the selected mountpoint.
+            </p>
+            
+            <p><b>Note:</b>In many cases it is not necessary to use this connector node. Nodes that require
+            file system access (e.g. the File Reader node) already provide the same level of access, by choosing for example 
+            <i>Read from</i> > <i>Mountpoint.</i> The purpose of this connector node is to make file access with
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path-syntax">relative paths</a>
+            more flexible, by allowing to explicitly configure the 
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#working-directory">working
+            directory</a> of the resulting file system connection. For example,
+            this makes it easier to relocate (or change) the files that your workflow accesses, because you only need to change
+            the working directory.
+            </p>
+            
+            <p><b>Path syntax:</b> Paths for this connector are specified with a UNIX-like syntax such as /myfolder/myfile. An absolute
+            path consists of:
+                <ol>
+                    <li>A leading slash ("/").</li>
+                    <li>Followed by the path to the file ("myfolder/myfile" in the above example).</li>
+                </ol>
+            </p>
+            
+        </intro>
+        <tab name="Settings">
+            <option name="Hub mountpoint selection">
+                Specify the <i>mountpoint</i> to access.
+                
+                <ul>
+                <li>
+                <b>Current mountpoint:</b> If chosen, the file system connection will give access to the mountpoint which contains the <i>current workflow.</i> If you
+                are not using this connector node, this option is equivalent to choosing <i>Read from</i> > <i>Relative to</i> > <i>Current mountpoint.</i>
+                Selecting the option <b>Set working directory to the current workflow,</b> will additionally set the working directory of the file system
+                connection to the location of the current workflow. This is then equivalent to choosing <i>Read from</i> > <i>Relative to</i> > <i>Current workflow.</i>
+                </li>
+
+                <li>
+                <b>Other mountpoint:</b> If chosen, the file system connection will give access to the selected mountpoint. Unconnected mountpoints are greyed out 
+                and can still be selected, but you need to go to the KNIME Explorer and connect to the mountpoint before executing this node. A mountpoint is
+                displayed in red if it was previously selected but is no longer available. You will not be able to save the dialog in this case.
+                </li>
+                </ul> 
+                
+            </option>
+            
+            <option name="Space selection">
+                Specify the <i>space</i> to access.
+            </option>
+
+	        <option name="Working directory">
+		        Specify the <i>working directory</i> of the resulting file system connection, using the <b>Path syntax</b> explained above. The working
+		        directory must be specified as an absolute path. A working directory allows downstream nodes to access files/folders using <i>relative</i>
+		        paths, i.e. paths that do not have a leading slash. The default working directory is "/".
+		    </option>
+        </tab>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="File System Connection">
+             File system connection to the current mountpoint, or the selected mountpoint.
+        </outPort>
+    </ports>    
+</knimeNode>

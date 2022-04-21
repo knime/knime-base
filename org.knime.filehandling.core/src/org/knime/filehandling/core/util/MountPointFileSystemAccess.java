@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
+import java.util.Set;
 
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
 
@@ -66,9 +67,19 @@ import org.knime.filehandling.core.connections.base.attributes.BaseFileAttribute
 public interface MountPointFileSystemAccess {
 
     /**
-     * @return The ids of all mounted mountpoints
+     * @return The mount IDs of all mountpoints
      */
     List<String> getMountedIDs();
+
+
+    /**
+     * Returns all mount IDs that have one of the given providers. This is useful to filter for certain mount types,
+     * e.g. Hub mountpoints.
+
+     * @param providerFactoryIDs Provider factory IDs to accept.
+     * @return The IDs of all mountpoints whose provider factory ID is in the given set.
+     */
+    List<String> getMountedIDs(Set<String> providerFactoryIDs);
 
     /**
      * Resolves a KNIME URL.

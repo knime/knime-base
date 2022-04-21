@@ -73,6 +73,11 @@ public final class FSType {
      */
     public static final FSType MOUNTPOINT = FSTypeRegistry.getOrCreateFSType("knime-mountpoint", "Mountpoint");
 
+    /**
+     * The file system type for the Space file system.
+     */
+    public static final FSType SPACE = FSTypeRegistry.getOrCreateFSType("knime-space", "Space");
+
     public static final FSType RELATIVE_TO_WORKFLOW =
         FSTypeRegistry.getOrCreateFSType("knime-relative-workflow", "Relative to current workflow");
 
