@@ -100,6 +100,7 @@ final class TransposeTableNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_chunkSize.saveSettingsTo(settings);
+        m_isSizeGuessed.saveSettingsTo(settings);
     }
 
     /**
@@ -117,7 +118,12 @@ final class TransposeTableNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
-            m_isSizeGuessed.loadSettingsFrom(settings);
+            if (settings.containsKey(m_isSizeGuessed.getKey())) {
+                m_isSizeGuessed.loadSettingsFrom(settings);
+            } else {
+                // until 4.5.1, there was no option for guessing chunk size, only fixed chunk size
+                m_isSizeGuessed.setStringValue(TransposeTableNodeDialogPane.OPTION_FIXED_CHUNK_SIZE);
+            }
             m_chunkSize.loadSettingsFrom(settings);
         } catch (InvalidSettingsException ise) {
             // TODO (tg) before 2.0 this option was not available
@@ -170,10 +176,11 @@ final class TransposeTableNodeModel extends NodeModel {
         AbstractTableTransposer transposer;
         // based on node configuration, either use fixed chunk size transposition
         // or guess chunk size based on memory availability
-        if (m_isSizeGuessed.getStringValue().equals(TransposeTableNodeDialogPane.OPTION_FIXED_CHUNK_SIZE)) {
-            transposer = new FixedChunksTransposer(inData[0], exec, m_chunkSize.getIntValue());
-        } else {
+        if (m_isSizeGuessed.getStringValue().equals(TransposeTableNodeDialogPane.OPTION_GUESS_CHUNK_SIZE)) {
             transposer = new MemoryAwareTransposer(inData[0], exec);
+        } else {
+            // backwards compatibility: fallback on this branch if m_isSizeGuessed could not be loaded from settings
+            transposer = new FixedChunksTransposer(inData[0], exec, m_chunkSize.getIntValue());
         }
         transposer.transpose();
         return new BufferedDataTable[]{transposer.getTransposedTable()};
