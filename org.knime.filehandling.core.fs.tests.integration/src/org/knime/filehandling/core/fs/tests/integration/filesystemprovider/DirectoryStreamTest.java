@@ -62,6 +62,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -95,9 +96,9 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
     @Test
     public void test_list_files_in_directory() throws Exception {
         final Path[] files = new Path[] {
-            m_testInitializer.createFileWithContent("contentA", "dir", "fileA"),
-            m_testInitializer.createFileWithContent("contentB", "dir", "fileB"),
-            m_testInitializer.createFileWithContent("contentC", "dir", "fileC")
+            m_testInitializer.createFileWithContent("contentA", "dir1", "fileA"),
+            m_testInitializer.createFileWithContent("contentB", "dir1", "fileB"),
+            m_testInitializer.createFileWithContent("contentC", "dir1", "fileC")
         };
 
         testListFiles(files[0].getParent(), files);
@@ -106,9 +107,9 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
     @Test
     public void test_list_files_in_directory_with_spaces() throws Exception {
         final Path[] files = new Path[] {
-            m_testInitializer.createFileWithContent("contentA", "dir with spaces", "file with spacesA"),
-            m_testInitializer.createFileWithContent("contentB", "dir with spaces", "file with spacesB"),
-            m_testInitializer.createFileWithContent("contentC", "dir with spaces", "file with spacesC")
+            m_testInitializer.createFileWithContent("contentA", "dir1 with spaces", "file with spacesA"),
+            m_testInitializer.createFileWithContent("contentB", "dir1 with spaces", "file with spacesB"),
+            m_testInitializer.createFileWithContent("contentC", "dir1 with spaces", "file with spacesC")
         };
 
         testListFiles(files[0].getParent(),files);
@@ -117,9 +118,9 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
     @Test
     public void test_list_files_in_directory_with_pluses() throws Exception {
         final Path[] files = new Path[] {
-            m_testInitializer.createFileWithContent("contentA", "dir+with+pluses", "file+with+plusesA"),
-            m_testInitializer.createFileWithContent("contentB", "dir+with+pluses", "file+with+plusesB"),
-            m_testInitializer.createFileWithContent("contentC", "dir+with+pluses", "file+with+plusesC")
+            m_testInitializer.createFileWithContent("contentA", "dir1+with+pluses", "file+with+plusesA"),
+            m_testInitializer.createFileWithContent("contentB", "dir1+with+pluses", "file+with+plusesB"),
+            m_testInitializer.createFileWithContent("contentC", "dir1+with+pluses", "file+with+plusesC")
         };
 
         testListFiles(files[0].getParent(),files);
@@ -128,9 +129,9 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
     @Test
     public void test_list_files_in_directory_with_percent_encoding() throws Exception {
         final Path[] files = new Path[] {
-            m_testInitializer.createFileWithContent("contentA", "dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsA"),
-            m_testInitializer.createFileWithContent("contentB", "dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsB"),
-            m_testInitializer.createFileWithContent("contentC", "dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsC")
+            m_testInitializer.createFileWithContent("contentA", "dir1%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsA"),
+            m_testInitializer.createFileWithContent("contentB", "dir1%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsB"),
+            m_testInitializer.createFileWithContent("contentC", "dir1%20with%20percent%2520encodings", "file%20with%20percent%2520encodingsC")
         };
 
         testListFiles(files[0].getParent(), files);
@@ -141,7 +142,9 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
         final Path directory = m_testInitializer.getTestCaseScratchDir();
         // root directory might contains files (e.g. workflows), use a fresh empty
         // directory
-        final Path emptyDirectory = Files.createDirectories(directory.resolve("empty-directory"));
+        // read-only file-systems must have the directory in the test file
+        final Path emptyDirectory = m_connection.getFSDescriptor().getCapabilities().canWriteFiles() ?
+            Files.createDirectories(directory.resolve("empty-directory")) : m_testInitializer.makePath("empty-directory");
 
         final List<Path> paths = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(emptyDirectory, (path) -> true)) {
@@ -153,9 +156,9 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_list_files_with_filter() throws IOException {
-        final Path fileA = m_testInitializer.createFileWithContent("contentA", "dir", "fileA");
-        final Path fileB = m_testInitializer.createFileWithContent("contentB", "dir", "fileB");
-        final Path fileC = m_testInitializer.createFileWithContent("contentC", "dir", "fileC");
+        final Path fileA = m_testInitializer.createFileWithContent("contentA", "dir1", "fileA");
+        final Path fileB = m_testInitializer.createFileWithContent("contentB", "dir1", "fileB");
+        final Path fileC = m_testInitializer.createFileWithContent("contentC", "dir1", "fileC");
         final Path directory = fileA.getParent();
 
         final Filter<Path> filter = path -> path.getFileName().toString().equals("fileB");
@@ -188,6 +191,8 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_list_relative_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final Path relDir = getFileSystem().getWorkingDirectory().relativize(m_testInitializer.makePath("dir"));
         Files.createDirectory(relDir);
 
@@ -204,6 +209,7 @@ public class DirectoryStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_list_dot_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
         ignoreWithReason("The working directory in knime-local-relative-workflow is actually a file",
             KNIME_LOCAL_RELATIVE_WORKFLOW);
 

@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -108,23 +109,38 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_delete_file() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         testCreateAndDeleteFile(m_testInitializer.createFile("dir-A", "file-B"));
     }
 
     public void test_delete_file_with_spaces() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         testCreateAndDeleteFile(m_testInitializer.createFile("dir A", "file B"));
     }
 
     public void test_delete_file_with_pluses() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         testCreateAndDeleteFile(m_testInitializer.createFile("dir+A", "file+B"));
     }
 
     public void test_delete_file_with_percent_encoding() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         testCreateAndDeleteFile(m_testInitializer.createFile("dir%20with%20percent%2520encodings2", "file%20with%20percent%2520encodings"));
     }
 
     @Test
     public void test_delete_file_by_relative_path() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         final Path fileB = m_testInitializer.createFileWithContent("test", "dir-A", "file-B");
         final Path fileBRelative = getFileSystem().getWorkingDirectory().relativize(fileB);
 
@@ -142,6 +158,9 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_delete_empty_directory() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         ignoreWithReason("empty directories are removed automatically by MinIO", GENERIC_S3);
 
         Files.createDirectories(m_testInitializer.makePath("folder", "with"));
@@ -161,6 +180,9 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_parent_of_deleted_file_is_not_deleted() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         ignoreWithReason("empty directories are removed automatically by MinIO", GENERIC_S3);
 
         Files.createDirectories(m_testInitializer.makePath("path", "to"));
@@ -173,6 +195,9 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test(expected = DirectoryNotEmptyException.class)
     public void test_deleting_a_non_empty_directory_throws_an_exception() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         final Path file = m_testInitializer.createFile("directory", "fileA");
         final Path directory = file.getParent();
 
@@ -181,6 +206,9 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_deleting_a_non_empty_directory_does_not_delete_it() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         final Path file = m_testInitializer.createFile("directory", "fileA");
         final Path directory = file.getParent();
 
@@ -198,6 +226,8 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_delete_non_existing_file_throws_an_exception() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         final Path pathToNonExistingFile = m_testInitializer.makePath("does", "not", "exist");
 
         Files.delete(pathToNonExistingFile);
@@ -205,6 +235,10 @@ public class DeleteTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_deleting_file_from_directory_does_not_delete_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         final Path dir = m_testInitializer.makePath("dir");
         Files.createDirectories(dir);
         assertTrue(Files.isDirectory(dir));

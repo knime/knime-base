@@ -53,6 +53,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
@@ -87,6 +88,8 @@ public class RandomizedDirectoriesTest extends AbstractParameterizedFSTest {
      */
     @Test
     public void test_create_randomized_dir_with_prefix_and_suffix() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+
         String prefix = "testprefix";
         String suffix = "testsuffix";
         final FSPath tempDir =

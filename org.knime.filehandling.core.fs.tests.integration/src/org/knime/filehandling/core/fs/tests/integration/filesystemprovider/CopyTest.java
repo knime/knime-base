@@ -63,6 +63,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -82,6 +83,8 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_file() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final String testContent = "Some simple test content";
         final Path fileA1 = m_testInitializer.createFileWithContent(testContent, "file-A1");
         final Path fileB2 = m_testInitializer.createFileWithContent("test", "dir-B", "file-B2");
@@ -138,6 +141,9 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_file_with_spaces() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final Path srcFile = m_testInitializer.makePath("dir with spaces", "file with spaces");
         final Path targetFile = m_testInitializer.makePath("dir with spaces2", "file with spaces");
         copyFileAndCheck(srcFile, targetFile);
@@ -145,6 +151,9 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_file_with_pluses() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final Path srcFile = m_testInitializer.makePath("dir+with+pluses", "file+with+pluses");
         final Path targetFile = m_testInitializer.makePath("dir+with+pluses2", "file+with+pluses");
         copyFileAndCheck(srcFile, targetFile);
@@ -152,6 +161,9 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_file_with_percent_encoding() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final Path srcFile = m_testInitializer.makePath("dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodings");
         final Path targetFile = m_testInitializer.makePath("dir%20with%20percent%2520encodings2", "file%20with%20percent%2520encodings");
         copyFileAndCheck(srcFile, targetFile);
@@ -159,6 +171,8 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_copy_non_existing_file() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final Path source = m_testInitializer.getTestCaseScratchDir().resolve("non-existing-file");
         final Path target = source.getParent().resolve("copiedFile");
 
@@ -167,6 +181,8 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_copy_file_to_existing_target_without_replace_option() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final String testContent = "Some simple test content";
         final Path source = m_testInitializer.createFileWithContent(testContent, "dir", "file");
         final Path target = m_testInitializer.createFileWithContent(testContent, "dir", "copyFile");
@@ -176,6 +192,8 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_file_to_existing_target_with_replace_option() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final String sourceContent = "Source content";
         final Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
         final String targetContent = "Target content";
@@ -191,6 +209,8 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_copy_file_to_non_existing_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final String testContent = "Some simple test content";
         final Path source = m_testInitializer.createFileWithContent(testContent, "dir", "file");
         final Path target = source.getParent().resolve("newDir").resolve("copiedFile");
@@ -200,6 +220,8 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_copy_directory_to_other_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final String testContent = "Some simple test content";
         final Path dirA = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA").getParent();
         final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
@@ -209,6 +231,8 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test(expected = DirectoryNotEmptyException.class)
     public void test_copy_directory_with_replace_to_non_empty_existing_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final String testContent = "Some simple test content";
         final Path dirA = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA").getParent();
         final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
@@ -218,6 +242,8 @@ public class CopyTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_replace_may_update_attribute_times() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final Path src = m_testInitializer.createFileWithContent("a", "srcFile");
         final Path tgt = m_testInitializer.createFileWithContent("b", "tgtFile");
 
