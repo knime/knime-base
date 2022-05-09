@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.fs.knime.space.node;
 
+import java.time.Duration;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -55,9 +56,11 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.SpaceFSConnectionConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
@@ -98,13 +101,19 @@ public class SpaceConnectorNodeSettings {
         }
     }
 
+    private static final int DEFAULT_TIMEOUT = 30;
+
     private static final String KEY_MODE = "mode";
 
     private static final String KEY_WORKING_DIRECTORY = "workingDirectory";
 
-    private static final String KEY_LIST = "list";
+    private static final String KEY_SPACE_ID = "spaceId";
 
     private static final String KEY_SPACE_NAME = "spaceName";
+
+    private static final String KEY_CONNECTION_TIMEOUT = "connectionTimeout";
+
+    private static final String KEY_READ_TIMEOUT = "readTimeout";
 
     private final SettingsModelString m_spaceMode;
 
@@ -112,21 +121,29 @@ public class SpaceConnectorNodeSettings {
 
     private final SettingsModelString m_workingDirectory;
 
-    private final SettingsModelString m_spaceList;
+    private final SettingsModelString m_spaceId;
 
     private final SettingsModelString m_spaceName;
+
+    private final SettingsModelIntegerBounded m_connectionTimeout;
+
+    private final SettingsModelIntegerBounded m_readTimeout;
 
     /**
      * Creates new instance
      */
     public SpaceConnectorNodeSettings() {
-        m_spaceMode = new SettingsModelString(KEY_MODE, SpaceMode.CURRENT.getSettingsValue());
+        m_spaceMode = new SettingsModelString(KEY_MODE, SpaceMode.OTHER.getSettingsValue());
         m_mountpoint = new MountpointSpecificConfig(true,
             () -> MountPointFileSystemAccessService.instance().getAllMountedIDs(HUB_PROVIDER_FACTORY_IDS));
         m_workingDirectory =
                 new SettingsModelString(KEY_WORKING_DIRECTORY, MountpointFSConnectionConfig.PATH_SEPARATOR);
-        m_spaceList = new SettingsModelString(KEY_LIST, "");
+        m_spaceId = new SettingsModelString(KEY_SPACE_ID, "");
         m_spaceName = new SettingsModelString(KEY_SPACE_NAME, "");
+        m_connectionTimeout = new SettingsModelIntegerBounded(KEY_CONNECTION_TIMEOUT, DEFAULT_TIMEOUT,
+            0,
+            Integer.MAX_VALUE);
+        m_readTimeout = new SettingsModelIntegerBounded(KEY_READ_TIMEOUT, DEFAULT_TIMEOUT, 0, Integer.MAX_VALUE);
     }
 
     /**
@@ -173,10 +190,17 @@ public class SpaceConnectorNodeSettings {
     }
 
     /**
-     * @return the space list model
+     * @return the working directory
      */
-    public SettingsModelString getSpaceListModel() {
-        return m_spaceList;
+    public String getWorkingDirectory() {
+        return m_workingDirectory.getStringValue();
+    }
+
+    /**
+     * @return the space id model
+     */
+    public SettingsModelString getSpaceIdModel() {
+        return m_spaceId;
     }
 
     /**
@@ -184,6 +208,34 @@ public class SpaceConnectorNodeSettings {
      */
     public SettingsModelString getSpaceNameModel() {
         return m_spaceName;
+    }
+
+    /**
+     * @return connection time out settings model.
+     */
+    public SettingsModelIntegerBounded getConnectionTimeoutModel() {
+        return m_connectionTimeout;
+    }
+
+    /**
+     * @return read time out settings model.
+     */
+    public SettingsModelIntegerBounded getReadTimeoutModel() {
+        return m_readTimeout;
+    }
+
+    /**
+     * @return connection time out.
+     */
+    public Duration getConnectionTimeout() {
+        return Duration.ofSeconds(m_connectionTimeout.getIntValue());
+    }
+
+    /**
+     * @return socket read time out.
+     */
+    public Duration getReadTimeout() {
+        return Duration.ofSeconds(m_readTimeout.getIntValue());
     }
 
     /**
@@ -195,8 +247,10 @@ public class SpaceConnectorNodeSettings {
         m_spaceMode.saveSettingsTo(settings);
         m_mountpoint.save(settings);
         m_workingDirectory.saveSettingsTo(settings);
-        m_spaceList.saveSettingsTo(settings);
+        m_spaceId.saveSettingsTo(settings);
         m_spaceName.saveSettingsTo(settings);
+        m_connectionTimeout.saveSettingsTo(settings);
+        m_readTimeout.saveSettingsTo(settings);
     }
 
     /**
@@ -209,12 +263,10 @@ public class SpaceConnectorNodeSettings {
         m_spaceMode.validateSettings(settings);
         m_mountpoint.validateInModel(settings);
         m_workingDirectory.validateSettings(settings);
-        m_spaceList.validateSettings(settings);
+        m_spaceId.validateSettings(settings);
         m_spaceName.validateSettings(settings);
-
-        final var temp = new SpaceConnectorNodeSettings();
-        temp.loadInModel(settings);
-        temp.validate();
+        m_connectionTimeout.validateSettings(settings);
+        m_readTimeout.validateSettings(settings);
     }
 
     /**
@@ -234,10 +286,20 @@ public class SpaceConnectorNodeSettings {
      * @throws InvalidSettingsException
      */
     void validate() throws InvalidSettingsException {
+
+        final SpaceMode spaceMode;
         try {
-            getSpaceMode();
+            spaceMode = getSpaceMode();
         } catch (IllegalStateException e) { // NOSONAR is rethrown as InvalidSettingsException
             throw new InvalidSettingsException(e.getMessage());
+        }
+
+        if (spaceMode == SpaceMode.CURRENT) {
+            throw new InvalidSettingsException("Connecting to CURRENT is not implemented yet");
+        }
+
+        if (spaceMode == SpaceMode.OTHER && StringUtils.isBlank(m_spaceId.getStringValue())) {
+            throw new InvalidSettingsException("Please select a space.");
         }
 
         var workDir = m_workingDirectory.getStringValue();
@@ -266,7 +328,17 @@ public class SpaceConnectorNodeSettings {
     private void load(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_spaceMode.loadSettingsFrom(settings);
         m_workingDirectory.loadSettingsFrom(settings);
-        m_spaceList.loadSettingsFrom(settings);
-        m_spaceName.loadSettingsFrom(settings);
+        m_spaceId.loadSettingsFrom(settings);
+        m_connectionTimeout.loadSettingsFrom(settings);
+        m_readTimeout.loadSettingsFrom(settings);
+    }
+
+    SpaceFSConnectionConfig createSpaceFSConnectionConfig() {
+        return new SpaceFSConnectionConfig( //
+            m_workingDirectory.getStringValue(), //
+            m_mountpoint.getMountpoint().getId(),
+            m_spaceId.getStringValue(),
+            getConnectionTimeout(), //
+            getReadTimeout());
     }
 }

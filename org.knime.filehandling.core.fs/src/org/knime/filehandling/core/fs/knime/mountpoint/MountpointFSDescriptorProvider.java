@@ -66,6 +66,7 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.fs.knime.local.mountpoint.LocalMountpointFSDescriptorProvider;
 import org.knime.filehandling.core.fs.knime.mountpoint.export.LegacyKNIMEUrlExporterFactory;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
@@ -98,6 +99,11 @@ public final class MountpointFSDescriptorProvider extends BaseFSDescriptorProvid
     private static FSConnection getActualFSConnection(final MountpointFSConnectionConfig config) throws IOException {
 
         try {
+            // provide a slightly nicer error than the ResolverUtil below, when mountId does not exist
+            if (!MountPointFileSystemAccessService.instance().getAllMountedIDs().contains(config.getMountID())) {
+                throw new IOException(String.format("Mountpoint '%s' is unknown.", config.getMountID()));
+            }
+
             final var localFile = ResolverUtil.resolveURItoLocalFile(new URI(String.format("knime://%s/", config.getMountID())));
             if (WorkflowContextUtil.isServerWorkflowConnectingToRemoteRepository(config.getMountID())
                 || localFile == null) {

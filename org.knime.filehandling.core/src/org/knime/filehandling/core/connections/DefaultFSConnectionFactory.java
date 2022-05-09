@@ -58,6 +58,7 @@ import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.SpaceFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
@@ -67,6 +68,8 @@ import org.knime.filehandling.core.connections.meta.FSType;
  * @author Bjoern Lohrmann, KNIME GmbH
  */
 public final class DefaultFSConnectionFactory {
+
+    private static final String FILE_SYSTEM_NOT_REGISTERED =  " file system is not registered";
 
     private DefaultFSConnectionFactory() {
     }
@@ -144,7 +147,7 @@ public final class DefaultFSConnectionFactory {
 
         try {
             return FSDescriptorRegistry.getFSDescriptor(fsType) //
-                .orElseThrow(() -> new IllegalStateException(fsType.getName() + " file system is not registered"))
+                .orElseThrow(() -> new IllegalStateException(fsType.getName() + FILE_SYSTEM_NOT_REGISTERED))
                 .getConnectionFactory() //
                 .createConnection(config);
         } catch (IOException ex) {
@@ -159,7 +162,18 @@ public final class DefaultFSConnectionFactory {
     public static FSConnection createMountpointConnection(final MountpointFSConnectionConfig config) {
         try {
             return FSDescriptorRegistry.getFSDescriptor(FSType.MOUNTPOINT) //
-                .orElseThrow(() -> new IllegalStateException(FSType.MOUNTPOINT.getName() + " file system is not registered"))
+                .orElseThrow(() -> new IllegalStateException(FSType.MOUNTPOINT.getName() + FILE_SYSTEM_NOT_REGISTERED))
+                .getConnectionFactory() //
+                .createConnection(config);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    public static FSConnection createSpaceConnection(final SpaceFSConnectionConfig config) {
+        try {
+            return FSDescriptorRegistry.getFSDescriptor(FSType.SPACE) //
+                .orElseThrow(() -> new IllegalStateException(FSType.SPACE.getName() + FILE_SYSTEM_NOT_REGISTERED))
                 .getConnectionFactory() //
                 .createConnection(config);
         } catch (IOException ex) {

@@ -74,6 +74,7 @@ public final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFact
     private static final LegacyKNIMEUrlExporterFactory MOUNTPOINT_RELATIVE_INSTANCE =
         new LegacyKNIMEUrlExporterFactory(RelativeTo.MOUNTPOINT);
 
+
     private LegacyKNIMEUrlExporterFactory(final RelativeTo type) {
         super(META_INFO, p -> LegacyKNIMEUriExporterHelper.createRelativeKNIMEProtocolURI(type, p));
     }

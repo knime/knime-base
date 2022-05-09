@@ -61,8 +61,10 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
@@ -87,25 +89,21 @@ public class SpaceConnectorNodeModel extends NodeModel {
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        m_settings.validate();
         m_fsId = FSConnectionRegistry.getInstance().getKey();
-
         return new PortObjectSpec[]{createSpec()};
     }
 
     private FileSystemPortObjectSpec createSpec() {
-        var factory = SpaceConnectorFSConnectionFactory.create(m_settings);
-
-        return new FileSystemPortObjectSpec(factory.getFSType().getName(), //
+        return new FileSystemPortObjectSpec(FSType.SPACE.getTypeId(), //
             m_fsId, //
-            factory.getFSLocationSpec());
+            m_settings.createSpaceFSConnectionConfig().createFSLocationSpec());
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        m_fsConnection = SpaceConnectorFSConnectionFactory.create(m_settings).createFSConnection();
-
+        m_fsConnection = DefaultFSConnectionFactory.createSpaceConnection(m_settings.createSpaceFSConnectionConfig());
         FSConnectionRegistry.getInstance().register(m_fsId, m_fsConnection);
-
         return new PortObject[]{new FileSystemPortObject(createSpec())};
     }
 

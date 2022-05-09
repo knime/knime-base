@@ -10,9 +10,6 @@
             class="org.knime.filehandling.core.fs.knime.mountpoint.MountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider
-            class="org.knime.filehandling.core.fs.knime.space.SpaceFSDescriptorProvider">
-      </FSDescriptorProvider>
-      <FSDescriptorProvider
             class="org.knime.filehandling.core.fs.knime.local.mountpoint.LocalMountpointFSDescriptorProvider">
       </FSDescriptorProvider>
       <FSDescriptorProvider

@@ -63,7 +63,7 @@ import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSyst
  *
  * @author Alexander Bondaletov
  */
-public abstract class MountpointConnectorFSConnectionFactory {
+abstract class MountpointConnectorFSConnectionFactory {
 
     /**
      * @param settings The connector settings.

@@ -287,10 +287,9 @@ public abstract class LoadedItemsSelector extends JPanel {
             }
         }
 
-        private void showError(final Exception ex) {
-            final var message = fetchExceptionMessage(ex);
-
-            JOptionPane.showMessageDialog(getRootPane(), message, "Error", JOptionPane.ERROR_MESSAGE);
+        private void showError(final ExecutionException ex) {
+            final var message = fetchExceptionMessage((Exception)ex.getCause());
+            displayErrorMessage(message);
         }
 
         protected void onItemsLoaded(final List<IdComboboxItem> comboBoxItems) {
@@ -385,11 +384,20 @@ public abstract class LoadedItemsSelector extends JPanel {
         m_cancelBtn.setVisible(true);
         m_fetchBtn.setVisible(false);
 
+        beforeFetchItems();
         m_fetchWorker.execute();
     }
 
     /**
-     * Fetches available options.
+     * Overridable method which is called on the Swing EDT before {@link #fetchItems()}
+     */
+    protected void beforeFetchItems() {
+        // nothing to do here, meant for subclasses
+    }
+
+
+    /**
+     * Fetches available options, called by a background thread.
      *
      * @return The list of available options.
      * @throws Exception
@@ -397,14 +405,23 @@ public abstract class LoadedItemsSelector extends JPanel {
     public abstract List<IdComboboxItem> fetchItems() throws Exception;
 
     /**
-     * Fetches error message from exception.
+     * Fetches error message from exception (alled on the Swing EDT).
      *
      * @param ex
      *            the thrown {@link Exception}
      *
      * @return error message.
      */
-    public abstract String fetchExceptionMessage(Exception ex);
+    protected abstract String fetchExceptionMessage(Exception ex);
+
+    /**
+     * Displays an error message resulting from a failed {@link #fetchItems()}. Called on the Swing EDT.
+     *
+     * @param message The error message to display.
+     */
+    protected void displayErrorMessage(final String message) {
+        JOptionPane.showMessageDialog(getRootPane(), message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
 
     /**
      * @return the comboModel

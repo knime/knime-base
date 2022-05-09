@@ -49,10 +49,12 @@
 package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 
 /**
@@ -141,6 +143,23 @@ public class ExceptionUtil {
             return getDeepestError(t.getCause());
         } else {
             return t;
+        }
+    }
+
+    /**
+     * Unpacks the underlying exception from certain "wrapper" Exceptions, such as {@link ExecutionException} or
+     * {@link UncheckedIOException}.
+     *
+     * @param e An exception that (possibly) just wraps another one.
+     * @return the wrapped exception, or the original one.
+     */
+    public static Throwable unpack(final Exception e) {
+        if (e instanceof ExecutionException) {
+            return e.getCause();
+        } else if (e instanceof UncheckedIOException) {
+            return e.getCause();
+        } else {
+            return e;
         }
     }
 

@@ -48,12 +48,15 @@
  */
 package org.knime.filehandling.core.fs.knime.space.node;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.net.URI;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -63,6 +66,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 
 import org.knime.core.data.DataTableSpec;
@@ -71,15 +76,17 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.SpaceAware;
+import org.knime.filehandling.core.connections.SpaceAware.Space;
 import org.knime.filehandling.core.connections.base.ui.LoadedItemsSelector;
+import org.knime.filehandling.core.connections.base.ui.LoadedItemsSelector.IdComboboxItem;
 import org.knime.filehandling.core.connections.base.ui.WorkingDirectoryChooser;
-import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.MountpointFileSystemDialog;
 import org.knime.filehandling.core.fs.knime.space.node.SpaceConnectorNodeSettings.SpaceMode;
-import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
-
 
 /**
  * Space Connector node dialog.
@@ -97,8 +104,9 @@ public class SpaceConnectorNodeDialog extends NodeDialogPane {
     private final LoadedItemsSelector m_spaceSelector;
 
     private final JRadioButton m_radioCurrentSpace;
-
     private final JRadioButton m_radioOtherSpace;
+
+    private final JLabel m_fetchingErrorLabel;
 
     private boolean m_ignoreChangeEvents;
 
@@ -114,61 +122,48 @@ public class SpaceConnectorNodeDialog extends NodeDialogPane {
         m_radioCurrentSpace = createRadioButton(group, SpaceMode.CURRENT);
         m_radioOtherSpace = createRadioButton(group, SpaceMode.OTHER);
 
-        m_workingDirChooser = new WorkingDirectoryChooser("mountpoint.workingDir", this::createFSConnection);
-        m_workingDirChooser.addListener(e -> {
-            if (!m_ignoreChangeEvents) {
-                final var workDir = m_workingDirChooser.getSelectedWorkingDirectory();
-                m_settings.getWorkingDirectoryModel().setStringValue(workDir);
+        m_spaceSelector = new LoadedItemsSelector(m_settings.getSpaceIdModel(), m_settings.getSpaceNameModel(),
+            "", null, false) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void beforeFetchItems() {
+                m_fetchingErrorLabel.setText("");
             }
+
+            @Override
+            public List<IdComboboxItem> fetchItems() throws Exception {
+                return fetchSpaces();
+            }
+
+            @Override
+            protected String fetchExceptionMessage(final Exception ex) {
+                return ExceptionUtil.unpack(ex).getMessage();
+            }
+
+            @Override
+            protected void displayErrorMessage(final String message) {
+                m_fetchingErrorLabel.setText(String.format("<html>%s</html>", message));
+            }
+        };
+
+        m_workingDirChooser = new WorkingDirectoryChooser("space.workingDir", this::createSpaceConnection);
+        m_workingDirChooser.addListener(e -> {
+            final var workDir = m_workingDirChooser.getSelectedWorkingDirectory();
+            m_settings.getWorkingDirectoryModel().setStringValue(workDir);
         });
 
         m_mountpointSelector = new MountpointFileSystemDialog(m_settings.getMountpoint());
 
         m_settings.getMountpoint().addChangeListener(this::onMountpointChanged);
-        m_settings.getSpaceModeModel().addChangeListener(this::onMountpointChanged);
         m_ignoreChangeEvents = false;
 
-        m_spaceSelector = new LoadedItemsSelector(m_settings.getSpaceListModel(), m_settings.getSpaceNameModel(),
-            "Space:", null, false) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public List<IdComboboxItem> fetchItems() throws Exception {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public String fetchExceptionMessage(final Exception ex) {
-                return ex.getMessage();
-            }
-        };
+        m_fetchingErrorLabel = new JLabel("");
+        m_fetchingErrorLabel.setForeground(Color.RED);
 
         addTab("Settings", createSettingsPanel());
-    }
-
-    private void onMountpointChanged(@SuppressWarnings("unused") final ChangeEvent e) {
-        if (m_ignoreChangeEvents) {
-            return;
-        }
-
-        KNIMEConnection currMountpoint = null;
-        if (m_settings.getSpaceMode() == SpaceMode.CURRENT) {
-            currMountpoint = WorkflowContextUtil.getWorkflowContextOptional() //
-                .map(ctx -> ctx.getMountpointURI().orElse(null)) //
-                .map(URI::getHost) //
-                .map(KNIMEConnection::getConnection).orElse(null);
-        } else if (m_settings.getSpaceMode() == SpaceMode.OTHER) {
-            currMountpoint = m_settings.getMountpoint().getMountpoint();
-        }
-
-        if (currMountpoint != null) {
-            final var defaultDirUri = MountPointFileSystemAccessService.instance() //
-                .getDefaultDirectory(URI.create(currMountpoint.getSchemeAndHost()));
-
-            m_settings.getWorkingDirectoryModel().setStringValue(defaultDirUri.getPath());
-            m_workingDirChooser.setSelectedWorkingDirectory(defaultDirUri.getPath());
-        }
+        addTab("Advanced", createAdvancedPanel());
     }
 
     private JRadioButton createRadioButton(final ButtonGroup group, final SpaceMode mode) {
@@ -178,74 +173,195 @@ public class SpaceConnectorNodeDialog extends NodeDialogPane {
         return rb;
     }
 
-    private FSConnection createFSConnection() {
-        return SpaceConnectorFSConnectionFactory.create(m_settings).createFSConnection();
+    private void onMountpointChanged(@SuppressWarnings("unused") final ChangeEvent e) {
+        if (m_ignoreChangeEvents) {
+            return;
+        }
+        m_spaceSelector.fetch();
+    }
+
+    @SuppressWarnings("resource")
+    private List<IdComboboxItem> fetchSpaces() throws IOException {
+        var mountpointConnection = DefaultFSConnectionFactory
+            .createMountpointConnection(m_settings.getMountpoint().getMountpoint().getId());
+        final var fileSystemProvider = mountpointConnection.getFileSystem().provider();
+
+        if (fileSystemProvider instanceof SpaceAware) {
+            return ((SpaceAware)fileSystemProvider).getSpaces() //
+                .stream() //
+                .map(SpaceConnectorNodeDialog::toComboBoxItem) //
+                .sorted((l, r) -> l.getTitle().compareTo(r.getTitle())) //
+                .collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    private static IdComboboxItem toComboBoxItem(final Space space) {
+        return new IdComboboxItem(space.getSpaceId(), space.getName());
+    }
+
+
+    private FSConnection createSpaceConnection() {
+        return DefaultFSConnectionFactory.createSpaceConnection(m_settings.createSpaceFSConnectionConfig());
     }
 
     private JComponent createSettingsPanel() {
         var box = new Box(BoxLayout.Y_AXIS);
-        box.add(createHubMountpointSelectionPanel());
+        box.add(createSpaceSelectionPanel());
         m_workingDirChooser.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5),
             BorderFactory.createTitledBorder("Working directory")));
         box.add(m_workingDirChooser);
         return box;
     }
 
-    private JComponent createHubMountpointSelectionPanel() {
+    private JComponent createSpaceSelectionPanel() {
         var panel = new JPanel(new GridBagLayout());
-        var outerInsets = new Insets(0, 10, 0, 0);
-        var innerInsets = new Insets(0, 30, 0, 0);
+        var outerInsets = new Insets(5, 10, 0, 0);
+        var innerInsets = new Insets(5, 30, 0, 0);
 
-        var c = new GridBagConstraints();
-        c.fill = GridBagConstraints.NONE;
-        c.anchor = GridBagConstraints.WEST;
-        c.weightx = 1;
-        c.weighty = 0;
-        c.gridx = 0;
-        c.gridy = 0;
-        c.insets = outerInsets;
-        panel.add(m_radioCurrentSpace, c);
+        var gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = outerInsets;
+        panel.add(m_radioCurrentSpace, gbc);
 
-        c.gridy += 1;
-        c.insets = outerInsets;
-        panel.add(m_radioOtherSpace, c);
+        gbc.gridx++;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(Box.createHorizontalGlue(), gbc);
 
-        c.gridy += 1;
-        c.insets = innerInsets;
-        panel.add(createHubMountpointSelector(), c);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = outerInsets;
+        panel.add(m_radioOtherSpace, gbc);
 
-        c.gridy += 1;
-        c.insets = innerInsets;
-        panel.add(m_spaceSelector, c);
+        gbc.gridx++;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(Box.createHorizontalGlue(), gbc);
 
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1;
-        c.gridy += 1;
-        panel.add(Box.createVerticalGlue(), c);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = innerInsets;
+        panel.add(new JLabel("Hub mountpoint:"), gbc);
+
+        gbc.gridx++;
+        gbc.insets = new Insets(5, 15, 0, 0);
+        panel.add(m_mountpointSelector.getSpecifierComponent(), gbc);
+
+        gbc.gridx++;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        panel.add(Box.createHorizontalGlue(), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = innerInsets;
+        panel.add(new JLabel("Space:"), gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 0.5;
+        gbc.insets = new Insets(5, 5, 0, 0);
+        panel.add(m_spaceSelector, gbc);
+
+        gbc.gridx++;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 0.5;
+        panel.add(Box.createHorizontalGlue(), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = innerInsets;
+        panel.add(m_fetchingErrorLabel, gbc);
 
         panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5),
             BorderFactory.createTitledBorder("Space selection")));
         return panel;
     }
 
-    private JComponent createHubMountpointSelector() {
-        var panel = new JPanel();
-        panel.add(new JLabel("Hub mountpoint: "));
-        panel.add(m_mountpointSelector.getSpecifierComponent());
+    private JComponent createAdvancedPanel() {
+        final var panel = new JPanel(new GridBagLayout());
+
+        final var gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(5, 0, 10, 5);
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(createAdvancedConnectionSettingsPanel(), gbc);
+
+        gbc.gridy++;
+
+        gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.weighty = 1;
+        panel.add(Box.createVerticalGlue(), gbc);
+
+        return panel;
+    }
+
+    private Component createAdvancedConnectionSettingsPanel() {
+        final var panel = new JPanel(new GridBagLayout());
+
+        panel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.RAISED), "Connection settings"));
+
+        final var gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 5, 0, 5);
+        gbc.anchor = GridBagConstraints.LINE_START;
+
+        panel.add(new JLabel("Connection timeout (seconds):"), gbc);
+        gbc.gridx++;
+        panel.add(new DialogComponentNumber(m_settings.getConnectionTimeoutModel(), "", 1).getComponentPanel(), gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 1;
+        panel.add(Box.createHorizontalGlue(), gbc);
+
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+
+        panel.add(new JLabel("Read timeout (seconds):"), gbc);
+        gbc.gridx++;
+        panel.add(new DialogComponentNumber(m_settings.getReadTimeoutModel(), "", 1).getComponentPanel(), gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 1;
+        panel.add(Box.createHorizontalGlue(), gbc);
+
         return panel;
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_workingDirChooser.addCurrentSelectionToHistory();
-        m_settings.validate();
         m_settings.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
-
         try {
             m_ignoreChangeEvents = true;
             m_settings.loadInDialog(settings, specs);
@@ -256,6 +372,7 @@ public class SpaceConnectorNodeDialog extends NodeDialogPane {
     }
 
     private void settingsLoaded() {
+        m_spaceSelector.onSettingsLoaded();
         m_workingDirChooser.setSelectedWorkingDirectory(m_settings.getWorkingDirectoryModel().getStringValue());
         updateComponentsEnabled();
     }
@@ -268,6 +385,11 @@ public class SpaceConnectorNodeDialog extends NodeDialogPane {
 
         m_mountpointSelector.setEnabled(mode == SpaceMode.OTHER);
         m_spaceSelector.setEnabled(mode == SpaceMode.OTHER);
+    }
+
+    @Override
+    public void onOpen() {
+        m_spaceSelector.fetch();
     }
 
     @Override

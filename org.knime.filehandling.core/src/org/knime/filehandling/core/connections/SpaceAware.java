@@ -44,53 +44,85 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 17, 2022 (Zkriya Rakhimberdiyev): created
+ *   Apr 22, 2022 (Zkriya Rakhimberdiyev): created
  */
-package org.knime.filehandling.core.fs.knime.space;
+package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
-
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.FSDescriptorProvider;
-import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
-import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.meta.FSTypeRegistry;
-import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptor;
-import org.knime.filehandling.core.connections.meta.base.BaseFSDescriptorProvider;
-import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
-import org.knime.filehandling.core.fs.knime.mountpoint.export.LegacyKNIMEUrlExporterFactory;
+import java.util.List;
 
 /**
- * Special {@link FSDescriptorProvider} for {@link FSType#SPACE}, which delegates to a REST-based file system.
+ * An interface providing methods for handling spaces.
  *
  * @author Zkriya Rakhimberdiyev
  */
-public class SpaceFSDescriptorProvider extends BaseFSDescriptorProvider {
-
-    private static final String REST_FSTYPE = "knime-rest-mountpoint";
+public interface SpaceAware {
 
     /**
-     * Constructor.
+     * Wrapper object for space details.
+     *
+     * @author Zkriya Rakhimberdiyev
      */
-    public SpaceFSDescriptorProvider() {
-        super(FSType.SPACE, //
-            new BaseFSDescriptor.Builder() //
-                .withConnectionFactory(SpaceFSDescriptorProvider::getActualFSConnection) //
-                .withIsWorkflowAware(true) //
-                .withURIExporterFactory(URIExporterIDs.DEFAULT, LegacyKNIMEUrlExporterFactory.getInstance()) //
-                .withURIExporterFactory(URIExporterIDs.LEGACY_KNIME_URL, LegacyKNIMEUrlExporterFactory.getInstance()) //
-                .build());
+    public static class Space {
+
+        private final String m_name;
+
+        private final String m_owner;
+
+        private final String m_spaceId;
+
+        private final String m_path;
+
+        /**
+         * Space constructor.
+         *
+         * @param name space name
+         * @param owner space owner
+         * @param spaceId space id
+         * @param path Path of the space within the file tree of the Hub, e.g. /Users/joe/Private
+         */
+        public Space(final String name, final String owner, final String spaceId, final String path) {
+            m_name = name;
+            m_owner = owner;
+            m_spaceId = spaceId;
+            m_path = path;
+        }
+
+        /**
+         * @return the name
+         */
+        public String getName() {
+            return m_name;
+        }
+
+        /**
+         * @return the owner
+         */
+        public String getOwner() {
+            return m_owner;
+        }
+
+        /**
+         * @return the spaceId
+         */
+        public String getSpaceId() {
+            return m_spaceId;
+        }
+
+        /**
+         * @return the path
+         */
+        public String getPath() {
+            return m_path;
+        }
     }
 
-    private static FSConnection getActualFSConnection(final MountpointFSConnectionConfig config) throws IOException {
+    /**
+     * Gets all the spaces accessible to the user.
+     *
+     * @return list of {@link Space}s.
+     * @throws IOException
+     */
+    List<Space> getSpaces() throws IOException;
 
-        final var restFsType = FSTypeRegistry.getFSType(REST_FSTYPE) //
-                .orElseThrow(() -> new IllegalStateException("REST-based Mountpoint FSType not registered"));
-
-        return FSDescriptorRegistry.getFSDescriptor(restFsType) //
-                .orElseThrow(() -> new IllegalStateException("REST-based Mountpoint file system not registered")) //
-                .getConnectionFactory() //
-                .createConnection(config);
-    }
 }

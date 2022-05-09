@@ -84,6 +84,9 @@ public final class FSType {
     public static final FSType RELATIVE_TO_MOUNTPOINT =
         FSTypeRegistry.getOrCreateFSType("knime-relative-mountpoint", "Relative to current mountpoint");
 
+    public static final FSType RELATIVE_TO_SPACE =
+        FSTypeRegistry.getOrCreateFSType("knime-relative-space", "Relative to current space");
+
     public static final FSType RELATIVE_TO_WORKFLOW_DATA_AREA =
         FSTypeRegistry.getOrCreateFSType("knime-relative-workflow-data", "Current workflow data area");
 

@@ -44,60 +44,104 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.08.2021 (jl): created
+ *   Apr 28, 2022 (Zkriya Rakhimberdiyev): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.export;
+package org.knime.filehandling.core.connections.config;
 
+import java.time.Duration;
+
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
 
 /**
- * Contains constants related to the “relative to” file systems
+ * {@link FSConnectionConfig} for the Space file system. It is unlikely that you will have to use this class directly.
+ * To create a configured Space file system, please use {@link DefaultFSConnectionFactory}.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noextend non-public API
+ * @author Zkriya Rakhimberdiyev
  */
-public final class RelativeToFileSystemConstants {
-
-    private RelativeToFileSystemConstants() {}
+public class SpaceFSConnectionConfig extends BaseFSConnectionConfig {
 
     /**
-     * {@link FSLocationSpec} for the convenience relative-to workflow file system.
+     * Path separator character
      */
-    public static final FSLocationSpec CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW.getSettingsValue());
+    public static final String PATH_SEPARATOR = "/";
+
+    private final String m_mountID;
+
+    private final String m_spaceId;
+
+    private final Duration m_connectionTimeout;
+
+    private final Duration m_readTimeout;
+
     /**
-     * {@link FSLocationSpec} for the convenience relative-to workflow data area file system.
+     * Constructor that creates a CONNECTED file system with the given working directory.
+     *
+     * @param workingDirectory the working directory to use.
+     * @param mountID the mount ID to connect to.
+     * @param spaceId the unique ID of the space repository item (e.g. *YK_q3iKGm3WUlAzo)
+     * @param connectionTimeout the connectionTimeout.
+     * @param readTimeout the readTimeout.
      */
-    public static final FSLocationSpec CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue());
+    public SpaceFSConnectionConfig(final String workingDirectory, final String mountID,
+        final String spaceId, final Duration connectionTimeout, final Duration readTimeout) {
+        super(workingDirectory, true);
+        m_mountID = mountID;
+        m_spaceId = spaceId;
+        m_connectionTimeout = connectionTimeout;
+        m_readTimeout = readTimeout;
+    }
+
     /**
-     * {@link FSLocationSpec} for the convenience relative-to mountpoint file system.
+     * @return the mount ID to connect to.
      */
-    public static final FSLocationSpec CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.MOUNTPOINT.getSettingsValue());
+    public String getMountID() {
+        return m_mountID;
+    }
+
     /**
-     * {@link FSLocationSpec} for the connected relative-to workflow file system.
+     * @return the space path to connect to.
      */
-    public static final FSLocationSpec CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW.getTypeId());
+    public String getSpaceID() {
+        return m_spaceId;
+    }
+
     /**
-     * {@link FSLocationSpec} for the connected relative-to mountpoint file system.
+     * @return the connectionTimeout.
      */
-    public static final FSLocationSpec CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_MOUNTPOINT.getTypeId());
+    public Duration getConnectionTimeout() {
+        return m_connectionTimeout;
+    }
+
     /**
-     * {@link FSLocationSpec} for the connected relative-to workflow data area file system.
+     * @return the readTimeout.
      */
-    public static final FSLocationSpec CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW_DATA_AREA.getTypeId());
+    public Duration getReadTimeout() {
+        return m_readTimeout;
+    }
+
     /**
-     * {@link FSLocationSpec} for the connected relative-to space file system.
+     * @return the {@link FSLocationSpec} for the Space file system which uses this configuration.
      */
-    public static final FSLocationSpec CONNECTED_SPACE_RELATIVE_FS_LOCATION_SPEC =
-        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_SPACE.getTypeId());
+    public FSLocationSpec createFSLocationSpec() {
+        final FSCategory category;
+        final String specifier;
+
+        if (isConnectedFileSystem()) {
+            category = FSCategory.CONNECTED;
+            specifier = String.format("%s:%s:%s", //
+                FSType.SPACE.getTypeId(), //
+                getMountID(), //
+                getSpaceID());
+        } else {
+            throw new UnsupportedOperationException("Connecting to a space using a convenience file system is not supported yet");
+        }
+
+        return new DefaultFSLocationSpec(category, specifier);
+    }
 }
