@@ -510,6 +510,19 @@ public abstract class LoadedItemsSelector extends JPanel {
             return m_id;
         }
 
+        /**
+         * Truncates the title in case it is too long.
+         *
+         * @return truncated title
+         */
+        public String truncateTitle() {
+            if (m_title.length() > 85) {
+                return m_title.substring(0, 85).concat("...");
+            } else {
+                return m_title;
+            }
+        }
+
         @Override
         public boolean equals(final Object obj) {
             if (obj instanceof IdComboboxItem) {
@@ -535,7 +548,20 @@ public abstract class LoadedItemsSelector extends JPanel {
                 return new JLabel("Loading...");
             }
 
-            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            String val = null;
+            var toolTip = "";
+            if(value instanceof IdComboboxItem) {
+                var item = (IdComboboxItem) value;
+                val = item.truncateTitle();
+                toolTip = item.getTitle();
+            }
+
+
+            final var label = (JLabel) super.getListCellRendererComponent(list, val, index, isSelected, cellHasFocus);
+            label.setToolTipText(toolTip);
+
+            return label;
         }
+
     }
 }
