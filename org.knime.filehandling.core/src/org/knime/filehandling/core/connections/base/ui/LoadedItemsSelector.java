@@ -516,8 +516,8 @@ public abstract class LoadedItemsSelector extends JPanel {
          * @return truncated title
          */
         public String truncateTitle() {
-            if (m_title.length() > 85) {
-                return m_title.substring(0, 85).concat("...");
+            if (m_title.length() > 50) {
+                return m_title.substring(0, 50).concat("...");
             } else {
                 return m_title;
             }
@@ -550,12 +550,11 @@ public abstract class LoadedItemsSelector extends JPanel {
 
             String val = null;
             var toolTip = "";
-            if(value instanceof IdComboboxItem) {
-                var item = (IdComboboxItem) value;
+            if (value instanceof IdComboboxItem) {
+                var item = (IdComboboxItem)value;
                 val = item.truncateTitle();
                 toolTip = item.getTitle();
             }
-
 
             final var label = (JLabel) super.getListCellRendererComponent(list, val, index, isSelected, cellHasFocus);
             label.setToolTipText(toolTip);
