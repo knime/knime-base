@@ -61,6 +61,7 @@ import org.knime.expressions.core.DefaultScriptRowInput;
 import org.knime.expressions.core.Expressions;
 import org.knime.expressions.core.FunctionScript;
 import org.knime.expressions.core.ScriptRowInput;
+import org.knime.expressions.core.WithCacheDataRow;
 
 /**
  * Class to test Expression column access
@@ -96,7 +97,7 @@ public class ExpressionAccessColumnTest {
             }
 
             try {
-                assertNotNull(function.apply(new DefaultScriptRowInput(specs, row, 0, 0)));
+                assertNotNull(function.apply(new DefaultScriptRowInput(specs, i -> WithCacheDataRow.of(row), 0, 0)));
                 fail("Access of column should have failed:\n" + expr);
             } catch (Exception e) {
                 // do nothing
