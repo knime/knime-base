@@ -213,7 +213,7 @@ public class FixedWidthFRNodeDialog extends NodeDialogPane {
 
             @Override
             public void stateChanged(final ChangeEvent e) {
-                if(!m_loadSettings ){
+                if (!m_loadSettings) {
                     try {
                         URL newUrl = FileUtil.toURL(m_url.getSelectedFile());
                         m_nodeSettings.setFileLocation(newUrl);
@@ -236,10 +236,16 @@ public class FixedWidthFRNodeDialog extends NodeDialogPane {
         // the checkbox for preserving the current settings on file change
         Box preserveBox = Box.createHorizontalBox();
         m_preserveSettings = new JCheckBox("Preserve user settings for new location");
-        m_preserveSettings.setToolTipText("if not checked, the settings you"
-            + " have set are reset, if a new location is entered");
+        m_preserveSettings
+            .setToolTipText("if not checked, the settings you have set are reset, if a new location is entered");
         m_preserveSettings.setSelected(false);
         m_preserveSettings.setEnabled(true);
+        m_preserveSettings.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(final ItemEvent e) {
+                m_nodeSettings.setPreserveSettings(m_preserveSettings.isSelected());
+            }
+        });
         preserveBox.add(Box.createHorizontalGlue());
         preserveBox.add(m_preserveSettings);
         preserveBox.add(Box.createHorizontalGlue());
@@ -531,9 +537,8 @@ public class FixedWidthFRNodeDialog extends NodeDialogPane {
                         if (!tokenizer.getReachedEndOfLine() && name != null) {
 
                             int includedIdx = m_nodeSettings.getColIdxIncluded(i);
-                            c =
-                                new DataColumnSpecCreator(name, m_nodeSettings.getColPropertyAt(includedIdx)
-                                    .getColSpec().getType());
+                            c = new DataColumnSpecCreator(name,
+                                m_nodeSettings.getColPropertyAt(includedIdx).getColSpec().getType());
                             m_nodeSettings.getColPropertyAt(includedIdx).setColSpec(c.createSpec());
                         }
 
@@ -594,9 +599,8 @@ public class FixedWidthFRNodeDialog extends NodeDialogPane {
      */
     protected void onEdit(final int i) {
 
-        List<FixedWidthColProperty> editColumn =
-            NewColumnDialog.openUserDialog(getFrame(), m_nodeSettings.getColProperties(), i,
-                m_nodeSettings.getHasRowHeader());
+        List<FixedWidthColProperty> editColumn = NewColumnDialog.openUserDialog(getFrame(),
+            m_nodeSettings.getColProperties(), i, m_nodeSettings.getHasRowHeader());
         if (!editColumn.isEmpty()) {
             if (editColumn.size() > 1) {
                 LOGGER.error("Had more than one column edited.");
@@ -657,9 +661,8 @@ public class FixedWidthFRNodeDialog extends NodeDialogPane {
             insertAt = m_colTable.getRowCount();
         }
 
-        List<FixedWidthColProperty> newColumns =
-            NewColumnDialog.openUserDialog(getFrame(), m_nodeSettings.getColProperties(),
-                m_nodeSettings.getNumberOfColumns(), m_nodeSettings.getHasRowHeader());
+        List<FixedWidthColProperty> newColumns = NewColumnDialog.openUserDialog(getFrame(),
+            m_nodeSettings.getColProperties(), m_nodeSettings.getNumberOfColumns(), m_nodeSettings.getHasRowHeader());
         if (!newColumns.isEmpty()) {
             for (int i = 0; i < newColumns.size(); i++) {
                 m_nodeSettings.insertNewColAt(newColumns.get(i), insertAt + i);
@@ -884,7 +887,7 @@ public class FixedWidthFRNodeDialog extends NodeDialogPane {
         } else {
             m_url.setSelectedFile(null);
         }
-        m_preserveSettings.setSelected(false);
+        m_preserveSettings.setSelected(m_nodeSettings.getPreserveSettings());
         m_loadSettings = false;
     }
 

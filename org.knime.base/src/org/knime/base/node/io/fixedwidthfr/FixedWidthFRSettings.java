@@ -81,6 +81,8 @@ public class FixedWidthFRSettings {
 
     private static final String CFGKEY_NUMBEROFCOLUMNS = "NumberOfColumns";
 
+    private static final String CFGKEY_PRESERVE_SETTINGS = "PreserveSettings";
+
     /**
      * configuration key for file location URL.
      */
@@ -95,6 +97,8 @@ public class FixedWidthFRSettings {
     private boolean m_hasRowHeader;
 
     private boolean m_hasColHeader;
+
+    private boolean m_preserveSettings;
 
     /**
      * A new default fixed width file reader settings object.
@@ -129,6 +133,8 @@ public class FixedWidthFRSettings {
         m_hasRowHeader = clonee.getHasRowHeader();
 
         m_hasColHeader = clonee.getHasColHeaders();
+
+        m_preserveSettings =  clonee.getPreserveSettings();
     }
 
     /**
@@ -177,6 +183,14 @@ public class FixedWidthFRSettings {
                     + CFGKEY_HASROWHEADER + "' missing!", ice);
             }
 
+            try {
+                m_preserveSettings = cfg.getBoolean(CFGKEY_PRESERVE_SETTINGS);
+            } catch (InvalidSettingsException ice) {
+                // Ensure backwards compatibility
+                LOGGER.debug("Key for preserve settings not found.", ice);
+                m_preserveSettings = false;
+            }
+
             readColumnPropsFromConfig(cfg.getNodeSettings(CFGKEY_COLPROPS));
 
         }
@@ -200,6 +214,7 @@ public class FixedWidthFRSettings {
         cfg.addInt(CFGKEY_NUMBEROFCOLUMNS, m_numberOfColumns);
         cfg.addBoolean(CFGKEY_HASROWHEADER, m_hasRowHeader);
         cfg.addBoolean(CFGKEY_HASCOLHEADER, m_hasColHeader);
+        cfg.addBoolean(CFGKEY_PRESERVE_SETTINGS, m_preserveSettings);
 
         saveColumnPropsToConfig(cfg.addNodeSettings(CFGKEY_COLPROPS));
 
@@ -274,6 +289,7 @@ public class FixedWidthFRSettings {
         m_hasRowHeader = false;
 
         m_hasColHeader = false;
+
     }
 
     /**
@@ -469,6 +485,20 @@ public class FixedWidthFRSettings {
      */
     public boolean getHasColHeaders() {
         return m_hasColHeader;
+    }
+
+    /**
+     * @return preserve the settings
+     */
+    public boolean getPreserveSettings() {
+        return m_preserveSettings;
+    }
+
+    /**
+     * @param preserve the preserve settings flag
+     */
+    public void setPreserveSettings(final boolean preserve) {
+        m_preserveSettings = preserve;
     }
 
     /**
