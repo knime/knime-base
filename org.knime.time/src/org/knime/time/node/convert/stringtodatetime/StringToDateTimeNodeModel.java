@@ -406,7 +406,7 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
                 m_failCounter++;
                 if (m_cancelOnFail.getBooleanValue()) {
                     throw new IllegalArgumentException(
-                        "Failed to parse date in row '" + row.getKey() + ": " + e.getMessage());
+                        "Failed to parse date in row '" + row.getKey() + "': " + e.getMessage());
                 }
                 return new MissingCell(e.getMessage());
             }
