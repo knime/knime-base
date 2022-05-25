@@ -78,6 +78,7 @@ final class RegexSplitNodeDialogPane extends NodeDialogPane {
     private final StringHistoryPanel m_patternPanel;
     private final JCheckBox m_caseInsensitiveChecker;
     private final JCheckBox m_muliLineChecker;
+    private final JCheckBox m_dotAllChecker;
 
     /** Inits components. */
     @SuppressWarnings("unchecked")
@@ -94,6 +95,7 @@ final class RegexSplitNodeDialogPane extends NodeDialogPane {
         m_caseInsensitiveChecker = new JCheckBox(
                 "Ignore Case (Case Insensitive)");
         m_muliLineChecker = new JCheckBox("Multiline");
+        m_dotAllChecker = new JCheckBox("Dot matches all characters");
         JPanel p = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -128,6 +130,9 @@ final class RegexSplitNodeDialogPane extends NodeDialogPane {
         gbc.gridy += 1;
         p.add(m_muliLineChecker, gbc);
 
+        gbc.gridy += 1;
+        p.add(m_dotAllChecker, gbc);
+
         addTab("Settings", p);
     }
 
@@ -141,6 +146,7 @@ final class RegexSplitNodeDialogPane extends NodeDialogPane {
         m_patternPanel.setSelectedString(set.getPattern());
         m_caseInsensitiveChecker.setSelected(set.isCaseInsensitive());
         m_muliLineChecker.setSelected(set.isMultiLine());
+        m_dotAllChecker.setSelected(set.isDotAll());
         m_columnSelectionPanel.update(specs[0], set.getColumn());
     }
 
@@ -153,6 +159,7 @@ final class RegexSplitNodeDialogPane extends NodeDialogPane {
         set.setPattern(m_patternPanel.getSelectedString());
         set.setCaseInsensitive(m_caseInsensitiveChecker.isSelected());
         set.setMultiLine(m_muliLineChecker.isSelected());
+        set.setDotAll(m_dotAllChecker.isSelected());
         set.setColumn(m_columnSelectionPanel.getSelectedColumn());
         set.saveSettingsTo(settings);
     }
