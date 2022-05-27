@@ -1,6 +1,5 @@
 /*
  * ------------------------------------------------------------------------
- *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,14 +40,11 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
- *
- * History
- *   16 May 2022 (leon.wenzler): created
+ * -------------------------------------------------------------------
  */
-package org.knime.base.data.aggregation.numerical;
 
-import org.apache.commons.math3.stat.descriptive.moment.Mean;
+package org.knime.base.data.aggregation.deprecated;
+
 import org.knime.base.data.aggregation.AggregationOperator;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
@@ -59,51 +55,55 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.def.DoubleCell;
 
 /**
- * Computes the mean of a list of numbers, skips non-numeric data cells.
+ * Returns the mean per group.
  *
- * @author Leon Wenzler
+ * @author Tobias Koetter, University of Konstanz
+ * @deprecated has been replaced by the new {@link org.knime.base.data.aggregation.numerical.MeanOperator}
+ * @since 4.6
  */
+@Deprecated
 public class MeanOperator extends AggregationOperator {
 
-    /**
-     * The default label and result column name.
-     */
-    private static final String LABEL = "Mean";
+    private final DataType m_type = DoubleCell.TYPE;
+    private int m_count = 0;
+    private double m_mean = 0;
 
-    private static final DataType TYPE = DoubleCell.TYPE;
-
-    private final Mean m_mean = new Mean();
-
-    /**
-     * Constructor for class MeanOperator.
-     *
-     * @param globalSettings the global settings
-     * @param opColSettings the operator column specific settings
-     */
-    public MeanOperator(final GlobalSettings globalSettings, final OperatorColumnSettings opColSettings) {
-        this(new OperatorData("Mean_V4.6", LABEL, LABEL, false, false, DoubleValue.class, false), globalSettings,
-            AggregationOperator.setInclMissingFlag(opColSettings, false));
-    }
-
-    /**
-     * Constructor for class MeanOperator.
-     *
+    /**Constructor for class MeanOperator.
      * @param operatorData the operator data
      * @param globalSettings the global settings
      * @param opColSettings the operator column specific settings
      */
-    protected MeanOperator(final OperatorData operatorData, final GlobalSettings globalSettings,
-        final OperatorColumnSettings opColSettings) {
+    protected MeanOperator(final OperatorData operatorData,
+            final GlobalSettings globalSettings,
+            final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
     }
 
+    /**Constructor for class MeanOperator.
+     * @param globalSettings the global settings
+     * @param opColSettings the operator column specific settings
+     */
+    public MeanOperator(final GlobalSettings globalSettings,
+            final OperatorColumnSettings opColSettings) {
+        this(new OperatorData("Mean", "Mean(deprecated)", "Mean", false, false, DoubleValue.class,
+            false), globalSettings, AggregationOperator.setInclMissingFlag(opColSettings, false));
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public AggregationOperator createInstance(final GlobalSettings globalSettings,
-        final OperatorColumnSettings opColSettings) {
+    protected DataType getDataType(final DataType origType) {
+        return m_type;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AggregationOperator createInstance(
+            final GlobalSettings globalSettings,
+            final OperatorColumnSettings opColSettings) {
         return new MeanOperator(getOperatorData(), globalSettings, opColSettings);
     }
 
@@ -111,17 +111,11 @@ public class MeanOperator extends AggregationOperator {
      * {@inheritDoc}
      */
     @Override
-    public String getDescription() {
-        return "Calculates the mean of a list of numbers. Missing cells are skipped.";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     protected boolean computeInternal(final DataCell cell) {
-        m_mean.increment(((DoubleValue) cell).getDoubleValue());
-        // cell is never skipped
+        final double d = ((DoubleValue)cell).getDoubleValue();
+        m_mean = m_mean * ((double)m_count / (m_count + 1))
+                    + d * (1.0 / (m_count + 1));
+        m_count++;
         return false;
     }
 
@@ -130,10 +124,10 @@ public class MeanOperator extends AggregationOperator {
      */
     @Override
     protected DataCell getResultInternal() {
-        if (m_mean.getN() == 0) {
+        if (m_count == 0) {
             return DataType.getMissingCell();
         }
-        return new DoubleCell(m_mean.getResult());
+        return new DoubleCell(m_mean);
     }
 
     /**
@@ -141,14 +135,15 @@ public class MeanOperator extends AggregationOperator {
      */
     @Override
     protected void resetInternal() {
-        m_mean.clear();
+        m_mean = 0;
+        m_count = 0;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected DataType getDataType(final DataType origType) {
-        return TYPE;
+    public String getDescription() {
+        return "Calculates the mean value per group.";
     }
 }
