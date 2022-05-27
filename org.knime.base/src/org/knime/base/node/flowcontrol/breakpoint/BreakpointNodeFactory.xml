@@ -1,22 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="breakpoint.png" type="Manipulator">
-    <name>Breakpoint</name>
-    
-    <shortDescription>
-        Allows to halt execution when a certain condition is met.
-    </shortDescription>
-    
-    <fullDescription>
-        <intro>
-            This node halts execution when the incoming data table fulfills
-            a user specified condition (empty, inactive branch, variable has
-            specified value...).
-        </intro>
-    </fullDescription>
-    
-    <ports>
-        <inPort index="0" name="Input table">The input table.</inPort>
-        <outPort index="0" name="Output table">The input table if not halted.</outPort>
-    </ports>
+	<name>Breakpoint</name>
+
+	<shortDescription>
+		Allows to halt execution when a certain condition is
+		met.
+	</shortDescription>
+
+	<fullDescription>
+		<intro>
+			This node halts execution when the incoming data table fulfills
+			a user-specified condition.
+		</intro>
+		<option name="Breakpoint Enabled">
+			Determines whether the breakpoint node should halt
+			on a certain condition or just pass on the data.
+		</option>
+		<option name="Breakpoint active for">
+			Specifies the condition that has to be met to halt execution.
+			<ul>
+				<li>
+					<b>empty table:</b>
+					Halts execution if the input table is empty.
+				</li>
+				<li>
+					<b>active branch:</b>
+					Halts execution if the breakpoint node is executed on an active
+					branch.
+				</li>
+				<li>
+					<b>inactive branch:</b>
+					Halts execution if the breakpoint node is on an inactive branch,
+					i.e., the incoming connection originates in a disabled port, such
+					as the output port for an <i>IF Switch</i> node or a <i>Joiner</i> node.
+				</li>
+				<li>
+					<b>variable matches value:</b>
+					Halts execution if a specified flow variable matches a provided
+					value.
+					<b>Select variable:</b>
+					Choose the flow variable that should be matched from a list of
+					available variables.
+					<b>Enter Variable Value:</b>
+					The value to match the specified flow variable against. Can be e.g.
+					"true", "42", or "1.0".
+				</li>
+			</ul>
+		</option>
+		<option name="Custom message">
+			Define a custom message that is printed when the
+			breakpoint halts the execution.
+		</option>
+	</fullDescription>
+
+	<ports>
+		<inPort index="0" name="Input table">The input table.</inPort>
+		<outPort index="0" name="Output table">The input table if not halted.</outPort>
+	</ports>
 </knimeNode>
