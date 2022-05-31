@@ -43,9 +43,9 @@
             category-path="/io/connectors"
             factory-class="org.knime.filehandling.core.fs.knime.mountpoint.node.MountpointConnectorNodeFactory">
       </node>
-      <node
+      <!--  <node
             category-path="/io/connectors"
             factory-class="org.knime.filehandling.core.fs.knime.space.node.SpaceConnectorNodeFactory">
-      </node>
+      </node> -->
    </extension>
 </plugin>
