@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="breakpoint.png" type="Manipulator">
+<knimeNode icon="breakpoint.png" type="Manipulator" xmlns="http://knime.org/node/v2.12" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.12 http://knime.org/node/v2.12.xsd">
 	<name>Breakpoint</name>
 
 	<shortDescription>
@@ -19,34 +18,42 @@
 		</option>
 		<option name="Breakpoint active for">
 			Specifies the condition that has to be met to halt execution.
-			<ul>
-				<li>
-					<b>empty table:</b>
-					Halts execution if the input table is empty.
-				</li>
-				<li>
-					<b>active branch:</b>
-					Halts execution if the breakpoint node is executed on an active
-					branch.
-				</li>
-				<li>
-					<b>inactive branch:</b>
-					Halts execution if the breakpoint node is on an inactive branch,
-					i.e., the incoming connection originates in a disabled port, such
-					as the output port for an <i>IF Switch</i> node or a <i>Joiner</i> node.
-				</li>
-				<li>
-					<b>variable matches value:</b>
-					Halts execution if a specified flow variable matches a provided
-					value.
-					<b>Select variable:</b>
-					Choose the flow variable that should be matched from a list of
-					available variables.
-					<b>Enter Variable Value:</b>
-					The value to match the specified flow variable against. Can be e.g.
-					"true", "42", or "1.0".
-				</li>
-			</ul>
+
+			<p>
+				<b>empty table:</b>
+				Halts execution if the input table is empty.
+			</p>
+
+			<p>
+				<b>active branch:</b>
+				Halts execution if the breakpoint node is executed on an active
+				branch.
+			</p>
+
+			<p>
+				<b>inactive branch:</b>
+				Halts execution if the breakpoint node is on an inactive branch,
+				i.e., the incoming connection originates in a disabled port, such as
+				the output port for an
+				<i>IF Switch</i>
+				node or a
+				<i>Joiner</i>
+				node.
+			</p>
+
+			<p>
+				<b>variable matches value:</b>
+				Halts execution if a specified flow variable matches a provided
+				value.
+				<br />
+				<i>Select Variable:</i>
+				Choose the flow variable that should be matched from a list of
+				available variables.
+				<br />
+				<i>Enter Variable Value:</i>
+				The value to match the specified flow variable against. Can be e.g.
+				"true", "42", or "test".
+			</p>
 		</option>
 		<option name="Custom message">
 			Define a custom message that is printed when the
