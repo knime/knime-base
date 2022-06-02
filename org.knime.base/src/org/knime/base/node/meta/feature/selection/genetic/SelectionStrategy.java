@@ -52,8 +52,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-import io.jenetics.BitGene;
 import io.jenetics.ExponentialRankSelector;
+import io.jenetics.Gene;
 import io.jenetics.LinearRankSelector;
 import io.jenetics.RouletteWheelSelector;
 import io.jenetics.Selector;
@@ -69,15 +69,45 @@ import io.jenetics.TournamentSelector;
 public enum SelectionStrategy {
 
         /** Tournament Selection. */
-        TOURNAMENT_SELECTION("Tournament", (byte)0),
+        TOURNAMENT_SELECTION("Tournament", (byte)0) {
+
+            @Override
+            <G extends Gene<?, G>, C extends Number & Comparable<? super C>> Selector<G, C> getSelector() {
+                return new TournamentSelector<>();
+            }
+        },
         /** Roulette Wheel Selection. */
-        ROULETTEWHEEL_SELECTION("Roulette Wheel", (byte)1),
+        ROULETTEWHEEL_SELECTION("Roulette Wheel", (byte)1) {
+
+            @Override
+            <G extends Gene<?, G>, C extends Number & Comparable<? super C>> Selector<G, C> getSelector() {
+                return new RouletteWheelSelector<>();
+            }
+        },
         /** Stochastic Universal Selection. */
-        STOCHASTIC_UNIVERSAL_SELECTION("Stochastic Universal", (byte)2),
+        STOCHASTIC_UNIVERSAL_SELECTION("Stochastic Universal", (byte)2) {
+
+            @Override
+            <G extends Gene<?, G>, C extends Number & Comparable<? super C>> Selector<G, C> getSelector() {
+                return new StochasticUniversalSelector<>();
+            }
+        },
         /** Linear Rank Selection. */
-        LINEAR_RANK_SELECTION("Linear Rank", (byte)3),
+        LINEAR_RANK_SELECTION("Linear Rank", (byte)3) {
+
+            @Override
+            <G extends Gene<?, G>, C extends Number & Comparable<? super C>> Selector<G, C> getSelector() {
+                return new LinearRankSelector<>();
+            }
+        },
         /** Exponential Rank Selection. */
-        EXPONENTIAL_RANK_SELECTION("Exponential Rank", (byte)4);
+        EXPONENTIAL_RANK_SELECTION("Exponential Rank", (byte)4) {
+
+            @Override
+            <G extends Gene<?, G>, C extends Number & Comparable<? super C>> Selector<G, C> getSelector() {
+                return new ExponentialRankSelector<>();
+            }
+        };
 
     private final String m_name;
 
@@ -87,6 +117,8 @@ public enum SelectionStrategy {
         m_name = name;
         m_persistByte = persistByte;
     }
+
+    abstract <G extends Gene<?, G>, C extends Number & Comparable<? super C>> Selector<G, C> getSelector();
 
     /**
      * {@inheritDoc}
@@ -120,30 +152,6 @@ public enum SelectionStrategy {
             }
         }
         throw new InvalidSettingsException("The selection strategy for the genetic algorithm could not be loaded.");
-    }
-
-    /**
-     * Returns a new object of the given strategy.
-     *
-     * @param strategy the strategy
-     * @return the new strategy object
-     * @throws IllegalArgumentException if the strategy is invalid
-     */
-    public static Selector<BitGene, Double> getSelector(final SelectionStrategy strategy) {
-        switch (strategy) {
-            case TOURNAMENT_SELECTION:
-                return new TournamentSelector<>();
-            case ROULETTEWHEEL_SELECTION:
-                return new RouletteWheelSelector<>();
-            case STOCHASTIC_UNIVERSAL_SELECTION:
-                return new StochasticUniversalSelector<>();
-            case LINEAR_RANK_SELECTION:
-                return new LinearRankSelector<>();
-            case EXPONENTIAL_RANK_SELECTION:
-                return new ExponentialRankSelector<>();
-            default:
-                throw new IllegalArgumentException("Selection strategy not found: " + strategy);
-        }
     }
 
 }

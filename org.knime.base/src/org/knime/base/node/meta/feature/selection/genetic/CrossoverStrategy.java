@@ -67,11 +67,26 @@ import io.jenetics.UniformCrossover;
 public enum CrossoverStrategy {
 
         /** Uniform Crossover */
-        UNIFORM_CROSSOVER("Uniform", (byte)0),
+        UNIFORM_CROSSOVER("Uniform", (byte)0) {
+            @Override
+            <C extends Comparable<? super C>> Crossover<BitGene, C> getCrossover(final double crossoverRate) {
+                return new UniformCrossover<>(crossoverRate);
+            }
+        },
         /** Single-point Crossover */
-        SINGLE_POINT_CROSSOVER("Single-point", (byte)1),
+        SINGLE_POINT_CROSSOVER("Single-point", (byte)1) {
+            @Override
+            <C extends Comparable<? super C>> Crossover<BitGene, C> getCrossover(final double crossoverRate) {
+                return new SinglePointCrossover<>(crossoverRate);
+            }
+        },
         /** Two-point Crossover */
-        TWO_POINT_CROSSOVER("Two-point", (byte)2);
+        TWO_POINT_CROSSOVER("Two-point", (byte)2) {
+            @Override
+            <C extends Comparable<? super C>> Crossover<BitGene, C> getCrossover(final double crossoverRate) {
+                return new MultiPointCrossover<>(crossoverRate, 2);
+            }
+        };
 
     private final String m_name;
 
@@ -81,6 +96,8 @@ public enum CrossoverStrategy {
         m_name = name;
         m_persistByte = persistByte;
     }
+
+    abstract <C extends Comparable<? super C>> Crossover<BitGene, C> getCrossover(final double crossoverRate);
 
     /**
      * {@inheritDoc}
@@ -115,27 +132,6 @@ public enum CrossoverStrategy {
         }
         throw new InvalidSettingsException(
             "The crossover selection strategy for the genetic algorithm could not be loaded.");
-    }
-
-    /**
-     * Returns a new object of the given strategy.
-     *
-     * @param strategy the strategy
-     * @param crossoverRate the crossover probability
-     * @return the new strategy object
-     * @throws IllegalArgumentException if the strategy is invalid
-     */
-    public static Crossover<BitGene, Double> getCrossover(final CrossoverStrategy strategy, final double crossoverRate) {
-        switch (strategy) {
-            case UNIFORM_CROSSOVER:
-                return new UniformCrossover<>(crossoverRate);
-            case SINGLE_POINT_CROSSOVER:
-                return new SinglePointCrossover<>(crossoverRate);
-            case TWO_POINT_CROSSOVER:
-                return new MultiPointCrossover<>(crossoverRate, 2);
-            default:
-                throw new IllegalArgumentException("Crossover strategy not found: " + strategy);
-        }
     }
 
 }

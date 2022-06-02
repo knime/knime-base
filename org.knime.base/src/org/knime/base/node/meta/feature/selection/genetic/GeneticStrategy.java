@@ -48,8 +48,6 @@
  */
 package org.knime.base.node.meta.feature.selection.genetic;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -101,7 +99,7 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
 
     private final Evaluator m_evaluator = new Evaluator();
 
-    private final Engine<BitGene, Double> m_engine;
+    private final Engine<BitGene, Score> m_engine;
 
     // if not empty, the genetic algorithm waits for a genotype to be scored
     private final BlockingQueue<Integer> m_queueGenotypeReadyToScore;
@@ -263,6 +261,71 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
     }
 
     /**
+     * This class is used in favor of Double so that we can control whether to minimize/maximize the score after the
+     * {@link Engine} has been created. This is done by switching the arguments of {@link Comparable#compareTo(Object)}
+     * accordingly.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    private final class Score extends Number implements Comparable<Score> {
+        private static final long serialVersionUID = 1L;
+
+        private final double m_score;
+
+        Score(final double score) {
+            m_score = score;
+        }
+
+        @Override
+        public int compareTo(final Score o) {
+            if (m_isMinimize) {
+                return Double.compare(o.m_score, m_score);
+            } else {
+                return Double.compare(m_score, o.m_score);
+            }
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (obj == this) {
+                return true;
+            } else if (obj instanceof Score) {
+                var other = (Score)obj;
+                // see java.lang.Double
+                return Double.doubleToLongBits(m_score) ==
+                        Double.doubleToLongBits(other.m_score);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Double.hashCode(m_score);
+        }
+
+        @Override
+        public int intValue() {
+            return (int)m_score;
+        }
+
+        @Override
+        public long longValue() {
+            return (long)m_score;
+        }
+
+        @Override
+        public float floatValue() {
+            return (float)m_score;
+        }
+
+        @Override
+        public double doubleValue() {
+            return m_score;
+        }
+    }
+
+    /**
      * Constructor. Starts the thread for the genetic algorithm to be able to give an output of the first selected
      * feature set during configure.
      *
@@ -334,10 +397,9 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
         // 3.) Create the execution environment.
         m_engine = RandomRegistry.with(new Random(random.nextLong()), f -> {
             return Engine.builder(m_evaluator, gtf).executor(Runnable::run).populationSize(popSize)
-                .alterers(CrossoverStrategy.getCrossover(crossoverStrategy, crossoverRate), new Mutator<>(mutationRate))
-                // most likely we don't know yet whether to minimize oder maximize, must be changed
-                // later using reflection (see #setIsMinimize)
-                .optimize(m_isMinimize ? Optimize.MINIMUM : Optimize.MAXIMUM)
+                .alterers(crossoverStrategy.getCrossover(crossoverRate), new Mutator<>(mutationRate))
+                // whether we maximize or minimize is controlled via Score#compareTo
+                .optimize(Optimize.MAXIMUM)
                 // use elitism, if specified, only for the selection of the survivors
                 .survivorsFraction(survivorsFraction)
                 .survivorsSelector(selector(selectionStrategy, (int)(elitismRate * popSize + 0.5)))
@@ -399,10 +461,10 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
     /**
      * Returns the Selector according to user settings.
      */
-    private static Selector<BitGene, Double> selector(final SelectionStrategy selectionStrategy, final int eliteCount) {
-        final Selector<BitGene, Double> nonElitistSelector = SelectionStrategy.getSelector(selectionStrategy);
+    private static Selector<BitGene, Score> selector(final SelectionStrategy selectionStrategy, final int eliteCount) {
+        final Selector<BitGene, Score> nonElitistSelector = selectionStrategy.getSelector();
         if (eliteCount > 0) {
-            return new EliteSelector<BitGene, Double>(eliteCount, nonElitistSelector);
+            return new EliteSelector<>(eliteCount, nonElitistSelector);
         }
         return nonElitistSelector;
     }
@@ -471,23 +533,7 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
      */
     @Override
     public void setIsMinimize(final boolean isMinimize) {
-        try {
-            // The only way to change whether to minimize or maximize after the genetic algorithm has been started
-            // is reflection. Since we know how to optimize not before the Loop End has been configured and the genetic
-            // algorithm needs to be started during configure of the Loop Start to give out the first feature set, the
-            // optimization method may change.
-            final Field f = m_engine.getClass().getDeclaredField("_optimize");
-            f.setAccessible(true);
-            // Remove final modifier.
-            final Field modifiersField = Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
-            // Set optimization method.
-            f.set(m_engine, isMinimize ? Optimize.MINIMUM : Optimize.MAXIMUM);
-            m_isMinimize = isMinimize;
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            throw new IllegalStateException(e);
-        }
+        m_isMinimize = isMinimize;
     }
 
     /**
@@ -495,7 +541,7 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
      */
     @Override
     public double getCurrentlyBestScore() {
-        return m_evaluator.getScore();
+        return m_evaluator.getScore().m_score;
     }
 
     /**
@@ -530,10 +576,10 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
     /**
      * Evaluates genotypes and assigns their fitness.
      */
-    private final class Evaluator implements Function<Genotype<BitGene>, Double> {
+    private final class Evaluator implements Function<Genotype<BitGene>, Score> {
 
         // caches the scores of already scored feature subsets
-        private final HashMap<Integer, Double> m_scoreLookUpMap = new HashMap<>();
+        private final HashMap<Integer, Score> m_scoreLookUpMap = new HashMap<>();
 
         private List<Integer> m_currentGenotype = new ArrayList<>();
 
@@ -541,13 +587,13 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
 
         private boolean m_isInterrupted = false;
 
-        private Double m_score;
+        private Score m_score;
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public Double apply(final Genotype<BitGene> genotype) {
+        public Score apply(final Genotype<BitGene> genotype) {
             // if the running node has been reseted or disposed, simply return 0 to let the thread terminate quickly
             if (m_isInterrupted) {
                 return stopAndReturn();
@@ -581,10 +627,10 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
             }
         }
 
-        private double stopAndReturn() {
+        private Score stopAndReturn() {
             // simply return 0 from now on to let the thread terminate quickly
             m_isInterrupted = true;
-            return 0d;
+            return new Score(0d);
         }
 
         private void setCurrent(final Genotype<BitGene> genotype) {
@@ -614,7 +660,7 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
         /**
          * @return the score
          */
-        private double getScore() {
+        private Score getScore() {
             return m_score;
         }
 
@@ -622,7 +668,7 @@ public class GeneticStrategy extends AbstractNonSequentialFeatureSelectionStrate
          * @param score the score to set
          */
         private void setScore(final double score) {
-            m_score = score;
+            m_score = new Score(score);
         }
 
     }
