@@ -52,6 +52,15 @@
             name="Other"
             path="/manipulation/row"/>
       <category
+            after="analytics"
+            description="New database nodes category"
+            icon="icons/category_database.png"
+            level-id="db"
+            locked="true"
+            name="DB"
+            path="/">
+      </category>
+      <category
             after="utility"
             icon="icons/16x16/category_database.png"
             level-id="database_legacy"
