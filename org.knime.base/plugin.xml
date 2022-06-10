@@ -54,7 +54,7 @@
       <category
             after="analytics"
             description="New database nodes category"
-            icon="icons/category_database.png"
+            icon="icons/16x16/category_database.png"
             level-id="db"
             locked="true"
             name="DB"
