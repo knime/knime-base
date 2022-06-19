@@ -676,6 +676,11 @@
       <node
             after="org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory"
             factory-class="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
+            deprecated="true"
+            category-path="/io/write"/>
+      <node
+            after="org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory"
+            factory-class="org.knime.base.node.io.filehandling.arff.writer.ARFFWriter2NodeFactory"
             category-path="/io/write"/>
       <node
             category-path="/manipulation/row/row-transform"
@@ -863,12 +868,12 @@
             factory-class="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
         </node>
         <node
-              after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
+              after="org.knime.base.node.io.filehandling.arff.writer.ARFFWriter2NodeFactory"
               category-path="/io/write"
               deprecated="true"
               factory-class="org.knime.base.node.io.table.write.WriteTableNodeFactory"/>
         <node
-              after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
+              after="org.knime.base.node.io.filehandling.arff.writer.ARFFWriter2NodeFactory"
               category-path="/io/write"
               factory-class="org.knime.base.node.io.filehandling.table.writer.TableWriterNodeFactory"/>
      <node
