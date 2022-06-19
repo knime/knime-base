@@ -83,6 +83,7 @@ import org.knime.core.util.FileUtil;
  *
  * @author Peter Ohl, University of Konstanz
  */
+@Deprecated
 public class ARFFWriterNodeDialog extends NodeDialogPane {
 
     private final FilesHistoryPanel m_filePanel;

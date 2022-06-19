@@ -676,6 +676,7 @@
       <node
             after="org.knime.base.node.io.filehandling.csv.writer.CSVWriter2NodeFactory"
             factory-class="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
+            deprecated="true"
             category-path="/io/write"/>
       <node
             category-path="/manipulation/row/row-transform"

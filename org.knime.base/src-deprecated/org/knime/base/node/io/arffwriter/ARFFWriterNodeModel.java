@@ -82,6 +82,7 @@ import org.knime.core.util.FileUtil;
  *
  * @author Peter Ohl, University of Konstanz
  */
+@Deprecated
 public class ARFFWriterNodeModel extends NodeModel {
 
     /** The node logger fot this class. */
