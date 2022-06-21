@@ -48,37 +48,83 @@
  */
 package org.knime.base.node.diagnose.diagnoseworkflow;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.util.Collections;
 import java.util.List;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
 
 /**
+ * Dialog for the new diagnose workflow node.
+ * Allows for setting a max depth parameter and selecting included properties.
  *
- * @author jasper
+ * @author Jasper Krauter, KNIME AG, Schloss
+ * @author Leon Wenzler, KNIME AG, Schloss
  */
-public class DiagnoseWorkflowNodeDialog extends DefaultNodeSettingsPane {
+public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
+    // dialog labels
     static final String CFGLABEL_MAXDEPTH = "Max depth:";
     static final String CFGLABEL_INCLUDECOLUMNS = "Include columns:";
 
-    static DialogComponentNumber getMaxDepthComponent() {
-        return new DialogComponentNumber(DiagnoseWorkflowNodeModel.createMaxDepthSettingsModel(), CFGLABEL_MAXDEPTH, 1);
-    }
-
-    static DialogComponentColumnFilter getColumnFilterComponent() {
-        var smfs = new SettingsModelFilterString(CFGLABEL_INCLUDECOLUMNS, DiagnoseWorkflowNodeModel.allProps.keySet(), List.of());
-        return new DialogComponentColumnFilter(smfs,0, false);
-    }
+    // dialog settings
+    private final SpinnerNumberModel m_maxDepthSelector;
+    private final DataColumnSpecFilterPanel m_filterPanel;
 
     /**
      * Create the node dialog
      */
     public DiagnoseWorkflowNodeDialog() {
-        addDialogComponent(getMaxDepthComponent());
-        addDialogComponent(getColumnFilterComponent());
+        var m = DiagnoseWorkflowNodeModel.createMaxDepthSettingsModel();
+        m_maxDepthSelector = new SpinnerNumberModel(m.getIntValue(), m.getLowerBound(), m.getUpperBound(), 1);
+
+        m_filterPanel = new DataColumnSpecFilterPanel();
+        String[] allIncludes = DiagnoseWorkflowNodeModel.getPropertiesAsStringArray();
+        m_filterPanel.update(List.of(allIncludes), Collections.emptyList(), allIncludes);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        JPanel north = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        north.add(new JLabel(CFGLABEL_MAXDEPTH));
+        north.add(new JSpinner(m_maxDepthSelector));
+        panel.add(north, BorderLayout.NORTH);
+        panel.add(m_filterPanel, BorderLayout.CENTER);
+        addTab("Properties", panel);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        settings.addInt(DiagnoseWorkflowNodeModel.CFGKEY_MAXDEPTH, m_maxDepthSelector.getNumber().intValue());
+        String[] includes = m_filterPanel.getIncludedNamesAsSet().toArray(new String[0]);
+        settings.addStringArray(DiagnoseWorkflowNodeModel.CFGKEY_INCLUDES, includes);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs) {
+        final var allProps = DiagnoseWorkflowNodeModel.getPropertiesAsStringArray();
+
+        m_maxDepthSelector.setValue(settings.getInt(DiagnoseWorkflowNodeModel.CFGKEY_MAXDEPTH, 2));
+        final var selectedIncludes = settings.getStringArray(DiagnoseWorkflowNodeModel.CFGKEY_INCLUDES, allProps);
+
+        var nothingWasSelected = selectedIncludes == null || selectedIncludes.length == 0;
+        if (!nothingWasSelected) {
+            m_filterPanel.update(List.of(selectedIncludes), Collections.emptyList(), allProps);
+        }
+    }
 }

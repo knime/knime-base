@@ -75,6 +75,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContext;
@@ -100,9 +101,19 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
         allProps.put("Class name", StringCell.TYPE);
     }
 
+    /**
+     * Returns every possible workflow property, as String array.
+     * @return String[] allProperties
+     */
+    static String[] getPropertiesAsStringArray() {
+        return allProps.keySet().toArray(new String[0]);
+    }
+
     static final String CFGKEY_MAXDEPTH = "MaxDepth";
+    static final String CFGKEY_INCLUDES = "IncludedProperties";
 
     private SettingsModelIntegerBounded m_maxDepth = createMaxDepthSettingsModel();
+    private SettingsModelStringArray m_includedProperties = new SettingsModelStringArray(CFGKEY_INCLUDES, getPropertiesAsStringArray());
 
     /**
      * Create a new instance
@@ -198,6 +209,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_maxDepth.saveSettingsTo(settings);
+        m_includedProperties.saveSettingsTo(settings);
     }
 
     /**
@@ -214,6 +226,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_maxDepth.loadSettingsFrom(settings);
+        m_includedProperties.loadSettingsFrom(settings);
     }
 
     /**
