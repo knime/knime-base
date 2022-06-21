@@ -63,7 +63,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
+import org.knime.core.node.util.filter.StringFilterPanel;
 
 /**
  * Dialog for the new diagnose workflow node.
@@ -80,7 +80,7 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
     // dialog settings
     private final SpinnerNumberModel m_maxDepthSelector;
-    private final DataColumnSpecFilterPanel m_filterPanel;
+    private final StringFilterPanel m_filterPanel;
 
     /**
      * Create the node dialog
@@ -89,7 +89,7 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
         var m = DiagnoseWorkflowNodeModel.createMaxDepthSettingsModel();
         m_maxDepthSelector = new SpinnerNumberModel(m.getIntValue(), m.getLowerBound(), m.getUpperBound(), 1);
 
-        m_filterPanel = new DataColumnSpecFilterPanel();
+        m_filterPanel = new StringFilterPanel();
         String[] allIncludes = DiagnoseWorkflowNodeModel.getPropertiesAsStringArray();
         m_filterPanel.update(List.of(allIncludes), Collections.emptyList(), allIncludes);
 
@@ -110,6 +110,8 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
         settings.addInt(DiagnoseWorkflowNodeModel.CFGKEY_MAXDEPTH, m_maxDepthSelector.getNumber().intValue());
         String[] includes = m_filterPanel.getIncludedNamesAsSet().toArray(new String[0]);
         settings.addStringArray(DiagnoseWorkflowNodeModel.CFGKEY_INCLUDES, includes);
+        String[] excludes = m_filterPanel.getExcludedNamesAsSet().toArray(new String[0]);
+        settings.addStringArray(DiagnoseWorkflowNodeModel.CFGKEY_EXCLUDES, excludes);
     }
 
     /**
@@ -121,10 +123,11 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
         m_maxDepthSelector.setValue(settings.getInt(DiagnoseWorkflowNodeModel.CFGKEY_MAXDEPTH, 2));
         final var selectedIncludes = settings.getStringArray(DiagnoseWorkflowNodeModel.CFGKEY_INCLUDES, allProps);
+        final var selectedExcludes = settings.getStringArray(DiagnoseWorkflowNodeModel.CFGKEY_EXCLUDES, allProps);
 
         var nothingWasSelected = selectedIncludes == null || selectedIncludes.length == 0;
         if (!nothingWasSelected) {
-            m_filterPanel.update(List.of(selectedIncludes), Collections.emptyList(), allProps);
+            m_filterPanel.update(List.of(selectedIncludes), List.of(selectedExcludes), allProps);
         }
     }
 }

@@ -50,9 +50,11 @@ package org.knime.base.node.diagnose.diagnoseworkflow;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.knime.core.data.DataCell;
@@ -116,9 +118,11 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     static final String CFGKEY_MAXDEPTH = "MaxDepth";
     static final String CFGKEY_INCLUDES = "IncludedProperties";
+    static final String CFGKEY_EXCLUDES = "ExcludedProperties";
 
     private SettingsModelIntegerBounded m_maxDepth = createMaxDepthSettingsModel();
     private SettingsModelStringArray m_includedProperties = new SettingsModelStringArray(CFGKEY_INCLUDES, getPropertiesAsStringArray());
+    private SettingsModelStringArray m_excludedProperties = new SettingsModelStringArray(CFGKEY_EXCLUDES, new String[0]);
 
     /**
      * Create a new instance
@@ -130,16 +134,6 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     static SettingsModelIntegerBounded createMaxDepthSettingsModel() {
         return new SettingsModelIntegerBounded(CFGKEY_MAXDEPTH, 2, 0, Integer.MAX_VALUE);
-    }
-
-    static DataTableSpec getSpec() {
-        var dtsc = new DataTableSpecCreator();
-        var dcss = new LinkedList<DataColumnSpec>();
-        allProps.forEach((k, t) -> {
-            dcss.add(new DataColumnSpecCreator(k, t).createSpec());
-        });
-        dtsc.addColumns(dcss.toArray(new DataColumnSpec[0]));
-        return dtsc.createSpec();
     }
 
     /**
@@ -174,6 +168,15 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
             }
         }
     }
+
+    private DataTableSpec getSpec() {
+        var dtsc = new DataTableSpecCreator();
+        var dcss = Arrays.stream(m_includedProperties.getStringArrayValue())
+            .map(k -> new DataColumnSpecCreator(k, allProps.get(k)).createSpec()).collect(Collectors.toList());
+        dtsc.addColumns(dcss.toArray(new DataColumnSpec[0]));
+        return dtsc.createSpec();
+    }
+
 
     private static DataCell extractValue(final String key, final NodeContainer nc) {
         switch (key) {
@@ -267,6 +270,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_maxDepth.saveSettingsTo(settings);
         m_includedProperties.saveSettingsTo(settings);
+        m_excludedProperties.saveSettingsTo(settings);
     }
 
     /**
@@ -284,6 +288,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_maxDepth.loadSettingsFrom(settings);
         m_includedProperties.loadSettingsFrom(settings);
+        m_excludedProperties.loadSettingsFrom(settings);
     }
 
     /**
