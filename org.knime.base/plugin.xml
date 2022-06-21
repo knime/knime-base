@@ -1999,6 +1999,11 @@
             factory-class="org.knime.base.node.util.globaltimerinfo.GlobalTimerinfoNodeFactory"
             >
       </node>
+      <node 
+      		after="org.knime.base.node.util.globaltimerinfo.GlobalTimerinfoNodeFactory"
+      		category-path="/flowcontrol/automation"
+      		factory-class="org.knime.base.node.diagnose.diagnoseworkflow.DiagnoseWorkflowNodeFactory">
+      </node>
       <node
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.recursive.RecursiveLoopStartDynamicNodeFactory"
