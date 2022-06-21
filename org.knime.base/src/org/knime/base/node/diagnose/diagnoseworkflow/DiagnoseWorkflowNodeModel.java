@@ -54,12 +54,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DataType;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DefaultRow;
@@ -77,7 +79,10 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.NativeNodeContainer;
+import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
 
@@ -92,12 +97,12 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
         allProps.put("Global ID", StringCell.TYPE);
         allProps.put("Name", StringCell.TYPE);
         allProps.put("Type", StringCell.TYPE);
-        allProps.put("Link Information", StringCell.TYPE);
+        allProps.put("Source URI", StringCell.TYPE);
         allProps.put("Deprecated", BooleanCell.TYPE);
-        allProps.put("Disk space", LongCell.TYPE);
-        allProps.put("Execution time", LongCell.TYPE);
-        allProps.put("Executions since start", IntCell.TYPE);
-        allProps.put("Class name", StringCell.TYPE);
+        allProps.put("Disk Space", LongCell.TYPE);
+        allProps.put("Execution Time", LongCell.TYPE);
+        allProps.put("Executions", IntCell.TYPE);
+        allProps.put("Class Name", StringCell.TYPE);
     }
 
     static final String CFGKEY_MAXDEPTH = "MaxDepth";
@@ -151,11 +156,63 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
             if (depth > 0 && nc instanceof WorkflowManager) {
                 reportNodes((WorkflowManager) nc, result, depth - 1, prefixLength);
             } else {
-                var rowID = "Node " + nc.getID().toString().substring(prefixLength);
+                var rowID = new RowKey("Node " + nc.getID().toString().substring(prefixLength));
                 var cells = new LinkedList<DataCell>();
-                cells.add(new StringCell(nc.getName()));
-                result.addRowToTable(new DefaultRow(new RowKey(rowID), cells.toArray(new DataCell[cells.size()])));
+                getSpec().forEach(col -> cells.add(extractValue(col.getName(), nc)));
+                result.addRowToTable(new DefaultRow(rowID, cells.toArray(new DataCell[cells.size()])));
             }
+        }
+    }
+
+    private static DataCell extractValue(final String key, final NodeContainer nc) {
+        switch (key) {
+            case "Global ID":
+                return new StringCell(nc.getID().toString());
+            case "Name":
+                return new StringCell(nc.getName());
+            case "Type":
+                if (nc instanceof WorkflowManager) {
+                    return new StringCell("Metanode");
+                } else if (nc instanceof SubNodeContainer) {
+                    return new StringCell("Component");
+                } else {
+                    return new StringCell("Native Node");
+                }
+            case "Source URI":
+                if (nc instanceof WorkflowManager
+                    && ((WorkflowManager)nc).getTemplateInformation().getSourceURI() != null) {
+                    return new StringCell(((WorkflowManager)nc).getTemplateInformation().getSourceURI().toString());
+                } else if (nc instanceof SubNodeContainer
+                    && ((SubNodeContainer)nc).getTemplateInformation().getSourceURI() != null) {
+                    return new StringCell(((SubNodeContainer)nc).getTemplateInformation().getSourceURI().toString());
+                } else {
+                    return new MissingCell("No source URI");
+                }
+            case "Deprecated":
+                if (nc instanceof NativeNodeContainer) {
+                    return ((NativeNodeContainer)nc).getNode().getFactory().isDeprecated() ? BooleanCell.TRUE
+                        : BooleanCell.FALSE;
+                } else {
+                    return new MissingCell("Metanodes and Components don't have a deprecation state");
+                }
+            case "Disk Space":
+                var dir = nc.getNodeContainerDirectory();
+                return (dir == null) ? new MissingCell("Not saved on disk")
+                    : new LongCell(FileUtils.sizeOfDirectory(dir.getFile()));
+            case "Execution Time":
+                var ed = nc.getNodeTimer().getLastExecutionDuration();
+                return (ed == -1) ? new MissingCell("Not yet executed") : new LongCell(ed);
+            case "Executions":
+                return new IntCell(nc.getNodeTimer().getNrExecsSinceStart());
+            case "Class Name":
+                if (nc instanceof NativeNodeContainer) {
+                    return new StringCell(
+                        ((NativeNodeContainer)nc).getNode().getNodeModel().getClass().getCanonicalName());
+                } else {
+                    return new MissingCell("Only Native Nodes have class names");
+                }
+            default:
+                throw new IllegalArgumentException("Cannot extract property " + key);
         }
     }
 

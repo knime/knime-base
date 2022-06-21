@@ -70,7 +70,7 @@ public class DiagnoseWorkflowNodeDialog extends DefaultNodeSettingsPane {
 
     static DialogComponentColumnFilter getColumnFilterComponent() {
         var smfs = new SettingsModelFilterString(CFGLABEL_INCLUDECOLUMNS, DiagnoseWorkflowNodeModel.allProps.keySet(), List.of());
-        return new DialogComponentColumnFilter(smfs,0, false);
+        return new DialogComponentColumnFilter(smfs, 0, false);
     }
 
     /**
