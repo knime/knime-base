@@ -48,13 +48,18 @@
  */
 package org.knime.base.node.diagnose.diagnoseworkflow;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamException;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -69,8 +74,8 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.data.json.JSONCell;
 import org.knime.core.data.xml.XMLCell;
+import org.knime.core.data.xml.XMLCellFactory;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -88,6 +93,10 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
 import org.knime.core.util.workflowsummary.WorkflowSummary.Node;
+import org.knime.core.util.workflowsummary.WorkflowSummary.Workflow;
+import org.knime.core.util.workflowsummary.WorkflowSummaryCreator;
+import org.knime.core.util.workflowsummary.WorkflowSummaryUtil;
+import org.xml.sax.SAXException;
 
 /**
  * NodeModel for the Diagnose Workflow node.
@@ -111,12 +120,18 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     static final String CFGKEY_SCAN_COMPONENTS = "ScanComponents";
 
-    static final String FMT_SELECTION_JSON = "JSON";
+//    static final String FMT_SELECTION_JSON = "JSON";
     static final String FMT_SELECTION_XML = "XML";
     static final String CFGKEY_FORMAT = "OutputFormat";
 
     static final String CFGKEY_INCLUDES = "IncludedProperties";
     static final String CFGKEY_EXCLUDES = "ExcludedProperties";
+
+    static final String COLUMN_NAME = "workflow summary";
+    static final String ROW_NAME = "summary";
+
+    static final String TABLE_OUTPUT_NAME = "Nodes Overview";
+    static final String SUMMARY_OUTPUT_NAME = "Workflow Summary";
 
     private SettingsModelBoolean m_scanComponents = createComponentScanSettingsModel();
     private SettingsModelString m_outputFormat = createOutputFormatSelectionModel();
@@ -153,7 +168,8 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
      * @return
      */
     static SettingsModelString createOutputFormatSelectionModel() {
-        return new SettingsModelString(CFGKEY_FORMAT, FMT_SELECTION_JSON);
+//        return new SettingsModelString(CFGKEY_FORMAT, FMT_SELECTION_JSON);
+        return new SettingsModelString(CFGKEY_FORMAT, FMT_SELECTION_XML);
     }
 
     /**
@@ -166,18 +182,39 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     /**
      * {@inheritDoc}
+     * @throws IOException
+     * @throws XMLStreamException
+     * @throws SAXException
+     * @throws ParserConfigurationException
      */
     @Override
-    protected PortObject[] execute(final PortObject[] in, final ExecutionContext ec) {
-        var wfm = getMyWFM();
-        var result = ec.createDataContainer(createTableSpec());
-        reportNodes(wfm, result, m_maxDepth.getIntValue(), wfm.getID().toString().length() + 1);
-        result.close();
-        return new PortObject[] {result.getTable()};
+    protected PortObject[] execute(final PortObject[] in, final ExecutionContext ec) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+        var summary = WorkflowSummaryCreator.create(getMyWFM(), true);
+
+        var tableResult = ec.createDataContainer(createTableSpec());
+        reportNodes(summary.getWorkflow(), tableResult);
+        tableResult.close();
+
+        final var summaryResult = ec.createDataContainer(createSummarySpec());
+        try (var os = new ByteArrayOutputStream()) {
+//            if (isJsonSelected()) {
+//                WorkflowSummaryUtil.writeJSON(os, summary, false);
+//                summaryResult.addRowToTable(
+//                    new DefaultRow(ROW_NAME, JSONCellFactory.create(os.toString(StandardCharsets.UTF_8.name()), false)));
+//            } else {
+                WorkflowSummaryUtil.writeXML(os, summary, false);
+                summaryResult.addRowToTable(
+                    new DefaultRow(ROW_NAME, XMLCellFactory.create(os.toString(StandardCharsets.UTF_8.name()))));
+//            }
+
+            summaryResult.close();
+        }
+
+        return new PortObject[] {tableResult.getTable(), summaryResult.getTable()};
     }
 
     private DataTableSpec createTableSpec() {
-        var dtsc = new DataTableSpecCreator();
+        var dtsc = new DataTableSpecCreator().setName(TABLE_OUTPUT_NAME);
         var dcss = Arrays.stream(m_includedProperties.getStringArrayValue())
             .map(k -> new DataColumnSpecCreator(k, allProps.get(k)).createSpec()).collect(Collectors.toList());
         dtsc.addColumns(dcss.toArray(new DataColumnSpec[0]));
@@ -185,69 +222,75 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     }
 
     private DataTableSpec createSummarySpec() {
-        var dtsc = new DataTableSpecCreator();
-        dtsc.addColumns(new DataColumnSpecCreator("Summary", isJsonSelected() ? JSONCell.TYPE : XMLCell.TYPE).createSpec());
+        var dtsc = new DataTableSpecCreator().setName(SUMMARY_OUTPUT_NAME);
+//        dtsc.addColumns(new DataColumnSpecCreator(COLUMN_NAME, isJsonSelected() ? JSONCell.TYPE : XMLCell.TYPE).createSpec());
+        dtsc.addColumns(new DataColumnSpecCreator(COLUMN_NAME, XMLCell.TYPE).createSpec());
         return dtsc.createSpec();
     }
 
-    private void reportNodes(final WorkflowManager wfm, final BufferedDataContainer result, final int depth,
-        final int prefixLength) {
-        for (var nc : wfm.getNodeContainers()) {
-            if (depth > 0 && nc instanceof WorkflowManager) {
-                reportNodes((WorkflowManager) nc, result, depth - 1, prefixLength);
-            } else {
-                var rowID = new RowKey("Node " + nc.getID().toString().substring(prefixLength));
-                var cells = new LinkedList<DataCell>();
-                createTableSpec().forEach(col -> cells.add(extractValue(col.getName(), nc)));
-                result.addRowToTable(new DefaultRow(rowID, cells.toArray(new DataCell[cells.size()])));
+
+    private void reportNodes(final Workflow wf, final BufferedDataContainer result) {
+        for (var node : wf.getNodes()) {
+            var rowID = new RowKey("Node " + node.getId());
+            var cells = new LinkedList<DataCell>();
+            createTableSpec().forEach(col -> cells.add(extractValue(col.getName(), node)));
+            result.addRowToTable(new DefaultRow(rowID, cells.toArray(new DataCell[cells.size()])));
+            if (node.isMetanode() == Boolean.TRUE || (node.isComponent() == Boolean.TRUE && m_scanComponents.getBooleanValue())) {
+                reportNodes(node.getSubWorkflow(), result);
             }
         }
     }
 
-    private boolean isJsonSelected() {
-        return m_outputFormat.getStringValue().equals(FMT_SELECTION_JSON);
-    }
+//    private boolean isJsonSelected() {
+//        return m_outputFormat.getStringValue().equals(FMT_SELECTION_JSON);
+//    }
 
     private static DataCell extractValue(final String key, final Node node) {
         switch (key) {
             case "Name":
                 return new StringCell(node.getName());
             case "Class Name":
-                if (!node.isMetanode() && !node.isComponent()) {
+                if (node.isMetanode() != Boolean.TRUE && node.isComponent() != Boolean.TRUE) {
                     return new StringCell(node.getFactoryKey().getClassName());
                 } else {
                     return new MissingCell("Only Native Nodes have class names");
                 }
             case "Type":
-                if (node.isMetanode()) {
+                if (node.isMetanode() == Boolean.TRUE) {
                     return new StringCell("Metanode");
-                } else if (node.isComponent()) {
+                } else if (node.isComponent() == Boolean.TRUE) {
                     return new StringCell("Component");
                 } else {
                     return new StringCell("Native Node");
                 }
             case "Source URI":
-                if (node.isMetanode() && node.getLinkInfo().getSourceURI() != null) {
+                if (node.isMetanode() == Boolean.TRUE && node.getLinkInfo() != null) {
                     return new StringCell(node.getLinkInfo().getSourceURI());
-                } else if (node.isComponent() && node.getLinkInfo().getSourceURI() != null) {
+                } else if (node.isComponent() == Boolean.TRUE && node.getLinkInfo() != null) {
                     return new StringCell(node.getLinkInfo().getSourceURI());
                 } else {
                     return new MissingCell("No source URI");
                 }
             case "Deprecated":
-                if (!node.isMetanode() && !node.isComponent()) {
-                    return node.isDeprecated() ? BooleanCell.TRUE : BooleanCell.FALSE;
+                if (node.isMetanode() != Boolean.TRUE && node.isComponent() != Boolean.TRUE) {
+                    return node.isDeprecated() == Boolean.TRUE ? BooleanCell.TRUE : BooleanCell.FALSE;
                 } else {
                     return new MissingCell("Metanodes and Components don't have a deprecation state");
                 }
             case "Disk Space":
                 var saved = node.getStorageInformation().isSavedToDisk();
-                return saved ? new LongCell(node.getStorageInformation().getSizeOnDisk()) : new MissingCell("Not saved on disk");
+                return saved ? new LongCell(node.getStorageInformation().getSizeOnDisk())
+                    : new MissingCell("Not saved on disk");
             case "Execution Time":
-                var ed = node.getExecutionStatistics().getLastExecutionDuration();
-                return (ed == -1) ? new MissingCell("Not yet executed") : new LongCell(ed);
+                var es = node.getExecutionStatistics();
+                if (es != null && es.getLastExecutionDuration() >= 0) {
+                    return new LongCell(es.getLastExecutionDuration());
+                } else {
+                    return new MissingCell("Not yet executed");
+                }
             case "Nr of Executions":
-                return new IntCell(node.getExecutionStatistics().getExecutionCountSinceStart());
+                return new IntCell((node.getExecutionStatistics() == null) ? 0
+                    : node.getExecutionStatistics().getExecutionCountSinceStart());
             default:
                 throw new IllegalArgumentException("Cannot extract property " + key);
         }

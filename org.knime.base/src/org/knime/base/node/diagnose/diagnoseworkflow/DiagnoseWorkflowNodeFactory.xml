@@ -37,7 +37,7 @@
         <option name="max depth">Controls depth of reporting of nodes in (nested) metanodes. 0 = no descent.</option>
     </fullDescription>
     <ports>
-        <inPort index="0" name="Variable Input">Input Port - allows to make sure node is executed after others.</inPort>
-        <outPort index="0" name="Output table">The collected timer information.</outPort>
+        <outPort index="0" name="Nodes Overview">The collected timer information.</outPort>
+        <outPort index="1" name="Workflow Summary">The collected timer information.</outPort>
     </ports>
 </knimeNode>

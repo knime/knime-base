@@ -56,7 +56,6 @@ import java.util.List;
 import javax.swing.JPanel;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.json.JSONCell;
 import org.knime.core.data.xml.XMLCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
@@ -79,11 +78,11 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
     // dialog labels
     static final String LABEL_COMPONENTS = "Include component contents";
-    static final String LABEL_FORMAT = "Output format:";
+    static final String LABEL_FORMAT = "Output format";
 
     // options for the output format selection
-    private static final StringIconOption[] OPTIONS =
-        {new DefaultStringIconOption(DiagnoseWorkflowNodeModel.FMT_SELECTION_JSON, JSONCell.TYPE.getIcon()),
+    private static final StringIconOption[] OPTIONS = {
+//        new DefaultStringIconOption(DiagnoseWorkflowNodeModel.FMT_SELECTION_JSON, JSONCell.TYPE.getIcon()),
             new DefaultStringIconOption(DiagnoseWorkflowNodeModel.FMT_SELECTION_XML, XMLCell.TYPE.getIcon()),};
 
     // dialog settings
