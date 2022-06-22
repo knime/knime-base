@@ -316,3 +316,4 @@ Require-Bundle: org.apache.commons.math;bundle-version="[2.1.0,2.2.0)",
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Eclipse-BundleShape: dir
 Automatic-Module-Name: org.knime.base
+Import-Package: org.knime.core.data.json

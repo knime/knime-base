@@ -53,16 +53,19 @@ import java.awt.FlowLayout;
 import java.util.Collections;
 import java.util.List;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.json.JSONCell;
+import org.knime.core.data.xml.XMLCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.util.DefaultStringIconOption;
+import org.knime.core.node.util.StringIconOption;
 import org.knime.core.node.util.filter.StringFilterPanel;
 
 /**
@@ -75,19 +78,29 @@ import org.knime.core.node.util.filter.StringFilterPanel;
 public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
     // dialog labels
-    static final String CFGLABEL_MAXDEPTH = "Max depth:";
-    static final String CFGLABEL_INCLUDECOLUMNS = "Include columns:";
+    static final String LABEL_MAXDEPTH = "Max depth:";
+    static final String LABEL_FORMAT = "Output format:";
+    static final String LABEL_INCLUDECOLUMNS = "Include columns:";
+
+    // options for the output format selection
+    private static final StringIconOption[] OPTIONS =
+        {new DefaultStringIconOption("JSON", JSONCell.TYPE.getIcon()),
+            new DefaultStringIconOption("XML", XMLCell.TYPE.getIcon()),};
 
     // dialog settings
-    private final SpinnerNumberModel m_maxDepthSelector;
+    private final DialogComponentNumber m_maxDepthSelector;
+    private final DialogComponentStringSelection m_outputFormatSelector;
     private final StringFilterPanel m_filterPanel;
 
     /**
      * Create the node dialog
      */
     public DiagnoseWorkflowNodeDialog() {
-        var m = DiagnoseWorkflowNodeModel.createMaxDepthSettingsModel();
-        m_maxDepthSelector = new SpinnerNumberModel(m.getIntValue(), m.getLowerBound(), m.getUpperBound(), 1);
+        m_maxDepthSelector =
+            new DialogComponentNumber(DiagnoseWorkflowNodeModel.createMaxDepthSettingsModel(), LABEL_MAXDEPTH, 1);
+
+        m_outputFormatSelector = new DialogComponentStringSelection(
+            DiagnoseWorkflowNodeModel.createOutputFormatSelectionModel(), LABEL_FORMAT, OPTIONS);
 
         m_filterPanel = new StringFilterPanel();
         String[] allIncludes = DiagnoseWorkflowNodeModel.getPropertiesAsStringArray();
@@ -95,8 +108,8 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
         JPanel panel = new JPanel(new BorderLayout());
         JPanel north = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        north.add(new JLabel(CFGLABEL_MAXDEPTH));
-        north.add(new JSpinner(m_maxDepthSelector));
+        north.add(m_maxDepthSelector.getComponentPanel());
+        north.add(m_outputFormatSelector.getComponentPanel());
         panel.add(north, BorderLayout.NORTH);
         panel.add(m_filterPanel, BorderLayout.CENTER);
         addTab("Properties", panel);
@@ -107,7 +120,8 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        settings.addInt(DiagnoseWorkflowNodeModel.CFGKEY_MAXDEPTH, m_maxDepthSelector.getNumber().intValue());
+        m_maxDepthSelector.getModel().saveSettingsTo(settings);
+        m_outputFormatSelector.getModel().saveSettingsTo(settings);
         String[] includes = m_filterPanel.getIncludedNamesAsSet().toArray(new String[0]);
         settings.addStringArray(DiagnoseWorkflowNodeModel.CFGKEY_INCLUDES, includes);
         String[] excludes = m_filterPanel.getExcludedNamesAsSet().toArray(new String[0]);
@@ -121,7 +135,12 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs) {
         final var allProps = DiagnoseWorkflowNodeModel.getPropertiesAsStringArray();
 
-        m_maxDepthSelector.setValue(settings.getInt(DiagnoseWorkflowNodeModel.CFGKEY_MAXDEPTH, 2));
+        try {
+            m_maxDepthSelector.getModel().loadSettingsFrom(settings);
+            m_outputFormatSelector.getModel().loadSettingsFrom(settings);
+        } catch (InvalidSettingsException e) {
+        }
+
         final var selectedIncludes = settings.getStringArray(DiagnoseWorkflowNodeModel.CFGKEY_INCLUDES, allProps);
         final var selectedExcludes = settings.getStringArray(DiagnoseWorkflowNodeModel.CFGKEY_EXCLUDES, allProps);
 

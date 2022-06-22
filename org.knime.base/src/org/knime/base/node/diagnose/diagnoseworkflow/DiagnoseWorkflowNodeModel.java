@@ -79,6 +79,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -90,8 +91,10 @@ import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
 
 /**
+ * NodeModel for the Diagnose Workflow node.
  *
- * @author jasper
+ * @author Jasper Krauter, KNIME AG, Schloss
+ * @author Leon Wenzler, KNIME AG, Schloss
  */
 public class DiagnoseWorkflowNodeModel extends NodeModel {
 
@@ -108,6 +111,29 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
         allProps.put("Class Name", StringCell.TYPE);
     }
 
+    static final String CFGKEY_MAXDEPTH = "MaxDepth";
+
+    static final String FMT_SELECTION_JSON = "JSON";
+    static final String FMT_SELECTION_XML = "XML";
+    static final String CFGKEY_FORMAT = "OutputFormat";
+
+    static final String CFGKEY_INCLUDES = "IncludedProperties";
+    static final String CFGKEY_EXCLUDES = "ExcludedProperties";
+
+    private SettingsModelIntegerBounded m_maxDepth = createMaxDepthSettingsModel();
+    private SettingsModelString m_outputFormat = createOutputFormatSelectionModel();
+    private SettingsModelStringArray m_includedProperties = new SettingsModelStringArray(CFGKEY_INCLUDES, getPropertiesAsStringArray());
+    private SettingsModelStringArray m_excludedProperties = new SettingsModelStringArray(CFGKEY_EXCLUDES, new String[0]);
+
+
+    /**
+     * Create a new instance
+     */
+    protected DiagnoseWorkflowNodeModel() {
+        // source node with a two output tables
+        super(0, 2);
+    }
+
     /**
      * Returns every possible workflow property, as String array.
      * @return String[] allProperties
@@ -116,24 +142,20 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
         return allProps.keySet().toArray(new String[0]);
     }
 
-    static final String CFGKEY_MAXDEPTH = "MaxDepth";
-    static final String CFGKEY_INCLUDES = "IncludedProperties";
-    static final String CFGKEY_EXCLUDES = "ExcludedProperties";
-
-    private SettingsModelIntegerBounded m_maxDepth = createMaxDepthSettingsModel();
-    private SettingsModelStringArray m_includedProperties = new SettingsModelStringArray(CFGKEY_INCLUDES, getPropertiesAsStringArray());
-    private SettingsModelStringArray m_excludedProperties = new SettingsModelStringArray(CFGKEY_EXCLUDES, new String[0]);
-
     /**
-     * Create a new instance
+     * Creates a integer settings model for storing the maximum depth.
+     * @return
      */
-    protected DiagnoseWorkflowNodeModel() {
-        // source node with a single output table
-        super(0, 1);
-    }
-
     static SettingsModelIntegerBounded createMaxDepthSettingsModel() {
         return new SettingsModelIntegerBounded(CFGKEY_MAXDEPTH, 2, 0, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Creates a String settings model for storing the output format selection.
+     * @return
+     */
+    static SettingsModelString createOutputFormatSelectionModel() {
+        return new SettingsModelString(CFGKEY_FORMAT, FMT_SELECTION_JSON);
     }
 
     /**
@@ -269,6 +291,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_maxDepth.saveSettingsTo(settings);
+        m_outputFormat.saveSettingsTo(settings);
         m_includedProperties.saveSettingsTo(settings);
         m_excludedProperties.saveSettingsTo(settings);
     }
@@ -287,6 +310,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_maxDepth.loadSettingsFrom(settings);
+        m_outputFormat.loadSettingsFrom(settings);
         m_includedProperties.loadSettingsFrom(settings);
         m_excludedProperties.loadSettingsFrom(settings);
     }
