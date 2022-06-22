@@ -62,7 +62,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.util.DefaultStringIconOption;
 import org.knime.core.node.util.StringIconOption;
@@ -78,9 +78,8 @@ import org.knime.core.node.util.filter.StringFilterPanel;
 public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
     // dialog labels
-    static final String LABEL_MAXDEPTH = "Max depth:";
+    static final String LABEL_COMPONENTS = "Include component contents";
     static final String LABEL_FORMAT = "Output format:";
-    static final String LABEL_INCLUDECOLUMNS = "Include columns:";
 
     // options for the output format selection
     private static final StringIconOption[] OPTIONS =
@@ -88,7 +87,7 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
             new DefaultStringIconOption(DiagnoseWorkflowNodeModel.FMT_SELECTION_XML, XMLCell.TYPE.getIcon()),};
 
     // dialog settings
-    private final DialogComponentNumber m_maxDepthSelector;
+    private final DialogComponentBoolean m_scanComponentsSelector;
     private final DialogComponentStringSelection m_outputFormatSelector;
     private final StringFilterPanel m_filterPanel;
 
@@ -96,8 +95,8 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
      * Create the node dialog
      */
     public DiagnoseWorkflowNodeDialog() {
-        m_maxDepthSelector =
-            new DialogComponentNumber(DiagnoseWorkflowNodeModel.createMaxDepthSettingsModel(), LABEL_MAXDEPTH, 1);
+        m_scanComponentsSelector =
+            new DialogComponentBoolean(DiagnoseWorkflowNodeModel.createComponentScanSettingsModel(), LABEL_COMPONENTS);
 
         m_outputFormatSelector = new DialogComponentStringSelection(
             DiagnoseWorkflowNodeModel.createOutputFormatSelectionModel(), LABEL_FORMAT, OPTIONS);
@@ -108,7 +107,7 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
         JPanel panel = new JPanel(new BorderLayout());
         JPanel north = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        north.add(m_maxDepthSelector.getComponentPanel());
+        north.add(m_scanComponentsSelector.getComponentPanel());
         north.add(m_outputFormatSelector.getComponentPanel());
         panel.add(north, BorderLayout.NORTH);
         panel.add(m_filterPanel, BorderLayout.CENTER);
@@ -120,7 +119,7 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_maxDepthSelector.getModel().saveSettingsTo(settings);
+        m_scanComponentsSelector.getModel().saveSettingsTo(settings);
         m_outputFormatSelector.getModel().saveSettingsTo(settings);
         String[] includes = m_filterPanel.getIncludedNamesAsSet().toArray(new String[0]);
         settings.addStringArray(DiagnoseWorkflowNodeModel.CFGKEY_INCLUDES, includes);
@@ -136,7 +135,7 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
         final var allProps = DiagnoseWorkflowNodeModel.getPropertiesAsStringArray();
 
         try {
-            m_maxDepthSelector.getModel().loadSettingsFrom(settings);
+            m_scanComponentsSelector.getModel().loadSettingsFrom(settings);
             m_outputFormatSelector.getModel().loadSettingsFrom(settings);
         } catch (InvalidSettingsException e) {
         }

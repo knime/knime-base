@@ -56,7 +56,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -80,17 +79,15 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.NativeNodeContainer;
-import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
+import org.knime.core.util.workflowsummary.WorkflowSummary.Node;
 
 /**
  * NodeModel for the Diagnose Workflow node.
@@ -102,18 +99,17 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     static final Map<String, DataType> allProps = new LinkedHashMap<>();
     static {
-        allProps.put("Global ID", StringCell.TYPE);
         allProps.put("Name", StringCell.TYPE);
+        allProps.put("Class Name", StringCell.TYPE);
         allProps.put("Type", StringCell.TYPE);
         allProps.put("Source URI", StringCell.TYPE);
         allProps.put("Deprecated", BooleanCell.TYPE);
         allProps.put("Disk Space", LongCell.TYPE);
         allProps.put("Execution Time", LongCell.TYPE);
-        allProps.put("Executions", IntCell.TYPE);
-        allProps.put("Class Name", StringCell.TYPE);
+        allProps.put("Nr of Executions", IntCell.TYPE);
     }
 
-    static final String CFGKEY_MAXDEPTH = "MaxDepth";
+    static final String CFGKEY_SCAN_COMPONENTS = "ScanComponents";
 
     static final String FMT_SELECTION_JSON = "JSON";
     static final String FMT_SELECTION_XML = "XML";
@@ -122,7 +118,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     static final String CFGKEY_INCLUDES = "IncludedProperties";
     static final String CFGKEY_EXCLUDES = "ExcludedProperties";
 
-    private SettingsModelIntegerBounded m_maxDepth = createMaxDepthSettingsModel();
+    private SettingsModelBoolean m_scanComponents = createComponentScanSettingsModel();
     private SettingsModelString m_outputFormat = createOutputFormatSelectionModel();
     private SettingsModelStringArray m_includedProperties = new SettingsModelStringArray(CFGKEY_INCLUDES, getPropertiesAsStringArray());
     private SettingsModelStringArray m_excludedProperties = new SettingsModelStringArray(CFGKEY_EXCLUDES, new String[0]);
@@ -148,8 +144,8 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
      * Creates a integer settings model for storing the maximum depth.
      * @return
      */
-    static SettingsModelIntegerBounded createMaxDepthSettingsModel() {
-        return new SettingsModelIntegerBounded(CFGKEY_MAXDEPTH, 2, 0, Integer.MAX_VALUE);
+    static SettingsModelBoolean createComponentScanSettingsModel() {
+        return new SettingsModelBoolean(CFGKEY_SCAN_COMPONENTS, false);
     }
 
     /**
@@ -194,7 +190,8 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
         return dtsc.createSpec();
     }
 
-    private void reportNodes(final WorkflowManager wfm, final BufferedDataContainer result, final int depth, final int prefixLength) {
+    private void reportNodes(final WorkflowManager wfm, final BufferedDataContainer result, final int depth,
+        final int prefixLength) {
         for (var nc : wfm.getNodeContainers()) {
             if (depth > 0 && nc instanceof WorkflowManager) {
                 reportNodes((WorkflowManager) nc, result, depth - 1, prefixLength);
@@ -211,53 +208,46 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
         return m_outputFormat.getStringValue().equals(FMT_SELECTION_JSON);
     }
 
-    private static DataCell extractValue(final String key, final NodeContainer nc) {
+    private static DataCell extractValue(final String key, final Node node) {
         switch (key) {
-            case "Global ID":
-                return new StringCell(nc.getID().toString());
             case "Name":
-                return new StringCell(nc.getName());
+                return new StringCell(node.getName());
+            case "Class Name":
+                if (!node.isMetanode() && !node.isComponent()) {
+                    return new StringCell(node.getFactoryKey().getClassName());
+                } else {
+                    return new MissingCell("Only Native Nodes have class names");
+                }
             case "Type":
-                if (nc instanceof WorkflowManager) {
+                if (node.isMetanode()) {
                     return new StringCell("Metanode");
-                } else if (nc instanceof SubNodeContainer) {
+                } else if (node.isComponent()) {
                     return new StringCell("Component");
                 } else {
                     return new StringCell("Native Node");
                 }
             case "Source URI":
-                if (nc instanceof WorkflowManager
-                    && ((WorkflowManager)nc).getTemplateInformation().getSourceURI() != null) {
-                    return new StringCell(((WorkflowManager)nc).getTemplateInformation().getSourceURI().toString());
-                } else if (nc instanceof SubNodeContainer
-                    && ((SubNodeContainer)nc).getTemplateInformation().getSourceURI() != null) {
-                    return new StringCell(((SubNodeContainer)nc).getTemplateInformation().getSourceURI().toString());
+                if (node.isMetanode() && node.getLinkInfo().getSourceURI() != null) {
+                    return new StringCell(node.getLinkInfo().getSourceURI());
+                } else if (node.isComponent() && node.getLinkInfo().getSourceURI() != null) {
+                    return new StringCell(node.getLinkInfo().getSourceURI());
                 } else {
                     return new MissingCell("No source URI");
                 }
             case "Deprecated":
-                if (nc instanceof NativeNodeContainer) {
-                    return ((NativeNodeContainer)nc).getNode().getFactory().isDeprecated() ? BooleanCell.TRUE
-                        : BooleanCell.FALSE;
+                if (!node.isMetanode() && !node.isComponent()) {
+                    return node.isDeprecated() ? BooleanCell.TRUE : BooleanCell.FALSE;
                 } else {
                     return new MissingCell("Metanodes and Components don't have a deprecation state");
                 }
             case "Disk Space":
-                var dir = nc.getNodeContainerDirectory();
-                return (dir == null) ? new MissingCell("Not saved on disk")
-                    : new LongCell(FileUtils.sizeOfDirectory(dir.getFile()));
+                var saved = node.getStorageInformation().isSavedToDisk();
+                return saved ? new LongCell(node.getStorageInformation().getSizeOnDisk()) : new MissingCell("Not saved on disk");
             case "Execution Time":
-                var ed = nc.getNodeTimer().getLastExecutionDuration();
+                var ed = node.getExecutionStatistics().getLastExecutionDuration();
                 return (ed == -1) ? new MissingCell("Not yet executed") : new LongCell(ed);
-            case "Executions":
-                return new IntCell(nc.getNodeTimer().getNrExecsSinceStart());
-            case "Class Name":
-                if (nc instanceof NativeNodeContainer) {
-                    return new StringCell(
-                        ((NativeNodeContainer)nc).getNode().getNodeModel().getClass().getCanonicalName());
-                } else {
-                    return new MissingCell("Only Native Nodes have class names");
-                }
+            case "Nr of Executions":
+                return new IntCell(node.getExecutionStatistics().getExecutionCountSinceStart());
             default:
                 throw new IllegalArgumentException("Cannot extract property " + key);
         }
@@ -301,7 +291,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_maxDepth.saveSettingsTo(settings);
+        m_scanComponents.saveSettingsTo(settings);
         m_outputFormat.saveSettingsTo(settings);
         m_includedProperties.saveSettingsTo(settings);
         m_excludedProperties.saveSettingsTo(settings);
@@ -320,7 +310,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
      */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_maxDepth.loadSettingsFrom(settings);
+        m_scanComponents.loadSettingsFrom(settings);
         m_outputFormat.loadSettingsFrom(settings);
         m_includedProperties.loadSettingsFrom(settings);
         m_excludedProperties.loadSettingsFrom(settings);
