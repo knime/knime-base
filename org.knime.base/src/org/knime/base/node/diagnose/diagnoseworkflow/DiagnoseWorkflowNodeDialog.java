@@ -84,8 +84,8 @@ public class DiagnoseWorkflowNodeDialog extends NodeDialogPane {
 
     // options for the output format selection
     private static final StringIconOption[] OPTIONS =
-        {new DefaultStringIconOption("JSON", JSONCell.TYPE.getIcon()),
-            new DefaultStringIconOption("XML", XMLCell.TYPE.getIcon()),};
+        {new DefaultStringIconOption(DiagnoseWorkflowNodeModel.FMT_SELECTION_JSON, JSONCell.TYPE.getIcon()),
+            new DefaultStringIconOption(DiagnoseWorkflowNodeModel.FMT_SELECTION_XML, XMLCell.TYPE.getIcon()),};
 
     // dialog settings
     private final DialogComponentNumber m_maxDepthSelector;

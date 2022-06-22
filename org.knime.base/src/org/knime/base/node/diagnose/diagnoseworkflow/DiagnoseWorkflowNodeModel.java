@@ -70,6 +70,8 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.json.JSONCell;
+import org.knime.core.data.xml.XMLCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -163,7 +165,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
      */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] in) {
-        return new PortObjectSpec[]{getSpec()};
+        return new PortObjectSpec[]{ createTableSpec(), createSummarySpec() };
     }
 
     /**
@@ -172,10 +174,24 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     @Override
     protected PortObject[] execute(final PortObject[] in, final ExecutionContext ec) {
         var wfm = getMyWFM();
-        var result = ec.createDataContainer(getSpec());
+        var result = ec.createDataContainer(createTableSpec());
         reportNodes(wfm, result, m_maxDepth.getIntValue(), wfm.getID().toString().length() + 1);
         result.close();
         return new PortObject[] {result.getTable()};
+    }
+
+    private DataTableSpec createTableSpec() {
+        var dtsc = new DataTableSpecCreator();
+        var dcss = Arrays.stream(m_includedProperties.getStringArrayValue())
+            .map(k -> new DataColumnSpecCreator(k, allProps.get(k)).createSpec()).collect(Collectors.toList());
+        dtsc.addColumns(dcss.toArray(new DataColumnSpec[0]));
+        return dtsc.createSpec();
+    }
+
+    private DataTableSpec createSummarySpec() {
+        var dtsc = new DataTableSpecCreator();
+        dtsc.addColumns(new DataColumnSpecCreator("Summary", isJsonSelected() ? JSONCell.TYPE : XMLCell.TYPE).createSpec());
+        return dtsc.createSpec();
     }
 
     private void reportNodes(final WorkflowManager wfm, final BufferedDataContainer result, final int depth, final int prefixLength) {
@@ -185,20 +201,15 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
             } else {
                 var rowID = new RowKey("Node " + nc.getID().toString().substring(prefixLength));
                 var cells = new LinkedList<DataCell>();
-                getSpec().forEach(col -> cells.add(extractValue(col.getName(), nc)));
+                createTableSpec().forEach(col -> cells.add(extractValue(col.getName(), nc)));
                 result.addRowToTable(new DefaultRow(rowID, cells.toArray(new DataCell[cells.size()])));
             }
         }
     }
 
-    private DataTableSpec getSpec() {
-        var dtsc = new DataTableSpecCreator();
-        var dcss = Arrays.stream(m_includedProperties.getStringArrayValue())
-            .map(k -> new DataColumnSpecCreator(k, allProps.get(k)).createSpec()).collect(Collectors.toList());
-        dtsc.addColumns(dcss.toArray(new DataColumnSpec[0]));
-        return dtsc.createSpec();
+    private boolean isJsonSelected() {
+        return m_outputFormat.getStringValue().equals(FMT_SELECTION_JSON);
     }
-
 
     private static DataCell extractValue(final String key, final NodeContainer nc) {
         switch (key) {
