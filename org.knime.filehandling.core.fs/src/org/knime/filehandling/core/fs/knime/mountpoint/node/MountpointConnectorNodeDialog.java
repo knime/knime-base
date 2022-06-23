@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.fs.knime.mountpoint.node;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -61,6 +62,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 
 import org.knime.core.data.DataTableSpec;
@@ -70,6 +73,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.base.ui.WorkingDirectoryChooser;
 import org.knime.filehandling.core.defaultnodesettings.KNIMEConnection;
@@ -126,6 +130,7 @@ public class MountpointConnectorNodeDialog extends NodeDialogPane {
         m_ignoreChangeEvents = false;
 
         addTab("Settings", createSettingsPanel());
+        addTab("Advanced", createAdvancedPanel());
     }
 
     private void onMountpointChanged(@SuppressWarnings("unused") final ChangeEvent e) {
@@ -215,6 +220,62 @@ public class MountpointConnectorNodeDialog extends NodeDialogPane {
         var panel = new JPanel();
         panel.add(new JLabel("Mountpoint: "));
         panel.add(m_mountpointSelector.getSpecifierComponent());
+        return panel;
+    }
+
+    private JComponent createAdvancedPanel() {
+        final var panel = new JPanel(new GridBagLayout());
+
+        final var gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(5, 0, 10, 5);
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(createAdvancedConnectionSettingsPanel(), gbc);
+
+        gbc.gridy++;
+
+        gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.weighty = 1;
+        panel.add(Box.createVerticalGlue(), gbc);
+
+        return panel;
+    }
+
+    private Component createAdvancedConnectionSettingsPanel() {
+        final var panel = new JPanel(new GridBagLayout());
+
+        panel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.RAISED), "Connection settings"));
+
+        final var gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 5, 0, 5);
+        gbc.anchor = GridBagConstraints.LINE_START;
+
+        panel.add(new JLabel("Connection timeout (seconds):"), gbc);
+        gbc.gridx++;
+        panel.add(new DialogComponentNumber(m_settings.getConnectionTimeoutModel(), "", 1).getComponentPanel(), gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 1;
+        panel.add(Box.createHorizontalGlue(), gbc);
+
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+
+        panel.add(new JLabel("Read timeout (seconds):"), gbc);
+        gbc.gridx++;
+        panel.add(new DialogComponentNumber(m_settings.getReadTimeoutModel(), "", 1).getComponentPanel(), gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 1;
+        panel.add(Box.createHorizontalGlue(), gbc);
+
         return panel;
     }
 

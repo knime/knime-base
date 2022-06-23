@@ -61,6 +61,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.SpaceFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 
@@ -101,8 +102,6 @@ public class SpaceConnectorNodeSettings {
         }
     }
 
-    private static final int DEFAULT_TIMEOUT = 30;
-
     private static final String KEY_MODE = "mode";
 
     private static final String KEY_WORKING_DIRECTORY = "workingDirectory";
@@ -140,10 +139,14 @@ public class SpaceConnectorNodeSettings {
                 new SettingsModelString(KEY_WORKING_DIRECTORY, MountpointFSConnectionConfig.PATH_SEPARATOR);
         m_spaceId = new SettingsModelString(KEY_SPACE_ID, "");
         m_spaceName = new SettingsModelString(KEY_SPACE_NAME, "");
-        m_connectionTimeout = new SettingsModelIntegerBounded(KEY_CONNECTION_TIMEOUT, DEFAULT_TIMEOUT,
+        m_connectionTimeout = new SettingsModelIntegerBounded(KEY_CONNECTION_TIMEOUT, //
+            TimeoutFSConnectionConfig.DEFAULT_TIMEOUT_SECONDS,
             0,
             Integer.MAX_VALUE);
-        m_readTimeout = new SettingsModelIntegerBounded(KEY_READ_TIMEOUT, DEFAULT_TIMEOUT, 0, Integer.MAX_VALUE);
+        m_readTimeout = new SettingsModelIntegerBounded(KEY_READ_TIMEOUT, //
+            TimeoutFSConnectionConfig.DEFAULT_TIMEOUT_SECONDS, //
+            0, //
+            Integer.MAX_VALUE);
     }
 
     /**

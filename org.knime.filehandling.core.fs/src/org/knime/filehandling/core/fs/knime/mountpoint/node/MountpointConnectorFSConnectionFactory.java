@@ -53,6 +53,7 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.fs.knime.mountpoint.node.MountpointConnectorNodeSettings.MountpointMode;
 import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
@@ -121,18 +122,20 @@ abstract class MountpointConnectorFSConnectionFactory {
 
         @Override
         public FSLocationSpec getFSLocationSpec() {
-            return createMountpointFSConnectionConfig().createFSLocationSpec();
+            return createFSConnectionConfig().createFSLocationSpec();
         }
 
         @Override
         public FSConnection createFSConnection() {
-            return DefaultFSConnectionFactory.createMountpointConnection(createMountpointFSConnectionConfig());
+            return DefaultFSConnectionFactory.createMountpointConnection(createFSConnectionConfig());
         }
 
-        private MountpointFSConnectionConfig createMountpointFSConnectionConfig() {
+        private MountpointFSConnectionConfig createFSConnectionConfig() {
             return new MountpointFSConnectionConfig( //
                 m_settings.getWorkingDirectoryModel().getStringValue(), //
-                m_settings.getMountpoint().getMountpoint().getId());
+                m_settings.getMountpoint().getMountpoint().getId(), //
+                m_settings.getConnectionTimeout(), //
+                m_settings.getReadTimeout());
         }
     }
 
@@ -154,7 +157,15 @@ abstract class MountpointConnectorFSConnectionFactory {
 
         @Override
         public FSConnection createFSConnection() {
-            return DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW, "");
+            return DefaultFSConnectionFactory.createRelativeToConnection(createFSConnectionConfig());
+        }
+
+        private RelativeToFSConnectionConfig createFSConnectionConfig() {
+            return new RelativeToFSConnectionConfig( //
+                "", // working directory is ignored
+                RelativeTo.WORKFLOW, //
+                m_settings.getConnectionTimeout(), //
+                m_settings.getReadTimeout());
         }
     }
 
@@ -176,9 +187,15 @@ abstract class MountpointConnectorFSConnectionFactory {
 
         @Override
         public FSConnection createFSConnection() {
-            return DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.MOUNTPOINT,
-                m_settings.getWorkingDirectoryModel().getStringValue());
+            return DefaultFSConnectionFactory.createRelativeToConnection(createFSConnectionConfig());
         }
 
+        private RelativeToFSConnectionConfig createFSConnectionConfig() {
+            return new RelativeToFSConnectionConfig( //
+                m_settings.getWorkingDirectoryModel().getStringValue(), //
+                RelativeTo.MOUNTPOINT, //
+                m_settings.getConnectionTimeout(), //
+                m_settings.getReadTimeout());
+        }
     }
 }

@@ -48,10 +48,12 @@
  */
 package org.knime.filehandling.core.connections.config;
 
+import java.time.Duration;
+
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
 
 /**
  * {@link FSConnectionConfig} for the local Relative-to file systems. It is unlikely that you will have to use this
@@ -60,7 +62,7 @@ import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
  */
-public class RelativeToFSConnectionConfig extends BaseFSConnectionConfig {
+public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
 
     /**
      * Separator used among all Relative-to file systems to separate the name componenets in a path.
@@ -68,6 +70,16 @@ public class RelativeToFSConnectionConfig extends BaseFSConnectionConfig {
     public static final String PATH_SEPARATOR = "/";
 
     private final RelativeTo m_type;
+
+    /**
+     * Constructor for a convenience file system with the default working directory.
+     *
+     * @param type Relative To type
+     */
+    public RelativeToFSConnectionConfig(final RelativeTo type) {
+        super(PATH_SEPARATOR, false);
+        m_type = type;
+    }
 
     /**
      * Constructor for a connected file system with the given working directory.
@@ -81,13 +93,19 @@ public class RelativeToFSConnectionConfig extends BaseFSConnectionConfig {
     }
 
     /**
-     * Constructor for a convenience file system with the default working directory.
+     * Constructor for a connected file system with the given working directory and custom timeouts.
      *
+     * @param workingDirectory The working directory to use.
      * @param type Relative To type
+     * @param connectionTimeout the connectionTimeout.
+     * @param readTimeout the readTimeout.
      */
-    public RelativeToFSConnectionConfig(final RelativeTo type) {
-        super(PATH_SEPARATOR, false);
+    public RelativeToFSConnectionConfig(final String workingDirectory, final RelativeTo type,
+        final Duration connectionTimeout, final Duration readTimeout) {
+        super(workingDirectory, true);
         m_type = type;
+        setConnectionTimeout(connectionTimeout);
+        setReadTimeout(readTimeout);
     }
 
     /**
