@@ -2001,7 +2001,7 @@
       </node>
       <node
            after="org.knime.base.node.util.globaltimerinfo.GlobalTimerinfoNodeFactory"
-           category-path="/flowcontrol/automation"
+           category-path="/io/io-other"
            factory-class="org.knime.base.node.diagnose.diagnoseruntime.DiagnoseRuntimeNodeFactory">
       </node>
       <node
