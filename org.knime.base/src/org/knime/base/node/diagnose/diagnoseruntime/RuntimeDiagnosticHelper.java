@@ -51,6 +51,7 @@ package org.knime.base.node.diagnose.diagnoseruntime;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,7 +92,8 @@ public final class RuntimeDiagnosticHelper {
             var server = ManagementFactory.getPlatformMBeanServer();
             return ManagementFactory.newPlatformMXBeanProxy(server, MX_BEAN_NAME, clazz);
         } catch (ClassNotFoundException | IOException e) {
-            LOGGER.log(Level.WARNING, "HotSpotDiagnosticMXBean object could not be created: " + e.getMessage());
+            LOGGER.log(Level.WARNING,
+                String.format("HotSpotDiagnosticMXBean object could not be created: %s", e.getMessage()));
             return null;
         }
     }
@@ -110,61 +112,24 @@ public final class RuntimeDiagnosticHelper {
             var clazz = Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
             var method = clazz.getMethod("dumpHeap", String.class, boolean.class);
             method.invoke(hotspotMXBeanInstance, fileName, live);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            LOGGER.log(Level.WARNING, "Heap could not be dumped to file: " + e.getMessage());
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
+                | InvocationTargetException e) {
+            LOGGER.log(Level.WARNING, String.format("Heap could not be dumped to file: %s", e.getMessage()));
         }
     }
 
-    //    static List<VMOption> getAllVMOptions() {
-    //        initializeHotspotMXBean();
-    //        try {
-    //            // accessing the access-restricted HotSpotDiagnosticMXBean interface
-    //            var clazz = Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
-    //            var method = clazz.getMethod("dumpHeap", String.class, boolean.class);
-    //            for (Object o : (List<Object>)method.invoke(hotspotMXBeanInstance)) {
-    //                // ?
-    //            }
-    //        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
-    //            LOGGER.log(Level.WARNING, "VMOptions could not be retrieved: " + e.getMessage());
-    //            return null;
-    //        }
-    //    }
+    /**
+     * Retrieves all VM options as a list of Strings.
+     *
+     * @return list of VMOptions
+     */
+    static List<String> getVMOptions() {
+        return ManagementFactory.getRuntimeMXBean().getInputArguments();
+    }
 
     /**
      * Hides the constructor.
      */
     private RuntimeDiagnosticHelper() {
-    }
-
-    /**
-     * Wraps all attributes of a VMOption, see
-     * {@link "https://docs.oracle.com/javase/7/docs/jre/api/management/extension/com/sun/management/VMOption.html"}
-     *
-     * @author Leon Wenzler, KNIME AG, Schloss
-     */
-    static class VMOption {
-        private String m_name;
-
-        private String m_value;
-
-        private String m_origin;
-
-        public VMOption(final String name, final String value, final String origin) {
-            m_name = name;
-            m_value = value;
-            m_origin = origin;
-        }
-
-        public String getName() {
-            return m_name;
-        }
-
-        public String getValue() {
-            return m_value;
-        }
-
-        public String getOrigin() {
-            return m_origin;
-        }
     }
 }

@@ -73,6 +73,10 @@ public class DiagnoseRuntimeNodeDialog extends DefaultNodeSettingsPane {
         buildDialog();
     }
 
+    /**
+     * Builds the node dialog, consisting of a checkbox for enabling the heap dump saving,
+     * as well as a file chooser for selecting the files location.
+     */
     private void buildDialog() {
         // checkbox for saving the heap dump as a file
         var isSavedModel = DiagnoseRuntimeNodeModel.createHeapDumpIsSavedSettingsModel();
@@ -82,7 +86,7 @@ public class DiagnoseRuntimeNodeDialog extends DefaultNodeSettingsPane {
         // filechooser to select the file's location
         var stringLocationModel = DiagnoseRuntimeNodeModel.createFileLocationModel();
         var fileChooser = new DialogComponentFileChooser(stringLocationModel, "Heap Dump File Location Chooser",
-            JFileChooser.SAVE_DIALOG, ".hprof");
+            JFileChooser.SAVE_DIALOG, DiagnoseRuntimeNodeModel.HEAP_DUMP_FORMAT);
         addDialogComponent(fileChooser);
 
         // deactivating filechooser when heap dump should not be saved

@@ -50,6 +50,7 @@ package org.knime.base.node.diagnose.diagnoseruntime;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.LockInfo;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,21 +98,23 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
 
     // setting keys
     static final String CFGKEY_ISSAVED_HEAPDUMP = "HeapDumpIsSaved";
+
     static final String CFGKEY_LOCATION = "HeapDumpFileLocation";
 
     private SettingsModelBoolean m_heapDumpIsSaved = createHeapDumpIsSavedSettingsModel();
+
     private SettingsModelString m_fileSaveLocation = createFileLocationModel();
 
     /**
-     * Create a new instance
+     * Create a new instance of a source node with a four output ports
      */
     protected DiagnoseRuntimeNodeModel() {
-        // source node with a three output tables
-        super(0, 3);
+        super(0, 4);
     }
 
     /**
      * Creates a boolean settings model if the heap dump shall be saved.
+     *
      * @return
      */
     static SettingsModelBoolean createHeapDumpIsSavedSettingsModel() {
@@ -120,10 +123,12 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
 
     /**
      * Creates a String settings model for storing the file location.
+     *
      * @return
      */
     static SettingsModelString createFileLocationModel() {
         var m = new SettingsModelString(CFGKEY_LOCATION, "");
+        // disabled per default
         m.setEnabled(false);
         return m;
     }
@@ -133,31 +138,32 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
      */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] in) {
-        return new PortObjectSpec[]{createSysPropsSpec(), createEnvVarsSpec(), createThreadsSpec()};
+        return new PortObjectSpec[]{createSysPropsSpec(), createEnvVarsSpec(), createThreadsSpec(), createVMOptSpec()};
     }
 
     /**
      * {@inheritDoc}
+     *
      * @throws CanceledExecutionException
      * @throws InvalidSettingsException
      */
     @Override
-    protected PortObject[] execute(final PortObject[] in, final ExecutionContext exec) throws CanceledExecutionException, InvalidSettingsException {
+    protected PortObject[] execute(final PortObject[] in, final ExecutionContext exec)
+        throws CanceledExecutionException, InvalidSettingsException {
         dumpHeapIfSelected();
 
         var sysPropsResult = exec.createBufferedDataTable(retrieveSysProperties(), exec);
-
         var envVarsResult = exec.createBufferedDataTable(retrieveEnvVariables(), exec);
-
         var em = new ExecutionMonitor();
         var threadsResult = exec.createBufferedDataTable(dumpThreads(), em);
+        var vmOptionsResult = exec.createBufferedDataTable(retrieveVMOptions(), exec);
 
-        return new PortObject[] {sysPropsResult, envVarsResult, threadsResult};
+        return new PortObject[]{sysPropsResult, envVarsResult, threadsResult, vmOptionsResult};
     }
 
     /**
-     * Dumps the heap to an HPROF file, location can be specified via the node dialog.
-     * Uses the {@link RuntimeDiagnosticHelper} for accessing the heapDump method.
+     * Dumps the heap to an HPROF file, location can be specified via the node dialog. Uses the
+     * {@link RuntimeDiagnosticHelper} for accessing the heapDump method.
      *
      * @throws InvalidSettingsException
      */
@@ -178,6 +184,7 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
 
     /**
      * Simple spec for System Properties, a StringCell contains the value.
+     *
      * @return DataTableSpec
      */
     private static DataTableSpec createSysPropsSpec() {
@@ -186,6 +193,7 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
 
     /**
      * Retrieves the System Properties Map and writes it to a DataTable.
+     *
      * @return DataTable
      */
     private static DataTable retrieveSysProperties() {
@@ -211,6 +219,7 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
 
     /**
      * Simple spec for Environment Variables, a StringCell contains the value.
+     *
      * @return DataTableSpec
      */
     private static DataTableSpec createEnvVarsSpec() {
@@ -219,6 +228,7 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
 
     /**
      * Retrieves the Environment Variables Map and writes it to a DataTable.
+     *
      * @return DataTable
      */
     private static DataTable retrieveEnvVariables() {
@@ -242,6 +252,11 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
         };
     }
 
+    /**
+     * Creates the spec for the thread information table.
+     *
+     * @return
+     */
     private static DataTableSpec createThreadsSpec() {
         var dtsc = new DataTableSpecCreator();
         dtsc.addColumns(new DataColumnSpecCreator("Name", StringCell.TYPE).createSpec(),
@@ -256,6 +271,12 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
     }
 
     /**
+     * Retrieves the information about the treads, they include:
+     * A name, running state, the CPU and user time, call stacks, as well as interaction with other threads:
+     * - whether the thread is block by another one
+     * - wheteher a deadlock was detected
+     * - whether the thread currently holds any locks.
+     *
      * @param threadsResult
      */
     private static DataTable dumpThreads() {
@@ -270,18 +291,22 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
                     var name = new StringCell(t.getThreadName());
                     var state = new StringCell(t.getThreadState().toString());
 
-                    var isThreadDeadlocked = deadlockedThreads != null && Arrays.stream(deadlockedThreads).anyMatch(i -> i == id);
+                    var isThreadDeadlocked =
+                        deadlockedThreads != null && Arrays.stream(deadlockedThreads).anyMatch(i -> i == id);
                     var deadlockCell = isThreadDeadlocked ? BooleanCell.TRUE : BooleanCell.FALSE;
 
-                    var lockedMonitors = Arrays.stream(t.getLockedSynchronizers()).map(s -> s.toString()).collect(Collectors.joining("\n"));
-                    var lockedCell = lockedMonitors.isEmpty() ? new MissingCell("No locks") : new StringCell(lockedMonitors);
+                    var lockedMonitors = Arrays.stream(t.getLockedSynchronizers()).map(LockInfo::toString)
+                        .collect(Collectors.joining("\n"));
+                    var lockedCell =
+                        lockedMonitors.isEmpty() ? new MissingCell("No locks") : new StringCell(lockedMonitors);
 
                     var isBlockedBy = t.getLockName() != null ? new StringCell(t.getLockName()) : new MissingCell("");
 
                     var cpuTime = new LongCell(threads.getThreadCpuTime(id));
                     var userTime = new LongCell(threads.getThreadUserTime(id));
 
-                    return new DefaultRow(key, name, state, cpuTime, userTime, deadlockCell, lockedCell, isBlockedBy, formatStacktrace(t.getStackTrace()));
+                    return new DefaultRow(key, name, state, cpuTime, userTime, deadlockCell, lockedCell, isBlockedBy,
+                        formatStacktrace(t.getStackTrace()));
                 }).collect(Collectors.toList()));
             }
 
@@ -292,6 +317,13 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
         };
     }
 
+    /**
+     * Formats the call stack traces cell. Each StackTraceElement will be appended
+     * with the common "at"-notation to be displayed nicely in the StringCell.
+     *
+     * @param st StackTraceElement array
+     * @return formatted StringCell containing all stack traces
+     */
     private static DataCell formatStacktrace(final StackTraceElement[] st) {
         if (st.length > 0) {
             var ststring = new StringBuilder("Thread dump");
@@ -301,6 +333,41 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
             return new StringCell(ststring.toString());
         }
         return new MissingCell("No stack trace available");
+    }
+
+    /**
+     * Simple spec for the VM options, a StringCell contains the value.
+     *
+     * @return DataTableSpec
+     */
+    private static DataTableSpec createVMOptSpec() {
+        return new DataTableSpec(new String[]{"Option"}, new DataType[]{StringCell.TYPE});
+    }
+
+    /**
+     * Retrieves all arguments/options set to the JVM.
+     *
+     * @return
+     */
+    private static DataTable retrieveVMOptions() {
+        return new DataTable() {
+
+            @Override
+            public RowIterator iterator() {
+                var rowId = 0;
+                List<DataRow> rows = new ArrayList<>();
+                for (String option : RuntimeDiagnosticHelper.getVMOptions()) {
+                    rows.add(new DefaultRow("Row " + rowId, option));
+                    rowId++;
+                }
+                return new DefaultRowIterator(rows);
+            }
+
+            @Override
+            public DataTableSpec getDataTableSpec() {
+                return createVMOptSpec();
+            }
+        };
     }
 
     /**

@@ -1,44 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="diagnoseruntime.png" type="Source">
-    <name>Diagnose Runtime</name>
-    <shortDescription>Collects all runtime information about the JVM.</shortDescription>
-    <fullDescription>
-        <intro>
-            <p>This node reports individual and aggregate timing/execution information for all nodes of the workflow at
-                this level and for (nested) metanodes up until the specified depth.
-            </p>
-            <p>
-                The output table lists all nodes in the workflow that were executed since the last reset. This
-                also includes nodes in metanodes up to the specified nesting depth. The detailed statistics are:
-                <ul>
-                    <li>Name: Name of the node</li>
-                    <li>Execution Time: The execution time of the most recent execution.</li>
-                    <li>Execution Time since last Reset: The aggregated execution time since the node was last reset.
-                        For all nodes but loop start and end nodes this value is the same as the "execution time". Start
-                        &amp; end nodes do not get reset as part of a loop restart.</li>
-                    <li>Execution Time since Start: The aggregated execution time since the workflow has been opened (or
-                        the node was instantiated).
-                    </li>
-                    <li>Nr of Executions since last Reset: Number of executions since it was last reset. This is usually
-                        1 (or 0 if node is not executed) but can be a larger number for loop start and end nodes.
-                    </li>
-                    <li>Nr of Executions since Start: Number of times a node was executed since the workflow has been
-                        opened.
-                    </li>
-                    <li>NodeID: The unique ID within the workflow associated with the node.</li>
-                    <li>Classname: The java class name of the node -- used to uniquely identify the node implementation.
-                    </li>
-                </ul>
-            </p>
-            <p> All times are reported in milliseconds.
-            </p>
-        </intro>
-        <option name="max depth">Controls depth of reporting of nodes in (nested) metanodes. 0 = no descent.</option>
-    </fullDescription>
-    <ports>
-        <outPort index="0" name="System Properties">The system properties.</outPort>
-        <outPort index="1" name="Environment Variables">All accessible environment variables.</outPort>
-        <outPort index="2" name="Threads Information">The collected information about threads, including StackTraces.</outPort>
-    </ports>
+	<name>Diagnose Runtime</name>
+	<shortDescription>Collects all runtime information about the JVM.</shortDescription>
+	<fullDescription>
+		<intro>
+			<p>This node reports different information that could be relevant for
+				debugging.
+			</p>
+			<p>
+				There are four output tables: system properties, environment
+				variables, information about VM threads
+				and options set to the JVM. Additionally, the node dialog provides to
+				option to dump out the heap
+				information to a specified file. In detail, this node provides:
+				<ul>
+					<li>System Properties: All system properties used to configure the
+						current working environment.</li>
+					<li>Environment Variables: All global variables that the OS uses
+						for configuration.</li>
+					<li>
+						Threads Information: Information about JVM Threads, including
+						following properties:
+						<p>
+							The thread's name, status, CPU time, user time, whether a deadlock
+							was detected, whether the thread holds
+							itself any locks, threads that currently block it and the call stacks
+							per thread.
+						</p>
+					</li>
+					<li>VM Options: All options set to the JVM.</li>
+				</ul>
+			</p>
+		</intro>
+		<option name="Save Heap Dump as File">Enables or disables whether the heap dump should
+			be to a file on the disk.</option>
+		<option name="Selected File">File chooser to select the location of the heap
+			dump file. This file will always
+			have an ".hprof" file extension.</option>
+	</fullDescription>
+	<ports>
+		<outPort index="0" name="System Properties">The system properties.</outPort>
+		<outPort index="1" name="Environment Variables">All accessible environment variables.</outPort>
+		<outPort index="2" name="Threads Information">The collected information about
+			threads, including StackTraces.</outPort>
+		<outPort index="3" name="VM Options">All options set to the JVM.</outPort>
+	</ports>
 </knimeNode>
