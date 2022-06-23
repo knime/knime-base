@@ -50,9 +50,19 @@ package org.knime.base.node.diagnose.diagnoseruntime;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
+import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.DataType;
+import org.knime.core.data.RowIterator;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.DefaultRowIterator;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -64,6 +74,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.util.workflowsummary.WorkflowSummaryCreator;
 
 /**
  * NodeModel for the Diagnose Runtime node.
@@ -72,6 +83,8 @@ import org.knime.core.node.port.PortObjectSpec;
  * @author Leon Wenzler, KNIME AG, Schloss
  */
 public class DiagnoseRuntimeNodeModel extends NodeModel {
+
+    static final String HEAP_DUMP_FORMAT = ".hprof";
 
     // setting keys
     static final String CFGKEY_ISSAVED_HEAPDUMP = "HeapDumpIsSaved";
@@ -101,7 +114,9 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
      * @return
      */
     static SettingsModelString createFileLocationModel() {
-        return new SettingsModelString(CFGKEY_LOCATION, "");
+        var m = new SettingsModelString(CFGKEY_LOCATION, "");
+        m.setEnabled(false);
+        return m;
     }
 
     /**
@@ -114,33 +129,102 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
 
     /**
      * {@inheritDoc}
+     * @throws CanceledExecutionException
+     * @throws InvalidSettingsException
      */
     @Override
-    protected PortObject[] execute(final PortObject[] in, final ExecutionContext exec) {
-        var sysPropsResult = exec.createDataContainer(createSysPropsSpec());
-        sysPropsResult.close();
+    protected PortObject[] execute(final PortObject[] in, final ExecutionContext exec) throws CanceledExecutionException, InvalidSettingsException {
+        dumpHeapIfSelected();
 
-        var envVarsResult = exec.createDataContainer(createEnvVarsSpec());
-        envVarsResult.close();
+        var sysPropsResult = exec.createBufferedDataTable(retrieveSysProperties(), exec);
+
+        var envVarsResult = exec.createBufferedDataTable(retrieveEnvVariables(), exec);
 
         var threadsResult = exec.createDataContainer(createThreadsSpec());
         threadsResult.close();
 
-        return new PortObject[] {sysPropsResult.getTable(), envVarsResult.getTable(), threadsResult.getTable()};
+        return new PortObject[] {sysPropsResult, envVarsResult, threadsResult.getTable()};
     }
 
-    private DataTableSpec createSysPropsSpec() {
-        var dtsc = new DataTableSpecCreator();
-//        var dcss = Arrays.stream(m_includedProperties.getStringArrayValue())
-//            .map(k -> new DataColumnSpecCreator(k, allProps.get(k)).createSpec()).collect(Collectors.toList());
-//        dtsc.addColumns(dcss.toArray(new DataColumnSpec[0]));
-        return dtsc.createSpec();
+    private void dumpHeapIfSelected() throws InvalidSettingsException {
+        if (m_fileSaveLocation.isEnabled()) {
+            var location = m_fileSaveLocation.getStringValue();
+            if (!m_fileSaveLocation.getStringValue().endsWith(HEAP_DUMP_FORMAT)) {
+                location += HEAP_DUMP_FORMAT;
+            }
+            var locationFile = new File(location);
+            if (locationFile.getParentFile() != null && locationFile.getParentFile().exists() && !locationFile.exists()) {
+                RuntimeDiagnosticHelper.dumpHeap(locationFile.toString(), true);
+            } else {
+                throw new InvalidSettingsException("Heap dump file location does not exist.");
+            }
+        }
     }
 
-    private DataTableSpec createEnvVarsSpec() {
-        var dtsc = new DataTableSpecCreator();
-//        dtsc.addColumns(new DataColumnSpecCreator(COLUMN_NAME, XMLCell.TYPE).createSpec());
-        return dtsc.createSpec();
+    /**
+     * Simple spec for System Properties, a StringCell contains the value.
+     * @return DataTableSpec
+     */
+    private static DataTableSpec createSysPropsSpec() {
+        return new DataTableSpec(new String[]{"Value"}, new DataType[]{StringCell.TYPE});
+    }
+
+    /**
+     * Retrieves the System Properties Map and writes it to a DataTable.
+     * @return DataTable
+     */
+    private static DataTable retrieveSysProperties() {
+        return new DataTable() {
+
+            @Override
+            public RowIterator iterator() {
+                List<DataRow> rows = new ArrayList<>();
+                for (Entry<Object, Object> e : System.getProperties().entrySet()) {
+                    var key = String.valueOf(e.getKey());
+                    var value = String.valueOf(e.getValue());
+                    rows.add(new DefaultRow(key, WorkflowSummaryCreator.getValueHidePasswords(key, value)));
+                }
+                return new DefaultRowIterator(rows);
+            }
+
+            @Override
+            public DataTableSpec getDataTableSpec() {
+                return createSysPropsSpec();
+            }
+        };
+    }
+
+    /**
+     * Simple spec for Environment Variables, a StringCell contains the value.
+     * @return DataTableSpec
+     */
+    private static DataTableSpec createEnvVarsSpec() {
+        return new DataTableSpec(new String[]{"Value"}, new DataType[]{StringCell.TYPE});
+    }
+
+    /**
+     * Retrieves the Environment Variables Map and writes it to a DataTable.
+     * @return DataTable
+     */
+    private static DataTable retrieveEnvVariables() {
+        return new DataTable() {
+
+            @Override
+            public RowIterator iterator() {
+                List<DataRow> rows = new ArrayList<>();
+                for (Entry<String, String> e : System.getenv().entrySet()) {
+                    var key = e.getKey();
+                    var value = e.getValue();
+                    rows.add(new DefaultRow(key, WorkflowSummaryCreator.getValueHidePasswords(key, value)));
+                }
+                return new DefaultRowIterator(rows);
+            }
+
+            @Override
+            public DataTableSpec getDataTableSpec() {
+                return createEnvVarsSpec();
+            }
+        };
     }
 
     private DataTableSpec createThreadsSpec() {

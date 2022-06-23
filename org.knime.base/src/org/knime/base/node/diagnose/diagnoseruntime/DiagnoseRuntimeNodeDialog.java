@@ -82,7 +82,7 @@ public class DiagnoseRuntimeNodeDialog extends DefaultNodeSettingsPane {
         // filechooser to select the file's location
         var stringLocationModel = DiagnoseRuntimeNodeModel.createFileLocationModel();
         var fileChooser = new DialogComponentFileChooser(stringLocationModel, "Heap Dump File Location Chooser",
-            JFileChooser.SAVE_DIALOG);
+            JFileChooser.SAVE_DIALOG, ".hprof");
         addDialogComponent(fileChooser);
 
         // deactivating filechooser when heap dump should not be saved
