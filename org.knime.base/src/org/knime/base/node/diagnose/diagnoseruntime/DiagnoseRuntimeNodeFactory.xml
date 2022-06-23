@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="diagnoseruntime.png" type="Source">
+<knimeNode icon="diagnoseruntime.svg" type="Source">
 	<name>Diagnose Runtime</name>
 	<shortDescription>Collects all runtime information about the JVM.</shortDescription>
 	<fullDescription>
