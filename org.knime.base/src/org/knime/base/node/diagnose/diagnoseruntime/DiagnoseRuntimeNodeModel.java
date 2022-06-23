@@ -119,10 +119,13 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] in, final ExecutionContext exec) {
         var sysPropsResult = exec.createDataContainer(createSysPropsSpec());
         sysPropsResult.close();
+
         var envVarsResult = exec.createDataContainer(createEnvVarsSpec());
-        sysPropsResult.close();
+        envVarsResult.close();
+
         var threadsResult = exec.createDataContainer(createThreadsSpec());
-        sysPropsResult.close();
+        threadsResult.close();
+
         return new PortObject[] {sysPropsResult.getTable(), envVarsResult.getTable(), threadsResult.getTable()};
     }
 
