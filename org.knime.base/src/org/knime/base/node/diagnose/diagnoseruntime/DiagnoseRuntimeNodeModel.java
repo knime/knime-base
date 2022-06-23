@@ -50,9 +50,23 @@ package org.knime.base.node.diagnose.diagnoseruntime;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.MissingCell;
+import org.knime.core.data.RowIterator;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.DefaultRowIterator;
+import org.knime.core.data.def.LongCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -114,19 +128,69 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
 
     /**
      * {@inheritDoc}
+     * @throws CanceledExecutionException
      */
     @Override
-    protected PortObject[] execute(final PortObject[] in, final ExecutionContext exec) {
+    protected PortObject[] execute(final PortObject[] in, final ExecutionContext exec) throws CanceledExecutionException {
         var sysPropsResult = exec.createDataContainer(createSysPropsSpec());
         sysPropsResult.close();
 
         var envVarsResult = exec.createDataContainer(createEnvVarsSpec());
         envVarsResult.close();
 
-        var threadsResult = exec.createDataContainer(createThreadsSpec());
-        threadsResult.close();
+        var em = new ExecutionMonitor();
+        var threadsResult = exec.createBufferedDataTable(dumpThreads(), em);
 
-        return new PortObject[] {sysPropsResult.getTable(), envVarsResult.getTable(), threadsResult.getTable()};
+        return new PortObject[] {sysPropsResult.getTable(), envVarsResult.getTable(), threadsResult};
+    }
+
+    /**
+     * @param threadsResult
+     */
+    private DataTable dumpThreads() {
+        return new DataTable() {
+            @Override
+            public RowIterator iterator() {
+                var threads = ManagementFactory.getThreadMXBean();
+                var deadlockedThreads = threads.findDeadlockedThreads();
+                return new DefaultRowIterator(Arrays.stream(threads.dumpAllThreads(true, true)).map(t -> {
+                    var id = t.getThreadId();
+                    var key = new RowKey("Thread " + id);
+                    var name = new StringCell(t.getThreadName());
+                    var state = new StringCell(t.getThreadState().toString());
+
+                    var isThreadDeadlocked = deadlockedThreads != null && Arrays.stream(deadlockedThreads).anyMatch(i -> i == id);
+                    var deadlockCell = isThreadDeadlocked ? BooleanCell.TRUE : BooleanCell.FALSE;
+
+                    var lockedMonitors = Arrays.stream(t.getLockedSynchronizers()).map(s -> s.toString()).collect(Collectors.joining("\n"));
+                    var lockedCell = lockedMonitors.isEmpty() ? new MissingCell("No locks") : new StringCell(lockedMonitors);
+
+                    var isBlockedBy = t.getLockName() != null ? new StringCell(t.getLockName()) : new MissingCell("");
+
+                    var cpuTime = new LongCell(threads.getThreadCpuTime(id));
+                    var userTime = new LongCell(threads.getThreadUserTime(id));
+
+                    return new DefaultRow(key, name, state, cpuTime, userTime, deadlockCell, lockedCell, isBlockedBy, formatStacktrace(t.getStackTrace()));
+                }).collect(Collectors.toList()));
+            }
+
+            @Override
+            public DataTableSpec getDataTableSpec() {
+                return createThreadsSpec();
+            }
+        };
+    }
+
+    private static DataCell formatStacktrace(final StackTraceElement[] st) {
+        if (st.length > 0) {
+            var ststring = new StringBuilder("Thread dump");
+            for (var i = 0; i < st.length; ++i) {
+                ststring.append("\n\tat " + st[i]);
+            }
+            return new StringCell(ststring.toString());
+        }
+        return new MissingCell("No stack trace available");
+
     }
 
     private DataTableSpec createSysPropsSpec() {
@@ -144,9 +208,16 @@ public class DiagnoseRuntimeNodeModel extends NodeModel {
     }
 
     private DataTableSpec createThreadsSpec() {
-    var dtsc = new DataTableSpecCreator();
-//      dtsc.addColumns(new DataColumnSpecCreator(COLUMN_NAME, XMLCell.TYPE).createSpec());
-      return dtsc.createSpec();
+        var dtsc = new DataTableSpecCreator();
+        dtsc.addColumns(new DataColumnSpecCreator("Name", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("State", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("CPU Time", LongCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("User Time", LongCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Deadlock Detected", BooleanCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Holds Locks", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Is Blocked By", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Call Stack", StringCell.TYPE).createSpec());
+        return dtsc.createSpec();
     }
 
     /**
