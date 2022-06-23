@@ -48,15 +48,19 @@
  */
 package org.knime.filehandling.core.fs.knime.mountpoint.node;
 
+import java.time.Duration;
+
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
 
 /**
@@ -99,6 +103,10 @@ final class MountpointConnectorNodeSettings {
 
     private static final String KEY_WORKING_DIRECTORY = "workingDirectory";
 
+    private static final String KEY_CONNECTION_TIMEOUT = "connectionTimeout";
+
+    private static final String KEY_READ_TIMEOUT = "readTimeout";
+
     private final SettingsModelString m_mountpointMode;
 
     private final SettingsModelBoolean m_currentWorkflowAsWorkingDir;
@@ -106,6 +114,10 @@ final class MountpointConnectorNodeSettings {
     private final MountpointSpecificConfig m_mountpoint;
 
     private final SettingsModelString m_workingDirectory;
+
+    private final SettingsModelIntegerBounded m_connectionTimeout;
+
+    private final SettingsModelIntegerBounded m_readTimeout;
 
     /**
      * Creates new instance
@@ -116,6 +128,14 @@ final class MountpointConnectorNodeSettings {
         m_workingDirectory =
             new SettingsModelString(KEY_WORKING_DIRECTORY, MountpointFSConnectionConfig.PATH_SEPARATOR);
         m_currentWorkflowAsWorkingDir = new SettingsModelBoolean(KEY_CURRENT_WORKFLOW_AS_WORKING_DIR, false);
+        m_connectionTimeout = new SettingsModelIntegerBounded(KEY_CONNECTION_TIMEOUT, //
+            TimeoutFSConnectionConfig.DEFAULT_TIMEOUT_SECONDS, //
+            0, //
+            Integer.MAX_VALUE);
+        m_readTimeout = new SettingsModelIntegerBounded(KEY_READ_TIMEOUT, //
+            TimeoutFSConnectionConfig.DEFAULT_TIMEOUT_SECONDS, //
+            0, //
+            Integer.MAX_VALUE);
     }
 
     /**
@@ -170,6 +190,34 @@ final class MountpointConnectorNodeSettings {
     }
 
     /**
+     * @return connection time out settings model.
+     */
+    public SettingsModelIntegerBounded getConnectionTimeoutModel() {
+        return m_connectionTimeout;
+    }
+
+    /**
+     * @return read time out settings model.
+     */
+    public SettingsModelIntegerBounded getReadTimeoutModel() {
+        return m_readTimeout;
+    }
+
+    /**
+     * @return connection time out.
+     */
+    public Duration getConnectionTimeout() {
+        return Duration.ofSeconds(m_connectionTimeout.getIntValue());
+    }
+
+    /**
+     * @return socket read time out.
+     */
+    public Duration getReadTimeout() {
+        return Duration.ofSeconds(m_readTimeout.getIntValue());
+    }
+
+    /**
      * Saves the settings in this instance to the given {@link NodeSettingsWO}
      *
      * @param settings Node settings.
@@ -179,6 +227,8 @@ final class MountpointConnectorNodeSettings {
         m_currentWorkflowAsWorkingDir.saveSettingsTo(settings);
         m_mountpoint.save(settings);
         m_workingDirectory.saveSettingsTo(settings);
+        m_connectionTimeout.saveSettingsTo(settings);
+        m_readTimeout.saveSettingsTo(settings);
     }
 
     /**
@@ -192,6 +242,12 @@ final class MountpointConnectorNodeSettings {
         m_currentWorkflowAsWorkingDir.validateSettings(settings);
         m_mountpoint.validateInModel(settings);
         m_workingDirectory.validateSettings(settings);
+
+        // added with 4.6.1
+        if (settings.containsKey(KEY_CONNECTION_TIMEOUT)) {
+            m_connectionTimeout.validateSettings(settings);
+            m_readTimeout.validateSettings(settings);
+        }
 
         final var temp = new MountpointConnectorNodeSettings();
         temp.loadInModel(settings);
@@ -250,5 +306,10 @@ final class MountpointConnectorNodeSettings {
         m_mountpointMode.loadSettingsFrom(settings);
         m_currentWorkflowAsWorkingDir.loadSettingsFrom(settings);
         m_workingDirectory.loadSettingsFrom(settings);
+        // added with 4.6.1
+        if (settings.containsKey(KEY_CONNECTION_TIMEOUT)) {
+            m_connectionTimeout.loadSettingsFrom(settings);
+            m_readTimeout.loadSettingsFrom(settings);
+        }
     }
 }

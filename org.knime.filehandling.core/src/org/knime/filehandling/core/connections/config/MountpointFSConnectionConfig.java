@@ -48,13 +48,15 @@
  */
 package org.knime.filehandling.core.connections.config;
 
+import java.time.Duration;
+
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
 
 /**
  * {@link FSConnectionConfig} for the Mountpoint file system. It is unlikely that you will have to use this class
@@ -63,7 +65,7 @@ import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
  */
-public final class MountpointFSConnectionConfig extends BaseFSConnectionConfig {
+public final class MountpointFSConnectionConfig extends TimeoutFSConnectionConfig {
 
     /**
      * Path separator character
@@ -91,6 +93,22 @@ public final class MountpointFSConnectionConfig extends BaseFSConnectionConfig {
     public MountpointFSConnectionConfig(final String workingDirectory, final String mountID) {
         super(workingDirectory, true);
         m_mountID = mountID;
+    }
+
+    /**
+     * Constructor that creates a CONNECTED file system with the given working directory and custom timeouts.
+     *
+     * @param workingDirectory The working directory to use.
+     * @param mountID The mount ID to connect to.
+     * @param connectionTimeout the connectionTimeout.
+     * @param readTimeout the readTimeout.
+     */
+    public MountpointFSConnectionConfig(final String workingDirectory, final String mountID,
+        final Duration connectionTimeout, final Duration readTimeout) {
+        super(workingDirectory, true);
+        m_mountID = mountID;
+        setConnectionTimeout(connectionTimeout);
+        setReadTimeout(readTimeout);
     }
 
     /**

@@ -66,6 +66,14 @@
 		        paths, i.e. paths that do not have a leading slash. The default working directory is "/".
 		    </option>
         </tab>
+        <tab name="Advanced">
+            <option name="Connection timeout (seconds)">
+                Timeout in seconds to establish a connection, or 0 for an infinite timeout. 
+            </option>
+            <option name="Read timeout (seconds)">
+                Timeout in seconds to read data from an established connection, or 0 for an infinite timeout.
+            </option>
+        </tab>
     </fullDescription>
     
     <ports>

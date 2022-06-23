@@ -56,7 +56,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
-import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
 
 /**
  * {@link FSConnectionConfig} for the Space file system. It is unlikely that you will have to use this class directly.
@@ -64,7 +64,7 @@ import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
  *
  * @author Zkriya Rakhimberdiyev
  */
-public class SpaceFSConnectionConfig extends BaseFSConnectionConfig {
+public class SpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
 
     /**
      * Path separator character
@@ -74,10 +74,6 @@ public class SpaceFSConnectionConfig extends BaseFSConnectionConfig {
     private final String m_mountID;
 
     private final String m_spaceId;
-
-    private final Duration m_connectionTimeout;
-
-    private final Duration m_readTimeout;
 
     /**
      * Constructor that creates a CONNECTED file system with the given working directory.
@@ -93,8 +89,8 @@ public class SpaceFSConnectionConfig extends BaseFSConnectionConfig {
         super(workingDirectory, true);
         m_mountID = mountID;
         m_spaceId = spaceId;
-        m_connectionTimeout = connectionTimeout;
-        m_readTimeout = readTimeout;
+        setConnectionTimeout(connectionTimeout);
+        setReadTimeout(readTimeout);
     }
 
     /**
@@ -109,20 +105,6 @@ public class SpaceFSConnectionConfig extends BaseFSConnectionConfig {
      */
     public String getSpaceID() {
         return m_spaceId;
-    }
-
-    /**
-     * @return the connectionTimeout.
-     */
-    public Duration getConnectionTimeout() {
-        return m_connectionTimeout;
-    }
-
-    /**
-     * @return the readTimeout.
-     */
-    public Duration getReadTimeout() {
-        return m_readTimeout;
     }
 
     /**
