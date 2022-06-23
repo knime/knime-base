@@ -1,43 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="diagnoseworkflow.png" type="Source">
-    <name>Diagnose Workflow</name>
-    <shortDescription>Collects all timer information from nodes in this workflow.</shortDescription>
-    <fullDescription>
-        <intro>
-            <p>This node reports individual and aggregate timing/execution information for all nodes of the workflow at
-                this level and for (nested) metanodes up until the specified depth.
-            </p>
-            <p>
-                The output table lists all nodes in the workflow that were executed since the last reset. This
-                also includes nodes in metanodes up to the specified nesting depth. The detailed statistics are:
-                <ul>
-                    <li>Name: Name of the node</li>
-                    <li>Execution Time: The execution time of the most recent execution.</li>
-                    <li>Execution Time since last Reset: The aggregated execution time since the node was last reset.
-                        For all nodes but loop start and end nodes this value is the same as the "execution time". Start
-                        &amp; end nodes do not get reset as part of a loop restart.</li>
-                    <li>Execution Time since Start: The aggregated execution time since the workflow has been opened (or
-                        the node was instantiated).
-                    </li>
-                    <li>Nr of Executions since last Reset: Number of executions since it was last reset. This is usually
-                        1 (or 0 if node is not executed) but can be a larger number for loop start and end nodes.
-                    </li>
-                    <li>Nr of Executions since Start: Number of times a node was executed since the workflow has been
-                        opened.
-                    </li>
-                    <li>NodeID: The unique ID within the workflow associated with the node.</li>
-                    <li>Classname: The java class name of the node -- used to uniquely identify the node implementation.
-                    </li>
-                </ul>
-            </p>
-            <p> All times are reported in milliseconds.
-            </p>
-        </intro>
-        <option name="max depth">Controls depth of reporting of nodes in (nested) metanodes. 0 = no descent.</option>
-    </fullDescription>
-    <ports>
-        <outPort index="0" name="Nodes Overview">The collected timer information.</outPort>
-        <outPort index="1" name="Workflow Summary">The collected timer information.</outPort>
-    </ports>
+<knimeNode icon="diagnoseworkflow.svg" type="Source">
+	<name>Diagnose Workflow</name>
+	<shortDescription>Gathers information on the workflow the node is
+		placed in.</shortDescription>
+	<fullDescription>
+		<intro>
+			<p>
+				This node outputs a table that contains basic information about every
+				node in the workflow, like the name, ID, size on disk and execution
+				time.
+			</p>
+			<p>
+				The output table lists all nodes in the workflow that were executed
+				since the last reset. This
+				also includes nodes in metanodes up to the specified nesting depth. The
+				detailed statistics are:
+				<ul>
+					<li>Row Key: The row key corresponds to the unique node ID</li>
+					<li>Name: Name of the node</li>
+					<li>Class Name: If available, the class name of the node factory</li>
+					<li>Type: Either Native Node, Metanode or Component</li>
+					<li>Source URI: If available (i.e. the node is a linked
+						Metanode/Component), the location of the source node</li>
+					<li>Deprecated: Whether the node is marked as deprecated</li>
+					<li>Disk Space: The size of the node on disk, including
+						configuration, data and potential sub-workflows</li>
+					<li>Execution Time: How long the last execution of the node took in
+						milliseconds</li>
+					<li>Nr of Executions: How often the node has been executed since
+						the start of the application</li>
+				</ul>
+			</p>
+			<p>
+				Additionally, this node outputs a workflow summary string in XML or JSON format
+				that includes even more useful information like the configuration
+				settings of the node or its ports.
+			</p>
+		</intro>
+		<option name="Include component contents">Whether to include the nodes inside a component</option>
+		<option name="Output format">Whether the WorkflowSummary shall be in JSON or
+			XML format</option>
+		<option name="Include properties">What properties to include in the node overview</option>
+	</fullDescription>
+	<ports>
+		<outPort index="0" name="Node Overview">Listing of all nodes in the workflow,
+			enhanced by some simple statistics</outPort>
+		<outPort index="1" name="Workflow Summary">The generated workflow summary</outPort>
+	</ports>
 </knimeNode>

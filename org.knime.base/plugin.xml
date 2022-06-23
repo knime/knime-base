@@ -1793,6 +1793,11 @@
             factory-class="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
             >
       </node>
+      <node 
+      		after="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
+      		category-path="/io/io-other"
+      		factory-class="org.knime.base.node.diagnose.diagnoseworkflow.DiagnoseWorkflowNodeFactory">
+      </node>
       <node
             after="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
             category-path="/io/io-other"
@@ -1998,11 +2003,6 @@
             category-path="/flowcontrol/automation"
             factory-class="org.knime.base.node.util.globaltimerinfo.GlobalTimerinfoNodeFactory"
             >
-      </node>
-      <node 
-      		after="org.knime.base.node.util.globaltimerinfo.GlobalTimerinfoNodeFactory"
-      		category-path="/flowcontrol/automation"
-      		factory-class="org.knime.base.node.diagnose.diagnoseworkflow.DiagnoseWorkflowNodeFactory">
       </node>
       <node
             category-path="/flowcontrol/loopsupport"

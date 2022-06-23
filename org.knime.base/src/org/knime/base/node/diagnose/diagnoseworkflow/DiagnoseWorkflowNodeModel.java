@@ -99,13 +99,17 @@ import org.knime.core.util.workflowsummary.WorkflowSummaryUtil;
 import org.xml.sax.SAXException;
 
 /**
- * NodeModel for the Diagnose Workflow node.
+ * NodeModel for the Diagnose Workflow node. This node is intended for debug purposes and outputs a brief overview of
+ * the nodes in the workflow, as well as a full workflow summary.
  *
  * @author Jasper Krauter, KNIME AG, Schloss
  * @author Leon Wenzler, KNIME AG, Schloss
  */
 public class DiagnoseWorkflowNodeModel extends NodeModel {
 
+    /**
+     * This map holds all available properties that can be added to the node overview
+     */
     static final Map<String, DataType> allProps = new LinkedHashMap<>();
     static {
         allProps.put("Name", StringCell.TYPE);
@@ -120,24 +124,32 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     static final String CFGKEY_SCAN_COMPONENTS = "ScanComponents";
 
-//    static final String FMT_SELECTION_JSON = "JSON";
+    //    static final String FMT_SELECTION_JSON = "JSON";
     static final String FMT_SELECTION_XML = "XML";
+
     static final String CFGKEY_FORMAT = "OutputFormat";
 
     static final String CFGKEY_INCLUDES = "IncludedProperties";
+
     static final String CFGKEY_EXCLUDES = "ExcludedProperties";
 
     static final String COLUMN_NAME = "workflow summary";
+
     static final String ROW_NAME = "summary";
 
-    static final String TABLE_OUTPUT_NAME = "Nodes Overview";
+    static final String TABLE_OUTPUT_NAME = "Node Overview";
+
     static final String SUMMARY_OUTPUT_NAME = "Workflow Summary";
 
     private SettingsModelBoolean m_scanComponents = createComponentScanSettingsModel();
-    private SettingsModelString m_outputFormat = createOutputFormatSelectionModel();
-    private SettingsModelStringArray m_includedProperties = new SettingsModelStringArray(CFGKEY_INCLUDES, getPropertiesAsStringArray());
-    private SettingsModelStringArray m_excludedProperties = new SettingsModelStringArray(CFGKEY_EXCLUDES, new String[0]);
 
+    private SettingsModelString m_outputFormat = createOutputFormatSelectionModel();
+
+    private SettingsModelStringArray m_includedProperties =
+        new SettingsModelStringArray(CFGKEY_INCLUDES, getPropertiesAsStringArray());
+
+    private SettingsModelStringArray m_excludedProperties =
+        new SettingsModelStringArray(CFGKEY_EXCLUDES, new String[0]);
 
     /**
      * Create a new instance
@@ -149,6 +161,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     /**
      * Returns every possible workflow property, as String array.
+     *
      * @return String[] allProperties
      */
     static String[] getPropertiesAsStringArray() {
@@ -157,6 +170,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     /**
      * Creates a integer settings model for storing the maximum depth.
+     *
      * @return
      */
     static SettingsModelBoolean createComponentScanSettingsModel() {
@@ -165,10 +179,11 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
     /**
      * Creates a String settings model for storing the output format selection.
+     *
      * @return
      */
     static SettingsModelString createOutputFormatSelectionModel() {
-//        return new SettingsModelString(CFGKEY_FORMAT, FMT_SELECTION_JSON);
+        //        return new SettingsModelString(CFGKEY_FORMAT, FMT_SELECTION_JSON);
         return new SettingsModelString(CFGKEY_FORMAT, FMT_SELECTION_XML);
     }
 
@@ -177,18 +192,20 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
      */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] in) {
-        return new PortObjectSpec[]{ createTableSpec(), createSummarySpec() };
+        return new PortObjectSpec[]{createTableSpec(), createSummarySpec()};
     }
 
     /**
      * {@inheritDoc}
+     *
      * @throws IOException
      * @throws XMLStreamException
      * @throws SAXException
      * @throws ParserConfigurationException
      */
     @Override
-    protected PortObject[] execute(final PortObject[] in, final ExecutionContext ec) throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
+    protected PortObject[] execute(final PortObject[] in, final ExecutionContext ec)
+        throws IOException, ParserConfigurationException, SAXException, XMLStreamException {
         var summary = WorkflowSummaryCreator.create(getMyWFM(), true);
 
         var tableResult = ec.createDataContainer(createTableSpec());
@@ -197,22 +214,27 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
 
         final var summaryResult = ec.createDataContainer(createSummarySpec());
         try (var os = new ByteArrayOutputStream()) {
-//            if (isJsonSelected()) {
-//                WorkflowSummaryUtil.writeJSON(os, summary, false);
-//                summaryResult.addRowToTable(
-//                    new DefaultRow(ROW_NAME, JSONCellFactory.create(os.toString(StandardCharsets.UTF_8.name()), false)));
-//            } else {
-                WorkflowSummaryUtil.writeXML(os, summary, false);
-                summaryResult.addRowToTable(
-                    new DefaultRow(ROW_NAME, XMLCellFactory.create(os.toString(StandardCharsets.UTF_8.name()))));
-//            }
+            //            if (isJsonSelected()) {
+            //                WorkflowSummaryUtil.writeJSON(os, summary, false);
+            //                summaryResult.addRowToTable(
+            //                    new DefaultRow(ROW_NAME, JSONCellFactory.create(os.toString(StandardCharsets.UTF_8.name()), false)));
+            //            } else {
+            WorkflowSummaryUtil.writeXML(os, summary, false);
+            summaryResult.addRowToTable(
+                new DefaultRow(ROW_NAME, XMLCellFactory.create(os.toString(StandardCharsets.UTF_8.name()))));
+            //            }
 
             summaryResult.close();
         }
 
-        return new PortObject[] {tableResult.getTable(), summaryResult.getTable()};
+        return new PortObject[]{tableResult.getTable(), summaryResult.getTable()};
     }
 
+    /**
+     * create the table spec for the node overview
+     *
+     * @return
+     */
     private DataTableSpec createTableSpec() {
         var dtsc = new DataTableSpecCreator().setName(TABLE_OUTPUT_NAME);
         var dcss = Arrays.stream(m_includedProperties.getStringArrayValue())
@@ -221,30 +243,48 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
         return dtsc.createSpec();
     }
 
+    /**
+     * create the table spec for the workflow summary
+     *
+     * @return
+     */
     private DataTableSpec createSummarySpec() {
         var dtsc = new DataTableSpecCreator().setName(SUMMARY_OUTPUT_NAME);
-//        dtsc.addColumns(new DataColumnSpecCreator(COLUMN_NAME, isJsonSelected() ? JSONCell.TYPE : XMLCell.TYPE).createSpec());
+        //        dtsc.addColumns(new DataColumnSpecCreator(COLUMN_NAME, isJsonSelected() ? JSONCell.TYPE : XMLCell.TYPE).createSpec());
         dtsc.addColumns(new DataColumnSpecCreator(COLUMN_NAME, XMLCell.TYPE).createSpec());
         return dtsc.createSpec();
     }
 
-
+    /**
+     * recursively walk the workflow and report the node properties
+     *
+     * @param wf
+     * @param result
+     */
     private void reportNodes(final Workflow wf, final BufferedDataContainer result) {
         for (var node : wf.getNodes()) {
             var rowID = new RowKey("Node " + node.getId());
             var cells = new LinkedList<DataCell>();
             createTableSpec().forEach(col -> cells.add(extractValue(col.getName(), node)));
             result.addRowToTable(new DefaultRow(rowID, cells.toArray(new DataCell[cells.size()])));
-            if (node.isMetanode() == Boolean.TRUE || (node.isComponent() == Boolean.TRUE && m_scanComponents.getBooleanValue())) {
+            if (node.isMetanode() == Boolean.TRUE
+                || (node.isComponent() == Boolean.TRUE && m_scanComponents.getBooleanValue())) {
                 reportNodes(node.getSubWorkflow(), result);
             }
         }
     }
 
-//    private boolean isJsonSelected() {
-//        return m_outputFormat.getStringValue().equals(FMT_SELECTION_JSON);
-//    }
+    //    private boolean isJsonSelected() {
+    //        return m_outputFormat.getStringValue().equals(FMT_SELECTION_JSON);
+    //    }
 
+    /**
+     * extracts the property with the given key from the workflow summary and wraps it in a datacell
+     *
+     * @param key
+     * @param node
+     * @return
+     */
     private static DataCell extractValue(final String key, final Node node) {
         switch (key) {
             case "Name":
@@ -296,7 +336,14 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
         }
     }
 
+    /**
+     * Returns the workflow that this node is located in
+     *
+     * @return
+     */
     private WorkflowManager getMyWFM() {
+        // This seems to be the easiest way: search the global WFM instance for this node and then return parent
+        // Ugly, sorry :(
         var globalWFM = NodeContext.getContext().getWorkflowManager();
         var thisModel = this;
         var thisNodeID =
@@ -315,8 +362,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // TODO Auto-generated method stub
-
+        // nothing to do
     }
 
     /**
@@ -325,8 +371,7 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // TODO Auto-generated method stub
-
+        // nothing to do
     }
 
     /**
@@ -364,7 +409,6 @@ public class DiagnoseWorkflowNodeModel extends NodeModel {
      */
     @Override
     protected void reset() {
-        // TODO Auto-generated method stub
-
+        // nothing to do
     }
 }
