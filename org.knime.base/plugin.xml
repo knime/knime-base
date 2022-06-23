@@ -1793,15 +1793,25 @@
             factory-class="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
             >
       </node>
+      <node 
+      		after="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
+      		category-path="/io/io-other"
+      		factory-class="org.knime.base.node.diagnose.diagnoseworkflow.DiagnoseWorkflowNodeFactory">
+      </node>
       <node
-            after="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
+           after="org.knime.base.node.diagnose.diagnoseworkflow.DiagnoseWorkflowNodeFactory"
+           category-path="/io/io-other"
+           factory-class="org.knime.base.node.diagnose.diagnoseruntime.DiagnoseRuntimeNodeFactory">
+      </node>
+      <node
+            after="org.knime.base.node.diagnose.diagnoseruntime.DiagnoseRuntimeNodeFactory"
             category-path="/io/io-other"
             deprecated="true"
             factory-class="org.knime.base.node.io.extractcontextprop.ReadContextPropertyNodeFactory"
             >
       </node>
       <node
-            after="org.knime.base.node.io.extractsysprop.ReadSysPropertyNodeFactory"
+            after="org.knime.base.node.diagnose.diagnoseruntime.DiagnoseRuntimeNodeFactory"
             category-path="/io/io-other"
             factory-class="org.knime.base.node.io.extractcontextprop.ReadContextProperty2NodeFactory"
             >
@@ -1998,11 +2008,6 @@
             category-path="/flowcontrol/automation"
             factory-class="org.knime.base.node.util.globaltimerinfo.GlobalTimerinfoNodeFactory"
             >
-      </node>
-      <node
-           after="org.knime.base.node.diagnose.diagnoseworkflow.DiagnoseWorkflowNodeFactory"
-           category-path="/io/io-other"
-           factory-class="org.knime.base.node.diagnose.diagnoseruntime.DiagnoseRuntimeNodeFactory">
       </node>
       <node
             category-path="/flowcontrol/loopsupport"
