@@ -11,7 +11,8 @@
 			<p>
 				There are four output tables: system properties, environment
 				variables, information about VM threads
-				and options set to the JVM. Additionally, the node dialog provides to
+				and options set to the JVM.
+				Additionally, the node dialog provides to
 				option to dump out the heap
 				information to a specified file. In detail, this node provides:
 				<ul>
@@ -22,12 +23,10 @@
 					<li>
 						Threads Information: Information about JVM Threads, including
 						following properties:
-						<p>
-							The thread's name, status, CPU time, user time, whether a deadlock
-							was detected, whether the thread holds
-							itself any locks, threads that currently block it and the call stacks
-							per thread.
-						</p>
+						The thread's name, status, CPU time, user time, whether a deadlock
+						was detected, whether the thread holds
+						itself any locks, threads that currently block it and the call stacks
+						per thread.
 					</li>
 					<li>VM Options: All options set to the JVM.</li>
 				</ul>
