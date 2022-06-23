@@ -72,11 +72,21 @@ public final class RuntimeDiagnosticHelper {
     private static volatile Object hotspotMXBeanInstance;
 
     /**
+     * Checks whether the hotspot MXBean object was created successfully.
+     *
+     * @return was created successfully
+     */
+    private static synchronized boolean isPresentHotSpotObject() {
+        return hotspotMXBeanInstance != null;
+    }
+
+
+    /**
      * Initializes the hotspot MXBean field
      */
     private static synchronized void initializeHotspotMXBean() {
-        if (hotspotMXBeanInstance == null) {
-            hotspotMXBeanInstance = getHotspotMBean();
+        if (!isPresentHotSpotObject()) {
+            hotspotMXBeanInstance = getHotspotMXBean();
         }
     }
 
@@ -86,7 +96,7 @@ public final class RuntimeDiagnosticHelper {
      * @return hotspot MXBean object
      * @throws IllegalAccessException
      */
-    private static Object getHotspotMBean() {
+    private static Object getHotspotMXBean() {
         try {
             var clazz = Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
             var server = ManagementFactory.getPlatformMBeanServer();
@@ -107,14 +117,17 @@ public final class RuntimeDiagnosticHelper {
      */
     static void dumpHeap(final String fileName, final boolean live) {
         initializeHotspotMXBean();
-        try {
-            // accessing the access-restricted HotSpotDiagnosticMXBean interface
-            var clazz = Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
-            var method = clazz.getMethod("dumpHeap", String.class, boolean.class);
-            method.invoke(hotspotMXBeanInstance, fileName, live);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
-                | InvocationTargetException e) {
-            LOGGER.log(Level.WARNING, String.format("Heap could not be dumped to file: %s", e.getMessage()));
+
+        if (isPresentHotSpotObject()) {
+            try {
+                // accessing the access-restricted HotSpotDiagnosticMXBean interface
+                var clazz = Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
+                var method = clazz.getMethod("dumpHeap", String.class, boolean.class);
+                method.invoke(hotspotMXBeanInstance, fileName, live);
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
+                    | InvocationTargetException e) {
+                LOGGER.log(Level.WARNING, String.format("Heap could not be dumped to file: %s", e.getMessage()));
+            }
         }
     }
 
