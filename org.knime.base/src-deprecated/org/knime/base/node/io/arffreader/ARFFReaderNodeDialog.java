@@ -76,6 +76,7 @@ import org.knime.core.node.workflow.FlowVariable;
  *
  * @author Peter Ohl, University of Konstanz
  */
+@Deprecated
 public class ARFFReaderNodeDialog extends NodeDialogPane {
 
     private final FilesHistoryPanel m_filePanel;

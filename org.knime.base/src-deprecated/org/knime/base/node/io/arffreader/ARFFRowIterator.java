@@ -72,6 +72,7 @@ import org.knime.core.util.tokenizer.TokenizerSettings;
  *
  * @author Peter Ohl, University of Konstanz
  */
+@Deprecated
 public class ARFFRowIterator extends RowIterator {
     /** The node logger fot this class. */
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ARFFRowIterator.class);

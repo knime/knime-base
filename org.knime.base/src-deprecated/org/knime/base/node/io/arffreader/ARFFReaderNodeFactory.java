@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   11.02.2005 (ohl): created
  */
@@ -53,9 +53,10 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 
 /**
- * 
+ *
  * @author Peter Ohl, University of Konstanz
  */
+@Deprecated
 public class ARFFReaderNodeFactory extends NodeFactory {
 
     private final String m_fileURL;
@@ -69,7 +70,7 @@ public class ARFFReaderNodeFactory extends NodeFactory {
 
     /**
      * This factory will create a model with the file set as default file.
-     * 
+     *
      * @param fileURL a valid URL to the default ARFF file.
      */
     public ARFFReaderNodeFactory(final String fileURL) {

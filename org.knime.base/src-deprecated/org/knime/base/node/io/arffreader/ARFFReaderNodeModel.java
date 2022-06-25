@@ -74,6 +74,7 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Peter Ohl, University of Konstanz
  */
+@Deprecated
 public class ARFFReaderNodeModel extends NodeModel {
 
     /** The node logger for this class. */
