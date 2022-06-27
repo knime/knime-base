@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Filehandling functionality for KNIME
 Bundle-SymbolicName: org.knime.filehandling.core;singleton:=true
-Bundle-Version: 4.6.0.qualifier
+Bundle-Version: 4.7.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.connections.base,
