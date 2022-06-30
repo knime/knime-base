@@ -67,7 +67,21 @@ import org.knime.core.util.Pair;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class FeatureSelectionFilterSettings {
+    private static final String SELECTED_FEATURES_KEY = "selectedFeatures";
+
+    private static final String NR_OF_FEATURES_KEY = "nrOfFeatures";
+
+    private static final String INCLUDE_TARGET_KEY = "includeTargetColumn";
+
+    private static final String THRESHOLD_MODE_KEY = "thresholdMode";
+
+    private static final String ERROR_THRESHOLD_KEY = "errorThreshold";
+
+    private static final String BEST_SCORE_MODE_KEY = "bestScoreMode";
+
     private int m_nrOfFeatures;
+
+    private Collection<String> m_selectedFeatures;
 
     private boolean m_includeTargetColumn;
 
@@ -172,7 +186,7 @@ public class FeatureSelectionFilterSettings {
             if (p.isPresent()) {
                 l.addAll(p.get().getSecond());
             }
-        } else {
+        } else if (m_selectedFeatures == null) {
             for (Pair<Double, Collection<String>> p : model.featureLevels()) {
                 Collection<String> incFeatures = p.getSecond();
                 if (incFeatures.size() == m_nrOfFeatures) {
@@ -180,6 +194,8 @@ public class FeatureSelectionFilterSettings {
                     break;
                 }
             }
+        } else {
+            l.addAll(m_selectedFeatures);
         }
         if (m_includeTargetColumn) {
             l.addAll(Arrays.asList(model.getConstantColumns()));
@@ -188,25 +204,36 @@ public class FeatureSelectionFilterSettings {
     }
 
     /**
-     * Returns the number of included feature for the selected level. This is not necessarily the same with the number
-     * of included columns in the {@link BWElimModel} as the latter only contains columns that are present in the input
-     * table while the number of features is the "level" that comes out from the elimination loop.
+     * This method exists for backwards compatibility: Older versions of this node stored only the number of features,
+     * not an actual list.
      *
-     * @return the number of included features
+     * @return the stored number of features
      */
-    public int nrOfFeatures() {
+    int nrOfFeatures() {
         return m_nrOfFeatures;
     }
 
     /**
-     * Sets the number of included feature for the selected level. This is not necessarily the same with the number of
+     * Returns the list of included features for the selected level. This is not necessarily the same with the list
+     * of included columns in the {@link BWElimModel} as the latter only contains columns that are present in the input
+     * table while the number of features is the "level" that comes out from the elimination loop.
+     *
+     * @return the list of included features
+     */
+    public Collection<String> selectedFeatures() {
+        return m_selectedFeatures;
+    }
+
+    /**
+     * Sets the list of included features for the selected level. This is not necessarily the same with the list of
      * included columns in the {@link BWElimModel} as the latter only contains columns that are present in the input
      * table while the number of features is the "level" that comes out from the elimination loop.
      *
-     * @param number the number of included features
+     * @param features the number of included features
      */
-    public void nrOfFeatures(final int number) {
-        m_nrOfFeatures = number;
+    public void selectedFeatures(final Collection<String> features) {
+        m_selectedFeatures = features;
+        m_nrOfFeatures = features.size();
     }
 
     /**
@@ -215,11 +242,14 @@ public class FeatureSelectionFilterSettings {
      * @param settings a node settings object
      */
     public void saveSettings(final NodeSettingsWO settings) {
-        settings.addInt("nrOfFeatures", m_nrOfFeatures);
-        settings.addBoolean("includeTargetColumn", m_includeTargetColumn);
-        settings.addBoolean("thresholdMode", m_thresholdMode);
-        settings.addDouble("errorThreshold", m_errorThreshold);
-        settings.addBoolean("bestScoreMode", m_bestScoreMode);
+        if (m_selectedFeatures != null) {
+            settings.addStringArray(SELECTED_FEATURES_KEY, m_selectedFeatures.toArray(String[]::new));
+        }
+        settings.addInt(NR_OF_FEATURES_KEY, m_nrOfFeatures);
+        settings.addBoolean(INCLUDE_TARGET_KEY, m_includeTargetColumn);
+        settings.addBoolean(THRESHOLD_MODE_KEY, m_thresholdMode);
+        settings.addDouble(ERROR_THRESHOLD_KEY, m_errorThreshold);
+        settings.addBoolean(BEST_SCORE_MODE_KEY, m_bestScoreMode);
     }
 
     /**
@@ -229,15 +259,24 @@ public class FeatureSelectionFilterSettings {
      * @throws InvalidSettingsException if a settings is missing
      */
     public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_nrOfFeatures = settings.getInt("nrOfFeatures");
-        m_includeTargetColumn = settings.getBoolean("includeTargetColumn");
+        m_nrOfFeatures = settings.getInt(NR_OF_FEATURES_KEY);
+        if (settings.containsKey(SELECTED_FEATURES_KEY)) {
+            m_selectedFeatures = Arrays.asList(settings.getStringArray(SELECTED_FEATURES_KEY));
+        }
+        // if the amount of selected features doesn't match the "nrOfFeatures" setting, let the latter take precedence
+        // for backwards compatibility. It's likely set via a flow variable.
+        if (m_selectedFeatures != null && m_selectedFeatures.size() != m_nrOfFeatures) {
+            m_selectedFeatures = null;
+        }
+
+        m_includeTargetColumn = settings.getBoolean(INCLUDE_TARGET_KEY);
 
         /** @since 2.4 */
-        m_thresholdMode = settings.getBoolean("thresholdMode", false);
-        m_errorThreshold = settings.getDouble("errorThreshold", 0.5);
+        m_thresholdMode = settings.getBoolean(THRESHOLD_MODE_KEY, false);
+        m_errorThreshold = settings.getDouble(ERROR_THRESHOLD_KEY, 0.5);
 
         /** @since 4.1 */
-        m_bestScoreMode = settings.getBoolean("bestScoreMode", false);
+        m_bestScoreMode = settings.getBoolean(BEST_SCORE_MODE_KEY, false);
     }
 
     /**
@@ -247,11 +286,20 @@ public class FeatureSelectionFilterSettings {
      * @param settings a node settings object
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_nrOfFeatures = settings.getInt("nrOfFeatures", -1);
-        m_includeTargetColumn = settings.getBoolean("includeTargetColumn", false);
-        m_thresholdMode = settings.getBoolean("thresholdMode", false);
-        m_errorThreshold = settings.getDouble("errorThreshold", 0.5);
-        m_bestScoreMode = settings.getBoolean("bestScoreMode", false);
+        m_nrOfFeatures = settings.getInt(NR_OF_FEATURES_KEY, -1);
+        if (settings.containsKey(SELECTED_FEATURES_KEY)) {
+            m_selectedFeatures = Arrays.asList(settings.getStringArray(SELECTED_FEATURES_KEY, new String[]{}));//NOSONAR
+        }
+        // if the amount of selected features doesn't match the "nrOfFeatures" setting, let the latter take precedence
+        // for backwards compatibility. It's likely set via a flow variable.
+        if (m_selectedFeatures != null && m_selectedFeatures.size() != m_nrOfFeatures) {
+            m_selectedFeatures = null;
+        }
+
+        m_includeTargetColumn = settings.getBoolean(INCLUDE_TARGET_KEY, false);
+        m_thresholdMode = settings.getBoolean(THRESHOLD_MODE_KEY, false);
+        m_errorThreshold = settings.getDouble(ERROR_THRESHOLD_KEY, 0.5);
+        m_bestScoreMode = settings.getBoolean(BEST_SCORE_MODE_KEY, false);
     }
 
     static Pair<Double, Collection<String>> findMinimalSet(final FeatureSelectionModel model, final double threshold) {

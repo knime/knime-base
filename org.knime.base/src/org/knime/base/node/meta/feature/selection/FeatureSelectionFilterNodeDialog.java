@@ -429,9 +429,7 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         int selRow = m_featureLevels.getSelectedRow();
         if (selRow >= 0) {
-            m_settings.nrOfFeatures(m_tableModel.getNrOfFeatures(selRow));
-        } else {
-            m_settings.nrOfFeatures(-1);
+            m_settings.selectedFeatures(m_tableModel.getFeatures(selRow));
         }
         m_settings.includeConstantColumns(m_includeStaticColumns.isSelected());
         m_settings.thresholdMode(m_thresholdMode.isSelected());
@@ -501,8 +499,11 @@ public class FeatureSelectionFilterNodeDialog extends NodeDialogPane {
 
     private void setIntervalManualMode() {
         m_manualMode.doClick();
-        for (int i = 0; i < m_tableModel.getRowCount(); i++) {
-            if (m_tableModel.getNrOfFeatures(i) == m_settings.nrOfFeatures()) {
+        for (var i = 0; i < m_tableModel.getRowCount(); i++) {
+            var nrOfFeatures = m_tableModel.getNrOfFeatures(i);
+            var features = m_tableModel.getFeatures(i);
+            if ((m_settings.selectedFeatures() == null || m_settings.selectedFeatures().containsAll(features))
+                && m_settings.nrOfFeatures() == nrOfFeatures) {
                 m_featureLevels.getSelectionModel().setSelectionInterval(i, i);
                 break;
             }

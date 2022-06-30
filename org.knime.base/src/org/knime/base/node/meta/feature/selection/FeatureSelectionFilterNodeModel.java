@@ -90,7 +90,7 @@ public class FeatureSelectionFilterNodeModel extends NodeModel {
             throw new InvalidSettingsException("No model available");
         }
 
-        if (!m_settings.thresholdMode() && !m_settings.bestScoreMode() && (m_settings.nrOfFeatures() < 1)) {
+        if (!m_settings.thresholdMode() && !m_settings.bestScoreMode() && m_settings.nrOfFeatures() < 1) {
             throw new InvalidSettingsException("No features selected yet");
         }
 

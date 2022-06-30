@@ -58,7 +58,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 import javax.swing.JComponent;
@@ -177,7 +179,9 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
             }
         } else {
             // find features with specified length
-            includedFeatures.addAll(getLevelWithLength(settings.nrOfFeatures()).getSecond());
+            var selectedFeatures = Objects.requireNonNullElse(settings.selectedFeatures(),
+                getFeaturesFromNrOfFeatures(settings.nrOfFeatures()));
+            includedFeatures.addAll(getLevelWithFeatures(selectedFeatures).getSecond());
         }
         return includedFeatures;
     }
@@ -201,15 +205,36 @@ public class FeatureSelectionModel implements PortObject, PortObjectSpec {
         return table[0];
     }
 
-    private Pair<Double, Collection<Integer>> getLevelWithLength(final int nrFeatures) {
+    private Pair<Double, Collection<Integer>> getLevelWithFeatures(final Collection<String> features) {
         Optional<Pair<Double, Collection<Integer>>> o =
-            m_featureLevels.stream().filter(p -> p.getSecond().size() == nrFeatures).findFirst();
+            m_featureLevels.stream()
+                .filter(p -> p.getSecond().size() == features.size() && p.getSecond().stream()
+                    .map(m_columnHandler::getColumnNameFor).collect(Collectors.toSet()).containsAll(features))
+                .findFirst();
         if (o.isPresent()) {
             return o.get();
         } else {
             throw new IllegalStateException(
-                "There exists no feature level with the specified length \"" + nrFeatures + "\".");
+                "There exists no feature level with the specified features: \"" + features + "\".");
         }
+    }
+
+    /**
+     * Extract a list of features based on the number of included features
+     *
+     * @param nrOfFeatures
+     * @return A list of feature names
+     * @throws IllegalStateException if no feature level with the specified size exists
+     */
+    public Collection<String> getFeaturesFromNrOfFeatures(final int nrOfFeatures) {
+        Optional<Collection<Integer>> o =
+                m_featureLevels.stream().map(Pair::getSecond).filter(c -> c.size() == nrOfFeatures).findFirst();
+            if (o.isPresent()) {
+                return o.get().stream().map(m_columnHandler::getColumnNameFor).collect(Collectors.toList());
+            } else {
+                throw new IllegalStateException(
+                    "There exists no feature level with the specified length \"" + nrOfFeatures + "\".");
+            }
     }
 
     /**
