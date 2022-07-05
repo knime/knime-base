@@ -151,7 +151,9 @@ public class AttributesTest extends AbstractParameterizedFSTest {
     @Test
     public void test_empty_folder_time_invariants() throws Exception {
         final Path testFolder = m_testInitializer.makePath("myfolder");
-        Files.createDirectory(testFolder);
+        if (m_connection.getFSDescriptor().getCapabilities().canWriteFiles()) {
+            Files.createDirectory(testFolder);
+        } // read-only file-systems must have the directory in the test file
         assertTimeInvariants(testFolder);
     }
 
@@ -159,9 +161,10 @@ public class AttributesTest extends AbstractParameterizedFSTest {
     public void test_non_empty_folder_time_invariants() throws Exception {
         final Path testFolder = m_testInitializer.makePath("folder");
         final Path testFile = testFolder.resolve("file");
-        Files.createDirectory(testFolder);
-        Files.write(testFile, new byte[]{0}, StandardOpenOption.CREATE);
-
+        if (m_connection.getFSDescriptor().getCapabilities().canWriteFiles()) {
+            Files.createDirectory(testFolder);
+            Files.write(testFile, new byte[]{0}, StandardOpenOption.CREATE);
+        } // read-only file-systems must have the directory in the test file
         assertTimeInvariants(testFolder);
     }
 
@@ -202,7 +205,9 @@ public class AttributesTest extends AbstractParameterizedFSTest {
         final long now = Instant.now().getEpochSecond();
         assertNotEquals(0, fileMtime);
         // assert that the mtime is in the "vicinity" of now
-        assertTrue(Math.abs(fileMtime - now) < 60);
+        if (m_connection.getFSDescriptor().getCapabilities().canWriteFiles()) {
+            assertTrue(Math.abs(fileMtime - now) < 60);
+        }
     }
 
     @Test(expected = NoSuchFileException.class)

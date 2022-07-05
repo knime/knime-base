@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSFiles;
@@ -86,6 +87,10 @@ public class FSFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_delete_recursively() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         final Path dir = m_testInitializer.makePath("dir");
         Files.createDirectory(m_testInitializer.makePath("dir"));
         Files.createDirectory(m_testInitializer.makePath("dir", "childdir"));
@@ -108,6 +113,8 @@ public class FSFilesTest extends AbstractParameterizedFSTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void test_copy_recursively_file() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final FSPath source = m_testInitializer.createFile("file");
         final FSPath target = m_testInitializer.makePath("file2");
         FSFiles.copyRecursively(source, target);
@@ -115,6 +122,9 @@ public class FSFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_recursively_empty_dir() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final FSPath source = m_testInitializer.makePath("sourcedir");
         final FSPath target = m_testInitializer.makePath("targetdir");
 
@@ -131,6 +141,9 @@ public class FSFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_recursively_file_tree() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final FSPath source = m_testInitializer.makePath("dir1");
         final FSPath a = m_testInitializer.createFileWithContent("a", "dir1", "a");
         final FSPath b = m_testInitializer.createFileWithContent("b", "dir1", "b");
@@ -173,6 +186,9 @@ public class FSFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_recursively_merge() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final FSPath source = m_testInitializer.makePath("dir1");
         final FSPath a = m_testInitializer.createFileWithContent("a", "dir1", "a");
         final FSPath b = m_testInitializer.createFileWithContent("c", "dir1", "dir11", "b");
@@ -205,6 +221,8 @@ public class FSFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_recursively_target_already_exists() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final FSPath source = m_testInitializer.makePath("source");
         final FSPath target = m_testInitializer.makePath("target");
 
@@ -222,6 +240,8 @@ public class FSFilesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_copy_recursively_cross_provider() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final Path localTmpDir = Files.createTempDirectory("knime-filehanding-tests");
         final Path localTmpFile = localTmpDir.resolve("file");
         try (Writer writer = Files.newBufferedWriter(localTmpFile)) {

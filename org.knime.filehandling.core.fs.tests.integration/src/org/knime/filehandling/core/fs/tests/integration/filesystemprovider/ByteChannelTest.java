@@ -65,6 +65,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -86,7 +87,7 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
     @Test
     public void test_read_all() throws Exception {
         String testContent = "Some content to test this byte channel";
-        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
+        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName1");
 
         String result;
         try (SeekableByteChannel byteChannel = Files.newByteChannel(file, StandardOpenOption.READ)) {
@@ -99,7 +100,7 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
     @Test
     public void test_read_from_position() throws Exception {
         String testContent = "!!!This starts at byte number 3!";
-        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
+        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName2");
 
         String result;
         try (SeekableByteChannel byteChannel = Files.newByteChannel(file, StandardOpenOption.READ)) {
@@ -112,6 +113,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_truncate_less_than_channel_size_removes_trailing_content() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         String testContent = "After truncate (this is all gone)!";
         Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
 
@@ -127,6 +130,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_truncate_greater_than_channel_size_does_not_change_it() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         String testContent = "After truncate (this is still there)!";
         Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
 
@@ -143,7 +148,7 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
     @Test
     public void test_channel_size() throws IOException {
         String testContent = "This has size 16";
-        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName");
+        Path file = m_testInitializer.createFileWithContent(testContent, "dir", "fileName3");
 
         try (SeekableByteChannel byteChannel = Files.newByteChannel(file, StandardOpenOption.READ)) {
             assertEquals(16, byteChannel.size());
@@ -176,6 +181,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_byte_channel_write() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path initiallyEmptyFile = m_testInitializer.createFile("dir", "fileName");
 
         String content = "A very useful sentence!";
@@ -191,6 +198,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_byte_channel_overwrite() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         String content = "Initial content";
         Path file = m_testInitializer.createFileWithContent(content, "dir", "fileName");
 
@@ -206,6 +215,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_new_file_and_write() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path directory = m_testInitializer.getTestCaseScratchDir().resolve("dir");
         Files.createDirectories(directory);
 
@@ -237,6 +248,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test(expected = IOException.class)
     public void test_read_directory() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+
         Path directory = m_testInitializer.getTestCaseScratchDir().resolve("dir");
         Files.createDirectories(directory);
 
@@ -245,6 +258,9 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test(expected = IOException.class)
     public void test_write_directory() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path directory = m_testInitializer.getTestCaseScratchDir().resolve("dir");
         Files.createDirectories(directory);
         Files.newByteChannel(directory, StandardOpenOption.WRITE);
@@ -252,18 +268,24 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_write_existing_file() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFileWithContent("foobar", "dir", "file");
         Files.newByteChannel(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
     }
 
     @Test(expected = NoSuchFileException.class)
     public void test_write_new_file_without_create_new() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.makePath("doesnotexist");
         Files.newByteChannel(file, StandardOpenOption.WRITE);
     }
 
     @Test(expected = NoSuchFileException.class)
     public void test_write_file_with_inexistent_parent_directory() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.makePath("dirdoesnotexist", "file");
         Files.newByteChannel(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
     }
@@ -275,19 +297,27 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
     }
 
     public void test_write_file_with_spaces_in_name()  throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         writeThenRead(m_testInitializer.makePath("file with spaces"));
     }
 
     public void test_write_file_with_plus_in_name()  throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         writeThenRead(m_testInitializer.makePath("file+with+pluses"));
     }
 
     public void test_write_file_with_percent_encoding_in_name()  throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         writeThenRead(m_testInitializer.makePath("file%20with%20percent%2520encodings"));
     }
 
     @Test(expected = FileSystemException.class)
     public void test_write_file_where_parent_is_a_file() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path parent = m_testInitializer.createFileWithContent("content1", "file");
         Path file = parent.resolve("newfile");
         Files.newByteChannel(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
@@ -295,6 +325,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_open_existing_file_read_write() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFileWithContent("content2", "file");
         try (SeekableByteChannel channel =
             Files.newByteChannel(file, StandardOpenOption.READ, StandardOpenOption.WRITE)) {
@@ -307,6 +339,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_open_new_file_read_write() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.makePath("newfile");
         try (SeekableByteChannel channel =
             Files.newByteChannel(file, StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
@@ -318,6 +352,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_open_file_for_append() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFileWithContent("content3", "file");
 
         try (SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.APPEND)) {
@@ -332,6 +368,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_open_file_for_truncation() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFileWithContent("content4", "file");
 
         try (SeekableByteChannel channel = Files.newByteChannel(file, StandardOpenOption.READ, StandardOpenOption.WRITE,
@@ -344,6 +382,8 @@ public class ByteChannelTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_overwrite_updates_attribute_times() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         ignoreWithReason("Some FTP servers don't have second resolution of mtime", FTP);
 
         final Path file = m_testInitializer.createFileWithContent("a", "file");

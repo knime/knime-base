@@ -56,6 +56,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.stream.Stream;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -74,6 +75,8 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_file() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path path = m_testInitializer.getTestCaseScratchDir().resolve("file");
 
         assertFalse(Files.exists(path));
@@ -83,6 +86,8 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_file_on_path() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path path = m_testInitializer.getTestCaseScratchDir().resolve("path").resolve("to").resolve("file");
 
         Files.createDirectories(path.getParent());
@@ -92,6 +97,8 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_create_file_which_already_exists() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFileWithContent("content", "existing", "file");
 
         Files.createFile(file);
@@ -99,6 +106,8 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path pathToDriectory = m_testInitializer.getTestCaseScratchDir().resolve("directory");
 
         Path directory = Files.createDirectory(pathToDriectory);
@@ -109,6 +118,8 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_directories() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path pathToDirectory = m_testInitializer.getTestCaseScratchDir().resolve("path").resolve("to").resolve("directory");
 
         Path directory = Files.createDirectories(pathToDirectory);
@@ -121,6 +132,8 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_directory_with_space() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path pathToDirectory = m_testInitializer.getTestCaseScratchDir().resolve("dir with spaces");
 
         Files.createDirectories(pathToDirectory);
@@ -134,6 +147,8 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_directory_with_percent_encodings() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path pathToDirectory = m_testInitializer.getTestCaseScratchDir().resolve("dir%20with%20percent%2520encodings");
 
         Files.createDirectories(pathToDirectory);
@@ -148,6 +163,8 @@ public class CreateTest extends AbstractParameterizedFSTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_create_directory_which_already_exists() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFile("directory", "file");
         Path directory = file.getParent();
 

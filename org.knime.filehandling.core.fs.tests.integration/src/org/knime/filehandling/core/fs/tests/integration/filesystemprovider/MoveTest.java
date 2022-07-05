@@ -63,6 +63,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -99,24 +100,36 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_move_file() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         moveFileAndCheck(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir", "file"), //
             m_testInitializer.makePath("dir", "movedFile"));
     }
 
     @Test
     public void test_move_file_with_spaces() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         moveFileAndCheck(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir with spaces", "file with spaces"), //
             m_testInitializer.makePath("dir with spaces", "moved file with spaces"));
     }
 
     @Test
     public void test_move_file_with_pluses() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         moveFileAndCheck(m_testInitializer.createFileWithContent(TEST_CONTENT, "dir+with+pluses", "file+with+pluses"), //
             m_testInitializer.makePath("dir+with+pluses", "moved+file+with+pluses"));
     }
 
     @Test
     public void test_move_file_with_percent_encoding() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         moveFileAndCheck(
             m_testInitializer.createFileWithContent(TEST_CONTENT, "dir%20with%20percent%2520encodings", "file%20with%20percent%2520encodings"), //
             m_testInitializer.makePath("dir%20with%20percent%2520encodings",
@@ -125,6 +138,9 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_move_non_existing_file() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         final Path source = m_testInitializer.getTestCaseScratchDir().resolve("non-existing-file");
         final Path target = source.getParent().resolve("movedFile");
 
@@ -133,6 +149,9 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_move_file_to_already_existing_file_without_replace_throws_exception() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         String sourceContent = "The source content";
         Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
         String targetContent = "The target content";
@@ -143,6 +162,9 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_move_file_to_already_existing_file_with_replace() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         String sourceContent = "The source content";
         Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "file");
         String targetContent = "The target content";
@@ -158,6 +180,9 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_move_file_to_already_existing_file_may_update_attribute_times() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         final Path source = m_testInitializer.createFileWithContent("a", "src");
         final Path existingTarget = m_testInitializer.createFileWithContent("b", "target");
 
@@ -179,6 +204,9 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_move_file_to_non_existing_directory_throws_exception() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+
         String sourceContent = "The source content";
         Path source = m_testInitializer.createFileWithContent(sourceContent, "dir", "fileA");
         Path target = m_testInitializer.getTestCaseScratchDir().resolve("dirB").resolve("fileB");
@@ -188,6 +216,8 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_move_file_to_itself() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final String testContent = "Some simple test content";
         final Path source = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA");
 
@@ -201,6 +231,11 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_move_directory_to_other_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         final String testContent = "Some simple test content";
         final Path dirA = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA").getParent();
         final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
@@ -212,6 +247,11 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test(expected = DirectoryNotEmptyException.class)
     public void test_move_directory_with_replace_to_non_empty_existing_directory() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         final String testContent = "Some simple test content";
         final Path dirA = m_testInitializer.createFileWithContent(testContent, "dirA", "fileA").getParent();
         final Path dirB = m_testInitializer.createFileWithContent(testContent, "dirB", "fileB").getParent();
@@ -221,6 +261,11 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_move_directory() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         final Path fileA3 = m_testInitializer.createFile("dir-A1", "dir-A2", "file-A3");
         m_testInitializer.createFile("dir-A1", "dir-A2", "afile-A4");
         m_testInitializer.createFile("dir-A1", "dir-A2", "dir-A5", "file-A6");
@@ -287,6 +332,9 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_rename_empty_dir() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         Path root = m_testInitializer.getTestCaseScratchDir();
 
         Path srcDir = root.resolve("srcDir");
@@ -305,6 +353,11 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_rename_non_empty_dir() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         Path root = m_testInitializer.getTestCaseScratchDir();
 
         Path srcDir = Files.createDirectory(root.resolve("srcDir"));
@@ -328,6 +381,9 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_move_empty_dir_into_another() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         String dirName = "dir";
         Path srcParent = Files.createDirectory(m_testInitializer.getTestCaseScratchDir().resolve("srcParent"));
         Path dstParent = Files.createDirectory(m_testInitializer.getTestCaseScratchDir().resolve("dstParent"));
@@ -345,6 +401,11 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_move_non_empty_dir_into_another() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         String dirName = "dir";
         String fileName = "file";
 
@@ -369,6 +430,11 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_move_dir_to_already_existing_file_throws_exception() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         Path file = m_testInitializer.createFileWithContent("content", "file");
         Path dir = Files.createDirectories(m_testInitializer.getTestCaseScratchDir().resolve("dir"));
 
@@ -377,6 +443,11 @@ public class MoveTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_move_dir_into_not_existing_throws_exception() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canDeleteDirectories());
+
         String dirName = "dir";
         Path srcParent = Files.createDirectory(m_testInitializer.getTestCaseScratchDir().resolve("srcParent"));
         Path dstParent = m_testInitializer.getTestCaseScratchDir().resolve("dstParent");

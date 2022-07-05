@@ -59,6 +59,7 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
@@ -79,6 +80,8 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_output_stream() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFile("dir", "fileName");
 
         String contentToWrite = "This is written by an output stream!!";
@@ -93,6 +96,8 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_output_stream_append() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         String content = "This was already there";
         Path file = m_testInitializer.createFileWithContent(content, "dir", "fileName");
 
@@ -122,26 +127,36 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_output_stream_create_file() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         testWriteNewFile(m_testInitializer.makePath("some-file"));
     }
 
     @Test
     public void test_output_stream_create_file_with_spaces() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         testWriteNewFile(m_testInitializer.makePath("some file"));
     }
 
     @Test
     public void test_output_stream_create_file_with_pluses() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         testWriteNewFile(m_testInitializer.makePath("some+file"));
     }
 
     @Test
     public void test_output_stream_create_file_with_percent_encoding() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         testWriteNewFile(m_testInitializer.makePath("file%20with%20percent%2520encodings"));
     }
 
     @Test(expected = FileAlreadyExistsException.class)
     public void test_output_stream_create_new_file_failure() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFile("file");
         Files.newOutputStream(//
             file, //
@@ -151,6 +166,8 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_output_stream_overwrite() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         String content = "I burn, I pine, I perish.";
         Path file = m_testInitializer.createFileWithContent(content, "dir", "file");
 
@@ -165,12 +182,17 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
 
     @Test(expected = IOException.class)
     public void test_output_stream_on_directory_failure() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         Path file = m_testInitializer.createFile("dir", "file");
         Files.newOutputStream(file.getParent());
     }
 
     @Test
     public void test_write_three_files_same_folder() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+
         Path dir = m_testInitializer.makePath("dir");
         Path file1 = dir.resolve("file1");
         Path file2 = dir.resolve("file2");
@@ -196,6 +218,8 @@ public class OutputStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_overwrite_updates_attribute_times() throws Exception {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         ignoreWithReason("Some FTP servers don't have second resolution of mtime", FTP);
 
         final Path file = m_testInitializer.createFileWithContent("a", "file");

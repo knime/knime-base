@@ -9,6 +9,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
@@ -31,6 +32,9 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_empty_temp_dir() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canBrowse());
+
         final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getTestCaseScratchDir());
         assertTrue(Files.isDirectory(tempDir));
 
@@ -43,6 +47,8 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_dir_with_prefix_and_suffix() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+
         final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getTestCaseScratchDir(), "testprefix", "testsuffix");
         assertTrue(Files.isDirectory(tempDir));
         String dirname = tempDir.getFileName().toString();
@@ -55,6 +61,9 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_dir_cleanup() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canWriteFiles());
+
         final FSPath tempDir = FSFiles.createTempDirectory(m_testInitializer.getTestCaseScratchDir());
         Files.createFile(tempDir.resolve("file1"));
         Files.createDirectory(tempDir.resolve("dir1"));
@@ -69,6 +78,8 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_dir_in_working_dir() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+
         ignoreWithReason("The working directory in knime-local-relative-workflow is not actually a directory a file",
             KNIME_LOCAL_RELATIVE_WORKFLOW);
 
@@ -79,6 +90,8 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_create_temp_dir_using_relative_parent() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+
         ignoreWithReason("The working directory in knime-local-relative-workflow is not actually a directory a file",
             KNIME_LOCAL_RELATIVE_WORKFLOW);
 
@@ -90,6 +103,8 @@ public class TempDirectoriesTest extends AbstractParameterizedFSTest {
 
     @Test(expected = NoSuchFileException.class)
     public void test_create_temp_dir_in_non_existent_folder() throws IOException {
+        Assume.assumeTrue(m_connection.getFSDescriptor().getCapabilities().canCreateDirectories());
+
         FSFiles.createTempDirectory((FSPath) m_testInitializer.getTestCaseScratchDir().resolve("doesnotexist"));
     }
 

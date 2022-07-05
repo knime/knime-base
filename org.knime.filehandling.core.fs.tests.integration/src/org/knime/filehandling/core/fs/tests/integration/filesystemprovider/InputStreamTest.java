@@ -124,7 +124,7 @@ public class InputStreamTest extends AbstractParameterizedFSTest {
 
     @Test
     public void test_read_from_empty_file() throws Exception{
-        Path file = m_testInitializer.createFile("dir", "filename");
+        Path file = m_testInitializer.createFile("dir", "emptyFile");
         try (InputStream in = Files.newInputStream(file)) {
             assertEquals(-1, in.read());
         }
