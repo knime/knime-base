@@ -56,7 +56,7 @@ import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.data.location.internal.FSLocationUtils;
+import org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecHandler;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
@@ -80,10 +80,10 @@ enum FSLocationHandler implements FSLocationSpecHandler<FSLocation> {
     @Override
     public FSLocation load(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
-            return FSLocationUtils.loadFSLocation(settings.getConfig(CFG_PATH));
+            return FSLocationSerializationUtils.loadFSLocation(settings.getConfig(CFG_PATH));
         } catch (InvalidSettingsException ex) {
             try {
-                return FSLocationUtils.loadFSLocation(settings.getConfig(CFG_OLD));
+                return FSLocationSerializationUtils.loadFSLocation(settings.getConfig(CFG_OLD));
             } catch (InvalidSettingsException oldNameEx) {
                 LOGGER.debug("Loading with the old config key failed.",
                     oldNameEx);
@@ -94,7 +94,7 @@ enum FSLocationHandler implements FSLocationSpecHandler<FSLocation> {
 
     @Override
     public void save(final NodeSettingsWO settings, final FSLocation spec) {
-        FSLocationUtils.saveFSLocation(spec, settings.addNodeSettings(CFG_PATH));
+        FSLocationSerializationUtils.saveFSLocation(spec, settings.addNodeSettings(CFG_PATH));
     }
 
     @Override

@@ -249,11 +249,13 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
     }
 
     private void handleSpecificConfigChange(final ChangeEvent e) {
-        final FileSystemSpecificConfig config = (FileSystemSpecificConfig)e.getSource();
-        if (config.isActive() && config == getCurrentSpecificConfig()) {
-            // update location config if the currently selected fs config changed
-            m_locationSpec = m_locationSpecHandler.adapt(m_locationSpec, config.getLocationSpec());
-            notifyChangeListeners();
+        if (!m_loading) {
+            final FileSystemSpecificConfig config = (FileSystemSpecificConfig)e.getSource();
+            if (config.isActive() && config == getCurrentSpecificConfig()) {
+                // update location config if the currently selected fs config changed
+                m_locationSpec = m_locationSpecHandler.adapt(m_locationSpec, config.getLocationSpec());
+                notifyChangeListeners();
+            }
         }
     }
 
