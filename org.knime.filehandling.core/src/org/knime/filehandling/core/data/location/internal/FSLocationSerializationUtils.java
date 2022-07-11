@@ -65,9 +65,9 @@ import org.knime.filehandling.core.connections.FSLocationSpec;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class FSLocationUtils {
+public final class FSLocationSerializationUtils {
 
-    private FSLocationUtils() {
+    private FSLocationSerializationUtils() {
         // static utility class
     }
 

@@ -56,7 +56,7 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableTypeExtension;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.data.location.internal.FSLocationUtils;
+import org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils;
 
 /**
  * Singleton type of {@link FlowVariable} for handling {@link FSLocationSpec} values. The singleton instance is
@@ -97,13 +97,13 @@ public final class FSLocationSpecVariableType extends VariableType<FSLocationSpe
 
     @Override
     protected VariableValue<FSLocationSpec> loadValue(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return new FSLocationSpecValue(FSLocationUtils.loadFSLocationSpec(settings));
+        return new FSLocationSpecValue(FSLocationSerializationUtils.loadFSLocationSpec(settings));
     }
 
     @Override
     protected void saveValue(final NodeSettingsWO settings, final VariableValue<FSLocationSpec> v) {
         FSLocationSpecValue value = (FSLocationSpecValue)v;
-        FSLocationUtils.saveFSLocationSpec(value.get(), settings);
+        FSLocationSerializationUtils.saveFSLocationSpec(value.get(), settings);
     }
 
     @Override
@@ -128,7 +128,7 @@ public final class FSLocationSpecVariableType extends VariableType<FSLocationSpe
 
     private static boolean isFSLocationSpec(final Config config, final String configKey) {
         try {
-            return FSLocationUtils.isFSLocationSpec(config.getConfig(configKey));
+            return FSLocationSerializationUtils.isFSLocationSpec(config.getConfig(configKey));
         } catch (InvalidSettingsException ex) {// NOSONAR
             // the key did not correspond to a config -> this can't be an FSLocationSpec
             return false;
@@ -145,7 +145,7 @@ public final class FSLocationSpecVariableType extends VariableType<FSLocationSpe
                     "The variable '%s' can't overwrite the setting '%s' because it is not a FSLocationSpec.",
                     v, config.getEntry(configKey)));
         }
-        FSLocationUtils.saveFSLocationSpec(value, config.addConfig(configKey));
+        FSLocationSerializationUtils.saveFSLocationSpec(value, config.addConfig(configKey));
     }
 
     @Override
@@ -162,7 +162,7 @@ public final class FSLocationSpecVariableType extends VariableType<FSLocationSpe
                 v -> String.format("The settings stored in '%s' can't be exposed as flow variable '%s'.",
                     config.getEntry(configKey), v));
         }
-        return FSLocationUtils.loadFSLocationSpec(config.getConfig(configKey));
+        return FSLocationSerializationUtils.loadFSLocationSpec(config.getConfig(configKey));
     }
 
     /**

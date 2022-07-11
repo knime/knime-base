@@ -50,14 +50,14 @@ package org.knime.filehandling.core.data.location.variable;
 
 import static org.junit.Assert.*;
 import static org.knime.filehandling.core.connections.FSLocation.NULL;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_SPECIFIER;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_CATEGORY;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_LOCATION_PRESENT;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_PATH;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.FS_SPECIFIER;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.FS_CATEGORY;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.LOCATION_WITH_SPECIFIER;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtilsTest.PATH;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils.CFG_FS_SPECIFIER;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils.CFG_FS_CATEGORY;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils.CFG_LOCATION_PRESENT;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils.CFG_PATH;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtilsTest.FS_SPECIFIER;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtilsTest.FS_CATEGORY;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtilsTest.LOCATION_WITH_SPECIFIER;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtilsTest.PATH;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 

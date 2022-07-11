@@ -57,8 +57,6 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
@@ -70,6 +68,7 @@ import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.filehandling.core.util.FSLocationUtils;
 
 /**
  * Node factory for the table reader node.
@@ -89,7 +88,7 @@ public final class KnimeTableReaderNodeFactory
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
             settingsModel
-                .setLocation(new FSLocation(FSCategory.CUSTOM_URL, "1000", urlConfig.get().getUrl().toString()));
+                .setLocation(FSLocationUtils.urlToFSLocation(urlConfig.get().getUrl()));
         }
         return settingsModel;
     }

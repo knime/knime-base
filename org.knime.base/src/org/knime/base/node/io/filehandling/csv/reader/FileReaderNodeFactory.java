@@ -53,8 +53,6 @@ import java.util.Optional;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
@@ -62,6 +60,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
 import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
+import org.knime.filehandling.core.util.FSLocationUtils;
 
 /**
  * Node factory for the File Reader.
@@ -78,7 +77,7 @@ public final class FileReaderNodeFactory extends AbstractCSVTableReaderNodeFacto
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
         if (urlConfig.isPresent()) {
             settingsModel
-                .setLocation(new FSLocation(FSCategory.CUSTOM_URL, "1000", urlConfig.get().getUrl().toString()));
+                .setLocation(FSLocationUtils.urlToFSLocation(urlConfig.get().getUrl()));
         }
         return settingsModel;
     }

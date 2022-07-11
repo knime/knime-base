@@ -52,10 +52,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.knime.filehandling.core.connections.FSLocation.NULL;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_SPECIFIER;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_FS_CATEGORY;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_LOCATION_PRESENT;
-import static org.knime.filehandling.core.data.location.internal.FSLocationUtils.CFG_PATH;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils.CFG_FS_SPECIFIER;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils.CFG_FS_CATEGORY;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils.CFG_LOCATION_PRESENT;
+import static org.knime.filehandling.core.data.location.internal.FSLocationSerializationUtils.CFG_PATH;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -70,11 +70,11 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.RelativeTo;
 
 /**
- * Unit tests for {@link FSLocationUtils}.
+ * Unit tests for {@link FSLocationSerializationUtils}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class FSLocationUtilsTest {
+public class FSLocationSerializationUtilsTest {
 
     public static final String FS_CATEGORY = FSCategory.RELATIVE.toString();
 
@@ -115,29 +115,29 @@ public class FSLocationUtilsTest {
     private static void testIsLocationInvalid() throws InvalidSettingsException {
         ConfigRO config = mock(ConfigRO.class);
         when(config.getBoolean(CFG_LOCATION_PRESENT)).thenThrow(new InvalidSettingsException(""));
-        assertFalse(FSLocationUtils.isFSLocation(config));
+        assertFalse(FSLocationSerializationUtils.isFSLocation(config));
     }
 
     private static void testIsLocationWithoutSpecifier() throws InvalidSettingsException {
         ConfigRO config = mockConfigRO(true, false, false);
         when(config.getChildCount()).thenReturn(3, 7);
-        assertTrue(FSLocationUtils.isFSLocation(config));
-        assertFalse(FSLocationUtils.isFSLocation(config));
+        assertTrue(FSLocationSerializationUtils.isFSLocation(config));
+        assertFalse(FSLocationSerializationUtils.isFSLocation(config));
     }
 
     private static void testIsLocationWithSpecifier() throws InvalidSettingsException {
         ConfigRO config = mockConfigRO(true, true, false);
         when(config.getChildCount()).thenReturn(4, 7);
-        assertTrue(FSLocationUtils.isFSLocation(config));
-        assertFalse(FSLocationUtils.isFSLocation(config));
+        assertTrue(FSLocationSerializationUtils.isFSLocation(config));
+        assertFalse(FSLocationSerializationUtils.isFSLocation(config));
     }
 
     private static void testIsLocationNoLocationPresent() throws InvalidSettingsException {
         ConfigRO config = mock(ConfigRO.class);
         when(config.getBoolean(CFG_LOCATION_PRESENT)).thenReturn(false);
         when(config.getChildCount()).thenReturn(1, 2);
-        assertTrue(FSLocationUtils.isFSLocation(config));
-        assertFalse(FSLocationUtils.isFSLocation(config));
+        assertTrue(FSLocationSerializationUtils.isFSLocation(config));
+        assertFalse(FSLocationSerializationUtils.isFSLocation(config));
     }
 
     @Test
@@ -148,12 +148,12 @@ public class FSLocationUtilsTest {
 
     private static void testLoadPresent() throws InvalidSettingsException {
         ConfigRO config = mockConfigRO(true, true, false);
-        assertEquals(LOCATION_WITH_SPECIFIER, FSLocationUtils.loadFSLocation(config));
+        assertEquals(LOCATION_WITH_SPECIFIER, FSLocationSerializationUtils.loadFSLocation(config));
     }
 
     private static void testLoadAbsent() throws InvalidSettingsException {
         ConfigRO config = mockConfigRO(false, true, false);
-        assertEquals(NULL, FSLocationUtils.loadFSLocation(config));
+        assertEquals(NULL, FSLocationSerializationUtils.loadFSLocation(config));
     }
 
     @Test
@@ -165,7 +165,7 @@ public class FSLocationUtilsTest {
 
     private static void testSaveWithSpecifier() {
         ConfigWO config = mock(ConfigWO.class);
-        FSLocationUtils.saveFSLocation(LOCATION_WITH_SPECIFIER, config);
+        FSLocationSerializationUtils.saveFSLocation(LOCATION_WITH_SPECIFIER, config);
         verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
         verify(config).addString(CFG_FS_CATEGORY, FS_CATEGORY);
         verify(config).addString(CFG_FS_SPECIFIER, FS_SPECIFIER);
@@ -175,7 +175,7 @@ public class FSLocationUtilsTest {
 
     private static void testSaveWithoutSpecifier() {
         ConfigWO config = mock(ConfigWO.class);
-        FSLocationUtils.saveFSLocation(LOCATION_WITHOUT_SPECIFIER, config);
+        FSLocationSerializationUtils.saveFSLocation(LOCATION_WITHOUT_SPECIFIER, config);
         verify(config).addBoolean(CFG_LOCATION_PRESENT, true);
         verify(config).addString(CFG_FS_CATEGORY, FS_CATEGORY);
         verify(config).addString(CFG_PATH, PATH);
@@ -184,7 +184,7 @@ public class FSLocationUtilsTest {
 
     private static void testSaveNoLocation() {
         ConfigWO config = mock(ConfigWO.class);
-        FSLocationUtils.saveFSLocation(NULL, config);
+        FSLocationSerializationUtils.saveFSLocation(NULL, config);
         verify(config).addBoolean(CFG_LOCATION_PRESENT, false);
         verifyNoMoreInteractions(config);
     }
