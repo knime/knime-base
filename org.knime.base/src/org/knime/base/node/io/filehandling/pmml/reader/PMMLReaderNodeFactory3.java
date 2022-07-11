@@ -51,10 +51,10 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeConfig;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeFactory;
-import org.knime.filehandling.core.util.FSLocationUtils;
 
 /**
  * Node factory of the PMML reader node.
@@ -100,7 +100,7 @@ public final class PMMLReaderNodeFactory3
             .build();//
         if (urlConfig.isPresent()) {
             cfg.getFileChooserModel()
-                .setLocation(FSLocationUtils.urlToFSLocation(urlConfig.get().getUrl()));
+                .setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
         }
         return cfg;
     }
