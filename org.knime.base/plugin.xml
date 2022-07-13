@@ -682,15 +682,15 @@
             factory-class="org.knime.base.node.preproc.sorter.SorterNodeFactory"/>
       <node
             after="org.knime.base.node.io.filehandling.filereader.FileReaderNodeFactory"
-            factory-class="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
+            factory-class="org.knime.base.node.io.filehandling.arff.reader.ARFFTableReaderNodeFactory"
             category-path="/io/read"/>
       <node
-            after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
+            after="org.knime.base.node.io.filehandling.arff.reader.ARFFTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="true"
             factory-class="org.knime.base.node.io.csvreader.CSVReaderNodeFactory"/>
       <node
-            after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
+            after="org.knime.base.node.io.filehandling.arff.reader.ARFFTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"/>
@@ -853,12 +853,12 @@
              deprecated="true"
              factory-class="org.knime.base.node.mine.regression.predict2.RegressionPredictorNodeFactory"/> 
         <node
-              after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
+              after="org.knime.base.node.io.filehandling.arff.reader.ARFFTableReaderNodeFactory"
               deprecated="true"
               category-path="/io/read"
               factory-class="org.knime.base.node.io.table.read.ReadTableNodeFactory"/>
         <node
-            after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
+            after="org.knime.base.node.io.filehandling.arff.reader.ARFFTableReaderNodeFactory"
             category-path="/io/read"
             factory-class="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
         </node>
@@ -2596,6 +2596,12 @@
               NodeFactory="org.knime.base.node.io.filehandling.model.reader.ModelReaderNodeFactory">
            <FileExtension
                  extension=".model">
+           </FileExtension>
+        </FileExtensionMapping>
+         <FileExtensionMapping
+              NodeFactory="org.knime.base.node.io.filehandling.arff.reader.ARFFTableReaderNodeFactory">
+           <FileExtension
+                 extension=".arff">
            </FileExtension>
         </FileExtensionMapping>
      </extension>
