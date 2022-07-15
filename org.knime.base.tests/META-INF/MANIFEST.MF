@@ -31,6 +31,7 @@ Require-Bundle: org.junit;bundle-version="[4.8.1,5.0.0)",
  org.junit.jupiter.api;version:="[5.6.0,6.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: org.knime.base.tests
-Bundle-ClassPath: lib/greenmail-1.6.5.jar,
- .,
- lib/slf4j-api-1.7.32.jar
+Bundle-ClassPath: .,
+ lib/slf4j-api-1.7.32.jar,
+ lib/greenmail-1.6.5.jar,
+ lib/jakarta.mail-1.6.7.jar
