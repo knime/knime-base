@@ -28,11 +28,8 @@
 			</activation>
 			<modules>
 				<module>org.knime.base</module>
-				<module>org.knime.base.tests/lib/fetch_jars</module>
-				<module>org.knime.base.tests</module>
 				<module>org.knime.deprecated</module>
 				<module>org.knime.features.base</module>
-				<module>org.knime.features.base.testing</module>
 				<module>org.knime.features.filehandling.core.testing</module>
 				<module>org.knime.filehandling.core</module>
 				<module>org.knime.filehandling.core.tests</module>
@@ -50,6 +47,9 @@
 		<profile>
 			<id>integration-tests</id>
 			<modules>
+				<module>org.knime.features.base.testing</module>
+				<module>org.knime.base.tests/lib/fetch_jars</module>
+				<module>org.knime.base.tests</module>
 				<module>org.knime.base</module>
 				<module>org.knime.deprecated</module>
 				<module>org.knime.filehandling.core</module>
