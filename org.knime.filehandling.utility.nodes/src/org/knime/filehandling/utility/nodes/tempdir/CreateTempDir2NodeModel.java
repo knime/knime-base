@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -96,10 +97,10 @@ import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WritePathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * The NodeModel for the "Create Temp Dir" Node.
@@ -125,7 +126,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     private final int m_fsConnectionPortIdx;
 
-    private final NodeModelStatusConsumer m_statusConumser;
+    private final NodeModelStatusConsumer m_statusConsumer;
 
     private FSLocation m_onResetTempDir;
 
@@ -146,7 +147,7 @@ final class CreateTempDir2NodeModel extends NodeModel {
                 portsConfig.getInputPortLocation().get(CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME))
             .map(idx -> idx[0])//
             .orElseGet(() -> MISSING_FS_PORT_IDX);
-        m_statusConumser = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.INFO));
+        m_statusConsumer = new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.INFO));
         m_onResetTempDir = null;
         // all connection related temporary directories will be removed when the connection gets closed.
         if (m_fsConnectionPortIdx != MISSING_FS_PORT_IDX) {
@@ -158,17 +159,44 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_config.getParentDirChooserModel().configureInModel(inSpecs, m_statusConumser);
-        m_statusConumser.setWarningsIfRequired(this::setWarningMessage);
+        m_config.getParentDirChooserModel().configureInModel(inSpecs, m_statusConsumer);
+        m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+        pushFlowVariables(inSpecs);
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
+    }
+
+    private void pushFlowVariables(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+
+        final var fsConnection = FileSystemPortObjectSpec.getFileSystemConnection(inSpecs, m_fsConnectionPortIdx);
+        final var parentLocation = m_config.getParentDirChooserModel().getLocation();
+
+        // for a CONNECTED parent FSLocation, ensure that the ingoing connector node is executed, so that
+        // we have an FSConnection
+        if (fsConnection.isEmpty() && parentLocation.getFSCategory() == FSCategory.CONNECTED) {
+            return;
+        }
+
+        try (final var factory = FSPathProviderFactory.newFactory(fsConnection, parentLocation);
+                final var pathProvider = factory.create(parentLocation)) {
+
+            final var tempFileName =
+                    String.format("%s%s", m_config.getTempDirPrefix(),
+                        UUID.randomUUID().toString().replace("-", "").substring(0, 16));
+
+            final var tempDirFSPath = (FSPath) pathProvider.getPath().resolve(tempFileName);
+            createFlowVariables(tempDirFSPath);
+
+        } catch (IOException e) { // should never happen, we don't actually do I/O here
+            throw new InvalidSettingsException(e.getMessage(), e);
+        }
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        try (final WritePathAccessor writePathAccessor =
-            m_config.getParentDirChooserModel().createWritePathAccessor()) {
-            final FSPath parentPath = writePathAccessor.getOutputPath(m_statusConumser);
-            m_statusConumser.setWarningsIfRequired(this::setWarningMessage);
+        try (final var writePathAccessor = m_config.getParentDirChooserModel().createWritePathAccessor()) {
+
+            final FSPath parentPath = writePathAccessor.getOutputPath(m_statusConsumer);
+            m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
             if (!Files.exists(parentPath)) {
                 if (m_config.getParentDirChooserModel().isCreateMissingFolders()) {
                     FSFiles.createDirectories(parentPath);
@@ -213,14 +241,14 @@ final class CreateTempDir2NodeModel extends NodeModel {
 
     private void createFlowVariables(final FSPath tempDirFSPath) {
         pushFSLocationVariable(m_config.getTempDirVariableName(), tempDirFSPath.toFSLocation());
-        for (int i = 0; i < m_config.getAdditionalVarNames().length; i++) {
+        for (var i = 0; i < m_config.getAdditionalVarNames().length; i++) {
             final FSPath additionalPath = (FSPath)tempDirFSPath.resolve(m_config.getAdditionalVarValues()[i]);
             pushFSLocationVariable(m_config.getAdditionalVarNames()[i], additionalPath.toFSLocation());
         }
     }
 
-    private void pushFSLocationVariable(final String name, final FSLocation var) {
-        pushFlowVariable(name, FSLocationVariableType.INSTANCE, var);
+    private void pushFSLocationVariable(final String name, final FSLocation fsLocation) {
+        pushFlowVariable(name, FSLocationVariableType.INSTANCE, fsLocation);
     }
 
     @Override
