@@ -83,11 +83,10 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPath
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.core.util.SettingsUtils;
 
-
 /**
  * Contains the dialog for the ARFF file reader.
  *
- * @author Dragan Keselj, KNIME GmbH
+ * @author Dragan Keselj, Redfield SE
  */
 final class ARFFReaderNodeDialog extends AbstractPathTableReaderNodeDialog<ARFFReaderConfig, DataType> {
 

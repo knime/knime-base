@@ -48,22 +48,21 @@
  */
 package org.knime.base.node.io.filehandling.arff.reader;
 
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.MappingFramework;
 import org.knime.core.data.convert.map.Source;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 
 /**
- * {@link ReadAdapter} implementation that uses {@link DataType} objects as data type identifiers and {@link DataCell}
+ * {@link ReadAdapter} implementation that uses {@link DataType} objects as data type identifiers and {@link String}
  * as value type. <br>
  * <br>
  * The implementation is empty because the super class implements all necessary methods. This class only exists so that
  * we can register it as {@link Source} in the {@link MappingFramework} via
  * {@link MappingFramework#forSourceType(Class)}.
  *
- * @author Dragan Keselj, KNIME GmbH
+ * @author Dragan Keselj, Redfield SE
  */
-final class ARFFReadAdapter extends ReadAdapter<DataType, DataCell> {
+final class ARFFReadAdapter extends ReadAdapter<DataType, String> {
     // everything is implemented in the super class
 }

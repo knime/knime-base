@@ -65,13 +65,13 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHier
 /**
  * Node factory for the ARFFReader node.
  *
- * @author Dragan Keselj, KNIME GmbH
- *
  * We are using the {@link DataType} to identify the external data types and using
  * {@link DataCell} as the value from the reader
+ *
+ * @author Dragan Keselj, Redfield SE
  */
 public class ARFFTableReaderNodeFactory
-        extends AbstractTableReaderNodeFactory<ARFFReaderConfig, DataType, DataCell> {
+        extends AbstractTableReaderNodeFactory<ARFFReaderConfig, DataType, String> {
     // File extensions for the file browser
     private static final String[] FILE_SUFFIXES = new String[] { ".arff" };
 
@@ -83,7 +83,7 @@ public class ARFFTableReaderNodeFactory
     }
 
     @Override
-    protected ReadAdapterFactory<DataType, DataCell> getReadAdapterFactory() {
+    protected ReadAdapterFactory<DataType, String> getReadAdapterFactory() {
         return ARFFReadAdapterFactory.INSTANCE;
     }
 
@@ -93,8 +93,8 @@ public class ARFFTableReaderNodeFactory
     }
 
     @Override
-    protected String extractRowKey(final DataCell value) {
-        return value.toString();
+    protected String extractRowKey(final String value) {
+        return value;
     }
 
     @Override

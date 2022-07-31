@@ -75,7 +75,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * <li>Storing the settings in such a way that they reflect the tabs and naming of the dialog.
  * </ul>
  *
- * @author Dragan Keselj, KNIME GmbH
+ * @author Dragan Keselj, Redfield SE
  */
 enum ARFFMultiTableReadConfigSerializer
     implements ConfigSerializer<ARFFMultiTableReadConfig>, ConfigIDFactory<ARFFMultiTableReadConfig> {

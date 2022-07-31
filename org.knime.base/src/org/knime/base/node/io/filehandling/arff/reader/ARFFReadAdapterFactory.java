@@ -48,12 +48,18 @@
  */
 package org.knime.base.node.io.filehandling.arff.reader;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.datacell.JavaToDataCellConverter;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
 import org.knime.core.data.convert.map.CellValueProducer;
 import org.knime.core.data.convert.map.MappingFramework;
 import org.knime.core.data.convert.map.ProducerRegistry;
@@ -80,8 +86,8 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
  * <li>It represents the link to the Type Mapping Framework
  * </ul>
  *
- * The Type Mapping Framework uses a two-step approach to convert values from a {@link Source} into KNIME
- * {@link DataCell} objects.<br>
+ * The Type Mapping Framework uses a two-step approach to convert values from a {@link Source} into {@link String}
+ * objects.<br>
  * <ol>
  * <li>A {@link CellValueProducer} reads a plain Java value from a {@link Source} class (in our case a ReadAdapter).
  * <li>A {@link JavaToDataCellConverter} converts the plain Java value into a DataCell.
@@ -89,30 +95,51 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
  * In this class we only define the {@link CellValueProducer CellValueProducers} that perform the first step, while the
  * {@link JavaToDataCellConverter} are provided by the Type Mapping Framework.
  *
- * @author Dragan Keselj, KNIME GmbH
+ * @author Dragan Keselj, Redfield SE
  *
  */
-public enum ARFFReadAdapterFactory implements ReadAdapterFactory<DataType, DataCell> {
+public enum ARFFReadAdapterFactory implements ReadAdapterFactory<DataType, String> {
         /**
          * The singleton instance.
          */
         INSTANCE;
+
+    private static final Map<Class<?>, DataType> EXTERNAL_DATA_TYPES = new HashMap<>();
 
     private static final ProducerRegistry<DataType, ARFFReadAdapter> PRODUCER_REGISTRY = initializeProducerRegistry();
 
     /**
      * Used by a {@link TableSpecGuesser} to guess the type of a column based on the values it contains.
      */
-    static final TreeTypeHierarchy<DataType, DataCell> VALUE_TYPE_HIERARCHY = TreeTypeHierarchy//
+    static final TreeTypeHierarchy<DataType, String> VALUE_TYPE_HIERARCHY = TreeTypeHierarchy//
         .builder(TypeTester.createTypeTester(StringCell.TYPE, createTypeTester(StringCell.TYPE, s -> true)))
+
         .addType(StringCell.TYPE, createTypeTester(DoubleCell.TYPE, ARFFReadAdapterFactory::canBeParsedAsDouble))
         .addType(DoubleCell.TYPE, createTypeTester(LongCell.TYPE, ARFFReadAdapterFactory::canBeParsedAsLong))
         .addType(LongCell.TYPE, createTypeTester(IntCell.TYPE, ARFFReadAdapterFactory::canBeParsedAsInt))
-        /*
-        .addType(StringCell.TYPE, createTypeTester(LocalDateCellFactory.TYPE, ARFFReadAdapterFactory::canBeParsedAsLocalDate))
-        .addType(LocalDateCellFactory.TYPE, createTypeTester(LocalDateTimeCellFactory.TYPE, ARFFReadAdapterFactory::canBeParsedAsLocalDateTime))
-        .addType(LocalDateTimeCellFactory.TYPE, createTypeTester(ZonedDateTimeCellFactory.TYPE, ARFFReadAdapterFactory::canBeParsedAsZonedDateTime))*/
+
+        .addType(StringCell.TYPE, createTypeTester(getExternalDataType(ZonedDateTime.class), //
+            ARFFReadAdapterFactory::canBeParsedAsZonedDateTime))
+        .addType(getExternalDataType(ZonedDateTime.class), createTypeTester(getExternalDataType(LocalDateTime.class), //
+            ARFFReadAdapterFactory::canBeParsedAsLocalDateTime))
+        .addType(getExternalDataType(LocalDateTime.class),
+            createTypeTester(getExternalDataType(LocalDate.class), ARFFReadAdapterFactory::canBeParsedAsLocalDate))
         .build();
+
+    private static DataType getExternalDataType(final Class<?> sourceType) {
+        if (EXTERNAL_DATA_TYPES.containsKey(sourceType)) {
+            return EXTERNAL_DATA_TYPES.get(sourceType);
+        } else {
+            final var dataType = JavaToDataCellConverterRegistry.getInstance() //
+                .getFactoriesForSourceType(sourceType) //
+                .stream() //
+                .findFirst() //
+                .orElseThrow(() -> new IllegalStateException("There is no DataType for source type: " + sourceType))
+                .getDestinationType();
+            EXTERNAL_DATA_TYPES.put(sourceType, dataType);
+            return dataType;
+        }
+    }
 
     /**
      * Used by the Table Reader Framework to resolve type conflicts if there exists a column in multiple files that has
@@ -123,11 +150,11 @@ public enum ARFFReadAdapterFactory implements ReadAdapterFactory<DataType, DataC
      * String
      *   |----------
      *   |         |
-     *  Double    LocalDate
+     *  Double    ZonedDateTime
      *   |         |
      *  Long      LocalDateTime
      *   |         |
-     *  Integer   ZonedDateTime
+     *  Integer   LocalDate
      *
      * </pre>
      */
@@ -137,59 +164,59 @@ public enum ARFFReadAdapterFactory implements ReadAdapterFactory<DataType, DataC
     /**
      * Used to pin the generics of {@link TypeTester#createTypeTester(Object, Predicate)}.
      */
-    private static TypeTester<DataType, DataCell> createTypeTester(final DataType type,
-        final Predicate<DataCell> predicate) {
+    private static TypeTester<DataType, String> createTypeTester(final DataType type,
+        final Predicate<String> predicate) {
         return TypeTester.createTypeTester(type, predicate);
     }
 
-    /* NOSONAR private static boolean canBeParsedAsLocalDate(final DataCell value) {
+    private static boolean canBeParsedAsLocalDate(final String value) {
         try {
-            LocalDate.parse(value.toString());
+            LocalDate.parse(value);
             return true;
         } catch (DateTimeParseException ex) {
             return false;
         }
     }
 
-     private static boolean canBeParsedAsLocalDateTime(final DataCell value) {
+    private static boolean canBeParsedAsLocalDateTime(final String value) {
         try {
-            LocalDateTime.parse(value.toString());
+            LocalDateTime.parse(value);
             return true;
         } catch (DateTimeParseException ex) {
             return false;
         }
     }
 
-    private static boolean canBeParsedAsZonedDateTime(final DataCell value) {
+    private static boolean canBeParsedAsZonedDateTime(final String value) {
         try {
-            ZonedDateTime.parse(value.toString());
+            ZonedDateTime.parse(value);
             return true;
         } catch (DateTimeParseException ex) {
             return false;
         }
-    }*/
+    }
 
-    private static boolean canBeParsedAsDouble(final DataCell value) {
+    private static boolean canBeParsedAsDouble(final String value) {
         try {
-            Double.parseDouble(value.toString());
+            Double.parseDouble(value);
             return true;
         } catch (NumberFormatException ex) {
             return false;
         }
     }
 
-    private static boolean canBeParsedAsLong(final DataCell value) {
+    private static boolean canBeParsedAsLong(final String value) {
         try {
-            Long.parseLong(value.toString());
+            Long.parseLong(value);
             return true;
         } catch (NumberFormatException ex) {
             return false;
         }
     }
 
-    private static boolean canBeParsedAsInt(final DataCell value) {
+    private static boolean canBeParsedAsInt(final String value) {
         try {
-            Integer.parseInt(value.toString());
+            Integer.parseInt(value);
             return true;
         } catch (NumberFormatException ex) {
             return false;
@@ -208,8 +235,10 @@ public enum ARFFReadAdapterFactory implements ReadAdapterFactory<DataType, DataC
         var proposedOutputType = proposedPath.getDestinationType();
         if (guessedType == StringCell.TYPE) {
             // if the column was numeric, then it's guessed type would be double and not String
-            return !(proposedOutputType == DoubleCell.TYPE || proposedOutputType == LongCell.TYPE
-                || proposedOutputType == IntCell.TYPE);
+            return !(proposedOutputType == DoubleCell.TYPE || proposedOutputType == LongCell.TYPE //NOSONAR
+                || proposedOutputType == IntCell.TYPE || proposedOutputType == getExternalDataType(LocalDate.class) //NOSONAR
+                || proposedOutputType == getExternalDataType(LocalDateTime.class) //NOSONAR
+                || proposedOutputType == getExternalDataType(ZonedDateTime.class)); //NOSONAR
         } else {
             return true;
         }
@@ -233,58 +262,63 @@ public enum ARFFReadAdapterFactory implements ReadAdapterFactory<DataType, DataC
             ARFFReadAdapterFactory::readLongFromSource));
         registry.register(new SimpleCellValueProducerFactory<>(IntCell.TYPE, Integer.class,
             ARFFReadAdapterFactory::readIntFromSource));
-        /**
-         * NOSONAR registry.register(new SimpleCellValueProducerFactory<>(LocalDateCellFactory.TYPE, LocalDate.class,
-         * ARFFReadAdapterFactory::readLocalDateFromSource)); registry.register(new
-         * SimpleCellValueProducerFactory<>(LocalDateTimeCellFactory.TYPE, LocalDateTime.class,
-         * ARFFReadAdapterFactory::readLocalDateTimeFromSource)); registry.register(new
-         * SimpleCellValueProducerFactory<>(ZonedDateTimeCellFactory.TYPE, ZonedDateTime.class,
-         * ARFFReadAdapterFactory::readZonedDateTimeFromSource));
-         */
+        registry.register(new SimpleCellValueProducerFactory<>(getExternalDataType(ZonedDateTime.class),
+                ZonedDateTime.class, ARFFReadAdapterFactory::readZonedDateTimeFromSource));
+        registry.register(new SimpleCellValueProducerFactory<>(getExternalDataType(LocalDateTime.class),
+            LocalDateTime.class, ARFFReadAdapterFactory::readLocalDateTimeFromSource));
+        registry.register(new SimpleCellValueProducerFactory<>(getExternalDataType(LocalDate.class), LocalDate.class,
+                ARFFReadAdapterFactory::readLocalDateFromSource));
         return registry;
     }
 
     private static String readStringFromSource(final ARFFReadAdapter source,
         final ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) {
-        return source.get(params).toString();
+        return source.get(params);
     }
 
-    private static double readDoubleFromSource(final ARFFReadAdapter source,
+    private static Double readDoubleFromSource(final ARFFReadAdapter source,
         final ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) {
-        return Double.parseDouble(source.get(params).toString());
+        final String d = source.get(params);
+        return d == null ? null : Double.parseDouble(d);
     }
 
-    private static long readLongFromSource(final ARFFReadAdapter source,
+    private static Long readLongFromSource(final ARFFReadAdapter source,
         final ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) {
-        return Long.parseLong(source.get(params).toString());
+        final String l = source.get(params);
+        return l == null ? null : Long.parseLong(l);
     }
 
-    private static int readIntFromSource(final ARFFReadAdapter source,
+    private static Integer readIntFromSource(final ARFFReadAdapter source,
         final ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) {
-        return Integer.parseInt(source.get(params).toString());
+        final String i = source.get(params);
+        return i == null ? null : Integer.parseInt(i);
     }
 
-    /**
-     * NOSONAR private static LocalDate readLocalDateFromSource(final ARFFReadAdapter source, final
-     * ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) { return
-     * LocalDate.parse(source.get(params).toString()); }
-     *
-     * private static LocalDateTime readLocalDateTimeFromSource(final ARFFReadAdapter source, final
-     * ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) { return
-     * LocalDateTime.parse(source.get(params).toString()); }
-     *
-     * private static ZonedDateTime readZonedDateTimeFromSource(final ARFFReadAdapter source, final
-     * ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) { return
-     * ZonedDateTime.parse(source.get(params).toString()); }
-     */
+    private static ZonedDateTime readZonedDateTimeFromSource(final ARFFReadAdapter source,
+        final ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) {
+        final String zonedDateTime = source.get(params);
+        return zonedDateTime == null ? null : ZonedDateTime.parse(zonedDateTime);
+    }
+
+    private static LocalDateTime readLocalDateTimeFromSource(final ARFFReadAdapter source,
+        final ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) {
+        final String localDateTime = source.get(params);
+        return localDateTime == null ? null : LocalDateTime.parse(localDateTime);
+    }
+
+    private static LocalDate readLocalDateFromSource(final ARFFReadAdapter source,
+        final ReadAdapterParams<ARFFReadAdapter, ARFFReaderConfig> params) {
+        final String localDate = source.get(params);
+        return localDate == null ? null : LocalDate.parse(localDate);
+    }
 
     @Override
-    public ReadAdapter<DataType, DataCell> createReadAdapter() {
+    public ReadAdapter<DataType, String> createReadAdapter() {
         return new ARFFReadAdapter();
     }
 
     @Override
-    public ProducerRegistry<DataType, ? extends ReadAdapter<DataType, DataCell>> getProducerRegistry() {
+    public ProducerRegistry<DataType, ? extends ReadAdapter<DataType, String>> getProducerRegistry() {
         return PRODUCER_REGISTRY;
     }
 

@@ -51,12 +51,10 @@ package org.knime.base.node.io.filehandling.arff.reader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.UnmaterializedCell;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -73,9 +71,9 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
  * The {@link TableReader} can read the spec and table from a single file. Then, we use {@link TableSpecGuesser} to
  * guess the column types based on the file content.
  *
- * @author Dragan Keselj, KNIME GmbH
+ * @author Dragan Keselj, Redfield SE
  */
-final class ARFFReader implements TableReader<ARFFReaderConfig, DataType, DataCell> {
+final class ARFFReader implements TableReader<ARFFReaderConfig, DataType, String> {
 
     /**
      * Column names and types are defined in the ARFF file. {@link TableSpecGuesser} will be used for some ARFF column
@@ -85,32 +83,40 @@ final class ARFFReader implements TableReader<ARFFReaderConfig, DataType, DataCe
     public TypedReaderTableSpec<DataType> readSpec(final FSPath path, final TableReadConfig<ARFFReaderConfig> config,
         final ExecutionMonitor exec) throws IOException {
         try (final var read = new ARFFRead(path, config)) {
-            final var specGuesser =
-                new TableSpecGuesser<>(ARFFReadAdapterFactory.VALUE_TYPE_HIERARCHY, ARFFReader::columnNameExtractor);
-            final var guessedColumnSpecs = specGuesser.guessSpec(read, config, exec, path);
-
+            final var arffSpec = read.getSpec();
+            var specGuesser =
+                new TableSpecGuesser<>(ARFFReadAdapterFactory.VALUE_TYPE_HIERARCHY, Function.identity());
+            var spec = specGuesser.guessSpec(read, config, exec, path);
+            final var specIterator = spec.iterator();
+            var i = 0;
             final List<TypedReaderColumnSpec<DataType>> columnSpecs = new ArrayList<>();
-            final DataTableSpec spec = read.getTableSpec();
-            for (final DataColumnSpec colSpec : spec) {
-                if (colSpec.getType().equals(DataType.getType(UnmaterializedCell.class))) {
-                    var guessedColSpec = guessedColumnSpecs.getColumnSpec(spec.findColumnIndex(colSpec.getName()));
-                    columnSpecs
-                        .add(TypedReaderColumnSpec.createWithName(colSpec.getName(), guessedColSpec.getType(), true));
+            while (specIterator.hasNext()) {
+                final var guessedSpec = specIterator.next();
+                final var attr = arffSpec.getAttributes().get(i);
+                if (guessedSpec.hasType()) {
+                    columnSpecs.add(TypedReaderColumnSpec.createWithName(attr.getName(), guessedSpec.getType(), true));
                 } else {
-                    columnSpecs.add(TypedReaderColumnSpec.createWithName(colSpec.getName(), colSpec.getType(), true));
+                    final var type = getDataTypeForSourceType(attr.getDefaultJavaType());
+                    columnSpecs.add(TypedReaderColumnSpec.createWithName(attr.getName(), type, false));
                 }
+                i++;
             }
             return new TypedReaderTableSpec<>(columnSpecs);
         }
     }
 
-    private static String columnNameExtractor(final DataCell value) {
-        return value.toString();
+    private static DataType getDataTypeForSourceType(final Class<?> clazz) {
+        return JavaToDataCellConverterRegistry.getInstance() //
+                .getFactoriesForSourceType(clazz) //
+                .stream() //
+                .findFirst() //
+                .orElseThrow(() -> new IllegalStateException("There is no DataType for source type: " + clazz))
+                .getDestinationType();
     }
 
     @SuppressWarnings("resource") // the caller must close the Read when it is no longer needed
     @Override
-    public Read<DataCell> read(final FSPath path, final TableReadConfig<ARFFReaderConfig> config) throws IOException {
+    public Read<String> read(final FSPath path, final TableReadConfig<ARFFReaderConfig> config) throws IOException {
         return decorateForReading(new ARFFRead(path, config), config);
     }
 
@@ -123,9 +129,9 @@ final class ARFFReader implements TableReader<ARFFReaderConfig, DataType, DataCe
      * @throws IOException if a stream can not be created from the provided file.
      */
     @SuppressWarnings("resource") // it's the responsibility of the caller to close the Read
-    private static Read<DataCell> decorateForReading(final ARFFRead read,
+    private static Read<String> decorateForReading(final ARFFRead read,
         final TableReadConfig<ARFFReaderConfig> config) {
-        Read<DataCell> filtered = read;
+        Read<String> filtered = read;
         if (config.skipRows()) {
             final long numRowsToSkip = config.getNumRowsToSkip();
             filtered = ReadUtils.skip(filtered, numRowsToSkip);

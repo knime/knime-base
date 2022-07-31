@@ -62,7 +62,7 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
  * framework or (b) can't be changed in the dialog of this particular node.
  * <ul>
  *
- * @author Dragan Keselj, KNIME GmbH
+ * @author Dragan Keselj, Redfield SE
  */
 final class ARFFMultiTableReadConfig extends
     AbstractMultiTableReadConfig<ARFFReaderConfig, DefaultTableReadConfig<ARFFReaderConfig>, DataType, ARFFMultiTableReadConfig> {
