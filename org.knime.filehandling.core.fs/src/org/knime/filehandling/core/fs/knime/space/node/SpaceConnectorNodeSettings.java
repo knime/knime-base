@@ -49,7 +49,6 @@
 package org.knime.filehandling.core.fs.knime.space.node;
 
 import java.time.Duration;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
@@ -70,9 +69,6 @@ import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
  * @author Zkriya Rakhimberdiyev
  */
 public class SpaceConnectorNodeSettings {
-
-    private static final Set<String> HUB_PROVIDER_FACTORY_IDS = Set.of(
-        "com.knime.explorer.server.knime_hub", "com.knime.explorer.server.workflow_hub");
 
     enum SpaceMode {
         CURRENT("CURRENT", "Current space"),
@@ -133,7 +129,7 @@ public class SpaceConnectorNodeSettings {
     public SpaceConnectorNodeSettings() {
         m_spaceMode = new SettingsModelString(KEY_MODE, SpaceMode.CURRENT.getSettingsValue());
         m_mountpoint = new MountpointSpecificConfig(true,
-            () -> MountPointFileSystemAccessService.instance().getAllMountedIDs(HUB_PROVIDER_FACTORY_IDS));
+            () -> MountPointFileSystemAccessService.instance().getHubMountedIDs());
         m_workingDirectory =
                 new SettingsModelString(KEY_WORKING_DIRECTORY, MountpointFSConnectionConfig.PATH_SEPARATOR);
         m_spaceId = new SettingsModelString(KEY_SPACE_ID, "");

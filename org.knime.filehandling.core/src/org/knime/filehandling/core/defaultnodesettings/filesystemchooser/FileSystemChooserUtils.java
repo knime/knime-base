@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -57,6 +58,7 @@ import java.util.stream.Stream;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.CustomURLSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecHandler;
@@ -72,6 +74,8 @@ import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.LocalFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.MountpointFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.RelativeToFileSystemDialog;
+import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Static uility class that provides factory methods for {@link FileSystemChooser} and {@link FileSystemConfiguration}.
@@ -115,6 +119,47 @@ public final class FileSystemChooserUtils {
         return Stream.concat(convenienceConfigs//
             , Stream.of(new ConnectedFileSystemSpecificConfig(hasPort, portsConfig, portId)))//
             .toArray(FileSystemSpecificConfig[]::new);
+    }
+
+    /**
+     * Gets the initial default {@link FSLocationSpec}, depending on the current workflow context.
+     *
+     * @return the initial default {@link FSLocationSpec}.
+     */
+    public static FSLocationSpec getDefaultFSLocationSpec() {
+
+        final var workflowContext = WorkflowContextUtil.getWorkflowContext();
+        final var remoteMountId = workflowContext.getMountpointURI().map(URI::getHost)
+                .orElse(null);
+
+        final var hubMountedIds = MountPointFileSystemAccessService.instance().getHubMountedIDs();
+        final var serverMountedIds = MountPointFileSystemAccessService.instance().getServerMountedIDs();
+
+        // TODO: clean this up using WorkflowContextV2, in particular don't pick relative to current workflow
+        // when we are on server or hub
+        if (remoteMountId == null) {
+            // we are in Server or Hub Executor (we cannot tell which, unfortunately)
+            // hence we pick something that works regardless: Relative To Current workflow
+            final var relativeConfig = new RelativeToSpecificConfig(true);
+            relativeConfig.setRelativeTo(RelativeTo.WORKFLOW);
+            return relativeConfig.getLocationSpec();
+        } else if (serverMountedIds.contains(remoteMountId)) {
+            // we are in AP (temp workflow copy) and workflow is stored in server repo
+            // hence we pick Relative To Current Mountpoint
+            final var relativeConfig = new RelativeToSpecificConfig(true);
+            relativeConfig.setRelativeTo(RelativeTo.MOUNTPOINT);
+           return relativeConfig.getLocationSpec();
+        } else if (hubMountedIds.contains(remoteMountId)) {
+            // we are in AP (temp workflow copy) and workflow is stored in Hub Space
+            // hence we pickRelative To Current Space
+            final var relativeConfig = new RelativeToSpecificConfig(true);
+            relativeConfig.setRelativeTo(RelativeTo.SPACE);
+           return relativeConfig.getLocationSpec();
+        } else {
+            // we are in AP workflow is stored in a local workspace
+            // hence we pick the local file system
+            return new LocalSpecificConfig(true).getLocationSpec();
+        }
     }
 
     private static FileSystemSpecificConfig createConvenienceConfig(final FSCategory category, final boolean active) {

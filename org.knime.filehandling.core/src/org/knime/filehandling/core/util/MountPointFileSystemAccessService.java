@@ -54,7 +54,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
@@ -145,15 +145,35 @@ public final class MountPointFileSystemAccessService {
     }
 
     /**
-     * @param providerFactoryIDs Provider factory IDs to accept.
-     * @return A list of all mount IDs that use one of the given provider factories.
+     * @return A list of the ids of all Hub mountpoints
      */
-    public List<String> getAllMountedIDs(final Set<String> providerFactoryIDs) {
-        final List<String> hubMountpointIds = new ArrayList<>();
+    public List<String> getHubMountedIDs() {
+        final List<String> result = new ArrayList<>();
         for (final MountPointFileSystemAccess p : m_providers) {
-            hubMountpointIds.addAll(p.getMountedIDs(providerFactoryIDs));
+
+            final var hubMountedIds = p.getMountedIDs().stream()
+                    .filter(p::isHubMountPoint)
+                    .collect(Collectors.toList());
+
+            result.addAll(hubMountedIds);
         }
-        return hubMountpointIds;
+        return result;
+    }
+
+    /**
+     * @return A list of the ids of all Server mountpoints
+     */
+    public List<String> getServerMountedIDs() {
+        final List<String> result = new ArrayList<>();
+        for (final MountPointFileSystemAccess p : m_providers) {
+
+            final var serverMountedIds = p.getMountedIDs().stream()
+                    .filter(p::isServerMountPoint)
+                    .collect(Collectors.toList());
+
+            result.addAll(serverMountedIds);
+        }
+        return result;
     }
 
     /**

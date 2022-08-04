@@ -83,6 +83,7 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationFactory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.PriorityStatusConsumer;
@@ -97,10 +98,7 @@ import org.knime.filehandling.core.util.SettingsUtils;
  * It handles the top-level implementation of loading/saving/validating and delegates to the individual
  * {@link FileSystemSpecificConfig FileSystemSpecificConfigs} to deal with the specifics of each file system.</br>
  * Note that it stores the state of all {@link FileSystemSpecificConfig FileSystemSpecificConfigs} in an internal
- * settings object that is not displayed in the flow variable tab on a KNIME node dialog.</br>
- * It also stores the currently selected file system as well as its specifier (if any). In case of convenience file
- * systems (e.g. mountpoint) these settings are displayed in the flow variable tab and can thus be overwritten. For
- * connected file systems, it isn't possible to overwrite the settings with flow variables.
+ * settings object that is not displayed in the flow variable tab on a KNIME node dialog.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <L> the type of {@link FSLocationSpec} used
@@ -154,14 +152,16 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
     // flag indicating that we are currently loading the settings i.e. no notification should be issued
     private boolean m_loading = false;
 
+    // flag indicating whether this FileSystemConfiguration is new in order to set default location specification
+    private boolean m_new = true;
+
     /**
      * Constructor to be used in the case where there is no file system port.</br>
-     * The first file system represented by the first config is used as default.</br>
      * The {@link ConnectedFileSystemSpecificConfig} is not supported in this constructor.</br>
      * The created configuration can be overwritten using the flow variable tab of the corresponding node dialog.
      *
      * @param locationSpecHandler {@link FSLocationSpecHandler} used to handle {@link FSLocationSpec} instances
-     * @param configs the {@link FileSystemSpecificConfig configs} for the default file systems to choose from (must not
+     * @param configs the {@link FileSystemSpecificConfig configs} for the convenience file systems to choose from (must not
      *            contain {@link ConnectedFileSystemSpecificConfig})
      */
     public FileSystemConfiguration(final FSLocationSpecHandler<L> locationSpecHandler,
@@ -183,6 +183,9 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
             config.addChangeListener(this::handleSpecificConfigChange);
         }
         m_settingsStoredWithFSPort = m_portIdx > -1;
+
+        // Set temporary default location specification.
+        // Later it is reset in configureInModel() method.
         setLocationSpec(Arrays.stream(configs)//
             .filter(FileSystemSpecificConfig::isActive)//
             .findFirst()//
@@ -483,6 +486,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
+        m_new = false;
         m_loading = true;
         loadLocationSpec(settings);
         final NodeSettingsRO internalSettings = SettingsUtils.getOrEmpty(settings, CFG_FILE_SYSTEM_CHOOSER_INTERNALS);
@@ -534,6 +538,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
      * @throws InvalidSettingsException if the configuration stored in {@link NodeSettingsRO settings} is invalid
      */
     public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_new = false;
         m_loading = true;
         m_locationSpec = m_locationSpecHandler.load(settings);
         final NodeSettingsRO internalSettings = settings.getNodeSettings(CFG_FILE_SYSTEM_CHOOSER_INTERNALS);
@@ -573,6 +578,15 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
             // we need to update the config with the incoming fs spec
             updateConnectedConfigWithSpec(specs, warningConsumer);
         } else {
+
+            // this runs only once when node is new (no settings have been loaded beforehand)
+            if (m_new) {
+                m_new = false;
+                final var defaultLocationSpec = FileSystemChooserUtils.getDefaultFSLocationSpec();
+                setLocationSpec(defaultLocationSpec);
+                getCurrentSpecificConfig().updateSpecifier(defaultLocationSpec);
+            }
+
             final FileSystemSpecificConfig current = getCurrentSpecificConfig();
             if (current.isActive()) {
                 current.configureInModel(specs, warningConsumer);
