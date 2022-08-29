@@ -1,66 +1,38 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./cell_replace.png" type="Manipulator">
     <name>Cell Replacer</name>
-    
-    <shortDescription>
-        Replaces cells in a column according to dictionary table (2nd input).
-    </shortDescription>
-    
+    <shortDescription>Replaces cells in a column according to dictionary table (2nd input).</shortDescription>
     <fullDescription>
         <intro>
-			<p>Replaces cells in a column according to dictionary table
-			(2nd input). The node has two inputs: The first input contains a
-			target column whose values are to be replaced using the dictionary 
-			table (2nd input). From the dictionary table, choose one column 
-			(or the rowID column) that is used as lookup criterion. Any 
-			occurrence in the target column (1st input) that matches the lookup
-			value is replaced by the corresponding value of the output column,
-			which is another column in the dictionary table.
-			</p>
-			
-			<p>Missing values are treated as ordinary values, that is, they are
-			valid as lookup and replacement value. If there are duplicates in 
-			the	lookup column in the dictionary table, the last occurrence 
-			(bottom most row) defines the replacement pair.
-			</p>
-			
-			<p>If the input/lookup column is a collection type, each of the 
-			contained values in the collection is a search element.
-			</p>
-		</intro>
-        
-        
-        <option name="Input table, Target column">The column in the first input
-            table whose values will be replaced.</option>
-        <option name="Dictionary table, Input (Lookup)">Search column in the 
-            second input table.</option>
-        <option name="Dictionary table, Output (Replacement)">Column in the  
-            second input table containing the replacement values.</option>
-        <option name="If no element matches use">Define how values in the 
-            input table, which do not match any search pattern, are treated. 
-            "Input" will leave the value unmodified, "Missing" replaces the 
-            value by a missing value.</option>
-        <option name="Append/Replace Result Column">Select the checkbox and 
-            enter a new column name that will contain the mapped output. 
-            If unselected, the result will replace the target column.</option>
-        <option name="Copy metadata from replacement column">Check the box if any meta data
-            from the "replacement" column should be retained in the output. This includes
-            domain information, any color/size/shape handlers, names of the elements if 
-            the column represents a collection, etc. This option can only be selected if
-            non-matches are represented as missing values (as opposed to copy the previous value). 
-            If in doubt, leave this option selected. </option>
+            <p>Replaces cells in a column according to dictionary table (2nd input). The node has two inputs: The first input contains a target column whose values are to be replaced using the dictionary table (2nd input). From the dictionary table, choose one column (or the rowID column) that is used as lookup criterion and an output column that contains the corresponting replacement. Any occurrence in the target column (1st input) that matches the lookup value is replaced by the corresponding value of the output column, which is another column in the dictionary table.</p>
+            <p>
+                When the lookup column is of type String, it's also possible to replace the cell if
+                <ul>
+                    <li>The lookup string is a only a substring of the target cell. Example: Match the lookup string "John" to the cell "Johnny".</li>
+                    <li>The lookup string is a Wildcard expression that matches the target cell where `*` to represents zero or more arbitrary characters and `?` represents a single optional character. Example: Match "A*z" to all proper nouns starting and ending with "a", like e.g. "America", "Australia" or "Alabama".</li>
+                    <li>The lookup string is a Regular Expression that matches the target cell. Example: Match "^[knime]+$" to all words containing only the letters "k", "n", "i", "m" and "e", like e.g. "knee" or "mine".</li>
+                </ul>
+            </p>
+            <p>Note that the Substring, Wildcard and RegEx methods bring a significant performance penalty, since every target cell must be checked against every lookup cell.</p>
+            <p>When matching with strings, it is possible to match either case-sensitively or ignore case.</p>
+            <p>Instead of replacing the target column, the column containing the replacements can be appended instead. Furthermore, a column indicating whether the value was found (and therefore replaced) can be appended.</p>
+            <p>Missing values are treated as ordinary values, that is, they are valid as lookup and replacement value. If there are duplicates in the lookup column in the dictionary table, the last occurrence (bottom most row) defines the replacement pair.</p>
+            <p>If the input/lookup column is a collection type, each of the contained values in the collection is a search element.</p>
+        </intro>
+        <option name="Input table, Target column">The column in the first input table whose values will be replaced.</option>
+        <option name="Dictionary table, Input (Lookup)">Search column in the second input table.</option>
+        <option name="Dictionary table, Output (Replacement)">Column in the second input table containing the replacement values.</option>
+        <option name="Dictionary matching behaviour, Matching behaviour">Only enabled if the dictionary input (lookup) is of type String. Select whether a cell should be replaced if the lookup string matches the target cell exactly, is a substring of it, is a matching wildcard expression or a matching Regular Expression.</option>
+        <option name="Dictionary matching behaviour, Case sensitive">Only enabled if the dictionary input (lookup) is of type String. Decide whether the matching should be case-sensitive or not.</option>
+        <option name="(Additional) Result Columns, Append result as new column">Select the checkbox and enter a new column name that will contain the mapped output. If unselected, the result will replace the target column.</option>
+        <option name="(Additional) Result Columns, Create additional found / not found column">If checked, an additional column will be appended that indicates whether a lookup value was found in the target cell (and therefore replaced) or not. It's possible to use any strings here as values for the column.</option>
+        <option name="If no element matches use">Define how values in the input table, which do not match any search pattern, are treated. "Input" will leave the value unmodified, "Missing" replaces the value by a missing value.</option>
+        <option name="Copy metadata from replacement column">Check the box if any meta data from the "replacement" column should be retained in the output. This includes domain information, any color/size/shape handlers, names of the elements if the column represents a collection, etc. This option can only be selected if non-matches are represented as missing values (as opposed to copy the previous value). If in doubt, leave this option selected.</option>
     </fullDescription>
-    
     <ports>
-        <inPort index="0" name="Input Table">Table containing column whose 
-            values are to be replaced.
-        </inPort>
-        <inPort index="1" name="Dictionary Table">Dictionary table containing 
-            two columns: one lookup column and one replacement column.
-        </inPort>
-        <outPort index="0" name="Table with replaced column">
-            Input table with replaced target column.
-         </outPort>
-    </ports>    
+        <inPort index="0" name="Input Table">Table containing column whose values are to be replaced.</inPort>
+        <inPort index="1" name="Dictionary Table">Dictionary table containing two columns: one lookup column and one replacement column.</inPort>
+        <outPort index="0" name="Table with replaced column">Input table with replaced target column.</outPort>
+    </ports>
 </knimeNode>

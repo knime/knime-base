@@ -47,76 +47,68 @@
  */
 package org.knime.base.node.preproc.cellreplace;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
-import org.knime.base.node.preproc.cellreplace.CellReplacerNodeModel.NoMatchPolicy;
+import org.knime.base.node.preproc.cellreplace.CellReplacerNodeSettings.NoMatchPolicy;
+import org.knime.base.node.preproc.cellreplace.CellReplacerNodeSettings.StringMatchBehaviour;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 
 /**
- * <code>NodeDialog</code> for the "CellReplacer" Node. Replaces cells in a
- * column according to dictionary table (2nd input)
+ * <code>NodeDialog</code> for the "CellReplacer" Node. Replaces cells in a column according to dictionary table (2nd
+ * input)
  *
  * @author Bernd Wiswedel
  */
-public class CellReplacerNodeDialog extends DefaultNodeSettingsPane {
+public final class CellReplacerNodeDialog extends DefaultNodeSettingsPane {
 
     /**
      * New pane for configuring the CellReplacer node.
      */
-    @SuppressWarnings("unchecked")
     protected CellReplacerNodeDialog() {
-        SettingsModelString targetColModel =
-                CellReplacerNodeModel.createTargetColModel();
-        SettingsModelString noMatchPolicyModel =
-                CellReplacerNodeModel.createNoMatchPolicyModel();
-        SettingsModelColumnName dictInputColModel =
-                CellReplacerNodeModel.createDictInputColModel();
-        SettingsModelColumnName dictOutputColModel =
-                CellReplacerNodeModel.createDictOutputColModel();
-        SettingsModelBoolean appColumnModel =
-            CellReplacerNodeModel.createAppendColumnModel();
-        SettingsModelString appColumnNameModel =
-            CellReplacerNodeModel.createAppendColumnNameModel(appColumnModel);
-        SettingsModelBoolean retainColumnMetadataModel =
-                CellReplacerNodeModel.createRetainColumnPropertiesModel(noMatchPolicyModel);
+        var settings = new CellReplacerNodeSettings();
 
-        DialogComponentColumnNameSelection targetColSelector =
-                new DialogComponentColumnNameSelection(targetColModel,
-                        "Target column", 0, DataValue.class);
+        @SuppressWarnings("unchecked") // VarArgs are safe
+        var targetColSelector = new DialogComponentColumnNameSelection(settings.getTargetColNameModel(),
+            "Target column", 0, DataValue.class);
+        var noMatchPols =
+            Arrays.stream(NoMatchPolicy.values()).map(NoMatchPolicy::toString).collect(Collectors.toList());
+        var noMatchButtonGroup = new DialogComponentButtonGroup(settings.getNoMatchPolicyModel(), false, null,
+            noMatchPols.toArray(new String[noMatchPols.size()]));
 
-        List<String> noMatchPols = new ArrayList<String>();
-        for (NoMatchPolicy p : NoMatchPolicy.values()) {
-            noMatchPols.add(p.toString());
-        }
-        DialogComponentButtonGroup noMatchButtonGroup =
-                new DialogComponentButtonGroup(noMatchPolicyModel, false,
-                        null, noMatchPols.toArray(new String[noMatchPols.size()]));
+        @SuppressWarnings("unchecked") // VarArgs are safe
+        var dictInputColSelector = new DialogComponentColumnNameSelection(settings.getDictInputColModel(),
+            "Input (Lookup)", 1, DataValue.class);
+        enableModelOnlyIfStringColSelected(settings.getStringMatchBehaviourModel(), dictInputColSelector);
+        enableModelOnlyIfStringColSelected(settings.getStringCaseSensitiveMatchingModel(), dictInputColSelector);
 
-        DialogComponentColumnNameSelection dictInputColSelector =
-                new DialogComponentColumnNameSelection(dictInputColModel,
-                        "Input (Lookup)", 1, DataValue.class);
-
-        DialogComponentColumnNameSelection dictOutputColSelector =
-                new DialogComponentColumnNameSelection(dictOutputColModel,
-                        "Output (Replacement)", 1, DataValue.class);
-
-        DialogComponentBoolean appendColumnChecker =
-                new DialogComponentBoolean(appColumnModel, "Append new column");
-
-        DialogComponentString appendColumnNameField =
-                new DialogComponentString(appColumnNameModel, "");
-
-        DialogComponentBoolean retainColumnMetadataField =
-                new DialogComponentBoolean(retainColumnMetadataModel, "Copy metadata from replacement column");
+        @SuppressWarnings("unchecked") // VarArgs are safe
+        var dictOutputColSelector = new DialogComponentColumnNameSelection(settings.getDictOutputColModel(),
+            "Output (Replacement)", 1, DataValue.class);
+        var stringMatchBehaviours = Arrays.stream(StringMatchBehaviour.values()).map(StringMatchBehaviour::toString)
+            .collect(Collectors.toList());
+        var stringMatchBehaviourSelector = new DialogComponentButtonGroup(settings.getStringMatchBehaviourModel(),
+            false, "Matching behaviour", stringMatchBehaviours.toArray(new String[0]));
+        var stringCaseSensitiveMatchingChecker =
+            new DialogComponentBoolean(settings.getStringCaseSensitiveMatchingModel(), "Case sensitive");
+        var appendColumnChecker =
+            new DialogComponentBoolean(settings.getAppendColumnModel(), "Append result as new column");
+        var appendColumnNameField = new DialogComponentString(settings.getAppendColumnNameModel(), "");
+        var appendFoundColumnChecker = new DialogComponentBoolean(settings.getAppendFoundColumnModel(),
+            "Create additional \"found\" / \"not found\" column");
+        var appendFoundColumnPositiveNameField =
+            new DialogComponentString(settings.getFoundColumnPositiveStringModel(), "Found");
+        var appendFoundColumnNegativeNameField =
+            new DialogComponentString(settings.getFoundColumnNegativeStringModel(), "Not Found");
+        var retainColumnMetadataField = new DialogComponentBoolean(settings.getRetainColumnPropertiesModel(),
+            "Copy metadata from replacement column");
 
         createNewGroup("Input table");
         addDialogComponent(targetColSelector);
@@ -127,17 +119,40 @@ public class CellReplacerNodeDialog extends DefaultNodeSettingsPane {
         addDialogComponent(dictOutputColSelector);
         closeCurrentGroup();
 
-        createNewGroup("Append/Replace Result Column");
+        createNewGroup("Dictionary matching behaviour (only applicable for Strings)");
+        addDialogComponent(stringMatchBehaviourSelector);
+        addDialogComponent(stringCaseSensitiveMatchingChecker);
+        closeCurrentGroup();
+
+        createNewGroup("(Additional) Result Columns");
         setHorizontalPlacement(true);
         addDialogComponent(appendColumnChecker);
         addDialogComponent(appendColumnNameField);
+        setHorizontalPlacement(false);
+        setHorizontalPlacement(true);
+        addDialogComponent(appendFoundColumnChecker);
+        addDialogComponent(appendFoundColumnPositiveNameField);
+        addDialogComponent(appendFoundColumnNegativeNameField);
         closeCurrentGroup();
+
         setHorizontalPlacement(false);
         createNewGroup("If no element matches use");
         addDialogComponent(noMatchButtonGroup);
         closeCurrentGroup();
+
         setHorizontalPlacement(false);
         createNewGroup("Metadata in Output");
         addDialogComponent(retainColumnMetadataField);
     }
+
+    private static void enableModelOnlyIfStringColSelected(final SettingsModel m,
+        final DialogComponentColumnNameSelection s) {
+        if (s == null) {
+            return;
+        }
+        s.getModel().addChangeListener(e -> m.setEnabled(
+            s.getSelectedAsSpec() != null && s.getSelectedAsSpec().getType().isCompatible(StringValue.class)));
+        m.setEnabled(s.getSelectedAsSpec() != null && s.getSelectedAsSpec().getType().isCompatible(StringValue.class));
+    }
+
 }
