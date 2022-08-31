@@ -66,14 +66,15 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.base.BaseFSConnection;
 import org.knime.filehandling.core.connections.base.WorkflowAwareFileView;
 import org.knime.filehandling.core.connections.base.ui.WorkingDirectoryChooser;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
+import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
@@ -115,27 +116,25 @@ public class WorkflowDataAreaConnectorNodeDialog extends NodeDialogPane {
             workDir = RelativeToFSConnectionConfig.PATH_SEPARATOR;
         }
 
-        final var actualFSConnection = DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW_DATA, workDir);
-        return new FSConnection() {
-            /**
-             * File system browser that is workflow area (displays workflows as little workflow icons), but does not relativize the
-             * selected path.
-             */
-            final FileSystemBrowser m_nonRelativizingBrowser = new NioFileSystemBrowser(new NioFileSystemView(actualFSConnection)) {
-                @Override
-                protected FileView getFileView() {
-                    return new WorkflowAwareFileView();
-                }
-            };
-
-            @Override
-            public FileSystemBrowser getFileSystemBrowser() {
-                return m_nonRelativizingBrowser;
-            }
+        final var actualFSConnection =
+            DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW_DATA, workDir);
+        return new BaseFSConnection() {
 
             @Override
             public FSFileSystem<?> getFileSystem() {
                 return actualFSConnection.getFileSystem();
+            }
+
+            @Override
+            protected AbstractFileChooserBrowser createFileSystemBrowser() {
+                // File system browser that is workflow area (displays workflows as little workflow icons), but does not relativize the
+                // selected path.
+                return new NioFileSystemBrowser(new NioFileSystemView(actualFSConnection)) {
+                    @Override
+                    protected FileView getFileView() {
+                        return new WorkflowAwareFileView();
+                    }
+                };
             }
         };
     }

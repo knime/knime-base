@@ -55,13 +55,17 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.filechooser.FileView;
@@ -89,6 +93,27 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractFileChooserBrowser.class);
 
     private static final String[] WORKFLOW_FILTER = new String[0];
+
+    /**
+     * Generic method to create file chooser browser on event dispatch thread.
+     *
+     * @param <T> subtype of {@link AbstractFileChooserBrowser}
+     * @param supplier browser supplier
+     * @return file chooser browser
+     */
+    public static <T> T createBrowser(final Supplier<T> supplier) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            return supplier.get();
+        } else {
+            final var atomicRef = new AtomicReference<T>();
+            try {
+                SwingUtilities.invokeAndWait(() -> atomicRef.set(supplier.get()));
+                return atomicRef.get();
+            } catch (InvocationTargetException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     @Override
     public String openDialogAndGetSelectedFileName(final FileSelectionMode fileSelectionMode,

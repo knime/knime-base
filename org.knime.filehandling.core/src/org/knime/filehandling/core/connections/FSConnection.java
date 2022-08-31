@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.FileSystemBrowser;
+import org.knime.filehandling.core.connections.base.BaseFSConnection;
 import org.knime.filehandling.core.connections.meta.FSDescriptor;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
@@ -16,7 +17,8 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
 
 /**
- * Interface for file system connections.
+ * Interface for file system connections. Do not implement this interface directly, instead extend
+ * {@link BaseFSConnection}.
  *
  * @author Tobias Urhaug, KNIME GmbH, Berlin, Germany
  * @noreference non-public API

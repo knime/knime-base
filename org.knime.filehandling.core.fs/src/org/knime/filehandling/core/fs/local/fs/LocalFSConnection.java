@@ -48,11 +48,11 @@
  */
 package org.knime.filehandling.core.fs.local.fs;
 
-import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.base.BaseFSConnection;
 import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
+import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
@@ -60,7 +60,7 @@ import org.knime.filehandling.core.filechooser.NioFileSystemView;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-class LocalFSConnection implements FSConnection {
+class LocalFSConnection extends BaseFSConnection {
 
     private final LocalFileSystem m_fileSystem;
 
@@ -68,14 +68,15 @@ class LocalFSConnection implements FSConnection {
         m_fileSystem = new LocalFileSystem(new LocalFileSystemProvider(), config);
     }
 
+
     @Override
     public FSFileSystem<?> getFileSystem() {
         return m_fileSystem;
     }
 
     @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        if (getFileSystem().getFileSystemCategory() == FSCategory.CONNECTED) {
+    protected AbstractFileChooserBrowser createFileSystemBrowser() {
+        if (m_fileSystem.getFileSystemCategory() == FSCategory.CONNECTED) {
             return new LocalFileSystemBrowser(m_fileSystem, new NioFileSystemView(this));
         } else {
             return new LocalFileSystemBrowser(m_fileSystem);

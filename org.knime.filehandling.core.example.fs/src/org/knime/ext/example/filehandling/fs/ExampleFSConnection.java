@@ -50,17 +50,16 @@ package org.knime.ext.example.filehandling.fs;
 
 import java.io.IOException;
 
-import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
+import org.knime.filehandling.core.connections.base.BaseFSConnection;
 
 /**
  * {@link FSConnection} for the Example file system.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class ExampleFSConnection implements FSConnection {
+public class ExampleFSConnection extends BaseFSConnection {
 
     private static final long CACHE_TTL = 6000;
 
@@ -74,18 +73,12 @@ public class ExampleFSConnection implements FSConnection {
      * @throws IOException
      *
      */
-    public ExampleFSConnection(final ExampleFSConnectionConfig config)
-            throws IOException {
+    public ExampleFSConnection(final ExampleFSConnectionConfig config) throws IOException {
         m_filesystem = new ExampleFileSystem(CACHE_TTL, config);
     }
 
     @Override
     public FSFileSystem<?> getFileSystem() {
         return m_filesystem;
-    }
-
-    @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return new NioFileSystemBrowser(this);
     }
 }
