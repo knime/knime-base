@@ -44,68 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2020 (bjoern): created
+ *   Aug 30, 2022 (bjoern): created
  */
-package org.knime.filehandling.core.fs.knime.local.mountpoint;
+package org.knime.filehandling.core.connections.base;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.util.Optional;
-
-import org.knime.core.util.pathresolve.ResolverUtil;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.base.BaseFSConnection;
-import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
-import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
+import org.knime.filehandling.core.filechooser.LazyFileSystemBrowserHolder;
+import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 
 /**
- * {@link FSConnection} for the Explorer-based Mountpoint file system.
+ * Base class for all {@link FSConnection} implementations.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public final class LocalMountpointFSConnection extends BaseFSConnection {
+public abstract class BaseFSConnection implements FSConnection {
 
-    private final LocalMountpointFileSystem m_fileSystem;
+    private final LazyFileSystemBrowserHolder<AbstractFileChooserBrowser> m_browserHolder;
 
     /**
      * Constructor.
-     *
-     * @param config The config for this {@link FSConnection}.
-     * @throws IOException
      */
-    public LocalMountpointFSConnection(final MountpointFSConnectionConfig config) throws IOException {
-        final Path localRoot = determineLocalRootFolder(config.getMountID());
-        m_fileSystem = new LocalMountpointFileSystem(config, localRoot);
+    protected BaseFSConnection() {
+        m_browserHolder = new LazyFileSystemBrowserHolder<>(this::createFileSystemBrowser);
     }
 
-    private static Path determineLocalRootFolder(final String mountID) throws IOException {
-
-        try {
-            final var knimeUrl = new URI(String.format("knime://%s/", mountID));
-            final var localFile = ResolverUtil.resolveURItoLocalFile(knimeUrl);
-
-            return Optional.ofNullable(localFile) //
-                .orElseThrow(() -> new IllegalArgumentException(
-                    String.format("Mountpoint %s is unknown or a remote mountpoint", mountID))) //
-                .toPath();
-        } catch (IOException | URISyntaxException ex) {
-            throw new IOException("Could not determine local folder of mountpoint " + mountID, ex);
-        }
-    }
-
-    @Override
-    public FSFileSystem<?> getFileSystem() {
-        return m_fileSystem;
-    }
-
-    @Override
+    /**
+     * Factory method to instantiate a new file system browser. This method is used for lazy and thread-safe
+     * instantiation of the file browser. Override this method if your file system needs different behavior than the
+     * standard {@link NioFileSystemBrowser}.
+     *
+     * @return a newly create {@link AbstractFileChooserBrowser} instance.
+     */
     protected AbstractFileChooserBrowser createFileSystemBrowser() {
-        return new WorkflowAwareFileSystemBrowser(m_fileSystem, //
-            m_fileSystem.getWorkingDirectory(), //
-            m_fileSystem.getWorkingDirectory());
+        return new NioFileSystemBrowser(this);
+    }
+
+    @Override
+    public final AbstractFileChooserBrowser getFileSystemBrowser() {
+        return m_browserHolder.get();
     }
 }

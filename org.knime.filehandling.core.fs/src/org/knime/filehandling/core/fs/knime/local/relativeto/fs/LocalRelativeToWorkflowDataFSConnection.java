@@ -52,12 +52,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.base.BaseFSConnection;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
+import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
 import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
@@ -72,11 +73,9 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class LocalRelativeToWorkflowDataFSConnection implements FSConnection {
+public final class LocalRelativeToWorkflowDataFSConnection extends BaseFSConnection {
 
     private final LocalRelativeToFileSystem m_fileSystem;
-
-    private final RelativeToFileSystemBrowser m_browser;
 
     /**
      * Creates a new connection using the given config.
@@ -96,9 +95,6 @@ public final class LocalRelativeToWorkflowDataFSConnection implements FSConnecti
         m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, //
             config.isConnectedFileSystem(), //
             config.getWorkingDirectory());
-
-        final var browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
-        m_browser = new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
     }
 
     private static LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
@@ -128,7 +124,8 @@ public final class LocalRelativeToWorkflowDataFSConnection implements FSConnecti
     }
 
     @Override
-    public FileSystemBrowser getFileSystemBrowser() {
-        return m_browser;
+    protected AbstractFileChooserBrowser createFileSystemBrowser() {
+        final var browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
+        return new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
     }
 }
