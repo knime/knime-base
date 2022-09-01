@@ -60,7 +60,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
-import org.knime.filehandling.core.connections.config.SpaceFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
@@ -132,7 +131,7 @@ public class SpaceConnectorNodeSettings {
      * Creates new instance
      */
     public SpaceConnectorNodeSettings() {
-        m_spaceMode = new SettingsModelString(KEY_MODE, SpaceMode.OTHER.getSettingsValue());
+        m_spaceMode = new SettingsModelString(KEY_MODE, SpaceMode.CURRENT.getSettingsValue());
         m_mountpoint = new MountpointSpecificConfig(true,
             () -> MountPointFileSystemAccessService.instance().getAllMountedIDs(HUB_PROVIDER_FACTORY_IDS));
         m_workingDirectory =
@@ -297,10 +296,6 @@ public class SpaceConnectorNodeSettings {
             throw new InvalidSettingsException(e.getMessage());
         }
 
-        if (spaceMode == SpaceMode.CURRENT) {
-            throw new InvalidSettingsException("Connecting to CURRENT is not implemented yet");
-        }
-
         if (spaceMode == SpaceMode.OTHER && StringUtils.isBlank(m_spaceId.getStringValue())) {
             throw new InvalidSettingsException("Please select a space.");
         }
@@ -334,14 +329,5 @@ public class SpaceConnectorNodeSettings {
         m_spaceId.loadSettingsFrom(settings);
         m_connectionTimeout.loadSettingsFrom(settings);
         m_readTimeout.loadSettingsFrom(settings);
-    }
-
-    SpaceFSConnectionConfig createSpaceFSConnectionConfig() {
-        return new SpaceFSConnectionConfig( //
-            m_workingDirectory.getStringValue(), //
-            m_mountpoint.getMountpoint().getId(),
-            m_spaceId.getStringValue(),
-            getConnectionTimeout(), //
-            getReadTimeout());
     }
 }

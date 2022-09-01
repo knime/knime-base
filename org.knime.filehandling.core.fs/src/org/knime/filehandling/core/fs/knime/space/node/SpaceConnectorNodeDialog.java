@@ -203,7 +203,7 @@ public class SpaceConnectorNodeDialog extends NodeDialogPane {
 
 
     private FSConnection createSpaceConnection() {
-        return DefaultFSConnectionFactory.createSpaceConnection(m_settings.createSpaceFSConnectionConfig());
+        return SpaceConnectorFSConnectionFactory.create(m_settings).createFSConnection();
     }
 
     private JComponent createSettingsPanel() {
