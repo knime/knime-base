@@ -54,7 +54,6 @@ import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowFSConnection;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
@@ -72,7 +71,7 @@ public final class LocalRelativeToWorkflowFSTestInitializerProvider extends Loca
      * @param fsType The {@link FSType} to use.
      */
     public LocalRelativeToWorkflowFSTestInitializerProvider(final FSType fsType) {
-        super(fsType, RelativeToFileSystemConstants.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC);
+        super(fsType, RelativeToFSConnectionConfig.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC);
     }
 
     @SuppressWarnings("resource")
@@ -80,8 +79,8 @@ public final class LocalRelativeToWorkflowFSTestInitializerProvider extends Loca
     protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
         throws IOException {
 
-        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig("", RelativeTo.WORKFLOW);
-        final LocalRelativeToWorkflowFSConnection fsConnection = new LocalRelativeToWorkflowFSConnection(config);
+        final var config = new RelativeToFSConnectionConfig("", RelativeTo.WORKFLOW);
+        final var fsConnection = new LocalRelativeToWorkflowFSConnection(config);
 
         return new LocalRelativeToFSTestInitializer(fsConnection) {
             @Override

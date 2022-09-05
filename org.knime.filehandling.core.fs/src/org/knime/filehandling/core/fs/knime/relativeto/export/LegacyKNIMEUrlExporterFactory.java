@@ -74,6 +74,8 @@ public final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFact
     private static final LegacyKNIMEUrlExporterFactory MOUNTPOINT_RELATIVE_INSTANCE =
         new LegacyKNIMEUrlExporterFactory(RelativeTo.MOUNTPOINT);
 
+    private static final LegacyKNIMEUrlExporterFactory SPACE_RELATIVE_INSTANCE =
+        new LegacyKNIMEUrlExporterFactory(RelativeTo.SPACE);
 
     private LegacyKNIMEUrlExporterFactory(final RelativeTo type) {
         super(META_INFO, p -> LegacyKNIMEUriExporterHelper.createRelativeKNIMEProtocolURI(type, p));
@@ -100,5 +102,13 @@ public final class LegacyKNIMEUrlExporterFactory extends NoConfigURIExporterFact
      */
     public static NoConfigURIExporterFactory getWorkflowDataRelativeInstance() {
         return WORKFLOW_DATA_RELATIVE_INSTANCE;
+    }
+
+    /**
+     * @return the singleton instance for the {@link URIExporterFactory} that generates space-relative
+     *         knime:// URLs
+     */
+    public static LegacyKNIMEUrlExporterFactory getSpaceRelativeInstance() {
+        return SPACE_RELATIVE_INSTANCE;
     }
 }

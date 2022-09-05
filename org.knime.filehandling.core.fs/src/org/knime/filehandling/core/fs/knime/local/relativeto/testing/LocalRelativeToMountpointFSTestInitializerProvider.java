@@ -55,7 +55,6 @@ import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConf
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToMountpointFSConnection;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
@@ -73,7 +72,7 @@ public final class LocalRelativeToMountpointFSTestInitializerProvider extends Lo
      * @param fsType The {@link FSType} to use.
      */
     public LocalRelativeToMountpointFSTestInitializerProvider(final FSType fsType) {
-        super(fsType, RelativeToFileSystemConstants.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC);
+        super(fsType, RelativeToFSConnectionConfig.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC);
     }
 
     @SuppressWarnings("resource")
@@ -86,8 +85,7 @@ public final class LocalRelativeToMountpointFSTestInitializerProvider extends Lo
 
         final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.MOUNTPOINT);
 
-        final LocalRelativeToMountpointFSConnection fsConnection =
-            new LocalRelativeToMountpointFSConnection(config); // NOSONAR must not be closed here
+        final var fsConnection = new LocalRelativeToMountpointFSConnection(config); // NOSONAR must not be closed here
 
         Files.createDirectories(fsConnection.getFileSystem().getWorkingDirectory());
 

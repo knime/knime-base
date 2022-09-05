@@ -82,6 +82,8 @@ public final class LegacyKNIMEUriExporterHelper {
                     return toWorkflowRelativeURI(path);
                 case WORKFLOW_DATA:
                     return toWorkflowDataRelativeURI(path);
+                case SPACE:
+                    return toSpaceRelativeUri(path);
                 default:
                     throw new IllegalArgumentException("Illegal type " + type);
             }
@@ -121,5 +123,9 @@ public final class LegacyKNIMEUriExporterHelper {
 
     private static URI toMountpointRelativeURI(final FSPath path) throws URISyntaxException {
         return new URI("knime", "knime.mountpoint", path.getURICompatiblePath(), null);
+    }
+
+    private static URI toSpaceRelativeUri(final FSPath path) throws URISyntaxException{
+        return new URI("knime", "knime.space", path.getURICompatiblePath(), null);
     }
 }

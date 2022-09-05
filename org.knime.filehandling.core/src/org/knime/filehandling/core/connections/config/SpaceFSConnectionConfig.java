@@ -54,6 +54,7 @@ import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
@@ -83,14 +84,29 @@ public class SpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
      * @param spaceId the unique ID of the space repository item (e.g. *YK_q3iKGm3WUlAzo)
      * @param connectionTimeout the connectionTimeout.
      * @param readTimeout the readTimeout.
+     * @param isConnected whether the file system is connected
      */
     public SpaceFSConnectionConfig(final String workingDirectory, final String mountID,
-        final String spaceId, final Duration connectionTimeout, final Duration readTimeout) {
-        super(workingDirectory, true);
+        final String spaceId, final Duration connectionTimeout, final Duration readTimeout, final boolean isConnected) {
+        super(workingDirectory, isConnected);
         m_mountID = mountID;
         m_spaceId = spaceId;
         setConnectionTimeout(connectionTimeout);
         setReadTimeout(readTimeout);
+    }
+
+    /**
+     * Constructor that creates a CONNECTED file system with the given working directory.
+     *
+     * @param workingDirectory the working directory to use.
+     * @param mountID the mount ID to connect to.
+     * @param spaceId the unique ID of the space repository item (e.g. *YK_q3iKGm3WUlAzo)
+     * @param connectionTimeout the connectionTimeout.
+     * @param readTimeout the readTimeout.
+     */
+    public SpaceFSConnectionConfig(final String workingDirectory, final String mountID,
+        final String spaceId, final Duration connectionTimeout, final Duration readTimeout) {
+        this(workingDirectory, mountID, spaceId, connectionTimeout, readTimeout, true);
     }
 
     /**
@@ -121,7 +137,8 @@ public class SpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
                 getMountID(), //
                 getSpaceID());
         } else {
-            throw new UnsupportedOperationException("Connecting to a space using a convenience file system is not supported yet");
+            category = FSCategory.RELATIVE;
+            specifier = RelativeTo.SPACE.getSettingsValue();
         }
 
         return new DefaultFSLocationSpec(category, specifier);

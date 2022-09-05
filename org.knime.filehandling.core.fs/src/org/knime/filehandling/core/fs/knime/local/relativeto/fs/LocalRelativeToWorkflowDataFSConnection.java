@@ -50,17 +50,14 @@ package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.base.BaseFSConnection;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -92,30 +89,14 @@ public final class LocalRelativeToWorkflowDataFSConnection extends BaseFSConnect
         final var workflowContext = WorkflowContextUtil.getWorkflowContext();
         final var workflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
 
-        m_fileSystem = createWorkflowDataRelativeFs(workflowLocation, //
-            config.isConnectedFileSystem(), //
-            config.getWorkingDirectory());
-    }
-
-    private static LocalRelativeToFileSystem createWorkflowDataRelativeFs(final Path workflowLocation,
-        final boolean isConnected, final String workingDir) throws IOException {
-
         final var workflowDataDir = workflowLocation.resolve("data");
-
         Files.createDirectories(workflowDataDir);
 
-        final FSLocationSpec fsLocationSpec;
-        if (isConnected) {
-            fsLocationSpec = RelativeToFileSystemConstants.CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
-        } else {
-            fsLocationSpec = RelativeToFileSystemConstants.CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
-        }
-
-        return new LocalRelativeToFileSystem(null, //
+        m_fileSystem = new LocalRelativeToFileSystem(null, //
             workflowDataDir, //
             RelativeTo.WORKFLOW_DATA, //
-            workingDir, //
-            fsLocationSpec);
+            config.getWorkingDirectory(), //
+            config.getFSLocationSpec());
     }
 
     @Override

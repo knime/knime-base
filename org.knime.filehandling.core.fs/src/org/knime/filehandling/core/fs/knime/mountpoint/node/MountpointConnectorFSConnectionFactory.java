@@ -56,7 +56,6 @@ import org.knime.filehandling.core.connections.config.MountpointFSConnectionConf
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.fs.knime.mountpoint.node.MountpointConnectorNodeSettings.MountpointMode;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 
 /**
  * Factory class used by the {@link MountpointConnectorNodeModel} node. Creates different types of FS Connections
@@ -152,7 +151,7 @@ abstract class MountpointConnectorFSConnectionFactory {
 
         @Override
         public FSLocationSpec getFSLocationSpec() {
-            return RelativeToFileSystemConstants.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
+            return RelativeToFSConnectionConfig.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
         }
 
         @Override
@@ -182,7 +181,7 @@ abstract class MountpointConnectorFSConnectionFactory {
 
         @Override
         public FSLocationSpec getFSLocationSpec() {
-            return RelativeToFileSystemConstants.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
+            return RelativeToFSConnectionConfig.CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
         }
 
         @Override

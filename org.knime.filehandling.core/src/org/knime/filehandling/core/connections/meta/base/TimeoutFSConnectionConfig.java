@@ -99,6 +99,26 @@ public abstract class TimeoutFSConnectionConfig extends BaseFSConnectionConfig {
     }
 
     /**
+     * Creates a connection config with the given settings.
+     *
+     * @param workingDirectory The working directory to set.
+     * @param isConnected Set to true when creating a config for a {@link FSCategory#CONNECTED} file system, and set to
+     *            false otherwise.
+     * @param connectionTimeout Timeout to use when opening a TCP/IP connection to a target host.
+     * @param readTimeout A per-request timeout that defines how long to wait for an answer after having sent a
+     *            request/command to the target host
+     */
+    protected TimeoutFSConnectionConfig(final String workingDirectory, //
+        final boolean isConnected, //
+        final Duration connectionTimeout, //
+        final Duration readTimeout) {
+
+        super(workingDirectory, isConnected);
+        m_connectionTimeout = connectionTimeout;
+        m_readTimeout = readTimeout;
+    }
+
+    /**
      * @return timeout to use when opening a TCP/IP connection to a target host.
      */
     public final Duration getConnectionTimeout() {

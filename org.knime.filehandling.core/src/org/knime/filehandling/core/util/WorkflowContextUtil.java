@@ -55,6 +55,7 @@ import java.util.Optional;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 
 /**
  * Utility class that allows to reason about the current {@link WorkflowContext}.
@@ -88,6 +89,19 @@ public final class WorkflowContextUtil {
 
         return workflowContext;
     }
+
+
+    /**
+     * Retrieves the {@link WorkflowContextV2} via the {@link NodeContext} (if a node context is set). It is recommended
+     * to first check for the existence of the workflow context ({@link #hasWorkflowContext()}.
+     *
+     * @return current {@link WorkflowContextV2} from the {@link NodeContext}
+     * @throws IllegalStateException if no {@link WorkflowContextV2} is available
+     */
+    public static WorkflowContextV2 getWorkflowContextV2() {
+        return WorkflowContextV2.fromLegacyWorkflowContext(WorkflowContextUtil.getWorkflowContext());
+    }
+
 
     /**
      * Returns the {@link WorkflowContext} or an empty optional if no workflow context is available. The lack of a

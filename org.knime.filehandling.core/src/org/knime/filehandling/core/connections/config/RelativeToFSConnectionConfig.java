@@ -49,10 +49,15 @@
 package org.knime.filehandling.core.connections.config;
 
 import java.time.Duration;
+import java.util.Optional;
 
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
 
 /**
@@ -65,11 +70,61 @@ import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConf
 public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
 
     /**
+     * {@link FSLocationSpec} for the convenience relative-to workflow file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW.getSettingsValue());
+
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to workflow data area file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue());
+
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to mountpoint file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.MOUNTPOINT.getSettingsValue());
+
+    /**
+     * {@link FSLocationSpec} for the convenience relative-to Hub Space file system.
+     */
+    public static final FSLocationSpec CONVENIENCE_SPACE_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.RELATIVE, RelativeTo.SPACE.getSettingsValue());
+
+    /**
+     * {@link FSLocationSpec} for the connected relative-to workflow file system.
+     */
+    public static final FSLocationSpec CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW.getTypeId());
+
+    /**
+     * {@link FSLocationSpec} for the connected relative-to mountpoint file system.
+     */
+    public static final FSLocationSpec CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_MOUNTPOINT.getTypeId());
+
+    /**
+     * {@link FSLocationSpec} for the connected relative-to workflow data area file system.
+     */
+    public static final FSLocationSpec CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_WORKFLOW_DATA_AREA.getTypeId());
+
+    /**
+     * {@link FSLocationSpec} for the connected relative-to Hub Space file system.
+     */
+    public static final FSLocationSpec CONNECTED_SPACE_RELATIVE_FS_LOCATION_SPEC =
+        new DefaultFSLocationSpec(FSCategory.CONNECTED, FSType.RELATIVE_TO_SPACE.getTypeId());
+
+    /**
      * Separator used among all Relative-to file systems to separate the name componenets in a path.
      */
     public static final String PATH_SEPARATOR = "/";
 
     private final RelativeTo m_type;
+
+    private FSLocationSpec m_customFSLocationSpec;
 
     /**
      * Constructor for a convenience file system with the default working directory.
@@ -109,9 +164,86 @@ public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
     }
 
     /**
+     * Copy constructor.
+     *
+     * @param toCopy The other config to copy.
+     */
+    public RelativeToFSConnectionConfig(final RelativeToFSConnectionConfig toCopy) {
+        super(toCopy.getWorkingDirectory(), //
+            toCopy.isConnectedFileSystem(), //
+            toCopy.getConnectionTimeout(), //
+            toCopy.getReadTimeout());
+        m_type = toCopy.m_type;
+        m_customFSLocationSpec = toCopy.m_customFSLocationSpec;
+    }
+
+    /**
      * @return the {@link RelativeTo} type of the file system.
      */
     public RelativeTo getType() {
         return m_type;
+    }
+
+    /**
+     * Sets a custom {@link FSLocationSpec} to use.
+     *
+     * @param customFSLocationSpec the custom {@link FSLocationSpec} to use
+     */
+    public void setCustomFSLocationSpec(final FSLocationSpec customFSLocationSpec) {
+        m_customFSLocationSpec = customFSLocationSpec;
+    }
+
+    /**
+     * @return an optional custom {@link FSLocationSpec} to use.
+     */
+    public Optional<FSLocationSpec> getCustomFSLocationSpec() {
+        return Optional.ofNullable(m_customFSLocationSpec);
+    }
+
+    /**
+     * @return the {@link FSLocationSpec} to use.
+     */
+    public FSLocationSpec getFSLocationSpec() {
+        return getCustomFSLocationSpec() //
+            .orElseGet(() -> determineFSLocationSpec(getType(), isConnectedFileSystem()));
+    }
+
+    private static FSLocationSpec determineFSLocationSpec(final RelativeTo type, final boolean isConnected) {
+        final FSLocationSpec toReturn;
+
+        switch (type) {
+            case MOUNTPOINT: // NOSONAR this is fine
+                if (isConnected) {
+                    toReturn = CONNECTED_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
+                } else {
+                    toReturn = CONVENIENCE_MOUNTPOINT_RELATIVE_FS_LOCATION_SPEC;
+                }
+                break;
+            case SPACE: // NOSONAR this is fine
+                if (isConnected) {
+                    toReturn = CONNECTED_SPACE_RELATIVE_FS_LOCATION_SPEC;
+                } else {
+                    toReturn = CONVENIENCE_SPACE_RELATIVE_FS_LOCATION_SPEC;
+                }
+                break;
+            case WORKFLOW: // NOSONAR this is fine
+                if (isConnected) {
+                    toReturn = CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
+                } else {
+                    toReturn = CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
+                }
+                break;
+            case WORKFLOW_DATA: // NOSONAR this is fine
+                if (isConnected) {
+                    toReturn = CONNECTED_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+                } else {
+                    toReturn = CONVENIENCE_WORKFLOW_DATA_RELATIVE_FS_LOCATION_SPEC;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Unknown Relative-to file type %s", type));
+        }
+
+        return toReturn;
     }
 }

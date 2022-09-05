@@ -49,18 +49,15 @@
 package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.base.BaseFSConnection;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemConstants;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -85,6 +82,7 @@ public class LocalRelativeToWorkflowFSConnection extends BaseFSConnection {
      * @throws IOException If the folder for the workflow data area could not be created.
      */
     public LocalRelativeToWorkflowFSConnection(final RelativeToFSConnectionConfig config) throws IOException {
+
         if (CheckNodeContextUtil.isInComponentProject()) {
             throw new IllegalStateException(
                 "Nodes in a shared component don't have access to workflow-relative locations.");
@@ -96,30 +94,19 @@ public class LocalRelativeToWorkflowFSConnection extends BaseFSConnection {
                 "Unsupported temporary copy of workflow detected. LocalRelativeTo does not support server execution.");
         }
 
-        final var localMountId = workflowContext.getMountpointURI().orElseThrow(() -> new IllegalStateException("Cannot determine ID of local mountpoint")).getAuthority();
+        final var localMountId = workflowContext.getMountpointURI()
+            .orElseThrow(() -> new IllegalStateException("Cannot determine ID of local mountpoint")).getAuthority();
         final var localMountpointRoot = workflowContext.getMountpointRoot().toPath().toAbsolutePath().normalize();
         final var localWorkflowLocation = workflowContext.getCurrentLocation().toPath().toAbsolutePath().normalize();
-        m_fileSystem = createWorkflowRelativeFs(localMountId, localMountpointRoot, localWorkflowLocation, config.isConnectedFileSystem());
-    }
 
-    private static LocalRelativeToFileSystem createWorkflowRelativeFs(final String localMountId, final Path localMountpointRoot,
-        final Path workflowLocation, final boolean isConnected) {
+        final var workingDir = LocalRelativeToFileSystem
+            .localToRelativeToPathSeparator(localMountpointRoot.relativize(localWorkflowLocation));
 
-        final String workingDir =
-            LocalRelativeToFileSystem.localToRelativeToPathSeparator(localMountpointRoot.relativize(workflowLocation));
-
-        final FSLocationSpec fsLocationSpec;
-        if (isConnected) {
-            fsLocationSpec = RelativeToFileSystemConstants.CONNECTED_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
-        } else {
-            fsLocationSpec = RelativeToFileSystemConstants.CONVENIENCE_WORKFLOW_RELATIVE_FS_LOCATION_SPEC;
-        }
-
-        return new LocalRelativeToFileSystem(localMountId, //
+        m_fileSystem = new LocalRelativeToFileSystem(localMountId, //
             localMountpointRoot, //
             RelativeTo.WORKFLOW, //
             workingDir, //
-            fsLocationSpec);
+            config.getFSLocationSpec());
     }
 
     @Override
