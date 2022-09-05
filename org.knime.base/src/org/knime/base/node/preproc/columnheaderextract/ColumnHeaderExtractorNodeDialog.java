@@ -47,50 +47,124 @@
  */
 package org.knime.base.node.preproc.columnheaderextract;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 
 import org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNodeModel.ColType;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
  * <code>NodeDialog</code> for the "ColumnHeaderExtractor" Node.
  *
  * @author Bernd Wiswedel
  */
-public class ColumnHeaderExtractorNodeDialog extends DefaultNodeSettingsPane {
+public final class ColumnHeaderExtractorNodeDialog extends DefaultNodeSettingsPane {
+
+    /**
+     * Output formats for the column headers.
+     * The trailing spaces are only needed because of weirdly truncated labels in Java.
+     */
+    private static final String[] OUTPUT_FORMATS = { "Single Row", "Single Column  " };
 
     /**
      * New pane for configuring the ColumnHeaderExtractor node.
      */
-    protected ColumnHeaderExtractorNodeDialog() {
-        SettingsModelBoolean replaceColHeader =
-                ColumnHeaderExtractorNodeModel.createReplaceColHeader();
+    ColumnHeaderExtractorNodeDialog() {
+        SettingsModelBoolean replaceColHeader = ColumnHeaderExtractorNodeModel.createReplaceColHeader();
         SettingsModelString unifyHeaderPrefix =
-                ColumnHeaderExtractorNodeModel
-                        .createUnifyHeaderPrefix(replaceColHeader);
-        SettingsModelString colTypeFilter =
-                ColumnHeaderExtractorNodeModel.createColTypeFilter();
-
-        Collection<String> availableColTypes = new ArrayList<String>();
-        for (ColType type : ColType.values()) {
-            availableColTypes.add(type.toString());
-        }
+                ColumnHeaderExtractorNodeModel.createUnifyHeaderPrefix(replaceColHeader);
+        SettingsModelString colTypeFilter = ColumnHeaderExtractorNodeModel.createColTypeFilter();
+        SettingsModelBoolean transposeColHeader = ColumnHeaderExtractorNodeModel.createTransposeColHeader();
 
         createNewGroup("Output Column Names");
-        addDialogComponent(new DialogComponentBoolean(replaceColHeader,
-                "Use new output names "));
-        addDialogComponent(new DialogComponentString(unifyHeaderPrefix,
-                "Prefix"));
+        addDialogComponent(new DialogComponentBoolean(replaceColHeader, "Use new output names "));
+        addDialogComponent(new DialogComponentString(unifyHeaderPrefix, "Prefix"));
         closeCurrentGroup();
+
+        createNewGroup("Output Format for Column Names");
+        addDialogComponent(new DialogComponentButtonGroup(
+            new SettingsModelBooleanAdapter(transposeColHeader), false, /*"Output Format"*/null, OUTPUT_FORMATS));
+        closeCurrentGroup();
+
         createNewGroup("Restrain Columns");
-        addDialogComponent(new DialogComponentStringSelection(colTypeFilter,
-                "Selected column type", availableColTypes));
+        addDialogComponent(new DialogComponentStringSelection(colTypeFilter, "Selected column type",
+            Arrays.stream(ColType.values()).map(ColType::displayString).toArray(String[]::new)));
         closeCurrentGroup();
+    }
+
+    /**
+     * Adapter that disguises a {@link SettingsModelBoolean} as a {@link SettingsModelString} with two options.
+     */
+    private static final class SettingsModelBooleanAdapter extends SettingsModelString {
+
+        /** Inner boolean model. */
+        private final SettingsModelBoolean m_booleanModel;
+
+        private SettingsModelBooleanAdapter(final SettingsModelBoolean booleanModel) {
+            super(booleanModel.getConfigName(), OUTPUT_FORMATS[0]);
+            m_booleanModel = booleanModel;
+            addChangeListener(ev -> m_booleanModel.setBooleanValue(OUTPUT_FORMATS[1].equals(getStringValue())));
+        }
+
+        @Override
+        protected SettingsModelString createClone() {
+            final var settings = new NodeSettings("");
+            saveSettingsForModel(settings);
+            try {
+                return new SettingsModelBooleanAdapter(m_booleanModel.createCloneWithValidatedValue(settings));
+            } catch (InvalidSettingsException e) {
+                throw new InternalError(e);
+            }
+        }
+
+        @Override
+        protected String getModelTypeID() {
+            return "SMID_boolean";
+        }
+
+        @Override
+        protected String getConfigName() {
+            return m_booleanModel.getConfigName();
+        }
+
+        @Override
+        protected void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+                throws NotConfigurableException {
+            // use the current value, if no value is stored in the settings
+            m_booleanModel.setBooleanValue(settings.getBoolean(m_booleanModel.getConfigName(),
+                m_booleanModel.getBooleanValue()));
+        }
+
+        @Override
+        protected void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
+            saveSettingsForModel(settings);
+        }
+
+        @Override
+        protected void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+            settings.getBoolean(m_booleanModel.getConfigName());
+        }
+
+        @Override
+        protected void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+            // no default value, throw an exception instead
+            m_booleanModel.setBooleanValue(settings.getBoolean(m_booleanModel.getConfigName()));
+        }
+
+        @Override
+        protected void saveSettingsForModel(final NodeSettingsWO settings) {
+            settings.addBoolean(m_booleanModel.getConfigName(), m_booleanModel.getBooleanValue());
+        }
     }
 }

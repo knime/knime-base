@@ -50,13 +50,15 @@ package org.knime.base.node.preproc.columnheaderextract;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import org.knime.base.data.filter.column.FilterColumnTable;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -86,25 +88,31 @@ import org.knime.core.node.util.DataValueColumnFilter;
  *
  *
  * @author Bernd Wiswedel
+ * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("unchecked")
 public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     /** Selected column type. */
-    static enum ColType {
+    enum ColType {
         /** All columns. */
-        All(DataValue.class),
-        /** String columns. */
-        String(StringValue.class),
-        /** Integer columns. */
-        Integer(IntValue.class),
-        /** Double columns. */
-        Double(DoubleValue.class);
+        ALL(DataValue.class),
+        /** String-compatible columns. */
+        STRING(StringValue.class),
+        /** Integer-compatible columns. */
+        INTEGER(IntValue.class),
+        /** Double-compatible columns. */
+        DOUBLE(DoubleValue.class);
 
         private final ColumnFilter m_filter;
 
-        private ColType(final Class<? extends DataValue>... cl) {
+        ColType(final Class<? extends DataValue> cl) {
             m_filter = new DataValueColumnFilter(cl);
+        }
+
+        /** @return title-case version of the type's name */
+        String displayString() {
+            final String upper = name();
+            return upper.charAt(0) + upper.substring(1).toLowerCase(Locale.US);
         }
 
         /** @return associated filter. */
@@ -121,6 +129,8 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     private final SettingsModelString m_colTypeFilter;
 
+    private final SettingsModelBoolean m_transposeColHeader;
+
     /**
      * Constructor for the node model.
      */
@@ -129,196 +139,188 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
         m_replaceColHeader = createReplaceColHeader();
         m_unifyHeaderPrefix = createUnifyHeaderPrefix(m_replaceColHeader);
         m_colTypeFilter = createColTypeFilter();
+        m_transposeColHeader = createTransposeColHeader();
     }
 
     /**
-     * {@inheritDoc}
+     * Computes the columns to be renamed and their new names.
+     *
+     * @param inSpec input table spec
+     * @return map from column index of columns to be renamed to their new name
+     * @throws InvalidSettingsException in case of problems with settings
      */
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
-        DataTableSpec inSpec = inData[0].getDataTableSpec();
-        DataTableSpec spec0 = createOutSpecPort0(inSpec);
-        DataTableSpec spec1 = createOutSpecPort1(inSpec);
-        BufferedDataContainer cont = exec.createDataContainer(spec0);
-        List<String> origColNames = new ArrayList<String>();
-        ColumnFilter filter = getColType().getFilter();
-        for (DataColumnSpec c : inSpec) {
-            if (filter.includeColumn(c)) {
-                origColNames.add(c.getName());
+    private Map<Integer, String> renamingScheme(final DataTableSpec inSpec) throws InvalidSettingsException {
+        final var namePrefix = m_unifyHeaderPrefix.getStringValue();
+        final Set<String> usedNames = new HashSet<>();
+
+        // look up filter type
+        final var colTypeStr = m_colTypeFilter.getStringValue();
+        final ColumnFilter filter = Arrays.stream(ColType.values())
+                .filter(ct -> ct.displayString().equals(colTypeStr))
+                .findFirst()
+                .orElseThrow(() -> new InvalidSettingsException("Unable to get col type for \""
+                        + m_colTypeFilter.getStringValue() + "\""))
+                .getFilter();
+
+        // use a linked hash map here to preserve column order when renaming
+        final LinkedHashMap<Integer, String> rename = new LinkedHashMap<>();
+        for (var i = 0; i < inSpec.getNumColumns(); i++) {
+            final var col = inSpec.getColumnSpec(i);
+            if (filter.includeColumn(col)) {
+                // put a placeholder in first, we'll decide on the name later
+                rename.put(i, null);
+            } else {
+                usedNames.add(col.getName());
             }
         }
-        DefaultRow row =
-                new DefaultRow("Column Header", origColNames
-                        .toArray(new String[origColNames.size()]));
-        cont.addRowToTable(row);
+
+        var index = 0; // re-use index in loop - prevent repeated adds to the hash set - fixes bug 5920
+        for (final Entry<Integer, String> e : rename.entrySet()) {
+            String newName;
+            do {
+                newName = namePrefix + index;
+                index++;
+            } while (!usedNames.add(newName));
+            e.setValue(newName);
+        }
+
+        return rename;
+    }
+
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+            throws Exception {
+        final var inSpec = inData[0].getDataTableSpec();
+        final Map<Integer, String> scheme = renamingScheme(inSpec);
+        DataTableSpec spec0 = createOutSpecPort0(inSpec, scheme);
+        DataTableSpec spec1 = createOutSpecPort1(inSpec, scheme);
+
+        BufferedDataContainer cont = exec.createDataContainer(spec0);
+        if (m_transposeColHeader.getBooleanValue()) {
+            // one row per selected column with old name as value and new name as row ID
+            final var rename = m_replaceColHeader.getBooleanValue();
+            for (final Entry<Integer, String> e : scheme.entrySet()) {
+                final DataColumnSpec colSpec = inSpec.getColumnSpec(e.getKey());
+                cont.addRowToTable(new DefaultRow(rename ? e.getValue() : colSpec.getName(), colSpec.getName()));
+            }
+        } else {
+            // one row with the original names of all selected columns
+            cont.addRowToTable(new DefaultRow("Column Header",
+                scheme.keySet().stream().map(i -> inSpec.getColumnSpec(i).getName()).toArray(String[]::new)));
+        }
         cont.close();
         BufferedDataTable table0 = cont.getTable();
-        BufferedDataTable table1 =
-                exec.createSpecReplacerTable(inData[0], spec1);
+        BufferedDataTable table1 = exec.createSpecReplacerTable(inData[0], spec1);
 
         return new BufferedDataTable[]{table0, table1};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         // no internals
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         DataTableSpec inSpec = inSpecs[0];
-        DataTableSpec spec0 = createOutSpecPort0(inSpec);
-        DataTableSpec spec1 = createOutSpecPort1(inSpec);
+        final Map<Integer, String> scheme = renamingScheme(inSpec);
+        DataTableSpec spec0 = createOutSpecPort0(inSpec, scheme);
+        DataTableSpec spec1 = createOutSpecPort1(inSpec, scheme);
         return new DataTableSpec[]{spec0, spec1};
     }
 
-    private DataTableSpec createOutputSpecInternal(final DataTableSpec in,
-            final boolean includeIgnoredCols) throws InvalidSettingsException {
-        ColType colType = getColType();
-        ColumnFilter filter = colType.getFilter();
-        final String namePrefix = m_unifyHeaderPrefix.getStringValue();
-
-        HashSet<String> usedNames = new HashSet<String>();
-        for (DataColumnSpec c : in) {
-            if (!filter.includeColumn(c)) {
-                // only add remaining columns
-                usedNames.add(c.getName());
-            }
-        }
-
-        List<DataColumnSpec> colSpecs = new ArrayList<DataColumnSpec>();
-        int index = 0; // re-use index in loop - prevent repeated adds to the hash set - fixes bug 5920
-        for (DataColumnSpec c : in) {
-            if (filter.includeColumn(c)) {
-                String newName;
-                do {
-                    newName = namePrefix + (index++);
-                } while (!usedNames.add(newName));
-                DataColumnSpecCreator newSpecCreator =
-                        new DataColumnSpecCreator(c);
-                newSpecCreator.setName(newName);
-                colSpecs.add(newSpecCreator.createSpec());
-            } else if (includeIgnoredCols) {
-                colSpecs.add(c);
-            }
-        }
-        return new DataTableSpec(in.getName(), colSpecs
-                .toArray(new DataColumnSpec[colSpecs.size()]));
-    }
-
-    private DataTableSpec createOutSpecPort0(final DataTableSpec spec)
-            throws InvalidSettingsException {
-        DataTableSpec temp;
-        if (m_replaceColHeader.getBooleanValue()) {
-            temp = createOutputSpecInternal(spec, false);
+    /**
+     * Computes the table specification for the column header output.
+     *
+     * @param spec input spec
+     * @param scheme renaming scheme
+     * @return output spec
+     */
+    private DataTableSpec createOutSpecPort0(final DataTableSpec spec, final Map<Integer, String> scheme) {
+        final String[] colNames;
+        if (m_transposeColHeader.getBooleanValue()) {
+            colNames = new String[] { "Column Header" };
+        } else if (m_replaceColHeader.getBooleanValue()) {
+            colNames = scheme.values().stream().toArray(String[]::new);
         } else {
-            ColumnFilter filter = getColType().getFilter();
-            List<String> includes = new ArrayList<String>();
-            for (DataColumnSpec colSpec : spec) {
-                if (filter.includeColumn(colSpec)) {
-                    includes.add(colSpec.getName());
-                }
-            }
-            temp =
-                    FilterColumnTable.createFilterTableSpec(spec, includes
-                            .toArray(new String[includes.size()]));
+            colNames = scheme.keySet().stream().map(i -> spec.getColumnSpec(i).getName()).toArray(String[]::new);
         }
-        DataColumnSpec[] cols = new DataColumnSpec[temp.getNumColumns()];
-        for (int i = 0; i < cols.length; i++) {
-            // don't use input as basis here, throw away handlers etc.
-            DataColumnSpecCreator creator =
-                    new DataColumnSpecCreator(temp.getColumnSpec(i).getName(),
-                            StringCell.TYPE);
-            cols[i] = creator.createSpec();
+        final var cols = new DataColumnSpec[colNames.length];
+        for (var i = 0; i < cols.length; i++) {
+            cols[i] = new DataColumnSpecCreator(colNames[i], StringCell.TYPE).createSpec();
         }
         return new DataTableSpec("Column Headers", cols);
     }
 
-    private DataTableSpec createOutSpecPort1(final DataTableSpec spec)
-            throws InvalidSettingsException {
+    /**
+     * Computes the table specification for the potentially renamed table output.
+     *
+     * @param spec input spec
+     * @param scheme renaming scheme
+     * @return output spec
+     */
+    private DataTableSpec createOutSpecPort1(final DataTableSpec spec, final Map<Integer, String> scheme) {
         if (m_replaceColHeader.getBooleanValue()) {
-            return createOutputSpecInternal(spec, true);
+            final List<DataColumnSpec> colSpecs = new ArrayList<>();
+            for (var i = 0; i < spec.getNumColumns(); i++) {
+                final DataColumnSpec c = spec.getColumnSpec(i);
+                final String newName = scheme.get(i);
+                if (newName != null) {
+                    final var newSpecCreator = new DataColumnSpecCreator(c);
+                    newSpecCreator.setName(newName);
+                    colSpecs.add(newSpecCreator.createSpec());
+                } else if (true) {
+                    colSpecs.add(c);
+                }
+            }
+            return new DataTableSpec(spec.getName(), colSpecs.toArray(DataColumnSpec[]::new));
         } else {
             return spec;
         }
     }
 
-    /**
-     * @return
-     * @throws InvalidSettingsException
-     */
-    private ColType getColType() throws InvalidSettingsException {
-        ColType colType;
-        try {
-            colType = ColType.valueOf(m_colTypeFilter.getStringValue());
-        } catch (Exception e) {
-            throw new InvalidSettingsException("Unable to get col type for \""
-                    + m_colTypeFilter.getStringValue() + "\"");
-        }
-        return colType;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_replaceColHeader.saveSettingsTo(settings);
         m_unifyHeaderPrefix.saveSettingsTo(settings);
         m_colTypeFilter.saveSettingsTo(settings);
+        m_transposeColHeader.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_replaceColHeader.loadSettingsFrom(settings);
         m_unifyHeaderPrefix.loadSettingsFrom(settings);
         m_colTypeFilter.loadSettingsFrom(settings);
+        if (settings.containsKey(m_transposeColHeader.getConfigName())) {
+            // this option was added in 4.7.0
+            m_transposeColHeader.loadSettingsFrom(settings);
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_replaceColHeader.validateSettings(settings);
         m_unifyHeaderPrefix.validateSettings(settings);
         m_colTypeFilter.validateSettings(settings);
+        if (settings.containsKey(m_transposeColHeader.getConfigName())) {
+            // this option was added in 4.7.0
+            m_transposeColHeader.validateSettings(settings);
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void loadInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File internDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
         // no internals
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void saveInternals(final File internDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File internDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
         // no internals
     }
 
-    /** {@inheritDoc} */
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
         switch (outIndex) {
@@ -338,22 +340,20 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     /** @param replaceColHeader column header model (enable/disable listener)
      * @return new settings model for prefix of new header */
-    static SettingsModelString createUnifyHeaderPrefix(
-            final SettingsModelBoolean replaceColHeader) {
-        final SettingsModelString result =
-                new SettingsModelString("unifyHeaderPrefix", "Column ");
-        replaceColHeader.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(final ChangeEvent chEvent) {
-                result.setEnabled(replaceColHeader.getBooleanValue());
-            }
-        });
+    static SettingsModelString createUnifyHeaderPrefix(final SettingsModelBoolean replaceColHeader) {
+        final var result = new SettingsModelString("unifyHeaderPrefix", "Column ");
+        replaceColHeader.addChangeListener(chEvent -> result.setEnabled(replaceColHeader.getBooleanValue()));
         return result;
     }
 
     /** @return new settings model for column filter type. */
     static SettingsModelString createColTypeFilter() {
-        return new SettingsModelString("coltype", ColType.All.toString());
+        return new SettingsModelString("coltype", ColType.ALL.displayString());
+    }
+
+    /** @return new settings model for transpose col header property. */
+    static SettingsModelBoolean createTransposeColHeader() {
+        return new SettingsModelBoolean("transposeColHeader", false);
     }
 
 }

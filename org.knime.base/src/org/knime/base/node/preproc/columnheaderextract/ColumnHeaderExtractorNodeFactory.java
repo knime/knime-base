@@ -57,8 +57,7 @@ import org.knime.core.node.NodeView;
  *
  * @author Bernd Wiswedel
  */
-public class ColumnHeaderExtractorNodeFactory extends
-        NodeFactory<ColumnHeaderExtractorNodeModel> {
+public class ColumnHeaderExtractorNodeFactory extends NodeFactory<ColumnHeaderExtractorNodeModel> {
 
     /** {@inheritDoc} */
     @Override
@@ -74,9 +73,8 @@ public class ColumnHeaderExtractorNodeFactory extends
 
     /** {@inheritDoc} */
     @Override
-    public NodeView<ColumnHeaderExtractorNodeModel> createNodeView(
-            final int viewIndex,
-            final ColumnHeaderExtractorNodeModel nodeModel) {
+    public NodeView<ColumnHeaderExtractorNodeModel> createNodeView( final int viewIndex,
+        final ColumnHeaderExtractorNodeModel nodeModel) {
         throw new IllegalStateException("no view");
     }
 
