@@ -115,7 +115,7 @@ class CSVWriter2 implements Closeable {
         m_integerFormatter = new DecimalFormat("#", symbolFormat);
 
         m_quoteReplacement = String.valueOf(m_config.getQuoteEscapeChar()) + String.valueOf(m_config.getQuoteChar());
-        m_columnOrRowDelimiter = Pattern.compile(m_config.getColumnDelimiter() + "|\r|\n");
+        m_columnOrRowDelimiter = Pattern.compile(Pattern.quote(m_config.getColumnDelimiter()) + "|\r|\n");
 
     }
 
