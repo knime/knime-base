@@ -48,8 +48,10 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader.api;
 
-import java.util.regex.Matcher;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+
+import org.knime.core.util.Pair;
 
 /**
  * Parses double values from Strings.
@@ -59,32 +61,32 @@ import java.util.regex.Pattern;
  */
 final class DoubleParser {
 
-    private String m_thousandsRegExpr = null;
+    /** Pair of matcher and replacement pattern for the thousands format. */
+    private final Pair<Predicate<String>, String> m_thousandsFormat;
 
-    private Pattern m_thousandPattern = null;
-
-    private char m_decimalSeparator = '.';
+    /** Decimal separator character. */
+    private final char m_decimalSeparator;
 
     DoubleParser(final CSVTableReaderConfig config) {
-        final char thousandsSeparator = config.getThousandsSeparatorChar();
-        if (thousandsSeparator != '\0') {
-            m_thousandsRegExpr = Pattern.quote(Character.toString(thousandsSeparator));
-        }
         m_decimalSeparator = config.getDecimalSeparatorChar();
-        m_thousandPattern = Pattern.compile("(?i)[+-]?\\d{0,3}(?:" + m_thousandsRegExpr + "\\d{3})*(?:"
-            + m_decimalSeparator + "\\d*)?(?:e[+-]?\\d+)?[fd]?");
+        final var separatorChar = config.getThousandsSeparatorChar();
+        if (separatorChar != '\0') {
+            final String replace = Pattern.quote(Character.toString(separatorChar));
+            final Predicate<String> search = Pattern.compile("(?i)[+-]?\\d{0,3}(?:" + replace + "\\d{3})*(?:"
+                + m_decimalSeparator + "\\d*)?(?:e[+-]?\\d+)?[fd]?").asMatchPredicate();
+            m_thousandsFormat = Pair.create(search, replace);
+        } else {
+            m_thousandsFormat = null;
+        }
     }
 
     double parse(final String value) {
         String data = value;
-        // for numbers, trim data and accept empty tokens as missing
-        // cells
-        // remove thousands grouping
-        if (m_thousandsRegExpr != null) {
-            Matcher thousandMatcher = m_thousandPattern.matcher(data);
-            if (thousandMatcher.matches()) {
+        // for numbers, trim data and accept empty tokens as missing cells remove thousands grouping
+        if (m_thousandsFormat != null) {
+            if (m_thousandsFormat.getFirst().test(data)) {
                 //Only continue processing if input is a valid number (wrong thousands separators are targeted to identify dates
-                data = data.replaceAll(m_thousandsRegExpr, "");
+                data = data.replaceAll(m_thousandsFormat.getSecond(), "");
             } else {
                 throw new NumberFormatException("Double format didn't match.");
             }

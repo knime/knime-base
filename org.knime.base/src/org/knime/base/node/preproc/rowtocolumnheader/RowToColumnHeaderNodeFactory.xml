@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
+<knimeNode icon="./row_to_column_header.png" type="Manipulator">
+    <name>Row to Column Header</name>
+    
+    <shortDescription>
+        Uses the values of a specified row of the input table as new column headers.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+            Uses the values of a specified row of the input table as new column headers.
+            The node has two outports:
+            The first port contains a new table with a column header corresponding to the specified row of the input
+            table. If type guessing is activated, the cells of each column are converted to the most specific type
+            that all values of the column can be converted into.
+        </intro>
+        <option name="Number of rows before the header">Number of rows in the input table that precede the row that
+            should be used as new column header</option>
+        <option name="Discard rows before header row">Whether rows before the row containing the new column header
+            should be discarded. Otherwise they are treated as additional output rows.</option>
+        <option name="Detect types of resulting columns">Whether type analysis should be applied to the output table.
+            For each column, the most specific of the four column types <tt>double</tt> (64-bit floating-point
+            number), <tt>tt</tt> (64-bit integral number), <tt>int</tt> (32-bit integral number) and
+            <tt>String</tt> is determined and the column is converted to this type.</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Input data">Original input data</inPort>
+        <outPort index="0" name="Renamed and type converted input data">Table with single row or column containing
+            original column names</outPort>
+        <outPort index="1" name="Renaming information">Table with two columns, containing the old and new column
+            names respectively</outPort>
+    </ports>    
+</knimeNode>

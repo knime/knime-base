@@ -44,51 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 8, 2022 (leonard.woerteler): created
  */
-package org.knime.base.node.io.filehandling.csv.reader.api;
+package org.knime.base.node.preproc.rowtocolumnheader;
 
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-
-import org.knime.core.util.Pair;
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 
 /**
- * Parses integer and long values from Strings. Allows to specify a thousands separator.
+ * Dialog for the {@link RowToColumnHeaderNodeModel} node.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
  */
-final class IntegerParser {
+public final class RowToColumnHeaderNodeDialog extends DefaultNodeSettingsPane {
 
-    private final Pair<Predicate<String>, String> m_thousandsFormat;
+    /**
+     * Creates the dialog.
+     */
+    protected RowToColumnHeaderNodeDialog() {
+        final SettingsModelInteger headerRowIndex = RowToColumnHeaderNodeModel.createHeaderRowIndex();
+        final SettingsModelBoolean discardBefore = RowToColumnHeaderNodeModel.createDiscardBefore();
+        final SettingsModelBoolean detectTypes = RowToColumnHeaderNodeModel.createDetectTypes();
 
-    IntegerParser(final CSVTableReaderConfig config) {
-        final var separatorChar = config.getThousandsSeparatorChar();
-        if (separatorChar != '\0') {
-            final var replace = Pattern.quote(Character.toString(separatorChar));
-            final var search = Pattern.compile("(?i)[+-]?\\d{0,3}(?:" + replace + "\\d{3})*").asMatchPredicate();
-            m_thousandsFormat = Pair.create(search, replace);
-        } else {
-            m_thousandsFormat = null;
-        }
-    }
-
-    int parseInt(final String value) {
-        return Integer.parseInt(format(value));
-    }
-
-    long parseLong(final String value) {
-        return Long.parseLong(format(value));
-    }
-
-    private String format(final String value) {
-        if (m_thousandsFormat != null) {
-            if (m_thousandsFormat.getFirst().test(value)) {
-                return value.replaceAll(m_thousandsFormat.getSecond(), "");
-            } else {
-                throw new NumberFormatException("Integer format didn't match.");
-            }
-        }
-        return value;
+        createNewGroup("Position of Column Headers");
+        addDialogComponent(new DialogComponentSpinnerInteger(headerRowIndex, "Number of rows before the header: "));
+        addDialogComponent(new DialogComponentBoolean(discardBefore, "Discard rows before header row "));
+        addDialogComponent(new DialogComponentBoolean(detectTypes, "Detect types of resulting columns "));
+        closeCurrentGroup();
     }
 }

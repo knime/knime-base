@@ -55,7 +55,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.OptionalLong;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
@@ -105,23 +104,21 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
     public static Read<String> read(final InputStream inputStream,
         final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-        final CsvRead read = new CsvRead(inputStream, config);
+        final var read = new CsvRead(inputStream, config);
         return decorateForReading(read, config);
     }
 
     @Override
     public TypedReaderTableSpec<Class<?>> readSpec(final FSPath path, final TableReadConfig<CSVTableReaderConfig> config,
         final ExecutionMonitor exec) throws IOException {
-        final TableSpecGuesser<FSPath, Class<?>, String> guesser = createGuesser(config);
-        try (final CsvRead read = new CsvRead(path, config)) {
+        final TableSpecGuesser<FSPath, Class<?>, String> guesser = createGuesser(config.getReaderSpecificConfig());
+        try (final var read = new CsvRead(path, config)) {
             return guesser.guessSpec(read, config, exec, path);
         }
     }
 
-    private static TableSpecGuesser<FSPath, Class<?>, String>
-        createGuesser(final TableReadConfig<CSVTableReaderConfig> config) {
-        final CSVTableReaderConfig csvConfig = config.getReaderSpecificConfig();
-        return new TableSpecGuesser<>(StringReadAdapterFactory.createHierarchy(csvConfig), Function.identity());
+    private static TableSpecGuesser<FSPath, Class<?>, String> createGuesser(final CSVTableReaderConfig config) {
+        return new TableSpecGuesser<>(CSVGuessableType.createHierarchy(config), Function.identity());
     }
 
     /**
@@ -268,7 +265,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
         private static int extractErrorIndex(final String message) {
             if (message != null) {
-                final Matcher matcher = INDEX_EXTRACTION_PATTERN.matcher(message);
+                final var matcher = INDEX_EXTRACTION_PATTERN.matcher(message);
                 if (matcher.find()) {
                     try {
                         return Integer.parseInt(matcher.group(1));
@@ -305,7 +302,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
          * @throws IOException if reading from the stream fails
          */
         private void skipLines(final long n) throws IOException {
-            for (int i = 0; i < n; i++) {
+            for (var i = 0; i < n; i++) {
                 m_reader.readLine(); //NOSONAR
             }
         }

@@ -57,8 +57,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.blob.BinaryObjectDataCell;
@@ -82,7 +80,6 @@ import org.knime.filehandling.core.node.table.reader.ReadAdapter;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter.ReadAdapterParams;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 
 /**
@@ -105,7 +102,7 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
      * The type hierarchy of the CSV Reader.
      */
     public static final TreeTypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY =
-        createHierarchy(new CSVTableReaderConfig()).createTypeFocusedHierarchy();
+        CSVGuessableType.createHierarchy(new CSVTableReaderConfig()).createTypeFocusedHierarchy();
 
     private static Map<Class<?>, DataType> createDefaultTypeMap() {
         final Map<Class<?>, DataType> defaultTypes = new HashMap<>();
@@ -297,29 +294,4 @@ public enum StringReadAdapterFactory implements ReadAdapterFactory<Class<?>, Str
             || knimeType.equals(LongCell.TYPE)//
             || knimeType.equals(IntCell.TYPE);
     }
-
-    static TreeTypeHierarchy<Class<?>, String> createHierarchy(final CSVTableReaderConfig config) {
-        final DoubleParser doubleParser = new DoubleParser(config);
-        final IntegerParser integerParser = new IntegerParser(config);
-        return TreeTypeHierarchy.builder(createTypeTester(String.class, t -> {
-        })).addType(String.class, createTypeTester(Double.class, doubleParser::parse))
-            .addType(Double.class, createTypeTester(Long.class, integerParser::parseLong))
-            .addType(Long.class, createTypeTester(Integer.class, integerParser::parseInt)).build();
-    }
-
-    private static TypeTester<Class<?>, String> createTypeTester(final Class<?> type, final Consumer<String> tester) {
-        return TypeTester.createTypeTester(type, consumerToPredicate(tester));
-    }
-
-    private static Predicate<String> consumerToPredicate(final Consumer<String> tester) {
-        return s -> {
-            try {
-                tester.accept(s);
-                return true;
-            } catch (NumberFormatException ex) {
-                return false;
-            }
-        };
-    }
-
 }

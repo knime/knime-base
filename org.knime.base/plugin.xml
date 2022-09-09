@@ -809,6 +809,9 @@
             category-path="/manipulation/table"
             factory-class="org.knime.base.node.util.extracttablespec.ExtractTableSpecNodeFactory"/>
       <node
+            category-path="/manipulation/table"
+            factory-class="org.knime.base.node.preproc.rowtocolumnheader.RowToColumnHeaderNodeFactory"/>
+      <node
             category-path="/analytics/mining/dtree"
             factory-class="org.knime.base.node.mine.decisiontree2.predictor2.DecTreePredictorNodeFactory"/>
       <node deprecated="true"

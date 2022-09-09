@@ -44,51 +44,44 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 2, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 8, 2022 (leonard.woerteler): created
  */
-package org.knime.base.node.io.filehandling.csv.reader.api;
+package org.knime.base.node.preproc.rowtocolumnheader;
 
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-
-import org.knime.core.util.Pair;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Parses integer and long values from Strings. Allows to specify a thousands separator.
+ * Node factory for the {@link RowToColumnHeaderNodeModel} node.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
  */
-final class IntegerParser {
+public class RowToColumnHeaderNodeFactory extends NodeFactory<RowToColumnHeaderNodeModel> {
 
-    private final Pair<Predicate<String>, String> m_thousandsFormat;
-
-    IntegerParser(final CSVTableReaderConfig config) {
-        final var separatorChar = config.getThousandsSeparatorChar();
-        if (separatorChar != '\0') {
-            final var replace = Pattern.quote(Character.toString(separatorChar));
-            final var search = Pattern.compile("(?i)[+-]?\\d{0,3}(?:" + replace + "\\d{3})*").asMatchPredicate();
-            m_thousandsFormat = Pair.create(search, replace);
-        } else {
-            m_thousandsFormat = null;
-        }
+    @Override
+    public RowToColumnHeaderNodeModel createNodeModel() {
+        return new RowToColumnHeaderNodeModel();
     }
 
-    int parseInt(final String value) {
-        return Integer.parseInt(format(value));
+    @Override
+    public int getNrNodeViews() {
+        return 0;
     }
 
-    long parseLong(final String value) {
-        return Long.parseLong(format(value));
+    @Override
+    public NodeView<RowToColumnHeaderNodeModel> createNodeView(final int viewIndex,
+            final RowToColumnHeaderNodeModel nodeModel) {
+        throw new IllegalStateException("no view");
     }
 
-    private String format(final String value) {
-        if (m_thousandsFormat != null) {
-            if (m_thousandsFormat.getFirst().test(value)) {
-                return value.replaceAll(m_thousandsFormat.getSecond(), "");
-            } else {
-                throw new NumberFormatException("Integer format didn't match.");
-            }
-        }
-        return value;
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return new RowToColumnHeaderNodeDialog();
     }
 }
