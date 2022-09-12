@@ -285,12 +285,14 @@ class CSVWriter2 implements Closeable {
 
         if (needsQuote(value, isNumerical)) {
             final StringBuilder result = new StringBuilder(String.valueOf(m_config.getQuoteChar()));
+            var tempValue = value;
 
-            // AP-19229 double the quoteEscapeChar for Univocity
-            final var doubleQuoteEscapeChar = String.valueOf(m_config.getQuoteEscapeChar())
-                    + String.valueOf(m_config.getQuoteEscapeChar());
-            var tempValue = value.replace(String.valueOf(m_config.getQuoteEscapeChar()), doubleQuoteEscapeChar);
-
+            if (m_config.getQuoteChar() != m_config.getQuoteEscapeChar()) {
+                // AP-19229 double the quoteEscapeChar for Univocity
+                final var doubleQuoteEscapeChar = String.valueOf(m_config.getQuoteEscapeChar())
+                        + String.valueOf(m_config.getQuoteEscapeChar());
+                tempValue = tempValue.replace(String.valueOf(m_config.getQuoteEscapeChar()), doubleQuoteEscapeChar);
+            }
             tempValue = tempValue.replace(String.valueOf(m_config.getQuoteChar()), m_quoteReplacement);
             result.append(tempValue);
             result.append(m_config.getQuoteChar());
