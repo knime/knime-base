@@ -7,13 +7,16 @@
         <intro>
 		Merges flow variables into one stream. This node aggregates variables 
 		defined in different input connections into one variable connection. 
-		It does not modify variables but only merges them. Note, if there are 
-		the same variables defined in different inputs, the standard conflict 
-		handling is applied: Top most inputs take priority and define the value 
-		of a variable. This node can also be used as a common barrier point to 
+		It does not modify variables but only merges them.
+		This node can also be used as a common barrier point to 
 		control the execution order of nodes, i.e. nodes connected to the output
-		port will not start executing until all upstream nodes have been 
-		executed. 		
+		port will not start executing until all upstream nodes have been executed.
+		Note, if there are the same variables defined in different inputs, 
+		a special conflict handling is applied: The top most flow variable input
+		port will take priority and override values on conflicting variable names.
+		Otherwise, the priority order goes from the bottom to the top port.
+		For example, port 3 will take priority over port 2.
+		However, the first port will always take priority over all other ports.
 		</intro>
 		<link href="https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables">
 			KNIME E-Learning Course: Creation and usage of Flow Variables in a KNIME workflow
