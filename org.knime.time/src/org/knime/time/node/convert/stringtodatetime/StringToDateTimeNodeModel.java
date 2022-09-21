@@ -178,6 +178,7 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
         formats.add("yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'");
         formats.add("yyyy-MM-dd");
         formats.add("yyyy/dd/MM");
+        formats.add("M/d/yyyy"); // standard google sheets date format
         formats.add("dd.MM.yyyy");
         formats.add("HH:mm[:ss[.SSS]]");
         formats.add("HH:mm:ss");
