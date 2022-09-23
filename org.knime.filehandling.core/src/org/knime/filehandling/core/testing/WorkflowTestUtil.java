@@ -15,12 +15,14 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.UnsupportedWorkflowVersionException;
-import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowLoadHelper;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.node.workflow.WorkflowPersistor.WorkflowLoadResult;
+import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
+import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.LockFailedException;
+import org.knime.core.util.auth.SimpleTokenAuthenticator;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
@@ -104,20 +106,25 @@ public final class WorkflowTestUtil {
     public static WorkflowManager getWorkflowManager(final Path mountpointRoot, final String workflowName,
         final boolean serverMode) throws IOException {
 
-        final File workflowFile = mountpointRoot.resolve(workflowName).toFile();
+        final var workflowFile = mountpointRoot.resolve(workflowName).toFile();
         try {
-            final var exec = new ExecutionMonitor();
-            final var fac = new WorkflowContext.Factory(workflowFile);
-            fac.setMountpointURI(URI.create("knime://LOCAL/" + workflowName));
-            fac.setMountpointRoot(mountpointRoot.toFile());
-            fac.setTemporaryCopy(serverMode);
-            if (serverMode) {
-                fac.setRemoteAddress(URI.create("http://test-test-test:-1"), "test-test-test");
-                fac.setRemoteAuthToken("test-test-test");
-            }
-            final WorkflowLoadHelper loadHelper = new WorkflowLoadHelper(fac.createContext());
-            final WorkflowLoadResult loadResult =
-                WorkflowManager.ROOT.load(workflowFile, exec, loadHelper, false);
+            final var execMon = new ExecutionMonitor();
+            final var context = WorkflowContextV2.builder()
+                    .withAnalyticsPlatformExecutor(exec -> exec
+                        .withCurrentUserAsUserId()
+                        .withLocalWorkflowPath(workflowFile.toPath())
+                        .withMountpoint("LOCAL", mountpointRoot))
+                    .withLocation(!serverMode ? LocalLocationInfo.getInstance(null) :
+                        ServerLocationInfo.builder()
+                            .withRepositoryAddress(URI.create("http://test-test-test:-1"))
+                            .withWorkflowPath("test-test-test")
+                            .withAuthenticator(new SimpleTokenAuthenticator("test-test-test"))
+                            .withDefaultMountId("LOCAL")
+                            .build())
+                    .build();
+
+            final var loadHelper = new WorkflowLoadHelper(context);
+            final var loadResult = WorkflowManager.ROOT.load(workflowFile, execMon, loadHelper, false);
             return loadResult.getWorkflowManager();
         } catch (final InvalidSettingsException | CanceledExecutionException | UnsupportedWorkflowVersionException
                 | LockFailedException e) {

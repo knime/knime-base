@@ -48,10 +48,9 @@
  */
 package org.knime.filehandling.core.util;
 
-import static org.knime.core.node.util.CheckUtils.checkState;
-
 import java.util.Optional;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowManager;
@@ -77,20 +76,9 @@ public final class WorkflowContextUtil {
      * @throws IllegalStateException if no {@link WorkflowContext} is available (see
      *             {@link #getWorkflowContextOptional()} for possible reasons)
      */
-    @SuppressWarnings("null")
     public static WorkflowContext getWorkflowContext() {
-        final var nodeContext = NodeContext.getContext();
-        checkState(nodeContext != null, "Node context required.");
-
-        final var wfm = nodeContext.getWorkflowManager();
-        checkState(wfm != null, "Can't access workflow instance (is it a remotely edited workflow?).");
-
-        final var workflowContext = wfm.getContext();
-        checkState(workflowContext != null, "Workflow context required.");
-
-        return workflowContext;
+        return getWorkflowContextV2().toLegacyWorkflowContext();
     }
-
 
     /**
      * Retrieves the {@link WorkflowContextV2} via the {@link NodeContext} (if a node context is set). It is recommended
@@ -100,9 +88,17 @@ public final class WorkflowContextUtil {
      * @throws IllegalStateException if no {@link WorkflowContextV2} is available
      */
     public static WorkflowContextV2 getWorkflowContextV2() {
-        return WorkflowContextV2.fromLegacyWorkflowContext(WorkflowContextUtil.getWorkflowContext());
-    }
+        final var nodeContext = NodeContext.getContext();
+        CheckUtils.checkState(nodeContext != null, "Node context required.");
 
+        final var wfm = nodeContext.getWorkflowManager();
+        CheckUtils.checkState(wfm != null, "Can't access workflow instance (is it a remotely edited workflow?).");
+
+        final var workflowContext = wfm.getContextV2();
+        CheckUtils.checkState(workflowContext != null, "Workflow context required.");
+
+        return workflowContext;
+    }
 
     /**
      * Returns the {@link WorkflowContext} or an empty optional if no workflow context is available. The lack of a
@@ -111,21 +107,42 @@ public final class WorkflowContextUtil {
      * <li>node {@link NodeContext} is set</li>
      * <li>no workflow manager instance is available (e.g. because the workflow is opened in the remote workflow
      * editor)</li>
-     * <li>there is no workflow context set for the workflow (most likely an implementation error)</li<
+     * <li>there is no workflow context set for the workflow (most likely an implementation error)</li>
      * </ul>
      *
      * @return the {@link WorkflowContext} or an empty optional if no workflow context is available
      */
     public static Optional<WorkflowContext> getWorkflowContextOptional() {
-        return Optional.ofNullable(NodeContext.getContext()).map(NodeContext::getWorkflowManager)
-            .map(WorkflowManager::getContext);
+        return Optional.ofNullable(NodeContext.getContext())
+                .map(NodeContext::getWorkflowManager)
+                .map(WorkflowManager::getContext);
+    }
+
+
+    /**
+     * Returns the {@link WorkflowContextV2} or an empty optional if no workflow context is available. The lack of a
+     * workflow context can have multiple reasons:
+     * <ul>
+     * <li>node {@link NodeContext} is set</li>
+     * <li>no workflow manager instance is available (e.g. because the workflow is opened in the remote workflow
+     * editor)</li>
+     * <li>there is no workflow context set for the workflow (most likely an implementation error)</li>
+     * </ul>
+     *
+     * @return the {@link WorkflowContextV2} or an empty optional if no workflow context is available
+     * @since 4.7
+     */
+    public static Optional<WorkflowContextV2> getWorkflowContextV2Optional() {
+        return Optional.ofNullable(NodeContext.getContext())
+                .map(NodeContext::getWorkflowManager)
+                .map(WorkflowManager::getContextV2);
     }
 
     /**
      * @return true, when we currently have a workflow context, false otherwise.
      */
     public static boolean hasWorkflowContext() {
-        return getWorkflowContextOptional().isPresent();
+        return getWorkflowContextV2Optional().isPresent();
     }
 
     /**

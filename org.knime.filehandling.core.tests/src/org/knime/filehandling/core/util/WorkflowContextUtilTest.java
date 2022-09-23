@@ -59,9 +59,9 @@ import java.io.File;
 
 import org.junit.Test;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowCreationHelper;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 
 /**
  * Tests methods in {@link WorkflowContextUtil}.
@@ -118,9 +118,8 @@ public class WorkflowContextUtilTest {
     @SuppressWarnings("javadoc")
     @Test
     public void testGetWorkflowContextSuccess() {
-        WorkflowCreationHelper helper = new WorkflowCreationHelper();
-        WorkflowContext ctx = new WorkflowContext.Factory(new File("tmp")).createContext();
-        helper.setWorkflowContext(ctx);
+        WorkflowCreationHelper helper = new WorkflowCreationHelper(
+            WorkflowContextV2.forTemporaryWorkflow(new File("tmp").toPath(), null));
         WorkflowManager wfm = WorkflowManager.ROOT.createAndAddProject("blub", helper);
         NodeContext.pushContext(wfm);
         try {

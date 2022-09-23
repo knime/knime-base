@@ -53,8 +53,8 @@ import org.knime.core.node.NodeView;
  * <code>NodeFactory</code> for the "CrossJoiner" Node.
  *
  *
- * @author Alexander Fillbrunn, Universit�t Konstanz
- * @author  Iris Adae, Universit�t Konstanz
+ * @author Alexander Fillbrunn, Universität Konstanz
+ * @author  Iris Adae, Universität Konstanz
  */
 public final  class CrossJoinerNodeFactory
         extends NodeFactory<CrossJoinerNodeModel> {

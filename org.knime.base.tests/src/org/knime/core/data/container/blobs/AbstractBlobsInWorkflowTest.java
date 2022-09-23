@@ -47,22 +47,22 @@ package org.knime.core.data.container.blobs;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
-import junit.framework.TestCase;
-
 import org.knime.base.node.util.cache.CacheNodeFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.NodeID;
-import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowCreationHelper;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 import org.knime.core.util.FileUtil;
 import org.knime.testing.node.differNode.DataTableDiffer;
 import org.knime.testing.node.differNode.TestEvaluationException;
 import org.knime.testing.node.runtime.RuntimeNodeFactory;
 import org.knime.testing.node.runtime.RuntimeNodeModel;
+
+import junit.framework.TestCase;
 
 /**
  * Creates a workflow of a node that creates a BDT with large blob cells
@@ -97,17 +97,15 @@ public abstract class AbstractBlobsInWorkflowTest extends TestCase {
     protected void setUp() throws Exception {
         m_wfmDir = FileUtil.createTempDir(getClass().getSimpleName());
 
-        WorkflowCreationHelper creationHelper = new WorkflowCreationHelper();
-        creationHelper.setWorkflowContext(new WorkflowContext.Factory(m_wfmDir).createContext());
+        final var creationHelper = new WorkflowCreationHelper(
+            WorkflowContextV2.forTemporaryWorkflow(m_wfmDir.toPath(), null));
 
-        WorkflowManager m =
-            WorkflowManager.ROOT.createAndAddProject("Blob test", creationHelper);
+        final WorkflowManager m = WorkflowManager.ROOT.createAndAddProject("Blob test", creationHelper);
         RuntimeNodeModel createModel = new RuntimeNodeModel(0, 1) {
-            /** {@inheritDoc} */
             @Override
             protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
                     final ExecutionContext exec) throws Exception {
-                return new BufferedDataTable[]{createBDT(exec)};
+                return new BufferedDataTable[] { createBDT(exec) };
             }
         };
         NodeID createID = m.createAndAddNode(new RuntimeNodeFactory(createModel));

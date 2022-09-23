@@ -69,7 +69,7 @@ import org.knime.core.node.workflow.VariableType;
  * This is the model for the interval loop start node. It lets the user defined an interval in which a variable is
  * increased by a certain amount in each iteration.
  *
- * @author Jannik LÃ¶scher, KNIME GmbH, Konstanz, Germany
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  * @author based on {@link LoopStartIntervalNodeModel} by Thorsten Meinl, University of Konstanz
  */
 final class LoopStartIntervalDynamicNodeModel extends NodeModel implements LoopStartNodeTerminator {
