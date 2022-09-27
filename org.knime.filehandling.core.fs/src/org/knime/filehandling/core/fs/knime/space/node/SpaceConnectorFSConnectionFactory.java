@@ -122,7 +122,7 @@ abstract class SpaceConnectorFSConnectionFactory {
 
         @Override
         public FSConnection createFSConnection() {
-            return DefaultFSConnectionFactory.createSpaceConnection(createFSConnectionConfig());
+            return DefaultFSConnectionFactory.createHubSpaceConnection(createFSConnectionConfig());
         }
 
         private SpaceFSConnectionConfig createFSConnectionConfig() {

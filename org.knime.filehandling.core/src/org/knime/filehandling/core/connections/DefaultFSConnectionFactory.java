@@ -55,6 +55,8 @@ import java.time.Duration;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.FileUtil;
+import org.knime.core.util.auth.Authenticator;
+import org.knime.filehandling.core.connections.config.HubFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
@@ -170,7 +172,18 @@ public final class DefaultFSConnectionFactory {
         }
     }
 
-    public static FSConnection createSpaceConnection(final SpaceFSConnectionConfig config) {
+    public static FSConnection createHubConnection(final URI repositoryAddress, final Authenticator authenticator) {
+        try {
+            return FSDescriptorRegistry.getFSDescriptor(FSType.HUB) //
+                .orElseThrow(() -> new IllegalStateException(FSType.HUB.getName() + FILE_SYSTEM_NOT_REGISTERED))
+                .getConnectionFactory() //
+                .createConnection(new HubFSConnectionConfig(repositoryAddress, authenticator));
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    public static FSConnection createHubSpaceConnection(final SpaceFSConnectionConfig config) {
         try {
             return FSDescriptorRegistry.getFSDescriptor(FSType.SPACE) //
                 .orElseThrow(() -> new IllegalStateException(FSType.SPACE.getName() + FILE_SYSTEM_NOT_REGISTERED))

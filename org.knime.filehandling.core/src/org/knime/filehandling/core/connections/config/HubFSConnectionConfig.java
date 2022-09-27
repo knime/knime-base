@@ -44,104 +44,87 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 28, 2022 (Zkriya Rakhimberdiyev): created
+ *   Sep 26, 2022 (bjoern): created
  */
 package org.knime.filehandling.core.connections.config;
 
-import java.time.Duration;
+import java.net.URI;
+import java.util.Locale;
 
+import org.knime.core.util.auth.Authenticator;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.meta.base.TimeoutFSConnectionConfig;
 
 /**
- * {@link FSConnectionConfig} for the KNIME Hub Space file system. The KNIME Hub Space file system connects to a KNIME Hub instance and
- * allows to access the file tree of a single Space. It is unlikely that you will have to use this class directly, please
- * see {@link DefaultFSConnectionFactory#createHubSpaceConnection(SpaceFSConnectionConfig)}.
+ * {@link FSConnectionConfig} for the KNIME Hub file system that connects to a KNIME Hub deployment via {@link URI} and
+ * {@link Authenticator}. The KNIME Hub file system connects to a KNIME Hub instance and allows to access the whole file
+ * tree of the Hub. It is unlikely that you will have to use this class directly, please see
+ * {@link DefaultFSConnectionFactory#createHubConnection(URI, Authenticator)}.
  *
- * @author Zkriya Rakhimberdiyev
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class SpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
+public class HubFSConnectionConfig extends TimeoutFSConnectionConfig {
 
     /**
      * Path separator character
      */
     public static final String PATH_SEPARATOR = "/";
 
-    private final String m_mountID;
+    private final URI m_repositoryAddress;
 
-    private final String m_spaceId;
+    private final Authenticator m_authenticator;
 
     /**
-     * Constructor that creates a CONNECTED file system with the given working directory.
+     * Constructor.
      *
-     * @param workingDirectory the working directory to use.
-     * @param mountID the mount ID to connect to.
-     * @param spaceId the unique ID of the space repository item (e.g. *YK_q3iKGm3WUlAzo)
-     * @param connectionTimeout the connectionTimeout.
-     * @param readTimeout the readTimeout.
-     * @param isConnected whether the file system is connected
+     * @param repositoryAddress http(s) URL of the Hub repository/catalog REST API, e.g.
+     *            https://api.hub.knime.com/repository/
+     * @param authenticator {@link Authenticator} to use to authenticate against the REST API.
      */
-    public SpaceFSConnectionConfig(final String workingDirectory, final String mountID,
-        final String spaceId, final Duration connectionTimeout, final Duration readTimeout, final boolean isConnected) {
-        super(workingDirectory, isConnected);
-        m_mountID = mountID;
-        m_spaceId = spaceId;
-        setConnectionTimeout(connectionTimeout);
-        setReadTimeout(readTimeout);
+    public HubFSConnectionConfig(final URI repositoryAddress, final Authenticator authenticator) {
+        this(PATH_SEPARATOR, repositoryAddress, authenticator);
     }
 
     /**
-     * Constructor that creates a CONNECTED file system with the given working directory.
+     * Constructor.
      *
-     * @param workingDirectory the working directory to use.
-     * @param mountID the mount ID to connect to.
-     * @param spaceId the unique ID of the space repository item (e.g. *YK_q3iKGm3WUlAzo)
-     * @param connectionTimeout the connectionTimeout.
-     * @param readTimeout the readTimeout.
+     * @param workingDir The working directory to use.
+     * @param repositoryAddress http(s) URL of the Hub repository/catalog REST API, e.g.
+     *            https://api.hub.knime.com/repository/
+     * @param authenticator {@link Authenticator} to use to authenticate against the REST API.
      */
-    public SpaceFSConnectionConfig(final String workingDirectory, final String mountID,
-        final String spaceId, final Duration connectionTimeout, final Duration readTimeout) {
-        this(workingDirectory, mountID, spaceId, connectionTimeout, readTimeout, true);
+    public HubFSConnectionConfig(final String workingDir, final URI repositoryAddress,
+        final Authenticator authenticator) {
+        super(workingDir);
+        m_repositoryAddress = repositoryAddress;
+        m_authenticator = authenticator;
     }
 
     /**
-     * @return the mount ID to connect to.
+     * @return the http(s) URL of the Hub repository/catalog REST API, e.g. https://api.hub.knime.com/repository/
      */
-    public String getMountID() {
-        return m_mountID;
+    public URI getRepositoryAddress() {
+        return m_repositoryAddress;
     }
 
     /**
-     * @return the space path to connect to.
+     * @return the {@link Authenticator} to use to authenticate against the REST API.
      */
-    public String getSpaceID() {
-        return m_spaceId;
+    public Authenticator getAuthenticator() {
+        return m_authenticator;
     }
 
     /**
-     * @return the {@link FSLocationSpec} for the Space file system which uses this configuration.
+     * @return the {@link FSLocationSpec} for this file system configuration
      */
     public FSLocationSpec createFSLocationSpec() {
-        final FSCategory category;
-        final String specifier;
-
-        if (isConnectedFileSystem()) {
-            category = FSCategory.CONNECTED;
-            specifier = String.format("%s:%s:%s", //
-                FSType.SPACE.getTypeId(), //
-                getMountID(), //
-                getSpaceID());
-        } else {
-            category = FSCategory.RELATIVE;
-            specifier = RelativeTo.SPACE.getSettingsValue();
-        }
-
-        return new DefaultFSLocationSpec(category, specifier);
+        return new DefaultFSLocationSpec(FSCategory.CONNECTED, String.format("%s:%s", //
+            FSType.HUB.getTypeId(), //
+            getRepositoryAddress().getHost().toLowerCase(Locale.ENGLISH)));
     }
 }
