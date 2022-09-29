@@ -705,6 +705,8 @@ final class SendMailConfiguration {
                 break;
             case STARTTLS:
                 properties.setProperty("mail.smtp.starttls.enable", "true");
+                // we need to require STARTTLS as well to enforce a TLS connection -- fixes AP-19571
+                properties.setProperty("mail.smtp.starttls.required", "true");
                 break;
             case SSL:
                 // this is the way to do it in javax.mail 1.4.5+ (default is currently (Aug '13) 1.4.0):
