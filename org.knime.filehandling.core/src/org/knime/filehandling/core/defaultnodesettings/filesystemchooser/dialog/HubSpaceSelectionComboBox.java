@@ -255,8 +255,9 @@ final class HubSpaceSelectionComboBox extends JComboBox<SpaceComboItem> {
         private final JLabel m_descriptionLabel = new JLabel();
 
         SpaceComboboxCellRenderer() {
+            final var origFont = m_descriptionLabel.getFont();
 
-            final var italicFont = m_descriptionLabel.getFont().deriveFont(Font.ITALIC);
+            final var italicFont = origFont.deriveFont(Font.ITALIC, origFont.getSize() - 1f); // NOSONAR have to use float here
             m_descriptionLabel.setText("Owner: ? / ID: ?");
             m_descriptionLabel.setFont(italicFont);
 

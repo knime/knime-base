@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -57,6 +58,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 
@@ -85,6 +87,8 @@ public final class HubSpaceSelector extends JPanel {
     private final HubSpaceSelectionComboBox m_combobox;
 
     private final StatusView m_statusView; // NOSONAR
+
+    private final Component m_horizontalGlue;
 
     private boolean m_enabled = true;
 
@@ -123,13 +127,14 @@ public final class HubSpaceSelector extends JPanel {
 
         m_statusView = new StatusView(300);
 
+        m_horizontalGlue = Box.createHorizontalGlue();
+
         final var gbc = new GridBagConstraints();
         setLayout(new GridBagLayout());
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0.5;
         gbc.insets = new Insets(0, 0, 0, 5);
 
         add(m_combobox, gbc);
@@ -139,6 +144,10 @@ public final class HubSpaceSelector extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
         add(m_statusView.getPanel(), gbc);
+
+        gbc.gridx += 1;
+        add(m_horizontalGlue, gbc);
+        m_horizontalGlue.setVisible(false); // when the HubSpaceSelector is enabled, the glue is invisible (see setEnabled())
     }
 
     /**
@@ -205,6 +214,10 @@ public final class HubSpaceSelector extends JPanel {
     public void setEnabled(final boolean enabled) {
         m_enabled = enabled;
         m_combobox.setEnabled(enabled);
+
+        // depending on the enabledness, we display the StatusView, or the (empty) glue, but never both
+        m_statusView.getPanel().setVisible(enabled);
+        m_horizontalGlue.setVisible(!enabled);
     }
 
     private class ListSpacesSwingWorker extends SwingWorkerWithContext<List<SpaceComboItem>, Void> {

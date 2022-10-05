@@ -49,9 +49,11 @@
 package org.knime.filehandling.core.util;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
+import org.knime.core.util.auth.Authenticator;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -102,14 +104,31 @@ public final class HubAccessUtil {
     }
 
     /**
-     * @param mountId The mount id.
-     * @return The list of spaces stored in the Hub instance described by the given mount id.
+     * @param repositoryAddress Hub repository address
+     * @param authenticator Hub authenticator
+     * @return The list of spaces stored in the Hub instance described by the given repository address.
      * @throws IOException
      */
     @SuppressWarnings("resource")
-    public static List<Space> getSpacesByMountID(final String mountId) throws IOException {
-        try (var connection = DefaultFSConnectionFactory.createMountpointConnection(mountId)) {
+    public static List<Space> getSpacesByRepositoryAddress(final URI repositoryAddress,
+        final Authenticator authenticator) throws IOException {
+        try (var connection = DefaultFSConnectionFactory.createHubConnection(repositoryAddress, authenticator)) {
             return listSpaces(connection.getFileSystem());
+        }
+    }
+
+    /**
+     * @param repositoryAddress Hub repository address
+     * @param authenticator Hub authenticator
+     * @param spaceId The space id
+     * @return The space info about a space described by the given repository address and space id.
+     * @throws IOException
+     */
+    @SuppressWarnings("resource")
+    public static Space getSpaceByRepositoryAddress(final URI repositoryAddress,
+        final Authenticator authenticator, final String spaceId) throws IOException {
+        try (var connection = DefaultFSConnectionFactory.createHubConnection(repositoryAddress, authenticator)) {
+            return fetchSpace(connection.getFileSystem(), spaceId);
         }
     }
 
@@ -121,19 +140,6 @@ public final class HubAccessUtil {
     public static List<Space> getSpacesByWorkflowContext() throws IOException {
         try (var connection = getFSConnectionByWorkflowContext()) {
             return listSpaces(connection.getFileSystem());
-        }
-    }
-
-    /**
-     * @param mountId The mount id.
-     * @param spaceId The space id.
-     * @return The space info about a space described by the given mount id and space id.
-     * @throws IOException
-     */
-    @SuppressWarnings("resource")
-    public static Space getSpaceByMountID(final String mountId, final String spaceId) throws IOException {
-        try (var connection = DefaultFSConnectionFactory.createMountpointConnection(mountId)) {
-            return fetchSpace(connection.getFileSystem(), spaceId);
         }
     }
 
