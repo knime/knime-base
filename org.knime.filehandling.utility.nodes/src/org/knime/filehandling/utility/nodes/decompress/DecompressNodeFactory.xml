@@ -43,50 +43,50 @@
             <i>More information about file handling in KNIME can be found in the official</i> 
             <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
             </p>
-
 		</intro>
 
-<option name="Read from">
-			Select a file system from which you want to unzip your archive or decompress your snappy file. There are four default file system
-			options to choose from:
-			<br />
-			<ul>
-				<li>
-					<i>Local File System:</i>
-					Allows you to delete a file/folder from your local system.
-				</li>
-				<li>
-					<i>Mountpoint:</i>
-					Allows you to unpack and decompress an archive on a mountpoint. When selected, a new drop-down menu appears to 
-					choose the mountpoint. Unconnected mountpoints are grayed out but can still be selected (note that
-					browsing is disabled in this case). Go to the KNIME Explorer and connect to the mountpoint to enable
-					browsing. A mountpoint is displayed in red, if it was previously selected but is no longer 
-					available. You won't be able to save the dialog as long as you don't select a valid i.e. known
-					mountpoint.
-				</li>
-				<li>
-					<i>Relative to:</i>
-					Allows you to choose whether to resolve the path to an archive file relative to the current
-					mountpoint, current workflow or the current workflow's data area. When selected a new drop-down menu
-					appears to choose which of the three options to use.
-				</li>
-				<li>
-					<i>Custom/KNIME URL:</i> 
-					Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
-	                 When selected, a spinner appears that allows you to specify the desired connection and write timeout in milliseconds.
-	                 In case it takes longer to connect to the host / write the file, the node fails to execute.
-	                 Browsing is disabled for this option.
-	            </li>
-			</ul>
-			To read from other file systems, click on <b>...</b> in the bottom left corner of the node icon followed by
-			<i>Add ports</i> and <i>Source file system connection</i>. Afterwards, connect the desired file system connector node to the
-			newly added input port. The file system connection will then be shown in the drop-down menu. It is grayed
-			out if the file system is not connected in which case you have to (re)execute the connector node first.
-			Note: The default file systems listed above can't be selected if a file system is provided via the input
-			port.
-		</option>
-		<option name="File/URL">
-			Enter a URL when decompressing a file specified by <i>Custom/KNIME URL</i>, otherwise enter a path to an archive file. The
+        <tab name="Settings">
+	        <option name="Read from">
+				Select a file system from which you want to unzip your archive or decompress your snappy file. There are four default file system
+				options to choose from:
+				<br />
+				<ul>
+					<li>
+						<i>Local File System:</i>
+						Allows you to delete a file/folder from your local system.
+					</li>
+					<li>
+						<i>Mountpoint:</i>
+						Allows you to unpack and decompress an archive on a mountpoint. When selected, a new drop-down menu appears to 
+						choose the mountpoint. Unconnected mountpoints are grayed out but can still be selected (note that
+						browsing is disabled in this case). Go to the KNIME Explorer and connect to the mountpoint to enable
+						browsing. A mountpoint is displayed in red, if it was previously selected but is no longer 
+						available. You won't be able to save the dialog as long as you don't select a valid i.e. known
+						mountpoint.
+					</li>
+					<li>
+						<i>Relative to:</i>
+						Allows you to choose whether to resolve the path to an archive file relative to the current
+						mountpoint, current workflow or the current workflow's data area. When selected a new drop-down menu
+						appears to choose which of the three options to use.
+					</li>
+					<li>
+						<i>Custom/KNIME URL:</i> 
+						Allows to specify a URL (e.g. file://, http:// or knime:// protocol). 
+		                 When selected, a spinner appears that allows you to specify the desired connection and write timeout in milliseconds.
+		                 In case it takes longer to connect to the host / write the file, the node fails to execute.
+		                 Browsing is disabled for this option.
+		            </li>
+				</ul>
+				To read from other file systems, click on <b>...</b> in the bottom left corner of the node icon followed by
+				<i>Add ports</i> and <i>Source file system connection</i>. Afterwards, connect the desired file system connector node to the
+				newly added input port. The file system connection will then be shown in the drop-down menu. It is grayed
+				out if the file system is not connected in which case you have to (re)execute the connector node first.
+				Note: The default file systems listed above can't be selected if a file system is provided via the input
+				port.
+			</option>
+			<option name="File/URL">
+				Enter a URL when decompressing a file specified by <i>Custom/KNIME URL</i>, otherwise enter a path to an archive file. The
 				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
 				File System on Windows) or  &quot;/path/to/file&quot; (Local
 	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
@@ -105,8 +105,8 @@
                 <i>The location can be exposed as or automatically set via a 
                 </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
                 <i>path flow variable.</i></a>
-		</option>
-		<option name="Write to">
+			</option>
+			<option name="Write to">
 				Select a file system to which you want to extract your files.
 				There are three default file system options to choose from:
 				<br />
@@ -140,44 +140,57 @@
 				It is grayed out if the file system is not connected in which case you have to (re)execute the connector node first.
 				Note: The default file systems listed above can't be selected if a file system is provided via the input port.
 			</option>
-		<option name="Folder">
-			Enter a valid directory path where the files should get extracted to. The
-				required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
-				File System on Windows) or  &quot;/path/to/file&quot; (Local
-	            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
-	            description of the respective connector node describes the required path format.
-				You can also choose a previously selected folder from the drop-down list, or select a location
-				from the &quot;Browse...&quot; dialog.
-				Note that browsing is disabled in some cases:
-				<ul>
-					<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected.
-					Go to the KNIME Explorer and connect to the mountpoint to enable browsing.</li>
-					<li><i>File systems provided via input port:</i>
-					Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
-					(Re)execute the connector node to enable browsing.</li>
-				</ul>
-                <i>The location can be exposed as or automatically set via a 
-                </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
-                <i>path flow variable.</i></a>
-		</option>
-		<option name="Create missing folders">Select if the folders of the selected
-				output
-				location should be created if they do not already exist. If
-				this
-				option is unchecked, the node will fail if a folder does not
-				exist.
+			<option name="Folder">
+				Enter a valid directory path where the files should get extracted to. The
+					required syntax of a path depends on the chosen file system, such as &quot;C:\path\to\file&quot; (Local
+					File System on Windows) or  &quot;/path/to/file&quot; (Local
+		            File System on Linux/MacOS and Mountpoint). For file systems connected via input port, the node
+		            description of the respective connector node describes the required path format.
+					You can also choose a previously selected folder from the drop-down list, or select a location
+					from the &quot;Browse...&quot; dialog.
+					Note that browsing is disabled in some cases:
+					<ul>
+						<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected.
+						Go to the KNIME Explorer and connect to the mountpoint to enable browsing.</li>
+						<li><i>File systems provided via input port:</i>
+						Browsing is disabled if the connector node hasn't been executed since the workflow has been opened.
+						(Re)execute the connector node to enable browsing.</li>
+					</ul>
+	                <i>The location can be exposed as or automatically set via a 
+	                </i><a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
+	                <i>path flow variable.</i></a>
 			</option>
-			<option name="If exists">
-				Specify the behavior of the node in case an output file already exists.
-				<ul>
-					<li><i>Overwrite:</i> Will replace any existing file.
-					</li>
-					<li><i>Ignore:</i> Will ignore existing files and append a column in the output table which tells, if a file was newly created or not.
-					</li>
-					<li><i>Fail:</i> Will issue an error during the node's execution (to prevent unintentional overwrite).
-					</li>
-				</ul>
+			<option name="Create missing folders">Select if the folders of the selected
+					output
+					location should be created if they do not already exist. If
+					this
+					option is unchecked, the node will fail if a folder does not
+					exist.
+				</option>
+				<option name="If exists">
+					Specify the behavior of the node in case an output file already exists.
+					<ul>
+						<li><i>Overwrite:</i> Will replace any existing file.
+						</li>
+						<li><i>Ignore:</i> Will ignore existing files and append a column in the output table which tells, if a file was newly created or not.
+						</li>
+						<li><i>Fail:</i> Will issue an error during the node's execution (to prevent unintentional overwrite).
+						</li>
+					</ul>
 			</option>
+        </tab>
+        <tab name="Encoding">
+            <option name="Encoding">
+                Sets the character set/encoding to use when reading the names of the files to be decompressed. By default, UTF-8
+                is chosen, but you can specify any other encoding supported by Java. Choosing "OS default" uses the default 
+                encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;.
+                
+                <p>Unfortunately the character set cannot always be inferred from the archive metadata, so in some cases UTF-8 will not work.
+                If you are decompressing a .zip file and "UTF-8" gives incorrect results, please try manually specifying <a href="https://en.wikipedia.org/wiki/Code_page_437">IBM437</a>
+                under "Other".
+                </p>
+            </option>
+        </tab>  
 	</fullDescription>
 
 	<ports>

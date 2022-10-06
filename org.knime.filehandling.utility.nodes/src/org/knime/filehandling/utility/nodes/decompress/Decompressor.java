@@ -213,7 +213,7 @@ final class Decompressor {
         try {
             ArchiveStreamFactory.detect(bufferedStream);
             m_isArchived = true;
-            return new ArchiveStreamFactory().createArchiveInputStream(bufferedStream);
+            return new ArchiveStreamFactory(m_config.getCharset()).createArchiveInputStream(bufferedStream);
         } catch (ArchiveException e) {
             if (m_isArchived) {
                 throw new IllegalArgumentException(
@@ -265,7 +265,12 @@ final class Decompressor {
 
         // Process each archive entry
         while ((entry = archiveInputStream.getNextEntry()) != null) {
-            final Path outputFilePath = destinationPath.resolve(entry.getName());
+            final var fileName = entry.getName();
+            if (fileName.contains("?")) {
+                LOGGER.warn("Decompressed file name has an invalid character/s ? " +
+                        "to fix it please try to set correct encoding config.");
+            }
+            final var outputFilePath = destinationPath.resolve(fileName);
             final boolean isDirectory = entry.isDirectory();
             m_exec.setMessage("Decompressing " + outputFilePath);
             rowId = createDirectories(destinationPath, rowId, processedDirs, outputFilePath, isDirectory);

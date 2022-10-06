@@ -63,6 +63,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
+import org.knime.filehandling.core.encoding.CharsetNamePanel;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -77,6 +78,8 @@ final class DecompressNodeDialog extends NodeDialogPane {
     private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
 
     private final DialogComponentWriterFileChooser m_outputDirChooserPanel;
+
+    private final CharsetNamePanel m_charsetPanel;
 
     private final DecompressNodeConfig m_config;
 
@@ -96,6 +99,9 @@ final class DecompressNodeDialog extends NodeDialogPane {
         m_config.getInputFileChooserModel().addChangeListener(l -> m_outputDirChooserPanel.updateComponent());
 
         addTab("Settings", initLayout());
+
+        m_charsetPanel = new CharsetNamePanel();
+        addTab("Encoding", m_charsetPanel);
     }
 
     private JPanel initLayout() {
@@ -118,15 +124,15 @@ final class DecompressNodeDialog extends NodeDialogPane {
     }
 
     private JPanel createInputFilePanel() {
-        final JPanel filePanel = new JPanel(new GridBagLayout());
-        GBCBuilder gbc = new GBCBuilder().resetX().resetY();
+        final var filePanel = new JPanel(new GridBagLayout());
+        final var gbc = new GBCBuilder().resetX().resetY();
         filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Source"));
         filePanel.add(m_inputFileChooserPanel.getComponentPanel(), gbc.fillHorizontal().setWeightX(1).build());
         return filePanel;
     }
 
     private JPanel createOutputDirPanel() {
-        final JPanel filePanel = new JPanel(new GridBagLayout());
+        final var filePanel = new JPanel(new GridBagLayout());
         GBCBuilder gbc = new GBCBuilder().resetX().resetY();
         filePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Destination"));
         filePanel.add(m_outputDirChooserPanel.getComponentPanel(), gbc.fillHorizontal().setWeightX(1).build());
@@ -137,6 +143,8 @@ final class DecompressNodeDialog extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_inputFileChooserPanel.saveSettingsTo(settings);
         m_outputDirChooserPanel.saveSettingsTo(settings);
+        m_config.setCharset(m_charsetPanel.getSelectedCharsetName().orElse(null));
+        m_config.saveSettingsForModel(settings);
     }
 
     @Override
@@ -144,5 +152,6 @@ final class DecompressNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         m_inputFileChooserPanel.loadSettingsFrom(settings, specs);
         m_outputDirChooserPanel.loadSettingsFrom(settings, specs);
+        m_charsetPanel.loadSettings(m_config.getCharset());
     }
 }

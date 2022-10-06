@@ -70,14 +70,6 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class DecompressNodeConfig {
 
-    private static final String CFG_INPUT_FILE = "source_location";
-
-    private static final String CFG_OUTPUT_LOCATION = "destination_location";
-
-    private SettingsModelReaderFileChooser m_inputFileChooserModel;
-
-    private SettingsModelWriterFileChooser m_outputDirChooserModel;
-
     private static final String BZ2_EXTENSION = "bz2";
 
     private static final String GZIP_EXTENSION = "gzip";
@@ -92,6 +84,20 @@ final class DecompressNodeConfig {
         "." + ArchiveStreamFactory.AR, //
         "." + CompressorStreamFactory.GZIP,//
         "." + GZIP_EXTENSION};
+
+    private static final String CFG_INPUT_FILE = "source_location";
+
+    private static final String CFG_OUTPUT_LOCATION = "destination_location";
+
+    private static final String CFG_CHARSET = "charset";
+
+    private static final String DEFAULT_CHARSET = "UTF-8";
+
+    private final SettingsModelReaderFileChooser m_inputFileChooserModel;
+
+    private final SettingsModelWriterFileChooser m_outputDirChooserModel;
+
+    private String m_charSet = DEFAULT_CHARSET;
 
     /**
      * Constructor
@@ -117,11 +123,17 @@ final class DecompressNodeConfig {
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inputFileChooserModel.loadSettingsFrom(settings);
         m_outputDirChooserModel.loadSettingsFrom(settings);
+        if (settings.containsKey(CFG_CHARSET)) {
+            m_charSet = settings.getString(CFG_CHARSET);
+        } else {
+            m_charSet = DEFAULT_CHARSET;
+        }
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_inputFileChooserModel.saveSettingsTo(settings);
         m_outputDirChooserModel.saveSettingsTo(settings);
+        settings.addString(CFG_CHARSET, m_charSet);
     }
 
     /**
@@ -140,5 +152,23 @@ final class DecompressNodeConfig {
      */
     SettingsModelReaderFileChooser getInputFileChooserModel() {
         return m_inputFileChooserModel;
+    }
+
+    /**
+     * Returns the charset/encoding used to decompress the archive file.
+     *
+     * @return charset encoding
+     */
+    String getCharset() {
+        return m_charSet;
+    }
+
+    /**
+     * Sets the charset/encoding used to decompress the archive file.
+     *
+     * @param charset encoding
+     */
+    void setCharset(final String charset) {
+        m_charSet = charset;
     }
 }
