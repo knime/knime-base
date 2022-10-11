@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.filter.row.rowfilter;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.TableBackend.RowReadFilterFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -80,6 +81,10 @@ public interface IRowFilter extends Cloneable {
      *             table
      */
     boolean matches(DataRow row, long rowIndex) throws EndOfTableException, IncludeFromNowOn;
+
+    default RowReadFilterFactory createFilterFactory() {
+        return null;
+    }
 
     /**
      * Load your internal settings from the configuration object. Throw an exception if the config is

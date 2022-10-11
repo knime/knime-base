@@ -51,8 +51,12 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValueComparator;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.TableBackend.RowReadFilterFactory;
 import org.knime.core.data.collection.CollectionDataValue;
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -166,6 +170,51 @@ public class RangeRowFilter extends AttrValueRowFilter {
         m_lowerBound = null;
         m_upperBound = null;
         m_comparator = null;
+    }
+
+    @Override
+    public RowReadFilterFactory createFilterFactory() {
+        return new RowReadFilterFactory() {
+
+            @Override
+            public RowReadFilter createFilter(final RowRead rowRead) {
+                DoubleValue value = rowRead.getValue(0);
+                final var include = getInclude();
+                return i -> {
+                    var match = !rowRead.isMissing(0) && (matchesValue(value));
+                    return ((include && match) || (!include && !match));
+                };
+            }
+
+            @Override
+            public boolean requiresRowKey() {
+                return false;
+            }
+
+            @Override
+            public int[] requiredColumns() {
+                return new int[] {getColIdx()};
+            }
+
+        };
+    }
+
+    private boolean matchesValue(final DataValue value) {
+        if (getDeepFiltering() && (value instanceof CollectionDataValue)) {
+            return performDeepFiltering((CollectionDataValue) value);
+        } else {
+            boolean match;
+            if (m_lowerBound != null) {
+                match = (m_comparator.compareValues(m_lowerBound, value) <= 0);
+            } else {
+                // if no lowerBound is specified - its always above the minimum
+                match = true;
+            }
+            if (m_upperBound != null) {
+                match &= (m_comparator.compareValues(value, m_upperBound) <= 0);
+            }
+            return match;
+        }
     }
 
     /**

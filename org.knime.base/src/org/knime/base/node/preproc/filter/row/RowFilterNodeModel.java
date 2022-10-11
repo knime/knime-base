@@ -55,7 +55,6 @@ import org.knime.base.node.preproc.filter.row.rowfilter.IRowFilter;
 import org.knime.base.node.preproc.filter.row.rowfilter.IncludeFromNowOn;
 import org.knime.base.node.preproc.filter.row.rowfilter.RowFilterFactory;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -212,12 +211,18 @@ public class RowFilterNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-        DataTable in = inData[0];
+        var in = inData[0];
         // in case the node was configured and the workflow is closed
         // (and saved), the row filter isn't configured upon reloading.
         // here, we give it a chance to configure itself (e.g. find the column
         // index)
         m_rowFilter.configure(in.getDataTableSpec());
+
+        var filterFactory = m_rowFilter.createFilterFactory();
+        if (filterFactory != null) {
+            return new BufferedDataTable[] {exec.filter(in, filterFactory)};
+        }
+
         BufferedDataContainer container =
             exec.createDataContainer(in.getDataTableSpec());
         exec.setMessage("Searching first matching row...");
