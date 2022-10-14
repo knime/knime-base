@@ -53,7 +53,10 @@ import java.util.regex.Pattern;
 import org.knime.base.util.WildcardMatcher;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.TableBackend.RowReadFilterFactory;
 import org.knime.core.data.collection.CollectionDataValue;
+import org.knime.core.data.v2.ReadValue;
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -277,6 +280,44 @@ public class StringCompareRowFilter extends AttrValueRowFilter {
             match = false;
 
         } else {
+            if (getDeepFiltering() && (theCell instanceof CollectionDataValue)) {
+                match = performDeepFiltering((CollectionDataValue) theCell);
+            } else {
+                match = matches(theCell);
+            }
+        }
+        return ((getInclude() && match) || (!getInclude() && !match));
+    }
+
+    @Override
+    public RowReadFilterFactory createFilterFactory() {
+        return new RowReadFilterFactory() {
+
+            @Override
+            public RowReadFilter createFilter(final RowRead rowRead) {
+                return i -> matches(rowRead);
+            }
+
+            @Override
+            public boolean requiresRowKey() {
+                return false;
+            }
+
+            @Override
+            public int[] requiredColumns() {
+                return new int[] {getColIdx()};
+            }
+
+        };
+    }
+
+    private boolean matches(final RowRead rowRead) {
+        boolean match;
+        if (rowRead.isMissing(0)) {
+            match = false;
+        } else {
+            var readValue = (ReadValue)rowRead.getValue(0);
+            var theCell = readValue.getDataCell();
             if (getDeepFiltering() && (theCell instanceof CollectionDataValue)) {
                 match = performDeepFiltering((CollectionDataValue) theCell);
             } else {
