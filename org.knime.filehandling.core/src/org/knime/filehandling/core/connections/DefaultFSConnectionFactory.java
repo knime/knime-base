@@ -53,14 +53,15 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.Duration;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.auth.Authenticator;
 import org.knime.filehandling.core.connections.config.HubFSConnectionConfig;
+import org.knime.filehandling.core.connections.config.HubSpaceFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.connections.config.SpaceFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
@@ -183,7 +184,7 @@ public final class DefaultFSConnectionFactory {
         }
     }
 
-    public static FSConnection createHubSpaceConnection(final SpaceFSConnectionConfig config) {
+    public static FSConnection createHubSpaceConnection(final HubSpaceFSConnectionConfig config) {
         try {
             return FSDescriptorRegistry.getFSDescriptor(FSType.SPACE) //
                 .orElseThrow(() -> new IllegalStateException(FSType.SPACE.getName() + FILE_SYSTEM_NOT_REGISTERED))
@@ -192,5 +193,17 @@ public final class DefaultFSConnectionFactory {
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
+    }
+
+    public static FSConnection createHubSpaceConnection(final URI repositoryAddress, //
+        final Authenticator authenticator, //
+        final String spaceId) {
+
+        if (StringUtils.isBlank(spaceId)) {
+            throw new IllegalArgumentException("No Hub Space is specified");
+        }
+
+        var config = new HubSpaceFSConnectionConfig(repositoryAddress, authenticator, spaceId);
+        return createHubSpaceConnection(config);
     }
 }

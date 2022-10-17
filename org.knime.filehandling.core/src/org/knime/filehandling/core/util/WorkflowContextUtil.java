@@ -56,6 +56,7 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2.LocationType;
 
 /**
  * Utility class that allows to reason about the current {@link WorkflowContext}.
@@ -164,5 +165,14 @@ public final class WorkflowContextUtil {
                 .orElseThrow(
                     () -> new IllegalStateException("Workflow context on Server does not contain remote mount ID")) //
                 .equals(mountID);
+    }
+    /**
+     * Checks whether the calling thread is running in a KNIME node as part of a workflow located on the Hub.
+     *
+     * @return true if the current {@link WorkflowContext} belongs to a workflow located on the Hub, false
+     *         otherwise.
+     */
+    public static boolean isCurrentWorkflowOnHub() {
+        return hasWorkflowContext() && getWorkflowContextV2().getLocationType() == LocationType.HUB_SPACE;
     }
 }

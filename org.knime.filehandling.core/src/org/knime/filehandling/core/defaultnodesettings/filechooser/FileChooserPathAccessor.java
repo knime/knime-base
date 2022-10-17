@@ -191,6 +191,8 @@ public final class FileChooserPathAccessor implements ReadPathAccessor, WritePat
             case LOCAL:
                 ValidationUtils.validateLocalFsAccess();
                 return m_fileSystem.getPath(m_rootLocation);
+            case HUB_SPACE:
+                return m_fileSystem.getPath(m_rootLocation);
             default:
                 throw new IllegalStateException("Unsupported file system category: " + m_rootLocation.getFSCategory());
         }

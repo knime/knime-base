@@ -80,7 +80,7 @@ public class HubFSConnectionConfig extends TimeoutFSConnectionConfig {
     private final Authenticator m_authenticator;
 
     /**
-     * Constructor.
+     * Constructor for a {@link FSCategory#CONNECTED} Hub file system with the default working directory.
      *
      * @param repositoryAddress http(s) URL of the Hub repository/catalog REST API, e.g.
      *            https://api.hub.knime.com/repository/
@@ -91,7 +91,7 @@ public class HubFSConnectionConfig extends TimeoutFSConnectionConfig {
     }
 
     /**
-     * Constructor.
+     * Constructor for a {@link FSCategory#CONNECTED} Hub file system.
      *
      * @param workingDir The working directory to use.
      * @param repositoryAddress http(s) URL of the Hub repository/catalog REST API, e.g.

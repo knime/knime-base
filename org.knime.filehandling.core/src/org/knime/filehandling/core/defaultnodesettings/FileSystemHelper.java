@@ -52,11 +52,13 @@ import java.nio.file.FileSystem;
 import java.util.Optional;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Utility class to obtain a {@link FSConnection}.
@@ -126,10 +128,25 @@ public final class FileSystemHelper {
                 return Optional.of(DefaultFSConnectionFactory.createMountpointConnection(connection.getId()));
             case LOCAL:
                 return Optional.of(DefaultFSConnectionFactory.createLocalFSConnection());
+            case HUB_SPACE:
+                return Optional.of(createHubSpaceFSConnection(location));
             default:
                 throw new IllegalArgumentException("Unknown file system choice: " + category);
 
         }
+    }
+
+    private static FSConnection createHubSpaceFSConnection(final FSLocation location) {
+        CheckUtils.checkState(WorkflowContextUtil.isCurrentWorkflowOnHub(),
+            "Current workflow must be stored on a KNIME Hub.");
+
+        var workflowContext = WorkflowContextUtil.getWorkflowContextV2();
+        var locInfo = (HubSpaceLocationInfo)workflowContext.getLocationInfo();
+        var spaceId = extractSpaceId(location);
+
+        return DefaultFSConnectionFactory.createHubSpaceConnection(locInfo.getRepositoryAddress(), //
+            locInfo.getAuthenticator(), //
+            spaceId);
     }
 
     private static void checkMountpointCanCreateConnection(final FSLocation location,
@@ -151,12 +168,15 @@ public final class FileSystemHelper {
      */
     public static boolean canRetrieveFSConnection(final Optional<FSConnection> portObjectConnection,
         final FSLocation location) {
-        final FSCategory category = location.getFSCategory();
+
+        final var category = location.getFSCategory();
         if (category == FSCategory.CONNECTED) {
             return portObjectConnection.isPresent();
         } else if (category == FSCategory.MOUNTPOINT) {
             final KNIMEConnection connection = extractMountpoint(location);
             return connection.isValid() && connection.isConnected();
+        } else if (category == FSCategory.HUB_SPACE) {
+            return WorkflowContextUtil.isCurrentWorkflowOnHub();
         } else {
             // for the other fs types, it is always possible to create a connection
             return true;
@@ -172,7 +192,7 @@ public final class FileSystemHelper {
      * @return {@code true} if browsing is supported, {@code false} otherwise
      */
     public static boolean canBrowse(final Optional<FSConnection> portObjectConnection, final FSLocation location) {
-        final FSCategory category = location.getFSCategory();
+        final var category = location.getFSCategory();
         if (category == FSCategory.CUSTOM_URL) {
             return false;
         } else if (category == FSCategory.CONNECTED) {
@@ -185,13 +205,23 @@ public final class FileSystemHelper {
     private static RelativeTo extractRelativeToType(final FSLocation location) {
         final String specifier =
             location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(String
-                .format("The provided relative to location '%s' does not specify the relative to type.", location)));
+                .format("The provided location '%s' does not specify the relative-to type.", location)));
         return RelativeTo.fromSettingsValue(specifier);
     }
 
     private static KNIMEConnection extractMountpoint(final FSLocation location) {
         final String knimeFileSystem = location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
-            String.format("The provided mountpoint location '%s' does not specify a mountpoint.", location)));
+            String.format("The provided location '%s' does not specify a mountpoint.", location)));
         return KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
+    }
+
+    private static String extractSpaceId(final FSLocation location) {
+        final var errorMsg =
+            String.format("The provided location '%s' does not specify a KNIME Hub Space.", location);
+
+        CheckUtils.checkArgument(location.getFSCategory() == FSCategory.HUB_SPACE, errorMsg);
+
+        return  location.getFileSystemSpecifier() //
+            .orElseThrow(() -> new IllegalArgumentException(errorMsg));
     }
 }

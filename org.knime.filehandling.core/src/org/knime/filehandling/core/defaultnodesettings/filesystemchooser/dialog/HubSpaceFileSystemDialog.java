@@ -44,46 +44,84 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 17, 2020 (bjoern): created
+ *   Sep 12, 2022 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridBagLayout;
+
+import javax.swing.Box;
+import javax.swing.JPanel;
+
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSpecificConfig;
+import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.filehandling.core.util.HubAccessUtil;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
- * Enum to model file system categories.
+ * {@link FileSystemSpecificDialog} for the Hub Space file system.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
+ * @author Alexander Bondaletov
  */
-public enum FSCategory {
+public class HubSpaceFileSystemDialog implements FileSystemSpecificDialog {
 
-        /** Category for local "convenience" file system(s) */
-        LOCAL("Local File System"),
+    private final JPanel m_panel = new JPanel(new GridBagLayout());
 
-        /** Category for relative "convenience" file systems */
-        RELATIVE("Relative to"),
-
-        /** Category for "convenience" file systems that access mountpoints */
-        MOUNTPOINT("Mountpoint"),
-
-        /** Category for "convenience" file systems that access Hub Spaces */
-        HUB_SPACE("Hub Space"),
-
-        /** Category for "convenience" file system(s) that acces only URLs */
-        CUSTOM_URL("Custom/KNIME URL"),
-
-        /** Category for file systems that need to be connected via input port. */
-        CONNECTED("");
-
-    private final String m_label;
-
-    private FSCategory(final String label) {
-        m_label = label;
-    }
+    private final HubSpaceSelector m_spaceSelector;
 
     /**
-     * @return a human-readable label for the file system category, to be used for display purposes.
+     * @param config the config this dialog represents
+     *
      */
-    public String getLabel() {
-        return m_label;
+    public HubSpaceFileSystemDialog(final HubSpaceSpecificConfig config) {
+        m_spaceSelector = new HubSpaceSelector(config.getSpaceSettings(), HubAccessUtil::getSpacesByWorkflowContext,
+            HubAccessUtil::getSpaceByWorkflowContext);
+
+        var gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillBoth().insets(0, 0, 0, 0);
+        m_panel.add(m_spaceSelector, gbc.build());
+        // add extra panel that receives any extra space available
+        m_panel.add(Box.createHorizontalGlue(), gbc.fillHorizontal().setWeightX(1).incX().build());
+
+        if (WorkflowContextUtil.isCurrentWorkflowOnHub()) {
+            m_spaceSelector.triggerSpaceListing();
+        }
+    }
+
+    @Override
+    public Component getSpecifierComponent() {
+        return m_panel;
+    }
+
+    @Override
+    public boolean hasSpecifierComponent() {
+        return true;
+    }
+
+    @Override
+    public void setEnabled(final boolean enabled) {
+        m_spaceSelector.setEnabled(enabled);
+    }
+
+    @Override
+    public void setTooltip(final String tooltip) {
+        m_spaceSelector.setToolTipText(tooltip);
+    }
+
+    @Override
+    public FSCategory getFileSystemCategory() {
+        return FSCategory.HUB_SPACE;
+    }
+
+    @Override
+    public Color getTextColor() {
+        return Color.BLACK;
+    }
+
+    @Override
+    public String toString() {
+        return getFileSystemCategory().getLabel();
     }
 }

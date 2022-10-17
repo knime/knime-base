@@ -51,19 +51,13 @@ package org.knime.filehandling.core.connections.base;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URL;
-import java.nio.file.Path;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IPath;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.WorkflowAwarePath;
 import org.knime.filehandling.core.filechooser.NioFileView;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
+import org.knime.filehandling.core.util.Icons;
 
 /**
  * FileView that shows a KNIME icon for workflows
@@ -74,17 +68,15 @@ import org.osgi.framework.FrameworkUtil;
  * @noinstantiate non-public API
  */
 public final class WorkflowAwareFileView extends NioFileView {
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(WorkflowAwareFileView.class);
 
-    private Icon m_workflowIcon = null;
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(WorkflowAwareFileView.class);
 
     @Override
     public Icon getIcon(final File f) {
         try {
-            final Icon workflowIcon = getWorkflowIcon();
-            final Path path = f.toPath();
+            final var path = f.toPath();
             if (path instanceof WorkflowAwarePath && ((WorkflowAwarePath)path).isWorkflow()) {
-                return workflowIcon;
+                return Icons.getWorkflowIcon();
             }
         } catch (final IOException e) {
             // something went wrong, use default icon
@@ -92,20 +84,5 @@ public final class WorkflowAwareFileView extends NioFileView {
             throw new UncheckedIOException(e);
         }
         return super.getIcon(f);
-    }
-
-    /**
-     * Try to load the workflow icon from the bundle.
-     *
-     * @return Workflow icon or {@code null}
-     */
-    private synchronized Icon getWorkflowIcon() {
-        if (m_workflowIcon == null) {
-            final Bundle currBundle = FrameworkUtil.getBundle(WorkflowAwareFileView.class);
-            final IPath iconPath = new org.eclipse.core.runtime.Path("icons").append("knime_default.png");
-            final URL iconUrl = FileLocator.findEntries(currBundle, iconPath)[0];
-            m_workflowIcon = new ImageIcon(iconUrl);
-        }
-        return m_workflowIcon;
     }
 }

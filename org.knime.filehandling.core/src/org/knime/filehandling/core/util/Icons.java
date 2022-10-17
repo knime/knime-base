@@ -44,46 +44,75 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 17, 2020 (bjoern): created
+ *   Oct 13, 2022 (bjoern): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.util;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.osgi.framework.FrameworkUtil;
 
 /**
- * Enum to model file system categories.
+ * Provides icons for file handling UI elements.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
- * @noreference non-public API
  */
-public enum FSCategory {
+public final class Icons {
 
-        /** Category for local "convenience" file system(s) */
-        LOCAL("Local File System"),
+    private static final String ICONS_FOLDER = "icons";
 
-        /** Category for relative "convenience" file systems */
-        RELATIVE("Relative to"),
+    private static final String PRIVATE_SPACE_ICON_FILENAME = "private_space.png";
 
-        /** Category for "convenience" file systems that access mountpoints */
-        MOUNTPOINT("Mountpoint"),
+    private static final String PUBLIC_SPACE_ICON_FILENAME = "public_space.png";
 
-        /** Category for "convenience" file systems that access Hub Spaces */
-        HUB_SPACE("Hub Space"),
+    private static final String WORKFLOW_ICON = "knime_default.png";
 
-        /** Category for "convenience" file system(s) that acces only URLs */
-        CUSTOM_URL("Custom/KNIME URL"),
+    private static Icon publicSpaceIcon;
 
-        /** Category for file systems that need to be connected via input port. */
-        CONNECTED("");
+    private static Icon privateSpaceIcon;
 
-    private final String m_label;
+    private static Icon workflowIcon;
 
-    private FSCategory(final String label) {
-        m_label = label;
+    private Icons() {
     }
 
     /**
-     * @return a human-readable label for the file system category, to be used for display purposes.
+     * @return icon for a private Hub Space.
      */
-    public String getLabel() {
-        return m_label;
+    public static synchronized Icon getPrivateSpaceIcon() {
+        if (privateSpaceIcon == null) {
+            privateSpaceIcon = loadIcon(PRIVATE_SPACE_ICON_FILENAME);
+        }
+        return privateSpaceIcon;
+    }
+
+    /**
+     * @return icon for a public Hub Space.
+     */
+    public static synchronized Icon getPublicSpaceIcon() {
+        if (publicSpaceIcon == null) {
+            publicSpaceIcon = loadIcon(PUBLIC_SPACE_ICON_FILENAME);
+        }
+        return publicSpaceIcon;
+    }
+
+    /**
+     * @return icon to represent a workflow during file browsing.
+     */
+    public static synchronized Icon getWorkflowIcon() {
+        if (workflowIcon == null) {
+            workflowIcon = loadIcon(WORKFLOW_ICON);
+        }
+        return workflowIcon;
+    }
+
+    private static Icon loadIcon(final String iconFilename) {
+        final var currBundle = FrameworkUtil.getBundle(Icons.class);
+        final var iconPath = new Path(ICONS_FOLDER).append(iconFilename);
+        final var iconUrl = FileLocator.findEntries(currBundle, iconPath)[0];
+        return new ImageIcon(iconUrl);
     }
 }

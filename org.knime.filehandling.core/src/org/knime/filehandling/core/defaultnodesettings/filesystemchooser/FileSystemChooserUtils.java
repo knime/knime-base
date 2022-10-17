@@ -67,6 +67,7 @@ import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.LocalSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.ConnectedFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.CustomURLFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
@@ -74,6 +75,7 @@ import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.LocalFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.MountpointFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.RelativeToFileSystemDialog;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.HubSpaceFileSystemDialog;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -172,6 +174,8 @@ public final class FileSystemChooserUtils {
                 return new MountpointSpecificConfig(active);
             case RELATIVE:
                 return new RelativeToSpecificConfig(active);
+            case HUB_SPACE:
+                return new HubSpaceSpecificConfig(active && WorkflowContextUtil.isCurrentWorkflowOnHub());
             default:
                 throw new IllegalArgumentException("Unsupported FSCategory: " + category);
 
@@ -213,6 +217,10 @@ public final class FileSystemChooserUtils {
             dialogs.add(new CustomURLFileSystemDialog(
                 (CustomURLSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.CUSTOM_URL)));
         }
-        return new FileSystemChooser(config, dialogs.toArray(new FileSystemSpecificDialog[0]));
+        if (categories.contains(FSCategory.HUB_SPACE)) {
+            dialogs.add(new HubSpaceFileSystemDialog(
+                (HubSpaceSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.HUB_SPACE)));
+        }
+        return new FileSystemChooser(config, dialogs.toArray(FileSystemSpecificDialog[]::new));
     }
 }

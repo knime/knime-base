@@ -69,6 +69,8 @@ public interface SpaceAware {
 
         private final String m_owner;
 
+        private final boolean m_isPrivate;
+
         private final String m_spaceId;
 
         private final String m_path;
@@ -76,41 +78,57 @@ public interface SpaceAware {
         /**
          * Space constructor.
          *
-         * @param name space name
-         * @param owner space owner
-         * @param spaceId space id
-         * @param path Path of the space within the file tree of the Hub, e.g. /Users/joe/Private
+         * @param name Name of the Space.
+         * @param owner Name of the account that owns the Space.
+         * @param isPrivate True when this is a private Space, false if it is public.
+         * @param spaceId space id Repository item ID (aka KNIME ID) of the Space.
+         * @param path Path of the space within the file tree of the Hub, e.g. /Users/joe/Private. For shared spaces
+         *            this is the actual path of the Space.
          */
-        public Space(final String name, final String owner, final String spaceId, final String path) {
+        public Space(final String name, //
+            final String owner, //
+            final boolean isPrivate, //
+            final String spaceId,
+            final String path) {
+
             m_name = name;
             m_owner = owner;
+            m_isPrivate = isPrivate;
             m_spaceId = spaceId;
             m_path = path;
         }
 
         /**
-         * @return the name
+         * @return the name of the Space.
          */
         public String getName() {
             return m_name;
         }
 
         /**
-         * @return the owner
+         * @return the name of the owner account.
          */
         public String getOwner() {
             return m_owner;
         }
 
         /**
-         * @return the spaceId
+         * @return true if this is a private Space, false if it is a public Space.
+         */
+        public boolean isPrivate() {
+            return m_isPrivate;
+        }
+
+        /**
+         * @return the repository item ID (aka KNIME ID) of the Space.
          */
         public String getSpaceId() {
             return m_spaceId;
         }
 
         /**
-         * @return the path
+         * @return path of the space within the file tree of the Hub, e.g. /Users/joe/Private. For shared spaces this is
+         *         the actual path of the Space.
          */
         public String getPath() {
             return m_path;
@@ -118,11 +136,19 @@ public interface SpaceAware {
     }
 
     /**
-     * Gets all the spaces accessible to the user.
+     * Gets all the Hub Spaces accessible to the user.
      *
      * @return list of {@link Space}s.
      * @throws IOException
      */
     List<Space> getSpaces() throws IOException;
 
+    /**
+     * Gets the space by it's id.
+     *
+     * @param id The space id.
+     * @return The space.
+     * @throws IOException
+     */
+    Space getSpace(String id) throws IOException;
 }

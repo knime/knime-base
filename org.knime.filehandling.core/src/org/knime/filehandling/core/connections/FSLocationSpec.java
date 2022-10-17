@@ -116,6 +116,8 @@ public interface FSLocationSpec {
                 final String specifier = getFileSystemSpecifier().orElseThrow(IllegalStateException::new);
                 final String typeId = specifier.split(":")[0];
                 return FSTypeRegistry.getFSType(typeId).orElseThrow(IllegalStateException::new);
+            case HUB_SPACE:
+                return FSType.SPACE;
             default:
                 throw new IllegalStateException("Unknown file system category: " + getFSCategory());
         }
