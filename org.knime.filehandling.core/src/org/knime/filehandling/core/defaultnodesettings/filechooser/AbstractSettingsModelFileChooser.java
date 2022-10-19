@@ -48,15 +48,19 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -77,6 +81,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.WriteP
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
@@ -146,8 +151,33 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     protected AbstractSettingsModelFileChooser(final String configName, final PortsConfiguration portsConfig,
         final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
         final Set<FSCategory> convenienceFS, final String... fileExtensions) {
-        m_fsConfig = FileSystemChooserUtils.createConfig(portsConfig, fileSystemPortIdentifier,
-            FSLocationHandler.INSTANCE, convenienceFS);
+        this(configName, portsConfig, fileSystemPortIdentifier, filterModeConfig, //
+            FileSystemChooserUtils.creatorsForSpecificConfigs(convenienceFS, portsConfig, fileSystemPortIdentifier),
+            fileExtensions);
+    }
+
+    /**
+     * @param configName under which to store the settings
+     * @param portsConfig {@link PortsConfiguration} of the corresponding KNIME node
+     * @param fileSystemPortIdentifier identifier of the file system port group in <b>portsConfig</b>
+     * @param filterModeConfig the {@link EnumConfig} specifying the default and supported {@link FilterMode
+     *            FilterModes}
+     * @param fsConfigCreators functions that return a configuration that is activated based on whether a file system
+     *            port is present or not. The default behavior as per
+     *            {@link #AbstractSettingsModelFileChooser(String, PortsConfiguration, String, EnumConfig, List, String...)}
+     *            is to disable all convenience file systems except for {@link FSCategory#CONNECTED} in the presence of
+     *            a file system connector.
+     * @param fileExtensions the supported file extensions (won't have an effect if {@link FilterMode#WORKFLOW} is
+     *            chosen!)
+     */
+    protected AbstractSettingsModelFileChooser(final String configName, final PortsConfiguration portsConfig,
+        final String fileSystemPortIdentifier, final EnumConfig<FilterMode> filterModeConfig,
+        final List<Function<Boolean, FileSystemSpecificConfig>> fsConfigCreators, final String... fileExtensions) {
+
+        final boolean hasPort = portsConfig.getInputPortLocation().get(fileSystemPortIdentifier) != null;
+        final FileSystemSpecificConfig[] specificConfigs =
+            fsConfigCreators.stream().map(creator -> creator.apply(hasPort)).toArray(FileSystemSpecificConfig[]::new);
+        m_fsConfig = new FileSystemConfiguration<>(FSLocationHandler.INSTANCE, specificConfigs);
         m_fsConfig.addChangeListener(e -> notifyChangeListeners());
         m_configName = configName;
         m_fileExtensions =
@@ -618,4 +648,22 @@ public abstract class AbstractSettingsModelFileChooser<T extends AbstractSetting
     @SuppressWarnings("unchecked")
     @Override
     public abstract T createClone();
+
+    /**
+     * @return a {@link StatusMessage} with type ERROR if this settings model points to a non-existing file.
+     */
+    public synchronized StatusMessage getStatusMessage()   {
+        try (final var accessor = createPathAccessor()) {
+            var consumer = new PriorityStatusConsumer();
+            accessor.getFSPaths(consumer);
+            Optional<StatusMessage> msg = consumer.get();
+            if (msg.isPresent()) {
+                return msg.get();
+            }
+        } catch (IOException | InvalidSettingsException ex) {
+            NodeLogger.getLogger(getClass()).warn(ex);
+            return StatusMessage.error(ex.getMessage());
+        }
+        return StatusMessage.EMPTY;
+    }
 }

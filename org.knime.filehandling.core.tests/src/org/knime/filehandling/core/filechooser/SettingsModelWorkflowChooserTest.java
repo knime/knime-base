@@ -44,97 +44,73 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 23, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   17.09.2019 (Mareike Hoeger, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog;
+package org.knime.filehandling.core.filechooser;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.GridBagLayout;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
-import javax.swing.JComboBox;
-import javax.swing.JPanel;
+import java.util.Set;
 
+import org.junit.Test;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.workflow.SettingsModelWorkflowChooser;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FixedPortsConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
-import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
- * FileSystemDialog for the relative to file system.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ *
  */
-public final class RelativeToFileSystemDialog implements FileSystemSpecificDialog {
+public class SettingsModelWorkflowChooserTest {
 
-    private final JComboBox<RelativeTo> m_relativeToCombo;
+    private static final String FILE_SYSTEM_PORT_IDENTIFIER = "FILE_SYSTEM_CONNECTION_PORT_ID";
 
-    private final JPanel m_relativeToPanel = new JPanel(new GridBagLayout());
+    private static final FixedPortsConfiguration WITHOUT_FS_PORT =
+        new FixedPortsConfiguration.FixedPortsConfigurationBuilder()//
+            .addFixedInputPortGroup("Inputs")//
+            .build();
 
-    private final RelativeToSpecificConfig m_config;
+    private static final FixedPortsConfiguration WITH_FS_PORT =
+        new FixedPortsConfiguration.FixedPortsConfigurationBuilder()//
+            .addFixedInputPortGroup("Inputs")//
+            .addFixedInputPortGroup(FILE_SYSTEM_PORT_IDENTIFIER, FileSystemPortObject.TYPE)//
+            .build();
 
     /**
-     * Constructor.
-     *
-     * @param config the {@link RelativeToSpecificConfig} this dialog displays
+     * When creating a workflow chooser settings model and no file system connection port is present, the relative to
+     * file system category should be set.
      */
-    public RelativeToFileSystemDialog(final RelativeToSpecificConfig config) {
-        m_config = config;
-        m_relativeToCombo = new JComboBox<>(config.getAllowedValues().toArray(RelativeTo[]::new));
-        m_relativeToCombo.setSelectedItem(config.getRelativeTo());
-        m_config.addChangeListener(e -> handleConfigChange());
-        m_relativeToCombo.addActionListener(e -> handleComboBoxChange());
-        final GBCBuilder gbc = new GBCBuilder().resetX().resetY();
-        m_relativeToPanel.add(m_relativeToCombo, gbc.anchorLineStart().build());
-        // add extra panel that receives any extra space available
-        m_relativeToPanel.add(new JPanel(), gbc.incX().fillHorizontal().setWeightX(1).build());
+    @Test
+    public void defaultUnconnectedFileSystemIsRelative() {
+        SettingsModelWorkflowChooser smwfc =
+            new SettingsModelWorkflowChooser("testConfigName", FILE_SYSTEM_PORT_IDENTIFIER, WITHOUT_FS_PORT);
+        assertEquals(FSCategory.RELATIVE, smwfc.getLocation().getFSCategory());
     }
 
-    private void handleConfigChange() {
-        m_relativeToCombo.setSelectedItem(m_config.getRelativeTo());
+    /**
+     * When creating a workflow chooser settings model and a file system connection port is present, the connected file
+     * system category should be set.
+     */
+    @Test
+    public void defaultConnectedFileSystemIsConnected() {
+        SettingsModelWorkflowChooser smwfc =
+            new SettingsModelWorkflowChooser("testConfigName", FILE_SYSTEM_PORT_IDENTIFIER, WITH_FS_PORT);
+        assertEquals(FSCategory.CONNECTED, smwfc.getLocation().getFSCategory());
     }
 
-    private void handleComboBoxChange() {
-        m_config.setRelativeTo(getSelected());
-    }
-
-    @Override
-    public Component getSpecifierComponent() {
-        return m_relativeToPanel;
-    }
-
-    @Override
-    public boolean hasSpecifierComponent() {
-        return true;
-    }
-
-    @Override
-    public FSCategory getFileSystemCategory() {
-        return FSCategory.RELATIVE;
-    }
-
-    private RelativeTo getSelected() {
-        return (RelativeTo)m_relativeToCombo.getSelectedItem();
-    }
-
-    @Override
-    public String toString() {
-        return FSCategory.RELATIVE.getLabel();
-    }
-
-    @Override
-    public void setEnabled(final boolean enabled) {
-        m_relativeToCombo.setEnabled(enabled);
-    }
-
-    @Override
-    public Color getTextColor() {
-        return Color.BLACK;
-    }
-
-    @Override
-    public void setTooltip(final String tooltip) {
-        m_relativeToCombo.setToolTipText(tooltip);
+    /**
+     * Make sure only allowed values are set on {@link RelativeToSpecificConfig}
+     */
+    @Test
+    public void relativeToIsRestricted() {
+        var relativeToConfig = new RelativeToSpecificConfig(true, RelativeTo.MOUNTPOINT,
+            Set.of(RelativeTo.MOUNTPOINT, RelativeTo.WORKFLOW));
+        assertThrows(IllegalArgumentException.class, () -> relativeToConfig.setRelativeTo(RelativeTo.SPACE));
     }
 
 }

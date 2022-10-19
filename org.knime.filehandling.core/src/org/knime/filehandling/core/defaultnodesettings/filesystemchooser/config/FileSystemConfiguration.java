@@ -186,12 +186,14 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
 
         // Set temporary default location specification.
         // Later it is reset in configureInModel() method.
-        setLocationSpec(Arrays.stream(configs)//
+        final FSLocationSpec anyActive = Arrays.stream(configs)//
             .filter(FileSystemSpecificConfig::isActive)//
             .findFirst()//
             .orElseThrow(
                 () -> new IllegalArgumentException("At least one of the file system specific configs must be active."))
-            .getLocationSpec());
+            .getLocationSpec();
+        // set m_convenienceFSCategory
+        setLocationSpec(anyActive);
     }
 
     /**
@@ -361,7 +363,13 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
      * @param spec the {@link FSLocationSpec} to set
      */
     public void setLocationSpec(final FSLocationSpec spec) {
-        if (!Objects.equals(m_locationSpec, spec)) {
+        // this method is called by #configureInModel which uses FileSystemChooserUtils.getDefaultFSLocationSpec()
+        // to determine a default file system. The default file system is determined from the workflow context
+        // and might return an inactive/forbidden file system, e.g., LOCAL - causing a NPE later when trying to
+        // access m_fsSpecificConfigs
+        final boolean isDifferent = !Objects.equals(m_locationSpec, spec);
+        final boolean isAllowed = getActiveFSCategories().contains(spec.getFSCategory());
+        if (isDifferent && isAllowed) {
             setLocationSpecInternal(spec);
             notifyChangeListeners();
         }
@@ -582,9 +590,12 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
             // this runs only once when node is new (no settings have been loaded beforehand)
             if (m_new) {
                 m_new = false;
+                //  if the user could provide an explicit default, we would not have to guess here
                 final var defaultLocationSpec = FileSystemChooserUtils.getDefaultFSLocationSpec();
-                setLocationSpec(defaultLocationSpec);
-                getCurrentSpecificConfig().updateSpecifier(defaultLocationSpec);
+                if(getActiveFSCategories().contains(defaultLocationSpec.getFSCategory())) {
+                    setLocationSpec(defaultLocationSpec);
+                    getCurrentSpecificConfig().updateSpecifier(defaultLocationSpec);
+                }
             }
 
             final FileSystemSpecificConfig current = getCurrentSpecificConfig();

@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
@@ -79,6 +80,9 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
 
     private static final RelativeTo DEFAULT = RelativeTo.WORKFLOW_DATA;
 
+    /** @see #getAllowedValues() */
+    private final Set<RelativeTo> m_allowedValues;
+
     private RelativeTo m_relativeTo = DEFAULT;
 
     /**
@@ -88,6 +92,20 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
      */
     public RelativeToSpecificConfig(final boolean active) {
         super(active);
+        m_allowedValues = Collections.unmodifiableSet(EnumSet.allOf(RelativeTo.class));
+    }
+
+    /**
+     *
+     * @param active flag indicating whether this config is active (i.e. selectable for the user)
+     * @param defaultValue the pre-selected value of a fresh instance
+     * @param allowedValues the values that can be selected by the user
+     */
+    public RelativeToSpecificConfig(final boolean active, final RelativeTo defaultValue,
+        final Set<RelativeTo> allowedValues) {
+        super(active);
+        m_relativeTo = defaultValue;
+        m_allowedValues = Collections.unmodifiableSet(EnumSet.copyOf(allowedValues));
     }
 
     /**
@@ -98,6 +116,7 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
     private RelativeToSpecificConfig(final RelativeToSpecificConfig toCopy) {
         super(toCopy.isActive());
         m_relativeTo = toCopy.m_relativeTo;
+        m_allowedValues = Collections.unmodifiableSet(EnumSet.copyOf(toCopy.m_allowedValues));
     }
 
     /**
@@ -115,6 +134,9 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
      * @param relativeTo to set
      */
     public void setRelativeTo(final RelativeTo relativeTo) {
+        CheckUtils.checkArgument(m_allowedValues.contains(relativeTo),
+            "Cannot configure this file system configuration to relative to " + relativeTo + ", it only allows "
+                + m_allowedValues);
         if (m_relativeTo != relativeTo) {
             m_relativeTo = CheckUtils.checkArgumentNotNull(relativeTo, "The relativeTo argument must not be null.");
             notifyListeners();
@@ -199,6 +221,15 @@ public final class RelativeToSpecificConfig extends AbstractConvenienceFileSyste
     @Override
     public String getFileSystemName() {
         return "Relative to";
+    }
+
+    /**
+     * @return an unmodifiable set containing the valid {@link RelativeTo} specifiers for this file system
+     *         configuration. {@link #setRelativeTo(RelativeTo)} will throw an exception if the value is not in this
+     *         set.
+     */
+    public Set<RelativeTo> getAllowedValues() {
+        return m_allowedValues;
     }
 
 }

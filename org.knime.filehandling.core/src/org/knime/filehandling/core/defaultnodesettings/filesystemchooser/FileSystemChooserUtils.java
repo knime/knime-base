@@ -53,7 +53,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -64,18 +65,18 @@ import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FSLocationSpecHandler;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemConfiguration;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemSpecificConfig;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.LocalSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.MountpointSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.ConnectedFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.CustomURLFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemChooser;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.FileSystemSpecificDialog;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.HubSpaceFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.LocalFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.MountpointFileSystemDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.RelativeToFileSystemDialog;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.HubSpaceFileSystemDialog;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -111,24 +112,48 @@ public final class FileSystemChooserUtils {
         return new FileSystemConfiguration<>(locationHandler, specificConfigs);
     }
 
+    /**
+     * Creates default configurations for the given convenience file systems. Disables all non-CONNECTED convenience
+     * file systems if a file system connector port is present.
+     *
+     * @param portId file system connector port id
+     * @param portsConfig shows whether the file system connector port is present
+     */
     private static FileSystemSpecificConfig[] createSpecificConfigs(final Set<FSCategory> convenienceFS,
         final PortsConfiguration portsConfig, final String portId) {
         final boolean hasPort = hasFSPort(portsConfig, portId);
-        final EnumSet<FSCategory> convenienceWithoutConnected = EnumSet.copyOf(convenienceFS);
-        convenienceWithoutConnected.remove(FSCategory.CONNECTED);
-        final Stream<FileSystemSpecificConfig> convenienceConfigs =
-                convenienceWithoutConnected.stream().map(c -> createConvenienceConfig(c, !hasPort));
-        return Stream.concat(convenienceConfigs//
-            , Stream.of(new ConnectedFileSystemSpecificConfig(hasPort, portsConfig, portId)))//
-            .toArray(FileSystemSpecificConfig[]::new);
+        // CONNECTED is always available, whether specified explicitly or not
+        Set<FSCategory> convenienceFSWithConnected = EnumSet.copyOf(convenienceFS);
+        convenienceFSWithConnected.add(FSCategory.CONNECTED);
+        final var creators = convenienceFSWithConnected.stream()//
+            .map(category -> creatorForSpecificConfig(category, portsConfig, portId));
+        return creators.map(creator -> creator.apply(hasPort)).toArray(FileSystemSpecificConfig[]::new);
+    }
+
+    /**
+     * @param forConvenienceFS the type of convenience file system configuration to create
+     * @param portId file system connector port id
+     * @param portsConfig shows whether the file system connector port is present
+     * @return a function that creates a file system specific configuration that is activated depending on whether the
+     *         node has a file system port or not.
+     */
+    private static Function<Boolean, FileSystemSpecificConfig> creatorForSpecificConfig(
+        final FSCategory forConvenienceFS, final PortsConfiguration portsConfig, final String portId) {
+        if (forConvenienceFS == FSCategory.CONNECTED) {
+            return hasFSPort -> new ConnectedFileSystemSpecificConfig(hasFSPort, portsConfig, portId);
+        } else {
+            return hasFSPort -> createConvenienceConfig(forConvenienceFS, !hasFSPort);
+        }
     }
 
     /**
      * Gets the initial default {@link FSLocationSpec}, depending on the current workflow context.
-     *
      * @return the initial default {@link FSLocationSpec}.
      */
     public static FSLocationSpec getDefaultFSLocationSpec() {
+
+        // this method could accept configs as a parameter and select one that is a good default (then the configs
+        // wouldn't have to be created here)
 
         final var workflowContext = WorkflowContextUtil.getWorkflowContext();
         final var remoteMountId = workflowContext.getMountpointURI().map(URI::getHost)
@@ -222,5 +247,23 @@ public final class FileSystemChooserUtils {
                 (HubSpaceSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.HUB_SPACE)));
         }
         return new FileSystemChooser(config, dialogs.toArray(FileSystemSpecificDialog[]::new));
+    }
+
+    /**
+     * @param convenienceFS the convenience file systems (e.g., LOCAL, RELATIVE, etc.) to add
+     * @param portsConfig the ports configuration of the node, providing access to whether it has a file system
+     *            connector port
+     * @param fileSystemPortIdentifier name of the file system connector port
+     * @return functions that map the presence of a file system connector port to a file system configuration (e.g.,
+     *         LOCAL is deactivated in the presence of a file system connector port but activated otherwise.)
+     */
+    public static List<Function<Boolean, FileSystemSpecificConfig>> creatorsForSpecificConfigs(
+        final Set<FSCategory> convenienceFS, final PortsConfiguration portsConfig,
+        final String fileSystemPortIdentifier) {
+        Set<FSCategory> convenienceFSWithConnected = EnumSet.copyOf(convenienceFS);
+        convenienceFSWithConnected.add(FSCategory.CONNECTED);
+        return convenienceFSWithConnected.stream()
+            .map(forConvenienceFS -> creatorForSpecificConfig(forConvenienceFS, portsConfig, fileSystemPortIdentifier))
+            .collect(Collectors.toList());
     }
 }

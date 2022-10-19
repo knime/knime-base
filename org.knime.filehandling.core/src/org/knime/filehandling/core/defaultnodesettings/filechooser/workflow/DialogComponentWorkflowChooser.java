@@ -44,91 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 7, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 12, 2021 (hornm): created
  */
-package org.knime.filehandling.core.defaultnodesettings.status;
+package org.knime.filehandling.core.defaultnodesettings.filechooser.workflow;
+
+import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.util.FileSystemBrowser.DialogType;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractDialogComponentFileChooser;
 
 /**
- * Combines a status message with a {@link MessageType type} e.g. error.
+ * File chooser dialog component for Call Workflow and Create Deployment nodes.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference non-public API
- * @noimplement non-public API
+ * @author Carl Witt, KNIME GmbH, Berlin, Germany
+ * @author Dionysios Stolis, KNIME GmbH, Berlin, Germany
  */
-public interface StatusMessage extends Comparable<StatusMessage> {
+public final class DialogComponentWorkflowChooser
+    extends AbstractDialogComponentFileChooser<SettingsModelWorkflowChooser> {
 
     /**
-     * An instance of type {@link MessageType#INFO} and an empty String as message.
+     * @param model the model backing the dialog component
+     * @param historyID id for the workflow selection history
+     * @param locationFvm to overwrite the workflow location with a flow variable
      */
-    static final StatusMessage EMPTY = new StatusMessage() {
-
-        @Override
-        public MessageType getType() {
-            return MessageType.INFO;
-        }
-
-        @Override
-        public String getMessage() {
-            return "";
-        }
-
-    };
-
-    /**
-     * The type of status message.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     */
-    enum MessageType {
-        INFO(0),
-        WARNING(1),
-        ERROR(2);
-
-        private final int m_priority;
-
-        private MessageType(final int priority) {
-            m_priority = priority;
-        }
-
-    }
-
-    @Override
-    default int compareTo(final StatusMessage o) {
-        return -Integer.compare(getType().m_priority, o.getType().m_priority);
-    }
-
-    /**
-     * Returns the type of this message.
-     *
-     * @return the type of this message
-     */
-    MessageType getType();
-
-    /**
-     * Returns the actual message.
-     *
-     * @return the message
-     */
-    String getMessage();
-
-    /**
-     * @param message returned by {@link #getMessage()}
-     * @return an instance with {@link MessageType#ERROR}
-     */
-    static StatusMessage error(final String message) {
-        return new StatusMessage() {
-
-            @Override
-            public MessageType getType() {
-                return MessageType.ERROR;
-            }
-
-            @Override
-            public String getMessage() {
-                return message;
-            }
-
-        };
+    public DialogComponentWorkflowChooser(final SettingsModelWorkflowChooser model, final String historyID,
+        final FlowVariableModel locationFvm) {
+        super(model, historyID, DialogType.OPEN_DIALOG, "Workflow location", locationFvm,
+            m -> m::getStatusMessage);
     }
 
 }
