@@ -88,7 +88,7 @@ public final class HubSpaceSelector extends JPanel {
 
     private final StatusView m_statusView; // NOSONAR
 
-    private final Component m_horizontalGlue;
+    private final Component m_statusViewPlaceholder;
 
     private boolean m_enabled = true;
 
@@ -126,8 +126,7 @@ public final class HubSpaceSelector extends JPanel {
         m_combobox.setChangeListener(this::onSpaceSelectionChanged);
 
         m_statusView = new StatusView(300);
-
-        m_horizontalGlue = Box.createHorizontalGlue();
+        m_statusViewPlaceholder = Box.createHorizontalStrut((int)m_statusView.getPanel().getPreferredSize().getWidth());
 
         final var gbc = new GridBagConstraints();
         setLayout(new GridBagLayout());
@@ -146,8 +145,8 @@ public final class HubSpaceSelector extends JPanel {
         add(m_statusView.getPanel(), gbc);
 
         gbc.gridx += 1;
-        add(m_horizontalGlue, gbc);
-        m_horizontalGlue.setVisible(false); // when the HubSpaceSelector is enabled, the glue is invisible (see setEnabled())
+        add(m_statusViewPlaceholder, gbc);
+        m_statusViewPlaceholder.setVisible(false); // when the HubSpaceSelector is enabled, the glue is invisible (see setEnabled())
     }
 
     /**
@@ -215,9 +214,13 @@ public final class HubSpaceSelector extends JPanel {
         m_enabled = enabled;
         m_combobox.setEnabled(enabled);
 
-        // depending on the enabledness, we display the StatusView, or the (empty) glue, but never both
+        // depending on the enabledness, we display the StatusView, or the (empty) placeholder, but never both
         m_statusView.getPanel().setVisible(enabled);
-        m_horizontalGlue.setVisible(!enabled);
+        m_statusViewPlaceholder.setVisible(!enabled);
+
+        if (enabled) {
+            triggerSpaceListing();
+        }
     }
 
     private class ListSpacesSwingWorker extends SwingWorkerWithContext<List<SpaceComboItem>, Void> {
