@@ -211,7 +211,10 @@ public final class HubSpaceSelector extends JPanel {
 
     @Override
     public void setEnabled(final boolean enabled) {
-        m_enabled = enabled;
+        if (isEnabled() == enabled) {
+            return;
+        }
+        super.setEnabled(enabled);
         m_combobox.setEnabled(enabled);
 
         // depending on the enabledness, we display the StatusView, or the (empty) placeholder, but never both
@@ -237,7 +240,7 @@ public final class HubSpaceSelector extends JPanel {
 
         @Override
         protected void doneWithContext() {
-            m_combobox.setEnabled(m_enabled);
+            m_combobox.setEnabled(isEnabled());
             m_statusView.clearStatus();
             m_spacesHaveBeenListed.countDown();
 
