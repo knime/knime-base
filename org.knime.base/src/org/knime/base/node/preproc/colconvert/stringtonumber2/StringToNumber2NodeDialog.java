@@ -91,6 +91,8 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
 
     private JCheckBox m_genericParse = new JCheckBox("Accept type suffix, e.g. 'd', 'D', 'f', 'F'");
 
+    private JCheckBox m_failOnError = new JCheckBox("Fail on error");
+
 
     /**
      * Constructor.
@@ -99,6 +101,7 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
     public StringToNumber2NodeDialog() {
         JPanel contentpanel = new JPanel();
         contentpanel.setLayout(new BoxLayout(contentpanel, BoxLayout.Y_AXIS));
+
         JPanel separatorPanel = new JPanel();
         Border border = BorderFactory.createTitledBorder("Parsing options");
         separatorPanel.setBorder(border);
@@ -115,6 +118,14 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
         separatorPanel.add(ViewUtils.getInFlowLayout(5, 0, FlowLayout.LEADING, m_thousandsSeparator));
         separatorPanel.add(m_genericParse);
         contentpanel.add(separatorPanel);
+
+        JPanel abortPanel = new JPanel();
+        Border abortBorder = BorderFactory.createTitledBorder("Abort Execution");
+        abortPanel.setBorder(abortBorder);
+        abortPanel.setLayout(new GridLayout(0, 2, 0, 0));
+        abortPanel.add(ViewUtils.getInFlowLayout(5, 0, FlowLayout.LEADING, m_failOnError));
+        contentpanel.add(abortPanel);
+
         contentpanel.add(m_filtercomp.getComponentPanel());
         super.addTab("Settings", contentpanel);
     }
@@ -143,6 +154,8 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
             m_typeChooser.setSelectedItem(settings.getDataType(
                     AbstractStringToNumberNodeModel.CFG_PARSETYPE, DoubleCell.TYPE));
         }
+        m_failOnError.setSelected(settings.getBoolean(AbstractStringToNumberNodeModel.CFG_FAIL_ON_ERROR,
+            AbstractStringToNumberNodeModel.DEFAULT_FAIL_ON_ERROR));
     }
 
     /**
@@ -159,5 +172,6 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
         settings.addDataType(AbstractStringToNumberNodeModel.CFG_PARSETYPE,
                 (DataType)m_typeChooser.getSelectedItem());
         settings.addBoolean(AbstractStringToNumberNodeModel.CFG_GENERIC_PARSE, m_genericParse.isSelected());
+        settings.addBoolean(AbstractStringToNumberNodeModel.CFG_FAIL_ON_ERROR, m_failOnError.isSelected());
     }
 }

@@ -51,14 +51,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
@@ -128,6 +131,13 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
     public static final String CFG_GENERIC_PARSE = "generic_parse";
 
     /**
+     * Key for the option to fail execution on parsing error.
+     *
+     * @since 4.7
+     */
+    public static final String CFG_FAIL_ON_ERROR = "fail_on_error";
+
+    /**
      * The default decimal separator.
      */
     public static final String DEFAULT_DECIMAL_SEPARATOR = ".";
@@ -144,6 +154,13 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
      */
     public static final boolean DEFAULT_GENERIC_PARSE = false;
 
+    /**
+     * To guarantee backward compatibility, we don't enable fail-on-error by default.
+     *
+     * @since 4.7
+     */
+    public static final boolean DEFAULT_FAIL_ON_ERROR = false;
+
     /** For compatibility reasons accept type suffices. */
     static final boolean COMPAT_GENERIC_PARSE = true;
 
@@ -159,6 +176,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
     private DataType m_parseType = POSSIBLETYPES[0];
 
     private boolean m_genericParse = DEFAULT_GENERIC_PARSE;
+
+    private boolean m_failOnError = DEFAULT_FAIL_ON_ERROR;
 
     /**
      * Constructor with one inport and one outport.
@@ -361,6 +380,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
         m_parseType = settings.getDataType(CFG_PARSETYPE, POSSIBLETYPES[0]);
         // added in 2.12
         m_genericParse = settings.getBoolean(CFG_GENERIC_PARSE, COMPAT_GENERIC_PARSE);
+        // added in 4.7
+        m_failOnError = settings.getBoolean(CFG_FAIL_ON_ERROR, DEFAULT_FAIL_ON_ERROR);
     }
 
     /**
@@ -374,6 +395,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
         settings.addDataType(CFG_PARSETYPE, m_parseType);
         // added in 2.12
         settings.addBoolean(CFG_GENERIC_PARSE, m_genericParse);
+        // added in 4.7
+        settings.addBoolean(CFG_FAIL_ON_ERROR, m_failOnError);
     }
 
     /**
@@ -525,19 +548,42 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
                             m_error = "No valid parse type.";
                         }
                     } catch (NumberFormatException e) {
-                        if (m_parseErrorCount == 0) {
-                            m_error = "'" + s + "' (RowKey: " + row.getKey().toString() + ", Position: "
-                                + m_colindices[i] + ")";
-                            LOGGER.debug(e.getMessage());
-                        }
-                        m_parseErrorCount++;
-                        newcells[i] = DataType.getMissingCell();
+                        handleParseException(row, m_spec.getColumnSpec(m_colindices[i]).getName(), s, e);
+                        newcells[i] = new MissingCell(e.getMessage());
                     }
                 } else {
                     newcells[i] = DataType.getMissingCell();
                 }
             }
             return newcells;
+        }
+
+        /**
+         * Handles the number parse exception, either by failing the execution or by recording the the error.
+         *
+         * @param row Row
+         * @param i Column
+         * @param value DataCell value at which the parsing failed
+         * @param e NumberFormatException
+         * @throws IllegalArgumentException
+         */
+        private void handleParseException(final DataRow row, final String columnName, final String value,
+            final Exception e) throws IllegalArgumentException {
+            String message = String.format(
+                "The string %s in cell [row \"%s\", column \"%s\"] can not be transformed into a number: %s", //
+                value == null ? "<null>" : ("\"" + StringUtils.abbreviate(value, 15) + "\""), //
+                StringUtils.abbreviate(row.getKey().getString(), 15), //
+                columnName, //
+                Objects.requireNonNullElse(e.getMessage(), "<no details available>"));
+            if (m_failOnError) {
+                throw new IllegalArgumentException(message);
+            } else {
+                if (m_parseErrorCount == 0) {
+                    m_error = message;
+                    LOGGER.debug(e.getMessage());
+                }
+                m_parseErrorCount++;
+            }
         }
 
         /**
@@ -578,7 +624,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
                     message = "";
                     break;
                 case 1:
-                    message = "Could not parse cell with value " + m_error;
+                    message = "Could not parse cell with value: " + m_error;
                     break;
                 default:
                     message = "Values in " + m_parseErrorCount + " cells could not be parsed, first error: " + m_error;
