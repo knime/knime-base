@@ -1,0 +1,93 @@
+{
+	"elements": [
+		{
+			"type": "Section",
+			"label": "Matching",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/lookupCol",
+					"options": {
+						"format": "columnSelection",
+						"showRowKeys": false
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/dictKeyCol",
+					"options": {
+						"format": "columnSelection",
+						"showRowKeys": false
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/matchBehaviour",
+					"options": {
+						"format": "radio"
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/stringMatchBehaviour",
+					"options": {
+						"format": "radio"
+					},"rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/model/properties/matchBehaviour",
+                            "schema": {"oneOf": [{"const": "EQUAL"}]}
+                        }
+                    }
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/caseSensitive",
+					"options": {
+						"format": "checkbox"
+					},"rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/model/properties/matchBehaviour",
+                            "schema": {"oneOf": [{"const": "EQUAL"}]}
+                        }
+                    }
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/searchDirection",
+					"options": {
+						"format": "radio"
+					}
+				}
+			]
+		},
+		{
+			"type": "Section",
+			"label": "Output",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/dictValueCols",
+					"options": {
+						"format": "twinlist"
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/createFoundCol",
+					"options": {
+						"format": "checkbox"
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/deleteLookupCol",
+					"options": {
+						"format": "dropdown"
+					}
+				}
+			]
+		}
+	]
+}
