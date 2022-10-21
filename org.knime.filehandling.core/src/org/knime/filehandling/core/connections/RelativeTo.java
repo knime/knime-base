@@ -61,6 +61,11 @@ import org.knime.filehandling.core.connections.meta.FSType;
 public enum RelativeTo {
 
         /**
+         * Relative to space.
+         */
+        SPACE("knime.space", "Current Hub Space", FSType.RELATIVE_TO_SPACE),
+
+        /**
          * Relative to current mountpoint.
          */
         MOUNTPOINT("knime.mountpoint", "Current mountpoint", FSType.RELATIVE_TO_MOUNTPOINT),
@@ -73,12 +78,8 @@ public enum RelativeTo {
         /**
          * Relative to workflow data area.
          */
-        WORKFLOW_DATA("knime.workflow.data", "Current workflow data area", FSType.RELATIVE_TO_WORKFLOW_DATA_AREA),
+        WORKFLOW_DATA("knime.workflow.data", "Current workflow data area", FSType.RELATIVE_TO_WORKFLOW_DATA_AREA);
 
-        /**
-         * Relative to space.
-         */
-        SPACE("knime.space", "Current space", FSType.RELATIVE_TO_SPACE);
 
     private final String m_settingsValue;
 
@@ -131,6 +132,9 @@ public enum RelativeTo {
         return m_settingsValue;
     }
 
+    /**
+     * @return the {@link FSType} of this particular type of file system.
+     */
     public FSType toFSType() {
         return m_fsType;
     }
