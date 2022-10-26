@@ -526,8 +526,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
                             if (corrected.contains(".")) {
                                 throw new NumberFormatException("Invalid floating point number");
                             }
-                            if (m_decimalSep != null && m_decimalSep.length() > 0) {
-                                // replace custom separator with standard
+                            if (m_decimalSep != null && m_decimalSep.length() > 0 && m_type.equals(DoubleCell.TYPE)) {
+                                // replace custom separator with standard if a floating point format was selected
                                 corrected = corrected.replaceAll(Pattern.quote(m_decimalSep), ".");
                             }
                         }
