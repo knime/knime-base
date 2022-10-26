@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.utility.nodes.transfer;
 
-import java.util.EnumSet;
-
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -84,7 +82,7 @@ public abstract class AbstractTransferFilesNodeFactory<T extends AbstractTransfe
         return new SettingsModelWriterFileChooser("destination_location", portsConfiguration,
             AbstractTransferFilesNodeFactory.CONNECTION_DESTINATION_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
             EnumConfig.create(FileOverwritePolicy.IGNORE),
-            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+            FSCategory.getStandardNonTrivialFSCategories());
     }
 
 }

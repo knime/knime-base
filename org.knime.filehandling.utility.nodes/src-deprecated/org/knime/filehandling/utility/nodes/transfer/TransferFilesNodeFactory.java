@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.utility.nodes.transfer;
 
-import java.util.EnumSet;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
@@ -125,6 +124,6 @@ public final class TransferFilesNodeFactory extends ConfigurableNodeFactory<Tran
             new SettingsModelWriterFileChooser("destination_location", portsConfiguration,
                 CONNECTION_DESTINATION_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
                 EnumConfig.create(FileOverwritePolicy.IGNORE, FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE),
-                EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE)));
+                FSCategory.getStandardNonTrivialFSCategories()));
     }
 }

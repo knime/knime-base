@@ -52,7 +52,6 @@ import java.nio.file.FileSystem;
 import java.util.Optional;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
@@ -129,24 +128,11 @@ public final class FileSystemHelper {
             case LOCAL:
                 return Optional.of(DefaultFSConnectionFactory.createLocalFSConnection());
             case HUB_SPACE:
-                return Optional.of(createHubSpaceFSConnection(location));
+                return Optional.of(DefaultFSConnectionFactory.createHubSpaceConnection(location));
             default:
                 throw new IllegalArgumentException("Unknown file system choice: " + category);
 
         }
-    }
-
-    private static FSConnection createHubSpaceFSConnection(final FSLocation location) {
-        CheckUtils.checkState(WorkflowContextUtil.isCurrentWorkflowOnHub(),
-            "Current workflow must be stored on a KNIME Hub.");
-
-        var workflowContext = WorkflowContextUtil.getWorkflowContextV2();
-        var locInfo = (HubSpaceLocationInfo)workflowContext.getLocationInfo();
-        var spaceId = extractSpaceId(location);
-
-        return DefaultFSConnectionFactory.createHubSpaceConnection(locInfo.getRepositoryAddress(), //
-            locInfo.getAuthenticator(), //
-            spaceId);
     }
 
     private static void checkMountpointCanCreateConnection(final FSLocation location,
@@ -213,15 +199,5 @@ public final class FileSystemHelper {
         final String knimeFileSystem = location.getFileSystemSpecifier().orElseThrow(() -> new IllegalArgumentException(
             String.format("The provided location '%s' does not specify a mountpoint.", location)));
         return KNIMEConnection.getOrCreateMountpointAbsoluteConnection(knimeFileSystem);
-    }
-
-    private static String extractSpaceId(final FSLocation location) {
-        final var errorMsg =
-            String.format("The provided location '%s' does not specify a KNIME Hub Space.", location);
-
-        CheckUtils.checkArgument(location.getFSCategory() == FSCategory.HUB_SPACE, errorMsg);
-
-        return  location.getFileSystemSpecifier() //
-            .orElseThrow(() -> new IllegalArgumentException(errorMsg));
     }
 }

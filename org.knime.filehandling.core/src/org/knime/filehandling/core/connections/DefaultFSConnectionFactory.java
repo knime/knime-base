@@ -55,6 +55,7 @@ import java.time.Duration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.auth.Authenticator;
 import org.knime.filehandling.core.connections.config.HubFSConnectionConfig;
@@ -65,6 +66,7 @@ import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConf
 import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  *
@@ -184,10 +186,12 @@ public final class DefaultFSConnectionFactory {
         }
     }
 
+
+
     public static FSConnection createHubSpaceConnection(final HubSpaceFSConnectionConfig config) {
         try {
-            return FSDescriptorRegistry.getFSDescriptor(FSType.SPACE) //
-                .orElseThrow(() -> new IllegalStateException(FSType.SPACE.getName() + FILE_SYSTEM_NOT_REGISTERED))
+            return FSDescriptorRegistry.getFSDescriptor(FSType.HUB_SPACE) //
+                .orElseThrow(() -> new IllegalStateException(FSType.HUB_SPACE.getName() + FILE_SYSTEM_NOT_REGISTERED))
                 .getConnectionFactory() //
                 .createConnection(config);
         } catch (IOException ex) {
@@ -205,5 +209,27 @@ public final class DefaultFSConnectionFactory {
 
         var config = new HubSpaceFSConnectionConfig(repositoryAddress, authenticator, spaceId);
         return createHubSpaceConnection(config);
+    }
+
+    public static FSConnection createHubSpaceConnection(final FSLocationSpec locSpec) {
+        CheckUtils.checkState(WorkflowContextUtil.isCurrentWorkflowOnHub(),
+            "Current workflow must be stored on a KNIME Hub.");
+
+        var workflowContext = WorkflowContextUtil.getWorkflowContextV2();
+        var locInfo = (HubSpaceLocationInfo)workflowContext.getLocationInfo();
+        var spaceId = extractSpaceId(locSpec);
+
+        return DefaultFSConnectionFactory.createHubSpaceConnection(locInfo.getRepositoryAddress(), //
+            locInfo.getAuthenticator(), //
+            spaceId);
+    }
+
+    private static String extractSpaceId(final FSLocationSpec locSpec) {
+        final var errorMsg = String.format("The provided location '%s' does not specify a KNIME Hub Space.", locSpec);
+
+        CheckUtils.checkArgument(locSpec.getFSCategory() == FSCategory.HUB_SPACE, errorMsg);
+
+        return locSpec.getFileSystemSpecifier() //
+            .orElseThrow(() -> new IllegalArgumentException(errorMsg));
     }
 }

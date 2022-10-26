@@ -105,10 +105,13 @@ public abstract class FSPathProviderFactory implements AutoCloseable {
     public static FSPathProviderFactory newFactory(final Optional<FSConnection> portObjectConnection,
         final FSLocationSpec fsLocationSpec) {
 
-        final FSCategory category = FSCategory.valueOf(fsLocationSpec.getFileSystemCategory());
+        final var category = FSCategory.valueOf(fsLocationSpec.getFileSystemCategory());
         switch (category) {
             case LOCAL:
                 return new DefaultFSPathProviderFactory(DefaultFSConnectionFactory.createLocalFSConnection());
+            case HUB_SPACE:
+                return new DefaultFSPathProviderFactory(
+                    DefaultFSConnectionFactory.createHubSpaceConnection(fsLocationSpec));
             case RELATIVE:
                 return new DefaultFSPathProviderFactory(createRelativeToFSConnection(fsLocationSpec));
             case MOUNTPOINT:

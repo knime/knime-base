@@ -157,7 +157,7 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
         if (isConnectedFileSystem()) {
             category = FSCategory.CONNECTED;
             specifier = String.format("%s:%s:%s", //
-                FSType.SPACE, //
+                FSType.HUB_SPACE, //
                 getRepositoryAddress().getHost().toLowerCase(Locale.ENGLISH), //
                 m_spaceId);
         } else {

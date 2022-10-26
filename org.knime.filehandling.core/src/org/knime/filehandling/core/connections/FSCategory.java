@@ -48,6 +48,10 @@
  */
 package org.knime.filehandling.core.connections;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
+
 /**
  * Enum to model file system categories.
  *
@@ -74,6 +78,12 @@ public enum FSCategory {
         /** Category for file systems that need to be connected via input port. */
         CONNECTED("");
 
+    private static final Set<FSCategory> STANDARD_CATEGORIES =
+        Collections.unmodifiableSet(EnumSet.complementOf(EnumSet.of(CONNECTED)));
+
+    private static final Set<FSCategory> STANDARD_NONTRIVIAL_CATEGORIES =
+        Collections.unmodifiableSet(EnumSet.complementOf(EnumSet.of(CONNECTED, CUSTOM_URL)));
+
     private final String m_label;
 
     private FSCategory(final String label) {
@@ -85,5 +95,24 @@ public enum FSCategory {
      */
     public String getLabel() {
         return m_label;
+    }
+
+    /**
+     * @return the set of all standard (aka convenience aka unconnected) {@link FSCategory} values.
+     */
+    public static Set<FSCategory> getStandardFSCategories() {
+        return STANDARD_CATEGORIES;
+    }
+
+    /**
+     * Some file systems (such as the one behind the {@value #CUSTOM_URL} category, are incapable of "non-trivial"
+     * operations, like browsing or listing files. However, some nodes require these capabilities, hence they can only
+     * be used with file system that support these.
+     *
+     * @return the set of all standard (aka convenience aka unconnected) {@link FSCategory} values, where the file systems support more
+     *         browsing, listing, etc.
+     */
+    public static Set<FSCategory> getStandardNonTrivialFSCategories() {
+        return STANDARD_NONTRIVIAL_CATEGORIES;
     }
 }

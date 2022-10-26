@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.utility.nodes.tempdir;
 
-import java.util.EnumSet;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -106,7 +104,7 @@ final class CreateTempDir2NodeConfig {
         m_parentDirChooserModel = new SettingsModelWriterFileChooser(CFG_TEMP_DIR_PARENT, portsConfig,
             CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
             EnumConfig.create(FileOverwritePolicy.APPEND),
-            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+            FSCategory.getStandardNonTrivialFSCategories());
         // set the default directory to be the workflow data directory (relative -> knime.workflow.data -> .)
         if (!portsConfig.getInputPortLocation().containsKey(CreateTempDir2NodeFactory.CONNECTION_INPUT_PORT_GRP_NAME)) {
             m_parentDirChooserModel

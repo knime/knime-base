@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.utility.nodes.deletepaths.filechooser;
 
-import java.util.EnumSet;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -82,7 +80,7 @@ final class DeleteFilesAndFoldersNodeConfig extends AbstractDeleteFilesAndFolder
         m_fileChooserSettings = new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER, portsConfiguration,
             AbstractDeleteFilesAndFoldersNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME,
             EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS),
-            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+            FSCategory.getStandardNonTrivialFSCategories());
 
         m_fileChooserSettings.getFilterModeModel().setIncludeSubfolders(true);
     }

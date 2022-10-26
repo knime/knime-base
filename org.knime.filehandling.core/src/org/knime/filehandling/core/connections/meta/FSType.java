@@ -81,7 +81,7 @@ public final class FSType {
     /**
      * The file system type for the KNIME Hub Space file system.
      */
-    public static final FSType SPACE = FSTypeRegistry.getOrCreateFSType("knime-hub-space", "KNIME Hub Space");
+    public static final FSType HUB_SPACE = FSTypeRegistry.getOrCreateFSType("knime-hub-space", "KNIME Hub Space");
 
     public static final FSType RELATIVE_TO_WORKFLOW =
         FSTypeRegistry.getOrCreateFSType("knime-relative-workflow", "Relative to current workflow");

@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.node.table.writer;
 
-import java.util.EnumSet;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -144,7 +143,7 @@ public abstract class AbstractMultiTableWriterNodeConfig<T extends DataValue, S 
             connectionInputPortGroupName, //
             EnumConfig.create(FilterMode.FOLDER), //
             EnumConfig.create(FileOverwritePolicy.FAIL, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.IGNORE), //
-            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+            FSCategory.getStandardNonTrivialFSCategories());
 
         final var configTypeString = getConfigTypeString();
         final var cfgWriterTypeNameString = String.format("%s_column", configTypeString);

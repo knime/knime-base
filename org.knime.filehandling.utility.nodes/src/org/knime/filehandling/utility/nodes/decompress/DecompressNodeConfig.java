@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.utility.nodes.decompress;
 
-import java.util.EnumSet;
-
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -112,7 +110,7 @@ final class DecompressNodeConfig {
         m_outputDirChooserModel = new SettingsModelWriterFileChooser(CFG_OUTPUT_LOCATION, portsConfig,
             DecompressNodeFactory.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
             EnumConfig.create(FileOverwritePolicy.IGNORE, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL),
-            EnumSet.of(FSCategory.LOCAL, FSCategory.MOUNTPOINT, FSCategory.RELATIVE));
+            FSCategory.getStandardNonTrivialFSCategories());
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
