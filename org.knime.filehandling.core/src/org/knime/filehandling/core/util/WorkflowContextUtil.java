@@ -176,7 +176,7 @@ public final class WorkflowContextUtil {
         // FIXME: UnsupportedOperationException should not ever be thrown
         try {
             return hasWorkflowContext() && getWorkflowContextV2().getLocationType() == LocationType.HUB_SPACE;
-        } catch (UnsupportedOperationException e) { // NOSONAR ignoring it
+        } catch (Exception e) { // NOSONAR ignoring it
             return false;
         }
     }
