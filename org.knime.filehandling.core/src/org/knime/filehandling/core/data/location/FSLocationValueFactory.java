@@ -58,9 +58,8 @@ import org.knime.core.table.access.StructAccess.StructReadAccess;
 import org.knime.core.table.access.StructAccess.StructWriteAccess;
 import org.knime.core.table.schema.DataSpec;
 import org.knime.core.table.schema.StructDataSpec;
-import org.knime.core.table.schema.traits.DataTrait.DictEncodingTrait;
-import org.knime.core.table.schema.traits.DataTrait.DictEncodingTrait.KeyType;
 import org.knime.core.table.schema.traits.DataTraits;
+import org.knime.core.table.schema.traits.DefaultDataTraits;
 import org.knime.core.table.schema.traits.DefaultStructDataTraits;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell;
@@ -90,9 +89,9 @@ public final class FSLocationValueFactory implements ValueFactory<StructReadAcce
     @Override
     public DataTraits getTraits() {
         return DefaultStructDataTraits.builder()//
-            .addInnerTraits(new DictEncodingTrait(KeyType.INT_KEY))//
-            .addInnerTraits(new DictEncodingTrait(KeyType.LONG_KEY))//
-            .addInnerTraits(new DictEncodingTrait(KeyType.LONG_KEY))//
+            .addInnerTraits(DefaultDataTraits.EMPTY)
+            .addInnerTraits(DefaultDataTraits.EMPTY)
+            .addInnerTraits(DefaultDataTraits.EMPTY)
             .build();
     }
 
