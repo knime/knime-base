@@ -77,8 +77,8 @@ public class HubSpaceFileSystemDialog implements FileSystemSpecificDialog {
      *
      */
     public HubSpaceFileSystemDialog(final HubSpaceSpecificConfig config) {
-        m_spaceSelector = new HubSpaceSelector(config.getSpaceSettings(), HubAccessUtil::getSpacesByWorkflowContext,
-            HubAccessUtil::getSpaceByWorkflowContext);
+        m_spaceSelector =
+            new HubSpaceSelector(config.getSpaceSettings(), HubAccessUtil.createHubAccessViaWorkflowContext());
 
         var gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillBoth().insets(0, 0, 0, 0);
         m_panel.add(m_spaceSelector, gbc.build());

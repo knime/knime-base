@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.util;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -56,7 +57,6 @@ import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.util.auth.Authenticator;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.SpaceAware;
 import org.knime.filehandling.core.connections.SpaceAware.Space;
 
@@ -67,26 +67,6 @@ import org.knime.filehandling.core.connections.SpaceAware.Space;
  */
 public final class HubAccessUtil {
     private HubAccessUtil() {
-    }
-
-    private static List<Space> listSpaces(final FSFileSystem<?> fs) throws IOException {
-        final var fileSystemProvider = fs.provider();
-
-        if (fileSystemProvider instanceof SpaceAware) {
-            return ((SpaceAware)fileSystemProvider).getSpaces();
-        } else {
-            throw new IllegalStateException("Chosen file system does not provide access to Hub Spaces");
-        }
-    }
-
-    private static Space fetchSpace(final FSFileSystem<?> fs, final String spaceId) throws IOException {
-        final var fileSystemProvider = fs.provider();
-
-        if (fileSystemProvider instanceof SpaceAware) {
-            return ((SpaceAware)fileSystemProvider).getSpace(spaceId);
-        } else {
-            throw new IllegalStateException("Chosen file system does not provide access to Hub Spaces");
-        }
     }
 
     private static HubSpaceLocationInfo getLocationInfoByWorkflowContext() {
@@ -104,54 +84,105 @@ public final class HubAccessUtil {
     }
 
     /**
-     * @param repositoryAddress Hub repository address
-     * @param authenticator Hub authenticator
-     * @return The list of spaces stored in the Hub instance described by the given repository address.
-     * @throws IOException
+     * @return a new {@link HubAccess} instance that connects to a KNIME Hub by using information from the current
+     *         workflow context.
      */
-    @SuppressWarnings("resource")
-    public static List<Space> getSpacesByRepositoryAddress(final URI repositoryAddress,
-        final Authenticator authenticator) throws IOException {
-        try (var connection = DefaultFSConnectionFactory.createHubConnection(repositoryAddress, authenticator)) {
-            return listSpaces(connection.getFileSystem());
-        }
+    public static HubAccess createHubAccessViaWorkflowContext() {
+        return new HubAccess() {
+            @Override
+            protected FSConnection createFSConnection() {
+                return getFSConnectionByWorkflowContext();
+            }
+        };
     }
 
     /**
-     * @param repositoryAddress Hub repository address
-     * @param authenticator Hub authenticator
-     * @param spaceId The space id
-     * @return The space info about a space described by the given repository address and space id.
-     * @throws IOException
+     * @param repositoryAddress URI of the Hub repository/catalog.
+     * @param authenticator An {@link Authenticator} to use to connect.
+     * @return a new {@link HubAccess} instance that connects to the KNIME Hub at the given URI.
      */
-    @SuppressWarnings("resource")
-    public static Space getSpaceByRepositoryAddress(final URI repositoryAddress,
-        final Authenticator authenticator, final String spaceId) throws IOException {
-        try (var connection = DefaultFSConnectionFactory.createHubConnection(repositoryAddress, authenticator)) {
-            return fetchSpace(connection.getFileSystem(), spaceId);
-        }
+    public static HubAccess createHubAccessViaRepositoryAddress(final URI repositoryAddress,
+        final Authenticator authenticator) {
+        return new HubAccess() {
+            @Override
+            protected FSConnection createFSConnection() {
+                return DefaultFSConnectionFactory.createHubConnection(repositoryAddress, authenticator);
+            }
+        };
     }
 
     /**
-     * @return The list of spaces stored in the current Hub instance.
-     * @throws IOException
+     * Stateless class that encapsulates access to a KNIME Hub instance. Instances of this class do not keep any
+     * resources (connections etc) open, therefore this class does not have to implement {@link Closeable}.
+     *
+     * @author Alexander Bondaletov
      */
-    @SuppressWarnings("resource")
-    public static List<Space> getSpacesByWorkflowContext() throws IOException {
-        try (var connection = getFSConnectionByWorkflowContext()) {
-            return listSpaces(connection.getFileSystem());
-        }
-    }
+    public abstract static class HubAccess {
 
-    /**
-     * @param spaceId The space id.
-     * @return The space info about a space with the given id and located on the current Hub instance.
-     * @throws IOException
-     */
-    @SuppressWarnings("resource")
-    public static Space getSpaceByWorkflowContext(final String spaceId) throws IOException {
-        try (var connection = getFSConnectionByWorkflowContext()) {
-            return fetchSpace(connection.getFileSystem(), spaceId);
+        /**
+         * This method is called by the {@link #listSpaces()} and the other methods in this class to obtain an
+         * {@link FSConnection}. The connection returned here will be closed immediately by the calling method, so it is
+         * important to always create a new {@link FSConnection}.
+         *
+         * @return a newly created {@link FSConnection} instance.
+         */
+        protected abstract FSConnection createFSConnection();
+
+        /**
+         * @return The list of spaces for the current user.
+         * @throws IOException
+         */
+        @SuppressWarnings("resource")
+        public List<Space> listSpaces() throws IOException {
+            try (var connection = createFSConnection()) {
+                final var fileSystemProvider = connection.getFileSystem().provider();
+
+                if (fileSystemProvider instanceof SpaceAware) {
+                    var provider = (SpaceAware)fileSystemProvider;
+                    return provider.getSpaces();
+                } else {
+                    throw new IllegalStateException("Chosen file system does not provide access to Hub Spaces");
+                }
+            }
+        }
+
+        /**
+         * Lists all Hub Spaces owned by the given account, which are accessible by the current user.
+         *
+         * @param accountNameOrID The account name ("joe.blank") or ID ("user:eda5b6ca-a8b8-46a7-86b2-9b27a24cc972").
+         * @return the list of {@link Space}s.
+         * @throws IOException
+         */
+        @SuppressWarnings("resource")
+        public List<Space> listSpacesForAccount(final String accountNameOrID) throws IOException {
+            try (var connection = createFSConnection()) {
+                final var fileSystemProvider = connection.getFileSystem().provider();
+
+                if (fileSystemProvider instanceof SpaceAware) {
+                    var provider = (SpaceAware)fileSystemProvider;
+                    return provider.getSpacesOwnedByAccount(accountNameOrID);
+                } else {
+                    throw new IllegalStateException("Chosen file system does not provide access to Hub Spaces");
+                }
+            }
+        }
+
+        /**
+         * @param spaceId The space id.
+         * @return The {@link Space} object.
+         * @throws IOException
+         */
+        @SuppressWarnings("resource")
+        public Space fetchSpace(final String spaceId) throws IOException {
+            try (var connection = createFSConnection()) {
+                final var fileSystemProvider = connection.getFileSystem().provider();
+
+                if (fileSystemProvider instanceof SpaceAware) {
+                    return ((SpaceAware)fileSystemProvider).getSpace(spaceId);
+                } else {
+                    throw new IllegalStateException("Chosen file system does not provide access to Hub Spaces");
+                }
+            }
         }
     }
 }

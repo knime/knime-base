@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog;
 
 import java.awt.Component;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -59,19 +60,19 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.connections.SpaceAware.Space;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSettings;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.HubSpaceSelectionComboBox.SpaceComboItem;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
-import org.knime.filehandling.core.util.IOEFunction;
-import org.knime.filehandling.core.util.IOESupplier;
+import org.knime.filehandling.core.util.HubAccessUtil.HubAccess;
 
 /**
  * The component for selecting Hub Space. It allows user to select the space from the fetched space, or to enter space
@@ -86,15 +87,13 @@ public final class HubSpaceSelector extends JPanel {
 
     private final HubSpaceSelectionComboBox m_combobox;
 
+    private final JButton m_findMoreBtn;
+
     private final StatusView m_statusView; // NOSONAR
 
     private final Component m_statusViewPlaceholder;
 
-    private boolean m_enabled = true;
-
-    private final IOESupplier<List<Space>> m_spaceLister;//NOSONAR not intended for serialization
-
-    private final IOEFunction<String, Space> m_spaceFetcher;//NOSONAR not intended for serialization
+    private final HubAccess m_hubAccess; //NOSONAR not intended for serialization
 
     /**
      * Used to ensure that a {@link ListSpacesSwingWorker} has feed its results at least once into the combobox, before
@@ -110,20 +109,20 @@ public final class HubSpaceSelector extends JPanel {
 
     /**
      * @param settings The hub space settings object.
-     * @param spaceLister The supplier that provides the list of spaces.
-     * @param spaceFetcher The supplier that provides the space info by the space id.
+     * @param hubAccess The {@link HubAccess} object.
      *
      */
-    public HubSpaceSelector(final HubSpaceSettings settings, final IOESupplier<List<Space>> spaceLister,
-        final IOEFunction<String, Space> spaceFetcher) {
+    public HubSpaceSelector(final HubSpaceSettings settings, final HubAccess hubAccess) {
         m_settings = settings;
         m_settings.addChangeListener(e -> onSettingsChanged());
 
-        m_spaceLister = spaceLister;
-        m_spaceFetcher = spaceFetcher;
+        m_hubAccess = hubAccess;
 
         m_combobox = new HubSpaceSelectionComboBox();
         m_combobox.setChangeListener(this::onSpaceSelectionChanged);
+
+        m_findMoreBtn = new JButton("More...");
+        m_findMoreBtn.addActionListener(e -> onFindMore());
 
         m_statusView = new StatusView(300);
         m_statusViewPlaceholder = Box.createHorizontalStrut((int)m_statusView.getPanel().getPreferredSize().getWidth());
@@ -137,6 +136,9 @@ public final class HubSpaceSelector extends JPanel {
         gbc.insets = new Insets(0, 0, 0, 5);
 
         add(m_combobox, gbc);
+
+        gbc.gridx += 1;
+        add(m_findMoreBtn, gbc);
 
         gbc.gridx += 1;
         gbc.anchor = GridBagConstraints.LINE_START;
@@ -226,6 +228,15 @@ public final class HubSpaceSelector extends JPanel {
         }
     }
 
+    private void onFindMore() {
+        var parent = (Frame)SwingUtilities.getAncestorOfClass(Frame.class, this);
+
+        var item = HubSpaceSelectSubDialog.showDialog(parent, m_hubAccess);
+        if (item != null) {
+            m_combobox.setSelectedItem(new SpaceComboItem(item));
+        }
+    }
+
     private class ListSpacesSwingWorker extends SwingWorkerWithContext<List<SpaceComboItem>, Void> {
 
         ListSpacesSwingWorker() {
@@ -235,7 +246,7 @@ public final class HubSpaceSelector extends JPanel {
 
         @Override
         protected List<SpaceComboItem> doInBackgroundWithContext() throws Exception {
-            return m_spaceLister.get().stream().map(SpaceComboItem::new).collect(Collectors.toList());
+            return m_hubAccess.listSpaces().stream().map(SpaceComboItem::new).collect(Collectors.toList());
         }
 
         @Override
@@ -278,7 +289,7 @@ public final class HubSpaceSelector extends JPanel {
                 spaceId = "*" + spaceId;
             }
 
-            var space = m_spaceFetcher.apply(spaceId);
+            var space = m_hubAccess.fetchSpace(spaceId);
             // make sure that we wait for the spaces to have been listed at least once
             m_spacesHaveBeenListed.await();
             return new SpaceComboItem(space);
@@ -301,5 +312,4 @@ public final class HubSpaceSelector extends JPanel {
             }
         }
     }
-
 }

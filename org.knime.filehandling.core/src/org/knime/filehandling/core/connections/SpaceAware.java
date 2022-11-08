@@ -151,4 +151,13 @@ public interface SpaceAware {
      * @throws IOException
      */
     Space getSpace(String id) throws IOException;
+
+    /**
+     * Lists all Hub Spaces owned by the given account, which are accessible by the current user.
+     *
+     * @param accountNameOrID The account name ("joe.blank") or ID ("user:eda5b6ca-a8b8-46a7-86b2-9b27a24cc972").
+     * @return the list of {@link Space}s.
+     * @throws IOException
+     */
+    List<Space> getSpacesOwnedByAccount(String accountNameOrID) throws IOException;
 }
