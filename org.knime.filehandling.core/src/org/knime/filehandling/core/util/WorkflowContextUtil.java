@@ -190,11 +190,6 @@ public final class WorkflowContextUtil {
      *         otherwise.
      */
     public static boolean isCurrentWorkflowOnHub() {
-        // FIXME: UnsupportedOperationException should not ever be thrown
-        try {
-            return hasWorkflowContext() && getWorkflowContextV2().getLocationType() == LocationType.HUB_SPACE;
-        } catch (Exception e) { // NOSONAR ignoring it
-            return false;
-        }
+        return hasWorkflowContext() && getWorkflowContextV2().getLocationType() == LocationType.HUB_SPACE;
     }
 }
