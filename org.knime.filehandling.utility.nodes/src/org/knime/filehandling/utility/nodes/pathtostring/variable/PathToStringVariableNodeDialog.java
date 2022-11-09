@@ -89,7 +89,7 @@ final class PathToStringVariableNodeDialog extends NodeDialogPane {
                 "Suffix added to the new variables:", true, 15);
 
         m_createKNIMEUrl = new DialogComponentBoolean(PathToStringVariableNodeModel.createSettingsModelCreateKNIMEUrl(),
-            "Create KNIME URL for 'Relative to' and 'Mounpoint' file systems");
+            "Create KNIME URL for 'Relative to' and 'Mountpoint' file systems");
 
         addTab("Settings", createPanel());
     }

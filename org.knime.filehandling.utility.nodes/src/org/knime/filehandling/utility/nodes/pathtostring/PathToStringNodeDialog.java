@@ -110,7 +110,7 @@ final class PathToStringNodeDialog extends NodeDialogPane {
         m_generatedColumnModeComponent.getModel().addChangeListener(e -> checkGeneratedColumnMode());
 
         m_createKNIMEUrl = new DialogComponentBoolean(PathToStringNodeModel.createSettingsModelCreateKNIMEUrl(),
-            "Create KNIME URL for 'Relative to' and 'Mounpoint' file systems");
+            "Create KNIME URL for 'Relative to' and 'Mountpoint' file systems");
 
         addTab("Settings", createPanel());
     }

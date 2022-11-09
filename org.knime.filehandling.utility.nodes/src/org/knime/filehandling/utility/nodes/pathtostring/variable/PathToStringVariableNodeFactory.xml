@@ -26,7 +26,7 @@
 			The suffix that will be added to the name of the Path variables that are converted to create the names of
 			the new String variables.
 		</option>
-		<option name="Create KNIME URL for 'Relative to' and 'Mounpoint' file systems">
+		<option name="Create KNIME URL for 'Relative to' and 'Mountpoint' file systems">
 			This option is only relevant for paths with the 
 			<i>Relative to workflow data area</i>, <i>Relative to workflow</i>, <i>Relative to mountpoint</i> or 
 			<i>Mountpoint</i> file system.
