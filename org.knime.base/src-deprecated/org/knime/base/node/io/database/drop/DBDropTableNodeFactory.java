@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,35 +41,37 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   26.09.2014 (koetter): created
  */
-package org.knime.base.node.io.database;
+package org.knime.base.node.io.database.drop;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * Factory class.
+ * @author Tobias Koetter, KNIME AG, Zurich, Switzerland
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public class DBDropTableNodeFactory extends NodeFactory<DBDropTableNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBDropTableNodeModel createNodeModel() {
+        return new DBDropTableNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getNrNodeViews() {
+    protected int getNrNodeViews() {
         return 0;
     }
 
@@ -76,7 +79,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBDropTableNodeModel> createNodeView(final int viewIndex, final DBDropTableNodeModel nodeModel) {
         return null;
     }
 
@@ -84,7 +87,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public boolean hasDialog() {
+    protected boolean hasDialog() {
         return true;
     }
 
@@ -92,7 +95,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+    protected NodeDialogPane createNodeDialogPane() {
+        return new DBDropTableNodeDialog();
     }
 }

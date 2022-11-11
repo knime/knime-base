@@ -50,18 +50,20 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * Factory class for the Database Delete node.
+ *
+ * @author Thomas Gabriel, KNIME.com AG, Zurich
+ * @since 2.7
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public final class DBDeleteRowsNodeFactory extends NodeFactory<DBDeleteRowsNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBDeleteRowsNodeModel createNodeModel() {
+        return new DBDeleteRowsNodeModel();
     }
 
     /**
@@ -76,7 +78,8 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBDeleteRowsNodeModel> createNodeView(final int viewIndex,
+            final DBDeleteRowsNodeModel nodeModel) {
         return null;
     }
 
@@ -93,6 +96,6 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new DBDeleteRowsDialogPane();
     }
 }

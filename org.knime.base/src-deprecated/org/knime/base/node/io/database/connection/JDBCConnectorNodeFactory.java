@@ -40,35 +40,37 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   24.04.2014 (thor): created
  */
-package org.knime.base.node.io.database;
+package org.knime.base.node.io.database.connection;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
+ *
+ * @author Thorsten Meinl, KNIME AG, Zurich, Switzerland
  * @since 2.10
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
-
+public class JDBCConnectorNodeFactory extends NodeFactory<JDBCConnectorNodeModel> {
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public JDBCConnectorNodeModel createNodeModel() {
+        return new JDBCConnectorNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getNrNodeViews() {
+    protected int getNrNodeViews() {
         return 0;
     }
 
@@ -76,7 +78,8 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<JDBCConnectorNodeModel> createNodeView(
+            final int viewIndex, final JDBCConnectorNodeModel nodeModel) {
         return null;
     }
 
@@ -84,7 +87,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public boolean hasDialog() {
+    protected boolean hasDialog() {
         return true;
     }
 
@@ -92,7 +95,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+    protected NodeDialogPane createNodeDialogPane() {
+        return new JDBCConnectorNodeDialog();
     }
 }

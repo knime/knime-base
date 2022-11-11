@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,59 +41,46 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Nov 3, 2015 (Lara): created
  */
-package org.knime.base.node.io.database;
+package org.knime.base.node.io.database.binning.auto;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.base.node.preproc.autobinner3.AutoBinnerLearnNodeDialogPane;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.database.DatabasePortObjectSpec;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ *
+ * @author Lara Gorini
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public class DBAutoBinnerNodeDialog extends AutoBinnerLearnNodeDialogPane {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+
+    DBAutoBinnerNodeDialog(){
+        super(false);
+
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getNrNodeViews() {
-        return 0;
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
+            throws NotConfigurableException {
+        DatabasePortObjectSpec dbSpec = (DatabasePortObjectSpec)specs[0];
+        DataTableSpec spec = null;
+        if (dbSpec != null) {
+            spec = dbSpec.getDataTableSpec();
+        }
+        super.loadSettingsFrom(settings, new PortObjectSpec[] { spec });
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
-        return null;
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
-    }
 }

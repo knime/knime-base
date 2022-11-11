@@ -50,18 +50,19 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
+ * @author Thomas Gabriel, University of Konstanz
  * @author Patrick Winter, KNIME AG, Zurich, Switzerland
  * @since 2.10
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public final class DBSorterNodeFactory extends NodeFactory<DBSorterNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBSorterNodeModel createNodeModel() {
+        return new DBSorterNodeModel();
     }
 
     /**
@@ -76,7 +77,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBSorterNodeModel> createNodeView(final int viewIndex, final DBSorterNodeModel nodeModel) {
         return null;
     }
 
@@ -93,6 +94,6 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new DBSorterNodeDialog();
     }
 }

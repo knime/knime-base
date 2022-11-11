@@ -40,59 +40,38 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
- *
+ * ------------------------------------------------------------------------
  */
 package org.knime.base.node.io.database;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
+import org.knime.core.node.defaultnodesettings.DialogComponentString;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
+ * <code>NodeDialog</code> for the "SQLExtract" Node.
+ *
+ *
+ * This node dialog derives from {@link DefaultNodeSettingsPane} which allows
+ * creation of a simple dialog with standard components. If you need a more
+ * complex dialog please derive directly from
+ * {@link org.knime.core.node.NodeDialogPane}.
+ *
+ * @author Alexander Fillbrunn
  * @since 2.10
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
-
+public class SQLExtractNodeDialog extends DefaultNodeSettingsPane {
     /**
-     * {@inheritDoc}
+     * New pane for configuring the SQLInject node.
      */
-    @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
-    }
+    protected SQLExtractNodeDialog() {
+        SettingsModelString flowVarSettingsModel = SQLExtractNodeModel.createFlowVariableNameSettingsModel();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
+        DialogComponentString flowVarSelection =
+                new DialogComponentString(flowVarSettingsModel, "Flow Variable with SQL Query");
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        addDialogComponent(flowVarSelection);
     }
 }
+

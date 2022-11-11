@@ -43,25 +43,26 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.base.node.io.database;
+package org.knime.base.node.io.database.binning.auto;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * The node factory of the Database Auto-Binner node.
+ *
+ * @author Lara Gorini
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public final class DBAutoBinnerNodeFactory extends NodeFactory<DBAutoBinnerNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBAutoBinnerNodeModel createNodeModel() {
+        return new DBAutoBinnerNodeModel();
     }
 
     /**
@@ -76,7 +77,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBAutoBinnerNodeModel> createNodeView(final int viewIndex, final DBAutoBinnerNodeModel nodeModel) {
         return null;
     }
 
@@ -93,6 +94,6 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new DBAutoBinnerNodeDialog();
     }
 }

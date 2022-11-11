@@ -40,8 +40,7 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
- *
+ * ------------------------------------------------------------------------
  */
 package org.knime.base.node.io.database;
 
@@ -50,33 +49,35 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * 
+ * @author Thomas Gabriel, University of Konstanz
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public class DatabaseLoopingNodeFactory 
+        extends NodeFactory<DatabaseLoopingNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    protected NodeDialogPane createNodeDialogPane() {
+        return new DatabaseLoopingNodeDialogPane();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getNrNodeViews() {
-        return 0;
+    public DatabaseLoopingNodeModel createNodeModel() {
+        return new DatabaseLoopingNodeModel();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DatabaseLoopingNodeModel> createNodeView(final int vi, 
+            final DatabaseLoopingNodeModel nodeModel) {
         return null;
     }
 
@@ -84,15 +85,16 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public boolean hasDialog() {
-        return true;
+    protected int getNrNodeViews() {
+        return 0;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+    protected boolean hasDialog() {
+        return true;
     }
+
 }

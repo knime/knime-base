@@ -43,25 +43,26 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.base.node.io.database;
+package org.knime.base.node.io.database.sampling;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * The node factory of the database sampling node.
+ *
+ * @author Lara Gorini
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public final class DBSamplingNodeFactory extends NodeFactory<DBSamplingNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBSamplingNodeModel createNodeModel() {
+        return new DBSamplingNodeModel();
     }
 
     /**
@@ -76,7 +77,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBSamplingNodeModel> createNodeView(final int viewIndex, final DBSamplingNodeModel nodeModel) {
         return null;
     }
 
@@ -93,6 +94,6 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new DBSamplingNodeDialog();
     }
 }

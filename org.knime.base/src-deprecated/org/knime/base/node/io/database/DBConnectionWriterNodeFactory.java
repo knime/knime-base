@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- *
+ * 
  */
 package org.knime.base.node.io.database;
 
@@ -50,18 +50,19 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * 
+ * @author Thomas Gabriel, University of Konstanz
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
-
+public final class DBConnectionWriterNodeFactory 
+        extends NodeFactory<DBConnectionWriterNodeModel> {
+    
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBConnectionWriterNodeModel createNodeModel() {
+        return new DBConnectionWriterNodeModel();
     }
 
     /**
@@ -76,7 +77,8 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBConnectionWriterNodeModel> createNodeView(
+            final int viewIndex, final DBConnectionWriterNodeModel nodeModel) {
         return null;
     }
 
@@ -93,6 +95,6 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new DBConnectionWriterDialogPane();
     }
 }

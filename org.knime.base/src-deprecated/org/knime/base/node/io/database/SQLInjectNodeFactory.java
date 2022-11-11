@@ -40,8 +40,7 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
- *
+ * ------------------------------------------------------------------------
  */
 package org.knime.base.node.io.database;
 
@@ -50,18 +49,22 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
+ * <code>NodeFactory</code> for the "SQLInject" Node.
+ *
+ *
+ * @author Alexander Fillbrunn
  * @since 2.10
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public class SQLInjectNodeFactory
+        extends NodeFactory<SQLInjectNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public SQLInjectNodeModel createNodeModel() {
+        return new SQLInjectNodeModel();
     }
 
     /**
@@ -76,7 +79,8 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<SQLInjectNodeModel> createNodeView(final int viewIndex,
+            final SQLInjectNodeModel nodeModel) {
         return null;
     }
 
@@ -93,6 +97,8 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new SQLInjectNodeDialog();
     }
+
 }
+

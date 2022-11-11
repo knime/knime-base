@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,59 +41,54 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   17.07.2014 (koetter): created
  */
-package org.knime.base.node.io.database;
+package org.knime.base.node.io.database.groupby.dialog.pattern;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import java.awt.Component;
+
+import javax.swing.DefaultCellEditor;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregator;
+import org.knime.core.data.DataType;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * {@link DataTypeAggregator} table cell editor class that allows the user to choose from the supported
+ * {@link AggregationMethod}s for {@link DataType} of the current {@link DataTypeAggregator}.
+ *
+ * @author Tobias Koetter, KNIME AG, Zurich, Switzerland
+ * @since 2.11
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public class DBPatternTableCellEditor extends DefaultCellEditor {
 
-    /**
-     * {@inheritDoc}
+    private static final long serialVersionUID = 1;
+
+    /**Constructor for class AggregationMethodTableCellEditor.
      */
-    @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBPatternTableCellEditor() {
+        super(new JTextField());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
+        final int row, final int column) {
+        final String val;
+        if (value instanceof DBPatternAggregationFunctionRow) {
+            final DBPatternAggregationFunctionRow method = (DBPatternAggregationFunctionRow)value;
+            val = method.getInputPattern();
+        } else {
+            val = value.toString();
+        }
+        return super.getTableCellEditorComponent(table, val, isSelected, row, column);
     }
 }

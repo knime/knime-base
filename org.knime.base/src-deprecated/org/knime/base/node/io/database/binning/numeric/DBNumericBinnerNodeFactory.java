@@ -43,25 +43,26 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.base.node.io.database;
+package org.knime.base.node.io.database.binning.numeric;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * The node factory of the Databse Numeric-Binner node.
+ *
+ * @author Lara Gorini
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public final class DBNumericBinnerNodeFactory extends NodeFactory<DBNumericBinnerNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBNumericBinnerNodeModel createNodeModel() {
+        return new DBNumericBinnerNodeModel();
     }
 
     /**
@@ -76,7 +77,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBNumericBinnerNodeModel> createNodeView(final int viewIndex, final DBNumericBinnerNodeModel nodeModel) {
         return null;
     }
 
@@ -93,6 +94,6 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new DBNumericBinnerNodeDialog();
     }
 }

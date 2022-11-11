@@ -43,56 +43,54 @@
  * -------------------------------------------------------------------
  *
  */
-package org.knime.base.node.io.database;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+package org.knime.base.node.io.database.groupby.dialog.column;
+
+import javax.swing.DefaultCellEditor;
+import javax.swing.JTable;
+
+import org.knime.base.data.aggregation.dialogutil.AbstractAggregationFunctionTableCellEditor;
+import org.knime.core.data.DataType;
+import org.knime.core.node.port.database.aggregation.AggregationFunction;
+import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
+import org.knime.core.node.port.database.aggregation.DBAggregationFunction;
+
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * Extends the {@link DefaultCellEditor} class to provide the cell editor.
+ *
+ * @author Tobias Koetter, University of Konstanz
+ * @since 2.11
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public class DBColumnAggregationFunctionRowTableCellEditor
+    extends AbstractAggregationFunctionTableCellEditor<DBAggregationFunction, DBColumnAggregationFunctionRow> {
+
+    private static final long serialVersionUID = 1L;
 
     /**
-     * {@inheritDoc}
+     * @param provider might be <code>null</code>
      */
-    @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBColumnAggregationFunctionRowTableCellEditor(
+        final AggregationFunctionProvider<DBAggregationFunction> provider) {
+        super(provider);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getNrNodeViews() {
-        return 0;
+    protected AggregationFunction getSelectedAggregationMethod(final JTable table,
+        final DBColumnAggregationFunctionRow row, final boolean isSelected, final int rowIdx, final int column) {
+        return row.getFunction();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+    protected DataType getDataType(final JTable table, final DBColumnAggregationFunctionRow row,
+        final boolean isSelected, final int rowIdx, final int column) {
+        return row.getColumnSpec().getType();
     }
 }

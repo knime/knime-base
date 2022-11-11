@@ -45,23 +45,25 @@
  */
 package org.knime.base.node.io.database;
 
+import org.knime.base.node.io.database.util.DBReaderDialogPane;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ *
+ * @author Thomas Gabriel, University of Konstanz
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public final class DBQueryNodeFactory2
+        extends NodeFactory<DBQueryNodeModel2> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBQueryNodeModel2 createNodeModel() {
+        return new DBQueryNodeModel2();
     }
 
     /**
@@ -76,7 +78,8 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBQueryNodeModel2> createNodeView(final int viewIndex,
+            final DBQueryNodeModel2 nodeModel) {
         return null;
     }
 
@@ -93,6 +96,6 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new DBReaderDialogPane(false, false);
     }
 }

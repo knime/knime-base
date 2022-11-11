@@ -61,12 +61,6 @@
             path="/">
       </category>
       <category
-            after="utility"
-            icon="icons/16x16/category_database.png"
-            level-id="database_legacy"
-            name="Database (legacy)"
-            path="/db"/>
-      <category
             icon="icons/missing.gif"
             level-id="column-split+combine"
             name="Split &amp; Combine"
@@ -357,36 +351,6 @@
             name="Community Nodes"
             path="/">
       </category>
-      <category
-            after="database-connector"
-            icon="icons/missing.gif"
-            level-id="database-io"
-            locked="true"
-            name="Read/Write (legacy)"
-            path="/db/database_legacy">
-      </category>
-      <category
-            after="database-io"
-            icon="icons/missing.gif"
-            level-id="database-manipulation"
-            locked="true"
-            name="Manipulation (legacy)"
-            path="/db/database_legacy">
-      </category>
-      <category
-            icon="icons/missing.gif"
-            level-id="database-connector"
-            locked="true"
-            name="Connector (legacy)"
-            path="/db/database_legacy">
-      </category>
-      <category
-            icon="icons/missing.gif"
-            level-id="database-utility"
-            locked="true"
-            name="Utility (legacy)"
-            path="/db/database_legacy">
-      </category>            
       <category
             icon="icons/16x16/category_socialmedia.png"
             level-id="social-media"
@@ -1120,89 +1084,6 @@
             after="org.knime.base.node.viz.roc.ROCNodeFactory"
             category-path="/analytics/mining/modeleval"
             factory-class="org.knime.base.node.viz.enrichment2.EnrichmentPlotterFactory"
-            />
-       <node
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.DBReaderNodeFactory"
-            />
-       <node
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.DBReaderConnectionNodeFactory"
-            >
-      </node>
-      <node
-            after="org.knime.base.node.io.database.DBConnectionWriterNodeFactory"
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.DatabaseLoopingNodeFactory"
-             >
-      </node>
-      <node
-            after="org.knime.base.node.io.database.DBConnectionWriterNodeFactory"
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.parameterizedquery.ParameterizedDBQueryNodeFactory">
-            >
-      </node>
-      <node
-            after="org.knime.base.node.io.database.DBReaderConnectionNodeFactory"
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.DBConnectionNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.DBRowFilterNodeFactory"
-            />
-      <node
-            after="org.knime.base.node.io.database.DBRowFilterNodeFactory"
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.DBQueryNodeFactory2"
-            />
-      <node
-            after="org.knime.base.node.io.database.DBQueryNodeFactory2"
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.DBColumnFilterNodeFactory"
-            />
-      <node
-            after="org.knime.base.node.io.database.DBColumnFilterNodeFactory"
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.DBSorterNodeFactory"
-            />
-      <node
-            after="org.knime.base.node.io.database.DBSorterNodeFactory"
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.groupby.DBGroupByNodeFactory2"
-            />
-      <node
-            after="org.knime.base.node.io.database.groupby.DBGroupByNodeFactory2"
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.DBJoinerNodeFactory"
-            /> 
-      <node
-            after="org.knime.base.node.io.database.DBJoinerNodeFactory"
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.tablecreator.DBTableCreatorNodeFactory"/>
-      <node
-            after="org.knime.base.node.io.database.DBReaderConnectionNodeFactory"
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.DBConnectionWriterNodeFactory"
-            />
-      <node
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.DBWriterNodeFactory"
-            />
-      <node
-            after="org.knime.base.node.io.database.DBWriterNodeFactory"
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.DBUpdateNodeFactory"
-            />
-      <node
-            after="org.knime.base.node.io.database.DBUpdateNodeFactory"
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.DBDeleteRowsNodeFactory"
-            />
-      <node
-            category-path="/db/database_legacy/database-utility"
-            factory-class="org.knime.base.node.io.database.DBSQLExecutorNodeFactory"
             />
       <node
             category-path="/manipulation/column/column-split+combine"
@@ -2042,31 +1923,6 @@
             >
       </node>
       <node
-            category-path="/db/database_legacy/database-connector"
-            factory-class="org.knime.base.node.io.database.connection.JDBCConnectorNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-io"
-            factory-class="org.knime.base.node.io.database.connection.DBTableSelectorNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-utility"
-            factory-class="org.knime.base.node.io.database.SQLInjectNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-utility"
-            factory-class="org.knime.base.node.io.database.SQLExtractNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-utility"
-            factory-class="org.knime.base.node.io.database.drop.DBDropTableNodeFactory"
-            >
-      </node>
-      <node
             category-path="/view/legacy"
             factory-class="org.knime.base.node.viz.hilite.AutoHiLiteNodeFactory"
             >
@@ -2110,10 +1966,6 @@
             factory-class="org.knime.base.node.preproc.colconvert.numbertocategory.NumberToCategoryApplyNodeFactory"
             >
       </node>
-      <node 
-            category-path="/db/database_legacy/database-manipulation" 
-            factory-class="org.knime.base.node.io.database.columnrename.DBColumnRenameNodeFactory" 
-            />
       <node
             category-path="/manipulation/pmml"
             deprecated="false"
@@ -2203,34 +2055,6 @@
             category-path="/analytics/mining/clustering"
             deprecated="false"
             factory-class="org.knime.base.node.mine.cluster.kmeans.ClusterNodeFactory2"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.pivot.DBPivotNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-manipulation"
-            deprecated="false"
-            factory-class="org.knime.base.node.io.database.sampling.DBSamplingNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-manipulation"
-            factory-class="org.knime.base.node.io.database.binning.auto.DBAutoBinnerNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-manipulation"
-            deprecated="false"
-            factory-class="org.knime.base.node.io.database.binning.numeric.DBNumericBinnerNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/db/database_legacy/database-manipulation"
-            deprecated="false"
-            factory-class="org.knime.base.node.io.database.binning.apply.DBApplyBinnerNodeFactory"
             >
       </node>
       <node
@@ -2475,6 +2299,34 @@
 		<node deprecated="true" factory-class="org.knime.base.node.preproc.colcombine.ColCombineNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.preproc.columntogrid.ColumnToGridNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.io.database.DBGroupByNodeFactory"></node>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBReaderNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBReaderConnectionNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DatabaseLoopingNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.parameterizedquery.ParameterizedDBQueryNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBConnectionNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBRowFilterNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBQueryNodeFactory2"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBColumnFilterNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBSorterNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.groupby.DBGroupByNodeFactory2"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBJoinerNodeFactory"/> 
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.tablecreator.DBTableCreatorNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBConnectionWriterNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBWriterNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBUpdateNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBDeleteRowsNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.DBSQLExecutorNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.connection.JDBCConnectorNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.connection.DBTableSelectorNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.SQLInjectNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.SQLExtractNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.drop.DBDropTableNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.columnrename.DBColumnRenameNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.pivot.DBPivotNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.sampling.DBSamplingNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.binning.auto.DBAutoBinnerNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.binning.numeric.DBNumericBinnerNodeFactory"/>
+        <node deprecated="true" factory-class="org.knime.base.node.io.database.binning.apply.DBApplyBinnerNodeFactory"/>
 		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.logistic.predict.GeneralRegressionPredictorNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.linear.learn.LinRegLearnerNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.mine.regression.linear.predict.LinRegPredictorNodeFactory"></node>

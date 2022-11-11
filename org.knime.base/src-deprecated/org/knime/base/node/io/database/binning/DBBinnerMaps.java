@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,59 +41,76 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Nov 2, 2015 (Lara): created
  */
-package org.knime.base.node.io.database;
+package org.knime.base.node.io.database.binning;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.port.database.StatementManipulator;
+import org.knime.core.util.Pair;
 
 /**
- * @author Patrick Winter, KNIME AG, Zurich, Switzerland
- * @since 2.10
+ * This class is to collect required Maps containing parameters for binning operation in {@link StatementManipulator}.
+ *
+ * @author Lara Gorini
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public class DBBinnerMaps {
+
+    private Map<String, List<Pair<Double, Double>>> m_limitsMap;
+
+    private Map<String, List<Pair<Boolean, Boolean>>> m_boundariesOpenMap;
+
+    private Map<String, List<String>> m_namingMap;
+
+    private Map<String, String> m_appendMap;
 
     /**
-     * {@inheritDoc}
+     * @param limitsMap Map containing edges of bins
+     * @param boundariesOpenMap Map holding information if boundaries of the interval are open (excluded)
+     * @param namingMap Map containing names of bins
+     * @param appendMap Map containing name of columns which has to be appended. Value will be null, if column is not appended
      */
-    @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBBinnerMaps(final Map<String, List<Pair<Double, Double>>> limitsMap,
+        final Map<String, List<Pair<Boolean, Boolean>>> boundariesOpenMap, final Map<String, List<String>> namingMap,
+        final Map<String, String> appendMap) {
+        m_limitsMap = limitsMap;
+        m_boundariesOpenMap = boundariesOpenMap;
+        m_namingMap = namingMap;
+        m_appendMap = appendMap;
     }
 
     /**
-     * {@inheritDoc}
+     * @return the limitsMap
      */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
+    public Map<String, List<Pair<Double, Double>>> getBoundariesMap() {
+        return m_limitsMap;
     }
 
     /**
-     * {@inheritDoc}
+     * @return the includeMap
      */
-    @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
-        return null;
+    public Map<String, List<Pair<Boolean, Boolean>>> getBoundariesOpenMap() {
+        return m_boundariesOpenMap;
     }
 
     /**
-     * {@inheritDoc}
+     * @return the namingMap
      */
-    @Override
-    public boolean hasDialog() {
-        return true;
+    public Map<String, List<String>> getNamingMap() {
+        return m_namingMap;
     }
 
     /**
-     * {@inheritDoc}
+     * @return the appendMap
      */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+    public Map<String, String> getAppendMap() {
+        return m_appendMap;
     }
+
 }

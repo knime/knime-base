@@ -54,14 +54,14 @@ import org.knime.core.node.NodeView;
  * @since 2.10
  */
 @Deprecated
-public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> {
+public final class DBJoinerNodeFactory extends NodeFactory<DBJoinerNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public DBGroupByNodeModel createNodeModel() {
-        return new DBGroupByNodeModel();
+    public DBJoinerNodeModel createNodeModel() {
+        return new DBJoinerNodeModel();
     }
 
     /**
@@ -76,7 +76,7 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      * {@inheritDoc}
      */
     @Override
-    public NodeView<DBGroupByNodeModel> createNodeView(final int viewIndex, final DBGroupByNodeModel nodeModel) {
+    public NodeView<DBJoinerNodeModel> createNodeView(final int viewIndex, final DBJoinerNodeModel nodeModel) {
         return null;
     }
 
@@ -93,6 +93,6 @@ public final class DBGroupByNodeFactory extends NodeFactory<DBGroupByNodeModel> 
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DBGroupByNodeDialog();
+        return new DBJoinerNodeDialog();
     }
 }
