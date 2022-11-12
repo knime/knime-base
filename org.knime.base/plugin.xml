@@ -1822,11 +1822,6 @@
       </node>
       <node
             category-path="/flowcontrol/trycatch"
-            factory-class="org.knime.base.node.flowcontrol.trycatch.genericcatch.DBPortCatchNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/flowcontrol/trycatch"
             factory-class="org.knime.base.node.flowcontrol.trycatch.genericcatch.GenericPortCatchNodeFactory"
             >
       </node>
@@ -2298,6 +2293,7 @@
 		<node deprecated="true" factory-class="org.knime.base.node.preproc.colconvert.categorytonumber.CategoryToNumberNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.preproc.colcombine.ColCombineNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.preproc.columntogrid.ColumnToGridNodeFactory"></node>
+		<node deprecated="true" factory-class="org.knime.base.node.flowcontrol.trycatch.genericcatch.DBPortCatchNodeFactory"/>
 		<node deprecated="true" factory-class="org.knime.base.node.io.database.DBGroupByNodeFactory"></node>
         <node deprecated="true" factory-class="org.knime.base.node.io.database.DBReaderNodeFactory"/>
         <node deprecated="true" factory-class="org.knime.base.node.io.database.DBReaderConnectionNodeFactory"/>
@@ -2352,6 +2348,8 @@
 		<node deprecated="true" factory-class="org.knime.base.node.io.filereader.VariableFileReaderNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.flowvariable.variabletotablerow.VariableToTableNodeFactory"></node> 
 		<node deprecated="true" factory-class="org.knime.base.node.viz.enrichment.EnrichmentPlotterFactory"></node> 
+		
+        
    </extension>
          
    <extension point="org.knime.workbench.repository.metanode">

@@ -55,6 +55,7 @@ import org.knime.core.node.port.database.DatabasePortObject;
 /**
  * @author M. Berthold, University of Konstanz
  */
+@Deprecated
 public class DBPortCatchNodeFactory extends NodeFactory<GenericCatchNodeModel> {
 
     /**
