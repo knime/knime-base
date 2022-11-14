@@ -81,14 +81,19 @@ final class DynamicSorterItemContext
 
     private final String m_sortOrderKey;
 
+    private final String m_alphaNumCompKey;
+
     /**
      * @param includeListKey the key from/to which the includeList is loaded/saved
      * @param sortOrderKey the key from/to which the sortOrder is loaded/saved
+     * @param alphaNumCompKey the key from/to which the alphaNumComp is loaded/saved
      *
      */
-    public DynamicSorterItemContext(final String includeListKey, final String sortOrderKey) {
+    public DynamicSorterItemContext(final String includeListKey, final String sortOrderKey,
+        final String alphaNumCompKey) {
         m_includeListKey = includeListKey;
         m_sortOrderKey = sortOrderKey;
+        m_alphaNumCompKey = alphaNumCompKey;
     }
 
     @Override
@@ -97,7 +102,7 @@ final class DynamicSorterItemContext
         DynamicSortItem item = null;
 
         if (!values.isEmpty()) {
-            item = new DynamicSortItem(m_items.size(), values, values.get(0), true);
+            item = new DynamicSortItem(m_items.size(), values, values.get(0), true, false);
             item.addListener(this);
             m_items.add(item);
             updateComboBoxes();
@@ -112,9 +117,11 @@ final class DynamicSorterItemContext
         return !values.isEmpty();
     }
 
-    private void createItem(final List<DataColumnSpec> values, final int selectedIndex, final boolean sortOrder) {
+    private void createItem(final List<DataColumnSpec> values, final int selectedIndex, final boolean sortOrder,
+        final boolean alphaNum) {
         if (!values.isEmpty()) {
-            DynamicSortItem item = new DynamicSortItem(m_items.size(), values, values.get(selectedIndex), sortOrder);
+            DynamicSortItem item = new DynamicSortItem(m_items.size(), values, values.get(selectedIndex), sortOrder,
+                alphaNum);
             item.addListener(this);
             m_items.add(item);
         }
@@ -182,7 +189,20 @@ final class DynamicSorterItemContext
             }
         }
 
-        if ((list != null && sortOrder != null) && (!list.isEmpty() || list.size() == sortOrder.length)) {
+        boolean[] alphaNumComp = null;
+        if (settings.containsKey(m_alphaNumCompKey)) {
+            try {
+                alphaNumComp = settings.getBooleanArray(m_alphaNumCompKey);
+            } catch (InvalidSettingsException ise) {
+                LOGGER.error("Could not load settings for alphanumeric comparison of strings", ise);
+            }
+        }
+        if (alphaNumComp == null && list != null) {
+            alphaNumComp = new boolean[list.size()];
+        }
+
+        if ((list != null && sortOrder != null)
+                && (!list.isEmpty() || list.size() == sortOrder.length)) {
             m_items.clear();
 
             final List<DataColumnSpec> values = createColumnList();
@@ -190,7 +210,7 @@ final class DynamicSorterItemContext
                 final int selectedIndex = getIndexOfSpec(values, list.get(i));
 
                 if (selectedIndex > -1) {
-                    createItem(values, selectedIndex, sortOrder[i]);
+                    createItem(values, selectedIndex, sortOrder[i], alphaNumComp[i]);
                 }
             }
             updateComboBoxes();
@@ -208,6 +228,7 @@ final class DynamicSorterItemContext
             final List<String> inclList = getSelectedColumnNames();
             settings.addStringArray(m_includeListKey, inclList.toArray(new String[inclList.size()]));
             settings.addBooleanArray(m_sortOrderKey, getSortOrder());
+            settings.addBooleanArray(m_alphaNumCompKey, getNaturalOrder());
         }
     }
 
@@ -254,5 +275,13 @@ final class DynamicSorterItemContext
             sortOrder[i] = m_items.get(i).getSortOrder();
         }
         return sortOrder;
+    }
+
+    private boolean[] getNaturalOrder() {
+        final var order = new boolean[m_items.size()];
+        for (int i = 0; i < m_items.size(); i++) {
+            order[i] = m_items.get(i).getAlphaNumComp();
+        }
+        return order;
     }
 }

@@ -122,8 +122,19 @@ final class TopKSelectorNodeModel extends NodeModel {
                 table.size(), m_settings.getK()));
         }
         final int[] indices = findColumnIndices(spec);
-        final Comparator<DataRow> rowComparator =
-            new RowComparator(indices, m_settings.getSortOrders(), m_settings.isMissingToEnd(), spec);
+        final boolean[] sortOrders = m_settings.getSortOrders();
+        final boolean missingsLast = m_settings.isMissingToEnd();
+        final var rc = RowComparator.on(spec);
+        for (var i = 0; i < indices.length; i++) {
+            final var index = indices[i];
+            final var ascending = sortOrders[i];
+            if (index == -1) {
+                rc.thenComparingRowKey(ascending, false);
+            } else {
+                rc.thenComparingColumn(index, ascending, false, missingsLast);
+            }
+        }
+        final var rowComparator = rc.build();
         final TopKSelector elementSelector = createElementSelector(rowComparator);
         final OutputOrder outputOrder = m_settings.getOutputOrder();
         final OrderPreprocessor preprocessor = outputOrder.getPreprocessor();

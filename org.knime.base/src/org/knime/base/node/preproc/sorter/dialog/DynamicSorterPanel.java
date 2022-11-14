@@ -81,9 +81,11 @@ public class DynamicSorterPanel {
      * Creates a new RestorableDynamicOrderPanel
      * @param includeListKey the key to save and load column names
      * @param sortOrderKey the key to save and load sort orders
+     * @param alphaNumCompKey the key to save and load alphanumeric string comparison
      */
-    public DynamicSorterPanel(final String includeListKey, final String sortOrderKey) {
-        m_panel = new RestorableDynamicOrderPanel<>(new DynamicSorterItemContext(includeListKey, sortOrderKey));
+    public DynamicSorterPanel(final String includeListKey, final String sortOrderKey, final String alphaNumCompKey) {
+        m_panel = new RestorableDynamicOrderPanel<>(new DynamicSorterItemContext(includeListKey, sortOrderKey,
+            alphaNumCompKey));
     }
 
     /**

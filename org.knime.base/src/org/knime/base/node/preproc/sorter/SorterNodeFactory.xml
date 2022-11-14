@@ -7,7 +7,9 @@
         <intro>
 			This node sorts the rows according to user-defined criteria. In the dialog, select 
 		    the columns according to which the data should be sorted. Also select
-		    whether it should be sorted in ascending or descending order.
+		    whether it should be sorted in ascending or descending order. Additionally, provides the option to
+		    compare string-compatible columns in alphanumeric instead of lexicographic order, 
+		    for example "Row2" before "Row10" instead of "Row10" before "Row2".
 		</intro>
 		<option name="Add sorting criterion">
 			Allows to refine the sorting by adding additional sorting criteria.

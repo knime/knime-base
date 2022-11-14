@@ -59,12 +59,14 @@ import java.util.List;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.StringValue;
 import org.knime.core.node.util.ColumnComboBoxRenderer;
 
 /**
@@ -112,6 +114,11 @@ final class DynamicSortItem implements DynamicPanelItem {
      */
     private final JRadioButton m_descRB = new JRadioButton(DESC);
 
+    private static final String ALPHANUM_COMP = "Alphanumeric string comparison";
+
+    private final JCheckBox m_alphaNumCompCB = new JCheckBox(ALPHANUM_COMP);
+
+
     private final JLabel textLabel;
 
     private LinkedList<SelectionChangedListener> m_listeners;
@@ -126,7 +133,7 @@ final class DynamicSortItem implements DynamicPanelItem {
      * @param sortOrder the sort
      */
     DynamicSortItem(final int id, final List<DataColumnSpec> values, final DataColumnSpec selected,
-        final boolean sortOrder) {
+        final boolean sortOrder, final boolean naturalOrder) {
         m_id = id;
         m_combovalues = values;
 
@@ -145,11 +152,11 @@ final class DynamicSortItem implements DynamicPanelItem {
         textLabel = new JLabel(bordertext);
         textLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         textLabel.setFont(new Font("AvantGarde", Font.BOLD, 12));
-        
+
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.anchor = GridBagConstraints.NORTHWEST;
-        
+
         final JPanel comboPanel = new JPanel(new GridBagLayout());
 
         c.gridy = 0;
@@ -161,6 +168,21 @@ final class DynamicSortItem implements DynamicPanelItem {
         c.insets = new Insets(0, 0, 0, 0);
         c.fill = GridBagConstraints.HORIZONTAL;
         comboPanel.add(m_combo, c);
+
+        c.gridy = 2;
+        m_alphaNumCompCB.setToolTipText("Switches to alphanumerical string sorting from lexicographical. "
+            + "For example, results in sort order “Row1, Row2, Row10” instead of “Row1, Row10, Row2”.");
+        m_alphaNumCompCB.setEnabled(selected.getType().isCompatible(StringValue.class));
+        m_alphaNumCompCB.setSelected(m_alphaNumCompCB.isEnabled() && naturalOrder);
+        comboPanel.add(m_alphaNumCompCB, c);
+        m_combo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                final var item = (DataColumnSpec) e.getItem();
+                m_alphaNumCompCB.setEnabled(item.getType().isCompatible(StringValue.class));
+            }
+        });
+
+
 
         final JPanel buttonPanel = new JPanel(new GridBagLayout());
         c.weightx = 0;
@@ -258,6 +280,10 @@ final class DynamicSortItem implements DynamicPanelItem {
 
     public boolean getSortOrder() {
         return m_ascRB.isSelected();
+    }
+
+    public boolean getAlphaNumComp() {
+        return m_alphaNumCompCB.isSelected();
     }
 
     /**

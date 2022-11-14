@@ -101,7 +101,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
 
         m_settings = new TopKSelectorSettings();
 
-        m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY);
+        m_panel = new DynamicSorterPanel(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY, null);
 
         m_kComp = new DialogComponentNumber(m_settings.getKModel(), "", 1);
 
