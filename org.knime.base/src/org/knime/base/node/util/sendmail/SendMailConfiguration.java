@@ -737,7 +737,8 @@ final class SendMailConfiguration {
 
     private void addMailProtocol(final Properties properties, final String protocol) {
         final var mail = "mail.";
-        properties.setProperty(mail + "smtp.ssl.protocols", "TLSv1 TLSv1.1 TLSv1.2");
+        // only support secure versions of TLS -- changed with AP-19572
+        properties.setProperty(mail + "smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
 
         properties.setProperty(mail + protocol + ".host", getSmtpHost());
         properties.setProperty(mail + protocol + ".port", Integer.toString(getSmtpPort()));
