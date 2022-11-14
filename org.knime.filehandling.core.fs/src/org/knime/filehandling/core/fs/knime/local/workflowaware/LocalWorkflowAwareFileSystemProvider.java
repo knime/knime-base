@@ -48,7 +48,6 @@
  */
 package org.knime.filehandling.core.fs.knime.local.workflowaware;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -60,6 +59,7 @@ import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -71,13 +71,15 @@ import java.util.Set;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.FSFiles;
-import org.knime.filehandling.core.connections.WorkflowAware;
-import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling;
-import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Entity;
-import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Operation;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
 import org.knime.filehandling.core.connections.base.attributes.BaseFileAttributes;
+import org.knime.filehandling.core.connections.workflowaware.Entity;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAware;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareErrorHandling;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareErrorHandling.Operation;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.knime.filehandling.core.util.TempPathCloseable;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
@@ -268,14 +270,16 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     }
 
     @Override
-    public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
+    public void deployWorkflow(final Path source, final FSPath dest, final boolean overwrite, final boolean attemptOpen)
         throws IOException {
 
-        final LocalWorkflowAwarePath absoluteDest = checkCastAndAbsolutizePath(dest);
+        checkFileSystemOpenAndNotClosing();
+        final var absoluteDest = checkCastAndAbsolutizePath(dest);
+
         final String localMountId = getMountID().orElseThrow(() -> new IOException("Cannot deploy workflow because target file system does not have a mount ID"));
         try {
             MountPointFileSystemAccessService.instance().deployWorkflow( //
-                source, //
+                source.toFile(), //
                 new URI("knime", localMountId, absoluteDest.toString(), null), //
                overwrite, //
                attemptOpen);
@@ -292,15 +296,25 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     }
 
     @Override
-    public File toLocalWorkflowDir(final Path src) throws IOException {
-        final Path absoluteSrc = src.toAbsolutePath().normalize();
-        String currentMountpoint = getCurrentMountpoint();
-        URI uri;
-        try {
-            uri = new URI("knime", currentMountpoint, absoluteSrc.toString(), null);
-            return MountPointFileSystemAccessService.instance().toLocalWorkflowDir(uri);
-        } catch (URISyntaxException ex) {
-            throw new IOException(ex);
-        }
+    public TempPathCloseable toLocalWorkflowDir(final FSPath src) throws IOException {
+        checkFileSystemOpenAndNotClosing();
+
+        var checkedPath = checkCastAndAbsolutizePath(src);
+        checkSupport(checkedPath, Operation.GET_WORKFLOW);
+
+        final var realPath = toLocalPathWithAccessibilityCheck(checkedPath);
+        return new TempPathCloseable(realPath) {
+            @Override
+            public void close() {
+                // do nothing
+            }
+        };
+    }
+
+    @Override
+    public Entity getEntityOf(final FSPath path) throws IOException {
+        checkFileSystemOpenAndNotClosing();
+        var checkedPath = checkCastAndAbsolutizePath(path);
+        return getEntity(checkedPath).orElseThrow(() -> new NoSuchFileException(path.toString()));
     }
 }

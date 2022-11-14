@@ -44,51 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   5 Mar 2020 ("Marc Bux, KNIME GmbH, Berlin, Germany"): created
+ *   Nov 9, 2022 (bjoern): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.util;
 
-import java.io.File;
+import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
+
+import org.knime.filehandling.core.connections.FSFiles;
 
 /**
- * An interface providing methods for handling workflows. While such workflows are not much different than regular
- * directories on the file system, they often require special handling, e.g., to properly display them in the explorer
- * view.
+ * Provides a temporary file or folder, e.g. as the return value of a method. This class also implements
+ * {@link Closeable}, whose {@link #close()} method deletes the temp file/folder.
  *
- * @author "Marc Bux, KNIME GmbH, Berlin, Germany"
- * @noreference non-public API
- * @noimplement non-public API
+ * @author Bjoern Lohrmann, KNIME GmbH
  */
-public interface WorkflowAware {
+public class TempPathCloseable implements Closeable {
+
+    private final Path m_tempFileOrFolder;
 
     /**
-     * Deploys a workflow from a local file source to a destination path. Also provides the option of attempting to open
-     * the workflow at the destination once it has been deployed.
-     *
-     * @param source the local file representing the to-be-deployed workflow
-     * @param dest where to deploy the workflow
-     * @param overwrite overwrite workflow if it already exists
-     * @param attemptOpen if true, attempt to open the workflow after deployment
-     *
-     * @throws IOException if this method fails for any reason
+     * @param tempFileOrFolder
      */
-    void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
-        throws IOException;
+    public TempPathCloseable(final Path tempFileOrFolder) {
+        m_tempFileOrFolder = tempFileOrFolder;
+    }
 
     /**
-     * Turns a workflow path into a local workflow directory.
-     *
-     * @param path the orginal workflow path
-     * @return a file representing the local workflow directory
-     * @throws IOException
+     * @return the tempFileOrFolder
      */
-    File toLocalWorkflowDir(Path path) throws IOException;
+    public Path getTempFileOrFolder() {
+        return m_tempFileOrFolder;
+    }
 
-    /**
-     * @return the (default) mount ID of the underlying workflow repository or mountpoint.
-     */
-    Optional<String> getMountID();
+    @Override
+    public void close() throws IOException {
+        if (Files.isDirectory(m_tempFileOrFolder)) {
+            FSFiles.deleteRecursively(m_tempFileOrFolder);
+        } else {
+            Files.deleteIfExists(m_tempFileOrFolder);
+        }
+    }
 }

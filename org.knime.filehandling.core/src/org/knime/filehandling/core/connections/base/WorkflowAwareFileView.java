@@ -55,7 +55,8 @@ import java.io.UncheckedIOException;
 import javax.swing.Icon;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareUtil;
 import org.knime.filehandling.core.filechooser.NioFileView;
 import org.knime.filehandling.core.util.Icons;
 
@@ -74,15 +75,14 @@ public final class WorkflowAwareFileView extends NioFileView {
     @Override
     public Icon getIcon(final File f) {
         try {
-            final var path = f.toPath();
-            if (path instanceof WorkflowAwarePath && ((WorkflowAwarePath)path).isWorkflow()) {
+            if (WorkflowAwareUtil.isWorkflowLikeEntity((FSPath)f.toPath())) {
                 return Icons.getWorkflowIcon();
+            } else {
+                return super.getIcon(f);
             }
         } catch (final IOException e) {
-            // something went wrong, use default icon
             LOGGER.debug(e);
             throw new UncheckedIOException(e);
         }
-        return super.getIcon(f);
     }
 }

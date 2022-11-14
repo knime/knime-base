@@ -46,15 +46,11 @@
  * History
  *   May 6, 2021 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.workflowaware;
 
-import java.nio.file.AccessMode;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.stream.Collectors;
 
 /**
  * Contains methods and classes for error handling in {@link WorkflowAware} file systems.
@@ -65,77 +61,6 @@ public final class WorkflowAwareErrorHandling {
 
     private WorkflowAwareErrorHandling() {
         // static utility class
-    }
-
-    /**
-     * The kind of entity encountered by a {@link WorkflowAware} file system.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     */
-    public enum Entity {
-            /**
-             * A normal KNIME workflow.
-             */
-            WORKFLOW("Workflow", EnumSet.noneOf(Operation.class)),
-            /**
-             * A (shared) component.
-             */
-            COMPONENT("Component", EnumSet.noneOf(Operation.class)),
-            /**
-             * A workflow group (essentially a folder).
-             */
-            WORKFLOW_GROUP("Workflow group", EnumSet.of(Operation.LIST_FOLDER_CONTENT, Operation.CREATE_FOLDER)),
-            /**
-             * A (shared) meta node.
-             */
-            METANODE("Metanode", EnumSet.noneOf(Operation.class)),
-            /**
-             * A Hub Space.
-             */
-            SPACE("Space", EnumSet.of(Operation.CREATE_FOLDER, Operation.LIST_FOLDER_CONTENT)),
-            /**
-             * KNIME Server can't distinguish between a component and a metanode, hence we need to inform the user
-             * that we might be dealing with either of the two.
-             * TODO remove once the hub replaces the server and we can distinguish between components and metanodes.
-             */
-            WORKFLOW_TEMPLATE("Metanode/Component", EnumSet.noneOf(Operation.class)),
-            /**
-             * A data item. Essentially anything that isn't one of the other entities.
-             */
-            DATA("Data item", EnumSet.of(Operation.NEW_INPUT_STREAM, Operation.NEW_OUTPUT_STREAM));
-
-
-        private final EnumSet<Operation> m_supportedOperations;
-
-        private final String m_readableString;
-
-        private Entity(final String readableString, final EnumSet<Operation> supportedOperations) {
-            m_supportedOperations = supportedOperations;
-            m_readableString = readableString;
-        }
-
-        boolean supports(final Operation operation) {
-            return m_supportedOperations.contains(operation);
-        }
-
-        /**
-         * Checks whether this entity supports the provided operation.
-         *
-         * @param path used for error messages
-         * @param operation to check for support
-         * @throws WorkflowAwareFSException if this entity doesn't support the provided operation
-         */
-        public void checkSupport(final String path, final Operation operation) throws WorkflowAwareFSException {
-            if (!supports(operation)) {
-                final String reason = operation.createErrorMessage(this);
-                throw new WorkflowAwareFSException(path, reason, this, operation);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return m_readableString;
-        }
     }
 
     /**
@@ -163,7 +88,17 @@ public final class WorkflowAwareErrorHandling {
              * Creating a new folder e.g. via
              * {@link Files#createDirectory(java.nio.file.Path, java.nio.file.attribute.FileAttribute...)}.
              */
-            CREATE_FOLDER("It's not possible to create a folder in a %s.", false);
+            CREATE_FOLDER("It's not possible to create a folder in a %s.", false),
+            /**
+             * Reading a workflow or workflow-like object, e.g. via
+             * {@link WorkflowAware#toLocalWorkflowDir(org.knime.filehandling.core.connections.FSPath)}.
+             */
+            GET_WORKFLOW("Reading a %s is not possible.", true),
+            /**
+             * Deploying a workflow or workflow-like object, e.g. via
+             * {@link WorkflowAware#deployWorkflow(java.nio.file.Path, org.knime.filehandling.core.connections.FSPath, boolean, boolean)}.
+             */
+            PUT_WORKFLOW("Deploying a %s is not possible.", true);
 
         private final String m_errorTemplate;
 
@@ -175,7 +110,7 @@ public final class WorkflowAwareErrorHandling {
         }
 
         String createErrorMessage(final Entity entity) {
-            final String message = String.format(m_errorTemplate, entity);
+            final var message = String.format(m_errorTemplate, entity);
             if (m_appendIntegratedDeploymentNoteForWorkflows && entity == Entity.WORKFLOW) {
                 return message + " See the Integrated Deployment extension for handling workflows.";
             } else {
@@ -188,26 +123,6 @@ public final class WorkflowAwareErrorHandling {
             return m_errorTemplate;
         }
 
-    }
-
-    /**
-     * Creates a standardized exception for {@link WorkflowAware} file systems telling the user that accessing a
-     * workflow in the provided manners is not supported.
-     *
-     * @param workflowPath path to a workflow or component
-     * @param modes the {@link AccessMode AccessModes} must not be empty or null
-     * @return a {@link FileSystemException} that tells the user that accessing a workflow in the provided manner is not
-     *         supported
-     */
-    public static FileSystemException createAccessKnimeObjectException(final String workflowPath,
-        final AccessMode[] modes) {
-        final String accessModeString = Arrays.stream(modes)//
-            .map(AccessMode::toString)//
-            .map(String::toLowerCase)//
-            .collect(Collectors.joining("/"));
-        final String reason = String.format("The access mode%s %s are not supported on workflows or components.",
-            modes.length > 1 ? "s" : "", accessModeString);
-        return new FileSystemException(workflowPath, null, reason);
     }
 
     /**

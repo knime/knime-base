@@ -72,10 +72,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAware;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareUtil;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 
 /**
@@ -597,6 +600,42 @@ public final class FSFiles {
         @Override
         public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
             return FileVisitResult.CONTINUE;
+        }
+    }
+
+    /**
+     * Copy a file to a target file. Support workflow copy between {@link WorkflowAware} filesystems.
+     *
+     * @param source the path to the file to copy
+     * @param target the path to the target file (may be associated with a different provider to the source path)
+     * @param options options specifying how the copy should be done
+     * @throws IOException
+     */
+    public static void copy(final FSPath source, final FSPath target, final CopyOption... options) throws IOException {
+        if (WorkflowAwareUtil.isWorkflowLikeEntity(source)) {
+            copyWorkflowLikeEntity(source, target, options);
+        } else {
+            Files.copy(source, target, options);
+        }
+    }
+
+    @SuppressWarnings("resource")
+    private static void copyWorkflowLikeEntity(final FSPath source, final FSPath target, final CopyOption... options)
+        throws IOException {
+
+        if (!WorkflowAwareUtil.isWorkflowAwarePath(target)) {
+            throw new IOException("Target file system does not support workflow transfer");
+        }
+
+        if (exists(target) && !Set.of(options).contains(StandardCopyOption.REPLACE_EXISTING)) {
+            throw new FileAlreadyExistsException(target.toString());
+        }
+
+        var sourceProvider = (WorkflowAware)source.getFileSystem().provider();
+        var targetProvider = (WorkflowAware)target.getFileSystem().provider();
+
+        try (var tempPathCloseable = sourceProvider.toLocalWorkflowDir(source)) {
+            targetProvider.deployWorkflow(tempPathCloseable.getTempFileOrFolder(), target, true, false);
         }
     }
 }

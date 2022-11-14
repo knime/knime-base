@@ -44,25 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 27, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   5 Mar 2020 ("Marc Bux, KNIME GmbH, Berlin, Germany"): created
  */
-package org.knime.filehandling.core.connections;
+package org.knime.filehandling.core.connections.workflowaware;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.util.Optional;
+
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.util.TempPathCloseable;
 
 /**
- * Interface implemented by all {@link FSPath}s that can identify, whether or not it points to a KNIME workflow.
+ * An interface providing methods for handling workflows. While such workflows are not much different than regular
+ * directories on the file system, they often require special handling, e.g., to properly display them in the explorer
+ * view.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author "Marc Bux, KNIME GmbH, Berlin, Germany"
+ * @noreference non-public API
+ * @noimplement non-public API
  */
-@FunctionalInterface
-public interface WorkflowAwarePath {
+public interface WorkflowAware {
 
     /**
-     * Returns {@code true} if the path points to a KNIME workflow and {@code false} otherwise.
+     * Returns the type of {@link Entity} that the given path points to.
      *
-     * @return a flag indicating whether or not the current path points to a KNIME workflow
-     * @throws IOException - If something goes wrong
+     * @param path The path for which to determine the {@link Entity}.
+     * @return the type of {@link Entity} that the given path points to
+     * @throws NoSuchFileException If the given path does not exist.
+     * @throws AccessDeniedException If the type of the entity could not be determined due to permission issues.
+     * @throws IOException If anything else went wrong.
      */
-    boolean isWorkflow() throws IOException;
+    Entity getEntityOf(FSPath path) throws IOException;
+
+    /**
+     * Deploys a workflow (in local directory shape) to a destination path. Also provides the option of attempting to
+     * open the workflow at the destination once it has been deployed.
+     *
+     * @param source the local file representing the to-be-deployed workflow
+     * @param dest where to deploy the workflow
+     * @param overwrite overwrite workflow if it already exists
+     * @param attemptOpen if true, attempt to open the workflow after deployment
+     *
+     * @throws IOException if this method fails for any reason
+     */
+    void deployWorkflow(final Path source, final FSPath dest, final boolean overwrite, final boolean attemptOpen)
+        throws IOException;
+
+    /**
+     * Turns a workflow path into a local workflow directory.
+     *
+     * @param workflowToRead The path of the workflow to read.
+     * @return a {@link TempPathCloseable} whose path references the workflow in its local directory shape.
+     * @throws IOException
+     */
+    TempPathCloseable toLocalWorkflowDir(FSPath workflowToRead) throws IOException;
+
+    /**
+     * @return the (default) mount ID of the underlying workflow repository or mountpoint.
+     */
+    Optional<String> getMountID();
 }

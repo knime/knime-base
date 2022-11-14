@@ -48,9 +48,6 @@
  */
 package org.knime.filehandling.core.fs.knime.local.workflowaware;
 
-import java.io.IOException;
-
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
 
 /**
@@ -60,7 +57,7 @@ import org.knime.filehandling.core.connections.base.UnixStylePath;
  * @noreference non-public API
  * @noinstantiate non-public API
  */
-public final class LocalWorkflowAwarePath extends UnixStylePath implements WorkflowAwarePath {
+public final class LocalWorkflowAwarePath extends UnixStylePath {
 
     /**
      * Creates a path using a given file system and path parts.
@@ -77,12 +74,5 @@ public final class LocalWorkflowAwarePath extends UnixStylePath implements Workf
     @Override
     public LocalWorkflowAwareFileSystem getFileSystem() {
         return (LocalWorkflowAwareFileSystem)super.getFileSystem();
-    }
-
-    @Override
-    @SuppressWarnings("resource")
-    public boolean isWorkflow() throws IOException {
-        final LocalWorkflowAwareFileSystem fs = getFileSystem();
-        return fs.isWorkflow(this);
     }
 }

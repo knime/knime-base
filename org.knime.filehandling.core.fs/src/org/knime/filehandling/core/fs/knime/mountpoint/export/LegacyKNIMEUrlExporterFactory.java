@@ -48,11 +48,11 @@
  */
 package org.knime.filehandling.core.fs.knime.mountpoint.export;
 
-import org.knime.filehandling.core.connections.WorkflowAware;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
 import org.knime.filehandling.core.connections.uriexport.base.BaseURIExporterMetaInfo;
 import org.knime.filehandling.core.connections.uriexport.base.LegacyKNIMEUriExporterHelper;
 import org.knime.filehandling.core.connections.uriexport.noconfig.NoConfigURIExporterFactory;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAware;
 
 /**
  * {@link URIExporter} that generates mountpoint-absolute knime:// URLs.

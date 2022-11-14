@@ -129,7 +129,7 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
             return FileStatus.UNMODIFIED;
         }
         final FileStatus fileStatus = FSFiles.exists(dest) ? FileStatus.OVERWRITTEN : FileStatus.CREATED;
-        Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+        FSFiles.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
         return fileStatus;
     }
 
@@ -143,7 +143,7 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
         if (FSFiles.exists(dest)) {
             throw new FileAlreadyExistsException(dest.toString());
         }
-        Files.copy(src, dest);
+        FSFiles.copy(src, dest);
         return FileStatus.CREATED;
     }
 
@@ -151,7 +151,7 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
         if (FSFiles.exists(dest)) {
             return FileStatus.UNMODIFIED;
         } else {
-            Files.copy(src, dest);
+            FSFiles.copy(src, dest);
             return FileStatus.CREATED;
         }
     }
@@ -169,7 +169,7 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
             }
         }
         if (fileStatus != FileStatus.UNMODIFIED) {
-            Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+            FSFiles.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
         }
         return fileStatus;
     }

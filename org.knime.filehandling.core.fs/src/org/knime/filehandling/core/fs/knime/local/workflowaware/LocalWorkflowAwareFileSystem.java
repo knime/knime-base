@@ -65,8 +65,8 @@ import org.knime.core.node.workflow.MetaNodeTemplateInformation;
 import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.core.util.workflowalizer.MetadataConfig;
 import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Entity;
 import org.knime.filehandling.core.connections.base.BaseFileSystem;
+import org.knime.filehandling.core.connections.workflowaware.Entity;
 
 /**
  * A workflow-aware file system implementation that is backed by a folder in the local file system. The contents of this
@@ -202,7 +202,7 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
      */
     protected Optional<Entity> getEntity(final LocalWorkflowAwarePath path) throws IOException {
         // throws NoSuchFileException if it points into a workflow
-        final Path localPath = toLocalPathWithAccessibilityCheck(path);
+        final var localPath = toLocalPathWithAccessibilityCheck(path);
         if (!Files.exists(localPath)) {
             return Optional.empty();
         } else if (!Files.isDirectory(localPath)) {

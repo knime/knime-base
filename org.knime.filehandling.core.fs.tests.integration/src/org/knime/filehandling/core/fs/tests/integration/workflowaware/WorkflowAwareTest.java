@@ -64,11 +64,10 @@ import java.util.UUID;
 import org.junit.Test;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.WorkflowAware;
-import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Entity;
-import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.Operation;
-import org.knime.filehandling.core.connections.WorkflowAwareErrorHandling.WorkflowAwareFSException;
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
+import org.knime.filehandling.core.connections.workflowaware.Entity;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAware;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareErrorHandling.Operation;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareErrorHandling.WorkflowAwareFSException;
 import org.knime.filehandling.core.fs.tests.integration.AbstractParameterizedFSTest;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.WorkflowAwareFSTestInitializer;
@@ -114,6 +113,10 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
 
     private boolean isWorkflowAware() {
         return m_testInitializer instanceof WorkflowAwareFSTestInitializer;
+    }
+
+    private static void assertEntityType(final Entity expected, final FSPath path) throws IOException {
+        assertEquals(expected, path.getFileSystem().getWorkflowAware().orElseThrow().getEntityOf(path));
     }
 
     @Test
@@ -203,15 +206,19 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
             p -> Files.copy(p, p.getFileSystem().getPath(p.toString() + "_copy")),
             p -> {
                 assertTrue(Files.exists(p));
-                assertTrue(((WorkflowAwarePath)p).isWorkflow());
+                assertEntityType(Entity.WORKFLOW, p);
                 final var copyPath = p.getFileSystem().getPath(p.toString() + "_copy");
                 assertTrue(Files.exists(copyPath));
-                assertTrue(((WorkflowAwarePath) copyPath).isWorkflow());
+                assertEntityType(Entity.WORKFLOW, copyPath);
             });
     }
 
     @Test
     public void test_copy_component() throws IOException {
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST_RELATIVE_MOUNTPOINT);
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST_RELATIVE_WORKFLOW);
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST);
+
         if (!isWorkflowAware()) {
             return;
         }
@@ -220,15 +227,40 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
             p -> Files.copy(p, p.getFileSystem().getPath(p.toString() + "_copy")),
             p -> {
                 assertTrue(Files.exists(p));
-                assertTrue(((WorkflowAwarePath)p).isWorkflow());
+                assertEntityType(Entity.COMPONENT, p);
                 final var copyPath = p.getFileSystem().getPath(p.toString() + "_copy");
                 assertTrue(Files.exists(copyPath));
-                assertTrue(((WorkflowAwarePath) copyPath).isWorkflow());
+                assertEntityType(Entity.COMPONENT, copyPath);
             });
     }
 
     @Test
+    public void test_copy_component_server() throws IOException {
+        // Server REST API does not distinguish metanodes and components
+        ignoreAllExcept(KNIME_REST, KNIME_REST_RELATIVE_MOUNTPOINT, KNIME_REST_RELATIVE_WORKFLOW);
+
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        test_successful_operation_on_knime_object(this::createComponent, //
+            p -> Files.copy(p, p.getFileSystem().getPath(p.toString() + "_copy")),
+            p -> {
+                assertTrue(Files.exists(p));
+                assertEntityType(Entity.WORKFLOW_TEMPLATE, p);
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_copy");
+                assertTrue(Files.exists(copyPath));
+                assertEntityType(Entity.WORKFLOW_TEMPLATE, copyPath);
+            });
+    }
+
+
+    @Test
     public void test_copy_metanode() throws IOException {
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST_RELATIVE_MOUNTPOINT);
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST_RELATIVE_WORKFLOW);
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST);
+
         if (!isWorkflowAware()) {
             return;
         }
@@ -236,12 +268,32 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
             p -> Files.copy(p, p.getFileSystem().getPath(p.toString() + "_copy")),
             p -> {
                 assertTrue(Files.exists(p));
-                assertTrue(((WorkflowAwarePath)p).isWorkflow());
+                assertEntityType(Entity.METANODE, p);
                 final var copyPath = p.getFileSystem().getPath(p.toString() + "_copy");
                 assertTrue(Files.exists(copyPath));
-                assertTrue(((WorkflowAwarePath) copyPath).isWorkflow());
+                assertEntityType(Entity.METANODE, copyPath);
             });
     }
+
+    @Test
+    public void test_copy_metanode_server() throws IOException {
+        // Server REST API does not distinguish metanodes and components
+        ignoreAllExcept(KNIME_REST, KNIME_REST_RELATIVE_MOUNTPOINT, KNIME_REST_RELATIVE_WORKFLOW);
+
+        if (!isWorkflowAware()) {
+            return;
+        }
+        test_successful_operation_on_knime_object(this::createMetanode, //
+            p -> Files.copy(p, p.getFileSystem().getPath(p.toString() + "_copy")),
+            p -> {
+                assertTrue(Files.exists(p));
+                assertEntityType(Entity.WORKFLOW_TEMPLATE, p);
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_copy");
+                assertTrue(Files.exists(copyPath));
+                assertEntityType(Entity.WORKFLOW_TEMPLATE, copyPath);
+            });
+    }
+
 
     @Test
     public void test_copy_workflow_to_existing_target_fails() throws IOException {
@@ -278,13 +330,13 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         final var workflowPath2 = createWorkflow();
         final var existingFile = m_testInitializer.createFile("testfile");
 
-        assertTrue(((WorkflowAwarePath)workflowPath2).isWorkflow());
+        assertEntityType(Entity.WORKFLOW, workflowPath2);
         Files.copy(copySource, workflowPath2, StandardCopyOption.REPLACE_EXISTING);
-        assertTrue(((WorkflowAwarePath)workflowPath2).isWorkflow());
+        assertEntityType(Entity.WORKFLOW, workflowPath2);
 
-        assertFalse(((WorkflowAwarePath)existingFile).isWorkflow());
+        assertEntityType(Entity.DATA, existingFile);
         Files.copy(copySource, existingFile, StandardCopyOption.REPLACE_EXISTING);
-        assertTrue(((WorkflowAwarePath)existingFile).isWorkflow());
+        assertEntityType(Entity.WORKFLOW, existingFile);
     }
 
     @Test
@@ -296,14 +348,18 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         test_successful_operation_on_knime_object(this::createWorkflow, //
             p -> Files.move(p, p.getFileSystem().getPath(p.toString() + "_moved")), p -> {
                 assertFalse(Files.exists(p));
-                final var copyPath = p.getFileSystem().getPath(p.toString() + "_moved");
-                assertTrue(Files.exists(copyPath));
-                assertTrue(((WorkflowAwarePath)copyPath).isWorkflow());
+                final var movedPath = p.getFileSystem().getPath(p.toString() + "_moved");
+                assertTrue(Files.exists(movedPath));
+                assertEntityType(Entity.WORKFLOW, movedPath);
             });
     }
 
     @Test
     public void test_move_component() throws IOException {
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST_RELATIVE_MOUNTPOINT);
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST_RELATIVE_WORKFLOW);
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST);
+
         if (!isWorkflowAware()) {
             return;
         }
@@ -313,12 +369,34 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
                 assertFalse(Files.exists(p));
                 final var copyPath = p.getFileSystem().getPath(p.toString() + "_moved");
                 assertTrue(Files.exists(copyPath));
-                assertTrue(((WorkflowAwarePath)copyPath).isWorkflow());
+                assertEntityType(Entity.COMPONENT, copyPath);
             });
     }
 
+    public void test_move_component_server() throws IOException {
+        // Server REST API does not distinguish metanodes and components
+        ignoreAllExcept(KNIME_REST, KNIME_REST_RELATIVE_MOUNTPOINT, KNIME_REST_RELATIVE_WORKFLOW);
+
+        if (!isWorkflowAware()) {
+            return;
+        }
+
+        test_successful_operation_on_knime_object(this::createComponent, //
+            p -> Files.move(p, p.getFileSystem().getPath(p.toString() + "_moved")), p -> {
+                assertFalse(Files.exists(p));
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_moved");
+                assertTrue(Files.exists(copyPath));
+                assertEntityType(Entity.WORKFLOW_TEMPLATE, copyPath);
+            });
+    }
+
+
     @Test
     public void test_move_metanode() throws IOException {
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST_RELATIVE_MOUNTPOINT);
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST_RELATIVE_WORKFLOW);
+        ignoreWithReason("Server REST API does not distinguish metanodes and components", KNIME_REST);
+
         if (!isWorkflowAware()) {
             return;
         }
@@ -327,9 +405,27 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
                 assertFalse(Files.exists(p));
                 final var copyPath = p.getFileSystem().getPath(p.toString() + "_moved");
                 assertTrue(Files.exists(copyPath));
-                assertTrue(((WorkflowAwarePath)copyPath).isWorkflow());
+                assertEntityType(Entity.METANODE, copyPath);
             });
     }
+
+    @Test
+    public void test_move_metanode_server() throws IOException {
+        // Server REST API does not distinguish metanodes and components
+        ignoreAllExcept(KNIME_REST, KNIME_REST_RELATIVE_MOUNTPOINT, KNIME_REST_RELATIVE_WORKFLOW);
+
+        if (!isWorkflowAware()) {
+            return;
+        }
+        test_successful_operation_on_knime_object(this::createMetanode, //
+            p -> Files.move(p, p.getFileSystem().getPath(p.toString() + "_moved")), p -> {
+                assertFalse(Files.exists(p));
+                final var copyPath = p.getFileSystem().getPath(p.toString() + "_moved");
+                assertTrue(Files.exists(copyPath));
+                assertEntityType(Entity.WORKFLOW_TEMPLATE, copyPath);
+            });
+    }
+
 
     @Test
     public void test_move_workflow_to_existing_target_fails() throws IOException {
@@ -369,17 +465,17 @@ public class WorkflowAwareTest extends AbstractParameterizedFSTest {
         final var moveSource1 = createWorkflow();
         final var workflowPath2 = createWorkflow();
 
-        assertTrue(((WorkflowAwarePath)workflowPath2).isWorkflow());
+        assertEntityType(Entity.WORKFLOW, workflowPath2);
         Files.move(moveSource1, workflowPath2, StandardCopyOption.REPLACE_EXISTING);
         assertFalse(Files.exists(moveSource1));
-        assertTrue(((WorkflowAwarePath)workflowPath2).isWorkflow());
+        assertEntityType(Entity.WORKFLOW, workflowPath2);
 
         final var moveSource2 = createWorkflow();
         final var existingFile = m_testInitializer.createFile("testfile");
-        assertFalse(((WorkflowAwarePath)existingFile).isWorkflow());
+        assertEntityType(Entity.DATA, existingFile);
         Files.move(moveSource2, existingFile, StandardCopyOption.REPLACE_EXISTING);
         assertFalse(Files.exists(moveSource2));
-        assertTrue(((WorkflowAwarePath)existingFile).isWorkflow());
+        assertEntityType(Entity.WORKFLOW, existingFile);
     }
 
     private void test_failing_operation_on_knime_object(final CheckedExceptionSupplier<FSPath, IOException> objectCreator,

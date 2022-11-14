@@ -62,6 +62,7 @@ import java.util.UUID;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAware;
 
 /**
  * Abstract super class implemented by all NIO file systems provided in KNIME. This class adds the following features on
@@ -331,6 +332,18 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
      */
     public final URI getFileSystemBaseURI() {
         return m_fsBaseUri;
+    }
+
+    /**
+     * @return an {@link Optional} that contains a {@link WorkflowAware} instance, if this file system is
+     *         {@link WorkflowAware}; an empty {@link Optional} otherwise.
+     */
+    public Optional<WorkflowAware> getWorkflowAware() {
+        if (provider() instanceof WorkflowAware) {
+            return Optional.of((WorkflowAware)provider());
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override

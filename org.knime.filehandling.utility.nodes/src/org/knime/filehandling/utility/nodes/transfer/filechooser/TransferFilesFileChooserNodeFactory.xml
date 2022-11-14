@@ -16,11 +16,6 @@
 			either copy or move a single file, a complete folder or the files in a selected folder, with the option to
 			include subfolders, to a specified folder. If the "Delete source files (move)" option is checked the node
 			performs a move operation for which the source files will be deleted after the copying process is done.
-			<br/>
-			<b>Note:</b>This node cannot transfer KNIME artifacts such as workflows. In order to transfer
-			workflows please use a combination of 
-			<a href="https://hub.knime.com/knime/extensions/org.knime.features.buildworkflows/latest/org.knime.buildworkflows.reader.WorkflowReaderNodeFactory"><i>Workflow Reader</i></a> and 
-			<a href="https://kni.me/n/ouYgT_6spFNuvnv_"><i>Workflow Writer</i></a> instead.
 			</p>
 
             <p>

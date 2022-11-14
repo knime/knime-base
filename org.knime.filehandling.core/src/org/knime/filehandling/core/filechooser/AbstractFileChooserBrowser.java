@@ -56,7 +56,6 @@ import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -75,7 +74,8 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.AbstractJFileChooserBrowser;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.util.SimpleFileFilter;
-import org.knime.filehandling.core.connections.WorkflowAwarePath;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareUtil;
 
 /**
  * An abstract file system browser that uses the {@link JFileChooser} but allows sub-classes to provide, e.g., custom
@@ -256,26 +256,28 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
         }
     }
 
-    /*
+    /**
      * File filter for workflows only.
      */
     private static FileFilter createWorkflowFilter() {
-        return new FileFilter() { // NOSONAR
+        return new FileFilter() {
 
             @Override
             public boolean accept(final File f) {
                 if (f.isDirectory()) {
                     return true;
                 }
-                Path path = f.toPath();
-                if (path instanceof WorkflowAwarePath) {
-                    try {
-                        return ((WorkflowAwarePath)path).isWorkflow();
-                    } catch (IOException ex) { // NOSONAR
-                        return false;
+
+                try {
+                    if (f.toPath() instanceof FSPath) {
+                        return WorkflowAwareUtil.isWorkflowLikeEntity((FSPath)f.toPath());
+                    } else {
+                        // in the local file system browser we don't have NioFile objects that
+                        // return an FSPath
+                        return f.getName().toLowerCase().endsWith("knwf");
                     }
-                } else {
-                    return f.getName().toLowerCase().endsWith("knwf");
+                } catch (IOException ex) { // NOSONAR
+                    return false;
                 }
             }
 
@@ -283,7 +285,6 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
             public String getDescription() {
                 return "Workflow";
             }
-
         };
     }
 

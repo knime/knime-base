@@ -48,11 +48,11 @@
  */
 package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystemProvider;
 
 /**
@@ -63,8 +63,8 @@ public class LocalRelativeToFileSystemProvider extends LocalWorkflowAwareFileSys
 
     @SuppressWarnings("resource")
     @Override
-    public void deployWorkflow(final File source, final Path dest, final boolean overwrite, final boolean attemptOpen)
-        throws IOException {
+    public void deployWorkflow(final Path source, final FSPath dest, final boolean overwrite,
+        final boolean attemptOpen) throws IOException {
 
         if (getFileSystemInternal().isWorkflowDataFileSystem()) {
             throw new UnsupportedOperationException("Cannot deploy workflow to the workflow data area.");

@@ -53,7 +53,7 @@ import javax.swing.filechooser.FileView;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.WorkflowAware;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAware;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
