@@ -119,10 +119,13 @@ public final class FileSystemChooserUtils {
      */
     private static FileSystemSpecificConfig[] createSpecificConfigs(final Set<FSCategory> convenienceFS,
         final PortsConfiguration portsConfig, final String portId) {
+
         final boolean hasPort = hasFSPort(portsConfig, portId);
+
         // CONNECTED is always available, whether specified explicitly or not
         Set<FSCategory> convenienceFSWithConnected = EnumSet.copyOf(convenienceFS);
         convenienceFSWithConnected.add(FSCategory.CONNECTED);
+
         final var creators = convenienceFSWithConnected.stream()//
             .map(category -> creatorForSpecificConfig(category, portsConfig, portId));
         return creators.map(creator -> creator.apply(hasPort)).toArray(FileSystemSpecificConfig[]::new);
@@ -181,7 +184,7 @@ public final class FileSystemChooserUtils {
             case RELATIVE:
                 return new RelativeToSpecificConfig(active);
             case HUB_SPACE:
-                return new HubSpaceSpecificConfig(active && WorkflowContextUtil.isCurrentWorkflowOnHub());
+                return new HubSpaceSpecificConfig(active);
             default:
                 throw new IllegalArgumentException("Unsupported FSCategory: " + category);
 
@@ -211,6 +214,10 @@ public final class FileSystemChooserUtils {
         if (categories.contains(FSCategory.LOCAL)) {
             dialogs.add(LocalFileSystemDialog.INSTANCE);
         }
+        if (categories.contains(FSCategory.HUB_SPACE)) {
+            dialogs.add(new HubSpaceFileSystemDialog(
+                (HubSpaceSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.HUB_SPACE)));
+        }
         if (categories.contains(FSCategory.MOUNTPOINT)) {
             dialogs.add(new MountpointFileSystemDialog(
                 (MountpointSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.MOUNTPOINT)));
@@ -222,10 +229,6 @@ public final class FileSystemChooserUtils {
         if (categories.contains(FSCategory.CUSTOM_URL)) {
             dialogs.add(new CustomURLFileSystemDialog(
                 (CustomURLSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.CUSTOM_URL)));
-        }
-        if (categories.contains(FSCategory.HUB_SPACE)) {
-            dialogs.add(new HubSpaceFileSystemDialog(
-                (HubSpaceSpecificConfig)config.getFileSystemSpecifcConfig(FSCategory.HUB_SPACE)));
         }
         return new FileSystemChooser(config, dialogs.toArray(FileSystemSpecificDialog[]::new));
     }

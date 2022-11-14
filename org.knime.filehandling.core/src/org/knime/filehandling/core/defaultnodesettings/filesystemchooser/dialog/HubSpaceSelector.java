@@ -192,6 +192,10 @@ public final class HubSpaceSelector extends JPanel {
     }
 
     private synchronized void triggerSpaceResolution(final SpaceComboItem item) {
+        if (!isEnabled()) {
+            return;
+        }
+
         if (m_fetchWorker != null) {
             m_fetchWorker.cancel(true);
         }
@@ -204,6 +208,10 @@ public final class HubSpaceSelector extends JPanel {
      * Triggers a refresh of the list of Hub Spaces in combo box.
      */
     public synchronized void triggerSpaceListing() {
+        if (!isEnabled()) {
+            return;
+        }
+
         if (m_listWorker != null) {
             m_listWorker.cancel(true);
         }

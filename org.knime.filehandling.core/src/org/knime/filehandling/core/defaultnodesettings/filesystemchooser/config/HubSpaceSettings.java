@@ -68,7 +68,7 @@ import org.knime.core.node.NodeSettingsWO;
 public class HubSpaceSettings {
     private static final String CFG_SPACE_ID = "spaceId";
 
-    private static final String CFG_SPACE_NAME = "spaceName_Internals";
+    private static final String CFG_SPACE_NAME = "spaceName";
 
     private final boolean m_requireSettings;
 

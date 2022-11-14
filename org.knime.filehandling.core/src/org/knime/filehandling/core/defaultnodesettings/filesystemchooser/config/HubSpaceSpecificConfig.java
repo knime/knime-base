@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
 
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -112,9 +113,17 @@ public class HubSpaceSpecificConfig extends AbstractConvenienceFileSystemSpecifi
 
     @Override
     public void updateSpecifier(final FSLocationSpec locationSpec) {
-        String id = locationSpec.getFileSystemSpecifier()
+        var newSpaceId = locationSpec.getFileSystemSpecifier()
             .orElseThrow(() -> new IllegalArgumentException("Hub Space is not specified"));
-        m_settings.set(id, "");
+        var currSpaceId = m_settings.getSpaceId();
+
+        // During settings loading, first loadInModel() is called, and then updateSpecifier() is
+        // for the currently selected FileSystemSpecificConfig. We have to protect the loaded
+        // space name from being overriden in this case, as it may not be possible to query
+        // it from the Hub backend
+        if (!Objects.equals(newSpaceId, currSpaceId)) {
+            m_settings.set(newSpaceId, newSpaceId);
+        }
     }
 
     @Override

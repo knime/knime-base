@@ -59,16 +59,17 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSpecificConfig;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.core.util.HubAccessUtil;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
- * {@link FileSystemSpecificDialog} for the Hub Space file system.
+ * {@link FileSystemSpecificDialog} for the Hub Space file "convenience" system.
  *
  * @author Alexander Bondaletov
  */
 public class HubSpaceFileSystemDialog implements FileSystemSpecificDialog {
 
     private final JPanel m_panel = new JPanel(new GridBagLayout());
+
+//    private final boolean m_currentWorkflowOnHub;
 
     private final HubSpaceSelector m_spaceSelector;
 
@@ -77,17 +78,15 @@ public class HubSpaceFileSystemDialog implements FileSystemSpecificDialog {
      *
      */
     public HubSpaceFileSystemDialog(final HubSpaceSpecificConfig config) {
-        m_spaceSelector =
-            new HubSpaceSelector(config.getSpaceSettings(), HubAccessUtil.createHubAccessViaWorkflowContext());
+//        m_currentWorkflowOnHub = WorkflowContextUtil.isCurrentWorkflowOnHub();
+        m_spaceSelector = new HubSpaceSelector(config.getSpaceSettings(), HubAccessUtil.createHubAccessViaWorkflowContext());
 
         var gbc = new GBCBuilder().resetX().resetY().anchorLineStart().fillBoth().insets(0, 0, 0, 0);
         m_panel.add(m_spaceSelector, gbc.build());
         // add extra panel that receives any extra space available
         m_panel.add(Box.createHorizontalGlue(), gbc.fillHorizontal().setWeightX(1).incX().build());
 
-        if (WorkflowContextUtil.isCurrentWorkflowOnHub()) {
-            m_spaceSelector.triggerSpaceListing();
-        }
+        m_spaceSelector.triggerSpaceListing();
     }
 
     @Override
@@ -102,7 +101,7 @@ public class HubSpaceFileSystemDialog implements FileSystemSpecificDialog {
 
     @Override
     public void setEnabled(final boolean enabled) {
-        m_spaceSelector.setEnabled(enabled);
+//        m_spaceSelector.setEnabled(m_currentWorkflowOnHub && enabled);
     }
 
     @Override

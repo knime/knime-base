@@ -73,7 +73,7 @@ public final class HubAccessUtil {
         if (WorkflowContextUtil.isCurrentWorkflowOnHub()) {
             return (HubSpaceLocationInfo)WorkflowContextUtil.getWorkflowContextV2().getLocationInfo();
         } else {
-            throw new IllegalStateException("The workflow is not located on the Hub");
+            throw new IllegalStateException("Current workflow must be located on KNIME Hub");
         }
     }
 
