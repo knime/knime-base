@@ -46,7 +46,7 @@
  * History
  *   Oct 10, 2022 (bjoern): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog;
+package org.knime.filehandling.core.connections.base.hub;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -76,11 +76,12 @@ import javax.swing.text.Document;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.filehandling.core.connections.SpaceAware.Space;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.HubSpaceSelectionComboBox.SpaceComboItem;
+import org.knime.filehandling.core.connections.base.hub.HubSpaceSelectionComboBox.SpaceComboItem;
 import org.knime.filehandling.core.util.GBCBuilder;
 import org.knime.filehandling.core.util.Icons;
 
 /**
+ * {@link JComboBox} subclass to select Hub Spaces.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */

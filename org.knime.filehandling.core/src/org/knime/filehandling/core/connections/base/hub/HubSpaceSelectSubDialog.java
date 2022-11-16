@@ -46,7 +46,7 @@
  * History
  *   Oct 7, 2022 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog;
+package org.knime.filehandling.core.connections.base.hub;
 
 import java.awt.Component;
 import java.awt.Frame;
@@ -79,15 +79,15 @@ import javax.swing.table.DefaultTableCellRenderer;
 import org.knime.core.node.KNIMEConstants;
 import org.knime.core.util.SwingWorkerWithContext;
 import org.knime.filehandling.core.connections.SpaceAware.Space;
-import org.knime.filehandling.core.util.HubAccessUtil.HubAccess;
+import org.knime.filehandling.core.connections.base.hub.HubAccessUtil.HubAccess;
 import org.knime.filehandling.core.util.Icons;
 
 /**
- * Dialog that allows user to select Hub Space.
+ * {@link JDialog} that allows user to select Hub Space.
  *
  * @author Alexander Bondaletov
  */
-public final class HubSpaceSelectSubDialog extends JDialog {
+final class HubSpaceSelectSubDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
 

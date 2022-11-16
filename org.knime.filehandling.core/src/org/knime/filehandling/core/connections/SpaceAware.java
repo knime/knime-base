@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -60,8 +61,6 @@ public interface SpaceAware {
 
     /**
      * Wrapper object for space details.
-     *
-     * @author Zkriya Rakhimberdiyev
      */
     public static class Space {
 
@@ -136,6 +135,76 @@ public interface SpaceAware {
     }
 
     /**
+     * Wrapper object for Space version details.
+     */
+    public static class SpaceVersion {
+
+        private final long m_version;
+
+        private final String m_title;
+
+        private final String m_description;
+
+        private final String m_author;
+
+        private final Instant m_createdOn;
+
+        /**
+         * Constructor.
+         *
+         * @param version
+         * @param title
+         * @param description
+         * @param author
+         * @param createdOn
+         */
+        public SpaceVersion(final long version, final String title, final String description, final String author,
+            final Instant createdOn) {
+            super();
+            m_version = version;
+            m_title = title;
+            m_description = description;
+            m_author = author;
+            m_createdOn = createdOn;
+        }
+
+        /**
+         * @return the numeric version
+         */
+        public long getVersion() {
+            return m_version;
+        }
+
+        /**
+         * @return the title
+         */
+        public String getTitle() {
+            return m_title;
+        }
+
+        /**
+         * @return the description
+         */
+        public String getDescription() {
+            return m_description;
+        }
+
+        /**
+         * @return the author
+         */
+        public String getAuthor() {
+            return m_author;
+        }
+
+        /**
+         * @return the createdOn
+         */
+        public Instant getCreatedOn() {
+            return m_createdOn;
+        }
+    }
+
+    /**
      * Gets all the Hub Spaces accessible to the user.
      *
      * @return list of {@link Space}s.
@@ -160,4 +229,13 @@ public interface SpaceAware {
      * @throws IOException
      */
     List<Space> getSpacesOwnedByAccount(String accountNameOrID) throws IOException;
+
+    /**
+     * Lists all versions of the given Hub Space.
+     *
+     * @param spaceId The space id.
+     * @return a {@link List} of {@link SpaceVersion}s for the given Space.
+     * @throws IOException
+     */
+    List<SpaceVersion> getSpaceVersions(String spaceId) throws IOException;
 }

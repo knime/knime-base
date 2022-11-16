@@ -46,7 +46,7 @@
  * History
  *   Sep 24, 2022 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config;
+package org.knime.filehandling.core.connections.base.hub;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,9 +66,10 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Alexander Bondaletov
  */
 public class HubSpaceSettings {
+
     private static final String CFG_SPACE_ID = "spaceId";
 
-    private static final String CFG_SPACE_NAME = "spaceName_Internals";
+    private static final String CFG_SPACE_NAME = "spaceName";
 
     private final boolean m_requireSettings;
 

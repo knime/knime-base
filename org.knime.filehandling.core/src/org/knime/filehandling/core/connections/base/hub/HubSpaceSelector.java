@@ -46,7 +46,7 @@
  * History
  *   Sep 14, 2022 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog;
+package org.knime.filehandling.core.connections.base.hub;
 
 import java.awt.Component;
 import java.awt.Frame;
@@ -67,15 +67,14 @@ import javax.swing.event.ChangeEvent;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.connections.base.hub.HubAccessUtil.HubAccess;
+import org.knime.filehandling.core.connections.base.hub.HubSpaceSelectionComboBox.SpaceComboItem;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSettings;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.dialog.HubSpaceSelectionComboBox.SpaceComboItem;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
-import org.knime.filehandling.core.util.HubAccessUtil.HubAccess;
 
 /**
- * The component for selecting Hub Space. It allows user to select the space from the fetched space, or to enter space
+ * A component for selecting a Hub Space. It allows user to select the space from the fetched space, or to enter space
  * id manually.
  *
  * @author Alexander Bondaletov
@@ -282,13 +281,7 @@ public final class HubSpaceSelector extends JPanel {
         protected SpaceComboItem doInBackgroundWithContext() throws Exception {
             Thread.sleep(200);
 
-            var spaceId = m_itemToResolve.getId().strip();
-            if (spaceId.startsWith("~")) {
-                spaceId = "*" + spaceId.substring(1);
-            } else if (!spaceId.startsWith("*")) {
-                spaceId = "*" + spaceId;
-            }
-
+            var spaceId = sanitizeSpaceId(m_itemToResolve.getId());
             var space = m_hubAccess.fetchSpace(spaceId);
             // make sure that we wait for the spaces to have been listed at least once
             m_spacesHaveBeenListed.await();
@@ -311,5 +304,15 @@ public final class HubSpaceSelector extends JPanel {
                 m_statusView.setStatus(DefaultStatusMessage.mkError(ExceptionUtil.unpack(ex).getMessage()));
             }
         }
+    }
+
+    static String sanitizeSpaceId(final String unsanitizedSpaceId) {
+        var sanitized = unsanitizedSpaceId.strip();
+        if (sanitized.startsWith("~")) {
+            sanitized = "*" + sanitized.substring(1);
+        } else if (!sanitized.startsWith("*")) {
+            sanitized = "*" + sanitized;
+        }
+        return sanitized;
     }
 }

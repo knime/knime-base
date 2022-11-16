@@ -56,9 +56,10 @@ import javax.swing.Box;
 import javax.swing.JPanel;
 
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.base.hub.HubAccessUtil;
+import org.knime.filehandling.core.connections.base.hub.HubSpaceSelector;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSpecificConfig;
 import org.knime.filehandling.core.util.GBCBuilder;
-import org.knime.filehandling.core.util.HubAccessUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
