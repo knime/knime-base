@@ -180,15 +180,18 @@
 			</option>
         </tab>
         <tab name="Encoding">
+        	<option name="Guess file name encoding from archive file extension">
+        		If selected, tries to guess the encoding for the names of the files to decompress based on file extension of the archive file.
+        		For example, it will use UTF-8 for .zip files, <a href="https://en.wikipedia.org/wiki/Code_page_437">CP437</a>
+        		for .arj, and <a href="https://en.wikipedia.org/wiki/ASCII">US-ASCII</a> for .cpio. Unfortunately, the encoding cannot always
+        		be correctly guessed. If you notice that the names of decompressed files contain '?' characters, then the encoding was wrongly
+        		guessed. In this case, uncheck the box and pick the correct encoding. 
+        	</option>
             <option name="Encoding">
-                Sets the character set/encoding to use when reading the names of the files to be decompressed. By default, UTF-8
-                is chosen, but you can specify any other encoding supported by Java. Choosing "OS default" uses the default 
-                encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;.
-                
-                <p>Unfortunately the character set cannot always be inferred from the archive metadata, so in some cases UTF-8 will not work.
-                If you are decompressing a .zip file and "UTF-8" gives incorrect results, please try manually specifying <a href="https://en.wikipedia.org/wiki/Code_page_437">IBM437</a>
-                under "Other".
-                </p>
+                Sets the character set/encoding to use when reading the names of the files to be decompressed. By default,
+                <a href="https://en.wikipedia.org/wiki/Code_page_437">CP437</a> is chosen, which is used by some .zip files. You can specify
+                any other encoding supported by Java. Choosing "OS default" uses the default encoding of the Java VM, which may depend on
+                the locale or the Java property &quot;file.encoding&quot;.
             </option>
         </tab>  
 	</fullDescription>

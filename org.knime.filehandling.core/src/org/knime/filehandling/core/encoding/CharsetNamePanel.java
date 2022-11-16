@@ -168,6 +168,17 @@ public class CharsetNamePanel extends JPanel {
         return button;
     }
 
+    @Override
+    public void setEnabled(final boolean enabled) {
+        super.setEnabled(enabled);
+        final var buttons = m_group.getElements();
+        while (buttons.hasMoreElements()) {
+            final var b = buttons.nextElement();
+            b.setEnabled(enabled);
+        }
+        m_customName.setEnabled(m_custom.isSelected() && enabled);
+    }
+
     private JTextField createTextField() {
         final var textField = new JTextField(20);
         textField.setPreferredSize(new Dimension(250, 25));

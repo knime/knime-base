@@ -54,6 +54,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
@@ -89,11 +90,15 @@ final class DecompressNodeConfig {
 
     private static final String CFG_CHARSET = "charset";
 
-    private static final String DEFAULT_CHARSET = "UTF-8";
+    private static final String CFG_GUESS_ENCODING = "guess_encoding";
+
+    private static final String DEFAULT_CHARSET = "CP437";
 
     private final SettingsModelReaderFileChooser m_inputFileChooserModel;
 
     private final SettingsModelWriterFileChooser m_outputDirChooserModel;
+
+    private final SettingsModelBoolean m_guessEncodingModel;
 
     private String m_charSet = DEFAULT_CHARSET;
 
@@ -111,11 +116,17 @@ final class DecompressNodeConfig {
             DecompressNodeFactory.CONNECTION_OUTPUT_DIR_PORT_GRP_NAME, EnumConfig.create(FilterMode.FOLDER),
             EnumConfig.create(FileOverwritePolicy.IGNORE, FileOverwritePolicy.OVERWRITE, FileOverwritePolicy.FAIL),
             FSCategory.getStandardNonTrivialFSCategories());
+
+        m_guessEncodingModel = new SettingsModelBoolean(CFG_GUESS_ENCODING, true);
     }
 
     void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_inputFileChooserModel.validateSettings(settings);
         m_outputDirChooserModel.validateSettings(settings);
+
+        if (settings.containsKey(CFG_GUESS_ENCODING)) {
+            m_guessEncodingModel.validateSettings(settings);
+        }
     }
 
     void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -126,11 +137,17 @@ final class DecompressNodeConfig {
         } else {
             m_charSet = DEFAULT_CHARSET;
         }
+        if (settings.containsKey(CFG_GUESS_ENCODING)) {
+            m_guessEncodingModel.loadSettingsFrom(settings);
+        } else {
+            m_guessEncodingModel.setBooleanValue(true);
+        }
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
         m_inputFileChooserModel.saveSettingsTo(settings);
         m_outputDirChooserModel.saveSettingsTo(settings);
+        m_guessEncodingModel.saveSettingsTo(settings);
         settings.addString(CFG_CHARSET, m_charSet);
     }
 
@@ -150,6 +167,16 @@ final class DecompressNodeConfig {
      */
     SettingsModelReaderFileChooser getInputFileChooserModel() {
         return m_inputFileChooserModel;
+    }
+
+    /**
+     * Returns whether or not to guess the file name encoding based on the
+     * archive file extension, e.g. UTF-8 for .zip.
+     *
+     * @return the guess encoding model
+     */
+    SettingsModelBoolean getGuessEncodingModel() {
+        return m_guessEncodingModel;
     }
 
     /**

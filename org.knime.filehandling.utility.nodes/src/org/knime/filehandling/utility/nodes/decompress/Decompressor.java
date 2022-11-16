@@ -137,7 +137,7 @@ final class Decompressor {
         try (final InputStream sourceStream =
             new CancellableReportingInputStream(Files.newInputStream(sourcePath), m_exec, fileSize)) {
             createParentDirIfRequired(destinationPath);
-            try (final InputStream archiveInputStream = openStreams(sourceStream)) {
+            try (final var archiveInputStream = openStreams(sourceStream)) {
                 if (m_isArchived) {
                     decompressArchive((ArchiveInputStream)archiveInputStream, destinationPath);
                 } else {
@@ -193,7 +193,7 @@ final class Decompressor {
      */
     @SuppressWarnings("resource") //closing responsibility of the caller
     private InputStream openStreams(final InputStream source) throws InvalidSettingsException {
-        final InputStream inputStream = openArchiveStream(openUncompressStream(source));
+        final var inputStream = openArchiveStream(openUncompressStream(source));
         if (!m_isArchived && !m_isCompressed) {
             throw new InvalidSettingsException(
                 "File is not an archive and not compressed. See node description for supported file formats.");
@@ -209,11 +209,14 @@ final class Decompressor {
      */
     private InputStream openArchiveStream(final InputStream source) {
         // Buffered stream needed for autodetection of type
-        final BufferedInputStream bufferedStream = new BufferedInputStream(source);
+        final var bufferedStream = new BufferedInputStream(source);
         try {
             ArchiveStreamFactory.detect(bufferedStream);
             m_isArchived = true;
-            return new ArchiveStreamFactory(m_config.getCharset()).createArchiveInputStream(bufferedStream);
+
+            final var streamFactory = m_config.getGuessEncodingModel().getBooleanValue()
+                    ? new ArchiveStreamFactory() : new ArchiveStreamFactory(m_config.getCharset());
+            return streamFactory.createArchiveInputStream(bufferedStream);
         } catch (ArchiveException e) {
             if (m_isArchived) {
                 throw new IllegalArgumentException(
@@ -233,7 +236,7 @@ final class Decompressor {
      */
     private InputStream openUncompressStream(final InputStream source) {
         // Buffered stream needed for autodetection of type
-        final BufferedInputStream bufferedStream = new BufferedInputStream(source);
+        final var bufferedStream = new BufferedInputStream(source);
         try {
             CompressorStreamFactory.detect(bufferedStream);
             m_isCompressed = true;
@@ -291,7 +294,7 @@ final class Decompressor {
      */
     private void decompressFile(final InputStream uncompressInputStream, final FSPath sourcePath,
         final FSPath destinationPath) throws IOException, InterruptedException {
-        final Path outputFilePath = destinationPath.resolve(FilenameUtils.getBaseName(sourcePath.toString()));
+        final var outputFilePath = destinationPath.resolve(FilenameUtils.getBaseName(sourcePath.toString()));
         m_exec.setMessage("Decompressing " + outputFilePath);
         final FileStatus status = m_writeFileFunction.apply(uncompressInputStream, outputFilePath);
         pushRow(0, outputFilePath, status, false);
@@ -299,7 +302,8 @@ final class Decompressor {
 
     private long createDirectories(final FSPath destinationPath, long rowId, final Set<String> processedDirs,
         final Path outputFilePath, final boolean isDirectory) throws IOException, InterruptedException {
-        final Path relDestPath = destinationPath.relativize(outputFilePath);
+
+        final var relDestPath = destinationPath.relativize(outputFilePath);
         if (isDirectory) {
             rowId = createDirectories(processedDirs, rowId, relDestPath, outputFilePath);
         } else {
@@ -333,7 +337,7 @@ final class Decompressor {
 
     private void pushRow(final long rowId, final Path destinationPath, final FileStatus status,
         final boolean isDirectory) throws InterruptedException {
-        final DataCell[] row = new DataCell[3];
+        final var row = new DataCell[3];
         row[LOCATION_CELL_IDX] = m_locationCellFactory.createCell(destinationPath.toString());
         row[DIRECTORY_CELL_IDX] = BooleanCellFactory.create(isDirectory);
         row[STATUS_CELL_IDX] = StringCellFactory.create(status.getText());

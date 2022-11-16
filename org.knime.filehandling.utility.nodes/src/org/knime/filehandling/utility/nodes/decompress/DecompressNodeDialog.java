@@ -47,9 +47,12 @@
  */
 package org.knime.filehandling.utility.nodes.decompress;
 
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JPanel;
 
 import org.knime.core.node.FlowVariableModel;
@@ -59,6 +62,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
@@ -78,6 +82,8 @@ final class DecompressNodeDialog extends NodeDialogPane {
     private final DialogComponentReaderFileChooser m_inputFileChooserPanel;
 
     private final DialogComponentWriterFileChooser m_outputDirChooserPanel;
+
+    private final DialogComponentBoolean m_guessEncoding;
 
     private final CharsetNamePanel m_charsetPanel;
 
@@ -100,12 +106,16 @@ final class DecompressNodeDialog extends NodeDialogPane {
 
         addTab("Settings", initLayout());
 
+        m_guessEncoding = new DialogComponentBoolean(m_config.getGuessEncodingModel(),
+            "Guess file name encoding from archive file extension");
         m_charsetPanel = new CharsetNamePanel();
-        addTab("Encoding", m_charsetPanel);
+        addTab("Encoding", getEncodingPanel());
+
+        m_config.getGuessEncodingModel().addChangeListener(e -> updateEnabledness());
     }
 
     private JPanel initLayout() {
-        final JPanel panel = new JPanel(new GridBagLayout());
+        final var panel = new JPanel(new GridBagLayout());
         final GBCBuilder gbc = new GBCBuilder().resetX().resetY().fillHorizontal().setWeightX(1);
 
         panel.add(createInputFilePanel(), gbc.build());
@@ -117,10 +127,41 @@ final class DecompressNodeDialog extends NodeDialogPane {
         return panel;
     }
 
+    private JPanel getEncodingPanel() {
+        var panel = new JPanel(new GridBagLayout());
+        final var gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        panel.add(m_guessEncoding.getComponentPanel(), gbc);
+
+        gbc.weightx = 1;
+        gbc.gridx++;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(Box.createHorizontalGlue(), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(10, 0, 0, 0);
+        panel.add(m_charsetPanel, gbc);
+
+        return panel;
+    }
+
+    private void updateEnabledness() {
+        m_charsetPanel.setEnabled(!m_config.getGuessEncodingModel().getBooleanValue());
+    }
+
     @Override
     public void onClose() {
         m_inputFileChooserPanel.onClose();
         m_outputDirChooserPanel.onClose();
+    }
+
+    @Override
+    public void onOpen() {
+        updateEnabledness();
     }
 
     private JPanel createInputFilePanel() {
@@ -143,6 +184,7 @@ final class DecompressNodeDialog extends NodeDialogPane {
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_inputFileChooserPanel.saveSettingsTo(settings);
         m_outputDirChooserPanel.saveSettingsTo(settings);
+        m_guessEncoding.saveSettingsTo(settings);
         m_config.setCharset(m_charsetPanel.getSelectedCharsetName().orElse(null));
         m_config.saveSettingsForModel(settings);
     }
@@ -152,6 +194,7 @@ final class DecompressNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         m_inputFileChooserPanel.loadSettingsFrom(settings, specs);
         m_outputDirChooserPanel.loadSettingsFrom(settings, specs);
+        m_guessEncoding.loadSettingsFrom(settings, specs);
         m_charsetPanel.loadSettings(m_config.getCharset());
     }
 }
