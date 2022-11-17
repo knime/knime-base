@@ -57,7 +57,6 @@ import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
-import javax.swing.filechooser.FileView;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataTableSpec;
@@ -68,15 +67,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.RelativeTo;
-import org.knime.filehandling.core.connections.base.BaseFSConnection;
-import org.knime.filehandling.core.connections.base.WorkflowAwareFileView;
 import org.knime.filehandling.core.connections.base.ui.WorkingDirectoryChooser;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
-import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
-import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
-import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
 /**
  * Relative To Connector node dialog.
@@ -99,44 +92,22 @@ public class WorkflowDataAreaConnectorNodeDialog extends NodeDialogPane {
         m_workingDirChooser = new WorkingDirectoryChooser("local.workingDir", this::createFSConnection);
         m_workdirListener = e -> {
             String workDir = m_workingDirChooser.getSelectedWorkingDirectory();
-            if(!workDir.startsWith(RelativeToFSConnectionConfig.PATH_SEPARATOR)) {
-                workDir = RelativeToFSConnectionConfig.PATH_SEPARATOR + workDir;
-            }
-
             m_settings.getWorkingDirectoryModel().setStringValue(workDir);
         };
 
         addTab("Settings", createSettingsPanel());
     }
 
-    @SuppressWarnings("resource")
     private FSConnection createFSConnection() {
         String workDir = m_settings.getWorkingDirectory();
         if (StringUtils.isBlank(workDir) || !workDir.startsWith(RelativeToFSConnectionConfig.PATH_SEPARATOR)) {
             workDir = RelativeToFSConnectionConfig.PATH_SEPARATOR;
         }
 
-        final var actualFSConnection =
-            DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW_DATA, workDir);
-        return new BaseFSConnection() {
+        final var config = new RelativeToFSConnectionConfig(workDir, RelativeTo.WORKFLOW_DATA);
+        config.setBrowserShouldRelativizeSelectedPath(false);
 
-            @Override
-            public FSFileSystem<?> getFileSystem() {
-                return actualFSConnection.getFileSystem();
-            }
-
-            @Override
-            protected AbstractFileChooserBrowser createFileSystemBrowser() {
-                // File system browser that is workflow area (displays workflows as little workflow icons), but does not relativize the
-                // selected path.
-                return new NioFileSystemBrowser(new NioFileSystemView(actualFSConnection)) {
-                    @Override
-                    protected FileView getFileView() {
-                        return new WorkflowAwareFileView();
-                    }
-                };
-            }
-        };
+        return DefaultFSConnectionFactory.createRelativeToConnection(config);
     }
 
     private JComponent createSettingsPanel() {

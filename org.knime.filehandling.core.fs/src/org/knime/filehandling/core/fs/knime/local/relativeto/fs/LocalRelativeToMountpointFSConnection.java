@@ -70,6 +70,8 @@ public class LocalRelativeToMountpointFSConnection extends BaseFSConnection {
 
     private final LocalRelativeToFileSystem m_fileSystem;
 
+    private final boolean m_browserShouldRelativizeSelectedPath;
+
     /**
      * Creates a new connection using the given config.
      *
@@ -92,6 +94,8 @@ public class LocalRelativeToMountpointFSConnection extends BaseFSConnection {
             RelativeTo.MOUNTPOINT, //
             config.getWorkingDirectory(), //
             config.getFSLocationSpec());
+
+        m_browserShouldRelativizeSelectedPath = config.browserShouldRelativizeSelectedPath();
     }
 
     @Override
@@ -102,6 +106,9 @@ public class LocalRelativeToMountpointFSConnection extends BaseFSConnection {
     @Override
     protected AbstractFileChooserBrowser createFileSystemBrowser() {
         final var browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
-        return new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
+        return new RelativeToFileSystemBrowser(m_fileSystem,//
+            browsingHomeAndDefault,//
+            browsingHomeAndDefault,//
+            m_browserShouldRelativizeSelectedPath);
     }
 }

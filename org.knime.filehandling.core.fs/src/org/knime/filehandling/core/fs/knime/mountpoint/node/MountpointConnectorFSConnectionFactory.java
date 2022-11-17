@@ -104,9 +104,17 @@ abstract class MountpointConnectorFSConnectionFactory {
     public abstract FSLocationSpec getFSLocationSpec();
 
     /**
-     * @return The FS Connection.
+     * @return a newly created {@link FSConnection}.
      */
     public abstract FSConnection createFSConnection();
+
+    /**
+     * @return a newly created {@link FSConnection} where the browser never relativizes the chosen path.
+     */
+    public FSConnection createFSConnectionForWorkingDirectoryChooser() {
+        // By default, we do the same thing as in node modle. Subclasses can change this behavior.
+        return createFSConnection();
+    }
 
     private static class CustomMountpointFactory extends MountpointConnectorFSConnectionFactory {
 
@@ -187,6 +195,13 @@ abstract class MountpointConnectorFSConnectionFactory {
         @Override
         public FSConnection createFSConnection() {
             return DefaultFSConnectionFactory.createRelativeToConnection(createFSConnectionConfig());
+        }
+
+        @Override
+        public FSConnection createFSConnectionForWorkingDirectoryChooser() {
+            final var config = createFSConnectionConfig();
+            config.setBrowserShouldRelativizeSelectedPath(false);
+            return DefaultFSConnectionFactory.createRelativeToConnection(config);
         }
 
         private RelativeToFSConnectionConfig createFSConnectionConfig() {

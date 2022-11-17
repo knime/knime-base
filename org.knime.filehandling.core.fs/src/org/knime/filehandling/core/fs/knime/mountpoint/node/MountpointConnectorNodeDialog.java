@@ -114,7 +114,7 @@ public class MountpointConnectorNodeDialog extends NodeDialogPane {
         m_radioCurrentMountpoint = createRadioButton(group, MountpointMode.CURRENT);
         m_radioOtherMountpoint = createRadioButton(group, MountpointMode.OTHER);
 
-        m_workingDirChooser = new WorkingDirectoryChooser("mountpoint.workingDir", this::createFSConnection);
+        m_workingDirChooser = new WorkingDirectoryChooser("mountpoint.workingDir", this::createFSConnectionForWorkingDirChooser);
         m_workingDirChooser.addListener(e -> {
             if (!m_ignoreChangeEvents) {
                 final var workDir = m_workingDirChooser.getSelectedWorkingDirectory();
@@ -163,8 +163,8 @@ public class MountpointConnectorNodeDialog extends NodeDialogPane {
         return rb;
     }
 
-    private FSConnection createFSConnection() {
-        return MountpointConnectorFSConnectionFactory.create(m_settings).createFSConnection();
+    private FSConnection createFSConnectionForWorkingDirChooser() {
+        return MountpointConnectorFSConnectionFactory.create(m_settings).createFSConnectionForWorkingDirectoryChooser();
     }
 
     private JComponent createSettingsPanel() {

@@ -64,6 +64,8 @@ public final class RelativeToFileSystemBrowser extends WorkflowAwareFileSystemBr
 
     private final FSFileSystem<?> m_fileSystem;
 
+    private final boolean m_shouldRelativeSelectedPath;
+
     /**
      * Creates a new local KNIME relative-to file system browser. The "home directory" and the "default directory" of
      * the browser are the working directory of the given file system.
@@ -71,11 +73,13 @@ public final class RelativeToFileSystemBrowser extends WorkflowAwareFileSystemBr
      * @param fileSystem the file system to use
      * @param homeDir The "home directory" that the browser jumps to when the user presses the "home" button.
      * @param defaultDir The default directory, where the user starts to browse.
+     * @param shouldRelativeSelectedPath True, if the user-selected path should be relativized, false otherwise.
      */
     public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
-        final FSPath defaultDir) {
+        final FSPath defaultDir, final boolean shouldRelativeSelectedPath) {
         super(fileSystem, defaultDir, homeDir);
         m_fileSystem = fileSystem;
+        m_shouldRelativeSelectedPath = shouldRelativeSelectedPath;
     }
 
     /**
@@ -83,6 +87,10 @@ public final class RelativeToFileSystemBrowser extends WorkflowAwareFileSystemBr
      */
     @Override
     protected String postprocessSelectedFilePath(final String selectedFile) {
-        return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
+        if (m_shouldRelativeSelectedPath) {
+            return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
+        } else {
+            return selectedFile;
+        }
     }
 }

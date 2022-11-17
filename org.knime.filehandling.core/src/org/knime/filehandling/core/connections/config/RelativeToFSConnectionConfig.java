@@ -54,6 +54,7 @@ import java.util.Optional;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
@@ -125,6 +126,8 @@ public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
     private final RelativeTo m_type;
 
     private FSLocationSpec m_customFSLocationSpec;
+
+    private boolean m_browserShouldRelativizeSelectedPath = true;
 
     /**
      * Constructor for a convenience file system with the default working directory.
@@ -198,6 +201,23 @@ public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
      */
     public Optional<FSLocationSpec> getCustomFSLocationSpec() {
         return Optional.ofNullable(m_customFSLocationSpec);
+    }
+
+
+    /**
+     * @return true, if the browser of the resulting {@link FSConnection} should relativize the user-selected path
+     *         against the working directory; false otherwise.
+     */
+    public boolean browserShouldRelativizeSelectedPath() {
+        return m_browserShouldRelativizeSelectedPath;
+    }
+
+    /**
+     * @param shouldRelativize Set to true, if the browser of the resulting {@link FSConnection} should relativize the
+     *            user-selected pa th against the working directory; false otherwise.
+     */
+    public void setBrowserShouldRelativizeSelectedPath(final boolean shouldRelativize) {
+        m_browserShouldRelativizeSelectedPath = shouldRelativize;
     }
 
     /**

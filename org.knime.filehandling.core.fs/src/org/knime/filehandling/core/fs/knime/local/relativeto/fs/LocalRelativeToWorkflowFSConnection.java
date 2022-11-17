@@ -119,6 +119,9 @@ public class LocalRelativeToWorkflowFSConnection extends BaseFSConnection {
         // in the workflow-relative file system the working "dir" is the workflow, but it is not a directory,
         // so we need to take the parent
         final var browsingHomeAndDefault = (FSPath)m_fileSystem.getWorkingDirectory().getParent();
-        return new RelativeToFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault);
+        return new RelativeToFileSystemBrowser(m_fileSystem,//
+            browsingHomeAndDefault,//
+            browsingHomeAndDefault,//
+            true);// browser must always relativize for relative-to current workflow
     }
 }
