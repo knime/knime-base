@@ -65,6 +65,7 @@ import org.knime.core.data.container.DataContainer;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.node.table.reader.KeepReadOpenReader;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.read.Read;
@@ -78,7 +79,7 @@ import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
  *
  * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
  */
-final class KnimeTableReader implements TableReader<TableManipulatorConfig, DataType, DataValue> {
+final class KnimeTableReader implements TableReader<TableManipulatorConfig, DataType, DataValue>, KeepReadOpenReader {
 
     private static final String ERROR_MSG_DATA_BIN_EXCEPTION =
         "Cannot read file! The file is either not in KNIME table format or corrupted.";

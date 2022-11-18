@@ -169,10 +169,11 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
     private DefaultMultiTableRead<I, T, V> createMultiTableRead(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel, final TableReadConfig<C> tableReadConfig,
         final TableSpecConfig<T> tableSpecConfig) {
+        final var keepReadsOpen = m_reader instanceof KeepReadOpenReader;
         return new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, tableReadConfig), () -> {
             IndividualTableReaderFactory<I, T, V> factory = createIndividualTableReaderFactory(transformationModel);
             return factory::create;
-        }, tableReadConfig, tableSpecConfig);
+        }, tableReadConfig, tableSpecConfig, keepReadsOpen);
     }
 
     private IndividualTableReaderFactory<I, T, V>
