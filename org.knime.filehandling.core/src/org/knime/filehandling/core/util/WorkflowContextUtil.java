@@ -54,6 +54,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.LocationType;
 
@@ -183,6 +184,28 @@ public final class WorkflowContextUtil {
                     () -> new IllegalStateException("Workflow context on Server does not contain remote mount ID")) //
                 .equals(mountID);
     }
+
+    /**
+     * Checks whether the currently executing workflow resides on Hub, and whether the given mountID is the default
+     * mount ID of the Hub instance.
+     *
+     * @param mountID The mount ID to check.
+     * @return true if the currently executing workflow resides on Hub and if the given mountID is the default mount ID
+     *         of the Hub instance; false otherwise.
+     */
+    public static boolean isHubWorkflowConnectingToRemoteRepository(final String mountID) {
+        if (!getWorkflowContextV2Optional().isPresent()) {
+            return false;
+        }
+
+        if (getWorkflowContextV2().getLocationType() != LocationType.HUB_SPACE) {
+            return false;
+        }
+
+        var hubLocInfo = (HubSpaceLocationInfo)getWorkflowContextV2().getLocationInfo();
+        return hubLocInfo.getDefaultMountId().equals(mountID);
+    }
+
     /**
      * Checks whether the calling thread is running in a KNIME node as part of a workflow located on the Hub.
      *

@@ -99,6 +99,10 @@ public final class MountpointFSDescriptorProvider extends BaseFSDescriptorProvid
     private static FSConnection getActualFSConnection(final MountpointFSConnectionConfig config) throws IOException {
 
         try {
+            if (WorkflowContextUtil.isServerWorkflowConnectingToRemoteRepository(config.getMountID())) {
+                return getRestFSDescriptor().getConnectionFactory().createConnection(config);
+            }
+
             // provide a slightly nicer error than the ResolverUtil below, when mountId does not exist
             if (!MountPointFileSystemAccessService.instance().getAllMountedIDs().contains(config.getMountID())) {
                 throw new IOException(String.format("Mountpoint '%s' is unknown.", config.getMountID()));
