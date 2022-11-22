@@ -1,10 +1,9 @@
-package org.knime.filehandling.core.testing;
+package org.knime.filehandling.core.tests.common.workflow;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -25,7 +24,6 @@ import org.knime.core.util.FileUtil;
 import org.knime.core.util.LockFailedException;
 import org.knime.core.util.auth.SimpleTokenAuthenticator;
 import org.knime.filehandling.core.connections.FSFiles;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 /**
@@ -37,6 +35,10 @@ import org.osgi.framework.FrameworkUtil;
  * @noinstantiate non-public API
  */
 public final class WorkflowTestUtil {
+
+    private static final String RESOURCES_FOLDER = "resources";
+
+    private static final String DUMMY_WORKFLOW = "dummy-workflow";
 
     private WorkflowTestUtil() {
     }
@@ -86,12 +88,21 @@ public final class WorkflowTestUtil {
     }
 
     private static File findInPlugin(final String name) throws IOException {
-        final Bundle thisBundle = FrameworkUtil.getBundle(DefaultFSTestInitializer.class);
-        final URL url = FileLocator.find(thisBundle, new org.eclipse.core.runtime.Path(name), null);
-        if (url == null) {
-            throw new FileNotFoundException(thisBundle.getLocation() + name);
+        final var thisBundle = FrameworkUtil.getBundle(WorkflowTestUtil.class);
+
+        // this works when running tests in maven
+        var url = FileLocator.find(thisBundle, new org.eclipse.core.runtime.Path(name), null);
+        if (url != null) {
+            return new File(FileLocator.toFileURL(url).getPath());
         }
-        return new File(FileLocator.toFileURL(url).getPath());
+
+        // this works when running tests in Eclipse
+        url = FileLocator.find(thisBundle, new org.eclipse.core.runtime.Path(RESOURCES_FOLDER).append(name), null);
+        if (url != null) {
+            return new File(FileLocator.toFileURL(url).getPath());
+        }
+
+        throw new FileNotFoundException(thisBundle.getLocation() + name);
     }
 
     /**
@@ -159,9 +170,12 @@ public final class WorkflowTestUtil {
         }
     }
 
-    static final String DUMMY_WORKFLOW = "resources/dummy-workflow";
-
-    public static void clearDirectoryContents(final Path dir) throws IOException {
+    /**
+     * Deletes the given directory recursively, ignoring any exceptions that occur.
+     *
+     * @param dir
+     */
+    public static void clearDirectoryContents(final Path dir) {
         try (final Stream<Path> stream = Files.list(dir)) {
             stream.forEach(p -> {
                 try {
@@ -170,15 +184,7 @@ public final class WorkflowTestUtil {
                     // ignore
                 }
             });
-
+        } catch (IOException ex) { // NOSONAR supposed to be ignored
         }
-    }
-
-    /**
-     * @return path of a dummy workflow
-     * @throws IOException
-     */
-    public static Path getDummyWorkflowPath() throws IOException {
-        return findInPlugin(DUMMY_WORKFLOW).toPath();
     }
 }

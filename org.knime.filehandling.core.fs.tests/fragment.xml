@@ -4,7 +4,7 @@
    <extension
          point="org.knime.testing.TestcaseCollector">
       <TestcaseCollector
-            TestcaseCollector="org.knime.filehandling.core.BaseTestcaseCollector">
+            TestcaseCollector="org.knime.filehandling.core.fs.BaseTestcaseCollector">
       </TestcaseCollector>
    </extension>
 </fragment>

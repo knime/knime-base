@@ -74,7 +74,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
 import org.knime.filehandling.core.defaultnodesettings.filtermode.FilterOptionsSettings;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.tests.common.workflow.WorkflowTestUtil;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 

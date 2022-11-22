@@ -10,7 +10,7 @@ import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.fs.location.FSPathProviderFactoryTestBase;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.tests.common.workflow.WorkflowTestUtil;
 
 /**
  * Unit tests that test FSLocation support for the local relative-to file system.

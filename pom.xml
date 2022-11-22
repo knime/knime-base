@@ -28,13 +28,19 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<modules>
+                <!-- this needs to go first because it ensures that jar files required by org.knime.base.tests are present -->
+				<module>org.knime.base.tests/lib/fetch_jars</module>
+			
 				<module>org.knime.base</module>
+				<module>org.knime.base.tests</module>
 				<module>org.knime.deprecated</module>
 				<module>org.knime.features.base</module>
 				<module>org.knime.features.filehandling.core.testing</module>
 				<module>org.knime.filehandling.core</module>
+				<module>org.knime.filehandling.core.tests.common</module>
 				<module>org.knime.filehandling.core.tests</module>
 				<module>org.knime.filehandling.core.fs</module>
+				<module>org.knime.filehandling.core.fs.tests</module>
 				<module>org.knime.filehandling.core.fs.tests.workflow</module>
 				<module>org.knime.filehandling.utility.nodes</module>
 				<module>org.knime.filehandling.utility.nodes.tests</module>
@@ -54,6 +60,7 @@
 				<module>org.knime.base</module>
 				<module>org.knime.deprecated</module>
 				<module>org.knime.filehandling.core</module>
+				<module>org.knime.filehandling.core.tests.common</module>
 				<module>org.knime.filehandling.core.fs</module>
 				<module>org.knime.filehandling.core.fs.tests.integration</module>
 				<module>org.knime.filehandling.utility.nodes</module>
@@ -109,4 +116,17 @@
 			<url>${knime.kerberos.p2}</url>
 		</repository>
 	</repositories>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<configuration>
+					<systemProperties>
+						<java.awt.headless>true</java.awt.headless>
+					</systemProperties>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

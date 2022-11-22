@@ -57,7 +57,7 @@ import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwa
 import org.knime.filehandling.core.fs.local.fs.BasicLocalTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.WorkflowAwareFSTestInitializer;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.tests.common.workflow.WorkflowTestUtil;
 
 /**
  * {@link FSTestInitializer} for the {@link LocalMountpointFileSystem}.

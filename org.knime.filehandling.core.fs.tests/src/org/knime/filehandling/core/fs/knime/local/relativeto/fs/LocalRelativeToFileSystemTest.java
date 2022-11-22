@@ -69,7 +69,7 @@ import java.util.stream.Stream;
 import org.junit.Test;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwarePath;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.tests.common.workflow.WorkflowTestUtil;
 
 /**
  * Test local relative to file system specific things.

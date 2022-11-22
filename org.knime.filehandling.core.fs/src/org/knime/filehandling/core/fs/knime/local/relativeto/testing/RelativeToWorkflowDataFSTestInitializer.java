@@ -53,7 +53,7 @@ import java.nio.file.Files;
 
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowDataFSConnection;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.tests.common.workflow.WorkflowTestUtil;
 
 /**
  * It will create a {@link FSCategory#CONNECTED} file system with a randomized working directory. *

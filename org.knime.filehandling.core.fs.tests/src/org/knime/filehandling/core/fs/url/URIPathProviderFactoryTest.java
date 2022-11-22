@@ -21,7 +21,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
 import org.knime.filehandling.core.fs.location.FSPathProviderFactoryTestBase;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.tests.common.workflow.WorkflowTestUtil;
 
 /**
  * Unit tests that test FSLocation support for the Custom URL file system.

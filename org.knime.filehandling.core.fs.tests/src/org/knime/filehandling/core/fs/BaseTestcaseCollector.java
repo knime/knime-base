@@ -45,7 +45,7 @@
  * History
  *   20.11.2010 (meinl): created
  */
-package org.knime.filehandling.core;
+package org.knime.filehandling.core.fs;
 
 import org.knime.testing.core.AbstractTestcaseCollector;
 

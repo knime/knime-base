@@ -62,7 +62,7 @@ import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.testing.DefaultFSTestInitializerProvider;
 import org.knime.filehandling.core.testing.FSTestInitializer;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
-import org.knime.filehandling.core.testing.WorkflowTestUtil;
+import org.knime.filehandling.core.tests.common.workflow.WorkflowTestUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
