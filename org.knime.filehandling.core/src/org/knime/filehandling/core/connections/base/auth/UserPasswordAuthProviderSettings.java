@@ -48,22 +48,14 @@
  */
 package org.knime.filehandling.core.connections.base.auth;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelPassword;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.ICredentials;
-import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
  * {@link AuthProviderSettings} implementation for authentication schemes that require a username and password.
@@ -71,31 +63,11 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
  * @author Bjoern Lohrmann, KNIME GmbH
  * @noreference non-public API
  */
-public class UserPasswordAuthProviderSettings implements AuthProviderSettings {
-
-    private static final String KEY_USE_CREDENTIALS = "use_credentials";
-
-    private static final String KEY_CREDENTIALS = "credentials";
+public class UserPasswordAuthProviderSettings extends IDWithSecretAuthProviderSettings {
 
     private static final String KEY_USER = "user";
 
     private static final String KEY_PASSWORD = "password";
-
-    private static final String SECRET_KEY = "laig9eeyeix:ae$Lo6lu";
-
-    private final AuthType m_authType;
-
-    private final SettingsModelBoolean m_useCredentials;
-
-    private final SettingsModelString m_credentialsName;
-
-    private final SettingsModelString m_user;
-
-    private final SettingsModelPassword m_password;
-
-    private boolean m_enabled;
-
-    private boolean m_allowBlankPassword;
 
     /**
      * Creates a new instance.
@@ -113,80 +85,21 @@ public class UserPasswordAuthProviderSettings implements AuthProviderSettings {
      * @param allowBlankPassword
      */
     public UserPasswordAuthProviderSettings(final AuthType authType, final boolean allowBlankPassword) {
-        m_authType = authType;
-        m_allowBlankPassword = allowBlankPassword;
-
-        m_useCredentials = new SettingsModelBoolean(KEY_USE_CREDENTIALS, false);
-        m_credentialsName = new SettingsModelString(KEY_CREDENTIALS, "");
-        m_user = new SettingsModelString(KEY_USER, System.getProperty("user.name"));
-        m_password = new SettingsModelPassword(KEY_PASSWORD, SECRET_KEY, "");
-
-        m_useCredentials.addChangeListener(e -> updateEnabledness());
-        m_enabled = true;
-
-        updateEnabledness();
-    }
-
-    @Override
-    public void setEnabled(final boolean enabled) {
-        m_enabled = enabled;
-        updateEnabledness();
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return m_enabled;
-    }
-
-    private void updateEnabledness() {
-        m_useCredentials.setEnabled(m_enabled);
-        m_credentialsName.setEnabled(m_enabled && useCredentials());
-        m_user.setEnabled(m_enabled && !useCredentials());
-        m_password.setEnabled(m_enabled && !useCredentials());
+        super(authType, allowBlankPassword, KEY_USER, KEY_PASSWORD);
     }
 
     /**
      * @return password settings model.
      */
     public SettingsModelPassword getPasswordModel() {
-        return m_password;
+        return getSecretModel();
     }
 
     /**
      * @return user name model.
      */
     public SettingsModelString getUserModel() {
-        return m_user;
-    }
-
-    /**
-     * @return settings model for whether or not to use a credentials flow variable for username/password
-     *         authentication.
-     */
-    public SettingsModelBoolean getUseCredentialsModel() {
-        return m_useCredentials;
-    }
-
-    /**
-     * @return whether or not to use a credentials flow variable for username/password authentication.
-     */
-    public boolean useCredentials() {
-        return m_useCredentials.getBooleanValue();
-    }
-
-    /**
-     * @return settings model for the name of the credentials flow variable for username/password authentication.
-     */
-    public SettingsModelString getCredentialsNameModel() {
-        return m_credentialsName;
-    }
-
-    /**
-     * @return the name of the credentials flow variable for username/password authentication (or null, if not set).
-     */
-    public String getCredentialsName() {
-        String creds = m_credentialsName.getStringValue();
-        return StringUtils.isBlank(creds) ? null : creds;
+        return getIDModel();
     }
 
     /**
@@ -194,13 +107,7 @@ public class UserPasswordAuthProviderSettings implements AuthProviderSettings {
      * @return user to use
      */
     public String getUser(final Function<String, ICredentials> cp) {
-        if (useCredentials() && cp == null) {
-            throw new IllegalStateException("Credential provider is not available");
-        } else if (useCredentials()) {
-            return cp.apply(getCredentialsName()).getLogin();
-        } else {
-            return m_user.getStringValue();
-        }
+        return getID(cp);
     }
 
     /**
@@ -208,124 +115,34 @@ public class UserPasswordAuthProviderSettings implements AuthProviderSettings {
      * @return password to use
      */
     public String getPassword(final Function<String, ICredentials> cp) {
-        if (useCredentials() && cp == null) {
-            throw new IllegalStateException("Credential provider is not available");
-        } else if (useCredentials()) {
-            return cp.apply(getCredentialsName()).getPassword();
-        } else {
-            return m_password.getStringValue();
+        return getSecret(cp);
+    }
+
+    @Override
+    protected void validateID() throws InvalidSettingsException {
+        if (StringUtils.isBlank(getUserModel().getStringValue())) {
+            throw new InvalidSettingsException("Please provide valid ID.");
         }
     }
 
     @Override
-    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer, final CredentialsProvider credentialsProvider)
-        throws InvalidSettingsException {
-
-        if (useCredentials()) {
-            if (credentialsProvider == null) {
-                throw new InvalidSettingsException("Credentials flow variables not available");
-            } else if (!credentialsProvider.listNames().contains(getCredentialsName())) {
-                throw new InvalidSettingsException(
-                    String.format("Required credentials flow variable '%s' is missing.", getCredentialsName()));
-            }
-        }
-    }
-
-    @Override
-    public void loadSettingsForDialog(final NodeSettingsRO settings) throws NotConfigurableException {
-        try {
-            load(settings);
-        } catch (InvalidSettingsException ex) {
-            throw new NotConfigurableException(ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        load(settings);
-    }
-
-    private void load(final NodeSettingsRO settings) throws InvalidSettingsException {
-
-        m_useCredentials.loadSettingsFrom(settings);
-        m_credentialsName.loadSettingsFrom(settings);
-        m_user.loadSettingsFrom(settings);
-        m_password.loadSettingsFrom(settings);
-
-        updateEnabledness();
-    }
-
-    @Override
-    public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-
-        m_useCredentials.validateSettings(settings);
-        m_credentialsName.validateSettings(settings);
-        m_user.validateSettings(settings);
-        m_password.validateSettings(settings);
-    }
-
-    @Override
-    public void validate() throws InvalidSettingsException {
-        if (useCredentials()) {
-            if (StringUtils.isBlank(getCredentialsName())) {
-                throw new InvalidSettingsException(String
-                    .format("Please choose a credentials flow variable for %s authentication.", m_authType.getText()));
-            }
-        } else if (StringUtils.isBlank(m_user.getStringValue())) {
-            throw new InvalidSettingsException("Please provide a valid username.");
-        } else if (StringUtils.isBlank(m_password.getStringValue()) && !m_allowBlankPassword) {
-            throw new InvalidSettingsException("Please provide a valid password.");
-        }
-    }
-
-    @Override
-    public void saveSettingsForDialog(final NodeSettingsWO settings) {
-        save(settings);
-    }
-
-    @Override
-    public void saveSettingsForModel(final NodeSettingsWO settings) {
-        save(settings);
-    }
-
-    /**
-     * Saves settings to the given {@link NodeSettingsWO}.
-     *
-     * @param settings
-     */
-    private void save(final NodeSettingsWO settings) {
-        m_useCredentials.saveSettingsTo(settings);
-        m_credentialsName.saveSettingsTo(settings);
-        m_user.saveSettingsTo(settings);
-        m_password.saveSettingsTo(settings);
-    }
-
-    @Override
-    public String toString() {
-        if (useCredentials()) {
-            return String.format("%s(credentials=%s)", m_authType.getSettingsKey(), m_credentialsName.getStringValue());
-        } else {
-            return String.format("%s(user=%s)", m_authType.getSettingsKey(), m_user.getStringValue());
+    protected void validateSecret() throws InvalidSettingsException {
+        if (StringUtils.isBlank(getPasswordModel().getStringValue()) && !allowsBlankSecret()) {
+            throw new InvalidSettingsException("Please provide a valid secret.");
         }
     }
 
     @Override
     public AuthProviderSettings createClone() {
-        final NodeSettings tempSettings = new NodeSettings("ignored");
+        final var tempSettings = new NodeSettings("ignored");
         saveSettingsForModel(tempSettings);
 
-        final UserPasswordAuthProviderSettings toReturn =
-            new UserPasswordAuthProviderSettings(m_authType, m_allowBlankPassword);
+        final var toReturn = new UserPasswordAuthProviderSettings(getAuthType(), allowsBlankSecret());
         try {
             toReturn.loadSettingsForModel(tempSettings);
         } catch (InvalidSettingsException ex) { // NOSONAR can never happen
             // won't happen
         }
         return toReturn;
-    }
-
-    @Override
-    public AuthType getAuthType() {
-        return m_authType;
     }
 }

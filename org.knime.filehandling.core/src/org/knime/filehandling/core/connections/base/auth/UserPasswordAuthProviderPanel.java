@@ -49,50 +49,15 @@
 
 package org.knime.filehandling.core.connections.base.auth;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.util.Map;
-import java.util.function.Supplier;
-
-import javax.swing.Box;
-import javax.swing.JLabel;
-
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentFlowVariableNameSelection2;
-import org.knime.core.node.defaultnodesettings.DialogComponentPasswordField;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.node.workflow.VariableType.CredentialsType;
 
 /**
- * Authentication settings dialog panel.
+ * Username/password settings dialog panel.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
 @SuppressWarnings("serial")
-public class UserPasswordAuthProviderPanel extends AuthProviderPanel<UserPasswordAuthProviderSettings> {
-    private static final int LEFT_INSET = 23;
-
-    private final JLabel m_usernameLabel;
-
-    private final JLabel m_passwordLabel;
-
-    private DialogComponentBoolean m_useCredentials; // NOSONAR not using serialization
-
-    private DialogComponentFlowVariableNameSelection2 m_credentialsFlowVarChooser; // NOSONAR not using serialization
-
-    private DialogComponentString m_username; // NOSONAR not using serialization
-
-    private DialogComponentPasswordField m_password; // NOSONAR not using serialization
-
-    private final Supplier<Map<String, FlowVariable>> m_flowVariablesSupplier; // NOSONAR not using serialization
+public class UserPasswordAuthProviderPanel extends IDWithSecretAuthProviderPanel {
 
     /**
      * Constructor.
@@ -103,127 +68,6 @@ public class UserPasswordAuthProviderPanel extends AuthProviderPanel<UserPasswor
      */
     public UserPasswordAuthProviderPanel(final UserPasswordAuthProviderSettings settings,
         final NodeDialogPane parentDialog) {
-        this(settings, parentDialog, "Username", "Password");
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param settings Authentication settings.
-     * @param parentDialog The parent dialog pane (required by flow variable dialog component to list all flow
-     *            variables).
-     * @param usernameLabel custom username field label
-     * @param passwordLabel custom password field label
-     *
-     */
-    public UserPasswordAuthProviderPanel(final UserPasswordAuthProviderSettings settings,
-        final NodeDialogPane parentDialog, final String usernameLabel, final String passwordLabel) {
-
-        super(new GridBagLayout(), settings);
-        m_flowVariablesSupplier = () -> parentDialog.getAvailableFlowVariables(CredentialsType.INSTANCE);
-        m_usernameLabel = new JLabel(usernameLabel + ":");
-        m_passwordLabel = new JLabel(passwordLabel + ":");
-        initFields();
-        initLayout();
-    }
-
-    private void initLayout() {
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(0, LEFT_INSET, 0, 5);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.fill = GridBagConstraints.NONE;
-        add(m_usernameLabel, gbc);
-
-        gbc.gridx++;
-        gbc.insets = new Insets(0, 0, 0, 5);
-        add(m_username.getComponentPanel(), gbc);
-
-        gbc.gridx++;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1;
-        add(Box.createHorizontalGlue(), gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.insets = new Insets(0, LEFT_INSET, 0, 5);
-        add(m_passwordLabel, gbc);
-
-        gbc.gridx++;
-        gbc.insets = new Insets(0, 0, 0, 5);
-        add(m_password.getComponentPanel(), gbc);
-
-        gbc.gridx++;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1;
-        add(Box.createHorizontalGlue(), gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.insets = new Insets(0, LEFT_INSET - 5, 0, 5);
-        add(m_useCredentials.getComponentPanel(), gbc);
-
-        gbc.gridx++;
-        gbc.insets = new Insets(0, 0, 0, 5);
-        add(m_credentialsFlowVarChooser.getComponentPanel(), gbc);
-
-        gbc.gridx++;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1;
-        add(Box.createHorizontalGlue(), gbc);
-    }
-
-    private void initFields() {
-        m_useCredentials = new DialogComponentBoolean(getSettings().getUseCredentialsModel(), "Use credentials:");
-        m_credentialsFlowVarChooser = new DialogComponentFlowVariableNameSelection2(
-            getSettings().getCredentialsNameModel(), "", m_flowVariablesSupplier);
-        m_username = new DialogComponentString(getSettings().getUserModel(), "", false, 45);
-        m_password = new DialogComponentPasswordField(getSettings().getPasswordModel(), "", 45);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    protected void updateComponentsEnablement() {
-        m_usernameLabel.setEnabled(isEnabled() && !getSettings().useCredentials());
-        m_passwordLabel.setEnabled(isEnabled() && !getSettings().useCredentials());
-
-        if (m_flowVariablesSupplier.get().isEmpty()) {
-            getSettings().getUseCredentialsModel().setBooleanValue(false);
-            m_useCredentials.setEnabled(false);
-        } else {
-            m_useCredentials.setEnabled(isEnabled());
-        }
-    }
-
-    /**
-     * @param settings
-     * @param specs
-     * @throws NotConfigurableException
-     */
-    @Override
-    protected void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-
-        m_credentialsFlowVarChooser.loadSettingsFrom(settings, specs);
-
-        // for some reason we need to do this, otherwise DialogComponentBoolean does not properly
-        // display the enabledness of the underlying SettingsModelBoolean
-        m_useCredentials.loadSettingsFrom(settings, specs);
-    }
-
-    /**
-     * Saves settings to the given {@link NodeSettingsWO}.
-     *
-     * @param settings
-     * @throws InvalidSettingsException
-     */
-    @Override
-    protected void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_credentialsFlowVarChooser.saveSettingsTo(settings);
+        super(settings, parentDialog, "Username", "Password");
     }
 }
