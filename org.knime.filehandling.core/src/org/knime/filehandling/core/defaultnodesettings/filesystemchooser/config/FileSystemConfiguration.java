@@ -61,6 +61,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -110,6 +111,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
 
     private static final String CFG_CONVENIENCE_FS_CATEGORY = "convenience_fs_category";
 
+    /** The selected flow variable references a connected file system. Please add the missing file system connector. */
     private static final DefaultStatusMessage UNCONNECTED_FLOW_VAR_ERROR = new DefaultStatusMessage(MessageType.ERROR,
         "The selected flow variable references a connected file system. Please add the missing file system "
             + "connection port.");
@@ -315,7 +317,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
             // with a flow variable pointing to a different fs
             return getConnectedConfig().getConnection();
         } else {
-            return getCurrentSpecificConfig().getConnection();
+            return Optional.ofNullable(getCurrentSpecificConfig()).flatMap(FileSystemSpecificConfig::getConnection);
         }
     }
 
@@ -559,7 +561,9 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
         if (fsPortAdded() && !isLocationOverwrittenByVar()) {
             setLocationSpec(getConnectedConfig().getLocationSpec());
         }
-        getCurrentSpecificConfig().updateSpecifier(m_locationSpec);
+        final FileSystemSpecificConfig currentConfig = getCurrentSpecificConfig();
+        CheckUtils.checkNotNull(currentConfig, "The selected file system type " + getFSCategory() + " cannot be used");
+        currentConfig.updateSpecifier(m_locationSpec);
         m_loading = false;
         notifyChangeListeners();
     }
@@ -626,7 +630,11 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
             if (hasFSPort()) {
                 statusConsumer.accept(m_locationSpecHandler.warnIfConnectedOverwrittenWithFlowVariable(m_locationSpec));
             } else {
-                statusConsumer.accept(UNCONNECTED_FLOW_VAR_ERROR);
+                if (getFSCategory() == FSCategory.CONNECTED) {
+                    statusConsumer.accept(UNCONNECTED_FLOW_VAR_ERROR);
+                } else {
+                    statusConsumer.accept(flowVarUsesUnsupportedFileSystemCategoryError());
+                }
             }
         } else if (connectedFSDiffers()) {
             statusConsumer.accept(m_locationSpecHandler.warnIfConnectedOverwrittenWithFlowVariable(m_locationSpec));
@@ -635,9 +643,19 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
         }
 
         final FileSystemSpecificConfig config = getCurrentSpecificConfig();
-        if (config.isActive()) {
+        if (config != null && config.isActive()) {
             config.report(statusConsumer);
         }
+    }
+
+    /** For instance: The flow variable provides a Mountpoint path, but only Relative paths are supported. */
+    private StatusMessage flowVarUsesUnsupportedFileSystemCategoryError() {
+        final var supportedCategories =
+            getActiveFSCategories().stream().map(FSCategory::getLabel).collect(Collectors.joining(", "));
+        final String selectedCategory = getFSCategory().getLabel();
+        return StatusMessage
+            .error(String.format("The flow variable provides a %s path, but only %s paths are supported.",
+                selectedCategory, supportedCategories));
     }
 
     private boolean connectedFSDiffers() {
@@ -647,8 +665,17 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
         return false;
     }
 
+    /**
+     * @return true iff the flow variable sets an inactive file system (e.g., connected, but no file system connector
+     *         port is present) or an entirely unsupported file system (e.g., we don't support the
+     *         {@link FSCategory#LOCAL} file system in Call Workflow nodes because we don't want the user to select a
+     *         callee on a random disk location like the home directory).
+     *
+     */
     private boolean isFlowVarIncompatible() {
-        return isLocationOverwrittenByVar() && !getCurrentSpecificConfig().isActive();
+        final var currentSpecificConfig = getCurrentSpecificConfig();
+        final var configIsNullOrInactive = currentSpecificConfig == null || !currentSpecificConfig.isActive();
+        return isLocationOverwrittenByVar() && configIsNullOrInactive;
     }
 
     /**
