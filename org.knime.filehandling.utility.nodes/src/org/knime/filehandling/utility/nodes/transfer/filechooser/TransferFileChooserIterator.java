@@ -50,7 +50,6 @@ package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -103,14 +102,14 @@ final class TransferFileChooserIterator implements TransferIterator {
         final FSPath destinationFolder;
         try {
             destinationFolder = m_writeAccessor.getOutputPath(statusMessageConsumer);
-            final Path parent = destinationFolder.getParent();
-            if (parent != null && !FSFiles.exists(parent)) {
+            if (!FSFiles.exists(destinationFolder)) {
                 if (writeFileChooser.isCreateMissingFolders()) {
-                    Files.createDirectories(parent);
+                    Files.createDirectories(destinationFolder);
                 } else {
                     close();
-                    throw new IOException(String.format(
-                        "The directory '%s' does not exist and must not be created due to user settings.", parent));
+                    throw new IOException(
+                        String.format("The directory '%s' does not exist and must not be created due to user settings.",
+                            destinationFolder));
                 }
             }
         } catch (final InvalidSettingsException e) {
