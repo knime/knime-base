@@ -52,7 +52,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataColumnSpec;
@@ -93,7 +95,7 @@ final class DynamicSorterItemContext
         final String alphaNumCompKey) {
         m_includeListKey = includeListKey;
         m_sortOrderKey = sortOrderKey;
-        m_alphaNumCompKey = alphaNumCompKey;
+        m_alphaNumCompKey = Objects.requireNonNull(alphaNumCompKey);
     }
 
     @Override
@@ -102,7 +104,7 @@ final class DynamicSorterItemContext
         DynamicSortItem item = null;
 
         if (!values.isEmpty()) {
-            item = new DynamicSortItem(m_items.size(), values, values.get(0), true, false);
+            item = new DynamicSortItem(m_items.size(), values, values.get(0), true, true);
             item.addListener(this);
             m_items.add(item);
             updateComboBoxes();
@@ -177,7 +179,7 @@ final class DynamicSorterItemContext
                     list = Arrays.asList(alist);
                 }
             } catch (InvalidSettingsException ise) {
-                LOGGER.error(ise.getMessage());
+                LOGGER.error(ise.getMessage(), ise);
             }
         }
 
@@ -185,20 +187,21 @@ final class DynamicSorterItemContext
             try {
                 sortOrder = settings.getBooleanArray(m_sortOrderKey);
             } catch (InvalidSettingsException ise) {
-                LOGGER.error(ise.getMessage());
+                LOGGER.error(ise.getMessage(), ise);
             }
         }
 
-        boolean[] alphaNumComp = null;
+        IntPredicate alphaNumComp = i -> true;
         if (settings.containsKey(m_alphaNumCompKey)) {
             try {
-                alphaNumComp = settings.getBooleanArray(m_alphaNumCompKey);
+                final var fromSettings = settings.getBooleanArray(m_alphaNumCompKey);
+                alphaNumComp = i -> fromSettings[i];
             } catch (InvalidSettingsException ise) {
                 LOGGER.error("Could not load settings for alphanumeric comparison of strings", ise);
             }
-        }
-        if (alphaNumComp == null && list != null) {
-            alphaNumComp = new boolean[list.size()];
+        } else {
+            // old node instances don't get the new default
+            alphaNumComp = i -> false;
         }
 
         if ((list != null && sortOrder != null)
@@ -206,11 +209,10 @@ final class DynamicSorterItemContext
             m_items.clear();
 
             final List<DataColumnSpec> values = createColumnList();
-            for (int i = 0; i < list.size(); i++) {
+            for (var i = 0; i < list.size(); i++) {
                 final int selectedIndex = getIndexOfSpec(values, list.get(i));
-
                 if (selectedIndex > -1) {
-                    createItem(values, selectedIndex, sortOrder[i], alphaNumComp[i]);
+                    createItem(values, selectedIndex, sortOrder[i], alphaNumComp.test(i));
                 }
             }
             updateComboBoxes();
@@ -228,7 +230,7 @@ final class DynamicSorterItemContext
             final List<String> inclList = getSelectedColumnNames();
             settings.addStringArray(m_includeListKey, inclList.toArray(new String[inclList.size()]));
             settings.addBooleanArray(m_sortOrderKey, getSortOrder());
-            settings.addBooleanArray(m_alphaNumCompKey, getNaturalOrder());
+            settings.addBooleanArray(m_alphaNumCompKey, getAlphanumComp());
         }
     }
 
@@ -277,7 +279,7 @@ final class DynamicSorterItemContext
         return sortOrder;
     }
 
-    private boolean[] getNaturalOrder() {
+    private boolean[] getAlphanumComp() {
         final var order = new boolean[m_items.size()];
         for (int i = 0; i < m_items.size(); i++) {
             order[i] = m_items.get(i).getAlphaNumComp();

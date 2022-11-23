@@ -48,6 +48,10 @@
  */
 package org.knime.base.node.preproc.topk;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.knime.base.node.util.SortKeyItem;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -55,7 +59,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
@@ -66,70 +69,47 @@ import org.knime.core.node.port.PortObjectSpec;
 final class TopKSelectorSettings {
 
     /**
-     * Array containing information about the sort order for each column. true: ascending; false: descending
+     * Sort key to sort by. Includes with each column/row key the sort order and type of string comparison.
      */
-    private boolean[] m_sortOrder = null;
+    private List<SortKeyItem> m_sortKey = Collections.emptyList();
 
-    private static SettingsModelStringArray createInclListModel() {
-        return new SettingsModelStringArray(TopKSelectorNodeModel.INCLUDELIST_KEY, null);
-    }
+    private final SettingsModelBoolean m_missingToEnd = new SettingsModelBoolean("missingsToEnd", true);
 
-    private static SettingsModelIntegerBounded createKModel() {
-        return new SettingsModelIntegerBounded("k", 5, 1, Integer.MAX_VALUE);
-    }
+    private final SettingsModelString m_outputOrder = new SettingsModelString("outputOrder",
+        OutputOrder.NO_ORDER.name());
 
-    private static SettingsModelBoolean createMissingsToEndModel() {
-        return new SettingsModelBoolean("missingsToEnd", true);
-    }
+    private final TopKModeSettingsModel m_topKMode = new TopKModeSettingsModel("selectionMode",
+        TopKMode.TOP_K_ROWS.getText());
 
-    private static SettingsModelString createOutputOrderModel() {
-        return new SettingsModelString("outputOrder", OutputOrder.NO_ORDER.name());
-    }
-
-    private static TopKModeSettingsModel createTopKModeModel() {
-        return new TopKModeSettingsModel("selectionMode", TopKMode.TOP_K_ROWS.getText());
-    }
-
-    private final SettingsModelStringArray m_inclList = createInclListModel();
-
-    private final SettingsModelBoolean m_missingToEnd = createMissingsToEndModel();
-
-    private final SettingsModelString m_outputOrder = createOutputOrderModel();
-
-    private final TopKModeSettingsModel m_topKMode = createTopKModeModel();
-
-    private final SettingsModelIntegerBounded m_k = createKModel();
+    private final SettingsModelIntegerBounded m_k = new SettingsModelIntegerBounded("k", 5, 1, Integer.MAX_VALUE);
 
     void saveSettingsTo(final NodeSettingsWO settings) {
         m_k.saveSettingsTo(settings);
         m_missingToEnd.saveSettingsTo(settings);
         m_outputOrder.saveSettingsTo(settings);
-        m_inclList.saveSettingsTo(settings);
         m_topKMode.saveSettingsTo(settings);
-        settings.addBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY, m_sortOrder);
+        SortKeyItem.saveTo(m_sortKey, TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY,
+            TopKSelectorNodeModel.ALPHANUMCOMP_KEY, settings);
     }
 
     void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_k.validateSettings(settings);
         m_missingToEnd.validateSettings(settings);
         m_outputOrder.validateSettings(settings);
-        m_inclList.validateSettings(settings);
         m_topKMode.validateSettings(settings);
-        settings.getBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY);
+        SortKeyItem.validate(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY,
+            TopKSelectorNodeModel.ALPHANUMCOMP_KEY, settings);
     }
 
     void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_k.loadSettingsFrom(settings);
         m_missingToEnd.loadSettingsFrom(settings);
         m_outputOrder.loadSettingsFrom(settings);
-        m_inclList.loadSettingsFrom(settings);
         m_topKMode.loadSettingsFrom(settings);
-        m_sortOrder = settings.getBooleanArray(TopKSelectorNodeModel.SORTORDER_KEY);
+        m_sortKey = SortKeyItem.loadFrom(TopKSelectorNodeModel.INCLUDELIST_KEY, TopKSelectorNodeModel.SORTORDER_KEY,
+            TopKSelectorNodeModel.ALPHANUMCOMP_KEY, settings);
     }
 
-    SettingsModelStringArray getIncllistModel() {
-        return m_inclList;
-    }
 
     SettingsModelIntegerBounded getKModel() {
         return m_k;
@@ -147,12 +127,8 @@ final class TopKSelectorSettings {
         return m_missingToEnd;
     }
 
-    String[] getIncllist() {
-        return m_inclList.getStringArrayValue();
-    }
-
-    boolean[] getSortOrders() {
-        return m_sortOrder;
+    public List<SortKeyItem> getSortKey() {
+        return m_sortKey;
     }
 
     int getK() {

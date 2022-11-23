@@ -51,13 +51,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalInt;
 
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
+import org.knime.base.node.util.SortKeyItem;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.BufferedDataTableSorter;
-import org.knime.core.data.sort.RowComparator;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -73,7 +72,7 @@ import org.knime.core.node.util.ConvenienceMethods;
  * This class implements the {@link NodeModel} for the sorter node. The input
  * table is segmented into containers that are sorted with guaranteed n*log(n)
  * performance, based on a selection of columns and a corresponding order
- * (ascending/descending). In the end, all sorted containers are merged together
+ * (ascending/descending) and string comparator. In the end, all sorted containers are merged together
  * and transformed in a output datatable. To compare two datarows, the
  * Comparator compares the {@link org.knime.core.data.DataCell}s with their
  * <code>compareTo</code>-method on each position.
@@ -122,10 +121,10 @@ public class SorterNodeModel extends NodeModel {
     static final String MISSING_TO_END_KEY = "missingToEnd";
 
     /**
-     * Sort key columns to sort by. Includes with each column the sort order (and comparison types for
+     * Sort key items to sort by. Includes with each column/row key the sort order (and comparison types for
      * string-compatible values).
      */
-    private List<SortKeyColumn> m_sortKeyColumns;
+    private List<SortKeyItem> m_sortKeyColumns;
 
     /**
      * Flag indicating whether to perform the sorting in memory or not.
@@ -146,29 +145,6 @@ public class SorterNodeModel extends NodeModel {
         super(1, 1);
     }
 
-    private static final class SortKeyColumn {
-
-        /**
-         * Column name.
-         */
-        private String m_columnName;
-        /**
-         * Sort column ascendingly if {@code true}, else sort descendingly.
-         */
-        private boolean m_ascendingOrder;
-        /**
-         * Use alphanumeric comparison instead of lexicographic for string-compatible values.
-         * @since 4.7.0
-         */
-        private boolean m_alphaNumComp;
-
-        private SortKeyColumn(final String columnName, final boolean ascendingOrder, final boolean alphaNumComp) {
-            m_columnName = columnName;
-            m_ascendingOrder = ascendingOrder;
-            m_alphaNumComp = alphaNumComp;
-        }
-    }
-
     /**
      * When the model gets executed, the {@link org.knime.core.data.DataTable}
      * is split in several {@link org.knime.core.data.container.DataContainer}s.
@@ -181,7 +157,7 @@ public class SorterNodeModel extends NodeModel {
      * @param inData the data table at the input port
      * @param exec the execution monitor
      * @return the sorted data table
-     * @throws Exception if the settings (includeList and sortOrder) are not set
+     * @throws Exception when node is canceled or settings are invalid
      *
      * @see java.util.Arrays sort(java.lang.Object[], int, int,
      *      java.util.Comparator)
@@ -193,49 +169,23 @@ public class SorterNodeModel extends NodeModel {
             final ExecutionContext exec) throws Exception {
         CheckUtils.checkNotNull(m_sortKeyColumns, "Sort key columns should not be null.");
         final var dataTable = inData[INPORT];
-
         // If no columns are set, we do not start the sorting process
         if (m_sortKeyColumns.isEmpty()) {
             setWarningMessage("No columns were selected - returning original table");
             return new BufferedDataTable[]{dataTable};
         }
-
         final var dts = dataTable.getDataTableSpec();
-        final var rc = RowComparator.on(dts);
-        m_sortKeyColumns.forEach(pos -> {
-            final var colName = pos.m_columnName;
-            final var ascending = pos.m_ascendingOrder;
-            final var alphaNum = pos.m_alphaNumComp;
-            final OptionalInt idx = findColumnIndex(dts, colName);
-            idx.ifPresentOrElse(
-                col -> rc.thenComparingColumn(col, ascending, alphaNum, m_missingToEnd),
-                () -> rc.thenComparingRowKey(ascending, alphaNum));
-        });
-        final var sorter = new BufferedDataTableSorter(dataTable, rc.build());
+        final var sorter = new BufferedDataTableSorter(dataTable,
+            SortKeyItem.toRowComparator(dts, m_sortKeyColumns, m_missingToEnd, SorterNodeModel::isRowKey));
         sorter.setSortInMemory(m_sortInMemory);
         final var sortedTable = sorter.sort(exec);
-
         return new BufferedDataTable[]{sortedTable};
-    }
-
-    private static OptionalInt findColumnIndex(final DataTableSpec dts, final String colName) {
-        final var idx = dts.findColumnIndex(colName);
-        if (idx == -1) {
-            if (!isRowKey(colName)) {
-                throw new IllegalArgumentException("Could not find column name: " + colName);
-            }
-            return OptionalInt.empty();
-        }
-        return OptionalInt.of(idx);
     }
 
     private static boolean isRowKey(final String colName) {
         return DynamicSorterPanel.ROWKEY.getName().equals(colName);
     }
 
-    /**
-     * Resets all internal data.
-     */
     @Override
     public void reset() {
 
@@ -258,15 +208,17 @@ public class SorterNodeModel extends NodeModel {
         // check if the values of the include List
         // exist in the DataTableSpec
         final List<String> notAvailableCols = new ArrayList<>();
+        final var spec = inSpecs[INPORT];
         for (var ic : m_sortKeyColumns) {
-            if (!isRowKey(ic.m_columnName)) {
-                final var spec = inSpecs[INPORT];
-                final var idx = spec.findColumnIndex(ic.m_columnName);
+            final var id = ic.getIdentifier();
+            if (!isRowKey(id)) {
+                final var idx = spec.findColumnIndex(id);
                 if (idx == -1) {
-                    notAvailableCols.add(ic.m_columnName);
-                } else if (ic.m_alphaNumComp && !spec.getColumnSpec(idx).getType().isCompatible(StringValue.class)) {
+                    notAvailableCols.add(id);
+                } else if (ic.isAlphaNumComp() && !spec.getColumnSpec(idx).getType().isCompatible(StringValue.class)) {
                     throw new InvalidSettingsException(
-                        "Alphanumeric sorting is only available for string-compatible types.");
+                        "Alphanumeric sorting is not available for '" + id + "' since it does not have a "
+                            + "string-compatible type.");
                 }
             }
         }
@@ -288,20 +240,7 @@ public class SorterNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         if (m_sortKeyColumns != null) {
-            final int numCols = m_sortKeyColumns.size();
-            final var colNames = new String[numCols];
-            final var ascending = new boolean[numCols];
-            final var alphaNum = new boolean[numCols];
-            for (var i = 0; i < numCols; i++) {
-                final var col = m_sortKeyColumns.get(i);
-                colNames[i] = col.m_columnName;
-                ascending[i] = col.m_ascendingOrder;
-                alphaNum[i] = col.m_alphaNumComp;
-            }
-            settings.addStringArray(INCLUDELIST_KEY, colNames);
-            settings.addBooleanArray(SORTORDER_KEY, ascending);
-            // added in 4.7
-            settings.addBooleanArray(ALPHANUMCOMP_KEY, alphaNum);
+            SortKeyItem.saveTo(m_sortKeyColumns, INCLUDELIST_KEY, SORTORDER_KEY, ALPHANUMCOMP_KEY, settings);
         }
         settings.addBoolean(SORTINMEMORY_KEY, m_sortInMemory);
         // added in 2.6
@@ -317,47 +256,7 @@ public class SorterNodeModel extends NodeModel {
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-
-        if (!settings.containsKey(INCLUDELIST_KEY)) {
-            throw new InvalidSettingsException("No column selected.");
-        }
-
-        final var inclList = settings.getStringArray(INCLUDELIST_KEY);
-        if (inclList == null) {
-            throw new InvalidSettingsException("No column selected.");
-        }
-
-        // scan for duplicate entries in include list
-        for (var i = 0; i < inclList.length; i++) {
-            String entry = inclList[i];
-            for (int j = i + 1; j < inclList.length; j++) {
-                if (entry.equals(inclList[j])) {
-                    throw new InvalidSettingsException("Duplicate column '"
-                            + entry + "' at positions " + i + " and " + j);
-                }
-            }
-        }
-
-        if (!settings.containsKey(SORTORDER_KEY)) {
-            throw new InvalidSettingsException("No sort order specified.");
-        }
-        final var sortOrders = settings.getBooleanArray(SORTORDER_KEY);
-        if (sortOrders == null) {
-            throw new InvalidSettingsException("Invalid sort orders.");
-        }
-        if (inclList.length != sortOrders.length) {
-            throw new InvalidSettingsException("Mismatch in number of columns and sort orders.");
-        }
-
-        // don't require presence for backwards compat (added in 4.7)
-        if (settings.containsKey(ALPHANUMCOMP_KEY)) {
-            final var alphaNumComp = settings.getBooleanArray(ALPHANUMCOMP_KEY);
-            if (alphaNumComp == null || inclList.length != alphaNumComp.length) {
-                throw new InvalidSettingsException("Invalid entry for alphanumeric string comparison of sort columns.");
-            }
-        }
-
-
+        SortKeyItem.validate(INCLUDELIST_KEY, SORTORDER_KEY, ALPHANUMCOMP_KEY, settings);
         // no "missingToBottom" prior 2.6
     }
 
@@ -370,15 +269,7 @@ public class SorterNodeModel extends NodeModel {
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         assert (settings != null);
-        m_sortKeyColumns = new ArrayList<>();
-        final var colNames = settings.getStringArray(INCLUDELIST_KEY);
-        final var ascending = settings.getBooleanArray(SORTORDER_KEY);
-
-        // added in 4.7, catch missing setting
-        final var alphaNum = settings.getBooleanArray(ALPHANUMCOMP_KEY, new boolean[colNames.length]);
-        for (int i = 0; i < colNames.length; i++) {
-            m_sortKeyColumns.add(new SortKeyColumn(colNames[i], ascending[i], alphaNum[i]));
-        }
+        m_sortKeyColumns = SortKeyItem.loadFrom(INCLUDELIST_KEY, SORTORDER_KEY, ALPHANUMCOMP_KEY, settings);
 
         if (settings.containsKey(SORTINMEMORY_KEY)) {
             m_sortInMemory = settings.getBoolean(SORTINMEMORY_KEY);

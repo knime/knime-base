@@ -131,9 +131,10 @@ final class DynamicSortItem implements DynamicPanelItem {
      * @param values the columns that the user can choose from
      * @param selected the selected column
      * @param sortOrder the sort
+     * @param compareAlphanumerical select alphanumeric comparison
      */
     DynamicSortItem(final int id, final List<DataColumnSpec> values, final DataColumnSpec selected,
-        final boolean sortOrder, final boolean naturalOrder) {
+        final boolean sortOrder, final boolean compareAlphanumerical) {
         m_id = id;
         m_combovalues = values;
 
@@ -170,19 +171,25 @@ final class DynamicSortItem implements DynamicPanelItem {
         comboPanel.add(m_combo, c);
 
         c.gridy = 2;
-        m_alphaNumCompCB.setToolTipText("Switches to alphanumerical string sorting from lexicographical. "
-            + "For example, results in sort order “Row1, Row2, Row10” instead of “Row1, Row10, Row2”.");
-        m_alphaNumCompCB.setEnabled(selected.getType().isCompatible(StringValue.class));
-        m_alphaNumCompCB.setSelected(m_alphaNumCompCB.isEnabled() && naturalOrder);
+        m_alphaNumCompCB.setToolTipText("<html>When enabled, uses alphanumeric string comparison when sorting data.<br>"
+            + "For example, results in sort order “'Row1', 'Row2', 'Row10'” instead of “'Row1', 'Row10', 'Row2'”."
+            + "</html>");
+
+        final var alphanumPossible = alphanumericComparisonPossible(selected);
+        m_alphaNumCompCB.setEnabled(alphanumPossible);
+        m_alphaNumCompCB.setSelected(alphanumPossible && compareAlphanumerical);
+
         comboPanel.add(m_alphaNumCompCB, c);
         m_combo.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                final var item = (DataColumnSpec) e.getItem();
-                m_alphaNumCompCB.setEnabled(item.getType().isCompatible(StringValue.class));
+                final var newlySelected = (DataColumnSpec) e.getItem();
+                final var canAlphanum = alphanumericComparisonPossible(newlySelected);
+                // new item may not be string-compatible anymore
+                m_alphaNumCompCB.setEnabled(canAlphanum);
+                // existing selected state may not be compatible with newly selected item anymore
+                m_alphaNumCompCB.setSelected(canAlphanum);
             }
         });
-
-
 
         final JPanel buttonPanel = new JPanel(new GridBagLayout());
         c.weightx = 0;
@@ -218,6 +225,10 @@ final class DynamicSortItem implements DynamicPanelItem {
         c.fill = GridBagConstraints.NONE;
         c.insets = new Insets(15, 20, 0, 50);
         m_panel.add(buttonPanel, c);
+    }
+
+    private static boolean alphanumericComparisonPossible(final DataColumnSpec column) {
+        return column.getType().isCompatible(StringValue.class);
     }
 
     private void notifyListener(final ItemEvent e) {

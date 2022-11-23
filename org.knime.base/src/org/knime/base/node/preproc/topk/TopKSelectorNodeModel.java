@@ -50,17 +50,16 @@ package org.knime.base.node.preproc.topk;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
+import org.knime.base.node.util.SortKeyItem;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
-import org.knime.core.data.sort.RowComparator;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -91,80 +90,54 @@ final class TopKSelectorNodeModel extends NodeModel {
      */
     public static final String SORTORDER_KEY = "order";
 
+    /**
+     * The key for the Alphanumeric Comparison in the node settings.
+     * @since 4.7
+     */
+    static final String ALPHANUMCOMP_KEY = "alphaNumStringComp";
+
     private final TopKSelectorSettings m_settings = new TopKSelectorSettings();
 
     TopKSelectorNodeModel() {
         super(1, 1);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        if (m_settings.getIncllist() == null) {
-            CheckUtils.checkSetting(m_settings.getIncllist() != null, "No columns specified to select by.");
-        }
-        findColumnIndices(inSpecs[IN_DATA]);
+        final var sk = m_settings.getSortKey();
+        CheckUtils.checkSetting(sk != null && !sk.isEmpty(), "No columns specified to select by.");
+        final DataTableSpec dts = inSpecs[IN_DATA];
+        final List<String> missing = SortKeyItem.getMissing(sk, dts, TopKSelectorNodeModel::isRowKey);
+        CheckUtils.checkSetting(missing.isEmpty(), missingColumnsError(missing));
         return inSpecs.clone();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
+            throws Exception {
+        final var sortKey = m_settings.getSortKey();
+        CheckUtils.checkNotNull(sortKey, "Sort key columns should not be null");
+        CheckUtils.checkSetting(!sortKey.isEmpty(), "Sort key should not be empty.");
+
         final BufferedDataTable table = inData[IN_DATA];
-        final DataTableSpec spec = table.getDataTableSpec();
         if (table.size() < m_settings.getK()) {
             setWarningMessage(String.format("The input table has fewer rows (%s) than the specified k (%s)",
                 table.size(), m_settings.getK()));
         }
-        final int[] indices = findColumnIndices(spec);
-        final boolean[] sortOrders = m_settings.getSortOrders();
         final boolean missingsLast = m_settings.isMissingToEnd();
-        final var rc = RowComparator.on(spec);
-        for (var i = 0; i < indices.length; i++) {
-            final var index = indices[i];
-            final var ascending = sortOrders[i];
-            if (index == -1) {
-                rc.thenComparingRowKey(ascending, false);
-            } else {
-                rc.thenComparingColumn(index, ascending, false, missingsLast);
-            }
-        }
-        final var rowComparator = rc.build();
-        final TopKSelector elementSelector = createElementSelector(rowComparator);
-        final OutputOrder outputOrder = m_settings.getOutputOrder();
+        final var dts = table.getDataTableSpec();
+        final var rc = SortKeyItem.toRowComparator(dts, sortKey, missingsLast, TopKSelectorNodeModel::isRowKey);
+        final TopKSelector elementSelector = createElementSelector(rc);
+        final var outputOrder = m_settings.getOutputOrder();
         final OrderPreprocessor preprocessor = outputOrder.getPreprocessor();
         final BufferedDataTable execTable = preprocessor.preprocessSelectionTable(table,
             exec.createSubExecutionContext(preprocessor.getProgressRequired()));
         fillElementSelector(exec.createSubExecutionContext(0.9 - preprocessor.getProgressRequired()), execTable,
             elementSelector);
         final Collection<DataRow> topK =
-            outputOrder.getPostprocessor().postprocessSelection(elementSelector.getTopK(), rowComparator);
-        final BufferedDataTable outputTable = createOutputTable(topK, spec, exec.createSubExecutionContext(0.1));
+            outputOrder.getPostprocessor().postprocessSelection(elementSelector.getTopK(), rc);
+        final BufferedDataTable outputTable = createOutputTable(topK, dts, exec.createSubExecutionContext(0.1));
         return new BufferedDataTable[]{outputTable};
-    }
-
-    private int[] findColumnIndices(final DataTableSpec spec) throws InvalidSettingsException {
-        final int[] indices = new int[m_settings.getIncllist().length];
-        final List<String> missingColumns = new ArrayList<>();
-        for (int i = 0; i < indices.length; i++) {
-            final String name = m_settings.getIncllist()[i];
-            if (isRowKey(name)) {
-                indices[i] = -1;
-            } else {
-                final int idx = spec.findColumnIndex(name);
-                if (idx < 0) {
-                    missingColumns.add(name);
-                }
-                indices[i] = idx;
-            }
-        }
-        CheckUtils.checkSetting(missingColumns.isEmpty(), missingColumnsError(missingColumns));
-        return indices;
     }
 
     private static String missingColumnsError(final Collection<String> missingColumns) {
