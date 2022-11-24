@@ -47,7 +47,9 @@ package org.knime.filehandling.core.fs.knime.local.relativeto.fs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.nio.file.FileSystemException;
@@ -56,7 +58,12 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Test;
@@ -78,7 +85,7 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         final var mountpointRoot = m_tempFolder.newFolder("other-mountpoint-root").toPath();
         final var workflowName = "current-workflow";
         WorkflowTestUtil.createWorkflowDir(mountpointRoot, workflowName);
-        m_workflowManager = WorkflowTestUtil.getWorkflowManager(mountpointRoot, workflowName, true);
+        m_workflowManager = WorkflowTestUtil.getServerSideWorkflowManager(mountpointRoot, workflowName);
         NodeContext.pushContext(m_workflowManager);
 
         // initialization should fail
@@ -103,20 +110,20 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         assertEquals(fs.getPath("/"), fs.getWorkingDirectory());
     }
 
-    @Test(expected = NoSuchFileException.class)
-    public void outsideMountpointWorkflowRelative() throws IOException {
-        final LocalRelativeToFileSystem fs = getWorkflowRelativeFS();
-        final LocalWorkflowAwarePath path = fs.getPath("../../../somewhere-outside");
+    private static void assertPathInaccessible(final LocalRelativeToFileSystem fs, final String pathStr) throws IOException {
+        final var path = fs.getPath(pathStr);
         assertFalse(fs.isPathAccessible(path));
         fs.toLocalPathWithAccessibilityCheck(path); // throws exception
     }
 
     @Test(expected = NoSuchFileException.class)
+    public void outsideMountpointWorkflowRelative() throws IOException {
+        assertPathInaccessible(getWorkflowRelativeFS(), "../../../somewhere-outside");
+    }
+
+    @Test(expected = NoSuchFileException.class)
     public void outsideMountpointMountpointRelative() throws IOException {
-        final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
-        final LocalWorkflowAwarePath path = fs.getPath("/../../../somewhere-outside");
-        assertFalse(fs.isPathAccessible(path));
-        fs.toLocalPathWithAccessibilityCheck(path); // throws exception
+        assertPathInaccessible(getMountpointRelativeFS(), "/../../../somewhere-outside");
     }
 
     @Test(expected = NoSuchFileException.class)
@@ -151,6 +158,135 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         fs.toLocalPathWithAccessibilityCheck(path); // throws exception
     }
 
+    private void assertPathIsInaccessible(final LocalWorkflowAwarePath path) throws IOException {
+        @SuppressWarnings("resource")
+        final var fs = path.getFileSystem();
+
+        assertFalse(fs.isPathAccessible(path));
+        try {
+            fs.toLocalPathWithAccessibilityCheck(path); // throws exception
+            fail("Path should not exist or be accessible");
+        } catch (NoSuchFileException e) {
+            assertEquals(path.toString(), e.getFile());
+        }
+
+        // does not exist
+        assertFalse(Files.exists(path));
+
+        // cannot read attributes
+        try {
+            Files.readAttributes(path, BasicFileAttributes.class);
+            fail("Path should not exist or be accessible");
+        } catch (NoSuchFileException e) {// NOSONAR
+        }
+
+        // cannot read
+        try (var stream = Files.newInputStream(path)) {
+            fail("Path should not exist or be accessible");
+        } catch (NoSuchFileException e) { // NOSONAR
+        }
+
+        // cannot write with output stream
+        try (var stream = Files.newOutputStream(path)) {
+            fail("Path should not exist or be accessible");
+        } catch (FileSystemException e) {
+            assertEquals(path.toAbsolutePath().normalize().toString(), e.getFile());
+        }
+
+        // cannot write with channel
+        try (var stream = Files.newByteChannel(path, StandardOpenOption.CREATE)) {
+            fail("Path should not exist or be accessible");
+        } catch (FileSystemException e) {// NOSONAR
+        }
+
+        // cannot copy from
+        try {
+            Files.copy(path, fs.getPath("/wontbecreated"));
+            fail("Path should not be accessible");
+        } catch (NoSuchFileException e) {
+            assertEquals(path.toString(), e.getFile());
+        }
+
+        // cannot copy to
+        try {
+            var testFile = fs.getPath("/testfile");
+            Files.writeString(testFile, "test");
+            Files.copy(testFile, path, StandardCopyOption.REPLACE_EXISTING);
+            fail("Path should not be accessible");
+        } catch (FileSystemException e) {// NOSONAR
+        }
+
+        // cannot move from
+        try {
+            Files.move(path, fs.getPath("/wontbecreated"));
+            fail("Path should not be accessible");
+        } catch (NoSuchFileException e) {
+            assertEquals(path.toString(), e.getFile());
+        }
+
+        // cannot move to
+        try {
+            var testFile = fs.getPath("/testfile");
+            Files.writeString(testFile, "test");
+            Files.move(testFile, path, StandardCopyOption.REPLACE_EXISTING);
+            fail("Path should not be accessible");
+        } catch (FileSystemException e) {// NOSONAR
+        }
+
+        // does not show up in directory listing (1)
+        var relParent = Optional.ofNullable(path.getParent()).orElse(fs.getPath(""));
+        try (var stream = Files.list(relParent)) {
+            var list = stream.collect(Collectors.toList());
+            assertFalse(list.contains(path));
+        } catch (NoSuchFileException e) {
+            assertTrue(Files.notExists(relParent));
+        }
+
+        // does not show up in directory listing (2)
+        var absParent = path.toAbsolutePath().normalize().getParent();
+        try (var stream = Files.list(absParent)) {
+            var list = stream.collect(Collectors.toList());
+            assertFalse(list.contains(path.toAbsolutePath().normalize()));
+        } catch (NoSuchFileException e) {
+            assertTrue(Files.notExists(absParent));
+        }
+    }
+
+    @Test
+    public void testMetadataFolderIsInaccessible() throws IOException {
+        @SuppressWarnings("resource")
+        final var fs = getMountpointRelativeFS();
+        Files.createDirectory(m_mountpointRoot.resolve(".metadata"));
+        Files.writeString(m_mountpointRoot.resolve(".metadata").resolve("version.ini"), "test");
+
+        assertPathIsInaccessible(fs.getPath(".metadata"));
+        assertPathIsInaccessible(fs.getPath(".metadata/version.ini"));
+    }
+
+    @Test
+    public void workflowsetMetaFileWithWorkflowRelative() throws IOException {
+        @SuppressWarnings("resource")
+        final var fs = getWorkflowRelativeFS();
+        Files.writeString(m_mountpointRoot.resolve("workflowset.meta"), "");
+        Files.createDirectory(m_mountpointRoot.resolve("testfolder"));
+        Files.writeString(m_mountpointRoot.resolve("testfolder").resolve("workflowset.meta"), "");
+
+        assertPathIsInaccessible(fs.getPath("../workflowset.meta"));
+        assertPathIsInaccessible(fs.getPath("../testfolder/workflowset.meta"));
+    }
+
+    @Test
+    public void insideMetadataFileWitMountpointRelative() throws IOException {
+        @SuppressWarnings("resource")
+        final var fs = getMountpointRelativeFS();
+        Files.writeString(m_mountpointRoot.resolve("workflowset.meta"), "");
+        Files.createDirectory(m_mountpointRoot.resolve("testfolder"));
+        Files.writeString(m_mountpointRoot.resolve("testfolder").resolve("workflowset.meta"), "");
+
+        assertPathIsInaccessible(fs.getPath("workflowset.meta"));
+        assertPathIsInaccessible(fs.getPath("testfolder/workflowset.meta"));
+    }
+
     @Test
     public void isWorkflow() throws IOException {
         final LocalRelativeToFileSystem fs = getMountpointRelativeFS();
@@ -172,15 +308,15 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         final LocalWorkflowAwarePath mountpointPath = mountpointFS.getPath(filename);
         final LocalRelativeToFileSystem workflowFS = getWorkflowRelativeFS();
         final LocalWorkflowAwarePath workflowPath = workflowFS.getPath(filename);
-        assertFalse(mountpointPath.equals(workflowPath));
-        assertTrue(mountpointFS.getPath(filename).equals(mountpointPath));
-        assertTrue(workflowFS.getPath(filename).equals(workflowPath));
+        assertNotEquals(workflowPath, mountpointPath);
+        assertEquals(mountpointPath, mountpointFS.getPath(filename));
+        assertEquals(workflowPath, workflowFS.getPath(filename));
 
         final Path localPath = Paths.get(filename);
-        assertFalse(localPath.equals(mountpointPath));
-        assertFalse(localPath.equals(workflowPath));
-        assertFalse(mountpointPath.equals(localPath));
-        assertFalse(workflowPath.equals(localPath));
+        assertNotEquals(mountpointPath, localPath);
+        assertNotEquals(workflowPath, localPath);
+        assertNotEquals(localPath, mountpointPath);
+        assertNotEquals(localPath, workflowPath);
     }
 
     @Test
@@ -275,6 +411,26 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
         final LocalWorkflowAwarePath relativePath = mountpointFS.getPath(dirname);
         try (final Stream<Path> stream = Files.list(relativePath)) {
+        }
+    }
+
+    @Test
+    public void testListSkipMetadataFolderOnMountpointPath() throws IOException {
+        final String metadataFolder = ".metadata";
+        final String metadataFile = "workflowset.meta";
+        WorkflowTestUtil.createWorkflowDir(m_mountpointRoot, metadataFolder);
+        WorkflowTestUtil.createWorkflowDir(m_mountpointRoot, metadataFile);
+
+        final LocalRelativeToFileSystem mountpointFS = getMountpointRelativeFS();
+        final LocalWorkflowAwarePath relativePath = mountpointFS.getPath(".");
+        try (final Stream<Path> stream = Files.list(relativePath)) {
+            stream.forEach(p -> {
+                assertNotEquals(metadataFolder, p.getFileName().toString());
+                assertNotEquals(metadataFile, p.getFileName().toString());
+            });
+        }
+        try (var stream = Files.list(relativePath)) {
+            assertEquals(2, stream.count());
         }
     }
 

@@ -85,7 +85,9 @@ final class LocalWorkflowAwarePathIterator implements Iterator<LocalWorkflowAwar
                     } catch (final IOException ex) { // wrap exception
                         throw new UncheckedIOException(ex);
                     }
-                }).toArray(LocalWorkflowAwarePath[]::new);
+                })
+                .filter(p -> !folder.getFileSystem().isReservedForLocalMetadata(p)) // skip meta folder/file
+                .toArray(LocalWorkflowAwarePath[]::new);
         } catch (final UncheckedIOException ex) { // unwrap exception
             if (ex.getCause() != null) {
                 throw ex.getCause();

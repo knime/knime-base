@@ -57,6 +57,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -69,7 +70,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.core.node.workflow.WorkflowPersistor;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.base.BaseFileSystemProvider;
@@ -110,6 +110,10 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
         return getFileSystemInternal().isPartOfWorkflow(path);
     }
 
+    private boolean isReservedForLocalMetadata(final LocalWorkflowAwarePath path) {
+        return getFileSystemInternal().isReservedForLocalMetadata(path);
+    }
+
     private void checkSupport(final LocalWorkflowAwarePath path, final Operation operation) throws IOException {
         final Optional<Entity> entity = getEntity(path);
         // an empty entity means there is nothing at the provided path and we let the caller handle this case
@@ -126,6 +130,11 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     @Override
     protected OutputStream newOutputStreamInternal(final LocalWorkflowAwarePath path, final OpenOption... options) throws IOException {
         checkSupport(path, Operation.NEW_OUTPUT_STREAM);
+
+        if (isReservedForLocalMetadata(path)) {
+            throw new FileSystemException(path.toString(), null, "Path is reserved for internal use");
+        }
+
         return Files.newOutputStream(toLocalPathWithAccessibilityCheck(path), options);
     }
 
@@ -158,6 +167,11 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
         if (isPartOfWorkflow(path)) {
             throw new IOException(path.toString()  + " points to/into a workflow. Workflows cannot be opened for reading/writing");
         }
+
+        if (isReservedForLocalMetadata(path)) {
+            throw new FileSystemException(path.toString(), null, "Path is reserved for internal use");
+        }
+
         checkSupport(path, Operation.NEW_INPUT_STREAM);
         return Files.newByteChannel(toLocalPathWithAccessibilityCheck(path), options);
     }
@@ -166,6 +180,11 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     protected void createDirectoryInternal(final LocalWorkflowAwarePath dir, final FileAttribute<?>... attrs)
         throws IOException {
         checkSupport(dir, Operation.CREATE_FOLDER);
+
+        if (isReservedForLocalMetadata(dir)) {
+            throw new FileSystemException(dir.toString(), null, "Path is reserved for internal use");
+        }
+
         Files.createDirectory(toLocalPathWithAccessibilityCheck(checkCastAndAbsolutizePath(dir)), attrs);
     }
 
@@ -214,11 +233,6 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     @Override
     public boolean isSameFileInternal(final LocalWorkflowAwarePath path, final LocalWorkflowAwarePath path2) throws IOException {
         return Files.isSameFile(toLocalPathWithAccessibilityCheck(path), toLocalPathWithAccessibilityCheck(path2));
-    }
-
-    @Override
-    public boolean isHiddenInternal(final LocalWorkflowAwarePath path) throws IOException {
-        return !path.isRoot() && path.getFileName().toString().equals(WorkflowPersistor.METAINFO_FILE);
     }
 
     @Override
@@ -275,6 +289,10 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
 
         checkFileSystemOpenAndNotClosing();
         final var absoluteDest = checkCastAndAbsolutizePath(dest);
+
+        if (isReservedForLocalMetadata(absoluteDest)) {
+            throw new FileSystemException(dest.toString(), null, "Path is reserved for internal use");
+        }
 
         final String localMountId = getMountID().orElseThrow(() -> new IOException("Cannot deploy workflow because target file system does not have a mount ID"));
         try {

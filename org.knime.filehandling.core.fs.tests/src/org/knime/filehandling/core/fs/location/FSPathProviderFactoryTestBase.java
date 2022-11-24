@@ -27,7 +27,7 @@ public class FSPathProviderFactoryTestBase {
      * Local temp folder to use in unit test cases.
      */
     @Rule
-    public TemporaryFolder m_tempFolder = new TemporaryFolder();
+    public TemporaryFolder m_tempFolder = new TemporaryFolder(); // NOSONAR must be public, used by subclasses
 
     /**
      * Reads all bytes from the given {@link FSLocation} and compares them to the given expected bytes.

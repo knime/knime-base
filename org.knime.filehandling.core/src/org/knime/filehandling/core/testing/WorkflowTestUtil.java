@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -51,7 +52,7 @@ public final class WorkflowTestUtil {
         final var workflowName = "current-workflow";
         createWorkflowDir(localMountpointRoot, workflowName);
 
-        final var workflowManager = WorkflowTestUtil.getWorkflowManager(localMountpointRoot, workflowName, false);
+        final var workflowManager = WorkflowTestUtil.getWorkflowManager(localMountpointRoot, workflowName);
         NodeContext.pushContext(workflowManager);
         return workflowManager;
     }
@@ -99,12 +100,10 @@ public final class WorkflowTestUtil {
      *
      * @param mountpointRoot Path in local file system where the LOCAL mountpoint should be rooted at.
      * @param workflowName Name of the workflow
-     * @param serverMode
      * @return the newly created {@link WorkflowManager}.
      * @throws IOException
      */
-    public static WorkflowManager getWorkflowManager(final Path mountpointRoot, final String workflowName,
-        final boolean serverMode) throws IOException {
+    public static WorkflowManager getWorkflowManager(final Path mountpointRoot, final String workflowName) throws IOException {
 
         final var workflowFile = mountpointRoot.resolve(workflowName).toFile();
         try {
@@ -114,14 +113,42 @@ public final class WorkflowTestUtil {
                         .withCurrentUserAsUserId()
                         .withLocalWorkflowPath(workflowFile.toPath())
                         .withMountpoint("LOCAL", mountpointRoot))
-                    .withLocation(!serverMode ? LocalLocationInfo.getInstance(null) :
-                        ServerLocationInfo.builder()
-                            .withRepositoryAddress(URI.create("http://test-test-test:-1"))
-                            .withWorkflowPath("test-test-test")
-                            .withAuthenticator(new SimpleTokenAuthenticator("test-test-test"))
-                            .withDefaultMountId("LOCAL")
-                            .build())
+                    .withLocation(LocalLocationInfo.getInstance(null))
                     .build();
+
+            final var loadHelper = new WorkflowLoadHelper(context);
+            final var loadResult = WorkflowManager.ROOT.load(workflowFile, execMon, loadHelper, false);
+            return loadResult.getWorkflowManager();
+        } catch (final InvalidSettingsException | CanceledExecutionException | UnsupportedWorkflowVersionException
+                | LockFailedException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
+     * Creates a {@link WorkflowManager} for the workflow located at <code>knime://SERVER/workflowName</code>, where the
+     * (fake) SERVER mountpoint points to a server repository
+     *
+     * @param executorWorkspaceRoot Path in local file system where the (fake) executor has its workspace.
+     * @param workflowName Name of the workflow
+     * @return the newly created {@link WorkflowManager}.
+     * @throws IOException
+     */
+    public static WorkflowManager getServerSideWorkflowManager(final Path executorWorkspaceRoot,
+        final String workflowName) throws IOException {
+        final var workflowFile = executorWorkspaceRoot.resolve(workflowName).toFile();
+        try {
+            final var execMon = new ExecutionMonitor();
+            final var context = WorkflowContextV2.builder().withServerJobExecutor(exec -> exec.withCurrentUserAsUserId() //
+                    .withLocalWorkflowPath(workflowFile.toPath()) //
+                    .withJobId(UUID.randomUUID()))//
+                .withLocation(ServerLocationInfo.builder() //
+                    .withRepositoryAddress(URI.create("http://test-test-test/repository")) //
+                    .withWorkflowPath("/" + workflowName) //
+                    .withAuthenticator(new SimpleTokenAuthenticator("test-test-test"))//
+                    .withDefaultMountId("SERVER")//
+                    .build())//
+                .build();
 
             final var loadHelper = new WorkflowLoadHelper(context);
             final var loadResult = WorkflowManager.ROOT.load(workflowFile, execMon, loadHelper, false);

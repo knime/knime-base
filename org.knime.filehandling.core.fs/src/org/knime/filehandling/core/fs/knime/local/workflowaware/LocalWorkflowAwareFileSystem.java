@@ -153,22 +153,12 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
      * @return true when the given path can be accessed with the workflow-aware file system, false otherwise.
      */
     public boolean isPathAccessible(final LocalWorkflowAwarePath path) {
-        // we must not access files outside of the mountpoint
-        if (!isInMountPoint(path)) {
-            return false;
-        }
-
-        // we must be able to view workflows (whether we display them as files or folders)
-        if (isWorkflow(path)) {
-            return true;
-        }
-
-        // we must never be able to see files inside workflows
-        if (isPartOfWorkflow(path)) {
-            return false;
-        }
-
-        return true;
+        // we must access files inside of the mountpoint
+        return isInMountPoint(path) //
+            // we must be able to view workflows themselves, but must never be able to see files inside workflows
+            && (isWorkflow(path) || !isPartOfWorkflow(path)) //
+            // we must never be able to see metadata files, e.g. the .metadata folder
+            && !isReservedForLocalMetadata(path);
     }
 
     /**
@@ -272,7 +262,7 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
      * @return {@code true} if given path or a parent path is part of a workflow
      */
     public boolean isPartOfWorkflow(final LocalWorkflowAwarePath path) {
-        LocalWorkflowAwarePath current = (LocalWorkflowAwarePath)path.toAbsolutePath().normalize();
+        var current = (LocalWorkflowAwarePath)path.toAbsolutePath().normalize();
 
         while (isInMountPoint(current)) {
             if (isWorkflow(current)) {
@@ -283,6 +273,21 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
         }
 
         return false;
+    }
+
+    private static final String METADATA_FOLDER_PATH = "/.metadata";
+
+    /**
+     * Validate recursive if given path (from the workflow-aware FS) points to hidden metadata
+     * on local disk, e.g. the .metadata folder at the root of an Eclipse workspace, or
+     * the workflows.meta file inside a workflow group.
+     *
+     * @param path workflow-aware file system path to check
+     * @return {@code true} if given path points to hidden metadata.
+     */
+    boolean isReservedForLocalMetadata(final LocalWorkflowAwarePath path) {
+        final var toCheck = (LocalWorkflowAwarePath)path.toAbsolutePath().normalize();
+        return toCheck.startsWith(METADATA_FOLDER_PATH) || toCheck.endsWith(WorkflowPersistor.METAINFO_FILE);
     }
 
     /**

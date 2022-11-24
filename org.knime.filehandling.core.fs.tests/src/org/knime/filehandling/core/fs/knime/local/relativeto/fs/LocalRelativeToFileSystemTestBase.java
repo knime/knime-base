@@ -79,10 +79,10 @@ public class LocalRelativeToFileSystemTestBase {
     public void beforeTestCase() throws IOException {
         m_mountpointRoot = m_tempFolder.newFolder("mountpoint-root").toPath();
         final var workflowName = "current-workflow";
-        
+
         WorkflowTestUtil.createWorkflowDir(m_mountpointRoot, workflowName);
         WorkflowTestUtil.createWorkflowDir(m_mountpointRoot, "other-workflow");
-        m_workflowManager = WorkflowTestUtil.getWorkflowManager(m_mountpointRoot, workflowName, false);
+        m_workflowManager = WorkflowTestUtil.getWorkflowManager(m_mountpointRoot, workflowName);
         NodeContext.pushContext(m_workflowManager);
     }
 
