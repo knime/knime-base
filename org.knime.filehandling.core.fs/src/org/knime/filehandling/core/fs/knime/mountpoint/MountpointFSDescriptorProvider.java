@@ -98,19 +98,20 @@ public final class MountpointFSDescriptorProvider extends BaseFSDescriptorProvid
 
     private static FSConnection getActualFSConnection(final MountpointFSConnectionConfig config) throws IOException {
 
+        final var mountId = config.getMountID();
+
+        if (WorkflowContextUtil.isServerWorkflowConnectingToRemoteRepository(mountId)) {
+            return getRestFSDescriptor().getConnectionFactory().createConnection(config);
+        }
+
+        // provide a slightly nicer error than the ResolverUtil below, when mountId does not exist
+        if (!MountPointFileSystemAccessService.instance().getAllMountedIDs().contains(mountId)) {
+            throw new IOException(String.format("Mountpoint '%s' is unknown.", mountId));
+        }
+
         try {
-            if (WorkflowContextUtil.isServerWorkflowConnectingToRemoteRepository(config.getMountID())) {
-                return getRestFSDescriptor().getConnectionFactory().createConnection(config);
-            }
-
-            // provide a slightly nicer error than the ResolverUtil below, when mountId does not exist
-            if (!MountPointFileSystemAccessService.instance().getAllMountedIDs().contains(config.getMountID())) {
-                throw new IOException(String.format("Mountpoint '%s' is unknown.", config.getMountID()));
-            }
-
-            final var localFile = ResolverUtil.resolveURItoLocalFile(new URI(String.format("knime://%s/", config.getMountID())));
-            if (WorkflowContextUtil.isServerWorkflowConnectingToRemoteRepository(config.getMountID())
-                || localFile == null) {
+            final var localFile = ResolverUtil.resolveURItoLocalFile(new URI(String.format("knime://%s/", mountId)));
+            if (localFile == null) {
                 return getRestFSDescriptor().getConnectionFactory().createConnection(config);
             } else {
                 return getLocalFSDescriptor().getConnectionFactory().createConnection(config);
