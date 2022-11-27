@@ -288,6 +288,18 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
     }
 
     /**
+     * The working directory (see {@link #getWorkingDirectory()} to use by default. This method is intended to be used
+     * by file system connector node dialogs, to choose a default working directory. The returned value is purely
+     * informational, it has no effect on the file system itself.
+     *
+     * @return the working directory, aka current directory.
+     */
+    @SuppressWarnings("unchecked")
+    public T getDefaultWorkingDirectory() {
+        return (T)getRootDirectories().iterator().next();
+    }
+
+    /**
      * Checks whether this file system instance is compatible with {@link FSLocation} objects that have the given
      * {@link FSLocationSpec}.
      *
