@@ -86,7 +86,7 @@ public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFil
                 // - the callee must not be in the workflow data area
                 // - space relative does not make sense, as we would use a space connector, i.e., the CONNECTED case
                 hasFSPort -> new RelativeToSpecificConfig(!hasFSPort, RelativeTo.MOUNTPOINT,
-                    Set.of(RelativeTo.MOUNTPOINT, RelativeTo.WORKFLOW))));
+                    Set.of(RelativeTo.MOUNTPOINT, RelativeTo.WORKFLOW, RelativeTo.SPACE))));
     }
 
     /**
