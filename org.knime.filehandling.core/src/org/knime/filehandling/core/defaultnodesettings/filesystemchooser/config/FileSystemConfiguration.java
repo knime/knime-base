@@ -195,7 +195,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
                 () -> new IllegalArgumentException("At least one of the file system specific configs must be active."))
             .getLocationSpec();
         // set m_convenienceFSCategory
-        setLocationSpec(anyActive);
+        setLocationSpecInternal(anyActive);
     }
 
     /**
@@ -372,6 +372,7 @@ public final class FileSystemConfiguration<L extends FSLocationSpec>
         final boolean isDifferent = !Objects.equals(m_locationSpec, spec);
         final boolean isAllowed = getActiveFSCategories().contains(spec.getFSCategory());
         if (isDifferent && isAllowed) {
+            m_new = false; //prevent this spec to be overwritten by the default one
             setLocationSpecInternal(spec);
             notifyChangeListeners();
         }
