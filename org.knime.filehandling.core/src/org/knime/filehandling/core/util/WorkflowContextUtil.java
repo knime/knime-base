@@ -53,16 +53,18 @@ import java.util.Optional;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowContext;
-import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
+import org.knime.core.node.workflow.contextv2.JobExecutorInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.LocationType;
+import org.knime.core.ui.node.workflow.WorkflowContextUI;
 
 /**
  * Utility class that allows to reason about the current {@link WorkflowContext}.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
+@SuppressWarnings("restriction")
 public final class WorkflowContextUtil {
 
     private WorkflowContextUtil() {
@@ -89,16 +91,9 @@ public final class WorkflowContextUtil {
      * @throws IllegalStateException if no {@link WorkflowContextV2} is available
      */
     public static WorkflowContextV2 getWorkflowContextV2() {
-        final var nodeContext = NodeContext.getContext();
-        CheckUtils.checkState(nodeContext != null, "Node context required.");
-
-        final var wfm = nodeContext.getWorkflowManager();
-        CheckUtils.checkState(wfm != null, "Can't access workflow instance (is it a remotely edited workflow?).");
-
-        final var workflowContext = wfm.getContextV2();
-        CheckUtils.checkState(workflowContext != null, "Workflow context required.");
-
-        return workflowContext;
+        final var optWorkflowContext = getWorkflowContextV2Optional();
+        CheckUtils.checkState(optWorkflowContext.isPresent(), "Workflow context required.");
+        return optWorkflowContext.get(); // NOSONAR
     }
 
     /**
@@ -114,9 +109,7 @@ public final class WorkflowContextUtil {
      * @return the {@link WorkflowContext} or an empty optional if no workflow context is available
      */
     public static Optional<WorkflowContext> getWorkflowContextOptional() {
-        return Optional.ofNullable(NodeContext.getContext())
-                .map(NodeContext::getWorkflowManager)
-                .map(WorkflowManager::getContext);
+        return getWorkflowContextV2Optional().map(WorkflowContextV2::toLegacyWorkflowContext);
     }
 
 
@@ -134,9 +127,7 @@ public final class WorkflowContextUtil {
      * @since 4.7
      */
     public static Optional<WorkflowContextV2> getWorkflowContextV2Optional() {
-        return Optional.ofNullable(NodeContext.getContext())
-                .map(NodeContext::getWorkflowManager)
-                .map(WorkflowManager::getContextV2);
+        return WorkflowContextUI.getWorkflowContextFromNodeContext();
     }
 
     /**
@@ -215,4 +206,18 @@ public final class WorkflowContextUtil {
     public static boolean isCurrentWorkflowOnHub() {
         return hasWorkflowContext() && getWorkflowContextV2().getLocationType() == LocationType.HUB_SPACE;
     }
+
+    /**
+     * The remote workflow editor allows to open a workflow job in AP, while the job is executed in a Server or Hub
+     * executor. For that workflow job, we then have two workflow contexts: One in AP where this field is true, and one
+     * in the Server/Hub executor, where this field is false.
+     * @return true if remote job view otherwise false
+     */
+    public static boolean isRemoteJobView() {
+        return getWorkflowContextV2Optional().map(WorkflowContextV2::getExecutorInfo)
+                .filter(JobExecutorInfo.class::isInstance)
+                .map(JobExecutorInfo.class::cast)
+                .map(JobExecutorInfo::isRemote).orElse(false);
+    }
+
 }

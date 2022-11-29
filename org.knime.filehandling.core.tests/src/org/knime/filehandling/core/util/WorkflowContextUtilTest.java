@@ -75,7 +75,7 @@ public class WorkflowContextUtilTest {
     public void testNoNodeContext() {
         String message =
             assertThrows(IllegalStateException.class, WorkflowContextUtil::getWorkflowContext).getMessage();
-        assertThat(message, is("Node context required."));
+        assertThat(message, is("Workflow context required."));
         assertTrue(WorkflowContextUtil.getWorkflowContextOptional().isEmpty());
         assertFalse(WorkflowContextUtil.hasWorkflowContext());
         assertThrows(IllegalStateException.class, WorkflowContextUtil::isServerContext);
@@ -88,7 +88,7 @@ public class WorkflowContextUtilTest {
         try {
             String message =
                 assertThrows(IllegalStateException.class, WorkflowContextUtil::getWorkflowContext).getMessage();
-            assertThat(message, is("Can't access workflow instance (is it a remotely edited workflow?)."));
+            assertThat(message, is("Workflow context required."));
             assertTrue(WorkflowContextUtil.getWorkflowContextOptional().isEmpty());
             assertFalse(WorkflowContextUtil.hasWorkflowContext());
             assertThrows(IllegalStateException.class, WorkflowContextUtil::isServerContext);

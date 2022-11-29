@@ -75,6 +75,7 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.ViewUtils;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.FileSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.fileselection.WorkflowSelectionDialog;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.FileSystemChooserUtils;
@@ -89,6 +90,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusSwingWorker;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * A dialog component for selecting files from a file system. It consists of:
@@ -356,8 +358,7 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
 
     private void updateBrowser() {
         final T sm = getSettingsModel();
-        boolean isRemoteJobView = isRemoteJobView();
-        if (!isRemoteJobView && sm.canBrowse()) {
+        if (!(WorkflowContextUtil.isRemoteJobView() && isRelativeToWorkflowData()) && sm.canBrowse()) {
             m_fileSelection.setEnableBrowsing(true);
             m_fileSelection.setFileExtensions(sm.getFileExtensions());
             m_fileSelection.setFSConnectionSupplier(sm::getConnection);
@@ -367,6 +368,11 @@ public abstract class AbstractDialogComponentFileChooser<T extends AbstractSetti
             m_fileSelection.setEnableBrowsing(false);
         }
         updateNotBrowsableWarning();
+    }
+
+    private boolean isRelativeToWorkflowData() {
+        final var fsConfig = getSettingsModel().getFileSystemConfiguration();
+        return fsConfig.getLocationSpec().getFSType() == FSType.RELATIVE_TO_WORKFLOW_DATA_AREA;
     }
 
     private void updateNotBrowsableWarning() {

@@ -50,7 +50,7 @@ package org.knime.filehandling.core.fs.knime.relativeto;
 
 import java.io.IOException;
 
-import org.knime.core.util.KNIMERuntimeContext;
+import org.knime.core.node.workflow.contextv2.RestLocationInfo;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptor;
@@ -96,15 +96,15 @@ public class RelativeToWorkflowFSDescriptorProvider extends BaseFSDescriptorProv
 
         var fsType = LOCAL_FSTYPE;
 
-        if (KNIMERuntimeContext.INSTANCE.runningInServerContext()
-                || WorkflowContextUtil.getWorkflowContext().isTemporaryCopy()) {
+        if (WorkflowContextUtil.getWorkflowContextV2Optional().isPresent()
+                && WorkflowContextUtil.getWorkflowContextV2().getLocationInfo() instanceof RestLocationInfo) {
             fsType = FSTypeRegistry.getFSType(REST_FSTYPE) //
                 .orElseThrow(
                     () -> new IllegalStateException("Server-side Relative-To file system type is not registered"));
         }
 
         return FSDescriptorRegistry.getFSDescriptor(fsType) //
-            .orElseThrow(() -> new IllegalStateException("Server-side Relative-To file system is not registered")) //
+            .orElseThrow(() -> new IllegalStateException("Local Relative-To file system is not registered")) //
             .getConnectionFactory() //
             .createConnection(config);
     }
