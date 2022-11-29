@@ -37,11 +37,22 @@
             category-path="/io/connectors"
             factory-class="org.knime.filehandling.core.fs.local.node.LocalConnectorNodeFactory"/>
       <node
-            category-path="/io/connectors"
+            category-path="/io/connectors/knime"
             factory-class="org.knime.filehandling.core.fs.knime.node.dataarea.WorkflowDataAreaConnectorNodeFactory"/>
       <node
-            category-path="/io/connectors"
+            category-path="/io/connectors/knime"
             factory-class="org.knime.filehandling.core.fs.knime.mountpoint.node.MountpointConnectorNodeFactory">
       </node>
+   </extension>
+   <extension
+         point="org.knime.workbench.repository.categories">
+      <category
+            description="Nodes to connect to KNIME file systems"
+            icon="icons/knime_16x16.png"
+            level-id="knime"
+            locked="true"
+            name="KNIME"
+            path="/io/connectors">
+      </category>
    </extension>
 </plugin>
