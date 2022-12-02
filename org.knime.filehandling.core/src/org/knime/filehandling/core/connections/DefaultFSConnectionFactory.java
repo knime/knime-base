@@ -66,6 +66,7 @@ import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConf
 import org.knime.filehandling.core.connections.config.URIFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
@@ -87,8 +88,9 @@ public final class DefaultFSConnectionFactory {
         return createLocalFSConnection(new LocalFSConnectionConfig(isConnected));
     }
 
-    public static FSConnection createLocalFSConnection(final String workingDir) {
-        return createLocalFSConnection(new LocalFSConnectionConfig(workingDir));
+    public static FSConnection createLocalFSConnection(final String workingDir,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        return createLocalFSConnection(new LocalFSConnectionConfig(workingDir, relativizationBehavior));
     }
 
     private static FSConnection createLocalFSConnection(final LocalFSConnectionConfig config) {
@@ -143,8 +145,9 @@ public final class DefaultFSConnectionFactory {
         return createRelativeToConnection(new RelativeToFSConnectionConfig(type));
     }
 
-    public static FSConnection createRelativeToConnection(final RelativeTo type, final String workingDir) {
-        return createRelativeToConnection(new RelativeToFSConnectionConfig(workingDir, type));
+    public static FSConnection createRelativeToConnection(final RelativeTo type, final String workingDir,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        return createRelativeToConnection(new RelativeToFSConnectionConfig(workingDir, relativizationBehavior, type));
     }
 
     public static FSConnection createRelativeToConnection(final RelativeToFSConnectionConfig config) {

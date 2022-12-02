@@ -53,6 +53,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowFSConnection;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
@@ -68,6 +69,7 @@ public final class LocalRelativeToWorkflowFSTestInitializerProvider extends Loca
 
     /**
      * Constructor.
+     *
      * @param fsType The {@link FSType} to use.
      */
     public LocalRelativeToWorkflowFSTestInitializerProvider(final FSType fsType) {
@@ -79,7 +81,8 @@ public final class LocalRelativeToWorkflowFSTestInitializerProvider extends Loca
     protected LocalRelativeToFSTestInitializer createTestInitializer(final Map<String, String> configuration)
         throws IOException {
 
-        final var config = new RelativeToFSConnectionConfig("", RelativeTo.WORKFLOW);
+        final var config =
+            new RelativeToFSConnectionConfig("", BrowserRelativizationBehavior.ABSOLUTE, RelativeTo.WORKFLOW);
         final var fsConnection = new LocalRelativeToWorkflowFSConnection(config);
 
         return new LocalRelativeToFSTestInitializer(fsConnection) {

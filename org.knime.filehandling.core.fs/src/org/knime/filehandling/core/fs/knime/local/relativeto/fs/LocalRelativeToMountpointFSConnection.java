@@ -52,9 +52,9 @@ import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.base.BaseFSConnection;
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
@@ -70,14 +70,13 @@ public class LocalRelativeToMountpointFSConnection extends BaseFSConnection {
 
     private final LocalRelativeToFileSystem m_fileSystem;
 
-    private final boolean m_browserShouldRelativizeSelectedPath;
-
     /**
      * Creates a new connection using the given config.
      *
      * @param config The config to use.
      */
     public LocalRelativeToMountpointFSConnection(final RelativeToFSConnectionConfig config) {
+        super(config);
 
         final var workflowContext = WorkflowContextUtil.getWorkflowContext();
         if (WorkflowContextUtil.isServerContext(workflowContext)) {
@@ -94,8 +93,6 @@ public class LocalRelativeToMountpointFSConnection extends BaseFSConnection {
             RelativeTo.MOUNTPOINT, //
             config.getWorkingDirectory(), //
             config.getFSLocationSpec());
-
-        m_browserShouldRelativizeSelectedPath = config.browserShouldRelativizeSelectedPath();
     }
 
     @Override
@@ -106,9 +103,7 @@ public class LocalRelativeToMountpointFSConnection extends BaseFSConnection {
     @Override
     protected AbstractFileChooserBrowser createFileSystemBrowser() {
         final var browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
-        return new RelativeToFileSystemBrowser(m_fileSystem,//
-            browsingHomeAndDefault,//
-            browsingHomeAndDefault,//
-            m_browserShouldRelativizeSelectedPath);
+        return new WorkflowAwareFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault,
+            m_relativizationBehavior);
     }
 }

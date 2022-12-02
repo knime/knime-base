@@ -52,8 +52,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
 
 /**
@@ -65,13 +67,19 @@ final class WorkflowDataAreaConnectorNodeSettings {
 
     private static final String KEY_WORKING_DIRECTORY = "workingDirectory";
 
+    private static final String KEY_BROWSER_PATH_RELATIVE = "browserPathRelativize";
+
     private final SettingsModelString m_workingDirectory;
+
+    private final SettingsModelBoolean m_browserPathRelative;
 
     /**
      * Creates new instance.
      */
     WorkflowDataAreaConnectorNodeSettings() {
-        m_workingDirectory = new SettingsModelString(KEY_WORKING_DIRECTORY, RelativeToFSConnectionConfig.PATH_SEPARATOR);
+        m_workingDirectory =
+            new SettingsModelString(KEY_WORKING_DIRECTORY, RelativeToFSConnectionConfig.PATH_SEPARATOR);
+        m_browserPathRelative = new SettingsModelBoolean(KEY_BROWSER_PATH_RELATIVE, false);
     }
 
     /**
@@ -89,6 +97,24 @@ final class WorkflowDataAreaConnectorNodeSettings {
     }
 
     /**
+     * @return the browserPathRelative model
+     */
+    public SettingsModelBoolean getBrowserPathRelativeModel() {
+        return m_browserPathRelative;
+    }
+
+    /**
+     * @return the browser relativization behavior
+     */
+    public BrowserRelativizationBehavior getBrowserRelativizationBehavior() {
+        if (m_browserPathRelative.getBooleanValue()) {
+            return BrowserRelativizationBehavior.RELATIVE;
+        } else {
+            return BrowserRelativizationBehavior.ABSOLUTE;
+        }
+    }
+
+    /**
      * Saves the settings in this instance to the given {@link NodeSettingsWO}
      *
      * @param settings
@@ -96,6 +122,7 @@ final class WorkflowDataAreaConnectorNodeSettings {
      */
     void saveSettingsTo(final NodeSettingsWO settings) {
         m_workingDirectory.saveSettingsTo(settings);
+        m_browserPathRelative.saveSettingsTo(settings);
     }
 
     /**
@@ -107,6 +134,10 @@ final class WorkflowDataAreaConnectorNodeSettings {
      */
     void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_workingDirectory.validateSettings(settings);
+
+        if(settings.containsKey(KEY_BROWSER_PATH_RELATIVE)) {
+            m_browserPathRelative.validateSettings(settings);
+        }
 
         final var temp = new WorkflowDataAreaConnectorNodeSettings();
         temp.loadSettingsFrom(settings);
@@ -134,5 +165,11 @@ final class WorkflowDataAreaConnectorNodeSettings {
      */
     void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_workingDirectory.loadSettingsFrom(settings);
+
+        if (settings.containsKey(KEY_BROWSER_PATH_RELATIVE)) {
+            m_browserPathRelative.loadSettingsFrom(settings);
+        } else {
+            m_browserPathRelative.setBooleanValue(false);
+        }
     }
 }

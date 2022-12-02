@@ -55,6 +55,7 @@ import javax.swing.filechooser.FileView;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 
 /**
@@ -79,9 +80,12 @@ class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
      * Constructor that will use the system default {@link FileSystemView}.
      *
      * @param fileSystem the {@link LocalFileSystem} to resolve paths with
+     * @param relativizationBehavior The browser relativization behavior.
      */
-    public LocalFileSystemBrowser(final LocalFileSystem fileSystem) {
-        this(fileSystem, null);
+    @SuppressWarnings("javadoc")
+    public LocalFileSystemBrowser(final LocalFileSystem fileSystem,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        this(fileSystem, null, relativizationBehavior);
     }
 
     /**
@@ -89,8 +93,12 @@ class LocalFileSystemBrowser extends AbstractFileChooserBrowser {
      *
      * @param fileSystem the {@link LocalFileSystem} to resolve paths with
      * @param fileSystemView to use in the {@link JFileChooser}
+     * @param relativizationBehavior The browser relativization behavior.
      */
-    public LocalFileSystemBrowser(final LocalFileSystem fileSystem, final FileSystemView fileSystemView) {
+    @SuppressWarnings("javadoc")
+    public LocalFileSystemBrowser(final LocalFileSystem fileSystem, final FileSystemView fileSystemView,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        super(fileSystem, relativizationBehavior);
         m_fileSystemView = fileSystemView;
         m_fileSystem = fileSystem;
     }

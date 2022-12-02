@@ -88,6 +88,7 @@ import org.knime.filehandling.core.connections.base.auth.EmptyAuthProviderPanel;
 import org.knime.filehandling.core.connections.base.auth.StandardAuthTypes;
 import org.knime.filehandling.core.connections.base.auth.UserPasswordAuthProviderPanel;
 import org.knime.filehandling.core.connections.base.ui.WorkingDirectoryChooser;
+import org.knime.filehandling.core.connections.base.ui.WorkingDirectoryRelativizationPanel;
 import org.knime.filehandling.core.util.GBCBuilder;
 
 /**
@@ -155,7 +156,7 @@ class ExampleConnectorNodeDialog extends NodeDialogPane {
                                 authSettings.getSettingsForAuthType(StandardAuthTypes.ANONYMOUS))));
 
         addTab("Settings", createSettingsPanel());
-        addTab("Advanced", createTimeoutsPanel());
+        addTab("Advanced", createAdvancedPanel());
     }
 
     private FSConnection createFSConnection() throws IOException {
@@ -166,7 +167,8 @@ class ExampleConnectorNodeDialog extends NodeDialogPane {
         }
 
         final CredentialsProvider credentialsProvider = getCredentialsProvider();
-        final ExampleFSConnectionConfig config = m_settings.createFSConnectionConfig(credentialsProvider::get);
+        final ExampleFSConnectionConfig config = m_settings
+                .createFSConnectionConfigForWorkdirChooser(credentialsProvider::get);
         return new ExampleFSConnection(config);
     }
 
@@ -290,6 +292,31 @@ class ExampleConnectorNodeDialog extends NodeDialogPane {
         return panel;
     }
 
+    private JComponent createAdvancedPanel() {
+        final var panel = new JPanel(new GridBagLayout());
+
+        final var gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(5, 0, 10, 5);
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(createTimeoutsPanel(), gbc);
+
+        gbc.gridy += 1;
+        panel.add(new WorkingDirectoryRelativizationPanel(m_settings.getBrowserPathRelativeModel()), gbc);
+
+        gbc.gridy++;
+
+        gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.weighty = 1;
+        panel.add(Box.createVerticalGlue(), gbc);
+
+        return panel;
+    }
+
     private JComponent createTimeoutsPanel() {
         final DialogComponentNumber timeout = new DialogComponentNumber(m_settings.getTimeoutModel(), "", 1);
         timeout.getComponentPanel().setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -302,20 +329,13 @@ class ExampleConnectorNodeDialog extends NodeDialogPane {
         c.weighty = 0;
         c.gridx = 0;
         c.gridy = 0;
+        c.insets = new Insets(0, 5, 0, 0);
         panel.add(new JLabel("Read/Write timeout (seconds): "), c);
 
         c.weightx = 1;
         c.gridx = 1;
         c.gridy = 0;
         panel.add(timeout.getComponentPanel(), c);
-
-        c.fill = GridBagConstraints.BOTH;
-        c.gridx = 0;
-        c.gridy++;
-        c.gridwidth = 2;
-        c.weightx = 1;
-        c.weighty = 1;
-        panel.add(Box.createVerticalGlue(), c);
 
         panel.setBorder(BorderFactory.createTitledBorder("Connection settings"));
         return panel;

@@ -57,6 +57,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
@@ -69,6 +70,7 @@ import org.knime.filehandling.core.connections.base.auth.AuthSettings;
 import org.knime.filehandling.core.connections.base.auth.EmptyAuthProviderSettings;
 import org.knime.filehandling.core.connections.base.auth.StandardAuthTypes;
 import org.knime.filehandling.core.connections.base.auth.UserPasswordAuthProviderSettings;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 
 /**
@@ -86,6 +88,7 @@ class ExampleConnectorSettings {
     private static final String KEY_DOMAIN_NAMESPACE = "domain.namespace";
     private static final String KEY_WORKING_DIRECTORY = "workingDirectory";
     private static final String KEY_TIMEOUT = "timeout";
+    private static final String KEY_BROWSER_PATH_RELATIVE = "browserPathRelativize";
 
     private static final int DEFAULT_PORT = 445;
     private static final int DEFAULT_TIMEOUT = 30;
@@ -99,6 +102,7 @@ class ExampleConnectorSettings {
     private final AuthSettings m_authSettings;
     private final SettingsModelString m_workingDirectory;
     private final SettingsModelIntegerBounded m_timeout;
+    private final SettingsModelBoolean m_browserPathRelative;
 
     /**
      * Creates new instance
@@ -123,6 +127,7 @@ class ExampleConnectorSettings {
 
         m_workingDirectory = new SettingsModelString(KEY_WORKING_DIRECTORY, ExampleFileSystem.SEPARATOR);
         m_timeout = new SettingsModelIntegerBounded(KEY_TIMEOUT, DEFAULT_TIMEOUT, 0, Integer.MAX_VALUE);
+        m_browserPathRelative = new SettingsModelBoolean(KEY_BROWSER_PATH_RELATIVE, false);
     }
 
     /**
@@ -250,6 +255,24 @@ class ExampleConnectorSettings {
         return Duration.ofSeconds(m_timeout.getIntValue());
     }
 
+    /**
+     * @return the browserPathRelative model
+     */
+    public SettingsModelBoolean getBrowserPathRelativeModel() {
+        return m_browserPathRelative;
+    }
+
+    /**
+     * @return the browser relativization behavior
+     */
+    public BrowserRelativizationBehavior getBrowserRelativizationBehavior() {
+        if (m_browserPathRelative.getBooleanValue()) {
+            return BrowserRelativizationBehavior.RELATIVE;
+        } else {
+            return BrowserRelativizationBehavior.ABSOLUTE;
+        }
+    }
+
     private void save(final NodeSettingsWO settings) {
         settings.addString(KEY_CONNECTION_MODE, m_connectionMode.getSettingsValue());
         m_fileserverHost.saveSettingsTo(settings);
@@ -259,6 +282,7 @@ class ExampleConnectorSettings {
         m_domainNamespace.saveSettingsTo(settings);
         m_workingDirectory.saveSettingsTo(settings);
         m_timeout.saveSettingsTo(settings);
+        m_browserPathRelative.saveSettingsTo(settings);
     }
 
     /**
@@ -294,6 +318,7 @@ class ExampleConnectorSettings {
         m_domainNamespace.loadSettingsFrom(settings);
         m_workingDirectory.loadSettingsFrom(settings);
         m_timeout.loadSettingsFrom(settings);
+        m_browserPathRelative.loadSettingsFrom(settings);
     }
 
     /**
@@ -344,6 +369,7 @@ class ExampleConnectorSettings {
         m_authSettings.validateSettings(settings.getNodeSettings(AuthSettings.KEY_AUTH));
         m_workingDirectory.validateSettings(settings);
         m_timeout.validateSettings(settings);
+        m_browserPathRelative.validateSettings(settings);
     }
 
     /**
@@ -394,7 +420,18 @@ class ExampleConnectorSettings {
     }
 
     ExampleFSConnectionConfig createFSConnectionConfig(final Function<String, ICredentials> credentialsProvider) {
-        final ExampleFSConnectionConfig config = new ExampleFSConnectionConfig(getWorkingDirectory());
+        return createFSConnectionConfig(credentialsProvider, getBrowserRelativizationBehavior());
+    }
+
+    ExampleFSConnectionConfig createFSConnectionConfigForWorkdirChooser(
+            final Function<String, ICredentials> credentialsProvider) {
+        return createFSConnectionConfig(credentialsProvider, BrowserRelativizationBehavior.ABSOLUTE);
+    }
+
+    private ExampleFSConnectionConfig createFSConnectionConfig(final Function<String, ICredentials> credentialsProvider,
+            final BrowserRelativizationBehavior relativizationBehavior) {
+        final ExampleFSConnectionConfig config = new ExampleFSConnectionConfig(getWorkingDirectory(),
+                relativizationBehavior);
 
         config.setConnectionMode(m_connectionMode);
         if (m_connectionMode == ConnectionMode.DOMAIN) {

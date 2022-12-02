@@ -82,9 +82,11 @@ public abstract class TimeoutFSConnectionConfig extends BaseFSConnectionConfig {
      * Creates a config for a {@link FSCategory#CONNECTED} file system with the given working directory.
      *
      * @param workingDirectory The working directory to set.
+     * @param relativizationBehavior The browser relativization behavior.
      */
-    protected TimeoutFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory);
+    protected TimeoutFSConnectionConfig(final String workingDirectory,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        super(workingDirectory, relativizationBehavior);
     }
 
     /**
@@ -93,9 +95,11 @@ public abstract class TimeoutFSConnectionConfig extends BaseFSConnectionConfig {
      * @param workingDirectory The working directory to set.
      * @param isConnected Set to true when creating a config for a {@link FSCategory#CONNECTED} file system, and set to
      *            false otherwise.
+     * @param relativizationBehavior The browser relativization behavior.
      */
-    protected TimeoutFSConnectionConfig(final String workingDirectory, final boolean isConnected) {
-        super(workingDirectory, isConnected);
+    protected TimeoutFSConnectionConfig(final String workingDirectory, final boolean isConnected,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        super(workingDirectory, isConnected, relativizationBehavior);
     }
 
     /**
@@ -104,16 +108,18 @@ public abstract class TimeoutFSConnectionConfig extends BaseFSConnectionConfig {
      * @param workingDirectory The working directory to set.
      * @param isConnected Set to true when creating a config for a {@link FSCategory#CONNECTED} file system, and set to
      *            false otherwise.
+     * @param relativizationBehavior The browser relativization behavior.
      * @param connectionTimeout Timeout to use when opening a TCP/IP connection to a target host.
      * @param readTimeout A per-request timeout that defines how long to wait for an answer after having sent a
      *            request/command to the target host
      */
     protected TimeoutFSConnectionConfig(final String workingDirectory, //
         final boolean isConnected, //
+        final BrowserRelativizationBehavior relativizationBehavior, //
         final Duration connectionTimeout, //
         final Duration readTimeout) {
 
-        super(workingDirectory, isConnected);
+        super(workingDirectory, isConnected, relativizationBehavior);
         m_connectionTimeout = connectionTimeout;
         m_readTimeout = readTimeout;
     }

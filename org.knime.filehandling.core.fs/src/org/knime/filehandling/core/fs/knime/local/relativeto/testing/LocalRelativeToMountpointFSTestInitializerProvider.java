@@ -53,6 +53,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToMountpointFSConnection;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
@@ -83,7 +84,8 @@ public final class LocalRelativeToMountpointFSTestInitializerProvider extends Lo
         final String workingDir = generateRandomizedWorkingDir(LocalWorkflowAwareFileSystem.PATH_SEPARATOR,
             LocalWorkflowAwareFileSystem.PATH_SEPARATOR);
 
-        final RelativeToFSConnectionConfig config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.MOUNTPOINT);
+        final RelativeToFSConnectionConfig config =
+            new RelativeToFSConnectionConfig(workingDir, BrowserRelativizationBehavior.ABSOLUTE, RelativeTo.MOUNTPOINT);
 
         final var fsConnection = new LocalRelativeToMountpointFSConnection(config); // NOSONAR must not be closed here
 

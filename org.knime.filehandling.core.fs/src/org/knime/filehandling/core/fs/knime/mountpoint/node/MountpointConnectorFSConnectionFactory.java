@@ -55,6 +55,7 @@ import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.MountpointFSConnectionConfig;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.fs.knime.mountpoint.node.MountpointConnectorNodeSettings.MountpointMode;
 
 /**
@@ -106,15 +107,18 @@ abstract class MountpointConnectorFSConnectionFactory {
     /**
      * @return a newly created {@link FSConnection}.
      */
-    public abstract FSConnection createFSConnection();
+    public FSConnection createFSConnection() {
+        return createFSConnection(m_settings.getBrowserRelativizationBehavior());
+    }
 
     /**
      * @return a newly created {@link FSConnection} where the browser never relativizes the chosen path.
      */
     public FSConnection createFSConnectionForWorkingDirectoryChooser() {
-        // By default, we do the same thing as in node modle. Subclasses can change this behavior.
-        return createFSConnection();
+        return createFSConnection(BrowserRelativizationBehavior.ABSOLUTE);
     }
+
+    protected abstract FSConnection createFSConnection(BrowserRelativizationBehavior relativizationBehavior);
 
     private static class CustomMountpointFactory extends MountpointConnectorFSConnectionFactory {
 
@@ -129,17 +133,20 @@ abstract class MountpointConnectorFSConnectionFactory {
 
         @Override
         public FSLocationSpec getFSLocationSpec() {
-            return createFSConnectionConfig().createFSLocationSpec();
+            return createFSConnectionConfig(m_settings.getBrowserRelativizationBehavior()).createFSLocationSpec();
         }
 
         @Override
-        public FSConnection createFSConnection() {
-            return DefaultFSConnectionFactory.createMountpointConnection(createFSConnectionConfig());
+        public FSConnection createFSConnection(final BrowserRelativizationBehavior relativizationBehavior) {
+            return DefaultFSConnectionFactory
+                .createMountpointConnection(createFSConnectionConfig(relativizationBehavior));
         }
 
-        private MountpointFSConnectionConfig createFSConnectionConfig() {
+        private MountpointFSConnectionConfig
+            createFSConnectionConfig(final BrowserRelativizationBehavior relativizationBehavior) {
             return new MountpointFSConnectionConfig( //
                 m_settings.getWorkingDirectoryModel().getStringValue(), //
+                relativizationBehavior, //
                 m_settings.getMountpoint().getMountpoint().getId(), //
                 m_settings.getConnectionTimeout(), //
                 m_settings.getReadTimeout());
@@ -163,13 +170,16 @@ abstract class MountpointConnectorFSConnectionFactory {
         }
 
         @Override
-        public FSConnection createFSConnection() {
-            return DefaultFSConnectionFactory.createRelativeToConnection(createFSConnectionConfig());
+        public FSConnection createFSConnection(final BrowserRelativizationBehavior relativizationBehavior) {
+            return DefaultFSConnectionFactory
+                .createRelativeToConnection(createFSConnectionConfig(relativizationBehavior));
         }
 
-        private RelativeToFSConnectionConfig createFSConnectionConfig() {
+        private RelativeToFSConnectionConfig
+            createFSConnectionConfig(final BrowserRelativizationBehavior relativizationBehavior) {
             return new RelativeToFSConnectionConfig( //
                 "", // working directory is ignored
+                relativizationBehavior, //
                 RelativeTo.WORKFLOW, //
                 m_settings.getConnectionTimeout(), //
                 m_settings.getReadTimeout());
@@ -193,20 +203,16 @@ abstract class MountpointConnectorFSConnectionFactory {
         }
 
         @Override
-        public FSConnection createFSConnection() {
-            return DefaultFSConnectionFactory.createRelativeToConnection(createFSConnectionConfig());
+        public FSConnection createFSConnection(final BrowserRelativizationBehavior relativizationBehavior) {
+            return DefaultFSConnectionFactory
+                .createRelativeToConnection(createFSConnectionConfig(relativizationBehavior));
         }
 
-        @Override
-        public FSConnection createFSConnectionForWorkingDirectoryChooser() {
-            final var config = createFSConnectionConfig();
-            config.setBrowserShouldRelativizeSelectedPath(false);
-            return DefaultFSConnectionFactory.createRelativeToConnection(config);
-        }
-
-        private RelativeToFSConnectionConfig createFSConnectionConfig() {
+        private RelativeToFSConnectionConfig
+            createFSConnectionConfig(final BrowserRelativizationBehavior relativizationBehavior) {
             return new RelativeToFSConnectionConfig( //
                 m_settings.getWorkingDirectoryModel().getStringValue(), //
+                relativizationBehavior, //
                 RelativeTo.MOUNTPOINT, //
                 m_settings.getConnectionTimeout(), //
                 m_settings.getReadTimeout());

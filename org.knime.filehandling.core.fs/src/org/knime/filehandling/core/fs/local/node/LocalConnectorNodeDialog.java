@@ -82,6 +82,8 @@ public class LocalConnectorNodeDialog extends NodeDialogPane {
     private final WorkingDirectoryChooser m_workingDirChooser;
     private final ChangeListener m_workdirListener;
 
+    private final DialogComponentBoolean m_browserRelativizePath;
+
     /**
      * Creates new instance.
      */
@@ -96,8 +98,14 @@ public class LocalConnectorNodeDialog extends NodeDialogPane {
         m_workdirListener = e -> m_settings.getWorkingDirectoryModel()
                 .setStringValue(m_workingDirChooser.getSelectedWorkingDirectory());
 
-        m_settings.getUseCustomWorkingDirectoryModel().addChangeListener(
-                e -> m_workingDirChooser.setEnabled(m_settings.isUseCustomWorkingDirectory()));
+        m_browserRelativizePath = new DialogComponentBoolean(m_settings.getBrowserPathRelativeModel(),
+            "Relativize selected path after browsing");
+
+        m_settings.getUseCustomWorkingDirectoryModel().addChangeListener(e -> {
+            var enabled = m_settings.isUseCustomWorkingDirectory();
+            m_workingDirChooser.setEnabled(enabled);
+            m_settings.getBrowserPathRelativeModel().setEnabled(enabled);
+        });
         m_workingDirChooser.setEnabled(m_settings.isUseCustomWorkingDirectory());
 
         addTab("Settings", createSettingsPanel());
@@ -119,6 +127,11 @@ public class LocalConnectorNodeDialog extends NodeDialogPane {
         c.gridy += 1;
         c.insets = new Insets(0, 10, 0, 0);
         panel.add(m_workingDirChooser, c);
+
+        c.fill = GridBagConstraints.NONE;
+        c.gridy += 1;
+        c.insets = new Insets(0, 0, 0, 0);
+        panel.add(m_browserRelativizePath.getComponentPanel(), c);
 
         c.fill = GridBagConstraints.BOTH;
         c.weighty = 1;

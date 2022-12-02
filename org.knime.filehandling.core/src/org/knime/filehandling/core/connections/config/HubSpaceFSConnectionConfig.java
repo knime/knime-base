@@ -90,6 +90,7 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
      * Creates a config for a {@link FSCategory#CONNECTED} Hub Space file system.
      *
      * @param workingDir The working directory to use.
+     * @param relativizationBehavior The browser relativization behavior.
      * @param repositoryAddress The http(s) URL of the Hub repository/catalog REST API, e.g.
      *            https://api.hub.knime.com/repository/.
      * @param authenticator {@link Authenticator} to use to authenticate against the REST API.
@@ -103,15 +104,16 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
      *            request/command to the target host.
      */
     public HubSpaceFSConnectionConfig(final String workingDir, // NOSONAR
+        final BrowserRelativizationBehavior relativizationBehavior, //
         final URI repositoryAddress, //
         final Authenticator authenticator, //
         final String spaceId, //
-        final boolean useSpaceVersion,//
-        final String spaceVersion,
+        final boolean useSpaceVersion, //
+        final String spaceVersion, //
         final Duration connectionTimeout, //
         final Duration readTimeout) {
 
-        super(workingDir);
+        super(workingDir, relativizationBehavior);
         m_repositoryAddress = repositoryAddress;
         m_authenticator = authenticator;
         m_spaceId = spaceId;
@@ -133,7 +135,7 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
         final Authenticator authenticator, //
         final String spaceId) {
 
-        super(PATH_SEPARATOR, false);
+        super(PATH_SEPARATOR, false, BrowserRelativizationBehavior.ABSOLUTE);
         m_repositoryAddress = repositoryAddress;
         m_authenticator = authenticator;
         m_spaceId = spaceId;

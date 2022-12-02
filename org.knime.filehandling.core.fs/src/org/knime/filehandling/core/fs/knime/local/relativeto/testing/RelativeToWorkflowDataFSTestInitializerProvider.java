@@ -52,6 +52,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.fs.knime.local.relativeto.fs.LocalRelativeToWorkflowDataFSConnection;
 import org.knime.filehandling.core.fs.knime.local.workflowaware.LocalWorkflowAwareFileSystem;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
@@ -81,7 +82,8 @@ public final class RelativeToWorkflowDataFSTestInitializerProvider extends Local
 
         final var workingDir = generateRandomizedWorkingDir(LocalWorkflowAwareFileSystem.PATH_SEPARATOR,
             LocalWorkflowAwareFileSystem.PATH_SEPARATOR);
-        final var config = new RelativeToFSConnectionConfig(workingDir, RelativeTo.WORKFLOW_DATA);
+        final var config = new RelativeToFSConnectionConfig(workingDir,
+            BrowserRelativizationBehavior.ABSOLUTE, RelativeTo.WORKFLOW_DATA);
         return new RelativeToWorkflowDataFSTestInitializer(new LocalRelativeToWorkflowDataFSConnection(config));
     }
 }

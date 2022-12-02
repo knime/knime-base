@@ -55,9 +55,9 @@ import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.base.BaseFSConnection;
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -82,6 +82,7 @@ public class LocalRelativeToWorkflowFSConnection extends BaseFSConnection {
      * @throws IOException If the folder for the workflow data area could not be created.
      */
     public LocalRelativeToWorkflowFSConnection(final RelativeToFSConnectionConfig config) throws IOException {
+        super(config);
 
         if (CheckNodeContextUtil.isInComponentProject()) {
             throw new IllegalStateException(
@@ -119,9 +120,7 @@ public class LocalRelativeToWorkflowFSConnection extends BaseFSConnection {
         // in the workflow-relative file system the working "dir" is the workflow, but it is not a directory,
         // so we need to take the parent
         final var browsingHomeAndDefault = (FSPath)m_fileSystem.getWorkingDirectory().getParent();
-        return new RelativeToFileSystemBrowser(m_fileSystem,//
-            browsingHomeAndDefault,//
-            browsingHomeAndDefault,//
-            true);// browser must always relativize for relative-to current workflow
+        return new WorkflowAwareFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault,
+            m_relativizationBehavior);
     }
 }

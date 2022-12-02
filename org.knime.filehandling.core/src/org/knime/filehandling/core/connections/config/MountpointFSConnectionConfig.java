@@ -80,7 +80,7 @@ public final class MountpointFSConnectionConfig extends TimeoutFSConnectionConfi
      * @param mountID The mount ID to connect to.
      */
     public MountpointFSConnectionConfig(final String mountID) {
-        super(PATH_SEPARATOR, false);
+        super(PATH_SEPARATOR, false, BrowserRelativizationBehavior.ABSOLUTE);
         m_mountID = mountID;
     }
 
@@ -91,7 +91,7 @@ public final class MountpointFSConnectionConfig extends TimeoutFSConnectionConfi
      * @param mountID The mount ID to connect to.
      */
     public MountpointFSConnectionConfig(final String workingDirectory, final String mountID) {
-        super(workingDirectory, true);
+        super(workingDirectory, true, BrowserRelativizationBehavior.ABSOLUTE);
         m_mountID = mountID;
     }
 
@@ -99,13 +99,15 @@ public final class MountpointFSConnectionConfig extends TimeoutFSConnectionConfi
      * Constructor that creates a CONNECTED file system with the given working directory and custom timeouts.
      *
      * @param workingDirectory The working directory to use.
+     * @param relativizationBehavior The browser relativization behavior.
      * @param mountID The mount ID to connect to.
      * @param connectionTimeout the connectionTimeout.
      * @param readTimeout the readTimeout.
      */
-    public MountpointFSConnectionConfig(final String workingDirectory, final String mountID,
+    public MountpointFSConnectionConfig(final String workingDirectory,
+        final BrowserRelativizationBehavior relativizationBehavior, final String mountID,
         final Duration connectionTimeout, final Duration readTimeout) {
-        super(workingDirectory, true);
+        super(workingDirectory, true, relativizationBehavior);
         m_mountID = mountID;
         setConnectionTimeout(connectionTimeout);
         setReadTimeout(readTimeout);

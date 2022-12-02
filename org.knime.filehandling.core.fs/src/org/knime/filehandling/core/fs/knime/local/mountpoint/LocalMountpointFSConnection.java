@@ -78,6 +78,7 @@ public final class LocalMountpointFSConnection extends BaseFSConnection {
      * @throws IOException
      */
     public LocalMountpointFSConnection(final MountpointFSConnectionConfig config) throws IOException {
+        super(config);
         final Path localRoot = determineLocalRootFolder(config.getMountID());
         m_fileSystem = new LocalMountpointFileSystem(config, localRoot);
     }
@@ -106,6 +107,7 @@ public final class LocalMountpointFSConnection extends BaseFSConnection {
     protected AbstractFileChooserBrowser createFileSystemBrowser() {
         return new WorkflowAwareFileSystemBrowser(m_fileSystem, //
             m_fileSystem.getWorkingDirectory(), //
-            m_fileSystem.getWorkingDirectory());
+            m_fileSystem.getWorkingDirectory(), //
+            m_relativizationBehavior);
     }
 }

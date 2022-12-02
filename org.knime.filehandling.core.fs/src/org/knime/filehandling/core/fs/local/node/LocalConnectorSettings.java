@@ -57,6 +57,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 
 /**
  * Local FS Connector node settings.
@@ -68,8 +69,12 @@ public class LocalConnectorSettings {
     private static final String KEY_USE_CUSTOM_WORKING_DIRECTORY = "useCustomWorkingDirectory";
     private static final String KEY_WORKING_DIRECTORY = "workingDirectory";
 
+    private static final String KEY_BROWSER_PATH_RELATIVE = "browserPathRelativize";
+
     private final SettingsModelBoolean m_useCustomWorkingDirectory;
     private final SettingsModelString m_workingDirectory;
+
+    private final SettingsModelBoolean m_browserPathRelative;
 
     /**
      * Creates new instance.
@@ -77,8 +82,10 @@ public class LocalConnectorSettings {
     public LocalConnectorSettings() {
         m_useCustomWorkingDirectory = new SettingsModelBoolean(KEY_USE_CUSTOM_WORKING_DIRECTORY, false);
         m_workingDirectory = new SettingsModelString(KEY_WORKING_DIRECTORY, "");
+        m_browserPathRelative = new SettingsModelBoolean(KEY_BROWSER_PATH_RELATIVE, false);
 
         m_workingDirectory.setEnabled(false);
+        m_browserPathRelative.setEnabled(false);
     }
 
     /**
@@ -110,6 +117,24 @@ public class LocalConnectorSettings {
     }
 
     /**
+     * @return the browserPathRelative model
+     */
+    public SettingsModelBoolean getBrowserPathRelativeModel() {
+        return m_browserPathRelative;
+    }
+
+    /**
+     * @return the browser relativization behavior
+     */
+    public BrowserRelativizationBehavior getBrowserRelativizationBehavior() {
+        if (isUseCustomWorkingDirectory() && m_browserPathRelative.getBooleanValue()) {
+            return BrowserRelativizationBehavior.RELATIVE;
+        } else {
+            return BrowserRelativizationBehavior.ABSOLUTE;
+        }
+    }
+
+    /**
      * Saves the settings in this instance to the given {@link NodeSettingsWO}
      *
      * @param settings
@@ -118,6 +143,7 @@ public class LocalConnectorSettings {
     public void saveSettingsTo(final NodeSettingsWO settings) {
         m_workingDirectory.saveSettingsTo(settings);
         m_useCustomWorkingDirectory.saveSettingsTo(settings);
+        m_browserPathRelative.saveSettingsTo(settings);
     }
 
     /**
@@ -130,6 +156,10 @@ public class LocalConnectorSettings {
     public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_workingDirectory.validateSettings(settings);
         m_useCustomWorkingDirectory.validateSettings(settings);
+
+        if(settings.containsKey(KEY_BROWSER_PATH_RELATIVE)) {
+            m_browserPathRelative.validateSettings(settings);
+        }
 
         LocalConnectorSettings temp = new LocalConnectorSettings();
         temp.validate();
@@ -164,5 +194,11 @@ public class LocalConnectorSettings {
     public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_workingDirectory.loadSettingsFrom(settings);
         m_useCustomWorkingDirectory.loadSettingsFrom(settings);
+
+        if (settings.containsKey(KEY_BROWSER_PATH_RELATIVE)) {
+            m_browserPathRelative.loadSettingsFrom(settings);
+        } else {
+            m_browserPathRelative.setBooleanValue(false);
+        }
     }
 }

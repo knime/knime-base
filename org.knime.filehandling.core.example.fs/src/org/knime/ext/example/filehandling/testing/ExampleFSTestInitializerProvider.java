@@ -57,6 +57,7 @@ import org.knime.ext.example.filehandling.fs.ExampleFSDescriptorProvider;
 import org.knime.ext.example.filehandling.fs.ExampleFileSystem;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.testing.DefaultFSTestInitializerProvider;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
@@ -81,7 +82,8 @@ public class ExampleFSTestInitializerProvider extends DefaultFSTestInitializerPr
         final String workDir = generateRandomizedWorkingDir(getParameter(configuration, WORKING_DIR_PREFIX),
                 ExampleFileSystem.SEPARATOR);
 
-        final ExampleFSConnectionConfig config = new ExampleFSConnectionConfig(workDir);
+        final ExampleFSConnectionConfig config = new ExampleFSConnectionConfig(workDir,
+                BrowserRelativizationBehavior.ABSOLUTE);
         // FIXME: set up config using configuration values from map, e.g. host, port,
         // credentials
 

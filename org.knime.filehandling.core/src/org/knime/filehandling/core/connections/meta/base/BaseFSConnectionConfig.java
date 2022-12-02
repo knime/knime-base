@@ -60,21 +60,66 @@ public class BaseFSConnectionConfig implements FSConnectionConfig {
 
     private final boolean m_isConnectedFileSystem;
 
+    private final BrowserRelativizationBehavior m_relativizationBehavior;
 
-    public BaseFSConnectionConfig(final String workingDirectory) {
-        this(workingDirectory, true);
+    /**
+     * @param workingDirectory The working directory
+     * @param relativizationBehavior The browser relativization behavior
+     */
+    public BaseFSConnectionConfig(final String workingDirectory,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        this(workingDirectory, true, relativizationBehavior);
     }
 
-    public BaseFSConnectionConfig(final String workingDirectory, final boolean isConnectedFileSystem) {
+    /**
+     * @param workingDirectory The working directory
+     * @param isConnectedFileSystem Whether the filesystem is connected of convenience
+     * @param relativizationBehavior The browser relativization behavior
+     */
+    public BaseFSConnectionConfig(final String workingDirectory, final boolean isConnectedFileSystem,
+        final BrowserRelativizationBehavior relativizationBehavior) {
         m_workingDirectory = workingDirectory;
         m_isConnectedFileSystem = isConnectedFileSystem;
+        m_relativizationBehavior = relativizationBehavior;
     }
 
+    /**
+     * @return The working directory
+     */
     public String getWorkingDirectory() {
         return m_workingDirectory;
     }
 
+    /**
+     * @return Whether the filesystem is connected of convenience
+     */
     public boolean isConnectedFileSystem() {
         return m_isConnectedFileSystem;
+    }
+
+    /**
+     * @return the relativizationBehaviour
+     */
+    public BrowserRelativizationBehavior getRelativizationBehaviour() {
+        return m_relativizationBehavior;
+    }
+
+    /**
+     *
+     * Enum representing the browser relativization behavior.
+     */
+    public enum BrowserRelativizationBehavior {
+            /**
+             * Relativize selected path.
+             */
+            RELATIVE,
+            /**
+             * Do not relativize selected path.
+             */
+            ABSOLUTE,
+            /**
+             * For file systems that doesn't support browsing
+             */
+            NONE;
     }
 }

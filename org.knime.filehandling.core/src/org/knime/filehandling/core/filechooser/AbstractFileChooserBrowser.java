@@ -74,7 +74,9 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.AbstractJFileChooserBrowser;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.util.SimpleFileFilter;
+import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareUtil;
 
 /**
@@ -93,6 +95,20 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractFileChooserBrowser.class);
 
     private static final String[] WORKFLOW_FILTER = new String[0];
+
+    private final FSFileSystem<?> m_fileSystem;
+
+    private final BrowserRelativizationBehavior m_relativizationBehavior;
+
+
+    /**
+     * @param fileSystem The file system.
+     * @param relativizationBehavior The browser relativization behavior.
+     */
+    public AbstractFileChooserBrowser(final FSFileSystem<?> fileSystem, final BrowserRelativizationBehavior relativizationBehavior) {
+        m_fileSystem = fileSystem;
+        m_relativizationBehavior = relativizationBehavior;
+    }
 
     /**
      * Generic method to create file chooser browser on event dispatch thread.
@@ -363,7 +379,11 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
      * @return a potentially modified file path/url
      */
     protected String postprocessSelectedFilePath(final String selectedFile) {
-        return selectedFile;
+        if (m_relativizationBehavior == BrowserRelativizationBehavior.RELATIVE) {
+            return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
+        } else {
+            return selectedFile;
+        }
     }
 
     private void setFileView(final JFileChooser jfc) {

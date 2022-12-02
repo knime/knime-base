@@ -57,6 +57,7 @@ import javax.swing.filechooser.FileView;
 import org.knime.core.node.util.FileSystemBrowser;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 
 /**
  * {@link FileSystemBrowser} implementation for NioFileSystems.
@@ -74,8 +75,12 @@ public class NioFileSystemBrowser extends AbstractFileChooserBrowser {
      * Constructs a new NioFileSystemBrowser.
      *
      * @param connection the connection to create a browser for
+     * @param relativizationBehavior The browser relativization behavior.
      */
-    public NioFileSystemBrowser(final FSConnection connection) {
+    @SuppressWarnings("resource")
+    public NioFileSystemBrowser(final FSConnection connection,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        super(connection.getFileSystem(), relativizationBehavior);
         m_fileSystemView = new NioFileSystemView(connection);
     }
 
@@ -83,8 +88,12 @@ public class NioFileSystemBrowser extends AbstractFileChooserBrowser {
      * Constructs a new NioFileSystemBrowser.
      *
      * @param fileSystemView the FileSystemView to create a browser for
+     * @param relativizationBehavior The browser relativization behavior.
      */
-    public NioFileSystemBrowser(final NioFileSystemView fileSystemView) {
+    @SuppressWarnings("resource")
+    public NioFileSystemBrowser(final NioFileSystemView fileSystemView,
+        final BrowserRelativizationBehavior relativizationBehavior) {
+        super(fileSystemView.getFileSystem(), relativizationBehavior);
         m_fileSystemView = fileSystemView;
     }
 

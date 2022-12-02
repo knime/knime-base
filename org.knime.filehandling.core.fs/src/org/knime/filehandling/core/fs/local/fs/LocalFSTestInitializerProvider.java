@@ -56,6 +56,7 @@ import java.util.Map;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
 import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.testing.FSTestInitializerProvider;
 
 /**
@@ -69,8 +70,8 @@ class LocalFSTestInitializerProvider implements FSTestInitializerProvider {
     @Override
     public LocalFSTestInitializer setup(final Map<String, String> configuration) throws IOException {
         final Path workingDir = Files.createTempDirectory("knime-localfs-test").toAbsolutePath();
-        final LocalFSConnection fsConn =
-            new LocalFSConnection(new LocalFSConnectionConfig(workingDir.toString()));
+        final LocalFSConnection fsConn = new LocalFSConnection(
+            new LocalFSConnectionConfig(workingDir.toString(), BrowserRelativizationBehavior.ABSOLUTE));
         return new LocalFSTestInitializer(fsConn);
     }
 

@@ -52,6 +52,7 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.base.BaseFSConnection;
 import org.knime.filehandling.core.connections.config.LocalFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
 
@@ -65,6 +66,7 @@ class LocalFSConnection extends BaseFSConnection {
     private final LocalFileSystem m_fileSystem;
 
     LocalFSConnection(final LocalFSConnectionConfig config) {
+        super(config);
         m_fileSystem = new LocalFileSystem(new LocalFileSystemProvider(), config);
     }
 
@@ -77,9 +79,9 @@ class LocalFSConnection extends BaseFSConnection {
     @Override
     protected AbstractFileChooserBrowser createFileSystemBrowser() {
         if (m_fileSystem.getFileSystemCategory() == FSCategory.CONNECTED) {
-            return new LocalFileSystemBrowser(m_fileSystem, new NioFileSystemView(this));
+            return new LocalFileSystemBrowser(m_fileSystem, new NioFileSystemView(this), m_relativizationBehavior);
         } else {
-            return new LocalFileSystemBrowser(m_fileSystem);
+            return new LocalFileSystemBrowser(m_fileSystem, BrowserRelativizationBehavior.ABSOLUTE);
         }
     }
 }

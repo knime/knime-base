@@ -53,6 +53,7 @@ import javax.swing.filechooser.FileView;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.connections.workflowaware.WorkflowAware;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 import org.knime.filehandling.core.filechooser.NioFileSystemView;
@@ -71,10 +72,11 @@ public class WorkflowAwareFileSystemBrowser extends NioFileSystemBrowser {
      * @param fileSystem
      * @param defaultDirectory
      * @param homeDirectory
+     * @param relativizationBehavior The browser relativization behavior.
      */
     public WorkflowAwareFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath defaultDirectory,
-        final FSPath homeDirectory) {
-        super(new NioFileSystemView(fileSystem, defaultDirectory, homeDirectory));
+        final FSPath homeDirectory, final BrowserRelativizationBehavior relativizationBehavior) {
+        super(new NioFileSystemView(fileSystem, defaultDirectory, homeDirectory), relativizationBehavior);
         CheckUtils.checkArgument(fileSystem.provider() instanceof WorkflowAware,
             "FileSystemProvider must be WorkflowAware");
     }

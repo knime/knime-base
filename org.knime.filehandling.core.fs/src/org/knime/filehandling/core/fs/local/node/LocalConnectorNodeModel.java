@@ -99,7 +99,8 @@ public class LocalConnectorNodeModel extends NodeModel {
 
     private FSConnection createFSConnection() {
         if (m_settings.isUseCustomWorkingDirectory()) {
-            return DefaultFSConnectionFactory.createLocalFSConnection(m_settings.getWorkingDirectory());
+            return DefaultFSConnectionFactory.createLocalFSConnection(m_settings.getWorkingDirectory(),
+                m_settings.getBrowserRelativizationBehavior());
         } else {
             return DefaultFSConnectionFactory.createLocalFSConnection(true);
         }

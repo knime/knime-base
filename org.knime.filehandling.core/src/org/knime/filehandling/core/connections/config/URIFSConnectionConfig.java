@@ -74,7 +74,7 @@ public class URIFSConnectionConfig extends BaseFSConnectionConfig {
      * Constructor.
      */
     public URIFSConnectionConfig() {
-        super("/", false);
+        super("/", false, BrowserRelativizationBehavior.NONE);
     }
 
     /**

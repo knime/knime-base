@@ -74,6 +74,7 @@ public class ExampleFSConnection extends BaseFSConnection {
      *
      */
     public ExampleFSConnection(final ExampleFSConnectionConfig config) throws IOException {
+        super(config);
         m_filesystem = new ExampleFileSystem(CACHE_TTL, config);
     }
 

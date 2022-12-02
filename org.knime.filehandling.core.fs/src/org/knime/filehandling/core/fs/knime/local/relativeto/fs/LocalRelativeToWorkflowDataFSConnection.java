@@ -55,9 +55,9 @@ import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.base.BaseFSConnection;
+import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
-import org.knime.filehandling.core.fs.knime.relativeto.export.RelativeToFileSystemBrowser;
 import org.knime.filehandling.core.util.CheckNodeContextUtil;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -74,8 +74,6 @@ public final class LocalRelativeToWorkflowDataFSConnection extends BaseFSConnect
 
     private final LocalRelativeToFileSystem m_fileSystem;
 
-    private final boolean m_browserShouldRelativizeSelectedPath;
-
     /**
      * Creates a new connection using the given config.
      *
@@ -83,9 +81,10 @@ public final class LocalRelativeToWorkflowDataFSConnection extends BaseFSConnect
      * @throws IOException If the folder for the workflow data area could not be created.
      */
     public LocalRelativeToWorkflowDataFSConnection(final RelativeToFSConnectionConfig config) throws IOException {
+        super(config);
+
         if (CheckNodeContextUtil.isInComponentProject()) {
-            throw new IllegalStateException(
-                "Nodes in a shared component don't have access to the workflow data area.");
+            throw new IllegalStateException("Nodes in a shared component don't have access to the workflow data area.");
         }
 
         final var workflowContext = WorkflowContextUtil.getWorkflowContext();
@@ -99,8 +98,6 @@ public final class LocalRelativeToWorkflowDataFSConnection extends BaseFSConnect
             RelativeTo.WORKFLOW_DATA, //
             config.getWorkingDirectory(), //
             config.getFSLocationSpec());
-
-        m_browserShouldRelativizeSelectedPath = config.browserShouldRelativizeSelectedPath();
     }
 
     @Override
@@ -111,9 +108,7 @@ public final class LocalRelativeToWorkflowDataFSConnection extends BaseFSConnect
     @Override
     protected AbstractFileChooserBrowser createFileSystemBrowser() {
         final var browsingHomeAndDefault = m_fileSystem.getWorkingDirectory();
-        return new RelativeToFileSystemBrowser(m_fileSystem,//
-            browsingHomeAndDefault,//
-            browsingHomeAndDefault,//
-            m_browserShouldRelativizeSelectedPath);
+        return new WorkflowAwareFileSystemBrowser(m_fileSystem, browsingHomeAndDefault, browsingHomeAndDefault,
+            m_relativizationBehavior);
     }
 }

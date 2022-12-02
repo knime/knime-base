@@ -100,7 +100,7 @@ public class HubFSConnectionConfig extends TimeoutFSConnectionConfig {
      */
     public HubFSConnectionConfig(final String workingDir, final URI repositoryAddress,
         final Authenticator authenticator) {
-        super(workingDir);
+        super(workingDir, BrowserRelativizationBehavior.ABSOLUTE);
         m_repositoryAddress = repositoryAddress;
         m_authenticator = authenticator;
     }

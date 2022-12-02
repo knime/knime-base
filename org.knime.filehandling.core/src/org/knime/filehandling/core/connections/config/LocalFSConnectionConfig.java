@@ -71,15 +71,16 @@ public class LocalFSConnectionConfig extends BaseFSConnectionConfig {
      *            input port
      */
     public LocalFSConnectionConfig(final boolean isConnectedFileSystem) {
-        super(WORKSPACE_PATH, isConnectedFileSystem);
+        super(WORKSPACE_PATH, isConnectedFileSystem, BrowserRelativizationBehavior.ABSOLUTE);
     }
 
     /**
      * Constructor.
      *
      * @param workingDirectory The working directory to use.
+     * @param relativizationBehavior The browser relativization behavior.
      */
-    public LocalFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory, true);
+    public LocalFSConnectionConfig(final String workingDirectory, final BrowserRelativizationBehavior relativizationBehavior) {
+        super(workingDirectory, true, relativizationBehavior);
     }
 }

@@ -319,4 +319,11 @@ public class NioFileSystemView extends FileSystemView {
     protected void setParentView(final Component parent) {
         m_parentComponent = parent;
     }
+
+    /**
+     * @return the fileSystem
+     */
+    public FSFileSystem<FSPath> getFileSystem() {
+        return m_fileSystem;
+    }
 }

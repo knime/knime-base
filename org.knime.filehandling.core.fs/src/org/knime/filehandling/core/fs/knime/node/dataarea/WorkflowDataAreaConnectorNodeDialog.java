@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.fs.knime.node.dataarea;
 
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -65,11 +66,13 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.base.ui.WorkingDirectoryChooser;
 import org.knime.filehandling.core.connections.config.RelativeToFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 
 /**
  * Relative To Connector node dialog.
@@ -83,6 +86,8 @@ public class WorkflowDataAreaConnectorNodeDialog extends NodeDialogPane {
     private final WorkingDirectoryChooser m_workingDirChooser;
     private final ChangeListener m_workdirListener;
 
+    private final DialogComponentBoolean m_browserPathRelative;
+
     /**
      * Creates new instance.
      */
@@ -95,6 +100,10 @@ public class WorkflowDataAreaConnectorNodeDialog extends NodeDialogPane {
             m_settings.getWorkingDirectoryModel().setStringValue(workDir);
         };
 
+        m_browserPathRelative = new DialogComponentBoolean(m_settings.getBrowserPathRelativeModel(),
+            "Relativize selected path after browsing");
+        m_browserPathRelative.getComponentPanel().setLayout(new FlowLayout(FlowLayout.LEFT));
+
         addTab("Settings", createSettingsPanel());
     }
 
@@ -104,10 +113,8 @@ public class WorkflowDataAreaConnectorNodeDialog extends NodeDialogPane {
             workDir = RelativeToFSConnectionConfig.PATH_SEPARATOR;
         }
 
-        final var config = new RelativeToFSConnectionConfig(workDir, RelativeTo.WORKFLOW_DATA);
-        config.setBrowserShouldRelativizeSelectedPath(false);
-
-        return DefaultFSConnectionFactory.createRelativeToConnection(config);
+        return DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW_DATA, workDir,
+            BrowserRelativizationBehavior.ABSOLUTE);
     }
 
     private JComponent createSettingsPanel() {
@@ -121,6 +128,10 @@ public class WorkflowDataAreaConnectorNodeDialog extends NodeDialogPane {
         c.gridy = 0;
         c.insets = new Insets(0, 10, 0, 0);
         panel.add(m_workingDirChooser, c);
+
+        c.gridy += 1;
+        c.insets = new Insets(0, 0, 0, 0);
+        panel.add(m_browserPathRelative.getComponentPanel(), c);
 
         c.fill = GridBagConstraints.BOTH;
         c.weighty = 1;
@@ -139,7 +150,7 @@ public class WorkflowDataAreaConnectorNodeDialog extends NodeDialogPane {
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
-            throws NotConfigurableException {
+        throws NotConfigurableException {
         try {
             m_settings.loadSettingsFrom(settings);
         } catch (InvalidSettingsException ex) { // NOSONAR

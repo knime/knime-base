@@ -44,53 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   Nov 4, 2022 (Alexander Bondaletov): created
  */
-package org.knime.filehandling.core.fs.knime.relativeto.export;
+package org.knime.filehandling.core.connections.base.ui;
 
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.base.WorkflowAwareFileSystemBrowser;
-import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JPanel;
+
+import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 
 /**
- * A KNIME File System Browser allowing the {@link FilesHistoryPanel} to browse a local KNIME relative-to file system.
+ * The editor component for the browser relativization behavior settings.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Alexander Bondaletov
  */
-public final class RelativeToFileSystemBrowser extends WorkflowAwareFileSystemBrowser {
+public final class WorkingDirectoryRelativizationPanel extends JPanel {
 
-    private final FSFileSystem<?> m_fileSystem;
-
-    private final boolean m_shouldRelativeSelectedPath;
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Creates a new local KNIME relative-to file system browser. The "home directory" and the "default directory" of
-     * the browser are the working directory of the given file system.
-     *
-     * @param fileSystem the file system to use
-     * @param homeDir The "home directory" that the browser jumps to when the user presses the "home" button.
-     * @param defaultDir The default directory, where the user starts to browse.
-     * @param shouldRelativeSelectedPath True, if the user-selected path should be relativized, false otherwise.
+     * @param relativizePaths The relativize paths settings model.
      */
-    public RelativeToFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath homeDir,
-        final FSPath defaultDir, final boolean shouldRelativeSelectedPath) {
-        super(fileSystem, defaultDir, homeDir);
-        m_fileSystem = fileSystem;
-        m_shouldRelativeSelectedPath = shouldRelativeSelectedPath;
+    public WorkingDirectoryRelativizationPanel(final SettingsModelBoolean relativizePaths) {
+        this(relativizePaths, new Insets(0, 0, 5, 0));
     }
 
     /**
-     * Convert the selected file to a relative path in workflow relative mode.
+     * @param relativizePaths The relativize paths settings model.
+     * @param insets The insets for the checkbox component.
      */
-    @Override
-    protected String postprocessSelectedFilePath(final String selectedFile) {
-        if (m_shouldRelativeSelectedPath) {
-            return m_fileSystem.getWorkingDirectory().relativize(m_fileSystem.getPath(selectedFile)).toString();
-        } else {
-            return selectedFile;
-        }
+    public WorkingDirectoryRelativizationPanel(final SettingsModelBoolean relativizePaths, final Insets insets) {
+        var input = new DialogComponentBoolean(relativizePaths, "Relativize selected path after browsing");
+
+        setLayout(new GridBagLayout());
+        var c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST;
+        c.fill = GridBagConstraints.NONE;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.insets = insets;
+        add(input.getComponentPanel().getComponent(0), c);
+
+        c.weightx = 1;
+        c.gridx += 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        add(Box.createHorizontalGlue(), c);
+        setBorder(BorderFactory.createTitledBorder("Working directory"));
     }
 }

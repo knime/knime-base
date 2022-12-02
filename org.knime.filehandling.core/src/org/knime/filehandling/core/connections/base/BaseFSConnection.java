@@ -49,6 +49,8 @@
 package org.knime.filehandling.core.connections.base;
 
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig;
+import org.knime.filehandling.core.connections.meta.base.BaseFSConnectionConfig.BrowserRelativizationBehavior;
 import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 import org.knime.filehandling.core.filechooser.LazyFileSystemBrowserHolder;
 import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
@@ -61,12 +63,18 @@ import org.knime.filehandling.core.filechooser.NioFileSystemBrowser;
 public abstract class BaseFSConnection implements FSConnection {
 
     private final LazyFileSystemBrowserHolder<AbstractFileChooserBrowser> m_browserHolder;
+    /**
+     * The relativization behavior.
+     */
+    protected final BrowserRelativizationBehavior m_relativizationBehavior;
 
     /**
      * Constructor.
+     * @param config The config.
      */
-    protected BaseFSConnection() {
+    protected BaseFSConnection(final BaseFSConnectionConfig config) {
         m_browserHolder = new LazyFileSystemBrowserHolder<>(this::createFileSystemBrowser);
+        m_relativizationBehavior = config.getRelativizationBehaviour();
     }
 
     /**
@@ -77,7 +85,7 @@ public abstract class BaseFSConnection implements FSConnection {
      * @return a newly create {@link AbstractFileChooserBrowser} instance.
      */
     protected AbstractFileChooserBrowser createFileSystemBrowser() {
-        return new NioFileSystemBrowser(this);
+        return new NioFileSystemBrowser(this, m_relativizationBehavior);
     }
 
     @Override

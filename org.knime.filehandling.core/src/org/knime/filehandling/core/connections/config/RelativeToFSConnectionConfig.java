@@ -54,7 +54,6 @@ import java.util.Optional;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.meta.FSConnectionConfig;
@@ -127,15 +126,13 @@ public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
 
     private FSLocationSpec m_customFSLocationSpec;
 
-    private boolean m_browserShouldRelativizeSelectedPath = true;
-
     /**
      * Constructor for a convenience file system with the default working directory.
      *
      * @param type Relative To type
      */
     public RelativeToFSConnectionConfig(final RelativeTo type) {
-        super(PATH_SEPARATOR, false);
+        super(PATH_SEPARATOR, false, BrowserRelativizationBehavior.RELATIVE);
         m_type = type;
     }
 
@@ -143,10 +140,12 @@ public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
      * Constructor for a connected file system with the given working directory.
      *
      * @param workingDirectory The working directory to use.
+     * @param relativizationBehavior The browser relativization behavior.
      * @param type Relative To type
      */
-    public RelativeToFSConnectionConfig(final String workingDirectory, final RelativeTo type) {
-        super(workingDirectory, true);
+    public RelativeToFSConnectionConfig(final String workingDirectory,
+        final BrowserRelativizationBehavior relativizationBehavior, final RelativeTo type) {
+        super(workingDirectory, true, relativizationBehavior);
         m_type = type;
     }
 
@@ -154,13 +153,15 @@ public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
      * Constructor for a connected file system with the given working directory and custom timeouts.
      *
      * @param workingDirectory The working directory to use.
+     * @param relativizationBehavior The browser relativization behavior.
      * @param type Relative To type
      * @param connectionTimeout the connectionTimeout.
      * @param readTimeout the readTimeout.
      */
-    public RelativeToFSConnectionConfig(final String workingDirectory, final RelativeTo type,
+    public RelativeToFSConnectionConfig(final String workingDirectory,
+        final BrowserRelativizationBehavior relativizationBehavior, final RelativeTo type,
         final Duration connectionTimeout, final Duration readTimeout) {
-        super(workingDirectory, true);
+        super(workingDirectory, true, relativizationBehavior);
         m_type = type;
         setConnectionTimeout(connectionTimeout);
         setReadTimeout(readTimeout);
@@ -174,6 +175,7 @@ public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
     public RelativeToFSConnectionConfig(final RelativeToFSConnectionConfig toCopy) {
         super(toCopy.getWorkingDirectory(), //
             toCopy.isConnectedFileSystem(), //
+            toCopy.getRelativizationBehaviour(),//
             toCopy.getConnectionTimeout(), //
             toCopy.getReadTimeout());
         m_type = toCopy.m_type;
@@ -201,23 +203,6 @@ public class RelativeToFSConnectionConfig extends TimeoutFSConnectionConfig {
      */
     public Optional<FSLocationSpec> getCustomFSLocationSpec() {
         return Optional.ofNullable(m_customFSLocationSpec);
-    }
-
-
-    /**
-     * @return true, if the browser of the resulting {@link FSConnection} should relativize the user-selected path
-     *         against the working directory; false otherwise.
-     */
-    public boolean browserShouldRelativizeSelectedPath() {
-        return m_browserShouldRelativizeSelectedPath;
-    }
-
-    /**
-     * @param shouldRelativize Set to true, if the browser of the resulting {@link FSConnection} should relativize the
-     *            user-selected pa th against the working directory; false otherwise.
-     */
-    public void setBrowserShouldRelativizeSelectedPath(final boolean shouldRelativize) {
-        m_browserShouldRelativizeSelectedPath = shouldRelativize;
     }
 
     /**

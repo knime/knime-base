@@ -97,7 +97,8 @@ public class WorkflowDataAreaConnectorNodeModel extends NodeModel {
     }
 
     private FSConnection createFSConnection() {
-        return DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW_DATA, m_settings.getWorkingDirectory());
+        return DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW_DATA,
+            m_settings.getWorkingDirectory(), m_settings.getBrowserRelativizationBehavior());
     }
 
     private FileSystemPortObjectSpec createSpec() {

@@ -159,9 +159,12 @@ public class ExampleFSConnectionConfig extends BaseFSConnectionConfig {
     /**
      * @param workingDirectory
      *            the working directory to set
+     * @param relativizationBehavior
+     *            The browser relativization behavior
      */
-    public ExampleFSConnectionConfig(final String workingDirectory) {
-        super(workingDirectory);
+    public ExampleFSConnectionConfig(final String workingDirectory,
+            final BrowserRelativizationBehavior relativizationBehavior) {
+        super(workingDirectory, relativizationBehavior);
     }
 
     /**
