@@ -54,6 +54,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import org.knime.core.util.exception.ResourceAccessException;
 import org.knime.core.util.pathresolve.ResolverUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -92,7 +93,7 @@ public final class LocalMountpointFSConnection extends BaseFSConnection {
                 .orElseThrow(() -> new IllegalArgumentException(
                     String.format("Mountpoint %s is unknown or a remote mountpoint", mountID))) //
                 .toPath();
-        } catch (IOException | URISyntaxException ex) {
+        } catch (ResourceAccessException | URISyntaxException ex) {
             throw new IOException("Could not determine local folder of mountpoint " + mountID, ex);
         }
     }
