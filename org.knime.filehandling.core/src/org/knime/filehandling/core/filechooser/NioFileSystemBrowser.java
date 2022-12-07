@@ -50,6 +50,7 @@ package org.knime.filehandling.core.filechooser;
 
 import java.awt.Component;
 import java.io.File;
+import java.util.Set;
 
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.filechooser.FileView;
@@ -76,7 +77,7 @@ public class NioFileSystemBrowser extends AbstractFileChooserBrowser {
      * @param connection the connection to create a browser for
      */
     public NioFileSystemBrowser(final FSConnection connection) {
-        m_fileSystemView = new NioFileSystemView(connection);
+        this(new NioFileSystemView(connection));
     }
 
     /**
@@ -85,6 +86,17 @@ public class NioFileSystemBrowser extends AbstractFileChooserBrowser {
      * @param fileSystemView the FileSystemView to create a browser for
      */
     public NioFileSystemBrowser(final NioFileSystemView fileSystemView) {
+        this(fileSystemView, Set.of());
+    }
+
+    /**
+     * Constructs a new NioFileSystemBrowser.
+     *
+     * @param fileSystemView the FileSystemView to create a browser for
+     * @param blacklistedPaths set of blacklisted paths
+     */
+    public NioFileSystemBrowser(final NioFileSystemView fileSystemView, final Set<String> blacklistedPaths) {
+        super(blacklistedPaths);
         m_fileSystemView = fileSystemView;
     }
 

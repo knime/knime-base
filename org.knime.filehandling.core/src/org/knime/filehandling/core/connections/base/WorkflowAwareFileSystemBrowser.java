@@ -48,6 +48,8 @@
  */
 package org.knime.filehandling.core.connections.base;
 
+import java.util.Set;
+
 import javax.swing.filechooser.FileView;
 
 import org.knime.core.node.util.CheckUtils;
@@ -74,7 +76,20 @@ public class WorkflowAwareFileSystemBrowser extends NioFileSystemBrowser {
      */
     public WorkflowAwareFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath defaultDirectory,
         final FSPath homeDirectory) {
-        super(new NioFileSystemView(fileSystem, defaultDirectory, homeDirectory));
+        this(fileSystem, defaultDirectory, homeDirectory, Set.of());
+    }
+
+    /**
+     * Creates a file system browser for workflow-aware file systems.
+     *
+     * @param fileSystem
+     * @param defaultDirectory
+     * @param homeDirectory
+     * @param blacklistedPaths
+     */
+    public WorkflowAwareFileSystemBrowser(final FSFileSystem<?> fileSystem, final FSPath defaultDirectory,
+        final FSPath homeDirectory, final Set<String> blacklistedPaths) {
+        super(new NioFileSystemView(fileSystem, defaultDirectory, homeDirectory), blacklistedPaths);
         CheckUtils.checkArgument(fileSystem.provider() instanceof WorkflowAware,
             "FileSystemProvider must be WorkflowAware");
     }

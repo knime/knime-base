@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -93,6 +94,24 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractFileChooserBrowser.class);
 
     private static final String[] WORKFLOW_FILTER = new String[0];
+
+    private final Set<String> m_blacklistedPaths;
+
+    /**
+     * Constructor.
+     */
+    protected AbstractFileChooserBrowser() {
+        this(Set.of());
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param blacklistedPaths set of blacklisted paths
+     */
+    protected AbstractFileChooserBrowser(final Set<String> blacklistedPaths) {
+        m_blacklistedPaths = blacklistedPaths;
+    }
 
     /**
      * Generic method to create file chooser browser on event dispatch thread.
@@ -155,8 +174,16 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
 
     private JFileChooser prepareFileChooser(final FileSelectionMode fileSelectionMode, final DialogType dialogType,
         final String selectedFile, final String[] suffixes) {
-        final JFileChooser fileChooser = new JFileChooser(getFileSystemView());
-        setFileView(fileChooser);
+        final var fileView = getFileView();
+
+        final var fileChooser = new JFileChooser(getFileSystemView()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public FileView getFileView() {
+                return fileView;
+            }
+        };
         setupFilters(dialogType, suffixes, fileChooser);
         fileChooser.setFileSelectionMode(fileSelectionMode.getJFileChooserCode());
         fileChooser.setDialogType(dialogType.getJFileChooserCode());
@@ -213,11 +240,23 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
     private void setupSelectedFile(final String selectedFileString, final JFileChooser fileChooser) {
         File fileToSelect = null;
         try {
-            if (!StringUtils.isBlank(selectedFileString)) {
-                final var fileFromPath = createFileFromPath(selectedFileString);
-                if (fileFromPath != null && fileFromPath.isDirectory()) {
+            var fileFromPath = StringUtils.isBlank(selectedFileString)
+                    ? null : createFileFromPath(selectedFileString);
+
+            File prev = null;
+            while (fileFromPath != null && !fileFromPath.equals(prev) && !fileFromPath.exists()) {
+                //avoid infinite loop
+                prev = fileFromPath;
+                //test whether the preselected file/folder exists.
+                //If not, walk up the file tree until we find the first folder that exists
+                fileFromPath = getFileSystemView().getParentDirectory(fileFromPath);
+            }
+
+            if (fileFromPath != null && fileFromPath.exists() && !isBlacklistedPath(fileFromPath)) {
+
+                if (fileFromPath.isDirectory()) {
                     fileChooser.setCurrentDirectory(fileFromPath.getAbsoluteFile());
-                } else if (fileFromPath != null) {
+                } else {
                     fileToSelect = fileFromPath.getAbsoluteFile();
                 }
             }
@@ -227,8 +266,12 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
                     selectedFileString), //
                 e);
         }
-
         fileChooser.setSelectedFile(fileToSelect);
+    }
+
+    private boolean isBlacklistedPath(final File filePath) {
+        final var path = filePath.toPath().normalize().toAbsolutePath().toString();
+        return m_blacklistedPaths.contains(path);
     }
 
     private static void setupFilters(final DialogType dialogType, final String[] suffixes,
@@ -364,12 +407,5 @@ public abstract class AbstractFileChooserBrowser implements FileSystemBrowser {
      */
     protected String postprocessSelectedFilePath(final String selectedFile) {
         return selectedFile;
-    }
-
-    private void setFileView(final JFileChooser jfc) {
-        final FileView fileView = getFileView();
-        if (fileView != null) {
-            jfc.setFileView(fileView);
-        }
     }
 }
