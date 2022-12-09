@@ -44,54 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 8, 2022 (leonard.woerteler): created
+ *   Dec 9, 2022 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.rowtocolumnheader;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
- * Node factory for the {@link RowToColumnHeaderNodeModel} node.
+ * Settings class for the Row to Column Header node.
  *
- * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class RowToColumnHeaderNodeFactory extends NodeFactory<RowToColumnHeaderNodeModel> implements NodeDialogFactory {
+final class RowToColumnHeaderSettings implements DefaultNodeSettings {
 
-    @Override
-    public RowToColumnHeaderNodeModel createNodeModel() {
-        return new RowToColumnHeaderNodeModel();
-    }
+    @Persist(settingsModel = SettingsModelInteger.class)
+    @Schema(title = "Number of rows before the header",
+        description = "Number of rows in the input table that precede the row that should be used as new column header")
+    int m_headerRowIndex;
 
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
+    @Persist(settingsModel = SettingsModelBoolean.class)
+    @Schema(title = "Discard rows before header row",
+        description = "Whether rows before the row containing the new column header should be discarded. "
+            + "Otherwise they are treated as additional output rows.")
+    boolean m_discardBefore;
 
-    @Override
-    public NodeView<RowToColumnHeaderNodeModel> createNodeView(final int viewIndex,
-            final RowToColumnHeaderNodeModel nodeModel) {
-        throw new IllegalStateException("no view");
-    }
-
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return createNodeDialog().createLegacyFlowVariableNodeDialog();
-    }
-
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, RowToColumnHeaderSettings.class);
-    }
+    @Persist(settingsModel = SettingsModelBoolean.class)
+    @Schema(title = "Detect types of resulting columns",
+        description = "Whether type analysis should be applied to the output table. "
+            + "For each column, the most specific of the four column types <tt>double</tt> "
+            + "(64-bit floating-point number), <tt>tt</tt> (64-bit integral number), <tt>int</tt> "
+            + "(32-bit integral number) and <tt>String</tt> is determined and the column is converted to this type.")
+    boolean m_detectTypes;
 }
