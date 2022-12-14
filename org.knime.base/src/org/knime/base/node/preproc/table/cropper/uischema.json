@@ -1,0 +1,97 @@
+{
+    "elements": [
+       {
+            "type": "Section",
+            "label": "Columns",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/columnSelectionMode",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/startColumnName",
+                    "options": {
+                        "format": "columnSelection",
+                        "showRowKeys": false,
+                        "showNoneColumn": false
+                    },
+                    "rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/model/properties/columnSelectionMode",
+                            "schema": {"oneOf": [{"const": "NAME_RANGE"}]}
+                        }
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/endColumnName",
+                    "options": {
+                        "format": "columnSelection",
+                        "showRowKeys": false,
+                        "showNoneColumn": false
+                    },
+                    "rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/model/properties/columnSelectionMode",
+                            "schema": {"oneOf": [{"const": "NAME_RANGE"}]}
+                        }
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/startColumnNumber",
+                    "options": {
+                        "format": "Integer"
+                    },
+                    "rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/model/properties/columnSelectionMode",
+                            "schema": {"oneOf": [{"const": "NUMBER_RANGE"}]}
+                        }
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/endColumnNumber",
+                    "options": {
+                        "format": "Integer"
+                    },
+                    "rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/model/properties/columnSelectionMode",
+                            "schema": {"oneOf": [{"const": "NUMBER_RANGE"}]}
+                        }
+                    }
+                }
+            ]
+       },
+       {
+        "type": "Section",
+        "label": "Rows",
+        "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/startRowNumber",
+                    "options": {
+                        "format": "Integer"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/endRowNumber",
+                    "options": {
+                        "format": "Integer"
+                    }
+                }
+            ]
+        }
+    ]
+}
