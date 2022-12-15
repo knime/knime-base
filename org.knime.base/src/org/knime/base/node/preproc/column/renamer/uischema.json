@@ -1,0 +1,38 @@
+{
+    "elements": [
+        {
+            "type": "Section",
+            "label": "Renamed columns",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/renamings",
+                    "options": {
+                        "addButtonText": "Add column",
+                        "arrayElementTitle": "Renamed column",
+                        "detail": {
+                            "renaming": {
+                                "type": "HorizontalLayout",
+                                "elements": [
+                                    {
+                                        "type": "Control",
+                                        "scope": "#/properties/oldName",
+                                        "options": {
+                                            "format": "columnSelection",
+                                            "showRowKeys": false,
+                                            "showNoneColumn": false
+                                        }
+                                    },
+                                    {
+                                        "type": "Control",
+                                        "scope": "#/properties/newName"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

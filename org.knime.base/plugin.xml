@@ -2313,7 +2313,12 @@
             factory-class="org.knime.base.node.preproc.table.updater.TableUpdaterNodeFactory"
             hidden="false">
       </node>
-   	  
+      <node
+            category-path="/manipulation/column/column-convert+replace"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory"
+            hidden="false">
+      </node>
    </extension>
    <extension
          name="deprecated nodes without category"
