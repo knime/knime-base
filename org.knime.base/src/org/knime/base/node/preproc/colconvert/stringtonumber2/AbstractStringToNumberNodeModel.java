@@ -51,7 +51,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +63,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.MissingCell;
+import org.knime.core.data.RowKey;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
@@ -73,10 +75,14 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
+import org.knime.core.node.KNIMEException.KNIMERuntimeException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.message.Message;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionWithInternalsNodeModel;
 import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
 
@@ -209,7 +215,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
         String[] inclcols = getInclCols(inspec);
         if (inclcols.length == 0) {
             // nothing to convert, let's return the input table.
-            setWarningMessage("No columns selected," + " returning input DataTable.");
+            setWarningMessage("No columns selected, returning input table.");
             return new BufferedDataTable[]{inData[0]};
         }
 
@@ -289,20 +295,10 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
     protected abstract boolean isKeepAllSelected();
 
     private void warningMessage(final SimpleStreamableOperatorInternals internals) {
-        String errorMessage;
         try {
-            errorMessage = internals.getConfig().getString(CFG_KEY_ERROR_MESSAGES);
+            Message.load(internals.getConfig().getConfig(CFG_KEY_ERROR_MESSAGES)).ifPresent(this::setWarning);
         } catch (InvalidSettingsException e) {
-            // if no warning message has been set
-            return;
-        }
-        StringBuilder warnings = new StringBuilder();
-        if (errorMessage.length() > 0) {
-            warnings.append("Problems occurred, see Console messages.\n");
-        }
-        if (warnings.length() > 0) {
-            LOGGER.warn(errorMessage);
-            setWarningMessage(warnings.toString().replaceAll("[\r\n]+$", ""));
+            LOGGER.debug("Unable to restore warning message from streaming operators", e);
         }
     }
 
@@ -315,13 +311,14 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
         final SimpleStreamableOperatorInternals emptyInternals) throws InvalidSettingsException {
         int[] indices = findColumnIndices(spec);
-        ConverterFactory converterFac = new ConverterFactory(indices, spec, m_parseType, emptyInternals);
+        final MessageBuilder messageBuilder = createMessageBuilder();
+        ConverterFactory converterFac = new ConverterFactory(indices, spec, m_parseType, messageBuilder, emptyInternals);
         ColumnRearranger colre = new ColumnRearranger(spec);
         String[] inclcols = getInclCols(spec);
         if (inclcols.length == 0) {
             // nothing to convert, let's return the input table.
-            emptyInternals.getConfig().addString(CFG_KEY_ERROR_MESSAGES,
-                "No columns selected, returning input DataTable.");
+            messageBuilder.withSummary("No columns selected, returning input table.").build().orElseThrow()
+                .saveTo(emptyInternals.getConfig().addConfig(CFG_KEY_ERROR_MESSAGES));
             return colre;
         }
         colre.replace(converterFac, indices);
@@ -336,17 +333,21 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
     @Override
     protected SimpleStreamableOperatorInternals
         mergeStreamingOperatorInternals(final SimpleStreamableOperatorInternals[] operatorInternals) {
-        StringBuilder errorMessages = new StringBuilder();
+        Message message = null;
         for (int i = 0; i < operatorInternals.length; i++) {
-            try {
-                errorMessages.append(operatorInternals[i].getConfig().getString(CFG_KEY_ERROR_MESSAGES));
-                errorMessages.append("\n");
-            } catch (InvalidSettingsException e) {
-                //if no warning message has been set -> nothing to do
+            if (message == null) { // only remember first
+                try {
+                    var errorMsgConfig = operatorInternals[i].getConfig().getConfig(CFG_KEY_ERROR_MESSAGES);
+                    message = Message.load(errorMsgConfig).orElse(null);
+                } catch (InvalidSettingsException e) {
+                    //if no warning message has been set -> nothing to do
+                }
             }
         }
         SimpleStreamableOperatorInternals res = new SimpleStreamableOperatorInternals();
-        res.getConfig().addString(CFG_KEY_ERROR_MESSAGES, errorMessages.toString().trim());
+        if (message != null) {
+            message.saveTo(res.getConfig().addConfig(CFG_KEY_ERROR_MESSAGES));
+        }
         return res;
     }
 
@@ -473,13 +474,9 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
          */
         private DataTableSpec m_spec;
 
-        /*
-         * Error messages.
-         */
-        private String m_error;
+        private long m_rowIndex;
 
-        /** Number of parsing errors. */
-        private int m_parseErrorCount;
+        private final MessageBuilder m_messageBuilder;
 
         private DataType m_type;
 
@@ -491,14 +488,15 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
          * @param colindices the column indices to use.
          * @param spec the original DataTableSpec.
          * @param type the {@link DataType} to convert to.
+         * @param messageBuilder a blank message builder to add errors/problems to.
          */
         ConverterFactory(final int[] colindices, final DataTableSpec spec, final DataType type,
-            final SimpleStreamableOperatorInternals internals) {
+            final MessageBuilder messageBuilder, final SimpleStreamableOperatorInternals internals) {
             m_colindices = colindices;
             m_spec = spec;
             m_type = type;
-            m_parseErrorCount = 0;
             m_internals = internals;
+            m_messageBuilder = messageBuilder;
         }
 
         /**
@@ -545,10 +543,10 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
                             long parsedLong = Long.parseLong(corrected);
                             newcells[i] = new LongCell(parsedLong);
                         } else {
-                            m_error = "No valid parse type.";
+                            m_messageBuilder.addRowIssue(0, i, m_rowIndex, "No valid parse type.");
                         }
                     } catch (NumberFormatException e) {
-                        handleParseException(row, m_spec.getColumnSpec(m_colindices[i]).getName(), s, e);
+                        handleParseException(row, m_colindices[i], s, e);
                         newcells[i] = new MissingCell(e.getMessage());
                     }
                 } else {
@@ -558,31 +556,41 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
             return newcells;
         }
 
+        @Override
+        public void setProgress(final long curRowNr, final long rowCount, final RowKey lastKey,
+            final ExecutionMonitor exec) {
+            super.setProgress(curRowNr, rowCount, lastKey, exec);
+            m_rowIndex = curRowNr;
+        }
+
         /**
          * Handles the number parse exception, either by failing the execution or by recording the the error.
-         *
+         * @param column Column index
          * @param row Row
-         * @param i Column
          * @param value DataCell value at which the parsing failed
          * @param e NumberFormatException
-         * @throws IllegalArgumentException
+         *
+         * @throws KNIMERuntimeException if fail on error is set...
          */
-        private void handleParseException(final DataRow row, final String columnName, final String value,
-            final Exception e) throws IllegalArgumentException {
-            String message = String.format(
-                "The string %s in cell [row \"%s\", column \"%s\"] can not be transformed into a number: %s", //
+        private void handleParseException(final DataRow row, final int column,
+            final String value, final Exception e) throws KNIMERuntimeException {
+            String columnName = m_spec.getColumnSpec(column).getName();
+            Supplier<String> message = () -> String.format(
+                "%s in cell [\"%s\", column \"%s\", row %d] can not be transformed into a number", //
                 value == null ? "<null>" : ("\"" + StringUtils.abbreviate(value, 15) + "\""), //
-                StringUtils.abbreviate(row.getKey().getString(), 15), //
-                columnName, //
-                Objects.requireNonNullElse(e.getMessage(), "<no details available>"));
+                    StringUtils.abbreviate(row.getKey().getString(), 15), //
+                    columnName, //
+                    m_rowIndex + 1); // messages to the user are "number based"
+            if (m_messageBuilder.getIssueCount() == 0) {
+                m_messageBuilder.withSummary(message.get());
+            }
+            m_messageBuilder.addRowIssue(0, column, m_rowIndex, e.getMessage());
             if (m_failOnError) {
-                throw new IllegalArgumentException(message);
+                throw KNIMEException.of(getMessage().orElseThrow()).toUnchecked();
             } else {
-                if (m_parseErrorCount == 0) {
-                    m_error = message;
+                if (m_messageBuilder.getIssueCount() == 1L) { // first error
                     LOGGER.debug(e.getMessage());
                 }
-                m_parseErrorCount++;
             }
         }
 
@@ -613,23 +621,23 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
             return newcolspecs;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void afterProcessing() {
-            String message;
-            switch (m_parseErrorCount) {
-                case 0:
-                    message = "";
-                    break;
-                case 1:
-                    message = "Could not parse cell with value: " + m_error;
-                    break;
-                default:
-                    message = "Values in " + m_parseErrorCount + " cells could not be parsed, first error: " + m_error;
+            final var messageConfig = m_internals.getConfig().addConfig(CFG_KEY_ERROR_MESSAGES);
+            getMessage().ifPresent(m -> m.saveTo(messageConfig));
+        }
+
+        private Optional<Message> getMessage() {
+            long parseErrorCount = m_messageBuilder.getIssueCount();
+            if (parseErrorCount == 0L) {
+                return Optional.empty();
+            } else if (parseErrorCount == 1L) {
+                // message has reasonable summary set (the first and only issue)
+            } else {
+                m_messageBuilder.withSummary(String.format("Problems in %d rows, first error: %s", parseErrorCount,
+                    m_messageBuilder.getSummary().orElseThrow()));
             }
-            m_internals.getConfig().addString(CFG_KEY_ERROR_MESSAGES, message);
+            return m_messageBuilder.build();
         }
 
     } // end ConverterFactory
