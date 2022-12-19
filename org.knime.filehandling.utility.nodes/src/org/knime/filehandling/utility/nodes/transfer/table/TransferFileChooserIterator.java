@@ -93,14 +93,14 @@ final class TransferFileChooserIterator implements TransferIterator {
         m_accessor = fileChooser.createWritePathAccessor();
         try {
             m_destinationFolder = m_accessor.getOutputPath(statusMessageConsumer);
-            if (!FSFiles.exists(m_destinationFolder)) {
+            final Path parent = m_destinationFolder.getParent();
+            if (parent != null && !FSFiles.exists(parent)) {
                 if (fileChooser.isCreateMissingFolders()) {
-                    Files.createDirectories(m_destinationFolder);
+                    Files.createDirectories(parent);
                 } else {
                     close();
-                    throw new IOException(
-                        String.format("The directory '%s' does not exist and must not be created due to user settings.",
-                            m_destinationFolder));
+                    throw new IOException(String.format(
+                        "The directory '%s' does not exist and must not be created due to user settings.", parent));
                 }
             }
         } catch (final InvalidSettingsException e) {

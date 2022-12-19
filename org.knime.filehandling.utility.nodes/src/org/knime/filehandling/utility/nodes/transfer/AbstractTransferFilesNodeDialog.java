@@ -68,7 +68,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FolderStatusMessageReporter;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.filehandling.utility.nodes.transfer.policy.TransferPolicy;
 import org.knime.filehandling.utility.nodes.truncator.TruncationPanel;
@@ -113,8 +112,8 @@ public abstract class AbstractTransferFilesNodeDialog<T extends AbstractTransfer
         final FlowVariableModel writeFvm = createFlowVariableModel(destinationFileChooserConfig.getKeysForFSLocation(),
             FSLocationVariableType.INSTANCE);
 
-        m_destinationFilePanel = new DialogComponentWriterFileChooser(destinationFileChooserConfig,
-            "destination_chooser", writeFvm, FolderStatusMessageReporter::new);
+        m_destinationFilePanel =
+            new DialogComponentWriterFileChooser(destinationFileChooserConfig, "destination_chooser", writeFvm);
 
         m_truncationPanel = new TruncationPanel(DESTINATION_OPTION_TITLE, config.getTruncationSettings());
 
