@@ -2283,12 +2283,18 @@
              factory-class="org.knime.base.node.io.filehandling.csv.reader.FileReaderNodeFactory"
              hidden="false">
        </node>
-   <node
-         category-path="/manipulation/table"
-         deprecated="false"
-         factory-class="org.knime.base.node.preproc.table.cropper.TableCropperNodeFactory"
-         hidden="false">
-   </node>
+      <node
+            category-path="/manipulation/table"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.table.cropper.TableCropperNodeFactory"
+            hidden="false">
+      </node>
+      <node
+            category-path="/manipulation/table"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.tablesplitter.TableSplitterNodeFactory"
+            hidden="false">
+      </node>
    </extension>
    <extension
          name="deprecated nodes without category"

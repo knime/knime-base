@@ -1,0 +1,61 @@
+{
+    "elements": [
+        {
+            "type": "Section",
+            "label": "Find splitting row",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/findSplittingRowMode",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/lookupColumn",
+                    "options": {
+                        "format": "columnSelection",
+                        "showRowKeys": true,
+                        "showNoneColumn": false
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/matchingCriteria"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/searchPattern",
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/model/properties/matchingCriteria",
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "const": "MISSING"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Section",
+            "label": "Output",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/includeMatchingRowInTopTable"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/includeMatchingRowInBottomTable"
+                }
+            ]
+        }
+    ]
+}
