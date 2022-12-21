@@ -53,6 +53,10 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  * Factory to create nodes that concatenate input tables to one output table.
@@ -60,7 +64,9 @@ import org.knime.core.node.port.PortType;
  * @author Bernd Wiswedel, University of Konstanz
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public class AppendedRowsNodeFactory extends ConfigurableNodeFactory<AppendedRowsNodeModel> {
+@SuppressWarnings("restriction")
+public class AppendedRowsNodeFactory extends ConfigurableNodeFactory<AppendedRowsNodeModel>
+    implements NodeDialogFactory {
 
     @Override
     public int getNrNodeViews() {
@@ -97,6 +103,11 @@ public class AppendedRowsNodeFactory extends ConfigurableNodeFactory<AppendedRow
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new AppendedRowsNodeDialog();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, AppendedRowsNodeSettings.class);
     }
 }
