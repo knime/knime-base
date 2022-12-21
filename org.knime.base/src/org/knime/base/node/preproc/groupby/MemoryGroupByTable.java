@@ -45,22 +45,17 @@
 
 package org.knime.base.node.preproc.groupby;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
-import org.knime.base.data.aggregation.AggregationOperator;
 import org.knime.base.data.aggregation.ColumnAggregator;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -74,8 +69,38 @@ import org.knime.core.node.ExecutionMonitor;
  */
 public class MemoryGroupByTable extends GroupByTable {
 
-    private Map<GroupKey, Set<RowKey>> m_rowKeys;
-    private Map<GroupKey, ColumnAggregator[]> m_vals;
+    private Map<GroupKey, GroupAggregate> m_groups;
+
+    /**Constructor for class MemoryGroupByTable.
+     * @param exec the <code>ExecutionContext</code>
+     * @param inDataTable the table to aggregate
+     * @param groupByCols the name of all columns to group by
+     * @param colAggregators the aggregation columns with the aggregation method
+     * to use in the order the columns should be appear in the result table
+     * numerical columns
+     * @param countColumnName name of the group row count column or {@code null} if counts should not be added
+     * @param globalSettings the global settings
+     * @param enableHilite <code>true</code> if a row key map should be
+     * maintained to enable hiliting
+     * @param colNamePolicy the {@link ColumnNamePolicy} for the
+     * aggregation columns
+     * input table if set to <code>true</code>
+     * @param retainOrder <code>true</code> if the original row order should be
+     * retained
+     * @throws CanceledExecutionException if the user has canceled the execution
+     * @since 5.0
+     */
+    public MemoryGroupByTable(final ExecutionContext exec,
+            final BufferedDataTable inDataTable, final List<String> groupByCols,
+            final ColumnAggregator[] colAggregators,
+            final String countColumnName,
+            final GlobalSettings globalSettings,
+            final boolean enableHilite, final ColumnNamePolicy colNamePolicy,
+            final boolean retainOrder)
+            throws CanceledExecutionException {
+        super(exec, inDataTable, groupByCols, colAggregators, countColumnName, globalSettings, enableHilite,
+            colNamePolicy, false);
+    }
 
     /**Constructor for class MemoryGroupByTable.
      * @param exec the <code>ExecutionContext</code>
@@ -94,7 +119,11 @@ public class MemoryGroupByTable extends GroupByTable {
      * retained
      * @throws CanceledExecutionException if the user has canceled the execution
      * @since 3.2
+     * @deprecated added option for "COUNT-*"-style aggregation with {@code countColumnName} constructor
+     * @see #MemoryGroupByTable(ExecutionContext, BufferedDataTable, List, ColumnAggregator[], String, GlobalSettings,
+     *        boolean, ColumnNamePolicy, boolean)
      */
+    @Deprecated
     public MemoryGroupByTable(final ExecutionContext exec,
             final BufferedDataTable inDataTable, final List<String> groupByCols,
             final ColumnAggregator[] colAggregators,
@@ -102,7 +131,9 @@ public class MemoryGroupByTable extends GroupByTable {
             final boolean enableHilite, final ColumnNamePolicy colNamePolicy,
             final boolean retainOrder)
             throws CanceledExecutionException {
-        super(exec, inDataTable, groupByCols, colAggregators, globalSettings,
+        //retainOrder is always false since it is automatically maintained
+        //in this class by the chosen Map implementation
+        super(exec, inDataTable, groupByCols, colAggregators, null, globalSettings,
                 enableHilite, colNamePolicy, false);
     }
 
@@ -113,6 +144,7 @@ public class MemoryGroupByTable extends GroupByTable {
      * @param colAggregators the aggregation columns with the aggregation method
      * to use in the order the columns should be appear in the result table
      * numerical columns
+     * @param countColumnName name of the group row count column or {@code null} if counts should not be added
      * @param globalSettings the global settings
      * @param sortInMemory <code>true</code> if the table should be sorted in
      * the memory
@@ -124,6 +156,7 @@ public class MemoryGroupByTable extends GroupByTable {
      * @param retainOrder <code>true</code> if the original row order should be
      * retained
      * @throws CanceledExecutionException if the user has canceled the execution
+     * @since 5.0
      * @deprecated sortInMemory object is no longer required
      * @see #MemoryGroupByTable(ExecutionContext, BufferedDataTable, List,
      * ColumnAggregator[], GlobalSettings, boolean, ColumnNamePolicy, boolean)
@@ -132,120 +165,76 @@ public class MemoryGroupByTable extends GroupByTable {
     protected MemoryGroupByTable(final ExecutionContext exec,
             final BufferedDataTable inDataTable, final List<String> groupByCols,
             final ColumnAggregator[] colAggregators,
+            final String countColumnName,
             final GlobalSettings globalSettings, final boolean sortInMemory,
             final boolean enableHilite, final ColumnNamePolicy colNamePolicy,
             final boolean retainOrder)
             throws CanceledExecutionException {
         //retainOrder is always false since it is automatically maintained
         //in this class by the chosen Map implementation
-        super(exec, inDataTable, groupByCols, colAggregators, globalSettings,
+        super(exec, inDataTable, groupByCols, colAggregators, countColumnName, globalSettings,
                 sortInMemory, enableHilite, colNamePolicy, false);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @since 5.0
      */
     @Override
-    protected BufferedDataTable createGroupByTable(final ExecutionContext exec,
-            final BufferedDataTable dataTable, final DataTableSpec resultSpec,
-            final int[] groupColIdx) throws CanceledExecutionException {
-        m_rowKeys = new HashMap<>();
-        m_vals = new LinkedHashMap<>();
-        final ExecutionMonitor groupExec = exec.createSubProgress(0.7);
-        final DataTableSpec spec = dataTable.getDataTableSpec();
+    protected void createGroupByTable(final ExecutionContext exec,
+            final BufferedDataTable dataTable, final int[] groupColIdx, final boolean appendRowCountColumn,
+            final BufferedDataContainer dc) throws CanceledExecutionException {
+        m_groups = new LinkedHashMap<>();
+        final var groupMaxProg = 0.7;
+        final var outputMaxProg = 1.0 - groupMaxProg;
+
+        final ExecutionMonitor groupExec = exec.createSubProgress(groupMaxProg);
+        final var spec = dataTable.getDataTableSpec();
         final long rowCount = dataTable.size();
-        long rowCounter = 0;
+        long processedRows = 0;
         initMissingValuesMap();
+
+        // map aggregated columns to aggregators
+        final var aggToColIdx = Arrays.stream(getColAggregators())
+                .mapToInt(agg -> spec.findColumnIndex(agg.getOriginalColName()))
+                .toArray();
+
         for (final DataRow row : dataTable) {
             groupExec.checkCanceled();
-            groupExec.setProgress(rowCounter++ / (double) rowCount,
-                    "Analyzing row " + rowCounter + " of " + rowCount);
-            final DataCell[] currentGroup = new DataCell[groupColIdx.length];
+            processedRows++;
+            groupExec.setProgress(processedRows / (double) rowCount, String.format("Analyzing row %d of %d",
+                processedRows, rowCount));
+            final var currentGroup = new DataCell[groupColIdx.length];
             //fetch the current group column values
             for (int i = 0, length = groupColIdx.length; i < length; i++) {
                 currentGroup[i] = row.getCell(groupColIdx[i]);
             }
-            final GroupKey groupKey = new GroupKey(currentGroup);
-            addRowKey(groupKey, row.getKey());
-            addRow(spec, groupKey, row);
+            final var groupKey = new GroupKey(currentGroup);
+
+            final var group = m_groups.computeIfAbsent(groupKey, k -> new GroupAggregate(aggToColIdx,
+                cloneColumnAggregators(), isEnableHilite(), getGlobalSettings()));
+
+            // compute aggregates, group size, and hilite
+            group.updateAggregates(row);
         }
-        return createResultTable(exec.createSubExecutionContext(0.3), resultSpec);
+
+        addAllAggregateRows(exec.createSubExecutionContext(outputMaxProg), appendRowCountColumn, dc);
     }
 
-    private BufferedDataTable createResultTable(final ExecutionContext exec,
-            final DataTableSpec resultSpec) throws CanceledExecutionException {
-        final BufferedDataContainer dc = exec.createDataContainer(resultSpec);
-        int groupCounter = 0;
-        final int size = m_vals.size();
-        for (final Entry<GroupKey, ColumnAggregator[]> entry
-                : m_vals.entrySet()) {
+    private void addAllAggregateRows(final ExecutionContext exec, final boolean appendRowCountColumn,
+        final BufferedDataContainer dc) throws CanceledExecutionException {
+        var groupCounter = 0L;
+        final int size = m_groups.size();
+        for (final Entry<GroupKey, GroupAggregate> entry : m_groups.entrySet()) {
+            final var groupByKey = entry.getKey();
+            final var groupMembers = entry.getValue();
             exec.checkCanceled();
-            exec.setProgress(groupCounter / (double)size,
-                    "Writing group " + groupCounter + " of " + size);
-            final GroupKey groupVals = entry.getKey();
-            final ColumnAggregator[] colAggregators = entry.getValue();
-            final RowKey rowKey = RowKey.createRowKey(groupCounter++);
-            final DataCell[] rowVals =
-                new DataCell[groupVals.size() + colAggregators.length];
-            //add the group values first
-            int valIdx = 0;
-            for (final DataCell groupCell : groupVals.getGroupVals()) {
-                rowVals[valIdx++] = groupCell;
-            }
-            //add the aggregation values
-            for (final ColumnAggregator colAggr : colAggregators) {
-                final AggregationOperator operator =
-                    colAggr.getOperator(getGlobalSettings());
-                rowVals[valIdx++] = operator.getResult();
-                if (operator.isSkipped()) {
-                    //add skipped groups and the column that causes the skipping
-                    //into the skipped groups map
-                    addSkippedGroup(colAggr.getOriginalColName(),
-                            operator.getSkipMessage(),
-                            groupVals.getGroupVals());
-                }
-                addToMissingValuesMap(colAggr.getOriginalColName(), operator.getMissingValuesCount());
-                //reset the operator for the next group
-                operator.reset();
-            }
-            final DataRow newRow = new DefaultRow(rowKey, rowVals);
-            dc.addRowToTable(newRow);
-            //add hilite mappings if enabled
-            if (isEnableHilite()) {
-                final Set<RowKey> oldKeys = m_rowKeys.get(groupVals);
-                addHiliteMapping(rowKey, oldKeys);
-            }
-        }
-        dc.close();
-        return dc.getTable();
-    }
-
-    private void addRow(final DataTableSpec spec, final GroupKey groupKey,
-            final DataRow row) {
-        ColumnAggregator[] aggregators = m_vals.get(groupKey);
-        if (aggregators == null) {
-            final ColumnAggregator[] origAggregators = getColAggregators();
-            aggregators = new ColumnAggregator[origAggregators.length];
-            for (int i = 0, length = origAggregators.length; i < length; i++) {
-                aggregators[i] = origAggregators[i].clone();
-            }
-            m_vals.put(groupKey, aggregators);
-        }
-        for (final ColumnAggregator aggregator : aggregators) {
-            final int colIdx =
-                spec.findColumnIndex(aggregator.getOriginalColName());
-            aggregator.getOperator(getGlobalSettings()).compute(row, colIdx);
-        }
-    }
-
-    private void addRowKey(final GroupKey groupKey, final RowKey key) {
-        if (isEnableHilite()) {
-            Set<RowKey> keySet = m_rowKeys.get(groupKey);
-            if (keySet == null) {
-                keySet = new HashSet<>();
-                m_rowKeys.put(groupKey, keySet);
-            }
-            keySet.add(key);
+            exec.setProgress(groupCounter / (double)size, "Writing group " + groupCounter + " of " + size);
+            final var chunkKey = RowKey.createRowKey(groupCounter);
+            final var row = createOutputRow(chunkKey, groupByKey, groupMembers, appendRowCountColumn);
+            dc.addRowToTable(row);
+            groupCounter++;
         }
     }
 }

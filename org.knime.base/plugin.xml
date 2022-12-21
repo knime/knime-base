@@ -916,6 +916,12 @@
             factory-class="org.knime.base.node.preproc.ungroup.UngroupNodeFactory"/>
       <node
             category-path="/manipulation/row/row-transform"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.rowagg.RowAggregatorNodeFactory"
+            hidden="false"
+      />
+      <node
+            category-path="/manipulation/row/row-transform"
             factory-class="org.knime.base.node.preproc.pivot.Pivot2NodeFactory"/>
       <node
             category-path="/analytics/mining/bayes"

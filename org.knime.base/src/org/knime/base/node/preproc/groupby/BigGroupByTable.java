@@ -45,25 +45,19 @@
 
 package org.knime.base.node.preproc.groupby;
 
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import org.knime.base.data.aggregation.AggregationOperator;
 import org.knime.base.data.aggregation.ColumnAggregator;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValueComparator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.DataContainer;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -71,7 +65,6 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeLogger.LEVEL;
 import org.knime.core.util.MutableInteger;
-import org.knime.core.util.Pair;
 
 
 /**
@@ -95,7 +88,36 @@ public class BigGroupByTable extends GroupByTable {
      * @param inDataTable the table to aggregate
      * @param groupByCols the name of all columns to group by
      * @param colAggregators the aggregation columns with the aggregation method
-     * to use in the order the columns should be appear in the result table
+     * to use in the order the columns should appear in the result table
+     * @param countColumnName name of the group row count column or {@code null} if counts should not be added
+     * @param globalSettings the global settings
+     * @param enableHilite <code>true</code> if a row key map should be
+     * maintained to enable hiliting
+     * @param colNamePolicy the {@link ColumnNamePolicy} for the
+     * aggregation columns
+     * @param retainOrder returns the row of the table in the same order as the
+     * input table if set to <code>true</code>
+     * @throws CanceledExecutionException if the user has canceled the execution
+     * @since 5.0
+     */
+    public BigGroupByTable(final ExecutionContext exec,
+            final BufferedDataTable inDataTable,
+            final List<String> groupByCols,
+            final ColumnAggregator[] colAggregators,
+            final String countColumnName,
+            final GlobalSettings globalSettings, final boolean enableHilite,
+            final ColumnNamePolicy colNamePolicy, final boolean retainOrder)
+    throws CanceledExecutionException {
+        super(exec, inDataTable, groupByCols, colAggregators, countColumnName, globalSettings,
+                enableHilite, colNamePolicy, retainOrder);
+    }
+
+    /**Constructor for class BigGroupByTable.
+     * @param exec the <code>ExecutionContext</code>
+     * @param inDataTable the table to aggregate
+     * @param groupByCols the name of all columns to group by
+     * @param colAggregators the aggregation columns with the aggregation method
+     * to use in the order the columns should appear in the result table
      * numerical columns
      * @param globalSettings the global settings
      * @param enableHilite <code>true</code> if a row key map should be
@@ -106,7 +128,11 @@ public class BigGroupByTable extends GroupByTable {
      * input table if set to <code>true</code>
      * @throws CanceledExecutionException if the user has canceled the execution
      * @since 2.6
+     * @deprecated added option for "COUNT-*"-style aggregation with {@code countColumnName} constructor
+     * @see #BigGroupByTable(ExecutionContext, BufferedDataTable, List, ColumnAggregator[], String, GlobalSettings,
+     *        boolean, ColumnNamePolicy, boolean)
      */
+    @Deprecated
     public BigGroupByTable(final ExecutionContext exec,
             final BufferedDataTable inDataTable,
             final List<String> groupByCols,
@@ -114,9 +140,8 @@ public class BigGroupByTable extends GroupByTable {
             final GlobalSettings globalSettings, final boolean enableHilite,
             final ColumnNamePolicy colNamePolicy, final boolean retainOrder)
     throws CanceledExecutionException {
-        super(exec, inDataTable, groupByCols, colAggregators, globalSettings,
+        super(exec, inDataTable, groupByCols, colAggregators, null, globalSettings,
                 enableHilite, colNamePolicy, retainOrder);
-
     }
 
     /**Constructor for class BigGroupByTable.
@@ -124,8 +149,9 @@ public class BigGroupByTable extends GroupByTable {
      * @param inDataTable the table to aggregate
      * @param groupByCols the name of all columns to group by
      * @param colAggregators the aggregation columns with the aggregation method
-     * to use in the order the columns should be appear in the result table
+     * to use in the order the columns should appear in the result table
      * numerical columns
+     * @param countColumnName name of the group row count column or {@code null} if counts should not be added
      * @param globalSettings the global settings
      * @param sortInMemory <code>true</code> if the table should be sorted in
      * the memory
@@ -139,30 +165,35 @@ public class BigGroupByTable extends GroupByTable {
      * @deprecated sortInMemory option is no longer required
      * @see #BigGroupByTable(ExecutionContext, BufferedDataTable, List,
      * ColumnAggregator[], GlobalSettings, boolean, ColumnNamePolicy, boolean)
+     *
+     * @since 5.0
      */
     @Deprecated
     public BigGroupByTable(final ExecutionContext exec,
             final BufferedDataTable inDataTable,
             final List<String> groupByCols,
             final ColumnAggregator[] colAggregators,
+            final String countColumnName,
             final GlobalSettings globalSettings, final boolean sortInMemory,
             final boolean enableHilite, final ColumnNamePolicy colNamePolicy,
             final boolean retainOrder)
     throws CanceledExecutionException {
-        super(exec, inDataTable, groupByCols, colAggregators, globalSettings,
+        super(exec, inDataTable, groupByCols, colAggregators, countColumnName, globalSettings,
                 sortInMemory, enableHilite, colNamePolicy, retainOrder);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @since 5.0
      */
     @Override
-    protected BufferedDataTable createGroupByTable(final ExecutionContext exec,
-            final BufferedDataTable table, final DataTableSpec resultSpec,
-            final int[] groupColIdx) throws CanceledExecutionException {
+    protected void createGroupByTable(final ExecutionContext exec,
+            final BufferedDataTable table, final int[] groupColIdx, final boolean appendRowCountColumn,
+            final BufferedDataContainer dc) throws CanceledExecutionException {
         LOGGER.debug("Entering createGroupByTable(exec, table) "
                 + "of class BigGroupByTable.");
-        final DataTableSpec origSpec = table.getDataTableSpec();
+        final var origSpec = table.getDataTableSpec();
         //sort the data table in order to process the input table chunk wise
         final BufferedDataTable sortedTable;
         final ExecutionContext groupExec;
@@ -186,14 +217,12 @@ public class BigGroupByTable extends GroupByTable {
                 comparators[i] = colSpec.getType().getComparator();
             }
         }
-        final BufferedDataContainer dc = exec.createDataContainer(resultSpec);
         exec.setMessage("Creating groups");
-        final DataCell[] previousGroup = new DataCell[groupColIdx.length];
-        final DataCell[] currentGroup = new DataCell[groupColIdx.length];
-        final MutableInteger groupCounter = new MutableInteger(0);
-        boolean firstRow = true;
-        final double numOfRows = sortedTable.size();
-        long rowCounter = 0;
+        final var groupCounter = new MutableInteger(0);
+
+        var firstRow = true;
+        final long tableSize = sortedTable.size();
+        long processedRows = 0;
         //In the rare case that the DataCell comparator return 0 for two
         //data cells that are not equal we have to maintain a map with all
         //rows with equal cells in the group columns per chunk.
@@ -205,10 +234,20 @@ public class BigGroupByTable extends GroupByTable {
         //(such as cells that contain chemical structures).
         //In this rare case this map will contain for each group of data cells
         //that are pairwise equal in the chunk a separate entry.
-        final Map<GroupKey, Pair<ColumnAggregator[], Set<RowKey>>> chunkMembers = new LinkedHashMap<>(3);
-        boolean logUnusualCells = true;
-        String groupLabel = "";
-        initMissingValuesMap();  // cannot put init to the constructor, as the super() constructor directly calls the current function
+        final Map<GroupKey, GroupAggregate> chunkMembers = new LinkedHashMap<>(3);
+        var logUnusualCells = true;
+        var groupLabel = "";
+        // cannot put init to the constructor, as the super() constructor directly calls the current function
+        initMissingValuesMap();
+
+        final var previousGroup = new DataCell[groupColIdx.length];
+        final var currentGroup = new DataCell[groupColIdx.length];
+
+        // map aggregated columns to aggregators
+        final var aggToColIdx = Arrays.stream(getColAggregators())
+                .mapToInt(agg -> origSpec.findColumnIndex(agg.getOriginalColName()))
+                .toArray();
+
         for (final DataRow row : sortedTable) {
             //fetch the current group column values
             for (int i = 0, length = groupColIdx.length; i < length; i++) {
@@ -216,8 +255,7 @@ public class BigGroupByTable extends GroupByTable {
             }
             if (firstRow) {
                 groupLabel = createGroupLabelForProgress(currentGroup);
-                System.arraycopy(currentGroup, 0, previousGroup, 0,
-                        currentGroup.length);
+                System.arraycopy(currentGroup, 0, previousGroup, 0, currentGroup.length);
                 firstRow = false;
             }
             //check if we are still in the same data chunk which contains
@@ -225,10 +263,9 @@ public class BigGroupByTable extends GroupByTable {
             //group column data cells
             if (!sameChunk(comparators, previousGroup, currentGroup)) {
                 groupLabel = createGroupLabelForProgress(currentGroup);
-                createTableRows(dc, chunkMembers, groupCounter);
+                addAggregateRows(dc, createNewChunkKey(groupCounter), chunkMembers, appendRowCountColumn);
                 //set the current group as previous group
-                System.arraycopy(currentGroup, 0, previousGroup, 0,
-                        currentGroup.length);
+                System.arraycopy(currentGroup, 0, previousGroup, 0, currentGroup.length);
                 if (logUnusualCells && chunkMembers.size() > 1) {
                     //log unusual number of chunk members with the classes that
                     //cause the problem
@@ -248,42 +285,38 @@ public class BigGroupByTable extends GroupByTable {
                     }
                     logUnusualCells = false;
                 }
-                //reset the chunk members map
                 chunkMembers.clear();
             }
             //process the row as one of the members of the current chunk
-            Pair<ColumnAggregator[], Set<RowKey>> member =
-                chunkMembers.get(new GroupKey(currentGroup));
-            if (member == null) {
-                Set<RowKey> rowKeys;
-                if (isEnableHilite()) {
-                    rowKeys = new HashSet<>();
-                } else {
-                    rowKeys = Collections.emptySet();
-                }
-                member = new Pair<>(cloneColumnAggregators(), rowKeys);
-                final DataCell[] groupKeys = new DataCell[currentGroup.length];
-                System.arraycopy(currentGroup, 0, groupKeys, 0,
-                        currentGroup.length);
-                chunkMembers.put(new GroupKey(groupKeys), member);
+            GroupAggregate group = chunkMembers.get(new GroupKey(currentGroup));
+            if (group == null) {
+                // first row of group encountered
+                group = new GroupAggregate(aggToColIdx, cloneColumnAggregators(), isEnableHilite(),
+                    getGlobalSettings());
+                final var groupKeyValues = new DataCell[currentGroup.length];
+                System.arraycopy(currentGroup, 0, groupKeyValues, 0, currentGroup.length);
+                chunkMembers.put(new GroupKey(groupKeyValues), group);
             }
-            //compute the current row values
-            for (final ColumnAggregator colAggr : member.getFirst()) {
-                final int colIdx = origSpec.findColumnIndex(
-                        colAggr.getOriginalColName());
-                colAggr.getOperator(getGlobalSettings()).compute(row, colIdx);
-            }
-            if (isEnableHilite()) {
-                member.getSecond().add(row.getKey());
-            }
+            // compute aggregates, group size, and hilite
+            group.updateAggregates(row);
+
             groupExec.checkCanceled();
-            groupExec.setProgress(++rowCounter/numOfRows, groupLabel);
+            processedRows++;
+            groupExec.setProgress(1d * processedRows / tableSize, groupLabel);
         }
-        //create the final row for the last chunk after processing the last
-        //table row
-        createTableRows(dc, chunkMembers, groupCounter);
-        dc.close();
-        return dc.getTable();
+        //create the final row for the last chunk after processing the last table row
+        addAggregateRows(dc, createNewChunkKey(groupCounter), chunkMembers, appendRowCountColumn);
+    }
+
+    /**
+     * Creates a new key based on the current group count and increments the counter.
+     * @param groupCounter counter to increment
+     * @return new row key based on the current group count
+     */
+    private static RowKey createNewChunkKey(final MutableInteger groupCounter) {
+        final var rowKey = RowKey.createRowKey((long)groupCounter.intValue());
+        groupCounter.inc();
+        return rowKey;
     }
 
     /** Get a string describing the current group. Used in progress message.
@@ -312,66 +345,22 @@ public class BigGroupByTable extends GroupByTable {
     /**
      * Creates and adds the result rows for the members of a data chunk to the
      * given data container. It also handles the row key mapping if hilite
-     * translation is enabled.
+     * translation is enabled. Appends the size of the group as a row count column to the data container if enabled.
      *
-     * @param dc the {@link DataContainer} to use
+     * @param dc the {@link DataContainer} to put rows into
+     * @param chunkKey the {@link RowKey} for the current data chunk
      * @param chunkMembers the members of the current data chunk
-     * @param groupCounter the number of groups that have been created
-     * so fare
+     * @param appendRowCountColumn the index
      */
-    private void createTableRows(final BufferedDataContainer dc,
-            final Map<GroupKey,
-                        Pair<ColumnAggregator[], Set<RowKey>>> chunkMembers,
-            final MutableInteger groupCounter) {
+    private void addAggregateRows(final BufferedDataContainer dc,
+            final RowKey chunkKey, final Map<GroupKey, GroupAggregate> chunkMembers,
+            final boolean appendRowCountColumn) {
         if (chunkMembers == null || chunkMembers.isEmpty()) {
             return;
         }
-        for (final Entry<GroupKey, Pair<ColumnAggregator[], Set<RowKey>>> e
-                : chunkMembers.entrySet()) {
-            final DataCell[] groupVals = e.getKey().getGroupVals();
-            final ColumnAggregator[] colAggregators = e.getValue().getFirst();
-            final RowKey rowKey = RowKey.createRowKey(groupCounter.intValue());
-            groupCounter.inc();
-            final DataCell[] rowVals =
-                new DataCell[groupVals.length + colAggregators.length];
-            //add the group values first
-            int valIdx = 0;
-            for (final DataCell groupCell : groupVals) {
-                rowVals[valIdx++] = groupCell;
-            }
-            //add the aggregation values
-            for (final ColumnAggregator colAggr : colAggregators) {
-                final AggregationOperator operator =
-                    colAggr.getOperator(getGlobalSettings());
-                rowVals[valIdx++] = operator.getResult();
-                if (operator.isSkipped()) {
-                    //add skipped groups and the column that causes the
-                    //skipping into the skipped groups map
-                    addSkippedGroup(colAggr.getOriginalColName(),
-                            operator.getSkipMessage(), groupVals);
-                }
-                addToMissingValuesMap(colAggr.getOriginalColName(), operator.getMissingValuesCount());
-            }
-            final DataRow newRow = new DefaultRow(rowKey, rowVals);
-            dc.addRowToTable(newRow);
-            if (isEnableHilite()) {
-                final Set<RowKey> oldKeys = e.getValue().getSecond();
-                addHiliteMapping(rowKey, oldKeys);
-            }
-        }
-    }
-
-    /**
-     * @return a copy of the column aggregators
-     */
-    private ColumnAggregator[] cloneColumnAggregators() {
-        final ColumnAggregator[] origAggregators = getColAggregators();
-        final ColumnAggregator[] aggregators =
-            new ColumnAggregator[origAggregators.length];
-        for (int i = 0, length = origAggregators.length; i < length; i++) {
-            aggregators[i] = origAggregators[i].clone();
-        }
-        return aggregators;
+        chunkMembers.entrySet().stream()
+            .map(e -> createOutputRow(chunkKey, e.getKey(), e.getValue(), appendRowCountColumn))
+            .forEach(dc::addRowToTable);
     }
 
     /**

@@ -638,7 +638,7 @@ public class GroupByNodeModel extends NodeModel {
             throw new InvalidSettingsException("Please select at least one group or aggregation column");
         }
         return GroupByTable.createGroupByTableSpec(origSpec, groupByCols,
-                m_columnAggregators2Use.toArray(new ColumnAggregator[0]), colNamePolicy);
+                m_columnAggregators2Use.toArray(new ColumnAggregator[0]), null, colNamePolicy);
     }
 
     /**
