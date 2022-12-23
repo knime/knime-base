@@ -149,7 +149,7 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
     }
 
     private static long getEndRow(final long tableSize, final TableCropperSettings settings) {
-        return Math.min(tableSize, settings.m_endRowNumber) - 1;
+        return Math.min(tableSize, settings.m_endRowNumber);
     }
 
     // TODO streaming
