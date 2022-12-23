@@ -57,7 +57,7 @@ import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction") // uses the restricted WebUI API
-public class TableSplitterNodeFactory extends WebUINodeFactory<TableSplitterNodeModel> {
+public final class TableSplitterNodeFactory extends WebUINodeFactory<TableSplitterNodeModel> {
 
     private static final String DESCRIPTION =
         "The Table Splitter splits the input table at the row that matches a given condition. "
@@ -75,6 +75,9 @@ public class TableSplitterNodeFactory extends WebUINodeFactory<TableSplitterNode
         .addOutputPort("Bottom Output Table") //
         .build();
 
+    /**
+     * Constructor
+     */
     public TableSplitterNodeFactory() {
         super(CONFIG);
     }

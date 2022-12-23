@@ -81,7 +81,7 @@ import org.knime.core.webui.node.dialog.impl.WebUINodeModel;
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction") // uses the restricted WebUI API
-class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSettings> {
+final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSettings> {
 
     /** Placeholder string for the RowID column */
     static final String ROWID_PLACEHOLDER = "<row-keys>";
@@ -355,7 +355,8 @@ class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSettings> {
             final var searchNumber = Long.parseLong(searchPattern);
             return notMatchMissing.and(row -> ((LongValue)row.getValue(columnIdx)).getLongValue() == searchNumber);
         } else {
-            // NB: This cannot happen because we fail in #checkColumnTypeAndSearchPattern if an unsupported column is selected
+            // NB: This cannot happen because we fail in #checkColumnTypeAndSearchPattern
+            //     if an unsupported column is selected
             throw new IllegalStateException(
                 String.format(UNSUPPORTED_COLUMN_TYPE_ERROR, type.getName(), spec.getColumnNames()[columnIdx]));
         }
