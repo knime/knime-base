@@ -70,7 +70,6 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.InputPortRole;
@@ -84,6 +83,7 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.core.webui.node.dialog.impl.Schema;
 
 /**
  * This is the model implementation of ColumnAppender.
@@ -91,28 +91,37 @@ import org.knime.core.util.UniqueNameGenerator;
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
 
+@SuppressWarnings("restriction")
 final class ColumnAppender2NodeModel extends NodeModel {
 
     /** Key for storing the selected way of getting rowIDs. */
-    private static final String KEY_SELECTED_ROWID_MODE = "selected_rowid_mode";
+    static final String KEY_SELECTED_ROWID_MODE = "selected_rowid_mode";
 
     /** Key for storing the table (port index) used for rowIDs. */
-    private static final String KEY_SELECTED_ROWID_TABLE = "selected_rowid_table";
+    static final String KEY_SELECTED_ROWID_TABLE = "selected_rowid_table";
+
+    static final String KEY_SELECTED_ROWID_TABLE_NUMBER = "selected_rowid_table_number";
+
+    static final int NOT_SET = -1;
 
     /** Different options of getting rowIDs. */
     private final SettingsModelString m_rowIDModeSettings = createRowIDModeSelectModel();
 
-    /** Table number that decides the rowIDs. */
-    private final SettingsModelIntegerBounded m_rowIDTableSettings = createRowIDTableSelectModel();
+
+    /**
+     * Old zero-based setting for the row id table index
+     */
+    private int m_rowIdTable;
+
+    /**
+     * New setting one-based setting for the row id table number
+     */
+    private int m_rowIdTableNumber;
 
     private final int m_numInPorts;
 
     static SettingsModelString createRowIDModeSelectModel() {
         return new SettingsModelString(KEY_SELECTED_ROWID_MODE, RowKeyMode.IDENTICAL.getActionCommand());
-    }
-
-    static SettingsModelIntegerBounded createRowIDTableSelectModel() {
-        return new SettingsModelIntegerBounded(KEY_SELECTED_ROWID_TABLE, 0, 0, Integer.MAX_VALUE);
     }
 
     /**
@@ -129,11 +138,11 @@ final class ColumnAppender2NodeModel extends NodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         // Sanity check settings even though dialog checks, in case any flow variables went bad.
         if (isSelectedMode(RowKeyMode.KEY_TABLE)) {
-            CheckUtils.checkSetting(m_rowIDTableSettings.getIntValue() < m_numInPorts,
-                "The selected port number for row key must be a number between 0 and "
-                    + "%s (index of the last port)",
-                (m_numInPorts - 1));
+            CheckUtils.checkSetting(getRowIDTableIndex() < m_numInPorts,
+                "The selected port number for row key must be a number between 1 and %s (number of the last port)",
+                m_numInPorts);
         }
+        warnAboutOldSettingOverwrittenIfNecessary();
         final DataTableSpec spec = combineToSingleSpec(createUniqueSpecs(inSpecs));
         return new DataTableSpec[]{spec};
     }
@@ -141,18 +150,30 @@ final class ColumnAppender2NodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_rowIDModeSettings.saveSettingsTo(settings);
-        m_rowIDTableSettings.saveSettingsTo(settings);
+        settings.addInt(KEY_SELECTED_ROWID_TABLE, m_rowIdTable);
+        settings.addInt(KEY_SELECTED_ROWID_TABLE_NUMBER, m_rowIdTableNumber);
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_rowIDModeSettings.loadSettingsFrom(settings);
-        m_rowIDTableSettings.loadSettingsFrom(settings);
+        m_rowIdTable = settings.getInt(KEY_SELECTED_ROWID_TABLE);
+        m_rowIdTableNumber = settings.getInt(KEY_SELECTED_ROWID_TABLE_NUMBER, NOT_SET);
+    }
+
+    private void warnAboutOldSettingOverwrittenIfNecessary() {
+        if (m_rowIdTable != NOT_SET && m_rowIdTableNumber != NOT_SET) {
+            // the dialog was opened in 5.0 but rowIdTable is overwritten by a flow variable
+            setWarningMessage(String.format(
+                "The deprecated setting with key '%s' is overwritten by a flow variable. "
+                        + "Please overwrite '%s' instead but keep in mind that a value of 1 now "
+                        + "corresponds to the first input table.",
+                        KEY_SELECTED_ROWID_TABLE, KEY_SELECTED_ROWID_TABLE_NUMBER));
+        }
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_rowIDModeSettings.validateSettings(settings);
         m_rowIDModeSettings.validateSettings(settings);
     }
 
@@ -342,9 +363,20 @@ final class ColumnAppender2NodeModel extends NodeModel {
      */
     private final int getDecidingTableIndex() {
         if (isSelectedMode(RowKeyMode.KEY_TABLE)) {
-            return m_rowIDTableSettings.getIntValue();
+            warnAboutOldSettingOverwrittenIfNecessary();
+            return getRowIDTableIndex();
         } else {
             return -1;
+        }
+    }
+
+    private int getRowIDTableIndex() {
+        if (m_rowIdTable == NOT_SET) {
+            // set by dialog -> the old settings was not overwritten by a flow variable
+            return m_rowIdTableNumber - 1;
+        } else {
+            // either the dialog wasn't opened yet or the old setting is overwritten by a flow variable
+            return m_rowIdTable;
         }
     }
 
@@ -690,10 +722,13 @@ final class ColumnAppender2NodeModel extends NodeModel {
      */
     enum RowKeyMode implements ButtonGroupEnumInterface {
 
+            @Schema(title = "Identical RowIDs and table lengths.")
             IDENTICAL("Identical row keys and table lengths"), //
 
+            @Schema(title = "Generate new row RowIDs")
             GENERATE("Generate new row keys"), //
 
+            @Schema(title = "Use the RowIDs from the selected input table")
             KEY_TABLE("Use the row keys from the input table: ");
 
         private static final String TOOLTIP = "<html>Choose the way row keys of the output tables are decided.<br>"

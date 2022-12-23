@@ -55,43 +55,40 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  * <code>NodeFactory</code> for the "ColumnAppender" Node.
  *
-  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+ * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
  */
-public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<ColumnAppender2NodeModel> {
+@SuppressWarnings("restriction")
+public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<ColumnAppender2NodeModel>
+    implements NodeDialogFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeView<ColumnAppender2NodeModel>
-            createNodeView(final int viewIndex, final ColumnAppender2NodeModel nodeModel) {
+    public NodeView<ColumnAppender2NodeModel> createNodeView(final int viewIndex,
+        final ColumnAppender2NodeModel nodeModel) {
         return null;
     }
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         PortsConfigurationBuilder b = new PortsConfigurationBuilder();
-        b.addExtendableInputPortGroup("input",
-            new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE}, BufferedDataTable.TYPE);
+        b.addExtendableInputPortGroup("input", new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE},
+            BufferedDataTable.TYPE);
         b.addFixedOutputPortGroup("Appended columns", BufferedDataTable.TYPE);
         return Optional.of(b);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
@@ -102,12 +99,14 @@ public final class ColumnAppender2NodeFactory extends ConfigurableNodeFactory<Co
         return new ColumnAppender2NodeModel(creationConfig.getPortConfig().get());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new ColumnAppender2NodeDialog(creationConfig.getPortConfig().get());
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnAppenderSettings.class);
     }
 
 }

@@ -1,0 +1,32 @@
+{
+    "elements": [
+       {
+            "type": "Section",
+            "label": "Column appender options",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/rowIdMode",
+                    "options": {
+                        "format": "radio",
+                        "radioLayout": "vertical"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/rowIdTableSelect",
+                    "options": {
+                        "format": "Integer"
+                    },
+                    "rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/model/properties/rowIdMode",
+                            "schema": {"oneOf": [{"const": "KEY_TABLE"}]}
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
