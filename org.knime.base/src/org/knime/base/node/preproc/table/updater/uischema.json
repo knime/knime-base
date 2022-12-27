@@ -1,0 +1,28 @@
+{
+    "elements": [
+        {
+            "type": "Section",
+            "label": "Options",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/unmatchedColumnsHandling",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/unmatchedRowsHandling",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/performUpdateWithMissingValues"
+                }
+            ]
+        }
+    ]
+}

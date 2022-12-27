@@ -2295,6 +2295,12 @@
             factory-class="org.knime.base.node.preproc.tablesplitter.TableSplitterNodeFactory"
             hidden="false">
       </node>
+      <node
+            category-path="/manipulation/table"
+            deprecated="false"
+            factory-class="org.knime.base.node.preproc.table.updater.TableUpdaterNodeFactory"
+            hidden="false">
+      </node>
    </extension>
    <extension
          name="deprecated nodes without category"
