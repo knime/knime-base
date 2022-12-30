@@ -170,11 +170,12 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
             fromRowIdx = tableSize;
         }
 
+        var topSlice = Selection.all().retainRows(0, toRowIdx);
+        var bottomSlice = Selection.all().retainRows(fromRowIdx, table.size());
+
         // Slice the tables and return the result
-        return new BufferedDataTable[]{ //
-            getTopTable(table, toRowIdx, exec.createSubExecutionContext(progressSlicing / 2)), //
-            getBottomTable(table, fromRowIdx, exec.createSubExecutionContext(progressSlicing / 2)) //
-        };
+        return InternalTableAPI.multiSlice(exec.createSubExecutionContext(progressSlicing), table, topSlice,
+            bottomSlice);
     }
 
     // ================================ ITERATING TABLES ================================
@@ -260,21 +261,6 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
                     () -> String.format("Checking row %d of %d", rowIdx, tableSize));
             }
         };
-    }
-
-    // ================================ SLICING TABLES ================================
-
-    /** Slice of the top table */
-    private static BufferedDataTable getTopTable(final BufferedDataTable table, final long toRowIdx,
-        final ExecutionContext exec) {
-        return InternalTableAPI.slice(exec, table, Selection.all().retainRows(0, toRowIdx));
-    }
-
-    /** Slice of the bottom table */
-    private static BufferedDataTable getBottomTable(final BufferedDataTable table, final long fromRowIdx,
-        final ExecutionContext exec) {
-        long size = table.size();
-        return InternalTableAPI.slice(exec, table, Selection.all().retainRows(fromRowIdx, size));
     }
 
     // ================================ MATCHING ROWS ================================
