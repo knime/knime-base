@@ -172,13 +172,29 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
             fromRowIdx = tableSize;
         }
 
+        var topSlice = Selection.all().retainRows(0, toRowIdx);
+        var bottomSlice = Selection.all().retainRows(fromRowIdx, table.size());
+
         // Slice the tables and return the result
-        return new BufferedDataTable[]{ //
-            getTopTable(table, toRowIdx, exec.createSubExecutionContext(progressSlicing / 2), //
-                settings.m_updateDomains), //
-            getBottomTable(table, fromRowIdx, exec.createSubExecutionContext(progressSlicing / 2), //
-                settings.m_updateDomains) //
-        };
+        final var updateDomains = settings.m_updateDomains;
+        final var progressDomainUpdate = updateDomains ? (0.5 * progressSlicing) : 0;
+        final var sliceExec = exec.createSubExecutionContext(progressSlicing - progressDomainUpdate);
+        final var slices = InternalTableAPI.multiSlice(sliceExec, table, topSlice, bottomSlice);
+
+        if (!updateDomains) {
+            // domains stay the same, nothing to do
+            return slices;
+        }
+
+        final var slicesWithUpdatedDomains = new BufferedDataTable[slices.length];
+        final var recalcExec = exec.createSubExecutionContext(progressDomainUpdate);
+        for (var i = 0; i < slices.length; i++) {
+            final var subExec = recalcExec.createSubExecutionContext(1.0 / slices.length);
+            final var specWithNewDomain = recalculateDomain(slices[i], subExec);
+            slicesWithUpdatedDomains[i] = subExec.createSpecReplacerTable(slices[i], specWithNewDomain);
+        }
+
+        return slicesWithUpdatedDomains;
     }
 
     // ================================ ITERATING TABLES ================================
@@ -264,42 +280,6 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
                     () -> String.format("Checking row %d of %d", rowIdx, tableSize));
             }
         };
-    }
-
-    // ================================ SLICING TABLES ================================
-
-    /**
-     * Slice of the top table
-     *
-     * @throws CanceledExecutionException
-     */
-    private static BufferedDataTable getTopTable(final BufferedDataTable table, final long toRowIdx,
-        final ExecutionContext exec, final boolean updateDomains) throws CanceledExecutionException {
-        return getTableSlice(table, Selection.all().retainRows(0, toRowIdx), updateDomains, exec);
-    }
-
-    /**
-     * Slice of the bottom table
-     *
-     * @throws CanceledExecutionException
-     */
-    private static BufferedDataTable getBottomTable(final BufferedDataTable table, final long fromRowIdx,
-        final ExecutionContext exec, final boolean updateDomains) throws CanceledExecutionException {
-        long size = table.size();
-        return getTableSlice(table, Selection.all().retainRows(fromRowIdx, size), updateDomains, exec);
-    }
-
-    private static BufferedDataTable getTableSlice(final BufferedDataTable table, final Selection selection,
-        final boolean updateDomains, final ExecutionContext exec) throws CanceledExecutionException {
-        var slicingExec = updateDomains ? exec.createSubExecutionContext(0.5) : exec;
-        var resultTable = InternalTableAPI.slice(slicingExec, table, selection);
-
-        if (updateDomains) {
-            var specWithNewDomain = recalculateDomain(resultTable, exec.createSubExecutionContext(0.5));
-            resultTable = exec.createSpecReplacerTable(resultTable, specWithNewDomain);
-        }
-
-        return resultTable;
     }
 
     // ================================ MATCHING ROWS ================================
