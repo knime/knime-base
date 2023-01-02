@@ -24,7 +24,7 @@ try {
         WorkflowTests: {
             workflowTests.runTests(
                 dependencies: [
-                    repositories:  ["knime-base", "knime-expressions", "knime-core","knime-pmml", "knime-pmml-compilation",
+                    repositories:  ["knime-base", "knime-expressions", "knime-core", "knime-core-ui", "knime-pmml", "knime-pmml-compilation",
                     "knime-pmml-translation", "knime-r", "knime-jep","knime-kerberos", "knime-database", "knime-datageneration",
                     "knime-filehandling", "knime-js-base", "knime-ensembles", "knime-distance", "knime-xml", "knime-jfreechart",
                     "knime-timeseries", "knime-python", "knime-python-legacy", "knime-conda", "knime-stats", "knime-h2o", "knime-weka", "knime-birt", "knime-svm",
