@@ -92,6 +92,7 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.streamable.StreamableOperatorInternals;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapter;
@@ -789,7 +790,13 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
 
     /** @return settings model for the header row index */
     static SettingsModelInteger createHeaderRowIndex() {
-        return new SettingsModelInteger(HEADER_ROW_INDEX, 0);
+        return new SettingsModelInteger(HEADER_ROW_INDEX, 0) {
+
+            @Override
+            protected void validateValue(final int value) throws InvalidSettingsException {
+                CheckUtils.checkSetting(value >= 0, "The number of rows before the header must be non-negative.");
+            }
+        };
     }
 
     /** @return settings model for the flag indicating whether rows before the header should be skipped */

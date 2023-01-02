@@ -64,7 +64,8 @@ final class RowToColumnHeaderSettings implements DefaultNodeSettings {
 
     @Persist(settingsModel = SettingsModelInteger.class)
     @Schema(title = "Number of rows before the header",
-        description = "Number of rows in the input table that precede the row that should be used as new column header")
+        description = "Number of rows in the input table that precede the row that should be used as new column header",
+        min = 0)
     int m_headerRowIndex;
 
     @Persist(settingsModel = SettingsModelBoolean.class)
