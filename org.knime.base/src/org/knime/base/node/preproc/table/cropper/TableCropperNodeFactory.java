@@ -65,8 +65,8 @@ public final class TableCropperNodeFactory extends WebUINodeFactory<TableCropper
             .shortDescription("Crops part of the input table.")//
             .fullDescription("Crops part of the input table based on the chosen column and row range.")//
             .modelSettingsClass(TableCropperSettings.class)//
-            .addInputPort("The table to crop.")//
-            .addOutputPort("The cropped table.")//
+            .addInputTable("Input Table", "The table to crop.")//
+            .addOutputTable("Cropped Table", "The cropped table.")//
             .build();
 
     /**

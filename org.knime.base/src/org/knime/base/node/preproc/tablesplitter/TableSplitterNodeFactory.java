@@ -70,9 +70,9 @@ public final class TableSplitterNodeFactory extends WebUINodeFactory<TableSplitt
         .shortDescription("Splits the input table at the row that matches a given condition") //
         .fullDescription(DESCRIPTION) //
         .modelSettingsClass(TableSplitterNodeSettings.class) //
-        .addInputPort("Input Table") //
-        .addOutputPort("Top Output Table") //
-        .addOutputPort("Bottom Output Table") //
+        .addInputTable("Input Table", "The table to split.") //
+        .addOutputTable("Top Output Table", "The top part of the split table.") //
+        .addOutputTable("Bottom Output Table", "The bottom part of the split table.") //
         .build();
 
     /**
