@@ -48,18 +48,31 @@
  */
 package org.knime.filehandling.core.defaultnodesettings.filechooser.workflow;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.core.connections.uriexport.noconfig.EmptyURIExporterConfig;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
 
 /**
  * Workflow chooser settings model for Call Workflow and Create Deployment nodes.
@@ -121,6 +134,69 @@ public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFil
         return "SMID_WorkflowChooser";
     }
 
+    /**
+     * Only used to bridge between the path delivered by this settings model and the custom path format a local call
+     * workflow backends expects (absolute paths are interpreted as mount point absolute for the LOCAL mount point,
+     * relative paths are interpreted as workflow relative). The format understood by both the FS world and the local
+     * workflow backend is the KNIME URI returned by this method.
+     *
+     * @return an URL encoded KNIME URI that identifies the callee workflow. For instance
+     *         <ul>
+     *         <li>knime://knime.mountpoint/path/to/workflow%20with%20space</li>
+     *         <li>knime://knime.workflow/../some/workflow</li>
+     *         </ul>
+     */
+    public Optional<URI> getCalleeKnimeUri() {
 
+        // we want to export in knime:// format
+        final URIExporterID knimeUrlExporterID = URIExporterIDs.LEGACY_KNIME_URL;
+
+        var location = getLocation();
+
+        // 1. Create a URI exporter
+
+        // URI exporter can be retrieved via connection or via fs descriptor
+        Optional<URIExporterFactory> knimeUriExporterFactory;
+
+        try (var connection = getConnection()) {
+            knimeUriExporterFactory = Optional.ofNullable(connection.getURIExporterFactory(knimeUrlExporterID));
+        } catch (IllegalStateException | IOException ex) {
+            // can throw illegal argument exception
+            knimeUriExporterFactory = FSDescriptorRegistry.getFSDescriptor(location.getFSType())
+                .map(descriptor -> descriptor.getURIExporterFactory(knimeUrlExporterID));
+            NodeLogger.getLogger(getClass()).info(ex);
+        }
+
+        var knimeUriExporter =
+            knimeUriExporterFactory.map(factory -> factory.createExporter(EmptyURIExporterConfig.getInstance()));
+        if (knimeUriExporter.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // 2. Create a FSPath and pass it to the URI exporter
+
+        try (var accessor = createPathAccessor()) {
+            FSPath path = accessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER);
+            return Optional.of(knimeUriExporter.get().toUri(path));
+        } catch (IOException | InvalidSettingsException | URISyntaxException ex) {
+            NodeLogger.getLogger(getClass()).info(ex);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Used for hub and server backends. Locates the callee workflow relative to a hub space or server repository.
+     *
+     * @return path that locates the callee workflow within its repository or context. For instance
+     *         <code>/Testflows (master)/knime-server-client/OS/Callee/RowPassThrough</code>
+     */
+    public String getPath() {
+        try (var accessor = createPathAccessor()) {
+            return accessor.getRootPath(StatusMessageUtils.NO_OP_CONSUMER).getURICompatiblePath();
+        } catch (IOException | InvalidSettingsException ex) {
+            NodeLogger.getLogger(getClass()).info(ex);
+            return getLocation().getPath();
+        }
+    }
 
 }
