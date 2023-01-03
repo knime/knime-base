@@ -86,7 +86,8 @@ final class TableCropperSettings implements DefaultNodeSettings {
     @Schema(title = "Start column", description = "Select the first column to include.", choices = AllColumns.class)
     String m_startColumnName;
 
-    @Schema(title = "End column (inclusive)", description = "Select the last column to include.", choices = AllColumns.class)
+    @Schema(title = "End column (inclusive)", description = "Select the last column to include.",
+        choices = AllColumns.class)
     String m_endColumnName;
 
     @Schema(title = "Start column number", description = "Number of the first column to include.", min = 1)
@@ -97,7 +98,7 @@ final class TableCropperSettings implements DefaultNodeSettings {
     int m_endColumnNumber = 1;
 
     @Schema(title = "Start row number",
-        description = "Select the first row to include (the first row of the table has index 1).", min = 1)
+        description = "Select the first row to include (the first row of the table has number 1).", min = 1)
     long m_startRowNumber = 1;
 
     @Schema(title = "End row number (inclusive)", description = "Select the last row to include.", min = 1)

@@ -88,8 +88,7 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
         var rearranger = new ColumnRearranger(spec);
         var colsToKeep = getColumnIndicesToKeep(spec, settings);
         rearranger.keepOnly(colsToKeep);
-        DataTableSpec outputSpec = rearranger.createSpec();
-        return outputSpec;
+        return rearranger.createSpec();
     }
 
     private static int[] getColumnIndicesToKeep(final DataTableSpec spec, final TableCropperSettings settings)
@@ -100,22 +99,26 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
                     .range(settings.m_startColumnNumber - 1, Math.min(settings.m_endColumnNumber, spec.getNumColumns()))
                     .toArray();
             case NAME_RANGE:
-                int startColumnIndex = spec.findColumnIndex(settings.m_startColumnName);
-                CheckUtils.checkSetting(startColumnIndex >= 0,
-                    "The provided table does not contain the start column ('%s') of the range",
-                    settings.m_startColumnName);
-                int endColumnIndex = spec.findColumnIndex(settings.m_endColumnName);
-                CheckUtils.checkSetting(endColumnIndex >= 0,
-                    "The provided table does not contain the end column ('%s') of the range.",
-                    settings.m_endColumnName);
-                CheckUtils.checkSetting(startColumnIndex <= endColumnIndex,
-                    "The start column must be positioned before the end column in the table.");
-                return IntStream.range(spec.findColumnIndex(settings.m_startColumnName),
-                    spec.findColumnIndex(settings.m_endColumnName) + 1).toArray();
+                return getColumnIndicesFromNameRange(spec, settings);
             default:
                 throw new InvalidSettingsException("Unknown column selection mode: " + settings.m_columnSelectionMode);
-
         }
+    }
+
+    private static int[] getColumnIndicesFromNameRange(final DataTableSpec spec, final TableCropperSettings settings)
+        throws InvalidSettingsException {
+        int startColumnIndex = spec.findColumnIndex(settings.m_startColumnName);
+        CheckUtils.checkSetting(startColumnIndex >= 0,
+            "The provided table does not contain the start column ('%s').",
+            settings.m_startColumnName);
+        int endColumnIndex = spec.findColumnIndex(settings.m_endColumnName);
+        CheckUtils.checkSetting(endColumnIndex >= 0,
+            "The provided table does not contain the end column ('%s').",
+            settings.m_endColumnName);
+        CheckUtils.checkSetting(startColumnIndex <= endColumnIndex,
+            "The start column must be positioned before the end column in the table.");
+        return IntStream.range(startColumnIndex,
+            endColumnIndex + 1).toArray();
     }
 
     @Override
@@ -124,6 +127,7 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
         var table = inData[0];
         var colIndices = getColumnIndicesToKeep(table.getDataTableSpec(), settings);
         var slice = defineSlice(colIndices, table.size(), settings);
+        exec.setMessage("Cropping table");
         var slicedTable = InternalTableAPI.slice(exec.createSubExecutionContext(0.5), table, slice);
         var specWithNewDomain = recalculateDomain(slicedTable, exec.createSubProgress(0.5));
         var slicedTableWithNewDomain = exec.createSpecReplacerTable(slicedTable, specWithNewDomain);
@@ -151,8 +155,6 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
     private static long getEndRow(final long tableSize, final TableCropperSettings settings) {
         return Math.min(tableSize, settings.m_endRowNumber);
     }
-
-    // TODO streaming
 
     @Override
     protected void validateSettings(final TableCropperSettings settings) throws InvalidSettingsException {
