@@ -98,15 +98,15 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     RowIdResolution m_rowIdResolution = RowIdResolution.APPEND;
 
     @Persist(customPersistor = ColumnSetOperationPersistor.class)
-    @Schema(title = "Selection of columns available in the output table",
-            description = "Select which set operation to perform on the columns:"
+    @Schema(title = "Output columns",
+            description = "Choose the output column selection process:"
                     + "<ul>"
                     // Intersection option description
-                    + "<li><b>Intersection of columns</b>: Use only the columns that appear "
-                    + "in both input tables. Any other column is ignored and won't appear "
+                    + "<li><b>Columns in all tables</b>: Use only the columns that appear "
+                    + "in every input table. Any other column is ignored and won't appear "
                     + "in the output table.</li>"
                     // Union option description
-                    + "<li><b>Union of columns</b>: Use all columns available in the input "
+                    + "<li><b>Columns in any table</b>: Use all columns from all input "
                     + "tables. Fill rows with missing values if they miss cells for some columns.</li>"
                     + "</ul>")
     ColumnSetOperation m_columnSetOperation = ColumnSetOperation.UNION;
@@ -123,10 +123,10 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     }
 
     enum ColumnSetOperation {
-        @Schema(title="Intersection of columns")
+        @Schema(title="Columns in all tables")
         INTERSECTION,
 
-        @Schema(title="Union of columns")
+        @Schema(title="Columns in any table")
         UNION;
     }
 

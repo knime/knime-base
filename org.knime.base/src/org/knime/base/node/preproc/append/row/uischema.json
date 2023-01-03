@@ -6,6 +6,13 @@
             "elements": [
             	{
                     "type": "Control",
+                    "scope": "#/properties/model/properties/columnSetOperation",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+            	{
+                    "type": "Control",
                     "scope": "#/properties/model/properties/rowIdResolution",
                     "options": {
                         "format": "valueSwitch"
@@ -20,13 +27,6 @@
                             "scope": "#/properties/model/properties/rowIdResolution",
                             "schema": {"oneOf": [{"const": "APPEND"}]}
                         }
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/columnSetOperation",
-                    "options": {
-                        "format": "valueSwitch"
                     }
                 },
                 {
