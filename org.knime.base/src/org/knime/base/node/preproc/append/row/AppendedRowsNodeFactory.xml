@@ -13,25 +13,30 @@
 			filtered out, i.e. they will not be in the output table.
 			The dialog allows setting the following parameters:
 		</intro>
-        <option name="Skip Rows"> Duplicate row identifiers (RowID) occurring in the 
+		<option name="Output columns">
+			<ul>
+				<li><b>Columns in all tables:</b> Use only the columns that appear
+                    in every input table. Any other column is ignored and won't appear
+                    in the output table.</li>
+                <li><b>Columns in any table:</b> Use all columns from all input
+                    tables. Fill rows with missing values if they miss cells for some columns.</li>
+			</ul>
+		</option>
+		<option name="Resolution action for duplicate RowIDs">
+			<ul>
+				<li><b>Skip:</b> Duplicate row identifiers (RowID) occurring in the 
 	        second table are not appended to the output table. This option is 
 	        relatively memory intensive as it needs to cache the row IDs in
 	        order to find duplicates. Furthermore a full data
-			duplication is needed.</option>
-        <option name="Append suffix"> The output table will contain all rows, but
+			duplication is needed.</li>
+				<li><b>Append suffix:</b> The output table will contain all rows, but
             duplicate row identifiers are labeled with a suffix. Similar to
-            the "Skip Rows" option this method is also memory intensive. </option>
-        <option name="Fail">The node will fail during execution if duplicate 
+            the "Skip" option this method is also memory intensive.</li>
+            	<li><b>Fail:</b> The node will fail during execution if duplicate 
             row IDs are encountered. This option is efficient while checking 
-            uniqueness.</option>
-        <option name="Use intersection of columns">
-        	Use only the columns that appear in both input tables. Any other
-        	column is ignored and won't appear in the output table.
-        </option>
-        <option name="Use union of columns">
-        	Use all columns available in the input tables. Fill rows with 
-        	missing values if they miss cells for some columns.
-        </option>
+            uniqueness.</li>
+			</ul>
+		</option>
         <option name="Enable hiliting">
             Enables hiliting between both inputs and the concatenated output
             table.
