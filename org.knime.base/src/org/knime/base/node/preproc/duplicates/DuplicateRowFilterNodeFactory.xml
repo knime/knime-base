@@ -27,7 +27,7 @@
 		<option name="Keep duplicate rows">
 			Appends columns with additional information to the input table:
 			<ul>
-				<li><b>Add classification column</b>: Appends a column that describes
+				<li><b>Add column showing duplicates</b>: Appends a column that describes
 					the type of row:
 						<br/><i>unique</i>: There is no other row with the same 
 							values in the selected columns.
@@ -36,15 +36,15 @@
 						<br/><i>duplicate</i>: This row is a duplicate and represented by
 							another row.
 				</li>
-				<li><b>Add ROWID column</b>: Appends a column with the
-                    ROWID of the chosen row for duplicate rows. Unique and chosen rows
-                    will not have a ROWID assigned.
+				<li><b>Add column identifying the RowID</b>: Appends a column with the
+                    RowID of the chosen row for duplicate rows. Unique and chosen rows
+                    will not have a RowID assigned.
 				</li>
 			</ul>
 		</option>
 	</tab>
 	<tab name="Advanced - Row selection">
-		<option name="Select row:">
+		<option name="Row chosen in case of duplicate">
 			Defines which row for each set of duplicates is selected:
 			<ul>
 				<li><b>First</b>:The first row in sequence is chosen.

@@ -1,0 +1,125 @@
+{
+    "elements": [
+        {
+            "type": "Section",
+            "label": "Options",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/consideredColumns",
+                    "options": {
+                        "format": "columnFilter"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Section",
+            "label": "Duplicate rows",
+            "options": {
+                "isAdvanced": true
+            },
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/duplicateHandling",
+                    "label": "",
+                    "options": {
+                        "isAdvanced": true,
+                        "format": "radio",
+                        "radioLayout": "vertical"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/addUniqueLabel",
+                    "options": {
+                        "isAdvanced": true
+                    },
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/model/properties/duplicateHandling",
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "const": "REMOVE"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/addRowIdLabel",
+                    "options": {
+                        "isAdvanced": true
+                    },
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/model/properties/duplicateHandling",
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "const": "REMOVE"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/rowSelectionType",
+                    "options": {
+                        "isAdvanced": true,
+                        "format": "radio",
+                        "radioLayout": "vertical"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/selectedColumn",
+                    "options": {
+                        "isAdvanced": true
+                    },
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/model/properties/rowSelectionType",
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "const": "FIRST"
+                                    },
+                                    {
+                                        "const": "LAST"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Section",
+            "label": "Additional options",
+            "options": {
+                "isAdvanced": true
+            },
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/inMemory"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/retainOrder"
+                }
+            ]
+        }
+    ]
+}

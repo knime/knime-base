@@ -74,7 +74,7 @@ final class DuplicateRowFilterSettings {
 
             MAXIMUM("Maximum of", true);
 
-        private static final String ROW_SELECTION_KEY = "row_selection";
+        static final String ROW_SELECTION_KEY = "row_selection";
 
         private final String m_uiName;
 
@@ -108,24 +108,24 @@ final class DuplicateRowFilterSettings {
     }
 
     /** The group columns config key. */
-    private static final String GROUP_COLS_KEY = "group_cols";
+    static final String GROUP_COLS_KEY = "group_cols";
 
     /** The in-memory config key. */
-    private static final String IN_MEMORY_KEY = "in_memory";
+    static final String IN_MEMORY_KEY = "in_memory";
 
     /** The retain order config key. */
-    private static final String RETAIN_ROW_ORDER_KEY = "retain_order";
+    static final String RETAIN_ROW_ORDER_KEY = "retain_order";
 
     /** The remove duplicate row keys config key. */
-    private static final String REMOVE_DUPLICATE_ROWS_KEY = "remove_duplicates";
+    static final String REMOVE_DUPLICATE_ROWS_KEY = "remove_duplicates";
 
     /** The add row duplicate flag config key. */
-    private static final String ADD_ROW_DUPLICATE_FLAG_KEY = "add_row_duplicate_flag";
+    static final String ADD_ROW_DUPLICATE_FLAG_KEY = "add_row_duplicate_flag";
 
     /** The add row id flag config key/ */
-    private static final String ADD_ROW_ID_FLAG_KEY = "add_row_id_flag";
+    static final String ADD_ROW_ID_FLAG_KEY = "add_row_id_flag";
 
-    private static final String REFERENCE_COL_KEY = "reference_col";
+    static final String REFERENCE_COL_KEY = "reference_col";
 
     /** Settings model storing the selected group columns. */
     private final SettingsModelColumnFilter2 m_groupCols = new SettingsModelColumnFilter2(GROUP_COLS_KEY);

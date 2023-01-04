@@ -51,13 +51,19 @@ package org.knime.base.node.preproc.duplicates;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  * The duplicates row filter node factory.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public final class DuplicateRowFilterNodeFactory extends NodeFactory<DuplicateRowFilterNodeModel> {
+@SuppressWarnings("restriction")
+public final class DuplicateRowFilterNodeFactory extends NodeFactory<DuplicateRowFilterNodeModel>
+    implements NodeDialogFactory {
 
     @Override
     public DuplicateRowFilterNodeModel createNodeModel() {
@@ -70,7 +76,8 @@ public final class DuplicateRowFilterNodeFactory extends NodeFactory<DuplicateRo
     }
 
     @Override
-    public NodeView<DuplicateRowFilterNodeModel> createNodeView(final int viewIndex, final DuplicateRowFilterNodeModel nodeModel) {
+    public NodeView<DuplicateRowFilterNodeModel> createNodeView(final int viewIndex,
+        final DuplicateRowFilterNodeModel nodeModel) {
         return null;
     }
 
@@ -81,7 +88,11 @@ public final class DuplicateRowFilterNodeFactory extends NodeFactory<DuplicateRo
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new DuplicateRowFilterNodeDialog();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
     }
 
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, DuplicateRowFilterDialogSettings.class);
+    }
 }
