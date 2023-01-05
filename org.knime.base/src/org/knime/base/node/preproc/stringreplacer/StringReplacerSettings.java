@@ -57,6 +57,25 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class StringReplacerSettings {
+
+    static final String CFG_PATTERN_IS_REGEX = "patternIsRegex";
+
+    static final String CFG_ENABLE_ESCAPING = "enableEscaping";
+
+    static final String CFG_REPLACEMENT = "replacement";
+
+    static final String CFG_REPLACE_ALL_OCCURENCES = "replaceAllOccurences";
+
+    static final String CFG_PATTERN = "pattern";
+
+    static final String CFG_NEW_COL_NAME = "newColName";
+
+    static final String CFG_CREATE_NEW_COL = "createNewCol";
+
+    static final String CFG_COL_NAME = "colName";
+
+    static final String CFG_CASE_SENSITIVE = "caseSensitive";
+
     private boolean m_caseSensitive;
 
     private String m_colName;
@@ -188,17 +207,17 @@ public class StringReplacerSettings {
      */
     public void loadSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_caseSensitive = settings.getBoolean("caseSensitive");
-        m_colName = settings.getString("colName");
-        m_createNewCol = settings.getBoolean("createNewCol");
-        m_newColName = settings.getString("newColName");
-        m_pattern = settings.getString("pattern");
-        m_replaceAllOccurrences = settings.getBoolean("replaceAllOccurences");
-        m_replacement = settings.getString("replacement");
+        m_caseSensitive = settings.getBoolean(CFG_CASE_SENSITIVE);
+        m_colName = settings.getString(CFG_COL_NAME);
+        m_createNewCol = settings.getBoolean(CFG_CREATE_NEW_COL);
+        m_newColName = settings.getString(CFG_NEW_COL_NAME);
+        m_pattern = settings.getString(CFG_PATTERN);
+        m_replaceAllOccurrences = settings.getBoolean(CFG_REPLACE_ALL_OCCURENCES);
+        m_replacement = settings.getString(CFG_REPLACEMENT);
 
         /** @since 2.8 */
-        m_enableEscaping = settings.getBoolean("enableEscaping", false);
-        m_patternIsRegex = settings.getBoolean("patternIsRegex", false);
+        m_enableEscaping = settings.getBoolean(CFG_ENABLE_ESCAPING, false);
+        m_patternIsRegex = settings.getBoolean(CFG_PATTERN_IS_REGEX, false);
     }
 
     /**
@@ -207,16 +226,16 @@ public class StringReplacerSettings {
      * @param settings node settings
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_caseSensitive = settings.getBoolean("caseSensitive", false);
-        m_colName = settings.getString("colName", null);
-        m_createNewCol = settings.getBoolean("createNewCol", false);
-        m_newColName = settings.getString("newColName", null);
-        m_pattern = settings.getString("pattern", "");
+        m_caseSensitive = settings.getBoolean(CFG_CASE_SENSITIVE, false);
+        m_colName = settings.getString(CFG_COL_NAME, null);
+        m_createNewCol = settings.getBoolean(CFG_CREATE_NEW_COL, false);
+        m_newColName = settings.getString(CFG_NEW_COL_NAME, null);
+        m_pattern = settings.getString(CFG_PATTERN, "");
         m_replaceAllOccurrences =
-                settings.getBoolean("replaceAllOccurences", false);
-        m_replacement = settings.getString("replacement", "");
-        m_enableEscaping = settings.getBoolean("enableEscaping", false);
-        m_patternIsRegex = settings.getBoolean("patternIsRegex", false);
+                settings.getBoolean(CFG_REPLACE_ALL_OCCURENCES, false);
+        m_replacement = settings.getString(CFG_REPLACEMENT, "");
+        m_enableEscaping = settings.getBoolean(CFG_ENABLE_ESCAPING, false);
+        m_patternIsRegex = settings.getBoolean(CFG_PATTERN_IS_REGEX, false);
     }
 
     /**
@@ -305,14 +324,14 @@ public class StringReplacerSettings {
      * @param settings node settings
      */
     public void saveSettings(final NodeSettingsWO settings) {
-        settings.addBoolean("caseSensitive", m_caseSensitive);
-        settings.addString("colName", m_colName);
-        settings.addBoolean("createNewCol", m_createNewCol);
-        settings.addString("newColName", m_newColName);
-        settings.addString("pattern", m_pattern);
-        settings.addBoolean("replaceAllOccurences", m_replaceAllOccurrences);
-        settings.addString("replacement", m_replacement);
-        settings.addBoolean("enableEscaping", m_enableEscaping);
-        settings.addBoolean("patternIsRegex", m_patternIsRegex);
+        settings.addBoolean(CFG_CASE_SENSITIVE, m_caseSensitive);
+        settings.addString(CFG_COL_NAME, m_colName);
+        settings.addBoolean(CFG_CREATE_NEW_COL, m_createNewCol);
+        settings.addString(CFG_NEW_COL_NAME, m_newColName);
+        settings.addString(CFG_PATTERN, m_pattern);
+        settings.addBoolean(CFG_REPLACE_ALL_OCCURENCES, m_replaceAllOccurrences);
+        settings.addString(CFG_REPLACEMENT, m_replacement);
+        settings.addBoolean(CFG_ENABLE_ESCAPING, m_enableEscaping);
+        settings.addBoolean(CFG_PATTERN_IS_REGEX, m_patternIsRegex);
     }
 }

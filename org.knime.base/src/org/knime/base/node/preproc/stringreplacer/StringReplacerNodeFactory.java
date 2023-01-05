@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   18.06.2007 (thor): created
  */
@@ -51,53 +51,52 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  * This is the factory for the string replacer node that creates all necessary
  * objects.
- * 
+ *
  * @author Thorsten Meinl, University of Konstanz
+ * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
-public class StringReplacerNodeFactory extends NodeFactory {
+@SuppressWarnings("restriction")
+public class StringReplacerNodeFactory extends NodeFactory implements NodeDialogFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new StringReplacerDialog();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeModel createNodeModel() {
         return new StringReplacerNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView createNodeView(final int viewIndex,
             final NodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, StringReplacerNodeSettings.class);
     }
 }

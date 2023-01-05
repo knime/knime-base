@@ -1,0 +1,78 @@
+{
+    "elements": [
+        {
+            "type": "Section",
+            "label": "Column Selection",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/colName",
+                    "options": {
+                        "format": "columnSelection",
+                        "showRowKeys": false,
+                        "showNoneColumn": false
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Section",
+            "label": "Find & Replace",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/patternType",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/pattern"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/replacement"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/replacementStrategy",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/caseSensitive"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/enableEscaping"
+                }
+            ]
+        },
+        {
+            "type": "Section",
+            "label": "Output",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/createNewCol"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/newColName",
+                    "rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/model/properties/createNewCol",
+                            "schema": {
+                                "const": true
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
