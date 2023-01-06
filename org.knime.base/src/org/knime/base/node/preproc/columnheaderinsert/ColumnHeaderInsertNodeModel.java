@@ -58,6 +58,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.StringValue;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -72,6 +73,8 @@ import org.knime.core.node.NodeSettingsWO;
  */
 final class ColumnHeaderInsertNodeModel extends NodeModel {
 
+    private static final String ROW_KEY_CONSTANT = "<row-keys>";
+
     private ColumnHeaderInsertConfig m_config;
 
     /**  Two ins, one out. */
@@ -83,12 +86,12 @@ final class ColumnHeaderInsertNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        if (m_config == null) {
-            throw new InvalidSettingsException("No configuration available");
-        }
         DataTableSpec dictTable = inSpecs[1];
+        if (m_config == null) {
+            m_config = autoConfigure(dictTable);
+        }
         String lookupCol = m_config.getLookupColumn();
-        if (lookupCol != null) {
+        if (lookupCol != null && !ROW_KEY_CONSTANT.equals(lookupCol)) {
             DataColumnSpec lookupColSpec = dictTable.getColumnSpec(lookupCol);
             if (lookupColSpec == null) {
                 throw new InvalidSettingsException("No such lookup column in "
@@ -114,6 +117,29 @@ final class ColumnHeaderInsertNodeModel extends NodeModel {
                     + valueColumnSpec.getType());
         }
         return null;
+    }
+
+    private static ColumnHeaderInsertConfig autoConfigure(final DataTableSpec dictSpec)
+        throws InvalidSettingsException {
+        var config = new ColumnHeaderInsertConfig();
+        config.setFailIfNoMatch(true);
+        config.setLookupColumn("<row-keys>");
+        config.setValueColumn(findDefaultValueColumn(dictSpec).getName());
+        return config;
+    }
+
+    private static DataColumnSpec findDefaultValueColumn(final DataTableSpec dictSpec) throws InvalidSettingsException {
+        var valueColumn = dictSpec.stream()//
+            .filter(c -> c.getType().equals(StringCell.TYPE))//
+            .findFirst();
+        if (valueColumn.isPresent()) {
+            return valueColumn.get();
+        } else {
+            return dictSpec.stream()//
+                .filter(c -> c.getType().isCompatible(StringValue.class))//
+                .findFirst()
+                .orElseThrow(() -> new InvalidSettingsException("No String columns available in the input."));
+        }
     }
 
     /** {@inheritDoc} */
@@ -211,6 +237,7 @@ final class ColumnHeaderInsertNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         if (m_config != null) {
+            // can be null if the node was never configured because it was never connected
             m_config.saveConfiguration(settings);
         }
     }

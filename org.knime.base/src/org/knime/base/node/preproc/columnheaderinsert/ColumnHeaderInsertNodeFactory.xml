@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="insert_col_header.png" type="Manipulator">
-    <name>Insert Column Header</name>
+    <name>Column Renamer (Dictionary)</name>
 
     <shortDescription>
         Updates column names of a table according to the mapping in 
@@ -26,7 +26,7 @@
         <option name="Lookup column">
             The column in the 2nd input containing the "old" names of the columns.
         </option>
-        <option name="Value column">
+        <option name="Names column">
             The column in the 2nd input containing the "new" names of the columns.
         </option>
         <option name="Fail if no assignment in dictionary table">

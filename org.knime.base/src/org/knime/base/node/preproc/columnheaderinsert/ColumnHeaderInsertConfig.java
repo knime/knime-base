@@ -59,6 +59,10 @@ import org.knime.core.node.NotConfigurableException;
  */
 final class ColumnHeaderInsertConfig {
 
+    static final String CFG_FAIL_IF_NO_MATCH = "failIfNoMatch";
+    static final String CFG_VALUE_COLUMN = "valueColumn";
+    static final String CFG_LOOKUP_COLUMN = "lookupColumn";
+
     private String m_lookupColumn;
     private String m_valueColumn;
     private boolean m_failIfNoMatch;
@@ -95,31 +99,31 @@ final class ColumnHeaderInsertConfig {
     }
 
     void saveConfiguration(final NodeSettingsWO settings) {
-        settings.addString("lookupColumn", m_lookupColumn);
-        settings.addString("valueColumn", m_valueColumn);
-        settings.addBoolean("failIfNoMatch", m_failIfNoMatch);
+        settings.addString(CFG_LOOKUP_COLUMN, m_lookupColumn);
+        settings.addString(CFG_VALUE_COLUMN, m_valueColumn);
+        settings.addBoolean(CFG_FAIL_IF_NO_MATCH, m_failIfNoMatch);
     }
 
     void loadConfigurationInModel(
             final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_lookupColumn = settings.getString("lookupColumn");
+        m_lookupColumn = settings.getString(CFG_LOOKUP_COLUMN);
         // allow null for row key column
         if (m_lookupColumn != null && m_lookupColumn.length() == 0) {
             throw new InvalidSettingsException(
                     "Invalid (empty) key for lookup column");
         }
-        m_valueColumn = settings.getString("valueColumn");
+        m_valueColumn = settings.getString(CFG_VALUE_COLUMN);
         if (m_valueColumn == null || m_valueColumn.length() == 0) {
             throw new InvalidSettingsException(
                     "Invalid (empty) value for value column name");
         }
-        m_failIfNoMatch = settings.getBoolean("failIfNoMatch");
+        m_failIfNoMatch = settings.getBoolean(CFG_FAIL_IF_NO_MATCH);
     }
 
     void loadConfigurationInDialog(final NodeSettingsRO settings,
             final DataTableSpec dictionaryTable)
     throws NotConfigurableException {
-        m_lookupColumn = settings.getString("lookupColumn", null);
+        m_lookupColumn = settings.getString(CFG_LOOKUP_COLUMN, null);
         String firstStringCol = null;
         String fallbackCol = null;
         for (DataColumnSpec col : dictionaryTable) {
@@ -136,8 +140,8 @@ final class ColumnHeaderInsertConfig {
                     + "No string compatible column in dictionary table");
         }
         String defCol = firstStringCol != null ? firstStringCol : fallbackCol;
-        m_valueColumn = settings.getString("valueColumn", defCol);
-        m_failIfNoMatch = settings.getBoolean("failIfNoMatch", true);
+        m_valueColumn = settings.getString(CFG_VALUE_COLUMN, defCol);
+        m_failIfNoMatch = settings.getBoolean(CFG_FAIL_IF_NO_MATCH, true);
     }
 
 }

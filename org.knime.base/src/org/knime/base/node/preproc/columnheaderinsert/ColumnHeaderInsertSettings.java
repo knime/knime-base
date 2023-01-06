@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,65 +41,64 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   Jan 6, 2023 (Jonas Klotz, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.base.node.preproc.columnheaderinsert;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.StringValue;
+import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * Settings of the Insert Column Header (Dictionary) Node.
+ * Only used for the Web UI dialog, please double-check backwards compatible loading if this class is ever
+ * used in the NodeModel.
+ *
+ * @author Jonas Klotz, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public final class ColumnHeaderInsertNodeFactory extends NodeFactory<ColumnHeaderInsertNodeModel>
-    implements NodeDialogFactory {
+final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
 
-    /** {@inheritDoc} */
-    @Override
-    public ColumnHeaderInsertNodeModel createNodeModel() {
-        return new ColumnHeaderInsertNodeModel();
-    }
+    @Persist(configKey = ColumnHeaderInsertConfig.CFG_LOOKUP_COLUMN)
+    @Schema(title = "Lookup column",
+        description = "The column in the 2nd input table containing the \"old\" names of the columns.",
+        choices = StringColumnsSecondTable.class)
+    String m_lookupColumn;
 
-    /** {@inheritDoc} */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
+    @Persist(configKey = ColumnHeaderInsertConfig.CFG_VALUE_COLUMN)
+    @Schema(title = "Names column",
+        description = "The column in the 2nd input table containing the \"new\" names of the columns.",
+        choices = StringColumnsSecondTable.class)
+    String m_valueColumn;
 
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<ColumnHeaderInsertNodeModel> createNodeView(final int viewIndex,
-        final ColumnHeaderInsertNodeModel nodeModel) {
-        return null;
-    }
+    @Persist(configKey = ColumnHeaderInsertConfig.CFG_FAIL_IF_NO_MATCH)
+    @Schema(title = "Fail if no assignment in dictionary table",
+        description = "If selected, the node fails if there is no matching entry of a column name"
+            + " in the dictionary table. Otherwise it will keep the original column name.")
+    boolean m_failIfNoMatch;
 
-    /** {@inheritDoc} */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
+    private static final class StringColumnsSecondTable implements ChoicesProvider {
 
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return createNodeDialog().createLegacyFlowVariableNodeDialog();
-
-    }
-
-    /**
-     * @since 5.0
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, ColumnHeaderInsertSettings.class);
+        @Override
+        public String[] choices(final SettingsCreationContext context) {
+            var spec = context.getDataTableSpecs()[1];
+            if (spec == null) {
+                return new String[0];
+            } else {
+                return spec.stream()//
+                        .filter(c -> c.getType().isCompatible(StringValue.class))//
+                        .map(DataColumnSpec::getName)//
+                        .toArray(String[]::new);
+            }
+        }
 
     }
-
 }
+
+
