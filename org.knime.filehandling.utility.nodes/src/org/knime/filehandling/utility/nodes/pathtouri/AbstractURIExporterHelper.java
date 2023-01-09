@@ -48,12 +48,11 @@
  */
 package org.knime.filehandling.utility.nodes.pathtouri;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,14 +66,14 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
 import org.knime.filehandling.core.connections.uriexport.URIExporter;
+import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
@@ -276,10 +275,7 @@ abstract class AbstractURIExporterHelper {
         }
 
         final URIExporterID exporterId = getSelectedExporterId();
-
-        final boolean exporterIsUnsupported = getListOfConnections().stream() //
-            .map(fsc -> fsc.getURIExporterFactory(exporterId)) //
-            .anyMatch(Objects::isNull);
+        final boolean exporterIsUnsupported = !getURIExporterIDToFactory().containsKey(exporterId);
 
         if (exporterIsUnsupported) {
             if (overwriteInvalidSettings) {
@@ -329,16 +325,15 @@ abstract class AbstractURIExporterHelper {
     }
 
     /**
-     * Returns a list of FSConnections’s
+     * Returns a map of URIExporterID to URIExporterFactory
      *
-     * @return A list of FSConnection’s
+     * @return A map of URIExporterID to URIExporterFactory
      */
-    @SuppressWarnings("resource")
-    protected List<FSConnection> getListOfConnections() {
+    protected Map<URIExporterID, URIExporterFactory> getURIExporterIDToFactory() {
         if (getFileSystemPortObjectSpec() != null) {
-            return Collections.singletonList(getFileSystemPortObjectSpec().getFileSystemConnection().get()); // NOSONAR we check before
+            return fetchURIExporterIDToFactory(getFileSystemPortObjectSpec().getFSLocationSpec()); // NOSONAR we check before
         } else {
-            return getConvenienceConnections();
+            return getCommonURIExporterIDToFactory();
         }
     }
 
@@ -356,10 +351,7 @@ abstract class AbstractURIExporterHelper {
             .collect(Collectors.toList()).isEmpty();
     }
 
-    /**
-     * @return a list of Convenience FS Connections
-     */
-    protected List<FSConnection> getConvenienceConnections() {
+    private Map<URIExporterID, URIExporterFactory> getCommonURIExporterIDToFactory() {
         //use path column meta data to ad-hoc instantiate FSConnections
         final DataColumnSpec pathColSpec = getPathColumnSpec();
         final Set<DefaultFSLocationSpec> setOflocationSpecs =
@@ -367,28 +359,29 @@ abstract class AbstractURIExporterHelper {
                 .orElseThrow(IllegalStateException::new) //
                 .getFSLocationSpecs();
 
-        return setOflocationSpecs.stream() //
-            .map(AbstractURIExporterHelper::createPseudoConnection) //
-            .collect(Collectors.toList());
+        final var listOfMaps = setOflocationSpecs.stream() //
+                .map(AbstractURIExporterHelper::fetchURIExporterIDToFactory) //
+                .collect(Collectors.toList());
+        final Map<URIExporterID, URIExporterFactory> result = listOfMaps.get(0);
+
+        if (listOfMaps.size() > 1) {
+            for (Map<URIExporterID, URIExporterFactory> exporterIDToFactory : listOfMaps.subList(1, listOfMaps.size())) {
+                result.keySet().retainAll(exporterIDToFactory.keySet());
+            }
+        }
+        // This should never happen, because all file system should have the default exporter
+        // in common
+        CheckUtils.checkState(!result.isEmpty(), "No URL formats available.");
+        return result;
     }
 
-    /**
-     * Creates a pseudo convenience FSConnection objects using fake paths by properties from FSLocationSpec parameter.
-     * In case of CUSTOM_URL use a placeholder URL, since only the URI Exporters are used the provided URL is
-     * inconsequential.
-     *
-     * @param locationSpec Instance of FSLocationSpec
-     * @return Optional<FSConnection> An object of FSConnection
-     */
-    protected static FSConnection createPseudoConnection(final FSLocationSpec locationSpec) {
+    private static Map<URIExporterID, URIExporterFactory> fetchURIExporterIDToFactory(final FSLocationSpec fsLocationSpec) {
+        final var descriptor = FSDescriptorRegistry.getFSDescriptor(fsLocationSpec.getFSType());
+        CheckUtils.checkArgument(descriptor.isPresent(), //
+            "No file system descriptor available for " + fsLocationSpec.getFSType().getName());
 
-        final Optional<String> fileSysSpecifier = locationSpec.getFileSystemSpecifier();
-        final String fakePathStringVal =
-            locationSpec.getFSCategory() == FSCategory.CUSTOM_URL ? "https://www.knime.com/" : ".";
-        final FSLocation fakeFSLocation =
-            new FSLocation(locationSpec.getFSCategory(), fileSysSpecifier.orElse(null), fakePathStringVal);
-
-        return FileSystemHelper.retrieveFSConnection(Optional.empty(), fakeFSLocation).get(); // NOSONAR
+        return descriptor.get().getURIExporters().stream() // NOSONAR
+                .collect(Collectors.toMap(Function.identity(), id -> descriptor.get().getURIExporterFactory(id)));
     }
 
     abstract void loadSettingsFrom(final NodeSettingsRO exporterConfig) throws InvalidSettingsException;

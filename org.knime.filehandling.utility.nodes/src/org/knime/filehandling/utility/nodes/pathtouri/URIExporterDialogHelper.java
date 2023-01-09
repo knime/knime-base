@@ -48,13 +48,9 @@
  */
 package org.knime.filehandling.utility.nodes.pathtouri;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -63,8 +59,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
@@ -124,56 +118,9 @@ final class URIExporterDialogHelper extends AbstractURIExporterHelper {
         }
     }
 
-    @SuppressWarnings("resource")
     private void initAvailableExporterFactories() {
         m_availableExporterFactories.clear();
-
-        // Get a list of FSConnection, maybe 1 or more
-        List<FSConnection> connections = null;
-        try {
-            connections = getListOfConnections();
-            if (!connections.isEmpty()) {
-                //fetch common uri exporters between all the FSConnections
-                for (URIExporterID exporterID : getCommonURIExporterIDs(connections)) {
-                    m_availableExporterFactories.put(exporterID, connections.get(0).getURIExporterFactory(exporterID));
-                }
-            }
-
-        } finally {
-            if (connections != null) {
-                closeQuietly(connections);
-            }
-        }
-    }
-
-    private static void closeQuietly(final List<FSConnection> connections) {
-        connections.stream().forEach(c -> {
-            try {
-                c.close();
-            } catch (IOException e) { // NOSONAR never happens, can be ignored
-            }
-        });
-    }
-
-    /**
-     * Return a set of the common URIExporterIDs in a list of FSConnection's list
-     *
-     * @param connections A list of FSConnection objects
-     * @return A set of URIExporterID objects with common URIExporters in the incoming FSConnection's list
-     */
-    private static Set<URIExporterID> getCommonURIExporterIDs(final List<FSConnection> connections) {
-        @SuppressWarnings("resource")
-        final Set<URIExporterID> commonIDs = new HashSet<>(connections.get(0).getURIExporterIDs());
-
-        for (FSConnection connection : connections.subList(1, connections.size())) {
-            commonIDs.retainAll(connection.getURIExporterIDs());
-        }
-
-        // This should never happen, because all file system should have the default exporter
-        // in common
-        CheckUtils.checkState(!commonIDs.isEmpty(), "No URL formats available.");
-
-        return commonIDs;
+        m_availableExporterFactories.putAll(getURIExporterIDToFactory());
     }
 
     @Override
