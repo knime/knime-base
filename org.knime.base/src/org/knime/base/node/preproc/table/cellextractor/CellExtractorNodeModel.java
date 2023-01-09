@@ -119,9 +119,9 @@ final class CellExtractorNodeModel extends WebUINodeModel<CellExtractorSettings>
         final CellExtractorSettings settings) throws Exception {
         final var table = (BufferedDataTable)inData[0];
 
-        if (settings.m_rowNumber > table.size()) {
-            throw new InvalidSettingsException("Row number must be less than " + (table.size() + 1) + ".");
-        }
+        CheckUtils.checkSetting(settings.m_rowNumber <= table.size(),
+            "The row number %s does not exist in the input table with only %s rows.", settings.m_rowNumber,
+            table.size());
 
         final var spec = table.getDataTableSpec();
         final var outputDataSpec = createOutputTableSpec(settings, spec);
@@ -230,7 +230,8 @@ final class CellExtractorNodeModel extends WebUINodeModel<CellExtractorSettings>
         } else {
             CheckUtils.checkSetting(settings.m_columnNumber > 0, "The column number needs to be a positive number.");
             CheckUtils.checkSetting(settings.m_columnNumber <= spec.getNumColumns(),
-                "The column number must be less than " + (spec.getNumColumns() + 1) + ".");
+                "The column number %s does not exist in the input table with %s columns.", settings.m_columnNumber,
+                spec.getNumColumns());
         }
 
         CheckUtils.checkSetting(settings.m_rowNumber > 0, "The row number needs to be a positive number.");
