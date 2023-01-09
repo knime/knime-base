@@ -331,7 +331,7 @@ abstract class AbstractURIExporterHelper {
      */
     protected Map<URIExporterID, URIExporterFactory> getURIExporterIDToFactory() {
         if (getFileSystemPortObjectSpec() != null) {
-            return fetchURIExporterIDToFactory(getFileSystemPortObjectSpec().getFSLocationSpec()); // NOSONAR we check before
+            return fetchURIExporterIDToFactory(getFileSystemPortObjectSpec().getFSLocationSpec());
         } else {
             return getCommonURIExporterIDToFactory();
         }
@@ -365,8 +365,8 @@ abstract class AbstractURIExporterHelper {
         final Map<URIExporterID, URIExporterFactory> result = listOfMaps.get(0);
 
         if (listOfMaps.size() > 1) {
-            for (Map<URIExporterID, URIExporterFactory> exporterIDToFactory : listOfMaps.subList(1, listOfMaps.size())) {
-                result.keySet().retainAll(exporterIDToFactory.keySet());
+            for (Map<URIExporterID, URIExporterFactory> idToFactory : listOfMaps.subList(1, listOfMaps.size())) {
+                result.keySet().retainAll(idToFactory.keySet());
             }
         }
         // This should never happen, because all file system should have the default exporter
@@ -375,12 +375,12 @@ abstract class AbstractURIExporterHelper {
         return result;
     }
 
-    private static Map<URIExporterID, URIExporterFactory> fetchURIExporterIDToFactory(final FSLocationSpec fsLocationSpec) {
-        final var descriptor = FSDescriptorRegistry.getFSDescriptor(fsLocationSpec.getFSType());
+    private static Map<URIExporterID, URIExporterFactory> fetchURIExporterIDToFactory(final FSLocationSpec spec) {
+        final var descriptor = FSDescriptorRegistry.getFSDescriptor(spec.getFSType());
         CheckUtils.checkArgument(descriptor.isPresent(), //
-            "No file system descriptor available for " + fsLocationSpec.getFSType().getName());
+            "No file system descriptor available for " + spec.getFSType().getName());
 
-        return descriptor.get().getURIExporters().stream() // NOSONAR
+        return descriptor.get().getURIExporters().stream() // NOSONAR we check before
                 .collect(Collectors.toMap(Function.identity(), id -> descriptor.get().getURIExporterFactory(id)));
     }
 
