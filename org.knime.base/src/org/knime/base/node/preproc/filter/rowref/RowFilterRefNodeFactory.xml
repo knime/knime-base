@@ -26,7 +26,7 @@
             The column from the filter table that should be used for
             comparison.
         </option>
-        <option name="In-/Exclude rows from reference table">
+        <option name="Include or exclude rows from the reference table">
             Includes or excludes all rows from the reference table in the
             resulting table from the first input.
         </option>
