@@ -46,13 +46,13 @@
  * History
  *   Dec 16, 2022 (benjamin): created
  */
-package org.knime.base.node.preproc.tablesplitter;
+package org.knime.base.node.preproc.table.splitter;
 
 import java.util.function.LongConsumer;
 import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.tablesplitter.TableSplitterNodeSettings.FindSplittingRowMode;
-import org.knime.base.node.preproc.tablesplitter.TableSplitterNodeSettings.MatchingCriteria;
+import org.knime.base.node.preproc.table.splitter.TableSplitterNodeSettings.FindSplittingRowMode;
+import org.knime.base.node.preproc.table.splitter.TableSplitterNodeSettings.MatchingCriteria;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.IntValue;

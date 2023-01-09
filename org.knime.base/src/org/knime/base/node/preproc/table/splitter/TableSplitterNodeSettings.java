@@ -46,7 +46,7 @@
  * History
  *   Dec 16, 2022 (benjamin): created
  */
-package org.knime.base.node.preproc.tablesplitter;
+package org.knime.base.node.preproc.table.splitter;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -101,7 +101,7 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
         title = "Include matching row in bottom output table", //
         description = "Select this option to include the row that split the table in the bottom output table." //
     )
-    boolean m_includeMatchingRowInBottomTable = false;
+    boolean m_includeMatchingRowInBottomTable;
 
     /** Modes for finding the matching row. "First match" or "Last match". */
     enum FindSplittingRowMode {

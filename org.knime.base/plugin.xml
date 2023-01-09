@@ -2298,7 +2298,7 @@
       <node
             category-path="/manipulation/table"
             deprecated="false"
-            factory-class="org.knime.base.node.preproc.tablesplitter.TableSplitterNodeFactory"
+            factory-class="org.knime.base.node.preproc.table.splitter.TableSplitterNodeFactory"
             hidden="false">
       </node>
       <node

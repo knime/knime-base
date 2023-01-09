@@ -46,7 +46,7 @@
  * History
  *   Dec 16, 2022 (benjamin): created
  */
-package org.knime.base.node.preproc.tablesplitter;
+package org.knime.base.node.preproc.table.splitter;
 
 import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
