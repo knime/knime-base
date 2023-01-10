@@ -53,7 +53,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
  * compatibility.
  *
  * @author Thomas Gabriel, University of Konstanz
+ * @deprecated the node has now a Web UI dialog
  */
+@Deprecated
 public class ColumnFilterRefNodeDialogPane extends DefaultNodeSettingsPane {
 
     /**

@@ -1,0 +1,21 @@
+{
+    "elements": [
+       {
+            "type": "Section",
+            "label": "Filter columns based on a reference",
+            "elements": [
+            	{
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/columnReferenceMode",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/typeCompatibility"
+                }
+            ]
+        }
+    ]
+}

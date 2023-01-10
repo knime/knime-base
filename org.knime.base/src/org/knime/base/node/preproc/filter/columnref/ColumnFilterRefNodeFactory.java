@@ -47,54 +47,52 @@ package org.knime.base.node.preproc.filter.columnref;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  * Factory to create a Reference Column Filter node.
- * 
+ *
  * @author Thomas Gabriel, University of Konstanz
  */
-public class ColumnFilterRefNodeFactory 
-        extends NodeFactory<ColumnFilterRefNodeModel> {
+@SuppressWarnings("restriction")
+public class ColumnFilterRefNodeFactory
+        extends NodeFactory<ColumnFilterRefNodeModel> implements NodeDialogFactory{
 
-    /**
-     * {@inheritDoc} 
-     */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnFilterRefNodeDialogPane();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
     }
 
-    /**
-     * {@inheritDoc} 
-     */
     @Override
     public ColumnFilterRefNodeModel createNodeModel() {
         return new ColumnFilterRefNodeModel();
     }
 
-    /**
-     * {@inheritDoc} 
-     */
     @Override
     public NodeView<ColumnFilterRefNodeModel> createNodeView(
             final int index, final ColumnFilterRefNodeModel model) {
         return null;
     }
 
-    /**
-     * {@inheritDoc} 
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc} 
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnFilterRefNodeSettings.class);
     }
 
 }
