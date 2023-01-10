@@ -65,21 +65,29 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 @SuppressWarnings("restriction")
 final class TransposeTableNodeSettings implements DefaultNodeSettings {
 
-    static final String CHUNKING_MODE_KEY = "guess_or_fixed";
+    private static final String CHUNKING_MODE_KEY = "guess_or_fixed";
 
     @Persist(customPersistor = ChunkingModePersistor.class)
-    @Schema(title = "Chunking", description = "TODO")
+    @Schema(title = "Chunk size configuration",
+        description = "Select how the node should handle chunking while processing the input table:<ul>"
+            + "<li><b>Automatic:</b> Use a dynamic chunk size that adapts to the "
+            + "current memory available. The number of columns read will be maximized for performance.</li>"
+            + "<li><b>Manual:</b> Manually specify the number of columns read "
+            + "during one iteration over the table. Larger chunk sizes lead to more "
+            + "memory consumption, but yield faster execution time.</li></ul>")
     ChunkingMode m_chunkingMode = ChunkingMode.GUESS_SIZE;
 
     @Persist(configKey = "chunk_size")
-    @Schema(title = "Guess chunk size based on available memory", description = "TODO")
+    @Schema(title = "Columns per chunk",
+        description = "The number of columns read during one iteration over the table. "
+            + "Increasing this value yields faster execution time, but also increases memory consumption.")
     int m_chunkSize;
 
     enum ChunkingMode {
-            @Schema(title = "Guess size")
+            @Schema(title = "Automatic")
             GUESS_SIZE,
 
-            @Schema(title = "Specify size")
+            @Schema(title = "Manual")
             SPECIFY_SIZE;
     }
 
@@ -88,7 +96,7 @@ final class TransposeTableNodeSettings implements DefaultNodeSettings {
         @Override
         public ChunkingMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
             if (settings.containsKey(CHUNKING_MODE_KEY)
-                && settings.getString(CHUNKING_MODE_KEY) == TransposeTableNodeDialogPane.OPTION_FIXED_CHUNK_SIZE) {
+                && settings.getString(CHUNKING_MODE_KEY).equals(TransposeTableNodeDialogPane.OPTION_FIXED_CHUNK_SIZE)) {
                 return ChunkingMode.SPECIFY_SIZE;
             } else {
                 return ChunkingMode.GUESS_SIZE;

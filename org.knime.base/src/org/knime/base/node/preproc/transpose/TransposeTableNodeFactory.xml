@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode type="Manipulator" icon="./transpose.png">
-    <name>Transpose</name>
+<knimeNode icon="./transpose.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+    <name>Table Transposer</name>
     <shortDescription>Transposes a table by swapping rows and columns.</shortDescription>
     <fullDescription>
         <intro>
@@ -10,13 +9,18 @@
 		    the former (old) column names. The new column type is the most specific
 		    base type and applies to all cells in one row.
 		</intro>
-		<option name=" Chunk size (columns):">
-		      number of columns read during one iteration over the table, increasing this
-		      value yields faster execution time but also increases memory consumption.
+		<option name="Chunk size configuration">
+			<ul>
+			    <li><b>Automatic:</b> Use a dynamic chunk size that adapts to the
+			    current memory available. The number of columns read will be maximized for performance.</li>
+	      		<li><b>Manual:</b> Manually specify the number of columns read
+	      		during one iteration over the table. Larger chunk sizes lead to more
+	      		memory consumption, but yield faster execution time.</li>
+      		</ul>
 		</option>
-		<option name="Guess chunk size based on available memory">
-		      uses a dynamic chunk size that adapts to the current memory available,
-			  the number of columns read will be maximized for performance.
+		<option name="Columns per chunk">
+		      The number of columns read during one iteration over the table.
+		      Increasing this value yields faster execution time, but also increases memory consumption.
 		</option>
 	</fullDescription>
     <ports>

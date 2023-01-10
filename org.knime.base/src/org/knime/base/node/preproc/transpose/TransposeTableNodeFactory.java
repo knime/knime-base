@@ -59,46 +59,29 @@ import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
  * @author Thomas Gabriel, University of Konstanz
  */
 @SuppressWarnings("restriction")
-public class TransposeTableNodeFactory
-        extends NodeFactory<TransposeTableNodeModel> implements NodeDialogFactory{
+public class TransposeTableNodeFactory extends NodeFactory<TransposeTableNodeModel> implements NodeDialogFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public TransposeTableNodeModel createNodeModel() {
         return new TransposeTableNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<TransposeTableNodeModel> createNodeView(final int viewIndex,
-            final TransposeTableNodeModel nodeModel) {
+        final TransposeTableNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("restriction")
     @Override
     public NodeDialogPane createNodeDialogPane() {
         return createNodeDialog().createLegacyFlowVariableNodeDialog();
