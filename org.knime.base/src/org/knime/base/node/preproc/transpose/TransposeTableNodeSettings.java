@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,72 +41,70 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   10 Jan 2023 (ivan.prigarin): created
  */
 package org.knime.base.node.preproc.transpose;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
- * Factory to create a Transpose Node.
+ * Currently only used for the node dialogue, backwards compatible loading is ensured by the node model. If this is ever
+ * used for the node model, backwards compatible loading will need to be implemented.
  *
- * @author Thomas Gabriel, University of Konstanz
+ * @author Ivan Prigarin, KNIME GbmH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class TransposeTableNodeFactory
-        extends NodeFactory<TransposeTableNodeModel> implements NodeDialogFactory{
+final class TransposeTableNodeSettings implements DefaultNodeSettings {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TransposeTableNodeModel createNodeModel() {
-        return new TransposeTableNodeModel();
+    static final String CHUNKING_MODE_KEY = "guess_or_fixed";
+
+    @Persist(customPersistor = ChunkingModePersistor.class)
+    @Schema(title = "Chunking", description = "TODO")
+    ChunkingMode m_chunkingMode = ChunkingMode.GUESS_SIZE;
+
+    @Persist(configKey = "chunk_size")
+    @Schema(title = "Guess chunk size based on available memory", description = "TODO")
+    int m_chunkSize;
+
+    enum ChunkingMode {
+            @Schema(title = "Guess size")
+            GUESS_SIZE,
+
+            @Schema(title = "Specify size")
+            SPECIFY_SIZE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
+    private static final class ChunkingModePersistor implements NodeSettingsPersistor<ChunkingMode> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<TransposeTableNodeModel> createNodeView(final int viewIndex,
-            final TransposeTableNodeModel nodeModel) {
-        return null;
-    }
+        @Override
+        public ChunkingMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(CHUNKING_MODE_KEY)
+                && settings.getString(CHUNKING_MODE_KEY) == TransposeTableNodeDialogPane.OPTION_FIXED_CHUNK_SIZE) {
+                return ChunkingMode.SPECIFY_SIZE;
+            } else {
+                return ChunkingMode.GUESS_SIZE;
+            }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
+        }
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("restriction")
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return createNodeDialog().createLegacyFlowVariableNodeDialog();
-    }
+        @Override
+        public void save(final ChunkingMode obj, final NodeSettingsWO settings) {
+            if (obj == ChunkingMode.GUESS_SIZE) {
+                settings.addString(CHUNKING_MODE_KEY, TransposeTableNodeDialogPane.OPTION_GUESS_CHUNK_SIZE);
+            } else {
+                settings.addString(CHUNKING_MODE_KEY, TransposeTableNodeDialogPane.OPTION_FIXED_CHUNK_SIZE);
+            }
 
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, TransposeTableNodeSettings.class);
+        }
+
     }
 }
