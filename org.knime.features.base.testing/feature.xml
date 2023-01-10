@@ -2,7 +2,7 @@
 <feature
       id="org.knime.features.base.testing"
       label="KNIME Base Testing"
-      version="4.7.0.qualifier"
+      version="5.0.0.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland">
 
    <description>
