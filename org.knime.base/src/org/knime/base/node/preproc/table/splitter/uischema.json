@@ -28,13 +28,13 @@
                     "type": "Control",
                     "scope": "#/properties/model/properties/searchPattern",
                     "rule": {
-                        "effect": "HIDE",
+                        "effect": "SHOW",
                         "condition": {
                             "scope": "#/properties/model/properties/matchingCriteria",
                             "schema": {
                                 "oneOf": [
                                     {
-                                        "const": "MISSING"
+                                        "const": "EQUALS"
                                     }
                                 ]
                             }

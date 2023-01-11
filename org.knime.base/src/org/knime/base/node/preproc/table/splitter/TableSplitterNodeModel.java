@@ -93,6 +93,9 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
     private static final String ROWID_MISSING_CRITERIA_WARNING =
         "Selected matching criteria \"Missing\" for RowID. This will never match because RowID cannot be missing.";
 
+    private static final String ROWID_EMPTY_CRITERIA_WARNING =
+        "Selected matching criteria \"Empty\" for RowID. This will never match because RowID cannot be empty or missing.";
+
     private static final String SELECTED_COLUMN_MISSING_ERROR =
         "The selected column \"%s\" is not available. Please re-configure the node.";
 
@@ -130,6 +133,11 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
         // Warning if RowID is selected and the matching criteria is "Missing"
         if (rowidSelected && settings.m_matchingCriteria == MatchingCriteria.MISSING) {
             setWarningMessage(ROWID_MISSING_CRITERIA_WARNING);
+        }
+
+        // Warning if RowID is selected and the matching criteria is "Empty"
+        if (rowidSelected && settings.m_matchingCriteria == MatchingCriteria.EMPTY) {
+            setWarningMessage(ROWID_EMPTY_CRITERIA_WARNING);
         }
 
         // Output two tables with the same spec as the input table
@@ -293,6 +301,8 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
             final int columnIdx = spec.findColumnIndex(settings.m_lookupColumn);
             if (settings.m_matchingCriteria == MatchingCriteria.EQUALS) {
                 return createEqualsColumnRowMatcher(spec, columnIdx, settings.m_searchPattern);
+            } else if (settings.m_matchingCriteria == MatchingCriteria.EMPTY) {
+                return createEmptyColumnRowMatcher(spec, columnIdx);
             } else {
                 return row -> row.isMissing(columnIdx);
             }
@@ -354,6 +364,24 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
         } else if (LongCell.TYPE.equals(type)) {
             final var searchNumber = Long.parseLong(searchPattern);
             return notMatchMissing.and(row -> ((LongValue)row.getValue(columnIdx)).getLongValue() == searchNumber);
+        } else {
+            // NB: This cannot happen because we fail in #checkColumnTypeAndSearchPattern
+            //     if an unsupported column is selected
+            throw new IllegalStateException(
+                String.format(UNSUPPORTED_COLUMN_TYPE_ERROR, type.getName(), spec.getColumnNames()[columnIdx]));
+        }
+    }
+
+    /** Create a predicate that matches rows based on the value in the specified column being either empty or missing */
+    private static Predicate<RowRead> createEmptyColumnRowMatcher(final DataTableSpec spec, final int columnIdx) {
+        final var type = spec.getColumnSpec(columnIdx).getType();
+        final Predicate<RowRead> matchMissing = row -> row.isMissing(columnIdx);
+
+        if (StringCell.TYPE.equals(type)) {
+            return matchMissing //
+                .or(row -> ((StringValue)row.getValue(columnIdx)).getStringValue().isBlank());
+        } else if (IntCell.TYPE.equals(type) || LongCell.TYPE.equals(type)) {
+            return matchMissing;
         } else {
             // NB: This cannot happen because we fail in #checkColumnTypeAndSearchPattern
             //     if an unsupported column is selected

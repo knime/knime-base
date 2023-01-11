@@ -80,7 +80,8 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
         title = "Matching criteria", //
         description = "Select criteria for matching the row. "
             + "The matching criteria \"Equals\" compares the value of the cell to a given search pattern. "
-            + "The matching criteria \"Missing\" only matches rows that have a missing value at the selected column." //
+            + "The matching criteria \"Missing\" only matches rows that have a missing value at the selected column. "
+            + "The matching criteria \"Empty\" matches rows that have an empty or missing value at the selected column." //
     )
     MatchingCriteria m_matchingCriteria = MatchingCriteria.EQUALS;
 
@@ -111,12 +112,14 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
             LAST_MATCH;
     }
 
-    /** Matching criteria. "Equals" or "Missing". */
+    /** Matching criteria. "Equals", "Missing", or "Empty". */
     enum MatchingCriteria {
             @Schema(title = "Equals") //
             EQUALS, //
             @Schema(title = "Missing") //
-            MISSING;
+            MISSING, //
+            @Schema(title = "Empty") //
+            EMPTY;
     }
 
     /**
