@@ -51,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import org.knime.base.util.WildcardMatcher;
 import org.knime.core.data.DataCell;
@@ -67,6 +68,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
@@ -77,9 +79,10 @@ import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
-    private final StringReplacerSettings m_settings =
-            new StringReplacerSettings();
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(StringReplacerNodeModel.class);
+
+    private final StringReplacerSettings m_settings = new StringReplacerSettings();
 
     /**
      * Creates the column rearranger that computes the new cells.
@@ -134,8 +137,7 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
         ColumnRearranger crea = new ColumnRearranger(spec);
         if (m_settings.createNewColumn()) {
             if (spec.containsName(m_settings.newColumnName())) {
-                throw new InvalidSettingsException("Duplicate column name: "
-                        + m_settings.newColumnName());
+                throw new InvalidSettingsException("Duplicate column name: " + m_settings.newColumnName());
             }
             crea.append(cf);
         } else {
@@ -165,37 +167,46 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-        if (inSpecs[0].findColumnIndex(m_settings.columnName()) == -1) {
-            throw new InvalidSettingsException("Selected column '"
-                    + m_settings.columnName()
-                    + "' does not exist in input table");
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+        if (m_settings.columnName() == null) {
+            m_settings.columnName(getLastStringColumn(inSpecs[0]));
+            LOGGER.warn("No column selected, using '" + m_settings.columnName() + "'.");
+        } else if (inSpecs[0].findColumnIndex(m_settings.columnName()) == -1) {
+            throw new InvalidSettingsException("The previously selected column '" + m_settings.columnName()
+                + "' is not available. " + "Please reconfigure the node.");
         }
 
         ColumnRearranger crea = createColumnRearranger(inSpecs[0]);
         return new DataTableSpec[]{crea.createSpec()};
     }
 
+    private static String getLastStringColumn(final DataTableSpec dataTableSpec) throws InvalidSettingsException {
+        final var lastMatchingColumn = IntStream.range(0, dataTableSpec.getNumColumns()) //
+            .map(i -> dataTableSpec.getNumColumns() - i - 1) //
+            .mapToObj(dataTableSpec::getColumnSpec) //
+            .filter(columnSpec -> columnSpec.getType().isCompatible(StringValue.class)) //
+            .findFirst();
+        return lastMatchingColumn.orElseThrow(() -> new InvalidSettingsException("No String column available."))
+            .getName();
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
         exec.setMessage("Searching & Replacing");
         ColumnRearranger crea = createColumnRearranger(inData[0].getDataTableSpec());
         return new BufferedDataTable[]{exec.createColumnRearrangeTable(inData[0], crea, exec)};
     }
 
-
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to do
     }
 
@@ -203,8 +214,7 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_settings.loadSettings(settings);
     }
 
@@ -219,9 +229,8 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to do
     }
 
@@ -237,8 +246,7 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         StringReplacerSettings s = new StringReplacerSettings();
         s.loadSettings(settings);
 
@@ -258,8 +266,7 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
         // check if the '*' quantifier occurs in the regex, but not the escaped quantifier \*
         if (s.replaceAllOccurrences() && s.patternIsRegex() && s.pattern().matches(".*[^\\\\](?!\\\\)\\*.*")) {
             throw new InvalidSettingsException(
-                    "'*' is not allowed when all occurrences of the "
-                            + "pattern should be replaced");
+                "'*' is not allowed when all occurrences of the " + "pattern should be replaced");
         }
         createPattern(s);
     }

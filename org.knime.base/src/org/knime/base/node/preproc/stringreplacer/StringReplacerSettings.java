@@ -82,13 +82,13 @@ public class StringReplacerSettings {
 
     private boolean m_createNewCol;
 
-    private String m_newColName;
+    private String m_newColName = "";
 
-    private String m_pattern;
+    private String m_pattern = "";
 
     private boolean m_replaceAllOccurrences;
 
-    private String m_replacement;
+    private String m_replacement = "";
 
     /** @since 2.8 */
     private boolean m_enableEscaping;
@@ -225,7 +225,7 @@ public class StringReplacerSettings {
      *
      * @param settings node settings
      */
-    public void loadSettingsForDialog(final NodeSettingsRO settings) {
+    void loadSettingsForDialog(final NodeSettingsRO settings) {
         m_caseSensitive = settings.getBoolean(CFG_CASE_SENSITIVE, false);
         m_colName = settings.getString(CFG_COL_NAME, null);
         m_createNewCol = settings.getBoolean(CFG_CREATE_NEW_COL, false);
