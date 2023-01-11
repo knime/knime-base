@@ -6,9 +6,9 @@ Bundle-Version: 5.0.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Automatic-Module-Name: org.knime.filehandling.nodes
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Require-Bundle: org.knime.base;bundle-version="[4.4.0,5.0.0)",
- org.knime.filehandling.core;bundle-version="[4.4.0,5.0.0)",
- org.knime.time;bundle-version="[4.4.0,5.0.0)",
+Require-Bundle: org.knime.base;bundle-version="[4.4.0,6.0.0)",
+ org.knime.filehandling.core;bundle-version="[4.4.0,6.0.0)",
+ org.knime.time;bundle-version="[4.4.0,6.0.0)",
  org.apache.commons.compress;bundle-version="[1.19.0,2.0.0)",
  org.apache.commons.lang3;bundle-version="[3.9.0,4.0.0)",
  org.knime.core.data.uritype
