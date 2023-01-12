@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   02.02.2005 (cebron): created
  */
@@ -51,51 +51,50 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  * Factory class for the Sorter Node. The Sorter Node does not have a view.
- * 
+ *
  * @author Nicolas Cebron, University of Konstanz
  */
 
-public class SorterNodeFactory extends NodeFactory {
-    /**
-     * {@inheritDoc}
-     */
+@SuppressWarnings("restriction")
+public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory {
+
     @Override
     public NodeModel createNodeModel() {
         return new SorterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeView createNodeView(final int i, final NodeModel nodeModel) {
+    public NodeView<NodeModel> createNodeView(final int i, final NodeModel nodeModel) {
         throw new InternalError();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new SorterNodeDialog();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SorterNodeSettings.class);
     }
 }

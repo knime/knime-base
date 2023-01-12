@@ -63,7 +63,9 @@ import org.knime.core.node.NotConfigurableException;
  * Dialog for choosing the columns that will be sorted. It is also possible to set the order of columns
  *
  * @author Nicolas Cebron, University of Konstanz
+ * @deprecated tis node now has a Web UI dialog
  */
+@Deprecated
 public class SorterNodeDialog extends NodeDialogPane {
     /**
      * The tab's name.

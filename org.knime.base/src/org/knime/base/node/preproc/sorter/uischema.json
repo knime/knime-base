@@ -1,0 +1,63 @@
+{
+    "elements": [
+        {
+            "type": "Section",
+            "label": "Row sorter",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/sortCriteria",
+                    "options": {
+                        "addButtonText": "Add sorting criterion",
+                        "showSortButtons": true,
+                        "detail": {
+                            "criterion": {
+                                "type": "HorizontalLayout",
+                                "elements": [
+                                    {
+                                        "type": "Control",
+                                        "scope": "#/properties/column",
+                                        "options": {
+                                            "format": "columnSelection",
+                                            "showRowKeys": true,
+                                            "showNoneColumn": false
+                                        }
+                                    },
+                                    {
+                                        "type": "Control",
+                                        "scope": "#/properties/sortOrder",
+                                        "options": {
+                                            "format": "valueSwitch"
+                                        }
+                                    },
+                                    {
+                                        "type": "Control",
+                                        "scope": "#/properties/stringComparison",
+                                        "options": {
+                                            "format": "valueSwitch",
+                                            "isAdvanced": true
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/sortInMemory",
+                    "options": {
+                        "isAdvanced": true
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/missingToEnd",
+                    "options": {
+                        "isAdvanced": true
+                    }
+                }
+            ]
+        }
+    ]
+}

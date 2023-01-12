@@ -2,7 +2,7 @@
 <knimeNode icon="./sorter.png" type = "Manipulator" xmlns="http://knime.org/node/v4.1" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-	<name>Sorter</name>
+	<name>Row Sorter</name>
 	<shortDescription>Sorts the rows according to user-defined criteria.</shortDescription>
     <fullDescription>
         <intro>
@@ -12,6 +12,18 @@
 		    compare string-compatible columns in alphanumeric instead of lexicographic order, 
 		    for example "Row2" before "Row10" instead of "Row10" before "Row2".
 		</intro>
+		<tab name="Sorting criteria">
+			<option name="Column">The column to sort by including the RowIDs.</option>
+			<option name="Order">Whether to sort in ascending (▲) or descending (▼) order.</option>
+			<option name="String comparison">
+				Controls how strings are compared:
+				<ul>
+				<li><b>Alphanumeric</b>: 'Row10' is considered to be smaller than 'Row2'.</li>
+				<li><b>Lexicographic</b>: 'Row2' is considered to be smaller than 'Row10'.</li>
+				</ul>
+				Only used for string columns.
+			</option>
+		</tab>
 		<option name="Add sorting criterion">
 			Allows to refine the sorting by adding additional sorting criteria.
 		</option>
