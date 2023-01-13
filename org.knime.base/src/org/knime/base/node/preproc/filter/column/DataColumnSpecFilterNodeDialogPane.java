@@ -59,7 +59,9 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
  *
  * @author Thomas Gabriel, KNIME.com AG, Zurich
  * @since 2.8
+ * @deprecated the node has now a Web UI dialog
  */
+@Deprecated
 public class DataColumnSpecFilterNodeDialogPane extends NodeDialogPane {
 
     private final DataColumnSpecFilterPanel m_filterPanel;

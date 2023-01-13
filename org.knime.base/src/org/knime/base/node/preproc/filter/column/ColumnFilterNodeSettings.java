@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,59 +41,45 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.filter.column;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.ColumnFilter;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.persistence.field.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
- * The factory for the column filter node.
+ * Settings for the Column Filter node.
  *
- * @author Thomas Gabriel, KNIME.com AG, Zurich
- * @since 2.6
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class DataColumnSpecFilterNodeFactory
-        extends NodeFactory<DataColumnSpecFilterNodeModel> implements NodeDialogFactory {
+final class ColumnFilterNodeSettings implements DefaultNodeSettings {
 
-    @Override
-    public DataColumnSpecFilterNodeModel createNodeModel() {
-        return new DataColumnSpecFilterNodeModel();
+    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
+    @Schema(title = "Column filter", description = "Select the columns to include in the output table.",
+        choices = AllColumns.class, withTypes = true)
+    ColumnFilter m_columnFilter;
+
+    private static final class AllColumns implements ChoicesProvider {
+
+        @Override
+        public String[] choices(final SettingsCreationContext context) {
+            var spec = context.getDataTableSpecs()[0];
+            if (spec != null) {
+                return spec.getColumnNames();
+            } else {
+                return new String[0];
+            }
+        }
+
     }
 
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<DataColumnSpecFilterNodeModel> createNodeView(final int i,
-            final DataColumnSpecFilterNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return createNodeDialog().createLegacyFlowVariableNodeDialog();
-    }
-
-    /**
-     * @since 5.0
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, ColumnFilterNodeSettings.class);
-    }
 }

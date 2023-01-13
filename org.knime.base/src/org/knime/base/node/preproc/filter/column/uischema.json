@@ -1,0 +1,20 @@
+{
+    "elements": [
+       {
+            "type": "Section",
+            "label": "Column filter",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/columnFilter",
+                    "label": "",
+                    "options": {
+                        "format": "columnFilter",
+                        "showSearch": true,
+                        "showMode": true
+                    }
+                }
+            ]
+       }
+    ]
+}
