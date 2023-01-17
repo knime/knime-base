@@ -106,6 +106,9 @@ public class AppendedRowsNodeFactory extends ConfigurableNodeFactory<AppendedRow
         return createNodeDialog().createLegacyFlowVariableNodeDialog();
     }
 
+    /**
+     * @since 5.0
+     */
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, AppendedRowsNodeSettings.class);
