@@ -31,7 +31,10 @@
                 },
                 {
                     "type": "Control",
-                    "scope": "#/properties/model/properties/enableHiliting"
+                    "scope": "#/properties/model/properties/enableHiliting",
+                    "options": {
+                        "isAdvanced": true
+                    }
                 }
             ]
         }
