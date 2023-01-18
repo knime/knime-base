@@ -19,7 +19,6 @@ Export-Package: org.knime.base.data.filter.row.dialog,
 Require-Bundle: org.knime.base;bundle-version="[5.0.0,6.0.0)",
  org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  com.toedter.jcalendar;bundle-version="[1.4.0,1.5.0)",
- org.knime.expressions.core;bundle-version="[5.0.0,6.0.0)",
  org.knime.core.table;bundle-version="[5.0.0,6.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
