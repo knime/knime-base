@@ -12,7 +12,7 @@
 			Converts numbers in a column (or a set of columns) to strings. Note that for an advanced configuration, such
 			as rounding or representation in scientific notification you can also use the "Round Double" node. 
 		</intro>
-		<option name="Column Selection">Move the columns of interest into the &quot;Include&quot; list</option>
+		<option name="Column Selection">Select the columns to convert to String.</option>
 		
 		
 	</fullDescription>

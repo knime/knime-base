@@ -55,7 +55,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
  *
  * @author Johannes Schweig
  * @since 4.0
+ * @deprecated the node has now a Web UI dialog
  */
+@Deprecated
 public class NumberToString2NodeDialog extends DefaultNodeSettingsPane {
 
     /**

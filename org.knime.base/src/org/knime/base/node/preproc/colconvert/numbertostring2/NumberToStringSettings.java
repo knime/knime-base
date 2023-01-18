@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,78 +41,50 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * --------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   03.07.2007 (cebron): created
+ *   Jan 18, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.colconvert.numbertostring2;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
+import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
+import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.ColumnFilter;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
- * NodeFactory for the Number to String Node that converts numbers
- * to String values.
+ * Settings for the Number to String Web UI dialog.
  *
- * @author Johannes Schweig
- * @since 4.0
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class NumberToString2NodeFactory extends NodeFactory<NumberToString2NodeModel> implements NodeDialogFactory {
+final class NumberToStringSettings implements DefaultNodeSettings {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return createNodeDialog().createLegacyFlowVariableNodeDialog();
+    @Persist(configKey = AbstractNumberToStringNodeModel.CFG_INCLUDED_COLUMNS,
+        settingsModel = SettingsModelColumnFilter2.class)
+    @Schema(title = "Columns", description = "Select the columns to convert to String.",
+        choices = NumericalColumns.class, withTypes = false)
+    ColumnFilter m_columns;
+
+    private static final class NumericalColumns implements ChoicesProvider {
+
+        @Override
+        public String[] choices(final SettingsCreationContext context) {
+            var spec = context.getDataTableSpecs()[0];
+            if (spec != null) {
+                return spec.stream()//
+                    .filter(c -> c.getType().isCompatible(DoubleValue.class))//
+                    .map(DataColumnSpec::getName)//
+                    .toArray(String[]::new);
+            }
+            return new String[0];
+        }
+
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NumberToString2NodeModel createNodeModel() {
-        return new NumberToString2NodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<NumberToString2NodeModel> createNodeView(final int viewIndex,
-            final NumberToString2NodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * @since 5.0
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, NumberToStringSettings.class);
-    }
-
 }
