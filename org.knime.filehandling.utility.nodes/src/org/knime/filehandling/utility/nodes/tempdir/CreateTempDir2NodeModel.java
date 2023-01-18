@@ -85,6 +85,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.util.ThreadUtils.ThreadWithContext;
 import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -96,11 +97,13 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.location.FSPathProvider;
 import org.knime.filehandling.core.connections.location.FSPathProviderFactory;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * The NodeModel for the "Create Temp Dir" Node.
@@ -268,7 +271,16 @@ final class CreateTempDir2NodeModel extends NodeModel {
             addOnDisposeLocation(m_onResetTempDir);
         }
         if (m_onDisposeTempDirs != null && !m_onDisposeTempDirs.isEmpty()) {
-            new DeleteTempDirs(m_onDisposeTempDirs).start();
+            final var execType = WorkflowContextUtil.getWorkflowContextV2().getExecutorType();
+
+            //perform cleanups of WORKFLOW_DATA_AREA only when running in an ANALYTICS_PLATFORM,
+            //otherwise executor already takes care of that.
+            final var onDisposeTempDirs = m_onDisposeTempDirs.entrySet().stream()
+                    .filter(entry -> execType == ExecutorType.ANALYTICS_PLATFORM
+                    || entry.getKey().getFSType() != FSType.RELATIVE_TO_WORKFLOW_DATA_AREA)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            new DeleteTempDirs(onDisposeTempDirs).start();
         }
         super.onDispose();
     }
