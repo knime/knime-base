@@ -38,7 +38,7 @@
 			</ul>
 		</option>
         <option name="Enable hiliting">
-            Enables hiliting between both inputs and the concatenated output
+            Advanced setting that enables hiliting between both inputs and the concatenated output
             table.
         </option>
 		<link href="https://www.knime.com/knime-introductory-course/chapter3/section3/concatenation">
