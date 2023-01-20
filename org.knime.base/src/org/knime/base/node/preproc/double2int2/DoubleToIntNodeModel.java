@@ -149,7 +149,7 @@ public class DoubleToIntNodeModel
      */
     private SettingsModelColumnFilter2 m_inclCols = createColumnFilterModel();
 
-    private SettingsModelString m_calctype = DoubleToIntNodeDialog.getCalcTypeModel();
+    private SettingsModelString m_calctype = new SettingsModelString(CFG_TYPE_OF_ROUND, CFG_ROUND);
 
     /**
      * Default constructor.

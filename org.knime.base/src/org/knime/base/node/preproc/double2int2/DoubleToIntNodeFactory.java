@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,30 +41,34 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * --------------------------------------------------------------------
- * 
+ *
  * History
  *   01.09.2009
  */
 package org.knime.base.node.preproc.double2int2;
-
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  * NodeFactory for the Number to String Node that converts double
  * to integer values.
- * 
+ *
  * @author adae, University of Konstanz
  */
-public class DoubleToIntNodeFactory extends NodeFactory<DoubleToIntNodeModel> {
+@SuppressWarnings("restriction")
+public class DoubleToIntNodeFactory extends NodeFactory<DoubleToIntNodeModel> implements NodeDialogFactory{
 
     /**
      * {@inheritDoc}
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new DoubleToIntNodeDialog();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
     }
 
     /**
@@ -98,6 +102,14 @@ public class DoubleToIntNodeFactory extends NodeFactory<DoubleToIntNodeModel> {
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, DoubleToIntNodeSettings.class);
     }
 
 }

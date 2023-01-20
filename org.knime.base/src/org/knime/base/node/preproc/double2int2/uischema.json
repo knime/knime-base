@@ -1,0 +1,36 @@
+{
+	"elements": [
+	{
+            "type": "Section",
+            "label": "Column Selection",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/inclCols",
+                    "label": "",
+                    "options": {
+                        "format": "columnFilter"
+                    }
+                }
+            ]
+       },
+		{
+			"type": "Section",
+			"label": "Rounding Options",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/calctype",
+					"options": {
+						"format": "valueSwitch"
+					}
+				},
+				
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/prodLong"
+				}
+			]
+		}
+	]
+}
