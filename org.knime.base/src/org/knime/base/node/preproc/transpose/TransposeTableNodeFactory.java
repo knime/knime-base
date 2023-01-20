@@ -87,6 +87,9 @@ public class TransposeTableNodeFactory extends NodeFactory<TransposeTableNodeMod
         return createNodeDialog().createLegacyFlowVariableNodeDialog();
     }
 
+    /**
+     * @since 5.0
+     */
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, TransposeTableNodeSettings.class);

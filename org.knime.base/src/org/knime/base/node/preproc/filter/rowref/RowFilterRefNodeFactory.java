@@ -85,6 +85,9 @@ public class RowFilterRefNodeFactory extends NodeFactory<RowFilterRefNodeModel> 
         return true;
     }
 
+    /**
+     * @since 5.0
+     */
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, RowFilterRefNodeSettings.class);

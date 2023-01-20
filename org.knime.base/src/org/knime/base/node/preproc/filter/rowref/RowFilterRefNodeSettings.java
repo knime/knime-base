@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class RowFilterRefNodeSettings implements DefaultNodeSettings {
+final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
     @Persist(settingsModel = SettingsModelColumnName.class, configKey = "dataTableColumn")
     @Schema(title = "Data column",
