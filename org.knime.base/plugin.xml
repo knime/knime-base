@@ -1616,6 +1616,7 @@
       <node
             category-path="/manipulation/column/column-convert+replace"
             factory-class="org.knime.base.node.preproc.cellreplace.CellReplacerNodeFactory"
+            deprecated="true"
             >
       </node>
       <node

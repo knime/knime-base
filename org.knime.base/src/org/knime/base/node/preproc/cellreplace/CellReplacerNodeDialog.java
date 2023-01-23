@@ -66,7 +66,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
  * input)
  *
  * @author Bernd Wiswedel
+ * @deprecated Replaced by "Value Lookup" node
  */
+@Deprecated
 public final class CellReplacerNodeDialog extends DefaultNodeSettingsPane {
 
     /**

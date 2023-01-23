@@ -56,7 +56,9 @@ import org.knime.core.node.NodeView;
  * column according to dictionary table (2nd input)
  *
  * @author Bernd Wiswedel
+ * @deprecated Replaced by "Value Lookup" node
  */
+@Deprecated
 public class CellReplacerNodeFactory
     extends NodeFactory<CellReplacerNodeModel> {
 

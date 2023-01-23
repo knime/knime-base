@@ -64,7 +64,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * Wrapper for the settings for the Cell Replacer node
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz
+ * @deprecated Replaced by "Value Lookup" node
  */
+@Deprecated
 public class CellReplacerNodeSettings {
 
     /** What should be done when no matching dictionary entry is available. */

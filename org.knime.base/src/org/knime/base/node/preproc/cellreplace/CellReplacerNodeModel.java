@@ -95,7 +95,9 @@ import org.knime.core.node.util.CheckUtils;
  * input)
  *
  * @author Bernd Wiswedel
+ * @deprecated Replaced by "Value Lookup" node
  */
+@Deprecated
 public class CellReplacerNodeModel extends NodeModel {
 
     /**

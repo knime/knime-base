@@ -5,6 +5,7 @@
     <shortDescription>Replaces cells in a column according to dictionary table (2nd input).</shortDescription>
     <fullDescription>
         <intro>
+            <p>(This node has been superseded by the "Value Lookup" node.)</p>
             <p>Replaces cells in a column according to dictionary table (2nd input). The node has two inputs: The first input contains a target column whose values are to be replaced using the dictionary table (2nd input). From the dictionary table, choose one column (or the rowID column) that is used as lookup criterion and an output column that contains the corresponting replacement. Any occurrence in the target column (1st input) that matches the lookup value is replaced by the corresponding value of the output column, which is another column in the dictionary table.</p>
             <p>
                 When the lookup column is of type String, it's also possible to replace the cell if
