@@ -77,14 +77,17 @@ public class PathToUriVariableNodeFactory extends ConfigurableNodeFactory<PathTo
         final var builder = new PortsConfigurationBuilder();
         builder.addOptionalInputPortGroup(PathToUriVariableNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME,
             FileSystemPortObject.TYPE);
-        builder.addFixedInputPortGroup(PathToUriVariableNodeConfig.FLOW_VARIABLE_INPUT_PORT_GRP_NAME, FlowVariablePortObject.TYPE);
-        builder.addFixedOutputPortGroup(PathToUriVariableNodeConfig.FLOW_VARIABLE_OUTPUT_PORT_GRP_NAME, FlowVariablePortObject.TYPE);
+        builder.addFixedInputPortGroup(PathToUriVariableNodeConfig.FLOW_VARIABLE_INPUT_PORT_GRP_NAME,
+            FlowVariablePortObject.TYPE);
+        builder.addFixedOutputPortGroup(PathToUriVariableNodeConfig.FLOW_VARIABLE_OUTPUT_PORT_GRP_NAME,
+            FlowVariablePortObject.TYPE);
         return Optional.of(builder);
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final PortsConfiguration portsConfiguration = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+        final PortsConfiguration portsConfiguration =
+            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
         return new PathToUriVariableNodeDialog(portsConfiguration);
     }
 
@@ -94,7 +97,8 @@ public class PathToUriVariableNodeFactory extends ConfigurableNodeFactory<PathTo
     }
 
     @Override
-    public NodeView<PathToUriVariableNodeModel> createNodeView(final int viewIndex, final PathToUriVariableNodeModel nodeModel) {
+    public NodeView<PathToUriVariableNodeModel> createNodeView(final int viewIndex,
+        final PathToUriVariableNodeModel nodeModel) {
         return null;
     }
 

@@ -106,9 +106,10 @@ final class PathToUriVariableNodeDialog extends NodeDialogPane {
         m_config = new PathToUriVariableNodeConfig(portsConfig,
             () -> getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
         m_filter = new FlowVariableFilterPanel(new VariableTypeFilter(FSLocationVariableType.INSTANCE));
-        m_variableSuffixComponent =
-                new DialogComponentString(m_config.getVariableSuffixModel(), "Suffix added to the new variables:", true, 15);
-        m_failIfPathNotExists = new DialogComponentBoolean(m_config.getFailIfPathNotExistsModel(), "Fail if file/folder does not exist");
+        m_variableSuffixComponent = new DialogComponentString(m_config.getVariableSuffixModel(),
+            "Suffix added to the new variables:", true, 15);
+        m_failIfPathNotExists =
+            new DialogComponentBoolean(m_config.getFailIfPathNotExistsModel(), "Fail if file/folder does not exist");
 
         m_uriExporterCombo = new URIExporterComboBox(m_config.getURIExporterModel());
         m_exporterDescription = new JLabel("-");
@@ -161,8 +162,7 @@ final class PathToUriVariableNodeDialog extends NodeDialogPane {
         final var p = new JPanel(new GridBagLayout());
         p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "URI Format"));
 
-        final GBCBuilder gbc =
-            new GBCBuilder().resetPos().anchorWest().fillNone().insets(5, 5, 0, 5);
+        final GBCBuilder gbc = new GBCBuilder().resetPos().anchorWest().fillNone().insets(5, 5, 0, 5);
 
         p.add(new JLabel("Format: "), gbc.build());
 
@@ -216,7 +216,8 @@ final class PathToUriVariableNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         try {
             m_config.loadSettingsForDialog(settings, specs, getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
-            m_filter.loadConfiguration(m_config.getFilterConfigurationModel(), getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
+            m_filter.loadConfiguration(m_config.getFilterConfigurationModel(),
+                getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
             m_variableSuffixComponent.loadSettingsFrom(settings, specs);
             m_failIfPathNotExists.loadSettingsFrom(settings, specs);
 

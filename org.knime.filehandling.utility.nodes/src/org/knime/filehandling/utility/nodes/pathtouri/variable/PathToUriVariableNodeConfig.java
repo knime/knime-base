@@ -118,8 +118,7 @@ final class PathToUriVariableNodeConfig {
      */
     PathToUriVariableNodeConfig(final PortsConfiguration portsConfig,
         final Supplier<Map<String, FlowVariable>> flowVariablesSupplier) {
-        m_fileSystemConnectionPortIndex =
-                getFirstPortIndexInGroup(portsConfig, CONNECTION_INPUT_PORT_GRP_NAME);
+        m_fileSystemConnectionPortIndex = getFirstPortIndexInGroup(portsConfig, CONNECTION_INPUT_PORT_GRP_NAME);
 
         m_variableSuffixModel = new SettingsModelString(CFG_CREATED_VARIABLE_NAME, "_location") {
             @Override
@@ -192,7 +191,8 @@ final class PathToUriVariableNodeConfig {
     Map<String, FlowVariable> getFilteredFlowVariables() {
         final var flowVariables = m_flowVariablesSupplier.get();
 
-        final Set<String> includeNames = new HashSet<>(Arrays.asList(m_filterConfigurationModel.applyTo(flowVariables).getIncludes()));
+        final Set<String> includeNames =
+            new HashSet<>(Arrays.asList(m_filterConfigurationModel.applyTo(flowVariables).getIncludes()));
 
         return flowVariables.entrySet().stream() //
             .filter(e -> includeNames.contains(e.getKey())) //
@@ -218,17 +218,17 @@ final class PathToUriVariableNodeConfig {
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings, final PortObjectSpec[] specs,
-        final Map<String, FlowVariable> variableMap)
-        throws InvalidSettingsException {
+        final Map<String, FlowVariable> variableMap) throws InvalidSettingsException {
 
         m_filterConfigurationModel.loadConfigurationInDialog(settings, variableMap);
         m_uriExporterModel.loadSettingsFrom(settings);
 
         m_exporterModelHelper.setPortObjectSpecs(specs);
         // we validate the settings, overwriting invalid values (so we can open the dialog),
-        m_exporterModelHelper.validate(m -> {}, true);
-        m_exporterDialogHelper.loadSettingsFrom(settings.getNodeSettings(CFG_URL_FORMAT_SETTINGS),
-            getURIExporterID(), specs);
+        m_exporterModelHelper.validate(m -> {
+        }, true);
+        m_exporterDialogHelper.loadSettingsFrom(settings.getNodeSettings(CFG_URL_FORMAT_SETTINGS), getURIExporterID(),
+            specs);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
@@ -242,8 +242,7 @@ final class PathToUriVariableNodeConfig {
     void saveSettingsForDialog(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_filterConfigurationModel.saveConfiguration(settings);
         m_uriExporterModel.saveSettingsTo(settings);
-        m_exporterDialogHelper.saveSettingsTo(settings.addNodeSettings(CFG_URL_FORMAT_SETTINGS),
-            getURIExporterID(),
+        m_exporterDialogHelper.saveSettingsTo(settings.addNodeSettings(CFG_URL_FORMAT_SETTINGS), getURIExporterID(),
             "Chosen URL format is not available for given file system connection or flow variables.");
     }
 }

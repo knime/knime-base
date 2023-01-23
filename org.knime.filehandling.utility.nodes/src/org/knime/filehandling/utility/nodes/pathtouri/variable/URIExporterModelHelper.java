@@ -91,7 +91,8 @@ final class URIExporterModelHelper extends AbstractURIExporterModelHelper {
         validateURIExporter(warningMessageConsumer, overwriteInvalidSettings);
     }
 
-    private void validateFlowVariables(final Consumer<StatusMessage> warningMessageConsumer, final boolean overwriteInvalidSettings) throws InvalidSettingsException {
+    private void validateFlowVariables(final Consumer<StatusMessage> warningMessageConsumer,
+        final boolean overwriteInvalidSettings) throws InvalidSettingsException {
         Optional<String> errorMessage;
 
         if (m_filteredFlowVariablesSupplier.get().isEmpty()) {
@@ -113,22 +114,23 @@ final class URIExporterModelHelper extends AbstractURIExporterModelHelper {
     private Optional<String> validateConnectedFSPortObjectSpec() {
         final var fsPortSpec = getFileSystemPortObjectSpec();
 
-        if (getFlowVariablesFSLocationSpecs().stream().anyMatch(e -> !FSLocationSpec.areEqual(e, fsPortSpec.getFSLocationSpec()))) {
+        if (getFlowVariablesFSLocationSpecs().stream()
+            .anyMatch(e -> !FSLocationSpec.areEqual(e, fsPortSpec.getFSLocationSpec()))) {
             return Optional.of(String.format(
                 "The selected flow variables seem to contain a variable referencing a "
                     + " different file system than the one at the input port. Such paths will be"
                     + " resolved against the file system at the input port (%s).",
-                    fsPortSpec.getFSLocationSpec().getFileSystemSpecifier().orElse("")));
+                fsPortSpec.getFSLocationSpec().getFileSystemSpecifier().orElse("")));
         }
         return Optional.empty();
     }
 
     private Optional<String> checkForConnectedFlowVariables() {
         final FSLocationSpec connectedSpec = getFlowVariablesFSLocationSpecs() //
-                .stream() //
-                .filter(spec -> spec.getFSCategory() == FSCategory.CONNECTED) //
-                .findAny() //
-                .orElse(null);
+            .stream() //
+            .filter(spec -> spec.getFSCategory() == FSCategory.CONNECTED) //
+            .findAny() //
+            .orElse(null);
 
         if (connectedSpec != null) {
             return Optional.of(String.format(
@@ -140,7 +142,7 @@ final class URIExporterModelHelper extends AbstractURIExporterModelHelper {
 
     private Set<FSLocationSpec> getFlowVariablesFSLocationSpecs() {
         return m_filteredFlowVariablesSupplier.get().entrySet().stream() //
-                .map(entry -> entry.getValue().getValue(FSLocationVariableType.INSTANCE)).collect(Collectors.toSet());
+            .map(entry -> entry.getValue().getValue(FSLocationVariableType.INSTANCE)).collect(Collectors.toSet());
     }
 
     @Override
@@ -156,4 +158,3 @@ final class URIExporterModelHelper extends AbstractURIExporterModelHelper {
         return getFlowVariablesFSLocationSpecs(); //
     }
 }
-

@@ -101,7 +101,7 @@ final class URIExporterModelHelper extends AbstractURIExporterModelHelper {
 
     @Override
     public void validate(final Consumer<StatusMessage> warningMessageConsumer, final boolean overwriteInvalidSettings)
-            throws InvalidSettingsException {
+        throws InvalidSettingsException {
         validateFileSystemPort();
         validatePathColumn(warningMessageConsumer, overwriteInvalidSettings);
         validatePathColumnIsUsable(warningMessageConsumer);
@@ -212,25 +212,24 @@ final class URIExporterModelHelper extends AbstractURIExporterModelHelper {
             return Set.of(getFileSystemPortObjectSpec().getFSLocationSpec());
         }
         final DataColumnSpec pathColSpec = getPathColumnSpec();
-        final Set<DefaultFSLocationSpec> defaultSpecs =
-                pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class) //
-                    .orElseThrow(IllegalStateException::new) //
-                    .getFSLocationSpecs();
+        final Set<DefaultFSLocationSpec> defaultSpecs = pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class) //
+            .orElseThrow(IllegalStateException::new) //
+            .getFSLocationSpecs();
 
         return defaultSpecs.stream().map(FSLocationSpec.class::cast).collect(Collectors.toSet()); //
     }
 
-   /**
-    * @return the {@link DataTableSpec} of the ingoing data table.
-    */
-   public DataTableSpec getDataTableSpec() {
-       return (DataTableSpec)m_portObjectSpecs[m_dataTablePortIndex];
-   }
+    /**
+     * @return the {@link DataTableSpec} of the ingoing data table.
+     */
+    public DataTableSpec getDataTableSpec() {
+        return (DataTableSpec)m_portObjectSpecs[m_dataTablePortIndex];
+    }
 
-   /**
-    * @return DataColumnSpec of the selected Path column
-    */
-   public DataColumnSpec getPathColumnSpec() {
-       return getDataTableSpec().getColumnSpec(m_selectedColumn.getStringValue());
-   }
+    /**
+     * @return DataColumnSpec of the selected Path column
+     */
+    public DataColumnSpec getPathColumnSpec() {
+        return getDataTableSpec().getColumnSpec(m_selectedColumn.getStringValue());
+    }
 }
