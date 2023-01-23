@@ -143,7 +143,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
 
     /** The selected string match behaviour */
     @Schema(title = "String matching", //
-        description = "The matching behaviour when matching strings: "
+        description = "The matching behavior when matching strings: "
             + "Full string matching matches a lookup string only if it exactly matches a search string. "
             + "Substring matching matches a lookup string if the key in the dictionary is a substring of it. "
             + "Wildcard and RegEx matching match a lookup string if a pattern in the dictionary matches to it.")
@@ -155,7 +155,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     boolean m_caseSensitive = true;
 
     /** The matching behaviour (only exact, exact or next lower, exact or next higher) */
-    @Schema(title = "Match behaviour", //
+    @Schema(title = "Match behavior", //
         description = "Defines what happens when a lookup key is not present in the dictionary: "
             + "If \"Equal\" is selected, no match is found. "
             + "If \"Equal or next smaller\" (\"- larger\") is selected, the next smaller (larger) item from the "
@@ -166,7 +166,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** The search direction (forwards / backwards / binSearch) */
     @Schema(title = "If multiple lines match", //
         description = "Specifies the direction in which to perform the search. "
-            + "This defines the behaviour in case there are duplicate keys in the dictionary table.")
+            + "This defines the behavior in case there are duplicate keys in the dictionary table.")
     SearchDirection m_searchDirection = SearchDirection.FORWARD;
 
     /** Whether to create a column that indicates whether a match has been found */

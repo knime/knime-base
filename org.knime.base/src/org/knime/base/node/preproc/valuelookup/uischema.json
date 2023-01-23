@@ -32,26 +32,46 @@
 					"scope": "#/properties/model/properties/stringMatchBehaviour",
 					"options": {
 						"format": "radio"
-					},"rule": {
-                        "effect": "SHOW",
-                        "condition": {
-                            "scope": "#/properties/model/properties/matchBehaviour",
-                            "schema": {"oneOf": [{"const": "EQUAL"}]}
-                        }
-                    }
+					},
+					"rule": {
+						"effect": "HIDE",
+						"condition": {
+							"scope": "#/properties/model/properties/matchBehaviour",
+							"schema": {
+								"oneOf": [
+									{
+										"const": "EQUALORSMALLER"
+									},
+									{
+										"const": "EQUALORLARGER"
+									}
+								]
+							}
+						}
+					}
 				},
 				{
 					"type": "Control",
 					"scope": "#/properties/model/properties/caseSensitive",
 					"options": {
 						"format": "checkbox"
-					},"rule": {
-                        "effect": "SHOW",
-                        "condition": {
-                            "scope": "#/properties/model/properties/matchBehaviour",
-                            "schema": {"oneOf": [{"const": "EQUAL"}]}
-                        }
-                    }
+					},
+					"rule": {
+						"effect": "HIDE",
+						"condition": {
+							"scope": "#/properties/model/properties/matchBehaviour",
+							"schema": {
+								"oneOf": [
+									{
+										"const": "EQUALORSMALLER"
+									},
+									{
+										"const": "EQUALORLARGER"
+									}
+								]
+							}
+						}
+					}
 				},
 				{
 					"type": "Control",

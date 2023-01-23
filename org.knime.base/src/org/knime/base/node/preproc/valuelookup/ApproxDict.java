@@ -96,7 +96,8 @@ class ApproxDict extends MapDict {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values) {
+    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+        throws IllegalLookupKeyException {
         return insertKVPair(m_dict, key, values);
     }
 

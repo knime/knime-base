@@ -87,19 +87,20 @@ class PatternDict extends ListDict<Pattern> {
         return entry.matcher(lookup.toString()).matches();
     }
 
-    /**
-     * {@inheritDoc}
-     * @throws PatternSyntaxException when the pattern found in the key cell is faulty
-     */
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values) {
+    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+        throws IllegalLookupKeyException {
         var patternAsStr = key.toString();
         if (m_settings.m_stringMatchBehaviour == StringMatching.WILDCARD) {
             patternAsStr = WildcardToRegexUtil.wildcardToRegex(patternAsStr);
         }
-        var compiled = Pattern.compile(patternAsStr, m_flags);
-        insertKVPair(compiled, values);
-        return Optional.empty();
+        try {
+            var compiled = Pattern.compile(patternAsStr, m_flags);
+            insertKVPair(compiled, values);
+            return Optional.empty();
+        } catch (PatternSyntaxException e) {
+            throw new IllegalLookupKeyException("Invalid RegEx pattern: " + System.lineSeparator() + e.getMessage(), e);
+        }
     }
 
 }

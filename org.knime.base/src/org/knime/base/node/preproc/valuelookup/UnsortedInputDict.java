@@ -62,6 +62,17 @@ import org.knime.core.data.DataCell;
 abstract class UnsortedInputDict implements LookupDict {
 
     /**
+     * Exception that indicates that a key could not be inserted in the dictionary
+     */
+    static class IllegalLookupKeyException extends Exception {
+        private static final long serialVersionUID = -5487470362932276861L;
+
+        IllegalLookupKeyException(final String message, final Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    /**
      * Holds the relevant node settings
      */
     protected final ValueLookupNodeSettings m_settings;
@@ -82,7 +93,9 @@ abstract class UnsortedInputDict implements LookupDict {
      * @param values All the replacement cells that are associated with the new key
      * @return {@code true} if the key is already present in the dictionary, {@code false} if it is not or
      *         {@link Optional#empty()} if no knowledge on the already contained keys is available
+     * @throws IllegalLookupKeyException If the search pair could not be inserted
      */
-    public abstract Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values);
+    public abstract Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+        throws IllegalLookupKeyException;
 
 }

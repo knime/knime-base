@@ -54,7 +54,6 @@ import java.util.Comparator;
 import java.util.Optional;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
-import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.SearchDirection;
 import org.knime.core.data.DataCell;
 import org.knime.core.node.util.CheckUtils;
 
@@ -132,44 +131,23 @@ class BinarySearchDict implements LookupDict {
         // `index` is either the index of an exact match, or (-insertionpoint - 1)
 
         if (index >= 0) { // Found an exact match at index
-            return Optional.of(m_values.get(adjustForSearchDirection(index)));
+            return Optional.of(m_values.get(index));
         } else {
             if (chooseLeft()) {
                 // We want to get the element LEFT of where the exact match would be
                 var indexLeftOfInsertionPoint = -index - 2; // One left of the insertionpoint
                 if (indexLeftOfInsertionPoint >= 0) { // could be out of bounds (= -1)
-                    return Optional.of(m_values.get(adjustForSearchDirection(indexLeftOfInsertionPoint)));
+                    return Optional.of(m_values.get(indexLeftOfInsertionPoint));
                 }
             } else if (chooseRight()) {
                 // We want to get the element RIGHT of where the exact match would be
                 var indexAtInsertionPoint = -index - 1; // Exactly at the insertionpoint
                 if (indexAtInsertionPoint < m_values.size()) { // could be out of bounds (= m_values.size())
-                    return Optional.of(m_values.get(adjustForSearchDirection(indexAtInsertionPoint)));
+                    return Optional.of(m_values.get(indexAtInsertionPoint));
                 }
             }
         }
         return Optional.empty(); // Fallback
-    }
-
-    /**
-     * Takes either the first or the last (depending on the specified search direction) result that has the same key as
-     * the element at the provided index.
-     *
-     * @param index The starting index. It must hold 0 <= index < m_keys.size()
-     * @return a (potentially new) index where the first or last element of the same key is stored
-     */
-    private int adjustForSearchDirection(int index) {
-        DataCell lastKey = m_keys.get(index);
-        if (m_settings.m_searchDirection == SearchDirection.FORWARD) {
-            while (index - 1 >= 0 && m_comparator.compare(lastKey, m_keys.get(index - 1)) == 0) {
-                --index;
-            }
-        } else {
-            while (index + 1 < m_keys.size() && m_comparator.compare(lastKey, m_keys.get(index + 1)) == 0) {
-                ++index;
-            }
-        }
-        return index;
     }
 
     private boolean chooseLeft() {

@@ -86,7 +86,8 @@ class SubstringDict extends ListDict<String> {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values) {
+    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+        throws IllegalLookupKeyException {
         insertKVPair(m_stringNormaliser.apply(key), values);
         return Optional.empty();
     }

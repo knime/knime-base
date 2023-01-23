@@ -84,7 +84,8 @@ class StringDict extends MapDict {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values) {
+    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+        throws IllegalLookupKeyException {
         var str = m_stringNormaliser.apply(key); // might lower-case the string
         return insertKVPair(m_dict, str, values);
     }

@@ -55,6 +55,7 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import org.knime.base.node.preproc.valuelookup.BinarySearchDict.SortingOrder;
+import org.knime.base.node.preproc.valuelookup.UnsortedInputDict.IllegalLookupKeyException;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.SearchDirection;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.StringMatching;
@@ -62,7 +63,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
-import org.knime.core.data.collection.CollectionDataValue;
+import org.knime.core.data.collection.CellCollection;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -82,16 +83,21 @@ final class DictFactory {
 
     private final BufferedDataTable m_dictTable;
 
+    private final Comparator<DataCell> m_comparator;
+
     private final ExecutionMonitor m_dictInitMon;
 
     private final long m_updateProgressPeriod;
 
     private long m_processedDictRows;
 
+    private DataRow m_currentRow;
+
     DictFactory(final ValueLookupNodeSettings settings, final BufferedDataTable dictTable,
-        final ExecutionMonitor dictInitMon) {
+        final Comparator<DataCell> comparator, final ExecutionMonitor dictInitMon) {
         m_settings = settings;
         m_dictTable = dictTable;
+        m_comparator = comparator;
         m_dictInitMon = dictInitMon;
         m_updateProgressPeriod = m_dictTable.size() / 25 + 1; // This process will report ~25 discrete progress steps
     }
@@ -108,7 +114,7 @@ final class DictFactory {
             if (m_settings.m_stringMatchBehaviour == StringMatching.FULLSTRING && m_settings.m_caseSensitive
                 && !dictKeyColType.isCollectionType()) {
                 // Could try to do Binary Search
-                var binSearchDict = tryToInitialiseBinarySearchDict(dictionaryIterator, dictKeyColIndex, dictKeyColType,
+                var binSearchDict = tryToInitialiseBinarySearchDict(dictionaryIterator, dictKeyColIndex,
                     dictValueColIndices, keyCache, valueCache);
                 if (binSearchDict.isPresent()) {
                     return binSearchDict.get();
@@ -117,55 +123,49 @@ final class DictFactory {
 
             // If we reach here, we don't want a binary search dict. We might have elements in out key-value caches that
             // need to be added to the new dictionary before we can continue iterating over the dictionaryIterator.
+            var typeForDictImplementation =
+                dictKeyColType.isCollectionType() ? dictKeyColType.getCollectionElementType() : dictKeyColType;
+            var resultDict = getDictImplementation(typeForDictImplementation);
 
-            var resultDict = getDictImplementation(dictKeyColType);
+            try {
+                // Add the elements from the cache to our new dictionary (will be empty if key column is collection)
+                for (var i = 0; i < keyCache.size(); ++i) {
+                    resultDict.insertSearchPair(keyCache.get(i), valueCache.get(i));
+                }
 
-            // Add the elements from the cache to our new dictionary
-            for (var i = 0; i < keyCache.size(); ++i) {
-                resultDict.insertSearchPair(keyCache.get(i), valueCache.get(i));
+                populateDictionary(resultDict, dictionaryIterator, dictKeyColIndex, dictValueColIndices);
+            } catch (IllegalLookupKeyException e) {
+                // Most likely a PatternSyntaxException, or some other faulty data that couldn't be processed
+                throw KNIMEException
+                    .of(Message.fromRowIssue("Could not insert search pair in row '" + m_currentRow.getKey() + "'", 1,
+                        m_processedDictRows, dictKeyColIndex, e.getMessage()), e)
+                    .toUnchecked();
             }
-
-            populateDictionary(resultDict, dictionaryIterator, dictKeyColIndex, dictKeyColType, dictValueColIndices);
 
             return resultDict;
         }
     }
 
     private void populateDictionary(final UnsortedInputDict resultDict, final CloseableRowIterator dictionaryIterator,
-        final int dictKeyColIndex, final DataType dictKeyColType, final int[] dictValueColIndices)
-        throws CanceledExecutionException {
+        final int dictKeyColIndex, final int[] dictValueColIndices)
+        throws CanceledExecutionException, IllegalLookupKeyException {
         while (dictionaryIterator.hasNext()) {
-            var row = dictionaryIterator.next();
-            DataCell input = row.getCell(dictKeyColIndex);
-            var outputs = Arrays.stream(dictValueColIndices).mapToObj(row::getCell).toArray(DataCell[]::new);
-            try {
-                if (input.isMissing()) {
-                    // Missing value is a collection type (it's compatible with all types), so handle that first
-                    resultDict.insertSearchPair(input, outputs);
-                } else if (dictKeyColType.isCollectionType()) {
-                    // Add an individual key-value pair for each entry in the collection type
-                    var v = (CollectionDataValue)input;
-                    for (DataCell element : v) { // NOSONAR: trivial nesting, not too deep
-                        resultDict.insertSearchPair(element, outputs);
-                    }
-                } else {
-                    resultDict.insertSearchPair(input, outputs);
+            m_currentRow = dictionaryIterator.next();
+            DataCell input = m_currentRow.getCell(dictKeyColIndex);
+            var outputs = Arrays.stream(dictValueColIndices).mapToObj(m_currentRow::getCell).toArray(DataCell[]::new);
+            if (input.isMissing()) {
+                // Missing value is a collection type (it's compatible with all types), so handle that first
+                resultDict.insertSearchPair(input, outputs);
+            } else if (input.getType().isCollectionType()) {
+                // Add an individual key-value pair for each entry in the collection type -- order doesn't matter
+                var keys = (CellCollection)input;
+                for (var key : keys) {
+                    resultDict.insertSearchPair(key, outputs);
                 }
-            } catch (RuntimeException e) {
-                // Most likely a PatternSyntaxException, or some other faulty data that couldn't be processed
-                // TODO should execution halt completely, or maybe just ignore this row ?
-                throw KNIMEException
-                    .of(Message.fromRowIssue("Could not insert search pair in row \"" + row.getKey() + "\"", 1,
-                        m_processedDictRows, dictKeyColIndex, e.getMessage()), e)
-                    .toUnchecked();
+            } else {
+                resultDict.insertSearchPair(input, outputs);
             }
-
-            ++m_processedDictRows;
-            if (m_processedDictRows % m_updateProgressPeriod == 0) {
-                m_dictInitMon.setProgress(m_processedDictRows / (double)m_dictTable.size(),
-                    "Reading dictionary into memory, row " + m_processedDictRows + " of " + m_dictTable.size());
-                m_dictInitMon.checkCanceled(); // Throws a CanceledExecutionException if execution has been cancelled
-            }
+            reportProcessedDictRow();
         }
     }
 
@@ -188,7 +188,7 @@ final class DictFactory {
                 return new ExactDict(m_settings);
             }
         } else {
-            return new ApproxDict(m_settings, dictKeyColType.getComparator());
+            return new ApproxDict(m_settings, m_comparator);
         }
     }
 
@@ -210,9 +210,8 @@ final class DictFactory {
      * @throws CanceledExecutionException
      */
     private Optional<BinarySearchDict> tryToInitialiseBinarySearchDict(final Iterator<DataRow> dictionaryIterator,
-        final int dictKeyColIndex, final DataType dictKeyType, final int[] dictOutputColIndices,
-        final ArrayList<DataCell> keyCache, final ArrayList<DataCell[]> valueCache) throws CanceledExecutionException {
-        Comparator<DataCell> comparator = dictKeyType.getComparator();
+        final int dictKeyColIndex, final int[] dictOutputColIndices, final ArrayList<DataCell> keyCache,
+        final ArrayList<DataCell[]> valueCache) throws CanceledExecutionException {
         var couldBeAscendinglySorted = true;
         var couldBeDescendinglySorted = true;
 
@@ -220,13 +219,13 @@ final class DictFactory {
 
         while (dictionaryIterator.hasNext()) {
             // Read the next row and key from the iterator, and (maybe) add it to the cache
-            var row = dictionaryIterator.next();
-            var key = row.getCell(dictKeyColIndex);
-            var values = Arrays.stream(dictOutputColIndices).mapToObj(row::getCell).toArray(DataCell[]::new);
+            m_currentRow = dictionaryIterator.next();
+            var key = m_currentRow.getCell(dictKeyColIndex);
+            var values = Arrays.stream(dictOutputColIndices).mapToObj(m_currentRow::getCell).toArray(DataCell[]::new);
 
             // "compress" input data -- only add new entry if the key isn't already present
             // this prevents having to find the first / last item of a key later in the binary search
-            var cmp = lastKey == null ? 0 : comparator.compare(lastKey, key);
+            var cmp = lastKey == null ? 0 : m_comparator.compare(lastKey, key);
             if (lastKey != null && cmp == 0) {
                 // If search direction is forward, we don't want to add this item at all.
                 // If backward, the key is the same so we only have to replace the values
@@ -246,15 +245,25 @@ final class DictFactory {
                 return Optional.empty(); // early return, input not sorted
             }
 
-            if (m_processedDictRows % m_updateProgressPeriod == 0) {
-                m_dictInitMon.setProgress(m_processedDictRows / (double)m_dictTable.size(),
-                    "Reading dictionary into memory, row " + m_processedDictRows + " of " + m_dictTable.size());
-                m_dictInitMon.checkCanceled(); // Might throw a CanceledExecutionException
-            }
-            ++m_processedDictRows;
+            reportProcessedDictRow();
             lastKey = key;
         }
         var sortingOrder = couldBeAscendinglySorted ? SortingOrder.ASC : SortingOrder.DESC;
-        return Optional.of(new BinarySearchDict(m_settings, comparator, keyCache, valueCache, sortingOrder));
+        return Optional.of(new BinarySearchDict(m_settings, m_comparator, keyCache, valueCache, sortingOrder));
+    }
+
+    /**
+     * Increments {@code m_processedDictRows} by one, updates the progress bar and checks for cancelled execution. See
+     * {@link ExecutionMonitor#checkCanceled()}.
+     *
+     * @throws CanceledExecutionException
+     */
+    private void reportProcessedDictRow() throws CanceledExecutionException {
+        ++m_processedDictRows;
+        if (m_processedDictRows % m_updateProgressPeriod == 0) {
+            m_dictInitMon.setProgress(m_processedDictRows / (double)m_dictTable.size(),
+                "Reading dictionary into memory, row " + m_processedDictRows + " of " + m_dictTable.size());
+            m_dictInitMon.checkCanceled(); // Might throw a CanceledExecutionException
+        }
     }
 }
