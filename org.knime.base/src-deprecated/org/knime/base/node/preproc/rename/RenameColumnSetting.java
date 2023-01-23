@@ -68,7 +68,9 @@ import org.knime.core.node.NodeSettingsWO;
  *
  * @author Bernd Wiswedel, University of Konstanz
  * @since 2.12
+ * @deprecated alongside the Column Rename node which is replaced by the Column Renamer
  */
+@Deprecated
 public final class RenameColumnSetting {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(RenameColumnSetting.class);

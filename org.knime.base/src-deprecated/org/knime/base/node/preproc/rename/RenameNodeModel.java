@@ -75,7 +75,9 @@ import org.knime.core.node.util.ConvenienceMethods;
  * NodeModel implementation for the renaming node.
  *
  * @author Bernd Wiswedel, University of Konstanz
+ * @deprecated alongside the Column Rename node which is replaced by the Column Renamer
  */
+@Deprecated
 public class RenameNodeModel extends SimpleStreamableFunctionNodeModel {
     /**
      * Config identifier for the NodeSettings object contained in the NodeSettings which contains the settings.

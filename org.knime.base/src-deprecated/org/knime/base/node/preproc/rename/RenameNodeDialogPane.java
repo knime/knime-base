@@ -89,7 +89,9 @@ import org.knime.core.node.util.DataColumnSpecListCellRenderer;
  *
  * @author Bernd Wiswedel, University of Konstanz
  * @author Marcel Hanser, University of Konstanz
+ * @deprecated alongside the Column Rename node which is replaced by the Column Renamer
  */
+@Deprecated
 public class RenameNodeDialogPane extends NodeDialogPane {
 
     private static final RenameColumnPanel DUMMY_PANEL = new RenameColumnPanel(new RenameColumnSetting("DUMMY"),
@@ -110,7 +112,7 @@ public class RenameNodeDialogPane extends NodeDialogPane {
     private ListModifier m_searchableListModifier;
 
     private boolean m_hideColumnType;
-    
+
     /**
      * Constructs new dialog, inits members.
      */

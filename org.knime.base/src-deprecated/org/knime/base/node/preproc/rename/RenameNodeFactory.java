@@ -43,73 +43,58 @@
  * -------------------------------------------------------------------
  *
  * History
- *   Feb 2, 2006 (wiswedel): created
+ *   Feb 1, 2006 (wiswedel): created
  */
 package org.knime.base.node.preproc.rename;
 
-import java.awt.Component;
-
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.Icon;
-import javax.swing.JList;
-import javax.swing.UIManager;
-
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.DataValue.UtilityFactory;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 
 /**
- * Renderer used in the combo box where the user can pick different {@link org.knime.core.data.DataValue} class. This
- * renderer will show the name of the {@link org.knime.core.data.DataValue} class along with the icon assigned to the
- * value class as defined by the {@link DataType#getUtilityFor(Class)} method.
+ * NodeFactory implementation for the renaming node.
  *
  * @author Bernd Wiswedel, University of Konstanz
+ * @deprecated alongside the Column Rename node which is replaced by the Column Renamer
  */
-@SuppressWarnings("serial")
-public class DataTypeNameRenderer extends DefaultListCellRenderer {
+@Deprecated
+public final class RenameNodeFactory extends NodeFactory<RenameNodeModel> {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings({"rawtypes", "unchecked" })
     @Override
-    public Component getListCellRendererComponent(final JList list, final Object value, final int index,
-        final boolean isSelected, final boolean cellHasFocus) {
-        /* Almost all has been copied from the super implementation */
-        setComponentOrientation(list.getComponentOrientation());
-        if (isSelected) {
-            setBackground(list.getSelectionBackground());
-            setForeground(list.getSelectionForeground());
-        } else {
-            setBackground(list.getBackground());
-            setForeground(list.getForeground());
-        }
+    public RenameNodeModel createNodeModel() {
+        return new RenameNodeModel();
+    }
 
-        if (value instanceof Class && DataValue.class.isAssignableFrom((Class)value)) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int getNrNodeViews() {
+        return 0;
+    }
 
-            Class<? extends DataValue> type = (Class<? extends DataValue>)value;
-            String s = type.getName();
-            int dot = s.lastIndexOf('.');
-            if (dot >= 0 && dot < s.length() - 1) {
-                s = s.substring(dot + 1);
-            }
-            s = s.trim();
-            UtilityFactory fac = DataType.getUtilityFor(type);
-            Icon icon = fac.getIcon();
-            setIcon(icon);
-            setText(s);
-        } else {
-            if (value instanceof Icon) {
-                setIcon((Icon)value);
-                setText("");
-            } else {
-                setIcon(null);
-                setText((value == null) ? "" : value.toString());
-            }
-        }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<RenameNodeModel> createNodeView(final int viewIndex, final RenameNodeModel nodeModel) {
+        throw new IndexOutOfBoundsException();
+    }
 
-        setEnabled(list.isEnabled());
-        setFont(list.getFont());
-        setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : noFocusBorder);
-        return this;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RenameNodeDialogPane createNodeDialogPane() {
+        return new RenameNodeDialogPane();
     }
 }

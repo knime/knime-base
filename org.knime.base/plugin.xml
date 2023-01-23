@@ -789,11 +789,12 @@
             factory-class="org.knime.base.node.mine.sota.SotaLearnerNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
+            deprecated="true"
             factory-class="org.knime.base.node.preproc.rename.RenameNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
             factory-class="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFactory"
-            after="org.knime.base.node.preproc.rename.RenameNodeFactory"/>
+            after="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
             factory-class="org.knime.base.node.preproc.constantvalue.ConstantValueColumnNodeFactory"/>

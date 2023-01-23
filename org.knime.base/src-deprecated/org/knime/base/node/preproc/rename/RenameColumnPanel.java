@@ -78,8 +78,10 @@ import org.knime.core.node.util.DataColumnSpecListCellRenderer;
  * The panel for a rename configuration.
  *
  * @author Marcel Hanser
+ * @deprecated alongside the Column Rename node which is replaced by the Column Renamer
  */
 @SuppressWarnings("serial")
+@Deprecated
 final class RenameColumnPanel extends JPanel {
 
     /** abbreviate names to this number of letters. */

@@ -71,7 +71,9 @@ import org.knime.core.node.util.CheckUtils;
  * Column rename configuration class.
  * @author Tobias Koetter, KNIME.com
  * @since 2.12
+ * @deprecated alongside the Column Rename node which is replaced by the Column Renamer
  */
+@Deprecated
 public class RenameConfiguration {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(RenameConfiguration.class);
