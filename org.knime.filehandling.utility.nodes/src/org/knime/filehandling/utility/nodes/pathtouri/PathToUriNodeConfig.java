@@ -58,6 +58,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
+import org.knime.filehandling.utility.nodes.pathtouri.exporter.URIExporterDialogHelper;
 
 /**
  * A centralized class for encapsulating the SettingsModel Objects. The save, validate and load in NodeModel simply
@@ -103,9 +104,9 @@ final class PathToUriNodeConfig {
 
     private final SettingsModelString m_appendedColumnName;
 
-    private final URIExporterDialogHelper m_exporterDialogHelper;
-
     private final URIExporterModelHelper m_exporterModelHelper;
+
+    private final URIExporterDialogHelper m_exporterDialogHelper;
 
     /**
      * Constructor for the Configuration class
@@ -129,15 +130,12 @@ final class PathToUriNodeConfig {
             new SettingsModelString(CFG_GENERATED_COLUMN_MODE, GenerateColumnMode.APPEND_NEW.getActionCommand());
         m_appendedColumnName = new SettingsModelString(CFG_APPENDED_COLUMN_NAME, "URI");
 
-        m_exporterDialogHelper = new URIExporterDialogHelper(m_pathColumnNameModel, //
-            m_uriExporterModel, //
-            m_fileSystemConnectionPortIndex, //
-            m_dataTablePortIndex);
-
         m_exporterModelHelper = new URIExporterModelHelper(m_pathColumnNameModel, //
             m_uriExporterModel, //
             m_fileSystemConnectionPortIndex, //
             m_dataTablePortIndex);
+
+        m_exporterDialogHelper = new URIExporterDialogHelper(m_exporterModelHelper::getURIExporterIDToFactory);
 
         m_generatedColumnMode.addChangeListener(e -> updateEnabledness());
     }
@@ -220,12 +218,12 @@ final class PathToUriNodeConfig {
         return m_failOnMissingValues.getBooleanValue();
     }
 
-    URIExporterDialogHelper getExporterDialogHelper() {
-        return m_exporterDialogHelper;
-    }
-
     URIExporterModelHelper getExporterModelHelper() {
         return m_exporterModelHelper;
+    }
+
+    URIExporterDialogHelper getExporterDialogHelper() {
+        return m_exporterDialogHelper;
     }
 
     /**
@@ -263,10 +261,11 @@ final class PathToUriNodeConfig {
         m_failOnMissingValues.loadSettingsFrom(settings);
         m_uriExporterModel.loadSettingsFrom(settings);
 
-        m_exporterDialogHelper.setPortObjectSpecs(specs);
+        m_exporterModelHelper.setPortObjectSpecs(specs);
         // we validate the settings, overwriting invalid values (so we can open the dialog),
-        m_exporterDialogHelper.validate(m -> {}, true);
-        m_exporterDialogHelper.loadSettingsFrom(settings.getNodeSettings(CFG_URL_FORMAT_SETTINGS));
+        m_exporterModelHelper.validate(m -> {}, true);
+        m_exporterDialogHelper.loadSettingsFrom(settings.getNodeSettings(CFG_URL_FORMAT_SETTINGS), //
+            getURIExporterID(), specs);
     }
 
     void saveSettingsForModel(final NodeSettingsWO settings) {
@@ -283,7 +282,9 @@ final class PathToUriNodeConfig {
         m_failIfPathNotExists.saveSettingsTo(settings);
         m_failOnMissingValues.saveSettingsTo(settings);
         m_uriExporterModel.saveSettingsTo(settings);
-        m_exporterDialogHelper.saveSettingsTo(settings.addNodeSettings(CFG_URL_FORMAT_SETTINGS));
+        m_exporterDialogHelper.saveSettingsTo(settings.addNodeSettings(CFG_URL_FORMAT_SETTINGS), //
+            getURIExporterID(), //
+            "Chosen URL format is not available for given file system connection or path column.");
     }
 
     /**

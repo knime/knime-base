@@ -46,7 +46,7 @@
  * History
  *   Mar 30, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.utility.nodes.pathtouri;
+package org.knime.filehandling.utility.nodes.pathtouri.exporter;
 
 import java.awt.CardLayout;
 import java.awt.GridBagLayout;
@@ -66,7 +66,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class URIExporterPanelParent extends JPanel {
+public final class URIExporterPanelParent extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -76,7 +76,10 @@ final class URIExporterPanelParent extends JPanel {
 
     private URIExporterID m_currentExporterID; // NOSONAR not using serialization
 
-    URIExporterPanelParent() {
+    /**
+     * Constructor.
+     */
+    public URIExporterPanelParent() {
         super(new GridBagLayout());
         m_currentExporterID = null;
         m_cards = new JPanel(new CardLayout());
@@ -84,7 +87,7 @@ final class URIExporterPanelParent extends JPanel {
     }
 
     private void initLayout() {
-        final GBCBuilder gbc = new GBCBuilder();
+        final var gbc = new GBCBuilder();
 
         gbc.resetPos().anchorFirstLineStart().fillNone().weight(0, 0);
         add(m_cards, gbc.build());
@@ -93,30 +96,41 @@ final class URIExporterPanelParent extends JPanel {
         add(Box.createGlue(), gbc.build());
     }
 
-    void updateAvailableExporterPanels(final Map<URIExporterID, URIExporterPanel> exporterPanels) {
+    /**
+     * Updates UI available exporter panels.
+     *
+     * @param exporterPanels map of exporter id to panel
+     * @param invalidExporter error message for invalid exporter
+     */
+    public void updateAvailableExporterPanels(final Map<URIExporterID, URIExporterPanel> exporterPanels,
+        final String invalidExporter) {
         m_exporterPanels.clear();
         m_exporterPanels.putAll(exporterPanels);
 
-        if (m_currentExporterID != null) {
+        if (m_currentExporterID != null && m_exporterPanels.containsKey(m_currentExporterID)) {
             m_exporterPanels.get(m_currentExporterID).onUnshown();
-            m_currentExporterID = null;
         }
-
+        m_currentExporterID = null;
         m_cards.removeAll();
+
         for (Entry<URIExporterID, URIExporterPanel> entry : m_exporterPanels.entrySet()) {
             m_cards.add(entry.getValue(), toCardName(entry.getKey()));
         }
 
-        m_cards.add(new InvalidURIExporterPanel(), "invalid");
+        m_cards.add(new InvalidURIExporterPanel(invalidExporter), "invalid");
     }
 
-    void showExporterPanel(final URIExporterID currExporter) {
-        if (m_currentExporterID != null) {
+    /**
+     * Show exporter panel.
+     *
+     * @param currExporter {@link URIExporterID}
+     */
+    public void showExporterPanel(final URIExporterID currExporter) {
+        if (m_currentExporterID != null && m_exporterPanels.containsKey(m_currentExporterID)) {
             m_exporterPanels.get(m_currentExporterID).onUnshown();
-            m_currentExporterID = null;
         }
-
-        final CardLayout cardLayout = (CardLayout)m_cards.getLayout();
+        m_currentExporterID = null;
+        final var cardLayout = (CardLayout)m_cards.getLayout();
 
         if (m_exporterPanels.containsKey(currExporter)) {
             m_currentExporterID = currExporter;

@@ -46,11 +46,12 @@
  * History
  *   Mar 19, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.utility.nodes.pathtouri;
+package org.knime.filehandling.utility.nodes.pathtouri.exporter;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -58,7 +59,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
@@ -66,69 +67,79 @@ import org.knime.filehandling.core.connections.uriexport.URIExporterMetaInfo;
 import org.knime.filehandling.core.connections.uriexport.URIExporterPanel;
 
 /**
- * Concrete implementation of the {@link AbstractURIExporterHelper} to assist in the node dialog.
+ * URI exporter dialog helper.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class URIExporterDialogHelper extends AbstractURIExporterHelper {
+public final class URIExporterDialogHelper {
 
-    private final Map<URIExporterID, URIExporterFactory> m_availableExporterFactories;
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(URIExporterDialogHelper.class);
+
+    private final Supplier<Map<URIExporterID, URIExporterFactory>> m_availableExporterFactorySupplier;
 
     private final Map<URIExporterID, URIExporterConfig> m_exporterConfigs;
 
     private final Map<URIExporterID, URIExporterPanel> m_exporterPanels;
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(URIExporterDialogHelper.class);
+    /**
+     * {@link PortObjectSpec} array of the node.
+     */
+    private PortObjectSpec[] m_portObjectSpecs;
 
-    URIExporterDialogHelper(final SettingsModelString selectedColumn, //
-        final SettingsModelString selectedUriExporterModel, //
-        final int fileSystemPortIndex, //
-        final int dataTablePortIndex) {
-
-        super(selectedColumn, selectedUriExporterModel, fileSystemPortIndex, dataTablePortIndex);
-        m_availableExporterFactories = new HashMap<>();
+    /**
+     * Constructor.
+     *
+     * @param exporterFactorySupplier supplier of URI exporter factories
+     */
+    public URIExporterDialogHelper(final Supplier<Map<URIExporterID, URIExporterFactory>> exporterFactorySupplier) {
+        m_availableExporterFactorySupplier = exporterFactorySupplier;
         m_exporterConfigs = new HashMap<>();
         m_exporterPanels = new HashMap<>();
     }
 
-    private void initExporterConfigsAndPanels() {
-        m_exporterConfigs.clear();
-        m_exporterPanels.clear();
-
-        for (Entry<URIExporterID, URIExporterFactory> entry : m_availableExporterFactories.entrySet()) {
-            final URIExporterConfig config = entry.getValue().initConfig();
-            final URIExporterPanel panel = entry.getValue().createPanel(config);
-            loadDefaultConfigViaPanel(entry.getValue(), panel);
-            m_exporterConfigs.put(entry.getKey(), config);
-            m_exporterPanels.put(entry.getKey(), panel);
-        }
-    }
-
-    private void loadDefaultConfigViaPanel(final URIExporterFactory factory, final URIExporterPanel panel) {
-        final NodeSettings toLoad = new NodeSettings("defaults");
+    private static void loadDefaultConfigViaPanel(final URIExporterFactory factory, final URIExporterPanel panel,
+        final PortObjectSpec[] specs) {
+        final var toLoad = new NodeSettings("defaults");
         // save default values if there is nothing to load. This is so we can load the exporter config
         // through DialogComponents in the exporter panel.
         final URIExporterConfig tmpDefaultConfig = factory.initConfig();
         tmpDefaultConfig.saveSettingsForExporter(toLoad);
         try {
             // this loads the default values into the panel and its underlying URIExporterConfig object
-            panel.loadSettingsFrom(toLoad, m_portObjectSpecs);
+            panel.loadSettingsFrom(toLoad, specs);
         } catch (NotConfigurableException e) {
             throw new IllegalStateException("URIExporterPanel failed to load default settings. This is a bug.", e);
         }
     }
 
-    private void initAvailableExporterFactories() {
-        m_availableExporterFactories.clear();
-        m_availableExporterFactories.putAll(getURIExporterIDToFactory());
+    /**
+     * Initializes exporter configurations.
+     */
+    public void initExporterConfigsAndPanels() {
+        m_exporterConfigs.clear();
+        m_exporterPanels.clear();
+
+        for (Entry<URIExporterID, URIExporterFactory> entry : m_availableExporterFactorySupplier.get().entrySet()) {
+            final URIExporterConfig config = entry.getValue().initConfig();
+            final URIExporterPanel panel = entry.getValue().createPanel(config);
+            loadDefaultConfigViaPanel(entry.getValue(), panel, m_portObjectSpecs);
+            m_exporterConfigs.put(entry.getKey(), config);
+            m_exporterPanels.put(entry.getKey(), panel);
+        }
     }
 
-    @Override
-    void loadSettingsFrom(final NodeSettingsRO settings) {
-        initAvailableExporterFactories();
-        initExporterConfigsAndPanels();
+    /**
+     * Load selected exporter settings.
+     *
+     * @param settings {@link NodeSettingsRO}
+     * @param selectedID selected exporter ID
+     * @param specs {@link PortObjectSpec}s
+     */
+    public void loadSettingsFrom(final NodeSettingsRO settings,
+        final URIExporterID selectedID, final PortObjectSpec[] specs) {
 
-        final URIExporterID selectedID = new URIExporterID(m_selectedExporterID.getStringValue());
+        m_portObjectSpecs = specs;
+        initExporterConfigsAndPanels();
 
         if (settings.getChildCount() > 0 && isAvailable(selectedID)) {
             try {
@@ -136,36 +147,65 @@ final class URIExporterDialogHelper extends AbstractURIExporterHelper {
             } catch (NotConfigurableException ex) {
                 LOGGER.warn(String.format("Unable to load saved settings for the URL format %s, reverting to defaults.",
                     selectedID), ex);
-                loadDefaultConfigViaPanel(m_availableExporterFactories.get(selectedID),
-                    m_exporterPanels.get(selectedID));
+                loadDefaultConfigViaPanel(m_availableExporterFactorySupplier.get().get(selectedID),
+                    m_exporterPanels.get(selectedID), m_portObjectSpecs);
             }
         }
     }
 
-    void saveSettingsTo(final NodeSettingsWO addNodeSettings) throws InvalidSettingsException {
-        final URIExporterID selectedID = new URIExporterID(m_selectedExporterID.getStringValue());
+    /**
+     * Save selected exporter settings.
+     *
+     * @param addNodeSettings {@link NodeSettingsWO}
+     * @param selectedID selected exporter ID
+     * @param errorMessage specific error message if selectedID is unavailable
+     * @throws InvalidSettingsException if settings are invalid
+     */
+    public void saveSettingsTo(final NodeSettingsWO addNodeSettings,
+        final URIExporterID selectedID, final String errorMessage) throws InvalidSettingsException {
 
         if (!isAvailable(selectedID)) {
-            throw new InvalidSettingsException(
-                "Chosen URL format is not available for given file system connection or path column.");
+            throw new InvalidSettingsException(errorMessage);
         }
         m_exporterPanels.get(selectedID).saveSettingsTo(addNodeSettings);
     }
 
-    Map<URIExporterID, URIExporterFactory> getAvailableExporterFactories() {
-        return m_availableExporterFactories;
+    /**
+     * Get map of exporter id to factory.
+     *
+     * @return map of exporter factories
+     */
+    public Map<URIExporterID, URIExporterFactory> getAvailableExporterFactories() {
+        return m_availableExporterFactorySupplier.get();
     }
 
-    Map<URIExporterID, URIExporterPanel> getAvailableExporterPanels() {
+    /**
+     * Get map of exporter id to panel.
+     *
+     * @return map of exporter panels
+     */
+    public Map<URIExporterID, URIExporterPanel> getAvailableExporterPanels() {
         return m_exporterPanels;
     }
 
-    boolean isAvailable(final URIExporterID exporterID) {
-        return m_availableExporterFactories.containsKey(exporterID);
+    /**
+     * Check whether exporter id is available.
+     *
+     * @param exporterID {@link URIExporterID}
+     * @return true if exporter id is available, otherwise false
+     */
+    public boolean isAvailable(final URIExporterID exporterID) {
+        return m_availableExporterFactorySupplier.get().containsKey(exporterID);
     }
 
-    URIExporterMetaInfo getExporterMetaInfo(final URIExporterID exporterID) {
-        return m_availableExporterFactories.get(exporterID).getMetaInfo();
+    /**
+     * Get meta info of exporter.
+     *
+     * @param exporterID {@link URIExporterID}
+     * @return meta info
+     */
+    public URIExporterMetaInfo getExporterMetaInfo(final URIExporterID exporterID) {
+        return m_availableExporterFactorySupplier.get().get(exporterID).getMetaInfo();
     }
 
 }

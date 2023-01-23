@@ -115,6 +115,12 @@
       <node
             category-path="/io/f-f-util"
             deprecated="false"
+            factory-class="org.knime.filehandling.utility.nodes.pathtouri.variable.PathToUriVariableNodeFactory"
+            hidden="false">
+      </node>
+      <node
+            category-path="/io/f-f-util"
+            deprecated="false"
             factory-class="org.knime.filehandling.utility.nodes.transfer.filechooser.TransferFilesFileChooserNodeFactory"
             hidden="false">
       </node>

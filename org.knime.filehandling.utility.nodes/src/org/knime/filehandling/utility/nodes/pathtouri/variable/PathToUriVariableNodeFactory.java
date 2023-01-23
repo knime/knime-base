@@ -44,48 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 22, 2020 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
+ *   Jan 10, 2023 (Zkriya Rakhimberdiyev): created
  */
-package org.knime.filehandling.utility.nodes.pathtouri;
+package org.knime.filehandling.utility.nodes.pathtouri.variable;
 
 import java.util.Optional;
 
-import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
- * The {@link NodeFactory} to create the node model allowing to convert paths to URLs.
+ * The {@link NodeFactory} to create the node model allowing to convert path flow variables to URIs.
  *
- * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
+ * @author Zkriya Rakhimberdiyev
  */
-public final class PathToUriNodeFactory extends ConfigurableNodeFactory<PathToUriNodeModel> {
+public class PathToUriVariableNodeFactory extends ConfigurableNodeFactory<PathToUriVariableNodeModel> {
 
     @Override
-    public PathToUriNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+    public PathToUriVariableNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
         final PortsConfiguration portsConfig = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new PathToUriNodeModel(portsConfig, createSettings(portsConfig));
+        return new PathToUriVariableNodeModel(portsConfig);
     }
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final var builder = new PortsConfigurationBuilder();
-        builder.addOptionalInputPortGroup(PathToUriNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME,
+        builder.addOptionalInputPortGroup(PathToUriVariableNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME,
             FileSystemPortObject.TYPE);
-        builder.addFixedInputPortGroup(PathToUriNodeConfig.DATA_TABLE_INPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
-        builder.addFixedOutputPortGroup(PathToUriNodeConfig.DATA_TABLE_OUTPUT_PORT_GRP_NAME, BufferedDataTable.TYPE);
+        builder.addFixedInputPortGroup(PathToUriVariableNodeConfig.FLOW_VARIABLE_INPUT_PORT_GRP_NAME, FlowVariablePortObject.TYPE);
+        builder.addFixedOutputPortGroup(PathToUriVariableNodeConfig.FLOW_VARIABLE_OUTPUT_PORT_GRP_NAME, FlowVariablePortObject.TYPE);
         return Optional.of(builder);
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         final PortsConfiguration portsConfiguration = creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
-        return new PathToUriNodeDialog(createSettings(portsConfiguration));
+        return new PathToUriVariableNodeDialog(portsConfiguration);
     }
 
     @Override
@@ -94,23 +94,12 @@ public final class PathToUriNodeFactory extends ConfigurableNodeFactory<PathToUr
     }
 
     @Override
-    public NodeView<PathToUriNodeModel> createNodeView(final int viewIndex, final PathToUriNodeModel nodeModel) {
+    public NodeView<PathToUriVariableNodeModel> createNodeView(final int viewIndex, final PathToUriVariableNodeModel nodeModel) {
         return null;
     }
 
     @Override
     protected boolean hasDialog() {
         return true;
-    }
-
-    /**
-     * Creates an PathToUrlNodeConfig object, which wraps the settings models for this node
-     *
-     * @param portsConfiguration The ports configuration
-     *
-     * @return An PathToUrlNodeConfig object
-     */
-    private static PathToUriNodeConfig createSettings(final PortsConfiguration portsConfiguration) {
-        return new PathToUriNodeConfig(portsConfiguration);
     }
 }

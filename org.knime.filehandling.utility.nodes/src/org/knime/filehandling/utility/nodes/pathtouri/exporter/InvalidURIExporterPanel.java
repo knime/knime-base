@@ -46,7 +46,7 @@
  * History
  *   Mar 20, 2021 (Bjoern Lohrmann, KNIME GmbH): created
  */
-package org.knime.filehandling.utility.nodes.pathtouri;
+package org.knime.filehandling.utility.nodes.pathtouri.exporter;
 
 import javax.swing.JLabel;
 
@@ -60,11 +60,15 @@ import org.knime.filehandling.core.util.GBCBuilder;
  * @author Bjoern Lohrmann, KNIME GmbH
  */
 @SuppressWarnings("serial")
-final class InvalidURIExporterPanel extends NoConfigURIExporterPanel {
+public final class InvalidURIExporterPanel extends NoConfigURIExporterPanel {
 
-    InvalidURIExporterPanel() {
+    /**
+     * Constructor.
+     *
+     * @param errorMessage error message
+     */
+    public InvalidURIExporterPanel(final String errorMessage) {
         final GBCBuilder gbc = new GBCBuilder().fillHorizontal();
-        add(new JLabel("Chosen URI format is not applicable for given file system connection or path column."),
-            gbc.build());
+        add(new JLabel(errorMessage), gbc.build());
     }
 }

@@ -120,12 +120,12 @@ final class PathToUriCellFactory extends SingleCellFactory implements Closeable 
             }
         }
 
-        final FSLocation fsLocation = ((FSLocationValue)row.getCell(m_pathColumnIdx)).getFSLocation();
+        final var fsLocation = ((FSLocationValue)row.getCell(m_pathColumnIdx)).getFSLocation();
 
         try (final FSPathProvider pathProvider =
             m_multiFSPathProviderFactory.getOrCreateFSPathProviderFactory(fsLocation).create(fsLocation)) {
 
-            final FSPath fsPath = pathProvider.getPath();
+            final var fsPath = pathProvider.getPath();
 
             if (m_failIfPathNotExists && !FSFiles.exists(fsPath)) {
                 throw new UncheckedIOException(String.format("The path '%s' does not exist.", fsPath),

@@ -46,7 +46,7 @@
  * History
  *   Jan 21, 2021 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.filehandling.utility.nodes.pathtouri;
+package org.knime.filehandling.utility.nodes.pathtouri.exporter;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ItemEvent;
@@ -72,7 +72,7 @@ import org.knime.filehandling.core.util.GBCBuilder;
  *
  * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  */
-final class URIExporterComboBox extends JPanel {
+public final class URIExporterComboBox extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -161,7 +161,12 @@ final class URIExporterComboBox extends JPanel {
         }
     }
 
-    void updateAvailableExporterFactories(final Map<URIExporterID, URIExporterFactory> exporterFactories) {
+    /**
+     * Updates UI combo box.
+     *
+     * @param exporterFactories map of exporter id to factory
+     */
+    public void updateAvailableExporterFactories(final Map<URIExporterID, URIExporterFactory> exporterFactories) {
 
         final List<URIExporterComboboxItem> items = createNewItems(exporterFactories);
 
@@ -199,8 +204,13 @@ final class URIExporterComboBox extends JPanel {
         }
     }
 
-    void setSelectedItem(final URIExporterID uriExporterID) {
-        final URIExporterComboboxItem tmpItem = new URIExporterComboboxItem(uriExporterID, null);
+    /**
+     * Set selected item.
+     *
+     * @param uriExporterID {@link URIExporterID}
+     */
+    public void setSelectedItem(final URIExporterID uriExporterID) {
+        final var tmpItem = new URIExporterComboboxItem(uriExporterID, null);
         int index = m_comboModel.getIndexOf(tmpItem);
         if (index != -1) {
             m_combobox.setSelectedIndex(index);

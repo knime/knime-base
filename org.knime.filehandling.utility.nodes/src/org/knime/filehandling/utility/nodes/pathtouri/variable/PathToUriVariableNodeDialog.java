@@ -44,15 +44,14 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 22, 2020 (Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany): created
+ *   Jan 10, 2023 (Zkriya Rakhimberdiyev): created
  */
-package org.knime.filehandling.utility.nodes.pathtouri;
+package org.knime.filehandling.utility.nodes.pathtouri.variable;
 
 import java.awt.Component;
 import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
@@ -62,42 +61,39 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.data.location.FSLocationValue;
+import org.knime.core.node.util.filter.variable.FlowVariableFilterPanel;
+import org.knime.core.node.util.filter.variable.VariableTypeFilter;
+import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 import org.knime.filehandling.core.util.GBCBuilder;
-import org.knime.filehandling.utility.nodes.pathtouri.PathToUriNodeConfig.GenerateColumnMode;
 import org.knime.filehandling.utility.nodes.pathtouri.exporter.URIExporterComboBox;
 import org.knime.filehandling.utility.nodes.pathtouri.exporter.URIExporterDialogHelper;
 import org.knime.filehandling.utility.nodes.pathtouri.exporter.URIExporterPanelParent;
 
 /**
- * Node dialog of the Path to URI node.
+ * Node dialog of the Path to URI variable node.
  *
- * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
+ * @author Zkriya Rakhimberdiyev
  */
-final class PathToUriNodeDialog extends NodeDialogPane {
+final class PathToUriVariableNodeDialog extends NodeDialogPane {
 
-    private final PathToUriNodeConfig m_config;
+    private final PathToUriVariableNodeConfig m_config;
 
-    private final DialogComponentColumnNameSelection m_pathColumnName;
+    private final FlowVariableFilterPanel m_filter;
+
+    private final DialogComponentString m_variableSuffixComponent;
 
     private final DialogComponentBoolean m_failIfPathNotExists;
 
-    private final DialogComponentBoolean m_failOnMissingValues;
-
-    private final DialogComponentButtonGroup m_generatedColumnModeComponent;
-
-    private final DialogComponentString m_appendedColumnNameComponent;
-
     private final URIExporterComboBox m_uriExporterCombo;
 
-    private final ChangeListener m_pathColumnListener = e -> {
-            refreshExporterPanels();
-            displayCurrentExporterPanel();
+    private final ChangeListener m_filterListener = e -> {
+        updateFilterConfigurationModel();
+        refreshExporterPanels();
+        displayCurrentExporterPanel();
     };
 
     private final ChangeListener m_exporterSelectionListener = e -> displayCurrentExporterPanel();
@@ -106,77 +102,57 @@ final class PathToUriNodeDialog extends NodeDialogPane {
 
     private JLabel m_exporterDescription;
 
-    /**
-     * Initialize component and attach appropriate event listeners
-     *
-     * @param nodeConfig {@link PathToUriNodeConfig} object
-     */
-    @SuppressWarnings("unchecked")
-    public PathToUriNodeDialog(final PathToUriNodeConfig nodeConfig) {
-        m_config = nodeConfig;
-
-        m_pathColumnName = new DialogComponentColumnNameSelection(nodeConfig.getPathColumnNameModel(),
-            "", m_config.getDataTablePortIndex(), FSLocationValue.class);
-        m_failIfPathNotExists = new DialogComponentBoolean(nodeConfig.getFailIfPathNotExistsModel(), "Fail if file/folder does not exist");
-        m_failOnMissingValues = new DialogComponentBoolean(nodeConfig.getFailOnMissingValuesModel(), "Fail on missing values");
-
-        m_appendedColumnNameComponent =
-            new DialogComponentString(nodeConfig.getAppendedColumnNameModel(), "", true, 30);
-        m_generatedColumnModeComponent = new DialogComponentButtonGroup(nodeConfig.getGeneratedColumnModeModel(), null,
-            true, GenerateColumnMode.values());
+    public PathToUriVariableNodeDialog(final PortsConfiguration portsConfig) {
+        m_config = new PathToUriVariableNodeConfig(portsConfig,
+            () -> getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
+        m_filter = new FlowVariableFilterPanel(new VariableTypeFilter(FSLocationVariableType.INSTANCE));
+        m_variableSuffixComponent =
+                new DialogComponentString(m_config.getVariableSuffixModel(), "Suffix added to the new variables:", true, 15);
+        m_failIfPathNotExists = new DialogComponentBoolean(m_config.getFailIfPathNotExistsModel(), "Fail if file/folder does not exist");
 
         m_uriExporterCombo = new URIExporterComboBox(m_config.getURIExporterModel());
         m_exporterDescription = new JLabel("-");
         m_exporterPanelParent = new URIExporterPanelParent();
 
-        addTab("Settings", createSettingsDialog());
+        addTab("Settings", createPanel());
     }
 
-    /**
-     * Update the panel for displaying URI Exporter specific settings, also updates the description.
-     */
-    private void refreshExporterPanels() {
-        final URIExporterDialogHelper dialogHelper = m_config.getExporterDialogHelper();
-        m_uriExporterCombo.updateAvailableExporterFactories(dialogHelper.getAvailableExporterFactories());
-        m_exporterPanelParent.updateAvailableExporterPanels(dialogHelper.getAvailableExporterPanels(),
-            "Chosen URI format is not applicable for given file system connection or path column.");
-    }
-
-    private void displayCurrentExporterPanel() {
-        final URIExporterDialogHelper dialogHelper = m_config.getExporterDialogHelper();
-        final var currExporter = m_config.getURIExporterID();
-
-        final String exporterDescription;
-        if (dialogHelper.isAvailable(currExporter)) {
-            exporterDescription = dialogHelper.getExporterMetaInfo(currExporter).getDescription();
-        } else {
-            exporterDescription = "";
-        }
-
-        m_exporterDescription.setText(String.format("<html><i>%s</i></html>", exporterDescription));
-        m_exporterPanelParent.showExporterPanel(currExporter);
-    }
-
-    private Component createSettingsDialog() {
+    private JPanel createPanel() {
         final var p = new JPanel(new GridBagLayout());
         final GBCBuilder gbc =
-            new GBCBuilder().resetPos().setWeightX(0).setWeightY(0).anchorWest().fillNone().insets(5, 5, 0, 5);
-        p.add(new JLabel("Input column: "), gbc.build());
+            new GBCBuilder().resetX().resetY().setWeightX(1).setWeightY(1).fillBoth().anchorLineStart();
+        p.add(getVariableSelectionPanel(), gbc.build());
 
-        gbc.incX();
-        p.add(m_pathColumnName.getComponentPanel(), gbc.build());
-
-        gbc.resetX().incY().setWidth(2);
-        p.add(m_failIfPathNotExists.getComponentPanel(), gbc.build());
-
-        gbc.incY();
-        p.add(m_failOnMissingValues.getComponentPanel(), gbc.build());
-
-        gbc.resetX().incY().setWeightX(1).fillHorizontal().setWidth(2);
-        p.add(createOutputColumnPanel(), gbc.build());
+        gbc.incY().setWeightY(0);
+        p.add(getOutputPanel(), gbc.build());
 
         gbc.resetX().incY().setWeightY(1).fillBoth();
         p.add(createUrlFormatPanel(), gbc.build());
+
+        return p;
+    }
+
+    private Component getVariableSelectionPanel() {
+        final var p = new JPanel(new GridBagLayout());
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Variable selection "));
+
+        final GBCBuilder gbc =
+            new GBCBuilder().resetX().resetY().setWeightX(1).setWeightY(1).fillBoth().anchorLineStart();
+        p.add(m_filter, gbc.build());
+        return p;
+    }
+
+    private JPanel getOutputPanel() {
+        final var p = new JPanel(new GridBagLayout());
+        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output "));
+
+        final GBCBuilder gbc =
+            new GBCBuilder().resetX().resetY().setWeightX(0).setWeightY(0).fillNone().anchorFirstLineStart();
+        gbc.insets(5, 5, 0, 0);
+        p.add(m_variableSuffixComponent.getComponentPanel(), gbc.build());
+
+        gbc.resetX().incY().setWidth(2).setWeightX(1);
+        p.add(m_failIfPathNotExists.getComponentPanel(), gbc.build());
 
         return p;
     }
@@ -205,42 +181,44 @@ final class PathToUriNodeDialog extends NodeDialogPane {
         return p;
     }
 
-    private JPanel createOutputColumnPanel() {
-        final var p = new JPanel(new GridBagLayout());
-        p.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Output column"));
+    private void displayCurrentExporterPanel() {
+        final URIExporterDialogHelper dialogHelper = m_config.getExporterDialogHelper();
+        final var currExporter = m_config.getURIExporterID();
 
-        GBCBuilder gbc =
-            new GBCBuilder().resetX().resetY().setWeightX(0).setWeightY(0).fillNone().anchorFirstLineStart();
-        gbc = gbc.insets(5, 5, 0, 0);
-        p.add(m_generatedColumnModeComponent.getComponentPanel(), gbc.build());
+        final String exporterDescription;
+        if (dialogHelper.isAvailable(currExporter)) {
+            exporterDescription = dialogHelper.getExporterMetaInfo(currExporter).getDescription();
+        } else {
+            exporterDescription = "";
+        }
 
-        gbc = gbc.insets(5, 0, 0, 0).incX();
-        p.add(m_appendedColumnNameComponent.getComponentPanel(), gbc.build());
+        m_exporterDescription.setText(String.format("<html><i>%s</i></html>", exporterDescription));
+        m_exporterPanelParent.showExporterPanel(currExporter);
+    }
 
-        gbc = gbc.insets(5, 0, 0, 0).incX().setWeightX(1).fillHorizontal();
-        p.add(Box.createHorizontalGlue(), gbc.build());
-
-        return p;
+    private void updateFilterConfigurationModel() {
+        m_filter.saveConfiguration(m_config.getFilterConfigurationModel());
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
+        m_filter.saveConfiguration(m_config.getFilterConfigurationModel());
+        if (m_config.getFilteredFlowVariables().isEmpty()) {
+            throw new InvalidSettingsException("No flow variables selected.");
+        }
+        m_variableSuffixComponent.saveSettingsTo(settings);
+        m_failIfPathNotExists.saveSettingsTo(settings);
         m_config.saveSettingsForDialog(settings);
-
-        m_pathColumnName.saveSettingsTo(settings);
-        m_generatedColumnModeComponent.saveSettingsTo(settings);
-        m_appendedColumnNameComponent.saveSettingsTo(settings);
     }
 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
-
         try {
-            m_pathColumnName.loadSettingsFrom(settings, specs);
-            m_generatedColumnModeComponent.loadSettingsFrom(settings, specs);
-            m_appendedColumnNameComponent.loadSettingsFrom(settings, specs);
-            m_config.loadSettingsForDialog(settings, specs);
+            m_config.loadSettingsForDialog(settings, specs, getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
+            m_filter.loadConfiguration(m_config.getFilterConfigurationModel(), getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
+            m_variableSuffixComponent.loadSettingsFrom(settings, specs);
+            m_failIfPathNotExists.loadSettingsFrom(settings, specs);
 
             settingsLoaded();
         } catch (InvalidSettingsException e) {
@@ -255,15 +233,23 @@ final class PathToUriNodeDialog extends NodeDialogPane {
 
     @Override
     public void onClose() {
-        m_config.getPathColumnNameModel().removeChangeListener(m_pathColumnListener);
+        m_filter.removeChangeListener(m_filterListener);
         m_config.getURIExporterModel().removeChangeListener(m_exporterSelectionListener);
+    }
+
+    private void refreshExporterPanels() {
+        final URIExporterDialogHelper dialogHelper = m_config.getExporterDialogHelper();
+        dialogHelper.initExporterConfigsAndPanels();
+        m_uriExporterCombo.updateAvailableExporterFactories(dialogHelper.getAvailableExporterFactories());
+        m_exporterPanelParent.updateAvailableExporterPanels(dialogHelper.getAvailableExporterPanels(),
+            "Chosen URI format is not applicable for given file system connection or flow variables.");
     }
 
     @Override
     public void onOpen() {
         refreshExporterPanels();
         displayCurrentExporterPanel();
-        m_config.getPathColumnNameModel().addChangeListener(m_pathColumnListener);
+        m_filter.addChangeListener(m_filterListener);
         m_config.getURIExporterModel().addChangeListener(m_exporterSelectionListener);
     }
 }

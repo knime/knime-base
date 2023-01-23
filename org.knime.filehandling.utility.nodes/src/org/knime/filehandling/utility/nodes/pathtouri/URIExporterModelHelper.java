@@ -44,54 +44,193 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 23, 2021 (Bjoern Lohrmann, KNIME GmbH): created
+ *   Jan 20, 2023 (Zkriya Rakhimberdiyev): created
  */
 package org.knime.filehandling.utility.nodes.pathtouri;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.uriexport.URIExporter;
-import org.knime.filehandling.core.connections.uriexport.URIExporterConfig;
-import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.DefaultFSLocationSpec;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.connections.uriexport.URIExporterID;
+import org.knime.filehandling.core.data.location.FSLocationValue;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
+import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.util.FSLocationColumnUtils;
+import org.knime.filehandling.utility.nodes.pathtouri.exporter.AbstractURIExporterModelHelper;
 
 /**
- * Concrete implementation of the {@link AbstractURIExporterHelper} to assist in the node model.
+ * Concrete implementation of the {@link AbstractURIExporterModelHelper} to assist in the node model.
  *
  * @author Ayaz Ali Qureshi, KNIME GmbH, Berlin, Germany
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class URIExporterModelHelper extends AbstractURIExporterHelper {
+final class URIExporterModelHelper extends AbstractURIExporterModelHelper {
 
-    private NodeSettingsRO m_nodeSettings;
+    /**
+     * Model that holds the currently chosen path column.
+     */
+    private final SettingsModelString m_selectedColumn;
 
-    URIExporterModelHelper(final SettingsModelString selectedColumn, //
-        final SettingsModelString selectedUriExporterModel, //
-        final int fileSystemPortIndex, //
-        final int dataTablePortIndex) {
+    /**
+     * Index of the data table port.
+     */
+    private final int m_dataTablePortIndex;
 
-        super(selectedColumn, selectedUriExporterModel, fileSystemPortIndex, dataTablePortIndex);
+    URIExporterModelHelper(final SettingsModelString selectedColumn, final SettingsModelString selectedUriExporterModel,
+        final int fileSystemPortIndex, final int dataTablePortIndex) {
+        super(selectedUriExporterModel, fileSystemPortIndex);
+
+        CheckUtils.checkArgument(dataTablePortIndex != -1, "Data table port index is required.");
+
+        m_selectedColumn = selectedColumn;
+        m_dataTablePortIndex = dataTablePortIndex;
     }
 
-    public void saveSettingsTo(final NodeSettingsWO settings) {
-        if (m_nodeSettings != null) {
-            m_nodeSettings.copyTo(settings);
+    @Override
+    public void validate(final Consumer<StatusMessage> warningMessageConsumer, final boolean overwriteInvalidSettings)
+            throws InvalidSettingsException {
+        validateFileSystemPort();
+        validatePathColumn(warningMessageConsumer, overwriteInvalidSettings);
+        validatePathColumnIsUsable(warningMessageConsumer);
+        validateURIExporter(warningMessageConsumer, overwriteInvalidSettings);
+    }
+
+    /**
+     * Validates that the input column is set, exists and is a path column. A column will be auto-guessed if either the
+     * currently selected column is blank, or if it does not exist in the input table and overwriteInvalidSettings is
+     * true.
+     *
+     * @param warningMessageConsumer Consumes warning messages about column auto-guessing.
+     * @param overwriteInvalidSettings Whether a non-existent column should be overriden by autoguessing.
+     * @throws InvalidSettingsException If no column could be guessed, either because there is none, or when
+     *             overwriteInvalidSettings is false.
+     */
+    private void validatePathColumn(final Consumer<StatusMessage> warningMessageConsumer,
+        final boolean overwriteInvalidSettings) throws InvalidSettingsException {
+
+        // empty settings are always auto-guessed
+        if (StringUtils.isBlank(m_selectedColumn.getStringValue())) {
+            autoGuessPathColumn(getDataTableSpec(), warningMessageConsumer);
+            return;
+        }
+
+        String errorMessage = null;
+        final DataColumnSpec pathColSpec = getPathColumnSpec();
+        if (pathColSpec == null) {
+            errorMessage =
+                String.format("The selected column '%s' is not part of the input", m_selectedColumn.getStringValue());
+        } else if (!pathColSpec.getType().isCompatible(FSLocationValue.class)) {
+            errorMessage =
+                String.format("The selected column '%s' has the wrong type", m_selectedColumn.getStringValue());
+        }
+
+        if (errorMessage != null) {
+            if (overwriteInvalidSettings) {
+                autoGuessPathColumn(getDataTableSpec(), warningMessageConsumer);
+            } else {
+                throw new InvalidSettingsException(errorMessage);
+            }
+        }
+    }
+
+    /**
+     * Automatically select the first column in the input table which matches the expected type.
+     *
+     * @param inSpecs An array of {@link PortObjectSpec}s.
+     * @throws InvalidSettingsException If no column is found with desired data type.
+     */
+    private void autoGuessPathColumn(final DataTableSpec inputTableSpec,
+        final Consumer<StatusMessage> warningMessageConsumer) throws InvalidSettingsException {
+        m_selectedColumn.setStringValue(inputTableSpec.stream()//
+            .filter(dcs -> dcs.getType().isCompatible(FSLocationValue.class))//
+            .map(DataColumnSpec::getName)//
+            .findFirst()//
+            .orElseThrow(() -> new InvalidSettingsException("No path column available"))//
+        );
+        warningMessageConsumer.accept(
+            DefaultStatusMessage.mkWarning("Auto-guessed input column '%s'", m_selectedColumn.getStringValue()));
+    }
+
+    /**
+     * Validates that the configured path column is compatible with the (optional) port object file system connection.
+     *
+     * @param warningMessageConsumer
+     * @throws InvalidSettingsException
+     */
+    private void validatePathColumnIsUsable(final Consumer<StatusMessage> warningMessageConsumer)
+        throws InvalidSettingsException {
+
+        final Optional<String> warningMsg =
+            FSLocationColumnUtils.validateFSLocationColumn(getPathColumnSpec(), getFileSystemPortObjectSpec());
+        if (warningMsg.isPresent()) {
+            warningMessageConsumer.accept(DefaultStatusMessage.mkWarning(warningMsg.get()));
+        }
+
+        // FSLocationColumnUtils.validateFSLocationColumn() only warns when the column metadata contains a CONNECTED
+        // FSLocationSpec, but no port object connection is available. However we need to fail because we cannot open
+        // the dialog.
+        if (m_fileSystemPortIndex == -1) {
+            final FSLocationSpec connectedSpec = getPathColumnSpec().getMetaDataOfType(FSLocationValueMetaData.class) //
+                .orElseThrow(IllegalStateException::new) //
+                .getFSLocationSpecs() //
+                .stream() //
+                .filter(spec -> spec.getFSCategory() == FSCategory.CONNECTED) //
+                .findAny() //
+                .orElse(null);
+
+            if (connectedSpec != null) {
+                throw new InvalidSettingsException(String.format(
+                    "The selected column '%s' seems to contain a path referencing a file system that requires to be connected (%s).", //
+                    m_selectedColumn.getStringValue(), //
+                    connectedSpec.getFileSystemSpecifier().orElse("")));
+            }
         }
     }
 
     @Override
-    void loadSettingsFrom(final NodeSettingsRO exporterConfig) throws InvalidSettingsException {
-        //store a local copy so that settings can be loaded
-        m_nodeSettings = exporterConfig;
+    protected String getUnsupportedExporterMessage(final URIExporterID exporterID) {
+        return String.format("The chosen URL format '%s' is not supported by the file system(s) in column '%s'.", //
+            exporterID, getPathColumnSpec().getName());
     }
 
-    URIExporter createExporter(final FSConnection connection) throws InvalidSettingsException {
-        final URIExporterFactory factory = connection.getURIExporterFactory(getSelectedExporterId());
-        final URIExporterConfig config = factory.initConfig();
-        config.loadSettingsForExporter(m_nodeSettings);
-        config.validate();
-        return factory.createExporter(config);
+    @Override
+    protected Set<FSLocationSpec> getFSLocationSpecs() {
+        if (getFileSystemPortObjectSpec() != null) {
+            return Set.of(getFileSystemPortObjectSpec().getFSLocationSpec());
+        }
+        final DataColumnSpec pathColSpec = getPathColumnSpec();
+        final Set<DefaultFSLocationSpec> defaultSpecs =
+                pathColSpec.getMetaDataOfType(FSLocationValueMetaData.class) //
+                    .orElseThrow(IllegalStateException::new) //
+                    .getFSLocationSpecs();
+
+        return defaultSpecs.stream().map(FSLocationSpec.class::cast).collect(Collectors.toSet()); //
     }
+
+   /**
+    * @return the {@link DataTableSpec} of the ingoing data table.
+    */
+   public DataTableSpec getDataTableSpec() {
+       return (DataTableSpec)m_portObjectSpecs[m_dataTablePortIndex];
+   }
+
+   /**
+    * @return DataColumnSpec of the selected Path column
+    */
+   public DataColumnSpec getPathColumnSpec() {
+       return getDataTableSpec().getColumnSpec(m_selectedColumn.getStringValue());
+   }
 }
