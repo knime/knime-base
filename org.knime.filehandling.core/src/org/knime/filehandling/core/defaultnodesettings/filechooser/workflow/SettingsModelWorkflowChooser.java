@@ -70,6 +70,7 @@ import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemSpecificConfig;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.LocalSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
@@ -98,8 +99,10 @@ public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFil
                 // For callee selection, only mount point relative and workflow make sense
                 // - the callee must not be in the workflow data area
                 // - space relative does not make sense, as we would use a space connector, i.e., the CONNECTED case
-                hasFSPort -> new RelativeToSpecificConfig(!hasFSPort, RelativeTo.MOUNTPOINT,
-                    Set.of(RelativeTo.MOUNTPOINT, RelativeTo.WORKFLOW, RelativeTo.SPACE))));
+                hasFSPort -> new RelativeToSpecificConfig(!hasFSPort, RelativeTo.SPACE,
+                    Set.of(RelativeTo.MOUNTPOINT, RelativeTo.WORKFLOW, RelativeTo.SPACE)),
+                // LOCAL enabled when connection port is not present
+                hasFSPort -> new LocalSpecificConfig(!hasFSPort)));
     }
 
     /**
