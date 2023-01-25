@@ -578,7 +578,7 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
                     RowToColumnHeaderNodeModel::valueToString)) {
 
                 for (ConvertingCursorRead<String>.WrappedRow row; (row = read.next()) != null;) {
-                    builder.addRowToTable(converter.convert(row.getRowKey().toString(), row));
+                    builder.addRowToTable(converter.convert(row.getRowKey().getString(), row));
                     processed++;
                     progressTick(exec, processed, numRows);
                 }
