@@ -68,7 +68,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
@@ -79,8 +78,6 @@ import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(StringReplacerNodeModel.class);
 
     private final StringReplacerSettings m_settings = new StringReplacerSettings();
 
@@ -170,7 +167,7 @@ public class StringReplacerNodeModel extends SimpleStreamableFunctionNodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (m_settings.columnName() == null) {
             m_settings.columnName(getLastStringColumn(inSpecs[0]));
-            LOGGER.warn("No column selected, using '" + m_settings.columnName() + "'.");
+            setWarningMessage("No column selected, using '" + m_settings.columnName() + "'.");
         } else if (inSpecs[0].findColumnIndex(m_settings.columnName()) == -1) {
             throw new InvalidSettingsException("The previously selected column '" + m_settings.columnName()
                 + "' is not available. " + "Please reconfigure the node.");
