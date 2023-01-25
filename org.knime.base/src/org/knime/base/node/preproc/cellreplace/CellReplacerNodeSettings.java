@@ -192,9 +192,9 @@ public class CellReplacerNodeSettings {
     private static final SettingsModelBoolean
         createRetainColumnPropertiesModel(final SettingsModelString noMatchPolicyModel) {
         final var result = new SettingsModelBoolean("retainColumnProperties", true);
-        noMatchPolicyModel.addChangeListener(
-            e -> result.setEnabled(Objects.equals(noMatchPolicyModel.getStringValue(), NoMatchPolicy.MISSING.name())));
-        result.setEnabled(Objects.equals(noMatchPolicyModel.getStringValue(), NoMatchPolicy.MISSING.name()));
+        noMatchPolicyModel.addChangeListener(e -> result
+            .setEnabled(Objects.equals(noMatchPolicyModel.getStringValue(), NoMatchPolicy.MISSING.toString())));
+        result.setEnabled(Objects.equals(noMatchPolicyModel.getStringValue(), NoMatchPolicy.MISSING.toString()));
         return result;
     }
 
