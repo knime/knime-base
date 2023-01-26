@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./extract_col_header.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+<knimeNode icon="./extract_col_header.png" type="Manipulator"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Extract Column Header</name>
     
     <shortDescription>
@@ -20,8 +21,13 @@
         is to be set in the corresponding text field. If not selected, the original column names will be used in the
         output table (the second output will be a reference to the input table.) </option>
         <option name="Prefix">Prefix of the new column names</option>
-        <option name="Output Format for Column Names">Choice between a single row (default) or multiple rows with single
-            column for the first outport.</option>
+        <option name="Output Format for Column Names">
+        	The format in which the top output table provides the column names:
+        	<ul>
+        		<li>Row: The column names are output as a single row with a column per name</li>
+        		<li>Column: The column names are output as a single column with a row per name</li>
+        	</ul>
+        </option>
         <option name="Selected column type">Select the type of the column to process, e.g. only use double-compatible
             columns.</option>
     </fullDescription>

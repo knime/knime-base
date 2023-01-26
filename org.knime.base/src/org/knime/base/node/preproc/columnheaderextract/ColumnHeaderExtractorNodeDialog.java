@@ -68,7 +68,9 @@ import org.knime.core.node.port.PortObjectSpec;
  * <code>NodeDialog</code> for the "ColumnHeaderExtractor" Node.
  *
  * @author Bernd Wiswedel
+ * @deprecated the node now has a web UI
  */
+@Deprecated
 public final class ColumnHeaderExtractorNodeDialog extends DefaultNodeSettingsPane {
 
     /**

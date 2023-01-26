@@ -50,7 +50,6 @@ package org.knime.base.node.preproc.columnheaderextract;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,6 +57,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -82,6 +82,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.util.ColumnFilter;
 import org.knime.core.node.util.DataValueColumnFilter;
+import org.knime.core.webui.node.dialog.impl.Schema;
 
 /**
  * This is the model implementation of ColumnHeaderExtractor.
@@ -90,17 +91,26 @@ import org.knime.core.node.util.DataValueColumnFilter;
  * @author Bernd Wiswedel
  * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 public class ColumnHeaderExtractorNodeModel extends NodeModel {
+
+    static final String CFG_TRANSPOSE_COL_HEADER = "transposeColHeader";
+
+    static final String CFG_COLTYPE = "coltype";
 
     /** Selected column type. */
     enum ColType {
         /** All columns. */
+        @Schema(title = "All")
         ALL(DataValue.class),
         /** String-compatible columns. */
+        @Schema(title = "String")
         STRING(StringValue.class),
         /** Integer-compatible columns. */
+        @Schema(title = "Integer")
         INTEGER(IntValue.class),
         /** Double-compatible columns. */
+        @Schema(title = "Double")
         DOUBLE(DoubleValue.class);
 
         private final ColumnFilter m_filter;
@@ -113,6 +123,14 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
         String displayString() {
             final String upper = name();
             return upper.charAt(0) + upper.substring(1).toLowerCase(Locale.US);
+        }
+
+        static ColType fromDisplayString(final String displayString) throws InvalidSettingsException {
+            return Stream.of(values())
+                    .filter(ct -> ct.displayString().equals(displayString))
+                    .findFirst()
+                    .orElseThrow(() -> new InvalidSettingsException("Unable to get col type for \""
+                            + displayString + "\""));
         }
 
         /** @return associated filter. */
@@ -155,12 +173,7 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
         // look up filter type
         final var colTypeStr = m_colTypeFilter.getStringValue();
-        final ColumnFilter filter = Arrays.stream(ColType.values())
-                .filter(ct -> ct.displayString().equals(colTypeStr))
-                .findFirst()
-                .orElseThrow(() -> new InvalidSettingsException("Unable to get col type for \""
-                        + m_colTypeFilter.getStringValue() + "\""))
-                .getFilter();
+        final ColumnFilter filter = ColType.fromDisplayString(colTypeStr).getFilter();
 
         // use a linked hash map here to preserve column order when renaming
         final LinkedHashMap<Integer, String> rename = new LinkedHashMap<>();
@@ -348,12 +361,12 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     /** @return new settings model for column filter type. */
     static SettingsModelString createColTypeFilter() {
-        return new SettingsModelString("coltype", ColType.ALL.displayString());
+        return new SettingsModelString(CFG_COLTYPE, ColType.ALL.displayString());
     }
 
     /** @return new settings model for transpose col header property. */
     static SettingsModelBoolean createTransposeColHeader() {
-        return new SettingsModelBoolean("transposeColHeader", false);
+        return new SettingsModelBoolean(CFG_TRANSPOSE_COL_HEADER, false);
     }
 
 }

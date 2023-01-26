@@ -1,0 +1,47 @@
+{
+    "elements": [
+        {
+            "type": "Section",
+            "label": "Output column names",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/replaceColHeader"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/unifyHeaderPrefix",
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                          "scope": "#/properties/model/properties/replaceColHeader",
+                          "schema": {
+                            "const": false
+                          }
+                        }
+                      }
+                }
+            ]
+        },
+        {
+            "type": "Section",
+            "label": "Other options",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/transposeColHeader",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/colTypeFilter",
+                    "options": {
+                        "format": "valueSwitch"
+                    }
+                }
+            ]
+        }
+    ]
+}

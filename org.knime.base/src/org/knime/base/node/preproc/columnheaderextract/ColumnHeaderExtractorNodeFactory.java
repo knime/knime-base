@@ -50,6 +50,10 @@ package org.knime.base.node.preproc.columnheaderextract;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  * <code>NodeFactory</code> for the "ColumnHeaderExtractor" Node.
@@ -57,37 +61,42 @@ import org.knime.core.node.NodeView;
  *
  * @author Bernd Wiswedel
  */
-public class ColumnHeaderExtractorNodeFactory extends NodeFactory<ColumnHeaderExtractorNodeModel> {
+@SuppressWarnings("restriction")
+public class ColumnHeaderExtractorNodeFactory extends NodeFactory<ColumnHeaderExtractorNodeModel>
+    implements NodeDialogFactory {
 
-    /** {@inheritDoc} */
     @Override
     public ColumnHeaderExtractorNodeModel createNodeModel() {
         return new ColumnHeaderExtractorNodeModel();
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
-    public NodeView<ColumnHeaderExtractorNodeModel> createNodeView( final int viewIndex,
+    public NodeView<ColumnHeaderExtractorNodeModel> createNodeView(final int viewIndex,
         final ColumnHeaderExtractorNodeModel nodeModel) {
         throw new IllegalStateException("no view");
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new ColumnHeaderExtractorNodeDialog();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnHeaderExtractorNodeSettings.class);
     }
 
 }
