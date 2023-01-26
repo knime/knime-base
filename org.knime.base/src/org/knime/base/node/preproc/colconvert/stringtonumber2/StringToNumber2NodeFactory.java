@@ -50,23 +50,26 @@ package org.knime.base.node.preproc.colconvert.stringtonumber2;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
- * NodeFactory for the String to Number Node that converts strings to double
- * values.
+ * NodeFactory for the String to Number Node that converts strings to double values.
  *
  * @author cebron, University of Konstanz
  * @since 4.0
  */
-public class StringToNumber2NodeFactory extends
-        NodeFactory<StringToNumber2NodeModel> {
+@SuppressWarnings("restriction")
+public class StringToNumber2NodeFactory extends NodeFactory<StringToNumber2NodeModel> implements NodeDialogFactory {
 
     /**
      * {@inheritDoc}
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new StringToNumber2NodeDialog();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
     }
 
     /**
@@ -81,8 +84,8 @@ public class StringToNumber2NodeFactory extends
      * {@inheritDoc}
      */
     @Override
-    public NodeView<StringToNumber2NodeModel> createNodeView(
-            final int viewIndex, final StringToNumber2NodeModel nodeModel) {
+    public NodeView<StringToNumber2NodeModel> createNodeView(final int viewIndex,
+        final StringToNumber2NodeModel nodeModel) {
         return null;
     }
 
@@ -100,6 +103,16 @@ public class StringToNumber2NodeFactory extends
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.0
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, StringToNumber2NodeSettings.class);
     }
 
 }

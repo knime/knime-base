@@ -1,0 +1,47 @@
+{
+	"elements": [
+		{
+			"type": "Section",
+			"label": "Parsing options",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/parseType",
+					"options": {
+						"format": "list"
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/decimalSep"
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/thousandsSep"
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/genericParse"
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/failOnError"
+				}
+			]
+		},
+		{
+			"type": "Section",
+			"label": "Column selection",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/inclCols",
+					"label": "",
+					"options": {
+						"format": "columnFilter"
+					}
+				}
+			]
+		}
+	]
+}

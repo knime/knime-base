@@ -312,7 +312,8 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
         final SimpleStreamableOperatorInternals emptyInternals) throws InvalidSettingsException {
         int[] indices = findColumnIndices(spec);
         final MessageBuilder messageBuilder = createMessageBuilder();
-        ConverterFactory converterFac = new ConverterFactory(indices, spec, m_parseType, messageBuilder, emptyInternals);
+        ConverterFactory converterFac =
+            new ConverterFactory(indices, spec, m_parseType, messageBuilder, emptyInternals);
         ColumnRearranger colre = new ColumnRearranger(spec);
         String[] inclcols = getInclCols(spec);
         if (inclcols.length == 0) {
@@ -565,6 +566,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
 
         /**
          * Handles the number parse exception, either by failing the execution or by recording the the error.
+         *
          * @param column Column index
          * @param row Row
          * @param value DataCell value at which the parsing failed
@@ -572,12 +574,12 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
          *
          * @throws KNIMERuntimeException if fail on error is set...
          */
-        private void handleParseException(final DataRow row, final int column,
-            final String value, final Exception e) throws KNIMERuntimeException {
+        private void handleParseException(final DataRow row, final int column, final String value, final Exception e)
+            throws KNIMERuntimeException {
             String columnName = m_spec.getColumnSpec(column).getName();
-            Supplier<String> message = () -> String.format(
-                "%s in cell [\"%s\", column \"%s\", row %d] can not be transformed into a number", //
-                value == null ? "<null>" : ("\"" + StringUtils.abbreviate(value, 15) + "\""), //
+            Supplier<String> message =
+                () -> String.format("%s in cell [\"%s\", column \"%s\", row %d] can not be transformed into a number",
+                    value == null ? "<null>" : ("\"" + StringUtils.abbreviate(value, 15) + "\""), //
                     StringUtils.abbreviate(row.getKey().getString(), 15), //
                     columnName, //
                     m_rowIndex + 1); // messages to the user are "number based"

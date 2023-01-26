@@ -74,7 +74,6 @@ public class StringToNumber2NodeModel extends AbstractStringToNumberNodeModel<Se
         super(createInclModel());
     }
 
-
     /**
      * {@inheritDoc}
      */
