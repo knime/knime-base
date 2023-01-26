@@ -78,10 +78,13 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
 
     @Schema( //
         title = "Matching criteria", //
-        description = "Select criteria for matching the row. "
-            + "The matching criteria \"Equals\" compares the value of the cell to a given search pattern. "
-            + "The matching criteria \"Missing\" only matches rows that have a missing value at the selected column. "
-            + "The matching criteria \"Empty\" matches rows that have an empty or missing value at the selected column." //
+        description = "Select criteria for matching the row:"
+                + "<ul>"
+                + "<li><b>Equals:</b> compares the value of the cell to a given search pattern.</li>"
+                + "<li><b>Missing:</b> only matches rows that have a missing value at the selected column.</li>"
+                + "<li><b>Empty:</b> matches rows that have an empty or missing value at the selected column. "
+                + "Strings and Row IDs containing only whitespace characters will also match.</li>"
+                + "</ul>"//
     )
     MatchingCriteria m_matchingCriteria = MatchingCriteria.EQUALS;
 

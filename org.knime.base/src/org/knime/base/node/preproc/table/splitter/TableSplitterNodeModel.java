@@ -93,9 +93,6 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
     private static final String ROWID_MISSING_CRITERIA_WARNING =
         "Selected matching criteria \"Missing\" for RowID. This will never match because RowID cannot be missing.";
 
-    private static final String ROWID_EMPTY_CRITERIA_WARNING =
-        "Selected matching criteria \"Empty\" for RowID. This will never match because RowID cannot be empty or missing.";
-
     private static final String SELECTED_COLUMN_MISSING_ERROR =
         "The selected column \"%s\" is not available. Please re-configure the node.";
 
@@ -133,11 +130,6 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
         // Warning if RowID is selected and the matching criteria is "Missing"
         if (rowidSelected && settings.m_matchingCriteria == MatchingCriteria.MISSING) {
             setWarningMessage(ROWID_MISSING_CRITERIA_WARNING);
-        }
-
-        // Warning if RowID is selected and the matching criteria is "Empty"
-        if (rowidSelected && settings.m_matchingCriteria == MatchingCriteria.EMPTY) {
-            setWarningMessage(ROWID_EMPTY_CRITERIA_WARNING);
         }
 
         // Output two tables with the same spec as the input table
@@ -293,6 +285,8 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
         if (ROWID_PLACEHOLDER.equals(settings.m_lookupColumn)) {
             if (settings.m_matchingCriteria == MatchingCriteria.EQUALS) {
                 return row -> settings.m_searchPattern.equals(row.getRowKey().getString());
+            } else if (settings.m_matchingCriteria == MatchingCriteria.EMPTY) {
+                return row -> row.getRowKey().getString().isBlank();
             } else {
                 // NB: We show a warning in configure that this will never match
                 return row -> false;
