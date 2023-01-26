@@ -66,7 +66,7 @@ import org.knime.core.data.def.DoubleCell;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @noreference This class is not intended to be referenced by clients.
  */
-public class Average<V extends DataValue> implements Accumulator<V, DoubleValue> {
+public class AverageNumeric<V extends DataValue> implements Accumulator<V, DoubleValue> {
 
     private double m_mean;
     private long m_count;
@@ -75,14 +75,25 @@ public class Average<V extends DataValue> implements Accumulator<V, DoubleValue>
     private boolean m_shortCircuit;
 
     /**
-     * Create a new average accumulator for types which are double-compatible.
+     * Creates a new average accumulator for a given supported type according to {@link #supportsDataType(DataType)}.
      *
-     * @param inputType type of input data to average
+     * @param inputType type to create sum accumulator for
+     * @throws IllegalArgumentException if the given type is not supported according to
+     *   {@link #supportsDataType(DataType)}
      */
-    public Average(final DataType inputType) {
-        if (!inputType.isCompatible(DoubleValue.class)) {
+    public AverageNumeric(final DataType inputType) {
+        if (!supportsDataType(inputType)) {
             throw new IllegalArgumentException("Average cannot aggregate data not compatible with double values.");
         }
+    }
+
+    /**
+     * Checks whether the accumulator supports a given data type, i.e. provides a type-specific accumulator.
+     * @param t type to test
+     * @return {@code true} if a type-specific accumulator exists, {@code false} otherwise
+     */
+    public static boolean supportsDataType(final DataType t) {
+        return t.isCompatible(DoubleValue.class);
     }
 
     @Override

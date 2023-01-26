@@ -91,8 +91,8 @@ final class AccumulatorsTest {
     @Test
     void testAverage() {
         // test "failure" conditions
-        assertThrows(IllegalArgumentException.class, () -> new Average<>(StringCell.TYPE));
-        final var avg = new Average<DoubleValue>(DoubleCell.TYPE);
+        assertThrows(IllegalArgumentException.class, () -> new AverageNumeric<>(StringCell.TYPE));
+        final var avg = new AverageNumeric<DoubleValue>(DoubleCell.TYPE);
         assertEquals(DoubleCell.TYPE, avg.getResultType(), "Average result type should be Double");
         assertEquals(0, avg.getResult().get().getDoubleValue(), "Initial average should be 0");
         assertNotEquals(Optional.empty(), avg.getResult(), "Average result should never be empty");
@@ -127,7 +127,7 @@ final class AccumulatorsTest {
         assertEquals(mean.getResult(), avg.getResult().get().getDoubleValue(), "Incorrect average result");
     }
 
-    private static void assertAverage(final Average<DoubleValue> avg, final boolean[] expectedApplyResults,
+    private static void assertAverage(final AverageNumeric<DoubleValue> avg, final boolean[] expectedApplyResults,
         final double... values) {
         // current implementation used in MeanOperator
         final var mean = new Mean();
@@ -149,9 +149,9 @@ final class AccumulatorsTest {
     @Test
     void testSum() {
         // test "failure" conditions and overflow behavior
-        assertThrows(IllegalArgumentException.class, () -> new Sum<>(StringCell.TYPE));
+        assertThrows(IllegalArgumentException.class, () -> new SumNumeric<>(StringCell.TYPE));
 
-        final var iSum = new Sum<IntValue>(IntCell.TYPE);
+        final var iSum = new SumNumeric<IntValue>(IntCell.TYPE);
         assertEquals(IntCell.TYPE, iSum.getResultType(), "Incorrect result type");
         assertEquals(0, iSum.getResult().get().getIntValue(), "Incorrect initial value");
         iSum.reset();
@@ -164,7 +164,7 @@ final class AccumulatorsTest {
         assertEquals(Optional.empty(), iSum.getResult(), "Incorrect result after result overflow");
 
 
-        final var lSum = new Sum<LongValue>(LongCell.TYPE);
+        final var lSum = new SumNumeric<LongValue>(LongCell.TYPE);
         assertEquals(LongCell.TYPE, lSum.getResultType(), "Incorrect result type");
         assertEquals(0, lSum.getResult().get().getLongValue(), "Incorrect initial value");
         lSum.reset();
@@ -175,7 +175,7 @@ final class AccumulatorsTest {
         assertEquals(Optional.empty(), lSum.getResult(), "Incorrect result after result overflow");
 
 
-        final var dSum = new Sum<DoubleValue>(DoubleCell.TYPE);
+        final var dSum = new SumNumeric<DoubleValue>(DoubleCell.TYPE);
         assertEquals(DoubleCell.TYPE, dSum.getResultType(), "Incorrect result type");
         assertEquals(0, dSum.getResult().get().getDoubleValue(), "Incorrect initial value");
         dSum.reset();
@@ -211,9 +211,9 @@ final class AccumulatorsTest {
     @Test
     void testMultiplyTypes() {
 
-        assertThrows(IllegalArgumentException.class, () -> new Multiply<>(StringCell.TYPE, IntCell.TYPE),
+        assertThrows(IllegalArgumentException.class, () -> new MultiplyNumeric<>(StringCell.TYPE, IntCell.TYPE),
             "Supports only numeric cells");
-        assertThrows(IllegalArgumentException.class, () -> new Multiply<>(IntCell.TYPE, StringCell.TYPE),
+        assertThrows(IllegalArgumentException.class, () -> new MultiplyNumeric<>(IntCell.TYPE, StringCell.TYPE),
             "Supports only numeric cells");
 
         final var types = new DataType[][] {
@@ -231,7 +231,7 @@ final class AccumulatorsTest {
         };
 
         for (final var pair : types) {
-            final var op = assertDoesNotThrow(() -> new Multiply<>(pair[0], pair[1]));
+            final var op = assertDoesNotThrow(() -> new MultiplyNumeric<>(pair[0], pair[1]));
             assertEquals(pair[2], op.getResultDataType(),
                 () -> String.format("Incorrect result type %s for input types %s and %s", pair[2], pair[0], pair[1]));
         }

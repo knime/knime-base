@@ -72,15 +72,17 @@ import org.knime.base.node.preproc.groupby.ColumnNamePolicy;
 import org.knime.base.node.preproc.groupby.GroupByNodeModel;
 import org.knime.base.node.preproc.groupby.GroupByTable;
 import org.knime.base.node.preproc.groupby.MemoryGroupByTable;
-import org.knime.base.node.preproc.rowagg.aggregation.Average;
+import org.knime.base.node.preproc.rowagg.aggregation.AverageNumeric;
 import org.knime.base.node.preproc.rowagg.aggregation.DataValueAggregate;
-import org.knime.base.node.preproc.rowagg.aggregation.Multiply;
-import org.knime.base.node.preproc.rowagg.aggregation.Sum;
+import org.knime.base.node.preproc.rowagg.aggregation.MultiplyNumeric;
+import org.knime.base.node.preproc.rowagg.aggregation.SumNumeric;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.data.IntValue;
+import org.knime.core.data.LongValue;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.LongCell;
@@ -147,6 +149,32 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         R apply(final T t, final U u, final V v);
     }
 
+    /**
+     * Predicate to filter for columns that can be aggregated columns,
+     * i.e. columns compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
+     * @param t aggregated data type
+     */
+    static boolean isSupportedAsAggregatedColumn(final DataType t) {
+        // COUNT, MIN, MAX trivially support all data types
+        return SumNumeric.supportsDataType(t) && AverageNumeric.supportsDataType(t);
+    }
+
+    /**
+     * Predicate to filter for columns that can be weight columns,
+     * i.e. columns compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
+     * @param w weight data type
+     */
+    static boolean isSupportedAsWeightColumn(final DataType w) {
+        // COUNT, MIN, MAX do not provide a weighted version
+
+        // Since this function is called by a ChoicesProvider which only checks one column,
+        // we effectively have a hole in our types we need to check. But if this weight column alone is not supported,
+        // it cannot be supported in conjunction with another column.
+        final var l = DataType.getMissingCell().getType();
+        return MultiplyNumeric.supportsDataTypes(l, w);
+    }
+
+
     enum AggregationFunction {
         @Schema(title = "Occurrence count")
         COUNT(null, null),
@@ -159,7 +187,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                     + "limits of the column's data type (numeric overflow).")
                 // Use double since int and long are both compatible with it
                 .withSupportedClass(DoubleValue.class)
-                .withAggregate(Sum::new)
+                .withAggregate(SumNumeric::new)
                 .build(gs, os),
             // weighted aggregate
             (weight, gs, os) -> DataValueAggregate.create()
@@ -169,8 +197,8 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                     + "limits of the column's data type (numeric overflow) or any of the data or weight cells are "
                     + "missing.")
                 .withSupportedClass(DoubleValue.class)
-                .withAggregate(Sum::new)
-                .withWeighting(weight, Multiply::new)
+                .withAggregate(SumNumeric::new)
+                .withWeighting(weight, MultiplyNumeric::new)
                 .build(gs, os)
         ),
         @Schema(title = "Average")
@@ -180,7 +208,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                     "Calculates the average (arithmetic mean) per group, ignoring missing cells in the input.")
                 // Use double since int and long are both compatible with it
                 .withSupportedClass(DoubleValue.class)
-                .withAggregate(Average::new)
+                .withAggregate(AverageNumeric::new)
                 .build(gs, os),
             // weighted aggregate
             (weight, gs, os) -> DataValueAggregate.create()
@@ -188,8 +216,8 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                     "Calculates the weighted average per group. If any of the data or weight cells are missing, "
                     + "the result is not added to the aggregate.")
                 .withSupportedClass(DoubleValue.class)
-                .withAggregate(Average::new)
-                .withWeighting(weight, Multiply::new)
+                .withAggregate(AverageNumeric::new)
+                .withWeighting(weight, MultiplyNumeric::new)
                 .build(gs, os)
         ),
         @Schema(title = "Minimum")
@@ -375,15 +403,16 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         }
 
         final var weightColumn = getEffectiveWeightColumn(settings);
+
         final var rowAgg = new RowAggregator(agg, groupByColumn.orElse(null), aggregatedColumns.orElse(null),
             weightColumn.orElse(null));
 
         final var groupByColAsList = rowAgg.getGroupByColumn().stream().collect(Collectors.toList());
-        final var gs = createGlobalSettingsBuilder()
-                .setGroupColNames(groupByColAsList)
-                .setDataTableSpec(origSpec).build();
+        final var groupByGlobalSettings = createGlobalSettingsBuilder()
+                .setDataTableSpec(origSpec)
+                .setGroupColNames(groupByColAsList).build();
         // we have at least one column to aggregate, except for COUNT where we just count rows
-        final var aggregators = rowAgg.getAggregators(gs, origSpec::getColumnSpec);
+        final var aggregators = rowAgg.getAggregators(groupByGlobalSettings, origSpec::getColumnSpec);
 
         final var countColumnName = settings.m_aggregationMethod == AggregationFunction.COUNT
                 ? COUNT_COLUMN_NAME : null;
@@ -428,8 +457,8 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             weightColumn.orElse(null));
 
         final var groupByColAsList = rowAgg.getGroupByColumn().stream().collect(Collectors.toList());
-        final var gs = gsb.setGroupColNames(groupByColAsList).build();
-        final var aggregators = rowAgg.getAggregators(gs, inSpec::getColumnSpec);
+        final var groupByGlobalSettings = gsb.setGroupColNames(groupByColAsList).build();
+        final var aggregators = rowAgg.getAggregators(groupByGlobalSettings, inSpec::getColumnSpec);
         final var countColumnName = agg == AggregationFunction.COUNT ? COUNT_COLUMN_NAME : null;
 
         final BufferedDataTable groupedAggregates;
@@ -439,12 +468,11 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                 groupByColAsList,
                 aggregators,
                 countColumnName,
-                gs,
+                groupByGlobalSettings,
                 ENABLE_HILITE,
                 COL_NAME_POLICY,
                 RETAIN_ORDER);
             warnSkippedGroups(groupedResult);
-
             groupedAggregates = groupedResult.getBufferedTable();
             if (!settings.m_grandTotals) {
                 return new PortObject[] { groupedAggregates, InactiveBranchPortObject.INSTANCE };
@@ -454,30 +482,21 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             groupedAggregates = null;
         }
 
-        final var totalsResultSpec = GroupByTable.createGroupByTableSpec(inSpec, Collections.emptyList(), aggregators,
-            countColumnName, COL_NAME_POLICY);
-
-        final var totalGs = gsb
-                .setGroupColNames(new ArrayList<>())
-                .setDataTableSpec(totalsResultSpec)
-                .build();
-
         exec.setMessage("Calculating \"grand total\" aggregate");
+        final var totalsGlobalSettings = gsb.setGroupColNames(Collections.emptyList()).build();
         final var totalAggregates = new MemoryGroupByTable(exec, table,
             new ArrayList<>(),
             aggregators,
             countColumnName,
-            totalGs,
+            totalsGlobalSettings,
             ENABLE_HILITE,
             COL_NAME_POLICY,
             RETAIN_ORDER);
         warnSkippedGroups(totalAggregates);
-
         final var bufTotals = totalAggregates.getBufferedTable();
 
         exec.setMessage("Producing output table");
-        final var totalResult = getSingleRowTotalsResult(exec, totalsResultSpec, countColumnName, bufTotals);
-
+        final var totalResult = getSingleRowTotalsResult(exec, countColumnName, bufTotals);
         // grand totals get put into first output table, when no class column is selected
         final var first = groupedAggregates != null ? groupedAggregates : totalResult;
         final var second = groupedAggregates != null ? totalResult : InactiveBranchPortObject.INSTANCE;
@@ -486,17 +505,27 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         };
     }
 
-    private static BufferedDataTable getSingleRowTotalsResult(final ExecutionContext exec,
-        final DataTableSpec resultSpec, final String countColumnName,
-        final BufferedDataTable bufTotals) {
+    /**
+     * Gets a single-row totals result according to our expected behavior for empty GroupBy results:
+     * <ul>
+     *  <li>COUNT should never return an empty table, nor a missing cell. It should always return a count.</li>
+     *  <li>Other aggregates should return missing cells for the expected table columns if the input is empty.</li>
+     * </ul>
+     * @param exec context
+     * @param countColumnName column name for count result column or {@code null} if aggregation functio is not COUNT
+     * @param totalsResult data from the grand total aggregation
+     * @return single-row grand-total result
+     */
+    private static BufferedDataTable getSingleRowTotalsResult(final ExecutionContext exec, final String countColumnName,
+        final BufferedDataTable totalsResult) {
 
-        final var totalSize = bufTotals.size();
+        final var totalSize = totalsResult.size();
         if (totalSize > 1) {
             throw new IllegalStateException("More than one row in totals table.");
         }
 
+        final var resultSpec = totalsResult.getSpec();
         final var totalOut = exec.createDataContainer(resultSpec);
-
         final List<DataCell> cells = new ArrayList<>();
         if (totalSize == 0 && countColumnName != null) {
             // empty input: result of COUNT* is somewhat special
@@ -509,7 +538,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             totalOut.close();
             return totalOut.getTable();
         } else {
-            try (final var it = bufTotals.iterator()) {
+            try (final var it = totalsResult.iterator()) {
                 final var totalRow = it.next();
                 totalRow.forEach(cells::add);
             }
@@ -526,5 +555,4 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             LOGGER.info(resultTable.getSkippedGroupsMessage(Integer.MAX_VALUE, Integer.MAX_VALUE));
         }
     }
-
 }

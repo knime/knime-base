@@ -96,8 +96,8 @@ final class DataValueAggregateTest {
         final var outer = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(Sum::new)
-                .withWeighting(dcs.getName(), Multiply::new)
+                .withAggregate(SumNumeric::new)
+                .withWeighting(dcs.getName(), MultiplyNumeric::new)
                 .build(gs, ocs);
 
         // outer DataValueAggregate operator cannot aggregate data (it's just a "definition" of an aggregate operator)
@@ -129,8 +129,8 @@ final class DataValueAggregateTest {
         final var outer = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(Sum::new)
-                .withWeighting(dcs.getName(), Multiply::new)
+                .withAggregate(SumNumeric::new)
+                .withWeighting(dcs.getName(), MultiplyNumeric::new)
                 .build(gs, ocs);
 
         // let (weighted) combiner overflow
@@ -193,8 +193,8 @@ final class DataValueAggregateTest {
         final var outer = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(Sum::new)
-                .withWeighting(dcs.getName(), Multiply::new)
+                .withAggregate(SumNumeric::new)
+                .withWeighting(dcs.getName(), MultiplyNumeric::new)
                 .build(gs, ocs);
 
         assertEquals(PLACEHOLDER_ID, outer.getId(), "Incorrect operator ID");
@@ -223,7 +223,7 @@ final class DataValueAggregateTest {
 
         final var unweighted = DataValueAggregate.create().withOperatorInfo("Sum1.0", "Sum", "Desc...")
                 .withSupportedClass(IntValue.class)
-                .withAggregate(Sum::new)
+                .withAggregate(SumNumeric::new)
                 .build(gs, ocs).createInstance(gs, ocs);
         unweighted.compute(new DefaultRow(RowKey.createRowKey(1L), new IntCell(42)), 0);
         unweighted.compute(new DefaultRow(RowKey.createRowKey(2L), DataType.getMissingCell()), 0);
@@ -248,8 +248,8 @@ final class DataValueAggregateTest {
         final var weightedAgg = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(Sum::new)
-                .withWeighting(weightCol.getName(), Multiply::new)
+                .withAggregate(SumNumeric::new)
+                .withWeighting(weightCol.getName(), MultiplyNumeric::new)
                 .build(gs, ocs).createInstance(gs, ocs);
         assertThrows(IllegalStateException.class, () -> weightedAgg.compute(miss));
         weightedAgg.compute(new DefaultRow(RowKey.createRowKey(0L), miss, miss), 0);
@@ -262,7 +262,7 @@ final class DataValueAggregateTest {
         final var unweighted = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(Sum::new)
+                .withAggregate(SumNumeric::new)
                 .build(gs, ocs).createInstance(gs, ocs);
         assertDoesNotThrow(() -> unweighted.compute(miss));
         assertDoesNotThrow(() -> unweighted.compute(new IntCell(2)));

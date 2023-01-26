@@ -61,14 +61,14 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 
 /**
- * Creates a type-specific sum aggregate for int, long, and double values.
+ * Creates a type-specific sum aggregate for int, long, and double compatible values.
  *
  * @param <V> data value type to accumulate and use as the result
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @noreference This class is not intended to be referenced by clients.
  */
-public class Sum<V extends DataValue> implements Accumulator<V, V> {
+public class SumNumeric<V extends DataValue> implements Accumulator<V, V> {
 
     /*
      * Input Type – Accumulator Type → Output Type
@@ -81,26 +81,38 @@ public class Sum<V extends DataValue> implements Accumulator<V, V> {
     private Accumulator<V, V> m_sum;
 
     /**
-     * Creates a new sum accumulator for {@link IntValue}, {@link LongValue}, or {@link DoubleValue}.
+     * Creates a new sum accumulator for a given supported type according to {@link #supportsDataType(DataType)}.
+     *
      * @param inputType type to create sum accumulator for
+     * @throws IllegalArgumentException if the given type is not supported according to
+     *   {@link #supportsDataType(DataType)}
      */
-    public Sum(final DataType inputType) {
-        m_sum = getAggregateFor(inputType);
+    public SumNumeric(final DataType inputType) {
+        m_sum = getForType(inputType);
+    }
+
+    /**
+     * Checks whether the accumulator supports a given data type, i.e. provides a type-specific accumulator.
+     * @param t type to test
+     * @return {@code true} if a type-specific accumulator exists, {@code false} otherwise
+     */
+    public static boolean supportsDataType(final DataType t) {
+        return t.isCompatible(DoubleValue.class) || t.isCompatible(LongValue.class) || t.isCompatible(IntValue.class);
     }
 
     @SuppressWarnings("unchecked")
-    private static <V extends DataValue> Accumulator<V, V> getAggregateFor(final DataType inputType) {
-        if (IntCell.TYPE.equals(inputType)) {
+    private static <V extends DataValue> Accumulator<V, V> getForType(final DataType inputType) {
+        if (inputType.isCompatible(IntValue.class)) {
             return (Accumulator<V, V>)new IntSum();
         }
-        if (LongCell.TYPE.equals(inputType)) {
+        if (inputType.isCompatible(LongValue.class)) {
             return (Accumulator<V, V>)new LongSum();
         }
-        if (DoubleCell.TYPE.equals(inputType)) {
+        if (inputType.isCompatible(DoubleValue.class)) {
             return (Accumulator<V, V>)new DoubleSum();
         }
         throw new IllegalArgumentException(
-            String.format("Sum aggregate does not support cells of type + \"%s\"", inputType));
+            String.format("Unsupported sum for operands of type + \"%s\"", inputType));
     }
 
     @Override

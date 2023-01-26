@@ -61,7 +61,7 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 
 /**
- * Creates a multiplication for numeric int, long, and double operands.
+ * Creates a type-specific multiplication for numeric int, long, and double operands.
  *
  * @param <T> type of first operand
  * @param <U> type of second operand
@@ -70,45 +70,61 @@ import org.knime.core.data.def.LongCell;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @noreference This class is not intended to be referenced by clients.
  */
-public class Multiply<T extends DataValue, U extends DataValue, R extends DataValue> implements Combiner<T, U, R> {
+public class MultiplyNumeric<T extends DataValue, U extends DataValue, R extends DataValue>
+        implements Combiner<T, U, R> {
 
     private Combiner<T, U, R> m_comb;
 
-    private static final DataType INT = IntCell.TYPE;
-    private static final DataType LONG = LongCell.TYPE;
-    private static final DataType DOUBLE = DoubleCell.TYPE;
-
     /**
-     * Creates a multiplication combiner for the given numeric data types (int, long, or double).
+     * Creates a type-specific multplying combiner for the given supported data types according to
+     * {@link #supportsDataTypes(DataType, DataType)}.
      *
      * @param left left operand type
      * @param right right operand type
+     * @throws IllegalArgumentException if the given types are not supported according to
+     *   {@link #supportsDataTypes(DataType, DataType)}
      */
-    public Multiply(final DataType left, final DataType right) {
-        m_comb = getCombinerFor(left, right);
+    public MultiplyNumeric(final DataType left, final DataType right) {
+        m_comb = getForTypes(left, right);
+    }
+
+    /**
+     * Checks whether the combiner supports the given data types, i.e. provides a type-specific combiner
+     * for both of them. The order of the arguments is of no significance.
+     * @param left one operand type to test
+     * @param right other operand type to test
+     * @return {@code true} if a type-specific combiner exists, {@code false} otherwise
+     */
+    public static boolean supportsDataTypes(final DataType left, final DataType right) {
+        return isDoubleCompatible(left, right) || isLongCompatible(left, right) || isIntCompatible(left, right);
     }
 
     @SuppressWarnings("unchecked")
     private static <T extends DataValue, U extends DataValue, R extends DataValue>
-            Combiner<T, U, R> getCombinerFor(final DataType left, final DataType right) {
-        if (typeAndCompatible(left, right, DOUBLE, DoubleValue.class)) {
-            return (Combiner<T, U, R>)new DoubleMul();
-        }
-        if (typeAndCompatible(left, right, LONG, LongValue.class)) {
-            return (Combiner<T, U, R>)new LongMul();
-        }
-        if (typeAndCompatible(left, right, INT, IntValue.class)) {
+            Combiner<T, U, R> getForTypes(final DataType left, final DataType right) {
+        if (isIntCompatible(left, right)) {
             return (Combiner<T, U, R>)new IntMul();
         }
+        if (isLongCompatible(left, right)) {
+            return (Combiner<T, U, R>)new LongMul();
+        }
+        if (isDoubleCompatible(left, right)) {
+            return (Combiner<T, U, R>)new DoubleMul();
+        }
         throw new IllegalArgumentException(
-            String.format("Unknown multiplication for operands of type \"%s\" and \"%s\"", left, right));
-
+            String.format("Unsupported multiplication for operands of type \"%s\" and \"%s\"", left, right));
     }
 
-    private static <T extends DataValue> boolean typeAndCompatible(final DataType type, final DataType otherType,
-        final DataType equal, final Class<T> clazz) {
-        return (type.equals(equal) && otherType.isCompatible(clazz))
-                || (otherType.equals(equal) && type.isCompatible(clazz));
+    private static boolean isIntCompatible(final DataType left, final DataType right) {
+        return left.isCompatible(IntValue.class) && right.isCompatible(IntValue.class);
+    }
+
+    private static boolean isLongCompatible(final DataType left, final DataType right) {
+        return left.isCompatible(LongValue.class) && right.isCompatible(LongValue.class);
+    }
+
+    private static boolean isDoubleCompatible(final DataType left, final DataType right) {
+        return left.isCompatible(DoubleValue.class) && right.isCompatible(DoubleValue.class);
     }
 
     @Override

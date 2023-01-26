@@ -50,8 +50,6 @@ package org.knime.base.node.preproc.rowagg;
 
 import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunction;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.LongValue;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
@@ -86,10 +84,10 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
     @Schema(title = "Frequency columns", description = "Select the columns to apply the aggregation function to.",
-            choices = NumericColumns.class, multiple = true)
+            choices = FrequencyColumns.class, multiple = true)
     String[] m_frequencyColumns;
 
-    static final class NumericColumns implements ChoicesProvider {
+    static final class FrequencyColumns implements ChoicesProvider {
 
         @Override
         public String[] choices(final SettingsCreationContext context) {
@@ -98,7 +96,15 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
                 return new String[0];
             }
             return spec.stream()
-                .filter(s -> s.getType().isCompatible(DoubleValue.class) || s.getType().isCompatible(LongValue.class))
+                // In theory this should check the type of either (as configured):
+                // - the aggregated column type if weight column is none or
+                // - the result of the multiplication with the weight column if a weight column is selected.
+                // However, at this point we don't know the selected weight column here (and vice-versa), so we do the
+                // next-best thing. Note: This could filter too much, i.e. could remove columns that would be compatible
+                // _after_ applying the weight to them, which is currently not the case, since Multiply supports the
+                // same (input) types as Sum and Average.
+                // If we add numeric types and change the Multiply/Sum/Average, we should revisit this filter here.
+                .filter(c -> RowAggregatorNodeModel.isSupportedAsAggregatedColumn(c.getType()))
                 .map(DataColumnSpec::getName)
                 .toArray(String[]::new);
         }
@@ -106,10 +112,27 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
     }
 
     @Schema(title = "Weight column", description = "Select the column that defines the weight with which a frequency "
-        + "value is multiplied before aggregation. Note that only some aggregation functions support weighted "
+        + "value is multiplied before aggregation. Note, that only some aggregation functions support weighted "
         + "aggregates.",
-            choices = NumericColumns .class)
+            choices = WeightColumns .class)
     String m_weightColumn;
+
+
+    static final class WeightColumns implements ChoicesProvider {
+
+        @Override
+        public String[] choices(final SettingsCreationContext context) {
+            final var spec = context.getDataTableSpecs()[0];
+            if (spec == null) {
+                return new String[0];
+            }
+            return spec.stream()
+                .filter(wc -> RowAggregatorNodeModel.isSupportedAsWeightColumn(wc.getType()))
+                .map(DataColumnSpec::getName)
+                .toArray(String[]::new);
+        }
+
+    }
 
     @Schema(title = "Category column", description = "Select the column that defines the category on which rows "
         + "are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same "

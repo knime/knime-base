@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.rowagg;
 
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -79,10 +81,14 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.ComplexNumberCell;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.FuzzyNumberCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
@@ -107,6 +113,7 @@ final class RowAggregatorNodeModelTest {
     private static final int TOTALS_OUT = 1;
 
     private static final String AGG_COL_NAME = "AGG_COL";
+    private static final String WEIGHT_COL_NAME = "WEIGHT_COL";
     private static final String CLASS_COL_NAME = "class";
     private static final String OCCURRENCE_COUNT_COL_NAME = "OCCURRENCE_COUNT";
 
@@ -125,6 +132,13 @@ final class RowAggregatorNodeModelTest {
                 assertEquals(DataType.getMissingCell(), c, String.format("Expected missing cell at column %d.", i));
             }
         };
+
+    private static final String EX_MSG_EMPTY_IN_OUT = "Empty input should result in empty output.";
+    private static final Supplier<String> EX_MSG_SAME_STRUCTURE = () -> "Expected same types and names for aggregate";
+    private static final Supplier<String> EX_MSG_EXP_AC_SPEC =
+            () -> "Expected and actual aggregated table specs differ.";
+    private static final Supplier<String> EX_MSG_EXP_AC_TOTALS_SPEC =
+            () -> "Expected and actual totals table specs differ.";
 
     private RowAggregatorNodeModel m_rowAgg;
     private RowAggregatorSettings m_settings;
@@ -192,7 +206,8 @@ final class RowAggregatorNodeModelTest {
         groupByAggregate(m_settings,
             AggregationFunction.SUM,
             CLASS_COL_NAME,
-            except(colNames, CLASS_COL_NAME),
+            except(colNames, Set.of(CLASS_COL_NAME)),
+            null, // no weight
             true
         );
         m_rowAgg.validateSettings(m_settings);
@@ -202,12 +217,11 @@ final class RowAggregatorNodeModelTest {
         // test empty input results in...
         final var resultOnEmpty = execute(ctx, m_rowAgg, new DataTable[] { EMPTY_TABLE.apply(ctx, dts) }, m_settings);
         // ... empty output on AGG port and ...
-        assertEqualStructure(expectedDts, (DataTableSpec)resultOnEmpty[AGG_OUT].getSpec(),
-            () -> "Expected and actual aggregated table specs differ.");
-        assertEmpty(resultOnEmpty, AGG_OUT, "Empty input should result in empty output.");
+        assertEqualStructure(expectedDts, (DataTableSpec)resultOnEmpty[AGG_OUT].getSpec(), EX_MSG_EXP_AC_SPEC);
+        assertEmpty(resultOnEmpty, AGG_OUT, EX_MSG_EMPTY_IN_OUT);
         // ... single row with missing cell at TOTALS port
         assertEqualStructure(expectedTotalsDts, (DataTableSpec)resultOnEmpty[TOTALS_OUT].getSpec(),
-            () -> "Expected and actual totals table specs differ.");
+            EX_MSG_EXP_AC_TOTALS_SPEC);
         assertTablesEqual(MISSINGS_ROW.apply(ctx, expectedTotalsDts), resultOnEmpty, TOTALS_OUT);
 
 
@@ -231,7 +245,7 @@ final class RowAggregatorNodeModelTest {
         final var result = execute(ctx, m_rowAgg, new DataTable[] { input }, m_settings);
         final DataTableSpec aggResultSpec = (DataTableSpec)result[AGG_OUT].getSpec();
 
-        assertEqualStructure(expectedDts, aggResultSpec, () -> "Expected same types and names for aggregate");
+        assertEqualStructure(expectedDts, aggResultSpec, EX_MSG_SAME_STRUCTURE);
         // sum of [1, 4] groupbed by "class", with no missing cells
         final var expected = fromRows(ctx, expectedDts, Stream.of(
             new DefaultRow(RowKey.createRowKey(0L), List.of(new StringCell("even"), new IntCell(6))),
@@ -266,7 +280,8 @@ final class RowAggregatorNodeModelTest {
         groupByAggregate(m_settings,
             AggregationFunction.SUM,
             CLASS_COL_NAME,
-            except(colNames, CLASS_COL_NAME),
+            except(colNames, Set.of(CLASS_COL_NAME)),
+            null, // no weight
             false // TOTALS port should be INACTIVE
         );
         m_rowAgg.validateSettings(m_settings);
@@ -305,7 +320,8 @@ final class RowAggregatorNodeModelTest {
         groupByAggregate(m_settings,
             AggregationFunction.SUM,
             null,
-            except(colNames, CLASS_COL_NAME),
+            except(colNames, Set.of(CLASS_COL_NAME)),
+            null, // no weight
             false // ignored
         );
         m_rowAgg.validateSettings(m_settings);
@@ -315,8 +331,7 @@ final class RowAggregatorNodeModelTest {
         // test empty input results in...
         final var resultOnEmpty = execute(ctx, m_rowAgg, new DataTable[] { EMPTY_TABLE.apply(ctx, dts) }, m_settings);
         // ... single row with missing cell at AGG port ...
-        assertEqualStructure(expectedDts, (DataTableSpec)resultOnEmpty[AGG_OUT].getSpec(),
-            () -> "Expected and actual aggregated table specs differ.");
+        assertEqualStructure(expectedDts, (DataTableSpec)resultOnEmpty[AGG_OUT].getSpec(), EX_MSG_EXP_AC_SPEC);
         assertTablesEqual(MISSINGS_ROW.apply(ctx, expectedDts), resultOnEmpty, AGG_OUT);
         // ... and INACTIVE at TOTALS port
         assertInactive(resultOnEmpty, TOTALS_OUT);
@@ -342,7 +357,7 @@ final class RowAggregatorNodeModelTest {
         final var result = execute(ctx, m_rowAgg, new DataTable[] { input }, m_settings);
         final DataTableSpec aggResultSpec = (DataTableSpec)result[AGG_OUT].getSpec();
 
-        assertEqualStructure(expectedDts, aggResultSpec, () -> "Expected same types and names for aggregate");
+        assertEqualStructure(expectedDts, aggResultSpec, EX_MSG_SAME_STRUCTURE);
         // sum of [1, 4], with no missing cells
         final var expected = fromRows(ctx, expectedDts, Stream.of(
             new DefaultRow(RowKey.createRowKey(0L), new IntCell(10))
@@ -384,7 +399,8 @@ final class RowAggregatorNodeModelTest {
         groupByAggregate(m_settings,
             AggregationFunction.COUNT,
             CLASS_COL_NAME,
-            except(colNames, CLASS_COL_NAME),
+            except(colNames, Set.of(CLASS_COL_NAME)),
+            null, // no weight
             true
         );
         m_rowAgg.validateSettings(m_settings);
@@ -394,12 +410,11 @@ final class RowAggregatorNodeModelTest {
         // test empty input results in...
         final var resultOnEmpty = execute(ctx, m_rowAgg, new DataTable[] { EMPTY_TABLE.apply(ctx, dts) }, m_settings);
         // ... empty output on AGG port and ...
-        assertEqualStructure(expectedDts, (DataTableSpec)resultOnEmpty[AGG_OUT].getSpec(),
-            () -> "Expected and actual aggregated table specs differ.");
-        assertEmpty(resultOnEmpty, AGG_OUT, "Empty input should result in empty output.");
+        assertEqualStructure(expectedDts, (DataTableSpec)resultOnEmpty[AGG_OUT].getSpec(), EX_MSG_EXP_AC_SPEC);
+        assertEmpty(resultOnEmpty, AGG_OUT, EX_MSG_EMPTY_IN_OUT);
         // ... single row COUNT=0 at TOTALS port
         assertEqualStructure(expectedTotalsDts, (DataTableSpec)resultOnEmpty[TOTALS_OUT].getSpec(),
-            () -> "Expected and actual totals table specs differ.");
+            EX_MSG_EXP_AC_TOTALS_SPEC);
         assertSingleRowResult(resultOnEmpty, TOTALS_OUT, row -> {
             final var count = ((LongCell) row.getCell(0)).getLongValue();
             assertEquals(0, count, "Expected COUNT=0");
@@ -421,7 +436,7 @@ final class RowAggregatorNodeModelTest {
         final var result = execute(ctx, m_rowAgg, new DataTable[] { input }, m_settings);
         final DataTableSpec aggResultSpec = (DataTableSpec)result[AGG_OUT].getSpec();
 
-        assertEqualStructure(expectedDts, aggResultSpec, () -> "Expected same types and names for aggregate");
+        assertEqualStructure(expectedDts, aggResultSpec, EX_MSG_SAME_STRUCTURE);
         // counts groupbed by "class", including missing cells
         final var expected = fromRows(ctx, expectedDts, Stream.of(
             new DefaultRow(RowKey.createRowKey(0L), List.of(new StringCell("even"), new LongCell(2))),
@@ -436,6 +451,72 @@ final class RowAggregatorNodeModelTest {
             new DefaultRow(RowKey.createRowKey(0L), List.of(new LongCell(5)))
         ));
         assertTablesEqual(expectedTotals, result, TOTALS_OUT);
+    }
+
+
+    /**
+     * Test aggregating without group-by column but with weight column.
+     *
+     * @param ctx execution context
+     * @throws Exception execution cancelled or configuration
+     */
+    @Test
+    void testExecuteTotalsWeightedAggregate(final ExecutionContext ctx) throws Exception {
+        final var colNames = new String[] { AGG_COL_NAME, WEIGHT_COL_NAME, CLASS_COL_NAME };
+        final var colTypes = new DataType[] { IntCell.TYPE, BooleanCell.TYPE, StringCell.TYPE };
+        final var dts = Column.toSpec(colNames, colTypes);
+
+        final var expectedNames = new String[] { AGG_COL_NAME };
+        final var expectedTypes = new DataType[] { IntCell.TYPE };
+        final var expectedDts = Column.toSpec(expectedNames, expectedTypes);
+
+        // sum up each of the columns, using the boolean column effectively as a filter
+        groupByAggregate(m_settings,
+            AggregationFunction.SUM,
+            null,
+            except(colNames, Set.of(CLASS_COL_NAME, WEIGHT_COL_NAME)),
+            WEIGHT_COL_NAME,
+            false // ignored
+        );
+        m_rowAgg.validateSettings(m_settings);
+        m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings);
+
+
+        // test empty input results in...
+        final var resultOnEmpty = execute(ctx, m_rowAgg, new DataTable[] { EMPTY_TABLE.apply(ctx, dts) }, m_settings);
+        // ... single row with missing cell at AGG port ...
+        assertEqualStructure(expectedDts, (DataTableSpec)resultOnEmpty[AGG_OUT].getSpec(), EX_MSG_EXP_AC_SPEC);
+        assertTablesEqual(MISSINGS_ROW.apply(ctx, expectedDts), resultOnEmpty, AGG_OUT);
+        // ... and INACTIVE at TOTALS port
+        assertInactive(resultOnEmpty, TOTALS_OUT);
+
+        // test only missing input, should result in missing cell(s) as output
+        assertMissingInMissingOut(ctx, m_rowAgg, m_settings, dts, expectedDts, null);
+
+        // test sum of even values [1,4] (=6) (ignoring missing cells)
+        final var input = fromRows(ctx, dts,
+            IntStream.range(1, 6).mapToObj(i -> {
+                if (i < 5) {
+                    return new DefaultRow(RowKey.createRowKey((long)i),
+                        List.of(new IntCell(i), booleanCell(isEven(i)), new StringCell(evenOdd(i))));
+                } else {
+                    // one missing cell at the end that should be ignored
+                    return new DefaultRow(RowKey.createRowKey((long)i),
+                        List.of(DataType.getMissingCell(), booleanCell(isEven(i)), new StringCell(evenOdd(i))));
+                }
+            }
+        ));
+        final var result = execute(ctx, m_rowAgg, new DataTable[] { input }, m_settings);
+        final DataTableSpec aggResultSpec = (DataTableSpec)result[AGG_OUT].getSpec();
+
+        assertEqualStructure(expectedDts, aggResultSpec, EX_MSG_SAME_STRUCTURE);
+        // sum of even values in [1, 4], with no missing cells
+        final var expected = fromRows(ctx, expectedDts, Stream.of(
+            new DefaultRow(RowKey.createRowKey(0L), new IntCell(6))
+        ));
+        assertTablesEqual(expected, result, AGG_OUT);
+        // ... totals still inactive
+        assertInactive(result, TOTALS_OUT);
     }
 
     // ===== Tests for the aggregation functions
@@ -564,6 +645,41 @@ final class RowAggregatorNodeModelTest {
         }
     }
 
+    /**
+     * Tests that cells of types not compatible with the supported number types (double, int, long),
+     * are not retained by the numeric choices provider (indirectly by testing the method that does the actual
+     * filtering).
+     *
+     * @param ctx execution context
+     */
+    @SuppressWarnings("static-method")
+    @Test
+    void testFilterUnsupportedColumnTypes(final ExecutionContext ctx) {
+        final var in = new DataTableSpecCreator().addColumns(
+            new DataColumnSpecCreator("boolean", BooleanCell.TYPE).createSpec(), // compatible
+            new DataColumnSpecCreator("int", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("long", LongCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("double", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("string", StringCell.TYPE).createSpec(), // not compatible
+            new DataColumnSpecCreator("complexNumber", ComplexNumberCell.TYPE).createSpec(), // not compatible
+            new DataColumnSpecCreator("fuzzyNumber", FuzzyNumberCell.TYPE).createSpec() // not compatible
+        ).createSpec();
+
+        final var expected = new String[] { "boolean", "int", "long", "double" };
+
+        final var resAggColumn = in.stream()
+                .filter(c -> RowAggregatorNodeModel.isSupportedAsAggregatedColumn(c.getType()))
+                .map(DataColumnSpec::getName).toArray(String[]::new);
+        assertArrayEquals(expected, resAggColumn,
+            "Filter should only retain 'numeric-compatible' columns for aggregate column");
+
+        final var resWeightColumn = in.stream()
+                .filter(c -> RowAggregatorNodeModel.isSupportedAsWeightColumn(c.getType()))
+                .map(DataColumnSpec::getName).toArray(String[]::new);
+        assertArrayEquals(expected, resWeightColumn,
+                "Filter should only retain 'numeric-compatible' columns for weight column");
+    }
+
     // ===== Test Helpers
 
     private static GlobalSettingsBuilder createGlobalSettingsBuilder() {
@@ -592,17 +708,21 @@ final class RowAggregatorNodeModelTest {
         return Pair.create(dts,  input);
     }
 
-    private static String[] except(final String[] s, final String except) {
-        return Arrays.stream(s).filter(c -> !except.equals(c)).toArray(String[]::new);
+    private static String[] except(final String[] s, final Set<String> except) {
+        return Arrays.stream(s).filter(c -> !except.contains(c)).toArray(String[]::new);
     }
 
     private static void groupByAggregate(final RowAggregatorSettings settings, final AggregationFunction agg,
-        final String groupByColumn, final String[] aggregatedColumns, final boolean grandTotal) {
+        final String groupByColumn, final String[] aggregatedColumns, final String weightColumn,
+        final boolean grandTotal) {
         settings.m_aggregationMethod = agg;
         if (groupByColumn != null) {
             settings.m_categoryColumn = groupByColumn;
         }
         settings.m_frequencyColumns = aggregatedColumns;
+        if (weightColumn != null) {
+            settings.m_weightColumn = weightColumn;
+        }
         settings.m_grandTotals = grandTotal;
     }
 
@@ -614,13 +734,12 @@ final class RowAggregatorNodeModelTest {
             Stream.of(missingCells(0, inputDts), missingCells(1, inputDts)));
         final var resultMissing = execute(ctx, rowAgg, new DataTable[] { inputMissing }, settings);
 
-        assertEqualStructure(aggOutDts, (DataTableSpec)resultMissing[AGG_OUT].getSpec(),
-            () -> "Expected and actual aggregated table specs differ.");
+        assertEqualStructure(aggOutDts, (DataTableSpec)resultMissing[AGG_OUT].getSpec(), EX_MSG_EXP_AC_SPEC);
         assertSingleRowResult(resultMissing, AGG_OUT, MISSINGS_ROW_EXPECTED);
 
         if (totalsOutDts != null) {
             assertEqualStructure(totalsOutDts, (DataTableSpec)resultMissing[TOTALS_OUT].getSpec(),
-                () -> "Expected and actual totals table specs differ.");
+                EX_MSG_EXP_AC_TOTALS_SPEC);
             assertSingleRowResult(resultMissing, TOTALS_OUT, MISSINGS_ROW_EXPECTED);
         } else {
             assertInactive(resultMissing, TOTALS_OUT);
@@ -639,6 +758,10 @@ final class RowAggregatorNodeModelTest {
     private static DataRow missingCells(final long rowKeyValue, final DataTableSpec spec) {
         return new DefaultRow(RowKey.createRowKey(rowKeyValue), Arrays.stream(spec.getColumnNames())
             .map(c -> DataType.getMissingCell()).collect(Collectors.toList()));
+    }
+
+    private static BooleanCell booleanCell(final boolean v) {
+        return v ? BooleanCell.TRUE : BooleanCell.FALSE;
     }
 
     private static void assertSingleRowResult(final PortObject[] results, final int idx,
