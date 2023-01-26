@@ -159,7 +159,9 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
     }
 
     /**
-     * Nested class that represents the operator doing the actual aggregation work.
+     * Nested class that represents the operator doing the actual aggregation work. This operator ignores missing cells
+     * and reports a missing cell only if the input was effectively empty (i.e. ignoring a row if either of the two
+     * columns considered contains a missing cell).
      *
      * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
      */
@@ -167,7 +169,9 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
     // framework (e.g. spec is null) from the behavior which is used to actually aggregate values
     final class DataValueAggregateOperator extends AggregationOperator {
 
-        /** Operator that did not see input reports missing cell. */
+        /** This flag is set to true iff the operator has seen at least one non-missing input (i.e. where both
+         *  considered cells are non-missing cells).
+         *  This is used so that operators that (effectively) did not see any input report a missing cell. */
         private boolean m_init;
 
         private Combiner<T, U, R> m_combiner;
@@ -210,13 +214,13 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
             if (m_combiner != null) {
                 throw new IllegalStateException("Cannot compute weighted aggregate without weight column.");
             }
-            m_init = true;
             // as requested by documentation, do something sensible in case this old method is still invoked:
             // compute aggregate if unweighted, else fail
             if (cell.isMissing()) {
                 // skip missing cells and proceed with column
                 return false;
             }
+            m_init = true;
             @SuppressWarnings("unchecked")
             final var res = m_agg.apply((R)cell);
             return res;
@@ -224,12 +228,12 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
 
         @Override
         protected boolean computeInternal(final DataRow row, final DataCell cell) {
-            m_init = true;
             if (cell.isMissing()) {
                 // skip missing cells and proceed with column
                 return false;
             }
             if (m_combiner == null) {
+                m_init = true;
                 @SuppressWarnings("unchecked")
                 final var res = applyAgg((R)cell);
                 return res;
@@ -240,6 +244,7 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
                 // skip missing cells and proceed with column
                 return false;
             }
+            m_init = true;
 
             @SuppressWarnings("unchecked")
             final var value = m_combiner.apply((T)weight, (U)cell);
