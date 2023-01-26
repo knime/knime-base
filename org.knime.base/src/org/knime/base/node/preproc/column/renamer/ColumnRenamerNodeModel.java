@@ -48,9 +48,13 @@
  */
 package org.knime.base.node.preproc.column.renamer;
 
+import static java.util.stream.Collectors.joining;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -88,8 +92,7 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
         final ColumnRenamerSettings modelSettings) throws Exception {
         var table = inData[0];
         var renamer = new Renamer(modelSettings);
-        return new BufferedDataTable[]{
-            exec.createSpecReplacerTable(table, renamer.rename(table.getDataTableSpec()))};
+        return new BufferedDataTable[]{exec.createSpecReplacerTable(table, renamer.rename(table.getDataTableSpec()))};
     }
 
     @Override
@@ -97,7 +100,7 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
         // TODO validate the settings here once the validation behavior is fixed
     }
 
-    private static final class Renamer {
+    private final class Renamer {
 
         private final Map<String, String> m_nameMap;
 
@@ -116,34 +119,50 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
         }
 
         DataTableSpec rename(final DataTableSpec spec) throws InvalidSettingsException {
+            // initialize with spec to persist table properties
             var specCreator = new DataTableSpecCreator(spec);
             specCreator.dropAllColumns();
-            var columns = spec.stream()//
-                .map(this::renameColumn)//
-                .toArray(DataColumnSpec[]::new);
-            checkForDuplicates(columns);
-            specCreator.addColumns(columns);
+            specCreator.addColumns(renameColumns(spec));
             return specCreator.createSpec();
         }
 
-        private static void checkForDuplicates(final DataColumnSpec[] columns) throws InvalidSettingsException {
+        private DataColumnSpec[] renameColumns(final DataTableSpec spec) throws InvalidSettingsException {
+            var columnsToRename = new HashSet<>(m_nameMap.keySet());
+            var columns = new ArrayList<DataColumnSpec>(spec.getNumColumns());
             var newNames = new HashSet<String>();
-            for (var column : columns) {
-                var name = column.getName();
-                CheckUtils.checkSetting(newNames.add(name), "The column name '%s' is duplicated.",
-                    name);
+            for (var column : spec) {
+                var oldName = column.getName();
+                columnsToRename.remove(oldName);
+                var newName = rename(oldName);
+                CheckUtils.checkSetting(newNames.add(newName), "The column name '%s' is duplicated.", newName);
+                columns.add(renameColumn(column, newName));
+            }
+            if (!columnsToRename.isEmpty()) {
+                setWarningMessage(createMissingColumnsWarning(columnsToRename));
+            }
+            return columns.toArray(DataColumnSpec[]::new);
+        }
+
+        private String createMissingColumnsWarning(final Set<String> missingColumns) {
+            if (missingColumns.size() == 1) {
+                return String.format("The following column is configured but no longer exists: '%s'",
+                    missingColumns.iterator().next());
+            } else {
+                return missingColumns.stream()//
+                    .map(n -> "'" + n + "'")//
+                    .collect(joining(", ", "The following columns are configured but no longer exist: ", ""));
             }
         }
 
-        private DataColumnSpec renameColumn(final DataColumnSpec column) {
-            var newName = m_nameMap.get(column.getName());
-            if (newName != null) {
-                var creator = new DataColumnSpecCreator(column);
-                creator.setName(newName);
-                return creator.createSpec();
-            } else {
-                return column;
-            }
+        private DataColumnSpec renameColumn(final DataColumnSpec column, final String name) {
+            var creator = new DataColumnSpecCreator(column);
+            creator.setName(name);
+            return creator.createSpec();
+        }
+
+        private String rename(final String name) {
+            var newName = m_nameMap.get(name);
+            return newName == null ? name : newName;
         }
     }
 
