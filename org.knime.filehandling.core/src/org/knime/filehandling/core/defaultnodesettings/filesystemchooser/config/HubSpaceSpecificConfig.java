@@ -134,6 +134,10 @@ public class HubSpaceSpecificConfig extends AbstractConvenienceFileSystemSpecifi
         throws InvalidSettingsException {
 
         m_settings.validate();
+
+        if(!WorkflowContextUtil.isCurrentWorkflowOnHub()) {
+            throw new InvalidSettingsException("Current workflow must be stored on a KNIME Hub.");
+        }
     }
 
     @Override
