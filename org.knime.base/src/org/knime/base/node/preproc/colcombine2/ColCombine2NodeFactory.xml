@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="./col_combine.png" type="Manipulator">
+<knimeNode icon="./col_combine.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Column Combiner</name>
 	
 	<shortDescription>
@@ -37,5 +38,8 @@
 	<ports>
 		<inPort index="0" name="Input">Arbitrary input data.</inPort>
 		<outPort index="0" name="Input with appended column">Input data + additional column containing string combination</outPort>
-	</ports>	
+	</ports>
+	<keywords>
+		<keyword>Concatenate</keyword>
+	</keywords>
 </knimeNode>

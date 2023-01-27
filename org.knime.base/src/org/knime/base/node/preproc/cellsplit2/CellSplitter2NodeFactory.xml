@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="./cellsplitter.png" type="Manipulator">
+<knimeNode icon="./cellsplitter.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Cell Splitter</name>
 
 	<shortDescription>
@@ -101,4 +102,6 @@
 		<outPort index="0" name="Output Table">Output data table with additional
 			columns.</outPort>
 	</ports>
+	<keywords>
+	</keywords>
 </knimeNode>

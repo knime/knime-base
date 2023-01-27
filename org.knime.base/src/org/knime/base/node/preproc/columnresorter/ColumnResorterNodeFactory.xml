@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="column_resorter.png" type="Manipulator">
+<knimeNode icon="column_resorter.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Column Resorter</name>
     <shortDescription>Resorts the order of the columns based on user defined settings</shortDescription>
     <fullDescription>
@@ -36,8 +37,6 @@
         <option name="Reset">
             Restores the original table structure as in the input table.
         </option>
-
-
     </fullDescription>
     <ports>
         <inPort index="0" name="Input data">
@@ -47,4 +46,7 @@
             Table with rearranged columns.
         </outPort>
     </ports>
+    <keywords>
+    	<keyword>Column reorder</keyword>
+    </keywords>
 </knimeNode>

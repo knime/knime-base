@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./append.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+<knimeNode icon="./append.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Concatenate</name>
     <shortDescription>Concatenates two tables row-wise.</shortDescription>
     <fullDescription>
@@ -55,4 +57,7 @@
         
         <outPort index="0" name="Concatenated table">Table with rows from both tables.</outPort>
 	</ports>
+	<keywords>
+		<keyword>Row appender</keyword>
+	</keywords>
 </knimeNode>
