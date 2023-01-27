@@ -94,7 +94,7 @@ final class RowFilterRefNodeSettings implements DefaultNodeSettings {
             EXCLUDE;
     }
 
-    private static abstract class AllColumnChoices implements ChoicesProvider {
+    private abstract static class AllColumnChoices implements ChoicesProvider {
 
         private final int m_portIdx;
 

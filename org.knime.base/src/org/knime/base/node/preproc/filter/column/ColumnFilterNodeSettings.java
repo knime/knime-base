@@ -66,7 +66,7 @@ final class ColumnFilterNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
     @Schema(title = "Column filter", description = "Select the columns to include in the output table.",
         choices = AllColumns.class, withTypes = true)
-    ColumnFilter m_columnFilter;
+    ColumnFilter m_columnFilter = new ColumnFilter();
 
     private static final class AllColumns implements ChoicesProvider {
 

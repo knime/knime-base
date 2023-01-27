@@ -87,7 +87,7 @@ final class ColumnRenamerSettings implements DefaultNodeSettings {
         @Override
         public String[] choices(final SettingsCreationContext context) {
             var spec = context.getDataTableSpecs()[0];
-            return spec == null ? null : spec.getColumnNames();
+            return spec == null ? new String[0] : spec.getColumnNames();
         }
 
     }

@@ -76,7 +76,7 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = DoubleToIntNodeModel.CFG_INCLUDED_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
     @Schema(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list",
         choices = NumericalColumns.class, withTypes = false)
-    ColumnFilter m_inclCols;
+    ColumnFilter m_inclCols = new ColumnFilter();
 
     @Persist(configKey = DoubleToIntNodeModel.CFG_LONG, settingsModel = SettingsModelBoolean.class)
     @Schema(title = "Create long values",

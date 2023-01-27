@@ -84,7 +84,7 @@ final class CellExtractorSettings implements DefaultNodeSettings {
     }
 
     @Schema(title = "Column specification", description = "Select whether to specify the column by name or by number.")
-    ColumnSpecificationMode m_columnSpecificationMode;
+    ColumnSpecificationMode m_columnSpecificationMode = ColumnSpecificationMode.BY_NAME;
 
     @Schema(title = "Column name", description = "Select the column that contains the target cell.",
         choices = AllColumns.class)

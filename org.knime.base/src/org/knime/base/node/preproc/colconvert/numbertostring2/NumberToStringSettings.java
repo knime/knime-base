@@ -70,7 +70,7 @@ final class NumberToStringSettings implements DefaultNodeSettings {
         settingsModel = SettingsModelColumnFilter2.class)
     @Schema(title = "Columns", description = "Select the columns to convert to String.",
         choices = NumericalColumns.class, withTypes = false)
-    ColumnFilter m_columns;
+    ColumnFilter m_columns = new ColumnFilter();
 
     private static final class NumericalColumns implements ChoicesProvider {
 
