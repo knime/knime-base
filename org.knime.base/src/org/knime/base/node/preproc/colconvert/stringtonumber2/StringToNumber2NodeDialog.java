@@ -72,27 +72,26 @@ import org.knime.core.node.util.DataTypeListCellRenderer;
 import org.knime.core.node.util.ViewUtils;
 
 /**
- * Dialog for the String to Number Node. Lets the user choose the columns to
- * use.
+ * Dialog for the String to Number Node. Lets the user choose the columns to use.
  *
  * @author cebron, University of Konstanz
  * @since 4.0
+ * @deprecated Due to the new Web UI Dialog
  */
+@Deprecated
 public class StringToNumber2NodeDialog extends NodeDialogPane {
     private DialogComponentColumnFilter2 m_filtercomp =
-            new DialogComponentColumnFilter2(StringToNumber2NodeModel.createInclModel(), 0);
+        new DialogComponentColumnFilter2(StringToNumber2NodeModel.createInclModel(), 0);
 
     private JTextField m_decimalSeparator = new JTextField(".", 3);
 
     private JTextField m_thousandsSeparator = new JTextField(",", 3);
 
-    private JComboBox<DataType> m_typeChooser =
-            new JComboBox<>(AbstractStringToNumberNodeModel.POSSIBLETYPES);
+    private JComboBox<DataType> m_typeChooser = new JComboBox<>(AbstractStringToNumberNodeModel.POSSIBLETYPES);
 
     private JCheckBox m_genericParse = new JCheckBox("Accept type suffix, e.g. 'd', 'D', 'f', 'F'");
 
     private JCheckBox m_failOnError = new JCheckBox("Fail on error");
-
 
     /**
      * Constructor.
@@ -134,16 +133,14 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
      * {@inheritDoc}
      */
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final DataTableSpec[] specs) throws NotConfigurableException {
+    protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
+        throws NotConfigurableException {
         m_filtercomp.loadSettingsFrom(settings, specs);
-        String decimalsep =
-                settings.getString(AbstractStringToNumberNodeModel.CFG_DECIMALSEP,
-                        AbstractStringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR);
+        String decimalsep = settings.getString(AbstractStringToNumberNodeModel.CFG_DECIMALSEP,
+            AbstractStringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR);
         m_decimalSeparator.setText(decimalsep);
-        String thousandssep =
-                settings.getString(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP,
-                        AbstractStringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR);
+        String thousandssep = settings.getString(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP,
+            AbstractStringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR);
         m_thousandsSeparator.setText(thousandssep);
         // this was added in 2.12. No need for backward compatibility handling as this is done
         // in the NodeModel class.
@@ -151,8 +148,8 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
             AbstractStringToNumberNodeModel.DEFAULT_GENERIC_PARSE);
         m_genericParse.setSelected(genericParse);
         if (settings.containsKey(AbstractStringToNumberNodeModel.CFG_PARSETYPE)) {
-            m_typeChooser.setSelectedItem(settings.getDataType(
-                    AbstractStringToNumberNodeModel.CFG_PARSETYPE, DoubleCell.TYPE));
+            m_typeChooser
+                .setSelectedItem(settings.getDataType(AbstractStringToNumberNodeModel.CFG_PARSETYPE, DoubleCell.TYPE));
         }
         m_failOnError.setSelected(settings.getBoolean(AbstractStringToNumberNodeModel.CFG_FAIL_ON_ERROR,
             AbstractStringToNumberNodeModel.DEFAULT_FAIL_ON_ERROR));
@@ -162,15 +159,11 @@ public class StringToNumber2NodeDialog extends NodeDialogPane {
      * {@inheritDoc}
      */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings)
-            throws InvalidSettingsException {
+    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         m_filtercomp.saveSettingsTo(settings);
-        settings.addString(AbstractStringToNumberNodeModel.CFG_DECIMALSEP,
-                m_decimalSeparator.getText());
-        settings.addString(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP,
-                m_thousandsSeparator.getText());
-        settings.addDataType(AbstractStringToNumberNodeModel.CFG_PARSETYPE,
-                (DataType)m_typeChooser.getSelectedItem());
+        settings.addString(AbstractStringToNumberNodeModel.CFG_DECIMALSEP, m_decimalSeparator.getText());
+        settings.addString(AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP, m_thousandsSeparator.getText());
+        settings.addDataType(AbstractStringToNumberNodeModel.CFG_PARSETYPE, (DataType)m_typeChooser.getSelectedItem());
         settings.addBoolean(AbstractStringToNumberNodeModel.CFG_GENERIC_PARSE, m_genericParse.isSelected());
         settings.addBoolean(AbstractStringToNumberNodeModel.CFG_FAIL_ON_ERROR, m_failOnError.isSelected());
     }
