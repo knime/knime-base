@@ -49,7 +49,10 @@ package org.knime.base.node.preproc.columnlag;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.date.DateAndTimeValue;
+import org.knime.core.data.def.TimestampCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -80,7 +83,40 @@ final class LagColumnNodeModel extends NodeModel {
     /** {@inheritDoc} */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        return new DataTableSpec[] {new LagColumnStreamableOperator(m_configuration, inSpecs[0]).getOutSpec()};
+        DataTableSpec dictTable = inSpecs[0];
+        if (m_configuration == null) {
+            m_configuration = autoConfigure(dictTable);
+        }
+        return new DataTableSpec[]{new LagColumnStreamableOperator(m_configuration, inSpecs[0]).getOutSpec()};
+    }
+
+    /**
+     * @param dictTable
+     * @return
+     */
+    private LagColumnConfiguration autoConfigure(final DataTableSpec dictTable) throws InvalidSettingsException {
+        var config = new LagColumnConfiguration();
+        config.setLag(1);
+        config.setLagInterval(1);
+        config.setSkipInitialIncompleteRows(false);
+        config.setSkipLastIncompleteRows(false);
+        config.setColumn(findDefaultValueColumn(dictTable).getName());
+        return config;
+    }
+
+    private static DataColumnSpec findDefaultValueColumn(final DataTableSpec dictSpec) throws InvalidSettingsException {
+        var valueColumn = dictSpec.stream()//
+            .filter(c -> c.getType().equals(TimestampCell.TYPE)).findFirst();
+        if (valueColumn.isPresent()) {
+            return valueColumn.get();
+        } else {
+            return dictSpec.stream()//
+                .findFirst()//
+                .filter(c -> c.getType().isCompatible(DateAndTimeValue.class))
+                .orElseThrow(() -> new InvalidSettingsException("No DateAndTimeValue columns available in the input."));
+
+        }
+
     }
 
     /**
@@ -88,7 +124,7 @@ final class LagColumnNodeModel extends NodeModel {
      */
     @Override
     public InputPortRole[] getInputPortRoles() {
-        return new InputPortRole[] {InputPortRole.NONDISTRIBUTED_STREAMABLE};
+        return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
     }
 
     /**
@@ -96,7 +132,7 @@ final class LagColumnNodeModel extends NodeModel {
      */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
-        return new OutputPortRole[] {OutputPortRole.NONDISTRIBUTED};
+        return new OutputPortRole[]{OutputPortRole.NONDISTRIBUTED};
     }
 
     /**
@@ -104,17 +140,18 @@ final class LagColumnNodeModel extends NodeModel {
      */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-           final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         return new LagColumnStreamableOperator(m_configuration, (DataTableSpec)inSpecs[0]);
     }
 
     /** {@inheritDoc} */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-                                          final ExecutionContext exec) throws Exception {
-        LagColumnStreamableOperator operator = new LagColumnStreamableOperator(m_configuration, inData[0].getDataTableSpec());
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
+        LagColumnStreamableOperator operator =
+            new LagColumnStreamableOperator(m_configuration, inData[0].getDataTableSpec());
         BufferedDataTable output = operator.execute(inData[0], exec);
-        return new BufferedDataTable[] {output};
+        return new BufferedDataTable[]{output};
     }
 
     /** {@inheritDoc} */
@@ -148,15 +185,15 @@ final class LagColumnNodeModel extends NodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 
     /** {@inheritDoc} */
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 

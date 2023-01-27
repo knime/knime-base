@@ -1,0 +1,35 @@
+{
+	"elements": [
+		{
+			"type": "Section",
+			"label": "Configuration",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/column",
+					"options": {
+						"format": "columnSelection",
+						"showRowKeys": false,
+						"showNoneColumn": false
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/lagInterval"
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/lag"
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/skipInitialIncompleteRows"
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/skipLastIncompleteRows"
+				}
+			]
+		}
+	]
+}

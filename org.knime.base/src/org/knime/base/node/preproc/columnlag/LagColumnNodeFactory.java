@@ -49,12 +49,17 @@ package org.knime.base.node.preproc.columnlag;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  *
  * @author wiswedel
  */
-public final class LagColumnNodeFactory extends NodeFactory<LagColumnNodeModel> {
+@SuppressWarnings("restriction")
+public final class LagColumnNodeFactory extends NodeFactory<LagColumnNodeModel> implements NodeDialogFactory {
 
     /**
      * {@inheritDoc}
@@ -93,7 +98,15 @@ public final class LagColumnNodeFactory extends NodeFactory<LagColumnNodeModel> 
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new LagColumnNodeDialogPane();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LagColumnNodeSettings.class);
     }
 
 }

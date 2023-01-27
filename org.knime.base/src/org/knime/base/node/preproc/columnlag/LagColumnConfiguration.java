@@ -55,14 +55,29 @@ import org.knime.core.node.NodeSettingsWO;
 
 /**
  * Config proxy of node.
+ *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 final class LagColumnConfiguration {
 
+    static final String CFG_COLUMN = "column";
+
+    static final String CFG_LAG = "lag";
+
+    static final String CFG_LAG_INTERVAL = "lag_interval";
+
+    static final String CFG_SKIP_INITIAL_COMPLETE_ROWS = "skipInitialIncompleteRows";
+
+    static final String CFG_SKIP_LAST_COMPLETE_ROWS = "skipLastIncompleteRows";
+
     private String m_column;
+
     private int m_lagInterval = 1;
+
     private int m_lag = 1;
+
     private boolean m_skipInitialIncompleteRows;
+
     private boolean m_skipLastIncompleteRows;
 
     /**
@@ -71,18 +86,21 @@ final class LagColumnConfiguration {
     String getColumn() {
         return m_column;
     }
+
     /**
      * @param column the column to set
      */
     void setColumn(final String column) {
         m_column = column;
     }
+
     /**
      * @return the lag interval
      */
     int getLagInterval() {
         return m_lagInterval;
     }
+
     /**
      * @param lagInterval the lag interval to set
      * @throws InvalidSettingsException If argument <=0.
@@ -93,12 +111,14 @@ final class LagColumnConfiguration {
         }
         m_lagInterval = lagInterval;
     }
+
     /**
      * @return the lag
      */
     int getLag() {
         return m_lag;
     }
+
     /**
      * @param lag the lag to set
      * @throws InvalidSettingsException If lag <=0.
@@ -109,24 +129,28 @@ final class LagColumnConfiguration {
         }
         m_lag = lag;
     }
+
     /**
      * @return the skipInitialIncompleteRows
      */
     boolean isSkipInitialIncompleteRows() {
         return m_skipInitialIncompleteRows;
     }
+
     /**
      * @param value the skipInitialIncompleteRows to set
      */
     void setSkipInitialIncompleteRows(final boolean value) {
         m_skipInitialIncompleteRows = value;
     }
+
     /**
      * @return the skipLastIncompleteRows
      */
     boolean isSkipLastIncompleteRows() {
         return m_skipLastIncompleteRows;
     }
+
     /**
      * @param value the skipLastIncompleteRows to set
      */
@@ -134,19 +158,23 @@ final class LagColumnConfiguration {
         m_skipLastIncompleteRows = value;
     }
 
-    /** Called from model's load and validate settings method.
+    /**
+     * Called from model's load and validate settings method.
+     *
      * @param settings Arg settings.
      * @throws InvalidSettingsException If incomplete
      */
     void loadSettingsInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_column = settings.getString("column");
-        setLag(settings.getInt("lag"));
-        setLagInterval(settings.getInt("lag_interval")); // range check
-        m_skipInitialIncompleteRows = settings.getBoolean("skipInitialIncompleteRows");
-        m_skipLastIncompleteRows = settings.getBoolean("skipLastIncompleteRows");
+        m_column = settings.getString(CFG_COLUMN);
+        setLag(settings.getInt(CFG_LAG));
+        setLagInterval(settings.getInt(CFG_LAG_INTERVAL)); // range check
+        m_skipInitialIncompleteRows = settings.getBoolean(CFG_SKIP_INITIAL_COMPLETE_ROWS);
+        m_skipLastIncompleteRows = settings.getBoolean(CFG_SKIP_LAST_COMPLETE_ROWS);
     }
 
-    /** Called from dialog's load method.
+    /**
+     * Called from dialog's load method.
+     *
      * @param settings Arg settings.
      * @param spec Input table spec
      */
@@ -164,21 +192,23 @@ final class LagColumnConfiguration {
                 defColumn = s.getName();
             }
         }
-        m_column = settings.getString("column", defColumn);
-        m_lag = Math.max(1, settings.getInt("lag", 1));
-        m_lagInterval = Math.max(1, settings.getInt("lag_interval", 1));
-        m_skipInitialIncompleteRows = settings.getBoolean("skipInitialIncompleteRows", false);
-        m_skipLastIncompleteRows = settings.getBoolean("skipLastIncompleteRows", true);
+        m_column = settings.getString(CFG_COLUMN, defColumn);
+        m_lag = Math.max(1, settings.getInt(CFG_LAG, 1));
+        m_lagInterval = Math.max(1, settings.getInt(CFG_LAG_INTERVAL, 1));
+        m_skipInitialIncompleteRows = settings.getBoolean(CFG_SKIP_INITIAL_COMPLETE_ROWS, false);
+        m_skipLastIncompleteRows = settings.getBoolean(CFG_SKIP_LAST_COMPLETE_ROWS, true);
     }
 
-    /** Called from dialog's and model's save method.
+    /**
+     * Called from dialog's and model's save method.
+     *
      * @param settings Arg settings.
      */
     void saveSettings(final NodeSettingsWO settings) {
-        settings.addString("column", m_column);
-        settings.addInt("lag", m_lag);
-        settings.addInt("lag_interval", m_lagInterval);
-        settings.addBoolean("skipInitialIncompleteRows", m_skipInitialIncompleteRows);
-        settings.addBoolean("skipLastIncompleteRows", m_skipLastIncompleteRows);
+        settings.addString(CFG_COLUMN, m_column);
+        settings.addInt(CFG_LAG, m_lag);
+        settings.addInt(CFG_LAG_INTERVAL, m_lagInterval);
+        settings.addBoolean(CFG_SKIP_INITIAL_COMPLETE_ROWS, m_skipInitialIncompleteRows);
+        settings.addBoolean(CFG_SKIP_LAST_COMPLETE_ROWS, m_skipLastIncompleteRows);
     }
 }
