@@ -181,7 +181,7 @@ public final class FileSystemChooserUtils {
             case RELATIVE:
                 return new RelativeToSpecificConfig(active);
             case HUB_SPACE:
-                return new HubSpaceSpecificConfig(active && WorkflowContextUtil.isCurrentWorkflowOnHub());
+                return new HubSpaceSpecificConfig(active);
             default:
                 throw new IllegalArgumentException("Unsupported FSCategory: " + category);
 

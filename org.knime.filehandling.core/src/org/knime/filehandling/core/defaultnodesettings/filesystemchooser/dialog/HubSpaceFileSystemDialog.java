@@ -103,7 +103,7 @@ public class HubSpaceFileSystemDialog implements FileSystemSpecificDialog {
 
     @Override
     public void setEnabled(final boolean enabled) {
-        m_spaceSelector.setEnabled(enabled);
+        m_spaceSelector.setEnabled(enabled && WorkflowContextUtil.isCurrentWorkflowOnHub());
     }
 
     @Override
@@ -118,7 +118,7 @@ public class HubSpaceFileSystemDialog implements FileSystemSpecificDialog {
 
     @Override
     public Color getTextColor() {
-        return Color.BLACK;
+        return WorkflowContextUtil.isCurrentWorkflowOnHub() ? Color.BLACK : Color.GRAY;
     }
 
     @Override
