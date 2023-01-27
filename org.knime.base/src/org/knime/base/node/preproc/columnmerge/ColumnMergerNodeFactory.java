@@ -48,12 +48,18 @@ package org.knime.base.node.preproc.columnmerge;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
-/** Factory to column merger node.
+/**
+ * Factory to column merger node.
+ *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
-public final class ColumnMergerNodeFactory extends
-        NodeFactory<ColumnMergerNodeModel> {
+@SuppressWarnings("restriction")
+public final class ColumnMergerNodeFactory extends NodeFactory<ColumnMergerNodeModel> implements NodeDialogFactory {
 
     /** {@inheritDoc} */
     @Override
@@ -69,8 +75,7 @@ public final class ColumnMergerNodeFactory extends
 
     /** {@inheritDoc} */
     @Override
-    public NodeView<ColumnMergerNodeModel> createNodeView(final int viewIndex,
-            final ColumnMergerNodeModel nodeModel) {
+    public NodeView<ColumnMergerNodeModel> createNodeView(final int viewIndex, final ColumnMergerNodeModel nodeModel) {
         return null;
     }
 
@@ -83,7 +88,17 @@ public final class ColumnMergerNodeFactory extends
     /** {@inheritDoc} */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnMergerNodeDialogPane();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.0
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnMergerNodeSettings.class);
     }
 
 }

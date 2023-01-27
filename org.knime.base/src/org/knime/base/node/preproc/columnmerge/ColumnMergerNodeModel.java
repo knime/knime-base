@@ -48,6 +48,7 @@ package org.knime.base.node.preproc.columnmerge;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.base.node.preproc.columnmerge.ColumnMergerConfiguration.OutputPlacement;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -65,55 +66,43 @@ import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 
 /**
  * Model to column merger.
+ *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
 
     private ColumnMergerConfiguration m_configuration;
 
-
-    /** Creates column rearranger doing all the work.
+    /**
+     * Creates column rearranger doing all the work.
+     *
      * @param spec The input spec.
-     * @return The rearranger creating the output table/spec. */
+     * @return The rearranger creating the output table/spec.
+     */
     @Override
-    protected ColumnRearranger createColumnRearranger(
-            final DataTableSpec spec) throws InvalidSettingsException {
-        ColumnMergerConfiguration cfg = m_configuration;
-        if (cfg == null) {
-            throw new InvalidSettingsException("No settings available");
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
+        if (m_configuration == null) {
+            m_configuration = autoConfigure(spec);
+            setWarningMessage("This node was configured automatically.");
+
         }
+        ColumnMergerConfiguration cfg = m_configuration;
+
         final int primColIndex = spec.findColumnIndex(cfg.getPrimaryColumn());
         final int secColIndex = spec.findColumnIndex(cfg.getSecondaryColumn());
+
         if (primColIndex < 0) {
-            throw new InvalidSettingsException(
-                    "No such primary column: " + cfg.getPrimaryColumn());
+            throw new InvalidSettingsException("No such primary column: " + cfg.getPrimaryColumn());
         }
         if (secColIndex < 0) {
-            throw new InvalidSettingsException(
-                    "No such secondary column: " + cfg.getSecondaryColumn());
+            throw new InvalidSettingsException("No such secondary column: " + cfg.getSecondaryColumn());
         }
         DataColumnSpec c1 = spec.getColumnSpec(primColIndex);
         DataColumnSpec c2 = spec.getColumnSpec(secColIndex);
-        DataType commonType = DataType.getCommonSuperType(
-                c1.getType(), c2.getType());
-        String name;
-        switch (cfg.getOutputPlacement()) {
-        case ReplacePrimary:
-        case ReplaceBoth:
-            name = c1.getName();
-            break;
-        case ReplaceSecondary:
-            name = c2.getName();
-            break;
-        case AppendAsNewColumn:
-            name = DataTableSpec.getUniqueColumnName(spec, cfg.getOutputName());
-            break;
-        default:
-            throw new InvalidSettingsException(
-                    "Coding problem: unhandled case");
-        }
-        DataColumnSpec outColSpec =
-            new DataColumnSpecCreator(name, commonType).createSpec();
+        DataType commonType = DataType.getCommonSuperType(c1.getType(), c2.getType());
+        String name = getNewColumnName(spec, cfg, c1, c2);
+
+        DataColumnSpec outColSpec = new DataColumnSpecCreator(name, commonType).createSpec();
         SingleCellFactory fac = new SingleCellFactory(outColSpec) {
             /** {@inheritDoc} */
             @Override
@@ -123,29 +112,69 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
                 return !cell1.isMissing() ? cell1 : cell2;
             }
         };
-        ColumnRearranger result = new ColumnRearranger(spec);
-        switch (cfg.getOutputPlacement()) {
-        case ReplacePrimary:
-            result.replace(fac, primColIndex);
-            break;
-        case ReplaceBoth:
-            result.replace(fac, primColIndex);
-            result.remove(secColIndex);
-            break;
-        case ReplaceSecondary:
-            result.replace(fac, secColIndex);
-            break;
-        case AppendAsNewColumn:
-            result.append(fac);
-            break;
-        default:
-            throw new InvalidSettingsException(
-                    "Coding problem: unhandled case");
-        }
-        return result;
+
+        return getResult(spec, cfg, fac, primColIndex, secColIndex);
     }
 
+    private static String getNewColumnName(final DataTableSpec spec, final ColumnMergerConfiguration cfg,
+        final DataColumnSpec c1, final DataColumnSpec c2) throws InvalidSettingsException {
+        switch (cfg.getOutputPlacement()) {
+            case ReplacePrimary:
 
+            case ReplaceBoth:
+                return c1.getName();
+            case ReplaceSecondary:
+                return c2.getName();
+            case AppendAsNewColumn:
+                return DataTableSpec.getUniqueColumnName(spec, cfg.getOutputName());
+            default:
+                throw new InvalidSettingsException("Coding problem: unhandled case");
+        }
+    }
+
+    private static ColumnRearranger getResult(final DataTableSpec spec, final ColumnMergerConfiguration cfg,
+        final SingleCellFactory fac, final int primColIndex, final int secColIndex) throws InvalidSettingsException {
+
+        ColumnRearranger result = new ColumnRearranger(spec);
+        switch (cfg.getOutputPlacement()) {
+            case ReplacePrimary:
+                result.replace(fac, primColIndex);
+                return result;
+            case ReplaceBoth:
+                result.replace(fac, primColIndex);
+                result.remove(secColIndex);
+                return result;
+            case ReplaceSecondary:
+                result.replace(fac, secColIndex);
+                return result;
+            case AppendAsNewColumn:
+                result.append(fac);
+                return result;
+            default:
+                throw new InvalidSettingsException("Coding problem: unhandled case");
+        }
+    }
+
+    private static ColumnMergerConfiguration autoConfigure(final DataTableSpec spec) throws InvalidSettingsException {
+        var config = new ColumnMergerConfiguration();
+        config.setOutputName("NewColumn");
+        config.setOutputPlacement(OutputPlacement.ReplaceBoth);
+        String lastCol = getLastColumnName(spec);
+        config.setPrimaryColumn(lastCol);
+        config.setSecondaryColumn(lastCol);
+        return config;
+
+    }
+
+    private static String getLastColumnName(final DataTableSpec dictSpec) throws InvalidSettingsException {
+        int number_of_cols = dictSpec.getNumColumns();
+        if (number_of_cols > 0) {
+            return dictSpec.getColumnNames()[number_of_cols - 1]; //return the last column
+        } else {
+            throw new InvalidSettingsException("No columns available in the input.");
+        }
+
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -157,16 +186,14 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         ColumnMergerConfiguration c = new ColumnMergerConfiguration();
         c.loadConfigurationInModel(settings);
     }
 
     /** {@inheritDoc} */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         ColumnMergerConfiguration c = new ColumnMergerConfiguration();
         c.loadConfigurationInModel(settings);
         m_configuration = c;
@@ -174,17 +201,15 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 
     /** {@inheritDoc} */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 

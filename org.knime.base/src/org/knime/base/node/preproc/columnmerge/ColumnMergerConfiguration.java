@@ -51,27 +51,47 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.impl.Schema;
 
-/** Configuration to column merger node.
+/**
+ * Configuration to column merger node.
+ *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
+@SuppressWarnings("restriction")
 final class ColumnMergerConfiguration {
 
+    static final String CFG_PRIMARY = "primaryColumn";
+
+    static final String CFG_SECONDARY = "secondaryColumn";
+
+    static final String CFG_OUTPUT_PLACEMENT = "outputPlacement";
+
+    static final String CFG_OUTPUT_NAME = "outputName";
+
     private String m_primaryColumn;
+
     private String m_secondaryColumn;
+
     private OutputPlacement m_outputPlacement;
+
     private String m_outputName;
 
     /** Policy how to place output. */
     enum OutputPlacement {
-        /** Replace primary column. */
-        ReplacePrimary,
-        /** Replace secondary column. */
-        ReplaceSecondary,
-        /** Replace both columns, put output at position of primary column. */
-        ReplaceBoth,
-        /** Append as new column. */
-        AppendAsNewColumn
+
+            /** Replace primary column. */
+            @Schema(title = "Replace primary")
+            ReplacePrimary,
+            /** Replace secondary column. */
+            @Schema(title = "Replace secondary")
+            ReplaceSecondary,
+            /** Replace both columns, put output at position of primary column. */
+            @Schema(title = "Replace both")
+            ReplaceBoth,
+            /** Append as new column. */
+            @Schema(title = "Append as new column")
+            AppendAsNewColumn
     }
 
     /** @return the primaryColumn */
@@ -117,47 +137,53 @@ final class ColumnMergerConfiguration {
         m_outputPlacement = outputPlacement;
     }
 
-    /**  Save current config to argument.
-     * @param settings */
+    /**
+     * Save current config to argument.
+     *
+     * @param settings
+     */
     void saveConfiguration(final NodeSettingsWO settings) {
-        settings.addString("primaryColumn", m_primaryColumn);
-        settings.addString("secondaryColumn", m_secondaryColumn);
-        settings.addString("outputPlacement", m_outputPlacement.name());
-        settings.addString("outputName", m_outputName);
+        settings.addString(CFG_PRIMARY, m_primaryColumn);
+        settings.addString(CFG_SECONDARY, m_secondaryColumn);
+        settings.addString(CFG_OUTPUT_PLACEMENT, m_outputPlacement.name());
+        settings.addString(CFG_OUTPUT_NAME, m_outputName);
     }
 
-    /** Load config from argument.
-      * @param settings To load from.
-      * @throws InvalidSettingsException If inconsistent/missing. */
-    void loadConfigurationInModel(final NodeSettingsRO settings)
-        throws InvalidSettingsException {
-        m_primaryColumn = settings.getString("primaryColumn");
-        m_secondaryColumn = settings.getString("secondaryColumn");
-        String outputPlacement = settings.getString("outputPlacement");
+    /**
+     * Load config from argument.
+     *
+     * @param settings To load from.
+     * @throws InvalidSettingsException If inconsistent/missing.
+     */
+    void loadConfigurationInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_primaryColumn = settings.getString(CFG_PRIMARY);
+        m_secondaryColumn = settings.getString(CFG_SECONDARY);
+        String outputPlacement = settings.getString(CFG_OUTPUT_PLACEMENT);
         try {
             m_outputPlacement = OutputPlacement.valueOf(outputPlacement);
         } catch (Exception e) {
-            throw new InvalidSettingsException("Illegal value for output "
-                    + "placement parameter: " + outputPlacement, e);
+            throw new InvalidSettingsException("Illegal value for output " + "placement parameter: " + outputPlacement,
+                e);
         }
-        m_outputName = settings.getString("outputName");
+        m_outputName = settings.getString(CFG_OUTPUT_NAME);
         switch (m_outputPlacement) {
-        case AppendAsNewColumn:
-            if (m_outputName == null || m_outputName.length() == 0) {
-                throw new InvalidSettingsException(
-                        "Illegal (empty) output column name");
-            }
-            break;
-        default:
-            // ignore
+            case AppendAsNewColumn:
+                if (m_outputName == null || m_outputName.length() == 0) {
+                    throw new InvalidSettingsException("Illegal (empty) output column name");
+                }
+                break;
+            default:
+                // ignore
         }
     }
 
-    /** Load config in dialog, init defaults if necessary.
-      * @param settings to load from.
-      * @param spec The input spec to load defaults from. */
-    void loadConfigurationInDialog(final NodeSettingsRO settings,
-            final DataTableSpec spec) {
+    /**
+     * Load config in dialog, init defaults if necessary.
+     *
+     * @param settings to load from.
+     * @param spec The input spec to load defaults from.
+     */
+    void loadConfigurationInDialog(final NodeSettingsRO settings, final DataTableSpec spec) {
         String firstStringCol = null;
         String secondStringCol = null;
         for (DataColumnSpec col : spec) {
@@ -171,18 +197,15 @@ final class ColumnMergerConfiguration {
                 }
             }
         }
-        m_primaryColumn =
-            settings.getString("primaryColumn", firstStringCol);
-        m_secondaryColumn =
-            settings.getString("secondaryColumn", secondStringCol);
-        String outputPlacement = settings.getString("outputPlacement",
-                OutputPlacement.ReplaceBoth.name());
+        m_primaryColumn = settings.getString(CFG_PRIMARY, firstStringCol);
+        m_secondaryColumn = settings.getString(CFG_SECONDARY, secondStringCol);
+        String outputPlacement = settings.getString(CFG_OUTPUT_PLACEMENT, OutputPlacement.ReplaceBoth.name());
         try {
             m_outputPlacement = OutputPlacement.valueOf(outputPlacement);
         } catch (Exception e) {
             m_outputPlacement = OutputPlacement.ReplaceBoth;
         }
-        m_outputName = settings.getString("outputName", m_outputName);
+        m_outputName = settings.getString(CFG_OUTPUT_NAME, m_outputName);
     }
 
 }
