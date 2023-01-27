@@ -217,6 +217,7 @@ public final class HubSpaceSelector extends JPanel {
         }
         super.setEnabled(enabled);
         m_combobox.setEnabled(enabled);
+        m_findMoreBtn.setEnabled(enabled);
 
         // depending on the enabledness, we display the StatusView, or the (empty) placeholder, but never both
         m_statusView.getPanel().setVisible(enabled);
