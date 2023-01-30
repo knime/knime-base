@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="mailsend.png" type="Other">
+<knimeNode icon="mailsend.png" type="Other" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Send Email</name>
 
     <shortDescription>
@@ -80,4 +81,7 @@
 		  An an optional flow variable port which may be used to control the message content and node settings.
       </inPort>
     </ports>
+    <keywords>
+    	<keyword>Notification</keyword> <!-- Otherwise no useful results for this search term -->
+   	</keywords>
 </knimeNode>

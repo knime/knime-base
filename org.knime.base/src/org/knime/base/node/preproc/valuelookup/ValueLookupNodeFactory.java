@@ -81,6 +81,9 @@ public final class ValueLookupNodeFactory extends WebUINodeFactory<ValueLookupNo
             "The dictionary table contains a key column and value columns that will be inserted into the data table")//
         .addOutputTable("Data Table with additional columns",
             "The output table is a copy of the data table but with the added values from the dictionary table")//
+        .keywords(
+            "Cell replacer" // deprecated node replaced by this node, let users find the replacement node easily
+        )
         .build();
 
     /**

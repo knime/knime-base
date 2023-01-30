@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="unpivot.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+<knimeNode icon="unpivot.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Unpivoting</name>
 	<shortDescription>      
 		This node rotates the selected columns from the input table to rows and duplicates
@@ -64,7 +66,7 @@
         </tab>
 
         <tab name="Wildcard/Regex Selection">
-        	<option name="">
+        	<option name="Search Pattern">
 				Type a search pattern which matches columns to move into the
 				Include or Exclude list. Which list is used can be specified.
 				You can use either Wildcards ('?' matching any
@@ -74,7 +76,7 @@
         </tab>
 
         <tab name="Type Selection">
-        	<option name="">
+        	<option name="Column Types">
 				Select the column types that you want to include. Column types
 				that are currently not present are depicted in italic.
 			</option>

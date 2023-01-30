@@ -96,6 +96,6 @@
 		</outPort>
     </ports>
     <keywords>
-    	<keywords>Combine cells</keywords>
+    	<keyword>Combine cells</keyword>
     </keywords>
 </knimeNode>

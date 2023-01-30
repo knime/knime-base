@@ -61,7 +61,7 @@
 		</outPort>
 	</ports>
 	<keywords>
-		<keywords>Join</keywords>
+		<keyword>Join</keyword>
 	</keywords>
 </knimeNode>
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode icon="./sorter.png" type = "Manipulator">
+<knimeNode icon="./sorter.png" type = "Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Sorter</name>
 	<shortDescription>Sorts the rows according to user-defined criteria.</shortDescription>
     <fullDescription>
@@ -23,9 +24,12 @@
 		independent of the sort order, i.e. if sorted ascendingly they are 
 		considered to be larger than a non-missing value and if sorted descendingly
 		they are smaller than any non-missing value.</option>
-		</fullDescription>
-		<ports>
-    <inPort index="0" name = "Input Table">Table to be sorted.</inPort>
-    <outPort index="0" name = "Sorted Table">A sorted table.</outPort>
+	</fullDescription>
+	<ports>
+	    <inPort index="0" name = "Input Table">Table to be sorted.</inPort>
+	    <outPort index="0" name = "Sorted Table">A sorted table.</outPort>
     </ports>
-    </knimeNode>
+    <keywords>
+    	<keyword>Order by</keyword> <!-- SQL name -->
+    </keywords>
+</knimeNode>

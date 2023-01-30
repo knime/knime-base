@@ -76,6 +76,7 @@ public final class RowAggregatorNodeFactory extends WebUINodeFactory<RowAggregat
         .addOutputTable("Totals table", "Contains the single-row table with \"grand total\" values if, and only if, "
             + "the corresponding output setting is enabled and a category column is selected. Otherwise, the output is "
             + "inactive.")
+        .keywords("Group by")
         .build();
 
     /**

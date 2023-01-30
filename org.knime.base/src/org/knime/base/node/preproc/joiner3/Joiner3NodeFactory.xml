@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./joiner.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+<knimeNode icon="./joiner.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Joiner</name>
     <shortDescription>Combine matching rows from two tables</shortDescription>
     <fullDescription>
@@ -135,4 +137,7 @@
         <outPort index="1" name="Left unmatched rows">Unmatched rows from the left input table (top input port). Inactive if "Output unmatched rows to separate ports" is deactivated.</outPort>
         <outPort index="2" name="Right unmatched rows">Unmatched rows from the right input table (bottom input port). Inactive if "Output unmatched rows to separate ports" is deactivated.</outPort>
     </ports>
+    <keywords>
+    	<keyword>Combine tables</keyword>
+    </keywords>
 </knimeNode>

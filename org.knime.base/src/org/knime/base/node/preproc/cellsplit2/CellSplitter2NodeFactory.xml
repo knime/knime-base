@@ -102,6 +102,4 @@
 		<outPort index="0" name="Output Table">Output data table with additional
 			columns.</outPort>
 	</ports>
-	<keywords>
-	</keywords>
 </knimeNode>

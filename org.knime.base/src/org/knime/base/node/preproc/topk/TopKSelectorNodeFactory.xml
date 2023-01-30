@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./elementselector.png" type="Manipulator"
-	xmlns="http://knime.org/node/v3.1"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://knime.org/node/v3.1 http://knime.org/node/v3.1.xsd">
+<knimeNode icon="./elementselector.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Top k Selector</name>
 	<shortDescription>Selects the top k rows according to user-defined criteria.</shortDescription>
 	<fullDescription>
@@ -74,4 +73,7 @@
 		<outPort index="0" name="Top k Table">A table containing the top k rows.
 		</outPort>
 	</ports>
+	<keywords>
+		<keyword>Top-k</keyword> <!-- Otherwise, fuzzy search does not find node with this search term -->
+	</keywords>
 </knimeNode>

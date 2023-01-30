@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode icon="./transpose.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+<knimeNode icon="./transpose.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Table Transposer</name>
     <shortDescription>Transposes a table by swapping rows and columns.</shortDescription>
     <fullDescription>
