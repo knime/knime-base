@@ -52,7 +52,6 @@ package org.knime.filehandling.core.connections.base.auth;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.swing.Box;
@@ -63,11 +62,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentFlowVariableNameSelection2;
 import org.knime.core.node.defaultnodesettings.DialogComponentPasswordField;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.CredentialsProvider;
-import org.knime.core.node.workflow.FlowVariable;
 
 /**
  * Authentication settings dialog panel.
@@ -79,15 +76,15 @@ public class SingleSecretAuthProviderPanel extends AuthProviderPanel<SingleSecre
 
     private static final int LEFT_INSET = 23;
 
+    private final Supplier<CredentialsProvider> m_credentialsSupplier; // NOSONAR not using serialization
+
     private DialogComponentBoolean m_useCredentials; // NOSONAR not using serialization
 
-    private DialogComponentFlowVariableNameSelection2 m_credentialsFlowVarChooser; // NOSONAR not using serialization
+    private DialogComponentCredentialSelection m_credentialSelection; // NOSONAR not using serialization
 
     private JLabel m_secretLabel;
 
     private DialogComponentPasswordField m_secret; // NOSONAR not using serialization
-
-    private final Supplier<Map<String, FlowVariable>> m_flowVariablesSupplier; // NOSONAR not using serialization
 
     /**
      * Constructor.
@@ -100,7 +97,9 @@ public class SingleSecretAuthProviderPanel extends AuthProviderPanel<SingleSecre
     public SingleSecretAuthProviderPanel(final String secretLabel, final SingleSecretAuthProviderSettings settings,
         final Supplier<CredentialsProvider> credentialsSupplier) {
         super(new GridBagLayout(), settings);
-        m_flowVariablesSupplier = () -> CredentialsFlowVariableUtil.fetchFlowVariables(credentialsSupplier.get());
+
+
+        m_credentialsSupplier = credentialsSupplier;
 
         initFields(secretLabel);
         initLayout();
@@ -133,7 +132,7 @@ public class SingleSecretAuthProviderPanel extends AuthProviderPanel<SingleSecre
 
         gbc.gridx++;
         gbc.insets = new Insets(0, 0, 0, 5);
-        add(m_credentialsFlowVarChooser.getComponentPanel(), gbc);
+        add(m_credentialSelection.getComponentPanel(), gbc);
 
         gbc.gridx++;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -145,8 +144,9 @@ public class SingleSecretAuthProviderPanel extends AuthProviderPanel<SingleSecre
         m_secretLabel = new JLabel(secretLabel);
         m_secret = new DialogComponentPasswordField(getSettings().getSecretModel(), "", 45);
         m_useCredentials = new DialogComponentBoolean(getSettings().getUseCredentialsModel(), "Use credentials:");
-        m_credentialsFlowVarChooser = new DialogComponentFlowVariableNameSelection2(
-            getSettings().getCredentialsNameModel(), "", m_flowVariablesSupplier);
+        m_credentialSelection = new DialogComponentCredentialSelection(//
+            getSettings().getCredentialsNameModel(),//
+            "", m_credentialsSupplier);
     }
 
     @Override
@@ -154,7 +154,7 @@ public class SingleSecretAuthProviderPanel extends AuthProviderPanel<SingleSecre
     protected void updateComponentsEnablement() {
         m_secretLabel.setEnabled(isEnabled() && !getSettings().useCredentials());
 
-        if (m_flowVariablesSupplier.get().isEmpty()) {
+        if (m_credentialsSupplier.get().listNames().isEmpty()) {
             getSettings().getUseCredentialsModel().setBooleanValue(false);
             m_useCredentials.setEnabled(false);
         } else {
@@ -179,7 +179,7 @@ public class SingleSecretAuthProviderPanel extends AuthProviderPanel<SingleSecre
     protected void loadAdditionalSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
         throws NotConfigurableException {
 
-        m_credentialsFlowVarChooser.loadSettingsFrom(settings, specs);
+        m_credentialSelection.loadSettingsFrom(settings, specs);
 
         // for some reason we need to do this, otherwise DialogComponentBoolean does not properly
         // display the enabledness of the underlying SettingsModelBoolean
@@ -194,6 +194,6 @@ public class SingleSecretAuthProviderPanel extends AuthProviderPanel<SingleSecre
      */
     @Override
     protected void saveAdditionalSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_credentialsFlowVarChooser.saveSettingsTo(settings);
+        m_credentialSelection.saveSettingsTo(settings);
     }
 }
