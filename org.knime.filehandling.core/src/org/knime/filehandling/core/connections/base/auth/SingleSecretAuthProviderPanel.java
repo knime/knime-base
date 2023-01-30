@@ -59,7 +59,6 @@ import javax.swing.Box;
 import javax.swing.JLabel;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -67,8 +66,8 @@ import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentFlowVariableNameSelection2;
 import org.knime.core.node.defaultnodesettings.DialogComponentPasswordField;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.node.workflow.VariableType.CredentialsType;
 
 /**
  * Authentication settings dialog panel.
@@ -95,13 +94,13 @@ public class SingleSecretAuthProviderPanel extends AuthProviderPanel<SingleSecre
      *
      * @param secretLabel UI label for the widget the allows to enter the secret value.
      * @param settings SSH authentication settings.
-     * @param parentDialog The parent dialog pane (required by flow variable dialog component to list all flow
-     *            variables).
+     * @param credentialsSupplier The supplier of {@link CredentialsProvider} (required by flow variable
+     * dialog component to list all credentials flow variables).
      */
     public SingleSecretAuthProviderPanel(final String secretLabel, final SingleSecretAuthProviderSettings settings,
-        final NodeDialogPane parentDialog) {
+        final Supplier<CredentialsProvider> credentialsSupplier) {
         super(new GridBagLayout(), settings);
-        m_flowVariablesSupplier = () -> parentDialog.getAvailableFlowVariables(CredentialsType.INSTANCE);
+        m_flowVariablesSupplier = () -> CredentialsFlowVariableUtil.fetchFlowVariables(credentialsSupplier.get());
 
         initFields(secretLabel);
         initLayout();
