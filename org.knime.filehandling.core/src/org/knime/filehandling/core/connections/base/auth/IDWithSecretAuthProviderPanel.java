@@ -59,7 +59,6 @@ import javax.swing.Box;
 import javax.swing.JLabel;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
@@ -68,8 +67,8 @@ import org.knime.core.node.defaultnodesettings.DialogComponentFlowVariableNameSe
 import org.knime.core.node.defaultnodesettings.DialogComponentPasswordField;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.node.workflow.VariableType.CredentialsType;
 
 /**
  * Authentication settings dialog panel to be used with {@link IDWithSecretAuthProviderSettings}.
@@ -100,29 +99,29 @@ public class IDWithSecretAuthProviderPanel extends AuthProviderPanel<IDWithSecre
      * Constructor.
      *
      * @param settings Authentication settings.
-     * @param parentDialog The parent dialog pane (required by flow variable dialog component to list all flow
-     *            variables).
+     * @param credentialsSupplier The supplier of {@link CredentialsProvider} (required by flow variable
+     * dialog component to list all credentials flow variables).
      */
     public IDWithSecretAuthProviderPanel(final IDWithSecretAuthProviderSettings settings,
-        final NodeDialogPane parentDialog) {
-        this(settings, parentDialog, "ID", "Secret");
+        final Supplier<CredentialsProvider> credentialsSupplier) {
+        this(settings, credentialsSupplier, "ID", "Secret");
     }
 
     /**
      * Constructor.
      *
      * @param settings Authentication settings.
-     * @param parentDialog The parent dialog pane (required by flow variable dialog component to list all flow
-     *            variables).
+     * @param credentialsSupplier The supplier of {@link CredentialsProvider} (required by flow variable
+     * dialog component to list all credentials flow variables).
      * @param idLabel custom ID field label
      * @param secretLabel custom secret field label
-     *
      */
     public IDWithSecretAuthProviderPanel(final IDWithSecretAuthProviderSettings settings,
-        final NodeDialogPane parentDialog, final String idLabel, final String secretLabel) {
+        final Supplier<CredentialsProvider> credentialsSupplier, final String idLabel, final String secretLabel) {
 
         super(new GridBagLayout(), settings);
-        m_flowVariablesSupplier = () -> parentDialog.getAvailableFlowVariables(CredentialsType.INSTANCE);
+
+        m_flowVariablesSupplier = () -> CredentialsFlowVariableUtil.fetchFlowVariables(credentialsSupplier.get());
         m_idLabel = new JLabel(idLabel + ":");
         m_secretLabel = new JLabel(secretLabel + ":");
         initFields();

@@ -44,32 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   2020-10-15 (Vyacheslav Soldatov): created
+ *   Dec 22, 2022 (Zkriya Rakhimberdiyev): created
  */
-
 package org.knime.filehandling.core.connections.base.auth;
 
-import java.util.function.Supplier;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.workflow.CredentialsProvider;
+import org.knime.core.node.workflow.CredentialsStore;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.ICredentials;
 
 /**
- * Username/password settings dialog panel.
+ * Utility class for fetching and converting credentials to flow variables.
  *
- * @author Bjoern Lohrmann, KNIME GmbH
+ * @author Zkriya Rakhimberdiyev
  */
-@SuppressWarnings("serial")
-public class UserPasswordAuthProviderPanel extends IDWithSecretAuthProviderPanel {
+final class CredentialsFlowVariableUtil {
+
+    private CredentialsFlowVariableUtil() {
+    }
 
     /**
-     * Constructor.
+     * Fetches a map of credentials flow variables.
      *
-     * @param settings Authentication settings.
-     * @param credentialsSupplier The supplier of {@link CredentialsProvider} (required by flow variable
-     * dialog component to list all credentials flow variables).
+     * @param credentialsProvider {@link CredentialsProvider}
+     * @return map of credentials flow variables
      */
-    public UserPasswordAuthProviderPanel(final UserPasswordAuthProviderSettings settings,
-        final Supplier<CredentialsProvider> credentialsSupplier) {
-        super(settings, credentialsSupplier, "Username", "Password");
+    static Map<String, FlowVariable> fetchFlowVariables(final CredentialsProvider credentialsProvider) {
+        if (credentialsProvider == null) {
+            return Map.of();
+        }
+        return credentialsProvider.listNames().stream()
+                .map(credentialsProvider::get)
+                .map(CredentialsFlowVariableUtil::toCredentialsFlowVariable)
+                .collect(Collectors.toMap(FlowVariable::getName, Function.identity()));
+    }
+
+    private static FlowVariable toCredentialsFlowVariable(final ICredentials credentials) {
+        try {
+            return CredentialsStore.newCredentialsFlowVariable(credentials.getName(),//
+                credentials.getLogin(), "", false, false); // we don't actually need the password here, it's only used to display
+        } catch (InvalidSettingsException ex) {
+            throw new IllegalStateException("Invalid credentials " + ex);
+        }
     }
 }
