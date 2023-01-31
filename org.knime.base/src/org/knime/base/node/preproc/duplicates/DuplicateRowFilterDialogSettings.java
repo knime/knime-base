@@ -84,8 +84,8 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
     DuplicateRowHandling m_duplicateHandling = DuplicateRowHandling.REMOVE;
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_DUPLICATE_FLAG_KEY)
-    @Schema(title = "Add column showing duplicates (“unique, “chosen”, “duplicate”) to all rows",
-        description = "Appends a column that describes the type of row." //
+    @Schema(title = "Add column showing the row status ('unique', 'chosen', 'duplicate') to all rows",
+        description = "Appends a column with the row status:" //
             + "<ul>" //
             + "<li><i>unique:</i> There is no other row with the same values in the selected columns.</li>" //
             + "<li><i>chosen:</i> This row was chosen from a set of duplicate rows.</li>" //
@@ -94,10 +94,10 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
     boolean m_addUniqueLabel = true;
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_ID_FLAG_KEY)
-    @Schema(title = "Add column identifying the RowID of the chosen row or each duplicate row",
+    @Schema(title = "Add column identifying the RowID of the chosen row for each duplicate row",
         description = "Appends a column with the RowID of the chosen row for duplicate rows. "
             + "Unique and chosen rows will not have a RowID assigned. ")
-    boolean m_addRowIdLabel = false;
+    boolean m_addRowIdLabel;
 
     @Persist(configKey = DuplicateRowFilterSettings.RowSelectionType.ROW_SELECTION_KEY)
     @Schema(title = "Row chosen in case of duplicate",
@@ -114,21 +114,21 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
             + "</ul>")
     RowSelection m_rowSelectionType = RowSelection.FIRST;
 
-    // TODO the default selection does not seem to work
     @Persist(configKey = DuplicateRowFilterSettings.REFERENCE_COL_KEY)
     @Schema(title = "Column", choices = AllColumns.class)
     String m_selectedColumn;
 
     @Persist(configKey = DuplicateRowFilterSettings.IN_MEMORY_KEY)
     @Schema(title = "In-memory computation",
-        description = "If selected, computation is speed up by utilizing working memory (RAM). "
+        description = "If selected, computation is sped up by utilizing working memory (RAM). "
             + "The amount of required memory is higher than for a regular computation and also depends on the amount "
             + "of input data.")
-    boolean m_inMemory = false;
+    boolean m_inMemory;
 
     @Persist(configKey = DuplicateRowFilterSettings.RETAIN_ROW_ORDER_KEY)
     @Schema(title = "Retain row order",
-        description = "If selected, rows in the output table are sorted in the same order as in the input table.")
+        description = "If selected, the rows in the output table are guaranteed to have the same "
+            + "order as in the input table.")
     boolean m_retainOrder = true;
 
     /** Constructor for deserialization */
@@ -173,7 +173,7 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
         @Override
         public DuplicateRowHandling load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getBoolean(DuplicateRowFilterSettings.REMOVE_DUPLICATE_ROWS_KEY)) { // TODO default?
+            if (settings.getBoolean(DuplicateRowFilterSettings.REMOVE_DUPLICATE_ROWS_KEY)) {
                 return DuplicateRowHandling.REMOVE;
             } else {
                 return DuplicateRowHandling.KEEP;

@@ -20,15 +20,15 @@
             not selected are handled under "Row selection" in the "Advanced" tab.
 		</option>
 	</tab>
-	<tab name="Advanced - Duplicate Rows">
+	<tab name="Duplicate Rows">
 		<option name="Remove duplicates">
-            Removes duplicate rows and keeps only unique and chosen rows.
+            Advanced setting that removes duplicate rows and keeps only unique and chosen rows.
 		</option>
 		<option name="Keep duplicate rows">
-			Appends columns with additional information to the input table:
+			Advanced setting that appends columns with additional information to the input table:
 			<ul>
-				<li><b>Add column showing duplicates</b>: Appends a column that describes
-					the type of row:
+				<li><b>Add column showing the row status ('unique', 'chosen', 'duplicate') to all rows</b>: 
+				Appends a column with the row status:
 						<br/><i>unique</i>: There is no other row with the same 
 							values in the selected columns.
 						<br/><i>chosen</i>: This row was chosen from a set of duplicate
@@ -42,10 +42,8 @@
 				</li>
 			</ul>
 		</option>
-	</tab>
-	<tab name="Advanced - Row selection">
 		<option name="Row chosen in case of duplicate">
-			Defines which row for each set of duplicates is selected:
+			Advanced setting that defines which row for each set of duplicates is selected:
 			<ul>
 				<li><b>First</b>:The first row in sequence is chosen.
 				</li>
@@ -62,15 +60,15 @@
 			</ul>
 		</option>
 	</tab>
-    <tab name="Advanced - Additional options">
+    <tab name="Additional options">
 		<option name="In-memory computation">
-            If selected, computation is speed up by utilizing working memory (RAM). The amount
+            Advanced setting that, if selected, speeds up computation by utilizing working memory (RAM). The amount
             of required memory is higher than for a regular computation and also depends
             on the amount of input data.
 		</option>
 		<option name="Retain row order">
-            If selected, rows in the output table are sorted in the same order as in the input
-            table.
+            Advanced setting that if selected, ensures that the rows in the output table are in the same order as in the
+             input table.
 		</option>
     </tab>
 	</fullDescription>
