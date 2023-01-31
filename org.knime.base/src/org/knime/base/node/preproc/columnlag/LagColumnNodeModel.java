@@ -49,10 +49,7 @@ package org.knime.base.node.preproc.columnlag;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.date.DateAndTimeValue;
-import org.knime.core.data.def.TimestampCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -86,37 +83,28 @@ final class LagColumnNodeModel extends NodeModel {
         DataTableSpec dictTable = inSpecs[0];
         if (m_configuration == null) {
             m_configuration = autoConfigure(dictTable);
+            setWarningMessage("This node was configured automatically.");
         }
         return new DataTableSpec[]{new LagColumnStreamableOperator(m_configuration, inSpecs[0]).getOutSpec()};
     }
 
-    /**
-     * @param dictTable
-     * @return
-     */
-    private LagColumnConfiguration autoConfigure(final DataTableSpec dictTable) throws InvalidSettingsException {
+    private static LagColumnConfiguration autoConfigure(final DataTableSpec dictTable) throws InvalidSettingsException {
         var config = new LagColumnConfiguration();
         config.setLag(1);
         config.setLagInterval(1);
         config.setSkipInitialIncompleteRows(false);
         config.setSkipLastIncompleteRows(false);
-        config.setColumn(findDefaultValueColumn(dictTable).getName());
+        config.setColumn(getLastColumnName(dictTable));
         return config;
     }
 
-    private static DataColumnSpec findDefaultValueColumn(final DataTableSpec dictSpec) throws InvalidSettingsException {
-        var valueColumn = dictSpec.stream()//
-            .filter(c -> c.getType().equals(TimestampCell.TYPE)).findFirst();
-        if (valueColumn.isPresent()) {
-            return valueColumn.get();
+    private static String getLastColumnName(final DataTableSpec dictSpec) throws InvalidSettingsException {
+        int number_of_cols = dictSpec.getNumColumns();
+        if (number_of_cols > 0) {
+            return dictSpec.getColumnNames()[number_of_cols - 1]; //return the last column
         } else {
-            return dictSpec.stream()//
-                .findFirst()//
-                .filter(c -> c.getType().isCompatible(DateAndTimeValue.class))
-                .orElseThrow(() -> new InvalidSettingsException("No DateAndTimeValue columns available in the input."));
-
+            throw new InvalidSettingsException("No columns available in the input.");
         }
-
     }
 
     /**

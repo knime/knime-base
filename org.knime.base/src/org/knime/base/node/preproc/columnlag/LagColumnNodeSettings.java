@@ -69,8 +69,8 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL, settingsModel = SettingsModelInteger.class)
     @Schema(title = "Lag interval",
-        description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality) \n"
-            + "            defines how many column copies and how many row shifts to apply.")
+        description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality) defines "
+            + "how many column copies and how many row shifts to apply.")
     int m_lagInterval;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG, settingsModel = SettingsModelInteger.class)
@@ -81,15 +81,15 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS,
         settingsModel = SettingsModelBoolean.class)
     @Schema(title = "Skip initial incomplete rows",
-        description = "If selected the first rows from the input table are omitted in the output so that the lag output column(s)\n"
-            + "            is not missing (unless the reference data is missing).")
-    boolean m_skipInitialIncompleteRows = false;
+        description = "If selected the first rows from the input table are omitted in the output so that the lag "
+            + "output column(s) is not missing (unless the reference data is missing).")
+    boolean m_skipInitialIncompleteRows;
 
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_LAST_COMPLETE_ROWS, settingsModel = SettingsModelBoolean.class)
     @Schema(title = "Skip last incomplete rows",
-        description = "If selected the rows containing the lagged values of the last real data row are \n"
-            + "            omitted (no artificial new rows). Otherwise new rows are added, which contain missing values in all columns\n"
-            + "            but the new lag output.")
+        description = "If selected the rows containing the lagged values of the last real data row are "
+            + "omitted (no artificial new rows). Otherwise new rows are added, "
+            + "which contain missing values in all columns but the new lag output.")
     boolean m_skipLastIncompleteRows = true;
 
     private static final class AllColumns implements ChoicesProvider {

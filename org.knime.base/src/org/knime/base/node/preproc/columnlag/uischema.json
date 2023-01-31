@@ -9,7 +9,7 @@
 					"scope": "#/properties/model/properties/column",
 					"options": {
 						"format": "columnSelection",
-						"showRowKeys": false,
+						"showRowKeys": true,
 						"showNoneColumn": false
 					}
 				},
