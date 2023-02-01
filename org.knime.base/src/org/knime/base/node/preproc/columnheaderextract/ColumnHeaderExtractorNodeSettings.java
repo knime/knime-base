@@ -76,25 +76,33 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
         description = "Select this to replace the original column names by a pattern. "
             + "The pattern is to be set in the corresponding text field. "
             + "If not selected, the original column names will be used in the second output table "
-            + "(the second output will be a reference to the input table.)")
+            + "(the second output will be a reference to the input table).")
     boolean m_replaceColHeader;
 
     @Persist(settingsModel = SettingsModelString.class)
-    @Schema(title = "Prefix", description = "Prefix of the new column names")
+    @Schema(title = "Prefix", description = "Prefix of the new column names.")
     String m_unifyHeaderPrefix;
 
     @Persist(customPersistor = OutputFormatPersistor.class)
-    @Schema(title = "Output format for the column names",
+    @Schema(title = "Output format for column names",
         description = "The format in which the top output table provides the column names:" //
             + "<ul>"//
-            + "<li>Row: The column names are output as a single row with a column per name</li>"//
-            + "<li>Column: The column names are output as a single column with a row per name</li>"//
+            + "<li><b>Row</b>: The column names are output as a single row with a column per name.</li>"//
+            + "<li><b>Column</b>: The column names are output as a single column with a row per name.</li>"//
             + "</ul>")
     OutputFormat m_transposeColHeader;
 
     @Persist(customPersistor = ColTypePersistor.class)
-    @Schema(title = "Restrain columns",
-        description = "Select the type of the column to process, e.g. only use double-compatible columns.")
+    @Schema(title = "Restrain column types",
+        description = "Select the type of the columns to extract the names from:"//
+                + "<ul>"//
+                + "<li><b>All</b>: All columns are processed.</li>"//
+                + "<li><b>String</b>: Only string-compatible columns are processed, "//
+                + "this includes e.g. XML columns.</li>"//
+                + "<li><b>Integer</b>: Only integer-compatible columns are processed.</li>"//
+                + "<li><b>Double</b>: Only double-compatible columns are processed. "//
+                + "This includes integer and long columns.</li>"//
+                + "</ul>")
     ColType m_colTypeFilter;
 
     enum OutputFormat {
