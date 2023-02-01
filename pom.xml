@@ -29,21 +29,15 @@
 			</activation>
 			<modules>
                 <!-- this needs to go first because it ensures that jar files required by org.knime.base.tests are present -->
-				<module>org.knime.base.tests/lib/fetch_jars</module>
-			
 				<module>org.knime.base</module>
-				<module>org.knime.base.tests</module>
 				<module>org.knime.deprecated</module>
 				<module>org.knime.features.base</module>
 				<module>org.knime.features.filehandling.core.testing</module>
+				<module>org.knime.filehandling.core.fs.tests.workflow</module>
 				<module>org.knime.filehandling.core</module>
 				<module>org.knime.filehandling.core.tests.common</module>
-				<module>org.knime.filehandling.core.tests</module>
 				<module>org.knime.filehandling.core.fs</module>
-				<module>org.knime.filehandling.core.fs.tests</module>
-				<module>org.knime.filehandling.core.fs.tests.workflow</module>
 				<module>org.knime.filehandling.utility.nodes</module>
-				<module>org.knime.filehandling.utility.nodes.tests</module>
 
 				<!-- File handling examples are intentionally compiled, but not part of any feature.
 				     This ensures that we have to maintain the examples. Please don't remove them.
@@ -55,6 +49,50 @@
 				<module>org.knime.time.tests</module>
 				<module>org.knime.update.base</module>
 			</modules>
+		</profile>
+		<profile>
+			<id>test</id>
+			<modules>
+                <module>org.knime.base</module>
+				<module>org.knime.base.tests/lib/fetch_jars</module>
+                <module>org.knime.base.tests</module>
+                <module>org.knime.deprecated</module>
+                <module>org.knime.features.base</module>
+                <module>org.knime.filehandling.core.fs</module>
+				<module>org.knime.filehandling.core.fs.tests</module>
+                <module>org.knime.filehandling.core</module>
+                <module>org.knime.filehandling.core.tests.common</module>
+                <module>org.knime.filehandling.utility.nodes</module>
+				<module>org.knime.filehandling.utility.nodes.tests</module>
+                <module>org.knime.time</module>
+           </modules>
+            <repositories>
+                <repository>
+                    <id>p2-knime-workbench</id>
+                    <layout>p2</layout>
+                    <url>${knime.workbench.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-js-core</id>
+                    <layout>p2</layout>
+                    <url>${knime.js.core.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-svg</id>
+                    <layout>p2</layout>
+                    <url>${knime.svg.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-database</id>
+                    <layout>p2</layout>
+                    <url>${knime.database.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-kerberos</id>
+                    <layout>p2</layout>
+                    <url>${knime.kerberos.p2}</url>
+                </repository>
+            </repositories>
 		</profile>
 		<profile>
 			<id>integration-tests</id>
@@ -71,6 +109,33 @@
 				<module>org.knime.filehandling.utility.nodes</module>
 				<module>org.knime.time</module>
 			</modules>
+            <repositories>
+                <repository>
+                    <id>p2-knime-workbench</id>
+                    <layout>p2</layout>
+                    <url>${knime.workbench.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-js-core</id>
+                    <layout>p2</layout>
+                    <url>${knime.js.core.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-svg</id>
+                    <layout>p2</layout>
+                    <url>${knime.svg.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-database</id>
+                    <layout>p2</layout>
+                    <url>${knime.database.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-kerberos</id>
+                    <layout>p2</layout>
+                    <url>${knime.kerberos.p2}</url>
+                </repository>
+            </repositories>
 		</profile>
 	</profiles>
 
@@ -94,31 +159,6 @@
 			<id>p2-knime-tp</id>
 			<layout>p2</layout>
 			<url>${knime.tp.p2}</url>
-		</repository>
-		<repository>
-			<id>p2-knime-workbench</id>
-			<layout>p2</layout>
-			<url>${knime.workbench.p2}</url>
-		</repository>
-		<repository>
-			<id>p2-knime-js-core</id>
-			<layout>p2</layout>
-			<url>${knime.js.core.p2}</url>
-		</repository>
-		<repository>
-			<id>p2-knime-svg</id>
-			<layout>p2</layout>
-			<url>${knime.svg.p2}</url>
-		</repository>
-		<repository>
-			<id>p2-knime-database</id>
-			<layout>p2</layout>
-			<url>${knime.database.p2}</url>
-		</repository>
-		<repository>
-			<id>p2-knime-kerberos</id>
-			<layout>p2</layout>
-			<url>${knime.kerberos.p2}</url>
 		</repository>
 	</repositories>
 	<build>
