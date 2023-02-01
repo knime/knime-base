@@ -78,16 +78,20 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     String m_secondaryColumn = "";
 
     @Persist(customPersistor = OutputPlacementOptionsPersistor.class)
-    @Schema(title = "Output placement",
-        description = "Choose where to put the result column. You can replace either of the input columns, both input columns "
-            + "(the output column will replace the primary column) or append a new column with a given name." + "<ul>\n"
-            + "  <li>Replace primary - replaces the first column</li>\n"
-            + "  <li>Replace secondary - replaces the second column</li>\n"
-            + "  <li>Replace both - replaces both columns and saves the new column with the name of the first column</li>\n"
-            + "  <li>Append as new column - append a new column. You can set the name below.</li>\n" + "</ul> ")
+    @Schema(title = "Output placement", description = "Choose where to put the result column:"//
+        + "<ul>"//
+        + "<li><b>Replace primary</b>: Replace the primary column with the merge "
+        + "result and keep the secondary column.</li>"//
+        + "<li><b>Replace secondary</b>: Keep the primary column and replace the "
+        + "secondary column with the merge result.</li>"//
+        + "<li><b>Replace both</b>: Replace the primary column with the merge "
+        + "result and remove the secondary column.</li>"//
+        + "<li><b>Append as new column</b>: Append a new column with the name provided below.</li>"//
+        + "</ul>")
     OutputPlacement m_outputPlacement;
 
-    @Persist(configKey = ColumnMergerConfiguration.CFG_OUTPUT_NAME, settingsModel = SettingsModelString.class)
+    @Persist(
+        configKey = ColumnMergerConfiguration.CFG_OUTPUT_NAME, settingsModel = SettingsModelString.class)
     @Schema(title = "New column name", description = "The name for the new column.")
     String m_outputName;
 

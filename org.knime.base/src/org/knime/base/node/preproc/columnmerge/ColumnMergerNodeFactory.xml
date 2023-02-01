@@ -29,17 +29,22 @@
 			  column will have a very general data type.
             </p>
         </intro>
-        <option name="Primary Column">
+        <option name="Primary column">
             The column with the value that will be used unless it is missing. 
         </option>
-        <option name="Secondary Column">
+        <option name="Secondary column">
             The column with the value that will be used otherwise. 
         </option>
-        <option name="Output Placement">
-            Choose where to put the result column. You can replace either of
-            the input columns, both input columns (the output column will replace 
-            the primary column) or append a new column with a given name.
+        <option name="Output placement">
+            Choose where to put the result column:
+            <ul>
+            <li><b>Replace primary</b>: Replace the primary column with the merge result and keep the secondary column.</li>
+            <li><b>Replace secondary</b>: Keep the primary column and replace the secondary column with the merge result.</li>
+            <li><b>Replace both</b>: Replace the primary column with the merge result and remove the secondary column.</li>
+            <li><b>Append as new column</b>: Append a new column with the name provided below.</li>
+            </ul>
         </option>
+        <option name="New column name">The name for the new column.</option>
     </fullDescription>
 
     <ports>
