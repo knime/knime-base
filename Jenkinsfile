@@ -50,7 +50,10 @@ try {
                     ]
                 ],
             )
-        }
+        },
+        'Integrated Workflowtests': {
+                workflowTests.runIntegratedWorkflowTests(profile: 'test')
+         },
     ]
 
     parallel testConfigs
