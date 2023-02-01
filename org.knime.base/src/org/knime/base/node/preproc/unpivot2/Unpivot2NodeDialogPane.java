@@ -47,8 +47,6 @@ package org.knime.base.node.preproc.unpivot2;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 
 /**
  *
@@ -61,52 +59,16 @@ final class Unpivot2NodeDialogPane extends DefaultNodeSettingsPane {
      */
     Unpivot2NodeDialogPane() {
         createNewGroup(" Value columns ");
-        addDialogComponent(new DialogComponentColumnFilter2(
-                createColumnFilterValueColumns(), 0));
+        addDialogComponent(new DialogComponentColumnFilter2(Unpivot2NodeModel.createColumnFilterValueColumns(), 0));
         final DialogComponentBoolean missComponent = new DialogComponentBoolean(
-            createMissingValueModel(), "Skip rows containing missing cells");
-        missComponent.setToolTipText("Skip rows containing missing values "
-            + "in selected value column(s).");
+            Unpivot2NodeModel.createMissingValueModel(), "Skip rows containing missing cells");
+        missComponent.setToolTipText("Skip rows containing missing values " + "in selected value column(s).");
         addDialogComponent(missComponent);
         createNewGroup(" Retained columns ");
-        addDialogComponent(new DialogComponentColumnFilter2(
-                createColumnFilterRetainedColumns(), 0));
+        addDialogComponent(new DialogComponentColumnFilter2(Unpivot2NodeModel.createColumnFilterRetainedColumns(), 0));
         createNewGroup(" Options ");
-        addDialogComponent(new DialogComponentBoolean(
-                createHiLiteModel(), "Enable hiliting"));
+        addDialogComponent(new DialogComponentBoolean(Unpivot2NodeModel.createHiLiteModel(), "Enable hiliting"));
 
-    }
-
-    /**
-     * Return settings model for retained output columns.
-     * @return settings model for retained columns
-     */
-    static SettingsModelColumnFilter2 createColumnFilterRetainedColumns() {
-        return new SettingsModelColumnFilter2("retained_columns");
-    }
-
-    /**
-     * Return settings model for value columns.
-     * @return settings model for retained columns
-     */
-    static SettingsModelColumnFilter2 createColumnFilterValueColumns() {
-        return new SettingsModelColumnFilter2("value_columns");
-    }
-
-    /**
-     * Create model to enable/disable hiliting.
-     * @return settings model for hiliting
-     */
-    static SettingsModelBoolean createHiLiteModel() {
-        return new SettingsModelBoolean("enable-hiliting", false);
-    }
-
-    /**
-     * Create model to ignore missing values.
-     * @return settings model for missing value handling
-     */
-    static SettingsModelBoolean createMissingValueModel() {
-        return new SettingsModelBoolean("missing-values", false);
     }
 
 }

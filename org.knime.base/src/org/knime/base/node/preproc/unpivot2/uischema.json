@@ -1,0 +1,49 @@
+{
+	"elements": [
+		{
+			"type": "Section",
+			"label": "Value columns",
+			"elements": [
+				{
+					"type": "Control",
+					"label": "",
+					"scope": "#/properties/model/properties/valueColumns",
+					"options": {
+						"format": "columnFilter"
+					}
+				},
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/missingValues"
+				}
+			]
+		},
+		{
+			"type": "Section",
+			"label": "Retained columns",
+			"elements": [
+				{
+					"type": "Control",
+					"label": "",
+					"scope": "#/properties/model/properties/retainedColumns",
+					"options": {
+						"format": "columnFilter"
+					}
+				}
+			]
+		},
+		{
+			"type": "Section",
+			"label": "Advanced settings",
+			"options": {
+				"isAdvanced":true
+			},
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/enableHilite"
+				}
+			]
+		}
+	]
+}

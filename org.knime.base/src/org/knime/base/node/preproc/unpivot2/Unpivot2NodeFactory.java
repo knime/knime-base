@@ -47,12 +47,17 @@ package org.knime.base.node.preproc.unpivot2;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeDialog;
 
 /**
  *
  * @author Thomas Gabriel, University of Konstanz
  */
-public class Unpivot2NodeFactory extends NodeFactory<Unpivot2NodeModel> {
+@SuppressWarnings("restriction")
+public class Unpivot2NodeFactory extends NodeFactory<Unpivot2NodeModel>   implements NodeDialogFactory{
 
     /**
      * Default constructor.
@@ -66,7 +71,7 @@ public class Unpivot2NodeFactory extends NodeFactory<Unpivot2NodeModel> {
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new Unpivot2NodeDialogPane();
+        return createNodeDialog().createLegacyFlowVariableNodeDialog();
     }
 
     /**
@@ -100,6 +105,15 @@ public class Unpivot2NodeFactory extends NodeFactory<Unpivot2NodeModel> {
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * @since 5.0
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, Unpivot2NodeSettings.class);
     }
 
 }
