@@ -54,8 +54,11 @@ import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Predicate;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.RowComparator;
+import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.config.base.ConfigBaseRO;
 import org.knime.core.node.config.base.ConfigBaseWO;
@@ -245,13 +248,22 @@ public final class SortKeyItem {
             final var ascending = pos.isAscendingOrder();
             final var alphaNum = pos.isAlphaNumComp();
             resolveColumnName(dts, pos.getIdentifier(), isRowKey).ifPresentOrElse(
-                col -> rc.thenComparingColumn(col, c -> c.withDescendingSortOrder(!ascending)
-                    .withAlphanumericComparison(alphaNum).withMissingsLast(missingsToEnd)),
+                col -> rc.thenComparingColumn(col, c -> alphaNumIfString(c, dts.getColumnSpec(col), alphaNum)
+                    .withDescendingSortOrder(!ascending)//
+                    .withMissingsLast(missingsToEnd)),
                 () -> rc.thenComparingRowKey(k -> k.withDescendingSortOrder(!ascending)
                     .withAlphanumericComparison(alphaNum))
             );
         });
         return rc.build();
+    }
+
+    private static ColumnComparatorBuilder alphaNumIfString(final ColumnComparatorBuilder builder,
+        final DataColumnSpec spec, final boolean alphaNum) {
+        if (spec.getType().isCompatible(StringValue.class)) {
+            return builder.withAlphanumericComparison(alphaNum);
+        }
+        return builder;
     }
 
     private static OptionalInt resolveColumnName(final DataTableSpec dts, final String colName,

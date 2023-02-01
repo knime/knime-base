@@ -55,7 +55,6 @@ import java.util.List;
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.base.node.util.SortKeyItem;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.BufferedDataTableSorter;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -215,10 +214,6 @@ public class SorterNodeModel extends NodeModel {
                 final var idx = spec.findColumnIndex(id);
                 if (idx == -1) {
                     notAvailableCols.add(id);
-                } else if (ic.isAlphaNumComp() && !spec.getColumnSpec(idx).getType().isCompatible(StringValue.class)) {
-                    throw new InvalidSettingsException(
-                        "Alphanumeric sorting is not available for '" + id + "' since it does not have a "
-                            + "string-compatible type.");
                 }
             }
         }
