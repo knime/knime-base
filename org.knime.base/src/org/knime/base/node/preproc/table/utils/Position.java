@@ -44,41 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 4, 2022 (Adrian): created
+ *   Feb 1, 2023 (Jonas Klotz, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.preproc.table.cropper;
+package org.knime.base.node.preproc.table.utils;
 
-import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
+import java.util.OptionalLong;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.util.CheckUtils;
 
 /**
- * NodeFactory of the Table Cropper node.
+ * Can be used to represent a position in an index-based structure. Allows accessing elements from the back of the
+ * structure.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Jonas Klotz, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-public final class TableCropperNodeFactory extends WebUINodeFactory<TableCropperNodeModel> {
+public final class Position {
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Table Cropper")//
-        .icon("./Table-crop.png")//
-        .shortDescription("Crops part of the input table.")//
-        .fullDescription("Crops part of the input table based on the chosen column and row range.")//
-        .modelSettingsClass(TableCropperSettings.class)//
-        .addInputTable("Input Table", "The table to crop.")//
-        .addOutputTable("Cropped Table", "The cropped table.")//
-        .build();
+    private final long m_position;
+
+    private final boolean m_countFromEnd;
 
     /**
-     * Constructor.
+     * @param pos The position index to access
+     * @param cFromEnd True, if negative indexing should be used
+     * @param subject the subject of the position (e.g. row)
+     * @throws InvalidSettingsException If <code>pos</code> is not greater than 0
      */
-    public TableCropperNodeFactory() {
-        super(CONFIG);
+    public Position(final long pos, final boolean cFromEnd, final String subject) throws InvalidSettingsException {
+        CheckUtils.checkSetting(pos > 0, "The %s position (%s) must be greater than 0.", subject, pos);
+        m_position = pos;
+        m_countFromEnd = cFromEnd;
     }
 
-    @Override
-    public TableCropperNodeModel createNodeModel() {
-        return new TableCropperNodeModel(CONFIG);
+    /**
+     * Resolves the position against an actual size.
+     *
+     * @param size to resolve the position against
+     * @return the resolved position or {@link OptionalLong#empty()} if the position exceeds the size
+     */
+    public OptionalLong resolvePosition(final long size) {
+        if (m_position > size) {
+            return OptionalLong.empty();
+        }
+
+        if (m_countFromEnd) {
+            return OptionalLong.of(size - m_position + 1);
+        }
+        return OptionalLong.of(m_position);
+
+    }
+
+    /**
+     * @return The position
+     */
+    public long getPosition() {
+        return m_position;
+    }
+
+    /**
+     * @return True, if the position is counted from the end.
+     */
+    public boolean isCountedFromEnd() {
+        return m_countFromEnd;
     }
 
 }

@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.table.cropper;
 
 import java.util.stream.IntStream;
 
+import org.knime.base.node.preproc.table.utils.PositionRange;
 import org.knime.core.data.DataTableDomainCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.ColumnRearranger;
@@ -80,6 +81,7 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final TableCropperSettings settings)
         throws InvalidSettingsException {
         var spec = inSpecs[0];
+
         return new DataTableSpec[]{createOutputSpec(spec, settings)};
     }
 
@@ -95,14 +97,20 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
         throws InvalidSettingsException {
         switch (settings.m_columnRangeMode) {
             case BY_NUMBER:
-                return IntStream
-                    .range(settings.m_startColumnNumber - 1, Math.min(settings.m_endColumnNumber, spec.getNumColumns()))
-                    .toArray();
+                return getColumnIndicesFromNumberRange(settings, spec.getNumColumns());
             case BY_NAME:
                 return getColumnIndicesFromNameRange(spec, settings);
             default:
                 throw new InvalidSettingsException("Unknown column selection mode: " + settings.m_columnRangeMode);
         }
+    }
+
+    private static int[] getColumnIndicesFromNumberRange(final TableCropperSettings settings, final int numColumns)
+        throws InvalidSettingsException {
+        var positionRange = new PositionRange(settings.m_startColumnNumber,
+            settings.m_startColumnCountFromEnd, settings.m_endColumnNumber, settings.m_endColumnCountFromEnd, "column")
+                .resolve(numColumns);
+        return IntStream.range((int)positionRange.getStart() - 1, (int)positionRange.getEnd()).toArray();
     }
 
     private static int[] getColumnIndicesFromNameRange(final DataTableSpec spec, final TableCropperSettings settings)
@@ -135,10 +143,12 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
     }
 
     private static Selection defineSlice(final int[] colIndices, final long numRows,
-        final TableCropperSettings settings) {
+        final TableCropperSettings settings) throws InvalidSettingsException {
+        var positionRange = new PositionRange(settings.m_startRowNumber, settings.m_startRowCountFromEnd,
+            settings.m_endRowNumber, settings.m_endRowCountFromEnd, "row").resolve(numRows);
         return Selection.all()//
             .retainColumns(colIndices)//
-            .retainRows(getStartRow(settings), getEndRow(numRows, settings));
+            .retainRows(positionRange.getStart() - 1, positionRange.getEnd());
     }
 
     private static DataTableSpec recalculateDomain(final BufferedDataTable table, final ExecutionMonitor exec)
@@ -148,26 +158,17 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
         return domainCalculator.createSpec();
     }
 
-    private static long getStartRow(final TableCropperSettings settings) {
-        return Math.max(0, settings.m_startRowNumber - 1);
-    }
-
-    private static long getEndRow(final long tableSize, final TableCropperSettings settings) {
-        return Math.min(tableSize, settings.m_endRowNumber);
-    }
-
     @Override
     protected void validateSettings(final TableCropperSettings settings) throws InvalidSettingsException {
-        CheckUtils.checkSetting(settings.m_startColumnNumber > 0, "The start column index (%s) must be greater than 0",
-            settings.m_startColumnNumber);
-        CheckUtils.checkSetting(settings.m_startColumnNumber <= settings.m_endColumnNumber,
-            "The end column index (%s) must be smaller than or equal to the start column index (%s)",
-            settings.m_endColumnNumber, settings.m_startColumnNumber);
-        CheckUtils.checkSetting(settings.m_startRowNumber > 0, "The start row (%s) must be greater than 0",
-            settings.m_startRowNumber);
-        CheckUtils.checkSetting(settings.m_startRowNumber <= settings.m_endRowNumber,
-            "The start row (%s) must be smaller than or equal to the end row (%s)", settings.m_startRowNumber,
-            settings.m_endRowNumber);
+        // create position ranges as they automatically validate the settings
+        @SuppressWarnings("unused")
+        PositionRange rowValidationPositionRange = new PositionRange(settings.m_startRowNumber,
+            settings.m_startRowCountFromEnd, settings.m_endRowNumber, settings.m_endRowCountFromEnd, "row");
+
+        @SuppressWarnings("unused")
+        PositionRange columnValidationPositionRange = new PositionRange(settings.m_startColumnNumber,
+            settings.m_startColumnCountFromEnd, settings.m_endColumnNumber, settings.m_endColumnCountFromEnd, "column");
+
     }
 
 }

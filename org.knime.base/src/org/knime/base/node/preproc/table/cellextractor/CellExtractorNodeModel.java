@@ -53,6 +53,7 @@ import java.util.NoSuchElementException;
 import org.knime.base.node.flowvariable.converter.celltovariable.CellToVariableConverterFactory;
 import org.knime.base.node.flowvariable.converter.celltovariable.MissingValueHandler;
 import org.knime.base.node.preproc.table.cellextractor.CellExtractorSettings.ColumnSpecificationMode;
+import org.knime.base.node.preproc.table.utils.Position;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -129,9 +130,12 @@ final class CellExtractorNodeModel extends WebUINodeModel<CellExtractorSettings>
         final int colIndex = getColumnIndex(settings, spec);
         final var colType = getColumnType(settings, spec);
 
-        final var rowIndex =
-            settings.m_countFromEnd ? (table.size() - settings.m_rowNumber) : (settings.m_rowNumber - 1);
-        final DataRow inRow = getRowFromTable(table, rowIndex, colIndex, exec);
+        Position rowIdxPosition = new Position(settings.m_rowNumber, settings.m_countFromEnd, "row");
+        var rowIndex = rowIdxPosition.resolvePosition(table.size())
+            .orElseThrow(() -> new InvalidSettingsException(
+                String.format("The selected row number (%s) exceeds the number of rows in the table (%s).",
+                    rowIdxPosition.getPosition(), table.size())));
+        final DataRow inRow = getRowFromTable(table, rowIndex - 1, colIndex, exec);
         final DataCell value = inRow.getCell(colIndex);
         final var cells = new DataCell[]{value};
         final var outRow = new DefaultRow(inRow.getKey(), cells);

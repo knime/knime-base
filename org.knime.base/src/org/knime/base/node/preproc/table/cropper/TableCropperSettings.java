@@ -71,7 +71,7 @@ final class TableCropperSettings implements DefaultNodeSettings {
         if (spec != null) {
             m_startColumnName = spec.getColumnSpec(0).getName();
             m_endColumnName = spec.getColumnSpec(spec.getNumColumns() - 1).getName();
-            m_endColumnNumber = spec.getNumColumns();
+            m_endColumnNumber = spec.getNumColumns(); // set end column to last column in table.
         }
     }
 
@@ -99,20 +99,34 @@ final class TableCropperSettings implements DefaultNodeSettings {
     String m_endColumnName;
 
     @Schema(title = "Start column number",
-        description = "Number of the first column to include (the first column of the table has number 1).", min = 1)
+        description = "Select the first column to include (the first column of the table has number 1).", min = 1)
     int m_startColumnNumber = 1;
 
-    @Schema(title = "End column number (inclusive)",
-        description = "Number of the last column to include (the first column of the table has number 1).", min = 1)
+    @Schema(title = "Start counting columns from the end of the table",
+        description = "If selected, the start column will be counted from the end of the table.")
+    boolean m_startColumnCountFromEnd;
+
+    @Schema(title = "End column number (inclusive)", description = "Select the last column to include.", min = 1)
     int m_endColumnNumber = 1;
+
+    @Schema(title = "Start counting columns from the end of the table",
+        description = "If selected, the end column will be counted from the end of the table.")
+    boolean m_endColumnCountFromEnd;
 
     @Schema(title = "Start row number",
         description = "Select the first row to include (the first row of the table has number 1).", min = 1)
     long m_startRowNumber = 1;
 
-    @Schema(title = "End row number (inclusive)",
-        description = "Select the last row to include (the first row of the table has number 1).", min = 1)
+    @Schema(title = "Start counting rows from the end of the table",
+        description = "If selected, the start row will be counted from the end of the table.")
+    boolean m_startRowCountFromEnd;
+
+    @Schema(title = "End row number (inclusive)", description = "Select the last row to include.", min = 1)
     long m_endRowNumber = 1;
+
+    @Schema(title = "Start counting rows from the end of the table",
+        description = "If selected, the end row will be counted from the end of the table.")
+    boolean m_endRowCountFromEnd;
 
     @Schema( //
         title = "Update domains of all columns", //
