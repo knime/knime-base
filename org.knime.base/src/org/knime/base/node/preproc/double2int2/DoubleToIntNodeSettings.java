@@ -73,6 +73,24 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 @SuppressWarnings("restriction")
 final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
+
+    /**
+     * Constructor for persistence and conversion from JSON.
+     */
+    DoubleToIntNodeSettings() {
+
+    }
+
+    /**
+     * Constructor for settings initialization.
+     *
+     * @param context of settings creation
+     */
+    DoubleToIntNodeSettings(final SettingsCreationContext context) {
+        this();
+        m_inclCols = ColumnFilter.createDefault(NumericalColumns.class, context);
+    }
+
     @Persist(configKey = DoubleToIntNodeModel.CFG_INCLUDED_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
     @Schema(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list",
         choices = NumericalColumns.class, withTypes = false)

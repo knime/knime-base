@@ -63,6 +63,16 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 @SuppressWarnings("restriction")
 final class ColumnFilterNodeSettings implements DefaultNodeSettings {
 
+    ColumnFilterNodeSettings(final SettingsCreationContext context) {
+        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
+    }
+
+    /**
+     * Constructor for persistence and conversion to JSON.
+     */
+    ColumnFilterNodeSettings() {
+    }
+
     @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
     @Schema(title = "Column filter", description = "Select the columns to include in the output table.",
         choices = AllColumns.class, withTypes = true)

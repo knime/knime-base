@@ -77,6 +77,17 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 @SuppressWarnings("restriction")
 final class StringToNumber2NodeSettings implements DefaultNodeSettings {
 
+    /**
+     * Constructor for persistence and conversion from JSON.
+     */
+    public StringToNumber2NodeSettings() {
+    }
+
+    StringToNumber2NodeSettings(final SettingsCreationContext context) {
+        this();
+        m_inclCols = ColumnFilter.createDefault(StringColumns.class, context);
+    }
+
     /** The decimal separator. */
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_DECIMALSEP, settingsModel = SettingsModelString.class)
     @Schema(title = "Decimal separator",

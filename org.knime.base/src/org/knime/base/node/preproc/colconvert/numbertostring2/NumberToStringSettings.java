@@ -66,6 +66,22 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 @SuppressWarnings("restriction")
 final class NumberToStringSettings implements DefaultNodeSettings {
 
+    /**
+     * Constructor for initialization.
+     *
+     * @param context of the settings creation
+     */
+    NumberToStringSettings(final SettingsCreationContext context) {
+        m_columns = ColumnFilter.createDefault(NumericalColumns.class, context);
+    }
+
+    /**
+     * Constructor for persistence and conversion to JSON.
+     */
+    NumberToStringSettings() {
+
+    }
+
     @Persist(configKey = AbstractNumberToStringNodeModel.CFG_INCLUDED_COLUMNS,
         settingsModel = SettingsModelColumnFilter2.class)
     @Schema(title = "Columns", description = "Select the columns to convert to String.",
