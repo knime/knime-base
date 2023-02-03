@@ -53,6 +53,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
  * Settings of the Table Splitter node.
@@ -78,13 +79,11 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
 
     @Schema( //
         title = "Matching criteria", //
-        description = "Select criteria for matching the row:"
-                + "<ul>"
-                + "<li><b>Equals:</b> compares the value of the cell to a given search pattern.</li>"
-                + "<li><b>Missing:</b> only matches rows that have a missing value at the selected column.</li>"
-                + "<li><b>Empty:</b> matches rows that have an empty or missing value at the selected column. "
-                + "Strings and Row IDs containing only whitespace characters will also match.</li>"
-                + "</ul>"//
+        description = "Select criteria for matching the row:" + "<ul>"
+            + "<li><b>Equals:</b> compares the value of the cell to a given search pattern.</li>"
+            + "<li><b>Missing:</b> only matches rows that have a missing value at the selected column.</li>"
+            + "<li><b>Empty:</b> matches rows that have an empty or missing value at the selected column. "
+            + "Strings and Row IDs containing only whitespace characters will also match.</li>" + "</ul>"//
     )
     MatchingCriteria m_matchingCriteria = MatchingCriteria.EQUALS;
 
@@ -106,6 +105,14 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
         description = "Select this option to include the row that split the table in the bottom output table." //
     )
     boolean m_includeMatchingRowInBottomTable;
+
+    @Schema( //
+        title = "Update domains of all columns", //
+        description = "Recompute the domain of all columns in the output tables such that the domain's" //
+            + " bounds exactly match the bounds of the data in the output tables."//
+    )
+    @Persist(optional = true)
+    boolean m_updateDomains;
 
     /** Modes for finding the matching row. "First match" or "Last match". */
     enum FindSplittingRowMode {

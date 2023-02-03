@@ -54,6 +54,7 @@ import java.util.function.Predicate;
 import org.knime.base.node.preproc.table.splitter.TableSplitterNodeSettings.FindSplittingRowMode;
 import org.knime.base.node.preproc.table.splitter.TableSplitterNodeSettings.MatchingCriteria;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableDomainCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
@@ -66,6 +67,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowCursor;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InternalTableAPI;
@@ -172,8 +174,9 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
 
         // Slice the tables and return the result
         return new BufferedDataTable[]{ //
-            getTopTable(table, toRowIdx, exec.createSubExecutionContext(progressSlicing / 2)), //
-            getBottomTable(table, fromRowIdx, exec.createSubExecutionContext(progressSlicing / 2)) //
+            getTopTable(table, toRowIdx, exec.createSubExecutionContext(progressSlicing / 2), settings.m_updateDomains), //
+            getBottomTable(table, fromRowIdx, exec.createSubExecutionContext(progressSlicing / 2),
+                settings.m_updateDomains) //
         };
     }
 
@@ -264,17 +267,32 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
 
     // ================================ SLICING TABLES ================================
 
-    /** Slice of the top table */
+    /** Slice of the top table
+     * @throws CanceledExecutionException */
     private static BufferedDataTable getTopTable(final BufferedDataTable table, final long toRowIdx,
-        final ExecutionContext exec) {
-        return InternalTableAPI.slice(exec, table, Selection.all().retainRows(0, toRowIdx));
+        final ExecutionContext exec, final boolean updateDomains) throws CanceledExecutionException {
+        return getTableSlice(table, Selection.all().retainRows(0, toRowIdx), updateDomains, exec);
     }
 
-    /** Slice of the bottom table */
+    /** Slice of the bottom table
+     * @throws CanceledExecutionException */
     private static BufferedDataTable getBottomTable(final BufferedDataTable table, final long fromRowIdx,
-        final ExecutionContext exec) {
+        final ExecutionContext exec, final boolean updateDomains) throws CanceledExecutionException {
         long size = table.size();
-        return InternalTableAPI.slice(exec, table, Selection.all().retainRows(fromRowIdx, size));
+        return getTableSlice(table, Selection.all().retainRows(fromRowIdx, size), updateDomains, exec);
+    }
+
+    private static BufferedDataTable getTableSlice(final BufferedDataTable table,
+        final Selection selection, final boolean updateDomains, final ExecutionContext exec) throws CanceledExecutionException {
+        var slicingExec = updateDomains ? exec.createSubExecutionContext(0.5) : exec;
+        var resultTable = InternalTableAPI.slice(slicingExec, table, selection);
+
+        if (updateDomains) {
+            var specWithNewDomain = recalculateDomain(resultTable, exec.createSubExecutionContext(0.5));
+            resultTable = exec.createSpecReplacerTable(resultTable, specWithNewDomain);
+        }
+
+        return resultTable;
     }
 
     // ================================ MATCHING ROWS ================================
@@ -382,5 +400,12 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
             throw new IllegalStateException(
                 String.format(UNSUPPORTED_COLUMN_TYPE_ERROR, type.getName(), spec.getColumnNames()[columnIdx]));
         }
+    }
+
+    private static DataTableSpec recalculateDomain(final BufferedDataTable table, final ExecutionMonitor exec)
+        throws CanceledExecutionException {
+        var domainCalculator = new DataTableDomainCreator(table.getDataTableSpec(), false);
+        domainCalculator.updateDomain(table, exec);
+        return domainCalculator.createSpec();
     }
 }

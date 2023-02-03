@@ -54,6 +54,13 @@
                 {
                     "type": "Control",
                     "scope": "#/properties/model/properties/includeMatchingRowInBottomTable"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/updateDomains",
+                    "options": {
+                        "isAdvanced": true
+                    }
                 }
             ]
         }
