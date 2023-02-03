@@ -77,6 +77,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.property.hilite.HiLiteHandler;
@@ -93,6 +94,8 @@ import org.knime.core.webui.node.dialog.impl.Schema;
  */
 @SuppressWarnings("restriction")
 public class ColumnHeaderExtractorNodeModel extends NodeModel {
+
+    private static final String CFG_ONE_BASED_INDEXING = "use_one_based_indexing" + SettingsModel.CFGKEY_INTERNAL;
 
     static final String CFG_TRANSPOSE_COL_HEADER = "transposeColHeader";
 
@@ -149,6 +152,9 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     private final SettingsModelBoolean m_transposeColHeader;
 
+    // Nodes added in 5.0 or later should use one-based indexing
+    private boolean m_useOneBasedIndexing = true;
+
     /**
      * Constructor for the node model.
      */
@@ -187,7 +193,8 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
             }
         }
 
-        var index = 0; // re-use index in loop - prevent repeated adds to the hash set - fixes bug 5920
+        // re-use index in loop - prevent repeated adds to the hash set - fixes bug 5920
+        var index = m_useOneBasedIndexing ? 1 : 0;
         for (final Entry<Integer, String> e : rename.entrySet()) {
             String newName;
             do {
@@ -298,6 +305,7 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
         m_unifyHeaderPrefix.saveSettingsTo(settings);
         m_colTypeFilter.saveSettingsTo(settings);
         m_transposeColHeader.saveSettingsTo(settings);
+        settings.addBoolean(CFG_ONE_BASED_INDEXING, m_useOneBasedIndexing);
     }
 
     @Override
@@ -309,6 +317,8 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
             // this option was added in 4.7.0
             m_transposeColHeader.loadSettingsFrom(settings);
         }
+        // added in 5.0. Old workflows should use 0-based indexing, new workflows 1-based
+        m_useOneBasedIndexing = settings.getBoolean(CFG_ONE_BASED_INDEXING, false);
     }
 
     @Override
