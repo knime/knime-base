@@ -128,10 +128,12 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
         var colIndices = getColumnIndicesToKeep(table.getDataTableSpec(), settings);
         var slice = defineSlice(colIndices, table.size(), settings);
         exec.setMessage("Cropping table");
-        var slicedTable = InternalTableAPI.slice(exec.createSubExecutionContext(0.5), table, slice);
-        var specWithNewDomain = recalculateDomain(slicedTable, exec.createSubProgress(0.5));
-        var slicedTableWithNewDomain = exec.createSpecReplacerTable(slicedTable, specWithNewDomain);
-        return new BufferedDataTable[]{slicedTableWithNewDomain};
+        var slicedTable = InternalTableAPI.slice(exec.createSubExecutionContext(settings.m_updateDomains ? 0.5 : 1.0), table, slice);
+        if (settings.m_updateDomains) {
+            var specWithNewDomain = recalculateDomain(slicedTable, exec.createSubProgress(0.5));
+            slicedTable = exec.createSpecReplacerTable(slicedTable, specWithNewDomain);
+        }
+        return new BufferedDataTable[]{slicedTable};
     }
 
     private static Selection defineSlice(final int[] colIndices, final long numRows,

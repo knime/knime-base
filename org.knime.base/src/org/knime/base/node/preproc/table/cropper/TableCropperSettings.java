@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.table.cropper;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
  * Settings of the Range Filter node.
@@ -103,6 +104,14 @@ final class TableCropperSettings implements DefaultNodeSettings {
 
     @Schema(title = "End row number (inclusive)", description = "Select the last row to include.", min = 1)
     long m_endRowNumber = 1;
+
+    @Schema( //
+        title = "Update domains of all columns", //
+        description = "Recompute the domain of all columns in the output table such that the domain's" //
+            + " bounds exactly match the bounds of the data in the output table." //
+    )
+    @Persist(optional = true)
+    boolean m_updateDomains;
 
     private static final class AllColumns implements ChoicesProvider {
 
