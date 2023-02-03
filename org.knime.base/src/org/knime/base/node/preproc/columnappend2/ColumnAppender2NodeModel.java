@@ -111,12 +111,12 @@ final class ColumnAppender2NodeModel extends NodeModel {
     /**
      * Old zero-based setting for the row id table index
      */
-    private int m_rowIdTable;
+    private int m_rowIdTable = 0;
 
     /**
      * New setting one-based setting for the row id table number
      */
-    private int m_rowIdTableNumber;
+    private int m_rowIdTableNumber = 1;
 
     private final int m_numInPorts;
 

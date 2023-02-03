@@ -71,13 +71,13 @@ final class ColumnAppenderSettings implements DefaultNodeSettings {
 
     @Persist(configKey = ColumnAppender2NodeModel.KEY_SELECTED_ROWID_MODE, settingsModel = SettingsModelString.class)
     @Schema(title = "RowID mode", description = "How to deal with RowIDs.")
-    RowKeyMode m_rowIdMode;
+    RowKeyMode m_rowIdMode = RowKeyMode.IDENTICAL;
 
     @Persist(customPersistor = RowIdTableSelectPersistor.class)
     @Schema(title = "RowID table number",
         description = "Select the table whose RowIDs should be used for the output table.", min = 1,
         maxProvider = NumTables.class)
-    int m_rowIdTableSelect;
+    int m_rowIdTableSelect = 1;
 
     private static final class NumTables implements DoubleProvider {
 
