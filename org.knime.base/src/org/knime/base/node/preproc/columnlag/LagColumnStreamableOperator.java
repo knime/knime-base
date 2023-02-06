@@ -89,12 +89,12 @@ final class LagColumnStreamableOperator extends StreamableOperator {
             throws InvalidSettingsException {
         m_configuration = configuration;
         if (m_configuration == null) {
-            throw new InvalidSettingsException("No configuration available");
+            throw new InvalidSettingsException("No configuration available.");
         }
         String colName = m_configuration.getColumn();
         m_columnIndex = inSpec.findColumnIndex(colName); // -1 if row id column or column not present
         if (colName != null && m_columnIndex < 0) {
-            throw new InvalidSettingsException("Selected column \"" + colName + "\" does not exist");
+            throw new InvalidSettingsException("Selected column \"" + colName + "\" does not exist.");
         }
         String baseName = colName == null ? "RowID" : colName;
         DataType type = colName == null ? StringCell.TYPE : inSpec.getColumnSpec(colName).getType();
