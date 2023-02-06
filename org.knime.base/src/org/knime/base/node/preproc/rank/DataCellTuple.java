@@ -48,6 +48,9 @@
  */
 package org.knime.base.node.preproc.rank;
 
+import java.util.Arrays;
+import java.util.stream.IntStream;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 
@@ -56,16 +59,13 @@ import org.knime.core.data.DataRow;
  *
  * @author Adrian Nembach, KNIME GmbH Konstanz
  */
-class DataCellTuple {
-    private DataCell[] m_elements;
+final class DataCellTuple {
+    private final DataCell[] m_elements;
 
     public DataCellTuple(final DataRow row, final int[] colIndices) {
-        m_elements = new DataCell[colIndices.length];
-        if (m_elements.length > 0) {
-            for (int i = 0; i < m_elements.length; i++) {
-                m_elements[i] = row.getCell(colIndices[i]);
-            }
-        }
+        m_elements = IntStream.of(colIndices)//
+                .mapToObj(row::getCell)//
+                .toArray(DataCell[]::new);
     }
 
     public DataCellTuple(final int[] colIndices) {
@@ -92,33 +92,19 @@ class DataCellTuple {
      */
     @Override
     public boolean equals(final Object obj) {
-        if (obj instanceof DataCellTuple) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof DataCellTuple) {
             DataCellTuple instance = (DataCellTuple)obj;
-            if (instance.getLength() == this.getLength()) {
-                for (int i = 0; i < m_elements.length; i++) {
-                    if (!m_elements[i].equals(instance.getElement(i))) {
-                        return false;
-                    }
-                }
-                return true;
-            } else {
-                return false;
-            }
+            return Arrays.equals(m_elements, instance.m_elements);
+        } else {
+            return false;
         }
-
-        return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
-        int hash = m_elements.length * 37;
-        for (DataCell cell : m_elements) {
-            hash = hash * 31 + cell.hashCode();
-        }
-        return hash;
+        return Arrays.hashCode(m_elements);
     }
 
 }

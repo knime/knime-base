@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.rank;
 
 import java.util.HashMap;
 
+import org.knime.base.node.preproc.rank.RankNodeModel.RankMode;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
@@ -58,85 +59,44 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 
 /**
- * This factory produces RankCells for the RankNode.
- * For this factory to function properly it must not be used in a concurrent setup.
+ * This factory produces RankCells for the RankNode. For this factory to function properly it must not be used in a
+ * concurrent setup.
  *
  * @author Adrian Nembach, KNIME GmbH Konstanz
  */
-class RankCellFactory extends SingleCellFactory {
+final class RankCellFactory extends SingleCellFactory {
 
-    private int[] m_groupColIndices;
+    private final int[] m_groupColIndices;
 
-    private int[] m_rankColIndices;
+    private final int[] m_rankColIndices;
 
-    private String m_rankMode;
+    private final RankMode m_rankMode;
 
-    private boolean m_rankAsLong;
+    private final boolean m_rankAsLong;
 
-    private HashMap<DataCellTuple, RankAssigner> m_groupHashTable;
+    private final HashMap<DataCellTuple, RankAssigner> m_groupHashTable;
 
     public RankCellFactory(final DataColumnSpec newColSpec, final int[] groupColIndices, final int[] rankColIndices,
-        final String rankMode, final boolean rankAsLong, final int initialHashtableCapacity) {
+        final RankMode rankMode, final boolean rankAsLong) {
         super(newColSpec);
         m_groupColIndices = groupColIndices;
         m_rankColIndices = rankColIndices;
         m_rankMode = rankMode;
         m_rankAsLong = rankAsLong;
-        m_groupHashTable = new HashMap<DataCellTuple, RankAssigner>();
+        m_groupHashTable = new HashMap<>();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DataCell getCell(final DataRow row) {
-        // create group identification
-        DataCellTuple rowVals = new DataCellTuple(row, m_groupColIndices);
-        // get RankAssigner for corresponding group
-        RankAssigner rankAssigner = m_groupHashTable.get(rowVals);
-        DataCell rankCell = null;
-        // check if RankAssigner is registered for group
-        if (rankAssigner == null) {
-            // create new RankAssigner and register it for this new group
-            rankAssigner = createRankAssigner(m_rankMode, m_rankColIndices);
-            m_groupHashTable.put(rowVals, rankAssigner);
-
-            // create RankCell
-            if (m_rankAsLong) {
-                rankCell = new LongCell(rankAssigner.getRank(row));
-            } else {
-                rankCell = new IntCell((int)rankAssigner.getRank(row));
-            }
+        var rowVals = new DataCellTuple(row, m_groupColIndices);
+        var rankAssigner =
+            m_groupHashTable.computeIfAbsent(rowVals, r -> m_rankMode.createRankAssigner(m_rankColIndices));
+        var rank = rankAssigner.getRank(row);
+        if (m_rankAsLong) {
+            return new LongCell(rank);
         } else {
-            // create RankCell
-            if (m_rankAsLong) {
-                rankCell = new LongCell(rankAssigner.getRank(row));
-            } else {
-                rankCell = new IntCell((int) rankAssigner.getRank(row));
-            }
+            return new IntCell((int)rank);
         }
-        return rankCell;
-    }
-
-    private RankAssigner createRankAssigner(final String rankMode, final int[] rankColIndices) {
-        RankAssigner rankAssigner = null;
-
-        // Create corresponding RankAssigner or throw an exception if there is no such mode
-        switch (rankMode) {
-            case "Standard":
-                rankAssigner = new StandardRankAssigner(rankColIndices);
-                break;
-            case "Dense":
-                rankAssigner = new DenseRankAssigner(rankColIndices);
-                break;
-            case "Ordinal":
-                rankAssigner = new OrdinalRankAssigner();
-                break;
-            default:
-                throw new IllegalArgumentException("The rank mode \"" + rankMode + "\" does not exist.");
-        }
-        return rankAssigner;
-
     }
 
 }

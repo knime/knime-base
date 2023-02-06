@@ -51,9 +51,11 @@ package org.knime.base.node.preproc.rank;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -76,6 +78,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.UniqueNameGenerator;
 
 /**
  * This is the model implementation of Rank. This node ranks the input data based on the selected ranking field and
@@ -86,21 +90,34 @@ import org.knime.core.node.defaultnodesettings.SettingsModelStringArray;
 public class RankNodeModel extends NodeModel {
 
     enum RankMode {
-
-        STANDARD("Standard"),
-        DENSE("Dense"),
-        ORDINAL("Ordinal");
-
+        STANDARD("Standard", StandardRankAssigner::new),
+        DENSE("Dense", DenseRankAssigner::new),
+        ORDINAL("Ordinal", i -> new OrdinalRankAssigner());
 
         private final String m_string;
 
-        private RankMode(final String str) {
+        private final Function<int[], RankAssigner> m_rankAssignerFactory;
+
+        RankMode(final String str, final Function<int[], RankAssigner> rankAssignerFactory) {
             m_string = str;
+            m_rankAssignerFactory = rankAssignerFactory;
+        }
+
+        RankAssigner createRankAssigner(final int[] rankColumnIndices) {
+            return m_rankAssignerFactory.apply(rankColumnIndices);
         }
 
         @Override
         public String toString() {
             return m_string;
+        }
+
+        static RankMode fromString(final String string) throws InvalidSettingsException {
+            return Stream.of(values())//
+                .filter(m -> m.m_string.equals(string))//
+                .findFirst()//
+                .orElseThrow(
+                    () -> new InvalidSettingsException(String.format("Unknown RankMode '%s' encountered.", string)));
         }
     }
 
@@ -112,9 +129,6 @@ public class RankNodeModel extends NodeModel {
     static final boolean DEFAULT_RETAINROWORDER = false;
 
     static final boolean DEFAULT_RANKASLONG = false;
-
-    // available ranking modes
-//    static final String[] AVAILABLE_RANKMODES = new String[]{"Standard", "Dense", "Ordinal"};
 
     // SettingsModels
     private final SettingsModelStringArray m_rankColumns = createRankColumnsModel();
@@ -169,10 +183,7 @@ public class RankNodeModel extends NodeModel {
 
     private static class OrderCellFactory extends SingleCellFactory {
 
-        /**
-         * @param newColSpec
-         */
-        public OrderCellFactory(final DataColumnSpec newColSpec) {
+        OrderCellFactory(final DataColumnSpec newColSpec) {
             super(newColSpec);
         }
 
@@ -183,172 +194,141 @@ public class RankNodeModel extends NodeModel {
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws Exception {
-
         BufferedDataTable table = inData[0];
-
         if (table == null) {
-            throw new IllegalArgumentException("No input table found");
+            throw new IllegalArgumentException("No input table found.");
         }
         if (table.size() < 1) {
-            setWarningMessage("Empty input table found");
+            setWarningMessage("The input table is empty.");
         }
-
-        // get table spec
-        DataTableSpec inSpec = table.getDataTableSpec();
-
-        // get grouping columns
-        List<String> groupCols = Arrays.asList(m_groupColumns.getStringArrayValue());
-        // get ranking columns
-        List<String> rankCols = Arrays.asList(m_rankColumns.getStringArrayValue());
-
-        // get indices of ranking and grouping columns
-        int[] groupColIndices = getIndicesFromColNameList(groupCols, inSpec);
-        int[] rankColIndices = getIndicesFromColNameList(rankCols, inSpec);
-        // get rank mode
-        String rankMode = m_rankMode.getStringValue();
 
         // calculate number of steps
         double numSteps = 2;
         if (m_retainRowOrder.getBooleanValue()) {
-            numSteps += 3;
+            numSteps += 2;
         }
 
         // insert extra column containing the original order of the input table
-        final String rowOrder = "rowOrder";
+        String rowOrderColumn = null;
         if (m_retainRowOrder.getBooleanValue()) {
-            ColumnRearranger cr = new ColumnRearranger(inSpec);
-            DataColumnSpec rowOrderSpec = new DataColumnSpecCreator(rowOrder, LongCell.TYPE).createSpec();
-            OrderCellFactory cellFac = new OrderCellFactory(rowOrderSpec);
-            cr.append(cellFac);
-            table = exec.createColumnRearrangeTable(table, cr, exec.createSubProgress(1 / numSteps));
-            inSpec = table.getDataTableSpec();
+            rowOrderColumn = new UniqueNameGenerator(table.getDataTableSpec()).newName("rowOrder");
+            table = appendOrderColumn(exec.createSubExecutionContext(1 / numSteps), table, rowOrderColumn);
         }
 
-        // set boolean array to indicate ascending ranking columns
-        String[] orderRank = m_rankOrder.getStringArrayValue();
-        boolean[] ascRank = new boolean[orderRank.length];
-        for (int i = 0; i < ascRank.length; i++) {
-            ascRank[i] = (orderRank[i].equals("Ascending")) ? true : false;
-        }
+        var sortedTable = sortTable(exec.createSubExecutionContext(1 / numSteps), table);
 
-        // sort by rank
-        BufferedDataTable sortedTable =
-            new BufferedDataTableSorter(table, rankCols, ascRank).sort(exec.createSubExecutionContext(1 / numSteps));
-
-        // prepare appending of rank column
-        ColumnRearranger columnRearranger = new ColumnRearranger(sortedTable.getDataTableSpec());
-        DataColumnSpec newColSpec = null;
-        boolean rankAsLong = m_rankAsLong.getBooleanValue();
-        if (rankAsLong) {
-            newColSpec = new DataColumnSpecCreator(m_rankOutColName.getStringValue(), LongCell.TYPE).createSpec();
-        } else {
-            newColSpec = new DataColumnSpecCreator(m_rankOutColName.getStringValue(), IntCell.TYPE).createSpec();
-        }
-
-        int initialHashtableCapacity = 11;
-        if (!groupCols.isEmpty()) {
-            initialHashtableCapacity = (int)Math.sqrt(table.size());
-        }
-
-        // append rank column
-        columnRearranger.append(new RankCellFactory(newColSpec, groupColIndices, rankColIndices, rankMode, rankAsLong,
-            initialHashtableCapacity));
-        BufferedDataTable out = exec.createColumnRearrangeTable(sortedTable, columnRearranger,
-            exec.createSubExecutionContext(1 / numSteps));
+        BufferedDataTable out = appendRank(exec.createSubExecutionContext(1 / numSteps), sortedTable);
 
         if (m_retainRowOrder.getBooleanValue()) {
-            // recover row order
-            LinkedList<String> sortBy = new LinkedList<String>();
-            sortBy.add(rowOrder);
-            out = new BufferedDataTableSorter(out, sortBy, new boolean[]{true})
-                .sort(exec.createSubExecutionContext(1 / numSteps));
-            // remove order column
-            ColumnRearranger cr = new ColumnRearranger(out.getDataTableSpec());
-            cr.remove(rowOrder);
-            out = exec.createColumnRearrangeTable(out, cr, exec.createSubExecutionContext(1 / numSteps));
+            out = retainRowOrder(exec.createSubExecutionContext(1 / numSteps), rowOrderColumn, out);
         }
 
         return new BufferedDataTable[]{out};
     }
 
-    private int[] getIndicesFromColNameList(final List<String> colNames, final DataTableSpec inSpec) {
-        int[] colIndices = new int[colNames.size()];
-        int iterator = 0;
-        for (String colName : colNames) {
-            colIndices[iterator++] = inSpec.findColumnIndex(colName);
-        }
-        return colIndices;
+    /**
+     * Only necessary because List.of(...) and Collectors.toList() don't support nulls but the table sorter calls
+     * List.contains(null)
+     */
+    private static List<String> toList(final String... array) {
+        return Stream.of(array).collect(Collectors.toCollection(() -> new ArrayList<>()));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static BufferedDataTable retainRowOrder(final ExecutionContext exec, final String rowOrderColumn,
+        BufferedDataTable out) throws CanceledExecutionException {
+        // recover row order
+        out = new BufferedDataTableSorter(out, toList(rowOrderColumn), new boolean[]{true})
+            .sort(exec);
+        // remove order column
+        var cr = new ColumnRearranger(out.getDataTableSpec());
+        cr.remove(rowOrderColumn);
+        out = exec.createColumnRearrangeTable(out, cr, exec.createSilentSubExecutionContext(0));
+        return out;
+    }
+
+    private BufferedDataTable appendRank(final ExecutionContext exec, final BufferedDataTable sortedTable)
+        throws CanceledExecutionException, InvalidSettingsException {
+        var spec = sortedTable.getDataTableSpec();
+        var columnRearranger = new ColumnRearranger(spec);
+        int[] groupColIndices = getIndicesFromColNameList(m_groupColumns.getStringArrayValue(), spec);
+        int[] rankColIndices = getIndicesFromColNameList(m_rankColumns.getStringArrayValue(), spec);
+        // append rank column
+        columnRearranger.append(new RankCellFactory(createRankColSpec(), groupColIndices, rankColIndices,
+            RankMode.fromString(m_rankMode.getStringValue()), m_rankAsLong.getBooleanValue()));
+        return exec.createColumnRearrangeTable(sortedTable, columnRearranger, exec);
+    }
+
+    private BufferedDataTable sortTable(final ExecutionContext exec, final BufferedDataTable table)
+        throws CanceledExecutionException {
+        // set boolean array to indicate ascending ranking columns
+        String[] orderRank = m_rankOrder.getStringArrayValue();
+        var ascRank = new boolean[orderRank.length];
+        for (int i = 0; i < ascRank.length; i++) {//NOSONAR
+            ascRank[i] = orderRank[i].equals("Ascending");
+        }
+        return new BufferedDataTableSorter(table, toList(m_rankColumns.getStringArrayValue()), ascRank).sort(exec);
+    }
+
+    private static BufferedDataTable appendOrderColumn(final ExecutionContext exec, final BufferedDataTable table,
+        final String rowOrderColumn) throws CanceledExecutionException {
+        var cr = new ColumnRearranger(table.getDataTableSpec());
+        DataColumnSpec rowOrderSpec = new DataColumnSpecCreator(rowOrderColumn, LongCell.TYPE).createSpec();
+        var cellFac = new OrderCellFactory(rowOrderSpec);
+        cr.append(cellFac);
+        return exec.createColumnRearrangeTable(table, cr, exec);
+    }
+
+    private static int[] getIndicesFromColNameList(final String[] colNames, final DataTableSpec inSpec) {
+        return Stream.of(colNames)//
+                .mapToInt(inSpec::findColumnIndex)//
+                .toArray();
+    }
+
     @Override
     protected void reset() {
-        // Models build during execute are cleared here.
-        // Also data handled in load/saveInternals will be erased here.
+        // nothing to reset
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-
-        DataTableSpec tableSpec = inSpecs[0];
         String[] rankCols = m_rankColumns.getStringArrayValue();
-
-        // check if atleast one ranking column is selected
+        // check if at least one ranking column is selected
         if (rankCols.length == 0) {
             throw new InvalidSettingsException("No ranking column is selected.");
         }
-
-        // check if ranking columns are present in input table
-        for (String colName : rankCols) {
-            if (!tableSpec.containsName(colName)) {
-                throw new InvalidSettingsException(
-                    "The selected ranking column " + colName + "is not contained in the input table specification.");
-            }
-        }
-
-        // check if grouping columns are present in input table
-        String[] groupCols = m_groupColumns.getStringArrayValue();
-        for (String colName : groupCols) {
-            if (!tableSpec.containsName(colName)) {
-                throw new InvalidSettingsException(
-                    "The selected grouping column" + colName + "is not contained in the input table specification.");
-            }
-        }
+        var tableSpec = inSpecs[0];
+        checkAllContained(rankCols, "ranking", tableSpec);
+        checkAllContained(m_groupColumns.getStringArrayValue(), "grouping", tableSpec);
 
         // check if a name for the column that will contain the ranks in the outputs is provided.
         if (m_rankOutColName.getStringValue().isEmpty()) {
             throw new InvalidSettingsException("There is no name for the output rank column provided.");
         }
 
-        return new DataTableSpec[]{createOutSpec(tableSpec, m_rankAsLong.getBooleanValue())};
+        return new DataTableSpec[]{createOutSpec(tableSpec)};
+    }
+
+    private static void checkAllContained(final String[] columnNames, final String columnPurpose,
+        final DataTableSpec tableSpec) throws InvalidSettingsException {
+        for (String colName : columnNames) {
+            CheckUtils.checkSetting(tableSpec.containsName(colName),
+                "The selected %s column '%s' is not contained in the input table.", columnPurpose, colName);
+        }
     }
 
     // create the DataTableSpec for the output table
-    private DataTableSpec createOutSpec(final DataTableSpec inSpec, final boolean rankAsLong) {
-
-        DataColumnSpec outCol = null;
-        if (rankAsLong) {
-            outCol = new DataColumnSpecCreator(m_rankOutColName.getStringValue(), LongCell.TYPE).createSpec();
-        } else {
-            outCol = new DataColumnSpecCreator(m_rankOutColName.getStringValue(), IntCell.TYPE).createSpec();
-        }
-        return new DataTableSpec(inSpec, new DataTableSpec(outCol));
+    private DataTableSpec createOutSpec(final DataTableSpec inSpec) {
+        return new DataTableSpec(inSpec, new DataTableSpec(createRankColSpec()));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private DataColumnSpec createRankColSpec() {
+        var outputType = m_rankAsLong.getBooleanValue() ? LongCell.TYPE : IntCell.TYPE;
+        return new DataColumnSpecCreator(m_rankOutColName.getStringValue(), outputType).createSpec();
+    }
+
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
 
@@ -362,9 +342,6 @@ public class RankNodeModel extends NodeModel {
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
 
@@ -378,9 +355,6 @@ public class RankNodeModel extends NodeModel {
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
@@ -393,18 +367,12 @@ public class RankNodeModel extends NodeModel {
         m_rankAsLong.validateSettings(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File internDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // nothing to do here
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File internDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
