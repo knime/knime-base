@@ -51,16 +51,19 @@ import java.util.Set;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableDomainCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.util.memory.MemoryAlertSystem;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 
 /**
@@ -72,6 +75,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
  */
 public abstract class AbstractRowRefNodeModel extends NodeModel {
 
+    private static final String CFG_UPDATE_DOMAINS = "updateDomains";
+
     /** The minimum number of elements that is being read from the reference table even if memory is low. */
     private static final long MIN_ELEMENTS_READ = 128;
 
@@ -81,6 +86,9 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
     /** Settings model for the reference column of the reference table. */
     private final SettingsModelColumnName m_referenceTableCol =
         RowRefNodeDialogPane.createReferenceTableColModel();
+
+    /** If domains should be updated. This element is only shown in the modern UI, defaults to "false" otherwise. */
+    private final SettingsModelBoolean m_updateDomains = new SettingsModelBoolean(CFG_UPDATE_DOMAINS, false);
 
     /* Indicator if splitter mode or default row reference filter */
     private boolean m_isSplitter;
@@ -95,9 +103,6 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         this.m_isSplitter = isSplitter;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (!m_dataTableCol.useRowID()) {
@@ -130,9 +135,6 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         return m_isSplitter ? new DataTableSpec[]{inSpecs[0], inSpecs[0]} : new DataTableSpec[]{inSpecs[0]};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @SuppressWarnings({"null", "resource"})
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
@@ -173,9 +175,12 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         final BufferedDataContainer firstBuf = exec.createDataContainer(dataTableSpec);
         final BufferedDataContainer secondBuf = m_isSplitter ? exec.createDataContainer(dataTableSpec) : null;
 
-        final double refTableSizeFraction = (double) refTable.size() / (refTable.size() + dataTable.size());
-        final ExecutionMonitor readRefMon = exec.createSubExecutionContext(refTableSizeFraction);
-        final ExecutionMonitor writeMon = exec.createSubExecutionContext(1 - refTableSizeFraction);
+        final double refTableSizeFraction = (double)refTable.size() / (refTable.size() + dataTable.size());
+        final double fractionWithoutDomainUpdate = m_updateDomains.getBooleanValue() ? 0.8 : 1.0;
+        final ExecutionMonitor readRefMon =
+            exec.createSubExecutionContext(refTableSizeFraction * fractionWithoutDomainUpdate);
+        final ExecutionMonitor writeMon =
+            exec.createSubExecutionContext((1 - refTableSizeFraction) * fractionWithoutDomainUpdate);
 
         // we only init the disk-backed bit array if memory becomes low while reading the reference set
         final MemoryAlertSystem memSys = MemoryAlertSystem.getInstance();
@@ -278,11 +283,23 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         }
 
         firstBuf.close();
+        var firstTable = firstBuf.getTable();
+        BufferedDataTable secondTable = null;
         if (m_isSplitter) {
             secondBuf.close();
+            secondTable = secondBuf.getTable();
         }
-        return m_isSplitter ? new BufferedDataTable[]{firstBuf.getTable(), secondBuf.getTable()}
-            : new BufferedDataTable[]{firstBuf.getTable()};
+
+        if (m_updateDomains.getBooleanValue()) {
+            var domainUpdateExec = exec.createSubExecutionContext(1.0 - fractionWithoutDomainUpdate);
+            firstTable = updateDomain(firstTable,
+                m_isSplitter ? domainUpdateExec.createSubExecutionContext(0.5) : domainUpdateExec);
+            if (m_isSplitter) {
+                secondTable = updateDomain(secondTable, domainUpdateExec.createSubExecutionContext(0.5));
+            }
+        }
+
+        return m_isSplitter ? new BufferedDataTable[]{firstTable, secondTable} : new BufferedDataTable[]{firstTable};
     }
 
     /**
@@ -295,22 +312,19 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         //nothing to load
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
             m_dataTableCol.loadSettingsFrom(settings);
             m_referenceTableCol.loadSettingsFrom(settings);
+            if (settings.containsKey(CFG_UPDATE_DOMAINS)) {
+                m_updateDomains.loadSettingsFrom(settings);
+            }
         } catch (final InvalidSettingsException e) {
             //the previous version had no column options use the rowkey for both
             //Introduced in KNIME 2.0
@@ -319,37 +333,38 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         //nothing to reset
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         //nothing to save
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_dataTableCol.saveSettingsTo(settings);
         m_referenceTableCol.saveSettingsTo(settings);
+        m_updateDomains.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_dataTableCol.validateSettings(settings);
         m_referenceTableCol.validateSettings(settings);
+
+        if (settings.containsKey(CFG_UPDATE_DOMAINS)) {
+            m_updateDomains.validateSettings(settings);
+        }
+    }
+
+    private static BufferedDataTable updateDomain(final BufferedDataTable table, final ExecutionContext exec)
+        throws CanceledExecutionException {
+        var domainCalculator = new DataTableDomainCreator(table.getDataTableSpec(), false);
+        domainCalculator.updateDomain(table, exec);
+        var specWithNewDomain = domainCalculator.createSpec();
+        return exec.createSpecReplacerTable(table, specWithNewDomain);
     }
 }

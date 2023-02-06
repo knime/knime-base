@@ -52,6 +52,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
@@ -85,6 +86,14 @@ final class RowFilterRefNodeSettings implements DefaultNodeSettings {
         description = "Includes or excludes all rows from the reference table in the resulting table from the first "
             + "input.")
     IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
+
+    @Persist(settingsModel = SettingsModelBoolean.class)
+    @Schema( //
+        title = "Update domains of all columns", //
+        description = "Recompute the domain of all columns in the output tables such that the domain's" //
+            + " bounds exactly match the bounds of the data in the output tables."//
+    )
+    boolean m_updateDomains;
 
     enum IncludeOrExcludeRows {
             @Schema(title = "Include")

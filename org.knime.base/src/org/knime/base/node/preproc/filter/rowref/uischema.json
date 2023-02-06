@@ -28,6 +28,13 @@
                     "options": {
                         "format": "valueSwitch"
                     }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/updateDomains",
+                    "options": {
+                        "isAdvanced": true
+                    }
                 }
             ]
         }
