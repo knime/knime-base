@@ -127,6 +127,8 @@ final class DuplicateRowFilterSettings {
 
     static final String REFERENCE_COL_KEY = "reference_col";
 
+    static final String UPDATE_DOMAINS_KEY = "update_domains";
+
     /** Settings model storing the selected group columns. */
     private final SettingsModelColumnFilter2 m_groupCols = new SettingsModelColumnFilter2(GROUP_COLS_KEY);
 
@@ -147,6 +149,9 @@ final class DuplicateRowFilterSettings {
 
     /** Settings model storing the reference column name. */
     private final SettingsModelString m_referenceCol = new SettingsModelString(REFERENCE_COL_KEY, null);
+
+    /** If domains should be updated. This element is only shown in the modern UI, defaults to "false" otherwise. */
+    private final SettingsModelBoolean m_updateDomains = new SettingsModelBoolean(UPDATE_DOMAINS_KEY, false);
 
     private RowSelectionType m_rowSelectionType = RowSelectionType.FIRST;
 
@@ -214,6 +219,10 @@ final class DuplicateRowFilterSettings {
         return m_rowSelectionType;
     }
 
+    boolean updateDomains() {
+        return m_updateDomains.getBooleanValue();
+    }
+
     /**
      * @param settings
      */
@@ -235,6 +244,7 @@ final class DuplicateRowFilterSettings {
         m_addRowLabel.saveSettingsTo(settings);
         m_inMemory.saveSettingsTo(settings);
         saveSettingsForDialog(settings);
+        m_updateDomains.saveSettingsTo(settings);
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -256,6 +266,11 @@ final class DuplicateRowFilterSettings {
         m_addRowLabel.loadSettingsFrom(settings);
         m_inMemory.loadSettingsFrom(settings);
         loadSettingsForDialog(settings);
+
+        if (settings.containsKey(UPDATE_DOMAINS_KEY)) {
+            // Added in 5.0, defaults to false
+            m_updateDomains.loadSettingsFrom(settings);
+        }
     }
 
     /**
@@ -272,6 +287,10 @@ final class DuplicateRowFilterSettings {
         m_addRowLabel.validateSettings(settings);
         m_referenceCol.validateSettings(settings);
         m_inMemory.validateSettings(settings);
+        if (settings.containsKey(UPDATE_DOMAINS_KEY)) {
+            // Added in 5.0
+            m_updateDomains.validateSettings(settings);
+        }
     }
 
 }

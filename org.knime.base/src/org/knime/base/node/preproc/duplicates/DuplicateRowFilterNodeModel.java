@@ -59,6 +59,7 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableDomainCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.container.CloseableRowIterator;
@@ -133,7 +134,7 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
 
         // append the row order column if required
         final boolean hasOrderCol;
-        final ExecutionContext mainContext;
+        ExecutionContext mainContext;
         if (m_settings.retainOrder() || m_settings.getRowSelectionType() == RowSelectionType.LAST) {
             hasOrderCol = true;
             mainContext = exec.createSubExecutionContext(0.95);
@@ -141,6 +142,10 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
         } else {
             hasOrderCol = false;
             mainContext = exec;
+        }
+
+        if (m_settings.updateDomains()) {
+            mainContext = mainContext.createSubExecutionContext(0.7);
         }
 
         final ExecutionContext sortContext = mainContext.createSubExecutionContext(0.9);
@@ -170,6 +175,10 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
             cR.remove(orderColName);
             // Note: deleting a columns does not set any progress
             data = exec.createColumnRearrangeTable(data, cR, exec);
+        }
+
+        if (m_settings.updateDomains()) {
+            data = updateDomain(data, mainContext.createSubExecutionContext(0.3));
         }
 
         return new BufferedDataTable[]{data};
@@ -399,4 +408,11 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
         // nothing to do
     }
 
+    private static BufferedDataTable updateDomain(final BufferedDataTable table, final ExecutionContext exec)
+        throws CanceledExecutionException {
+        var domainCalculator = new DataTableDomainCreator(table.getDataTableSpec(), false);
+        domainCalculator.updateDomain(table, exec);
+        var specWithNewDomain = domainCalculator.createSpec();
+        return exec.createSpecReplacerTable(table, specWithNewDomain);
+    }
 }

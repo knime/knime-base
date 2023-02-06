@@ -131,6 +131,14 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
             + "order as in the input table.")
     boolean m_retainOrder = true;
 
+    @Persist(configKey = DuplicateRowFilterSettings.UPDATE_DOMAINS_KEY, optional = true)
+    @Schema( //
+        title = "Update domains of all columns", //
+        description = "Recompute the domain of all columns in the output tables such that the domain's" //
+            + " bounds exactly match the bounds of the data in the output tables."//
+    )
+    boolean m_updateDomains;
+
     /** Constructor for deserialization */
     DuplicateRowFilterDialogSettings() {
     }

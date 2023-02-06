@@ -118,6 +118,10 @@
                 {
                     "type": "Control",
                     "scope": "#/properties/model/properties/retainOrder"
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/updateDomains"
                 }
             ]
         }

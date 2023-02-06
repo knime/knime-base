@@ -67,8 +67,12 @@
             on the amount of input data.
 		</option>
 		<option name="Retain row order">
-            Advanced setting that if selected, ensures that the rows in the output table are in the same order as in the
+            Advanced setting that, if selected, ensures that the rows in the output table are in the same order as in the
              input table.
+		</option>
+		<option name="Update domains of all columns">
+            Advanced setting to enable recomputation of the domain of all columns in the output table such that the 
+            domain's bounds exactly match the bounds of the data in the output table.
 		</option>
     </tab>
 	</fullDescription>
