@@ -134,7 +134,8 @@ final class Unpivot2NodeModel extends NodeModel {
             m_retainedColumns.loadDefaults(in);
             m_valueColumns = createColumnFilterValueColumns();
             m_valueColumns.loadDefaults(in);
-            setWarningMessage("Auto configuration: Using all suitable columns in Value and Retain column lists.");
+            setWarningMessage("This node was auto-configured. No columns have been specified in the dialog. "
+                + "Now all suitable columns in 'value' and 'retained' column lists are used.");
         }
         return new DataTableSpec[]{createOutSpec(inSpecs[0])};
     }
@@ -143,12 +144,13 @@ final class Unpivot2NodeModel extends NodeModel {
         final FilterResult valueFilterResult = m_valueColumns.applyTo(spec);
         String[] valueColumns = valueFilterResult.getIncludes();
         if (valueColumns.length == 0) {
-            throw new InvalidSettingsException("No column 'value' defined for unpivoting operation.");
+            throw new InvalidSettingsException("No 'value' column was specified for the unpivoting operation.");
         }
         final String[] unknowns = valueFilterResult.getRemovedFromIncludes();
-        if (unknowns.length > 0) {
-            setWarningMessage("Some selected value column(s) are no longer available: "
-                + ConvenienceMethods.getShortStringFrom(Arrays.asList(unknowns), 3));
+        if (unknowns.length  > 0) {
+            setWarningMessage("The selected 'value' column(s) "
+                    + ConvenienceMethods.getShortStringFrom(Arrays.asList(unknowns), 3)
+                    + " are no longer available in the input table.");
         }
         String[] retainedColumns = m_retainedColumns.applyTo(spec).getIncludes();
         DataColumnSpec[] outSpecs = new DataColumnSpec[retainedColumns.length + 3];
