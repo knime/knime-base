@@ -48,12 +48,13 @@
  */
 package org.knime.base.node.preproc.columnlag;
 
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -63,34 +64,53 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 @SuppressWarnings("restriction")
 public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
-    @Persist(configKey = LagColumnConfiguration.CFG_COLUMN, settingsModel = SettingsModelString.class)
-    @Schema(title = "Column to lag", description = "The column to be lagged.", choices = AllColumns.class)
-    String m_column = "<row-keys>";
 
-    @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL, settingsModel = SettingsModelInteger.class)
+    private static final String ROW_KEYS = "<row-keys>";
+
+    @Persist(customPersistor = ColumnNodeSettingsPersistor.class)
+    @Schema(title = "Column to lag", description = "The column to be lagged.", choices = AllColumns.class)
+    String m_column = ROW_KEYS;
+
+    @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL)
     @Schema(title = "Lag interval",
         description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality) defines "
             + "how many column copies and how many row shifts to apply.")
     int m_lagInterval = 1;
 
-    @Persist(configKey = LagColumnConfiguration.CFG_LAG, settingsModel = SettingsModelInteger.class)
+    @Persist(configKey = LagColumnConfiguration.CFG_LAG)
     @Schema(title = "Lag",
         description = " <i>L</i> = lag defines how many column copies and how many row shifts to apply.")
     int m_lag = 1;
 
-    @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS,
-        settingsModel = SettingsModelBoolean.class)
+    @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS)
     @Schema(title = "Skip initial incomplete rows",
         description = "If selected the first rows from the input table are omitted in the output so that the lag "
             + "output column(s) is not missing (unless the reference data is missing).")
     boolean m_skipInitialIncompleteRows;
 
-    @Persist(configKey = LagColumnConfiguration.CFG_SKIP_LAST_COMPLETE_ROWS, settingsModel = SettingsModelBoolean.class)
+    @Persist(configKey = LagColumnConfiguration.CFG_SKIP_LAST_COMPLETE_ROWS)
     @Schema(title = "Skip last incomplete rows",
         description = "If selected the rows containing the lagged values of the last real data row are "
             + "omitted (no artificial new rows). Otherwise new rows are added, "
             + "which contain missing values in all columns but the new lag output.")
     boolean m_skipLastIncompleteRows = true;
+
+    private static final class ColumnNodeSettingsPersistor implements NodeSettingsPersistor<String> {
+
+        @Override
+        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            var column = settings.getString(LagColumnConfiguration.CFG_COLUMN);
+            return column == null ? ROW_KEYS : column;
+        }
+
+        @Override
+        public void save(final String obj, final NodeSettingsWO settings) {
+            // LagColumnConfiguration uses null to indicate that the RowID is used
+            settings.addString(LagColumnConfiguration.CFG_COLUMN, ROW_KEYS.equals(obj) ? null : obj);
+        }
+
+
+    }
 
     private static final class AllColumns implements ChoicesProvider {
 
