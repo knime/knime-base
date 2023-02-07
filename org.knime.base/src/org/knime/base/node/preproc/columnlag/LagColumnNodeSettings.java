@@ -64,19 +64,19 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = LagColumnConfiguration.CFG_COLUMN, settingsModel = SettingsModelString.class)
-    @Schema(title = "Column lag", description = "The column to be lagged.", choices = AllColumns.class)
-    String m_column;
+    @Schema(title = "Column to lag", description = "The column to be lagged.", choices = AllColumns.class)
+    String m_column = "<row-keys>";
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL, settingsModel = SettingsModelInteger.class)
     @Schema(title = "Lag interval",
         description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality) defines "
             + "how many column copies and how many row shifts to apply.")
-    int m_lagInterval;
+    int m_lagInterval = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG, settingsModel = SettingsModelInteger.class)
     @Schema(title = "Lag",
         description = " <i>L</i> = lag defines how many column copies and how many row shifts to apply.")
-    int m_lag;
+    int m_lag = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS,
         settingsModel = SettingsModelBoolean.class)

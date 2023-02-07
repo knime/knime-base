@@ -93,7 +93,7 @@ final class LagColumnNodeModel extends NodeModel {
         config.setLag(1);
         config.setLagInterval(1);
         config.setSkipInitialIncompleteRows(false);
-        config.setSkipLastIncompleteRows(false);
+        config.setSkipLastIncompleteRows(true);
         config.setColumn(getLastColumnName(dictTable));
         return config;
     }
