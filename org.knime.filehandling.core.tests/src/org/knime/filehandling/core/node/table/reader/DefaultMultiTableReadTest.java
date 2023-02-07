@@ -61,9 +61,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -150,10 +150,12 @@ public class DefaultMultiTableReadTest {
         final Read<String> read = mock(Read.class);
         RandomAccessible<String> first = mockRandomAccessible();
         @SuppressWarnings("unchecked")
-        RandomAccessible<String>[] restList = Arrays.stream(rows)//
-            .skip(1)//
-            .map(r -> mockRandomAccessible())//
-            .toArray(i -> new RandomAccessible[i + 1]);
+        RandomAccessible<String>[] restList = Stream.concat(//
+            Stream.of(rows)//
+                .skip(1)//
+                .map(r -> mockRandomAccessible()),//
+            Stream.of((RandomAccessible<String>)null))//
+            .toArray(RandomAccessible[]::new);
         when(read.next()).thenReturn(first, restList);
         return read;
     }
