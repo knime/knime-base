@@ -2,6 +2,20 @@
 	"elements": [
 		{
 			"type": "Section",
+			"label": "Column selection",
+			"elements": [
+				{
+					"type": "Control",
+					"scope": "#/properties/model/properties/inclCols",
+					"label": "",
+					"options": {
+						"format": "columnFilter"
+					}
+				}
+			]
+		},
+		{
+			"type": "Section",
 			"label": "Parsing options",
 			"elements": [
 				{
@@ -26,20 +40,6 @@
 				{
 					"type": "Control",
 					"scope": "#/properties/model/properties/failOnError"
-				}
-			]
-		},
-		{
-			"type": "Section",
-			"label": "Column selection",
-			"elements": [
-				{
-					"type": "Control",
-					"scope": "#/properties/model/properties/inclCols",
-					"label": "",
-					"options": {
-						"format": "columnFilter"
-					}
 				}
 			]
 		}
