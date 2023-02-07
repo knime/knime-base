@@ -49,8 +49,8 @@
 package org.knime.base.node.preproc.rowagg;
 
 import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunction;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
 
@@ -84,10 +84,10 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
     @Schema(title = "Frequency columns", description = "Select the columns to apply the aggregation function to.",
-            choices = FrequencyColumns.class, multiple = true)
-    String[] m_frequencyColumns;
+            choices = AggregatableColumns.class, withTypes = true, multiple = true)
+    ColumnFilter m_frequencyColumns;
 
-    static final class FrequencyColumns implements ChoicesProvider {
+    static final class AggregatableColumns implements ChoicesProvider {
 
         @Override
         public String[] choices(final SettingsCreationContext context) {
@@ -95,25 +95,14 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
             if (spec == null) {
                 return new String[0];
             }
-            return spec.stream()
-                // In theory this should check the type of either (as configured):
-                // - the aggregated column type if weight column is none or
-                // - the result of the multiplication with the weight column if a weight column is selected.
-                // However, at this point we don't know the selected weight column here (and vice-versa), so we do the
-                // next-best thing. Note: This could filter too much, i.e. could remove columns that would be compatible
-                // _after_ applying the weight to them, which is currently not the case, since Multiply supports the
-                // same (input) types as Sum and Average.
-                // If we add numeric types and change the Multiply/Sum/Average, we should revisit this filter here.
-                .filter(c -> RowAggregatorNodeModel.isSupportedAsAggregatedColumn(c.getType()))
-                .map(DataColumnSpec::getName)
-                .toArray(String[]::new);
+            return RowAggregatorNodeModel.filterAggregatableColumns(spec);
         }
 
     }
 
     @Schema(title = "Weight column", description = "Select the column that defines the weight with which a frequency "
-        + "value is multiplied before aggregation. Note, that only some aggregation functions support weighted "
-        + "aggregates.",
+        + "value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" "
+        + "support a weight column",
             choices = WeightColumns .class)
     String m_weightColumn;
 
@@ -126,10 +115,7 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
             if (spec == null) {
                 return new String[0];
             }
-            return spec.stream()
-                .filter(wc -> RowAggregatorNodeModel.isSupportedAsWeightColumn(wc.getType()))
-                .map(DataColumnSpec::getName)
-                .toArray(String[]::new);
+            return RowAggregatorNodeModel.filterWeightColumns(spec);
         }
 
     }
@@ -156,26 +142,13 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
     boolean m_grandTotals;
 
     /**
-     * Constructor for deserialization.
+     * Constructor for de/serialization.
      */
     RowAggregatorSettings() {
         // required by interface
     }
 
-    /**
-     * Constructor for auto-configuration.
-     * @param ctx context for creation
-     */
     RowAggregatorSettings(final SettingsCreationContext ctx) {
-        final var spec = ctx.getDataTableSpecs()[0];
-        if (spec != null) {
-            final var numCols = spec.getNumColumns();
-            if (numCols > 0) {
-                // last column as category automatically? some classification nodes put the class column
-                // last, which would be good to autoconfigure with here
-                final var last = spec.getColumnSpec(numCols - 1);
-                m_categoryColumn = last.getName();
-            }
-        }
+        m_frequencyColumns = ColumnFilter.createDefault(AggregatableColumns.class, ctx);
     }
 }

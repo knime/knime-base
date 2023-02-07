@@ -57,6 +57,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.knime.base.data.aggregation.AggregationOperator;
@@ -128,8 +129,6 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
     /** Warning message that input table has no columns. */
     private static final String INPUT_NO_COLUMNS = "Input table should contain at least one column.";
-    /** Warning message that no category column has been selected. */
-    private static final String NO_CATEGORY_COLUMN_SELECTED = "No category column selected. Aggregate complete table.";
 
     /** Instructs *GroupByTables to enable or disable hiliting. */
     private static final boolean ENABLE_HILITE = false;
@@ -150,28 +149,50 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     }
 
     /**
-     * Predicate to filter for columns that can be aggregated columns,
+     * Filter data table spec for columns that can be aggregated columns,
      * i.e. columns compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
-     * @param t aggregated data type
+     * @param spec data table spec
+     * @return column that can be aggregated columns
      */
-    static boolean isSupportedAsAggregatedColumn(final DataType t) {
-        // COUNT, MIN, MAX trivially support all data types
-        return SumNumeric.supportsDataType(t) && AverageNumeric.supportsDataType(t);
+    static String[] filterAggregatableColumns(final DataTableSpec spec) {
+        return Objects.requireNonNull(spec).stream()
+                // In theory this should check the type of either (as configured):
+                // - the aggregated column type if weight column is none or
+                // - the result of the multiplication with the weight column if a weight column is selected.
+                // However, at this point we don't know the selected weight column here (and vice-versa), so we do the
+                // next-best thing. Note: This could filter too much, i.e. could remove columns that would be compatible
+                // _after_ applying the weight to them, which is currently not the case, since Multiply supports the
+                // same (input) types as Sum and Average.
+                // If we add numeric types and change the Multiply/Sum/Average, we should revisit this filter here.
+                .filter(c -> {
+                    final var t = c.getType();
+                    // COUNT, MIN, MAX trivially support all data types
+                    return SumNumeric.supportsDataType(t) && AverageNumeric.supportsDataType(t);
+                })
+                .map(DataColumnSpec::getName)
+                .toArray(String[]::new);
     }
 
-    /**
-     * Predicate to filter for columns that can be weight columns,
-     * i.e. columns compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
-     * @param w weight data type
-     */
-    static boolean isSupportedAsWeightColumn(final DataType w) {
-        // COUNT, MIN, MAX do not provide a weighted version
 
-        // Since this function is called by a ChoicesProvider which only checks one column,
-        // we effectively have a hole in our types we need to check. But if this weight column alone is not supported,
-        // it cannot be supported in conjunction with another column.
-        final var l = DataType.getMissingCell().getType();
-        return MultiplyNumeric.supportsDataTypes(l, w);
+    /**
+     * Filter data table spec for columns that can be weight columns,
+     * i.e. columns compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
+     * @param spec data table spec
+     * @return columns that can be weight columns
+     */
+    static String[] filterWeightColumns(final DataTableSpec spec) {
+        return Objects.requireNonNull(spec).stream()
+            .filter(wc -> {
+                // COUNT, MIN, MAX do not provide a weighted version
+                final var w = wc.getType();
+                // Since this function is called by a ChoicesProvider which only checks one column,
+                // we effectively have a hole in our types we need to check. But if this weight column alone is not
+                // supported, it cannot be supported in conjunction with another column.
+                final var l = DataType.getMissingCell().getType();
+                return MultiplyNumeric.supportsDataTypes(l, w);
+            })
+            .map(DataColumnSpec::getName)
+            .toArray(String[]::new);
     }
 
 
@@ -321,18 +342,6 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         super(config, RowAggregatorSettings.class);
     }
 
-    @Override
-    protected void validateSettings(final RowAggregatorSettings settings) throws InvalidSettingsException {
-        if (settings.m_aggregationMethod != AggregationFunction.COUNT && settings.m_frequencyColumns != null) {
-            // check that we did not accidentally end up with the placeholder value(s) in our frequency column list
-            // e.g. when no input is connected and a placeholder column is included as a choice and the node is saved
-            CheckUtils.checkSetting(Arrays.stream(settings.m_frequencyColumns)
-                .filter(NOTHING_SELECTION::contains)
-                .findAny()
-                .isEmpty(), "None/empty placeholder column present in frequency columns list.");
-        }
-    }
-
     /** Create a builder with common config of #configure and #execute. */
     private static GlobalSettingsBuilder createGlobalSettingsBuilder() {
         return GlobalSettings.builder()
@@ -341,13 +350,15 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     }
 
     /** Get the aggregated columns value to pass to the row aggregator. */
-    private static Optional<String[]> getEffectiveAggregatedColumns(final RowAggregatorSettings settings) {
+    private static Optional<String[]> getEffectiveAggregatedColumns(final DataTableSpec dts,
+            final RowAggregatorSettings settings) {
         final var agg = settings.m_aggregationMethod;
-        if (agg == AggregationFunction.COUNT || settings.m_frequencyColumns.length == 0) {
+        final var aggCols = settings.m_frequencyColumns.getSelected(filterAggregatableColumns(dts), dts);
+        if (agg == AggregationFunction.COUNT || aggCols.length == 0) {
             // UI could still report an old value that is not used by COUNT (and is disabled/greyed-out in the UI)
             return Optional.empty();
         } else {
-            return Optional.of(settings.m_frequencyColumns);
+            return Optional.of(aggCols);
         }
     }
 
@@ -380,29 +391,28 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             setWarningMessage(INPUT_NO_COLUMNS);
         }
 
+        // check aggregated columns and aggregation function together
         final var agg = settings.m_aggregationMethod;
+        final var aggregatedColumns = getEffectiveAggregatedColumns(origSpec, settings);
         if (agg != AggregationFunction.COUNT) {
             // all other aggregations than COUNT currently need at least one frequency column
-
-            // no column set
-            CheckUtils.checkSettingNotNull(settings.m_frequencyColumns, MISSING_FREQUENCY_COLUMNS);
-            CheckUtils.checkSetting(settings.m_frequencyColumns.length > 0, MISSING_FREQUENCY_COLUMNS);
+            if (aggregatedColumns.isEmpty()) {
+                throw new InvalidSettingsException(MISSING_FREQUENCY_COLUMNS);
+            }
+            final var aggCols = aggregatedColumns.get();
             // only placeholder set, behave as if missing columns
-            CheckUtils.checkSetting(!(settings.m_frequencyColumns.length == 1
-                    && NOTHING_SELECTION.contains(settings.m_frequencyColumns[0])), MISSING_FREQUENCY_COLUMNS);
+            final var onlyPlaceholder = aggCols.length == 1 && NOTHING_SELECTION.contains(aggCols[0]);
+            CheckUtils.checkSetting(!onlyPlaceholder, MISSING_FREQUENCY_COLUMNS);
+        }
+        if (aggregatedColumns.isPresent()) {
+            checkSettingMissingAggregatedColumns(origSpec, aggregatedColumns.get());
         }
 
-        final var aggregatedColumns = getEffectiveAggregatedColumns(settings);
+        final var groupByColumn = checkSetting(getEffectiveGroupByColumn(settings), col -> origSpec.containsName(col),
+            col -> String.format("Missing category column: \"%s\".", col));
 
-        final var groupByColumn = getEffectiveGroupByColumn(settings);
-
-        if (groupByColumn.isEmpty() && !settings.m_grandTotals) {
-            // warn if user has not selected the checkbox to append totals, but is missing category column
-            // which leads to same outcome (a totals row being appended)
-            setWarningMessage(NO_CATEGORY_COLUMN_SELECTED);
-        }
-
-        final var weightColumn = getEffectiveWeightColumn(settings);
+        final var weightColumn = checkSetting(getEffectiveWeightColumn(settings), col -> origSpec.containsName(col),
+                    col -> String.format("Missing weight column: \"%s\".", col));
 
         final var rowAgg = new RowAggregator(agg, groupByColumn.orElse(null), aggregatedColumns.orElse(null),
             weightColumn.orElse(null));
@@ -430,6 +440,43 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         };
     }
 
+    /**
+     * Generic checkSetting method that checks the given function to return {@code true} when applied to the given
+     * instance to check, if the instance is non-null. If the instance is {@code null}, no check is done.
+     *
+     * @param <T> type of the instance to check
+     * @param toCheck instance to check if non-null, otherwise no check is done
+     * @param checkFn function that should be checked {@code true} (if {@code toCheck} non-null)
+     * @param errorMsg function to construct error message if the check fails
+     * @throws InvalidSettingsException
+     */
+    private static <T> Optional<T> checkSetting(final Optional<T> toCheck, final Predicate<T> checkFn,
+            final Function<T, String> errorMsg) throws InvalidSettingsException {
+        if (Objects.requireNonNull(toCheck).isEmpty()) {
+            return toCheck;
+        }
+        final var e = toCheck.get();
+        if (!checkFn.test(e)) {
+            throw new InvalidSettingsException(errorMsg.apply(e));
+        }
+        return toCheck;
+    }
+
+    private static void checkSettingMissingAggregatedColumns(final DataTableSpec dts, final String[] columns)
+            throws InvalidSettingsException {
+        final var missing = Arrays.stream(columns)
+                .filter(Predicate.not(dts::containsName))
+                .collect(Collectors.toList());
+        if (missing.isEmpty()) {
+            return;
+        }
+        throw new InvalidSettingsException(
+            missing.stream()
+                .map(col -> "\"" + col + "\"")
+                .collect(Collectors.joining(", ",
+                    "Missing frequency column" + (missing.size() > 1 ? "s" : "") + ": ", ".")));
+    }
+
     @Override
     protected PortObject[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
         final RowAggregatorSettings settings) throws Exception {
@@ -448,7 +495,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                 .setDataTableSpec(inSpec)
                 .setNoOfRows(table.size());
 
-        final var aggregatedColumns = getEffectiveAggregatedColumns(settings);
+        final var aggregatedColumns = getEffectiveAggregatedColumns(inSpec, settings);
         final var weightColumn = getEffectiveWeightColumn(settings);
         final var groupByColumn = getEffectiveGroupByColumn(settings);
         final var agg = settings.m_aggregationMethod;

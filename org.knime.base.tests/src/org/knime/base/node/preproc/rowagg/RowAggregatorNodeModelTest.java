@@ -52,6 +52,7 @@ package org.knime.base.node.preproc.rowagg;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -59,6 +60,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -94,18 +96,23 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeModelWarningListener;
+import org.knime.core.node.message.Message;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
+import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.testing.core.ExecutionContextExtension;
 
 /**
- * Tests for the {@link RowAggregatorNodeModel}.
+ * Tests for the {@code RowAggregatorNodeModel}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction") // WebUI* still in preview
 @ExtendWith({ExecutionContextExtension.class})
 final class RowAggregatorNodeModelTest {
 
@@ -210,7 +217,6 @@ final class RowAggregatorNodeModelTest {
             null, // no weight
             true
         );
-        m_rowAgg.validateSettings(m_settings);
         m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings);
 
 
@@ -284,7 +290,6 @@ final class RowAggregatorNodeModelTest {
             null, // no weight
             false // TOTALS port should be INACTIVE
         );
-        m_rowAgg.validateSettings(m_settings);
         m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings);
 
         // test that second port is inactive if configured
@@ -324,7 +329,6 @@ final class RowAggregatorNodeModelTest {
             null, // no weight
             false // ignored
         );
-        m_rowAgg.validateSettings(m_settings);
         m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings);
 
 
@@ -403,7 +407,6 @@ final class RowAggregatorNodeModelTest {
             null, // no weight
             true
         );
-        m_rowAgg.validateSettings(m_settings);
         m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings);
 
 
@@ -478,7 +481,6 @@ final class RowAggregatorNodeModelTest {
             WEIGHT_COL_NAME,
             false // ignored
         );
-        m_rowAgg.validateSettings(m_settings);
         m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings);
 
 
@@ -667,20 +669,141 @@ final class RowAggregatorNodeModelTest {
 
         final var expected = new String[] { "boolean", "int", "long", "double" };
 
-        final var resAggColumn = in.stream()
-                .filter(c -> RowAggregatorNodeModel.isSupportedAsAggregatedColumn(c.getType()))
-                .map(DataColumnSpec::getName).toArray(String[]::new);
+        final var resAggColumn = RowAggregatorNodeModel.filterAggregatableColumns(in);
         assertArrayEquals(expected, resAggColumn,
             "Filter should only retain 'numeric-compatible' columns for aggregate column");
 
-        final var resWeightColumn = in.stream()
-                .filter(c -> RowAggregatorNodeModel.isSupportedAsWeightColumn(c.getType()))
-                .map(DataColumnSpec::getName).toArray(String[]::new);
+        final var resWeightColumn = RowAggregatorNodeModel.filterWeightColumns(in);
         assertArrayEquals(expected, resWeightColumn,
                 "Filter should only retain 'numeric-compatible' columns for weight column");
     }
 
+    /**
+     * Tests incorrect usage of {@code AggregationFunction.getOperator()} method for weight-less agg functions.
+     */
+    @Test
+    @SuppressWarnings("static-method")
+    void testGetOperatorInvalidCombinations() {
+        assertThrows(IllegalStateException.class,
+            () -> RowAggregatorNodeModel.AggregationFunction.COUNT.getOperator("weight", null, null));
+        assertThrows(UnsupportedOperationException.class,
+            () -> RowAggregatorNodeModel.AggregationFunction.MIN.getOperator("weight", null, null));
+    }
+
+    // ==== InvalidSettingsException conditions
+
+    @Test
+    void testNoColumnsWarning() throws InvalidSettingsException {
+        final var dts = Column.toSpec(Stream.empty());
+        groupByAggregate(m_settings, AggregationFunction.COUNT, null, null, null, false);
+        final var count = new AtomicInteger();
+        m_rowAgg.addWarningListener(new NodeModelWarningListener() {
+            @Override
+            public void warningChanged(final Message warning) {
+                count.incrementAndGet();
+                assertEquals("Input table should contain at least one column.", warning.getSummary(),
+                    "Unexpected warning message set");
+            }
+        });
+        m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings);
+        assertEquals(1, count.get(), "Did not set expected number of warnings during configure");
+    }
+
+    @Test
+    void testEmptyAggregatedColumnsInvalidSettingsExceptions() {
+        final var dts = createTestDts();
+        groupByAggregate(m_settings,
+            AggregationFunction.SUM,
+            null,
+            new String[0], // this should be responsible for "missing frequency columns" exception
+            null,
+            false
+        );
+        assertThrows(InvalidSettingsException.class,
+            () -> m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings));
+    }
+
+    @Test
+    void testSingleMissingAggregatedColumnsInvalidSettingsExceptions() {
+        final var dts = createTestDts();
+        groupByAggregate(m_settings,
+            AggregationFunction.SUM,
+            null,
+            new String[] { "missingAgg1" }, // this should be responsible for "missing frequency columns" exception
+            null,
+            false
+        );
+        final var msg = assertThrows(InvalidSettingsException.class,
+            () -> m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings)).getMessage();
+        assertTrue(msg.contains("column:"), "Expected singular form of \"column\" for single missing column.");
+    }
+
+    @Test
+    void testMultipleMissingAggregatedColumnsInvalidSettingsExceptions() {
+        final var dts = createTestDts();
+        groupByAggregate(m_settings,
+            AggregationFunction.SUM,
+            null,
+            new String[] { "missingAgg1", "missingAgg2" }, // this should be responsible for "missing frequency columns" exception
+            null,
+            false
+        );
+        final var msg = assertThrows(InvalidSettingsException.class,
+            () -> m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings)).getMessage();
+        assertTrue(msg.contains("columns:"), "Expected plural of \"column\" for multiple missing columns.");
+    }
+
+    @Test
+    void testWeightColumnInvalidSettingsExceptions() {
+        final var dts = createTestDts();
+        groupByAggregate(m_settings,
+            AggregationFunction.SUM,
+            null,
+            new String[] { AGG_COL_NAME },
+            "missingWeightColumnName", // responsible for "missing weight column" exception
+            false
+        );
+        assertThrows(InvalidSettingsException.class,
+            () -> m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings));
+    }
+
+    @Test
+    void testGroupByColumnInvalidSettingsExceptions() {
+        final var dts = createTestDts();
+        groupByAggregate(m_settings,
+            AggregationFunction.SUM,
+            "missingGroupByColumnName",  // responsible for "missing groupBy column" exception
+            new String[] { AGG_COL_NAME },
+            null,
+            false
+        );
+        assertThrows(InvalidSettingsException.class,
+            () -> m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings));
+    }
+
+    @Test
+    void testAggregatedColumnsPlaceholderInvalidSettingsExceptions() {
+        final var dts = createTestDts();
+        groupByAggregate(m_settings,
+            AggregationFunction.SUM,
+            null,
+            // this should be responsible for "missing frequency columns" exception since it contains a UI placeholder
+            new String[] {"<none>"},
+            null,
+            false
+        );
+        assertThrows(InvalidSettingsException.class,
+            () -> m_rowAgg.configure(new PortObjectSpec[] { dts }, m_settings));
+    }
+
     // ===== Test Helpers
+
+    private static DataTableSpec createTestDts() {
+        final var colNames = new String[] { AGG_COL_NAME, WEIGHT_COL_NAME, CLASS_COL_NAME };
+        final var colTypes = new DataType[] { IntCell.TYPE, BooleanCell.TYPE, StringCell.TYPE };
+        final var dts = Column.toSpec(colNames, colTypes);
+        return dts;
+    }
 
     private static GlobalSettingsBuilder createGlobalSettingsBuilder() {
         return GlobalSettings.builder()
@@ -712,18 +835,19 @@ final class RowAggregatorNodeModelTest {
         return Arrays.stream(s).filter(c -> !except.contains(c)).toArray(String[]::new);
     }
 
-    private static void groupByAggregate(final RowAggregatorSettings settings, final AggregationFunction agg,
-        final String groupByColumn, final String[] aggregatedColumns, final String weightColumn,
-        final boolean grandTotal) {
+    private static RowAggregatorSettings groupByAggregate(final RowAggregatorSettings settings,
+            final AggregationFunction agg, final String groupByColumn, final String[] aggregatedColumns,
+            final String weightColumn, final boolean grandTotal) {
         settings.m_aggregationMethod = agg;
         if (groupByColumn != null) {
             settings.m_categoryColumn = groupByColumn;
         }
-        settings.m_frequencyColumns = aggregatedColumns;
+        settings.m_frequencyColumns = new ColumnFilter(aggregatedColumns != null ? aggregatedColumns : new String[0]);
         if (weightColumn != null) {
             settings.m_weightColumn = weightColumn;
         }
         settings.m_grandTotals = grandTotal;
+        return settings;
     }
 
     private static void assertMissingInMissingOut(final ExecutionContext ctx, final RowAggregatorNodeModel rowAgg,
