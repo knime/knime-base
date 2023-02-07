@@ -81,7 +81,7 @@ final class TableCropperSettings implements DefaultNodeSettings {
     TableCropperSettings() {
     }
 
-    @Schema(title = "Column range specification", description = "Specifies how the column range is defined.")
+    @Schema(title = "Column range", description = "Specifies how the column range is defined.")
     ColumnRangeMode m_columnSelectionMode = ColumnRangeMode.NAME_RANGE;
 
     @Schema(title = "Start column", description = "Select the first column to include.", choices = AllColumns.class)
