@@ -64,6 +64,23 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 @SuppressWarnings("restriction")
 public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
+    /**
+     * Constructor called by the framework to get default settings.
+     *
+     * @param context of the settings creation
+     */
+    LagColumnNodeSettings(final SettingsCreationContext context) {
+        m_column = context.getDataTableSpec(0)//
+                .map(LagColumnConfiguration::findDefaultColumn)//
+                .orElse(ROW_KEYS);
+    }
+
+    /**
+     * Constructor called by the framework for persistence and JSON conversion.
+     */
+    LagColumnNodeSettings() {
+
+    }
 
     private static final String ROW_KEYS = "<row-keys>";
 
