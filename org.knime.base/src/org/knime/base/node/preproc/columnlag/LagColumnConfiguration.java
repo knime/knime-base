@@ -179,8 +179,17 @@ final class LagColumnConfiguration {
      * @param spec Input table spec
      */
     void loadSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec spec) {
+        String defColumn = findDefaultColumn(spec);
+        m_column = settings.getString(CFG_COLUMN, defColumn);
+        m_lag = Math.max(1, settings.getInt(CFG_LAG, 1));
+        m_lagInterval = Math.max(1, settings.getInt(CFG_LAG_INTERVAL, 1));
+        m_skipInitialIncompleteRows = settings.getBoolean(CFG_SKIP_INITIAL_COMPLETE_ROWS, false);
+        m_skipLastIncompleteRows = settings.getBoolean(CFG_SKIP_LAST_COMPLETE_ROWS, true);
+    }
+
+    static String findDefaultColumn(final DataTableSpec spec) {
         String defColumn = null;
-        boolean isTimeColumnAssigned = false;
+        var isTimeColumnAssigned = false;
         // take last column as default, favor time value columns if present
         for (DataColumnSpec s : spec) {
             if (s.getType().isCompatible(DateAndTimeValue.class)) {
@@ -192,11 +201,13 @@ final class LagColumnConfiguration {
                 defColumn = s.getName();
             }
         }
-        m_column = settings.getString(CFG_COLUMN, defColumn);
-        m_lag = Math.max(1, settings.getInt(CFG_LAG, 1));
-        m_lagInterval = Math.max(1, settings.getInt(CFG_LAG_INTERVAL, 1));
-        m_skipInitialIncompleteRows = settings.getBoolean(CFG_SKIP_INITIAL_COMPLETE_ROWS, false);
-        m_skipLastIncompleteRows = settings.getBoolean(CFG_SKIP_LAST_COMPLETE_ROWS, true);
+        return defColumn;
+    }
+
+    static LagColumnConfiguration autoConfigure(final DataTableSpec spec) {
+        var config = new LagColumnConfiguration();
+        config.setColumn(findDefaultColumn(spec));
+        return config;
     }
 
     /**

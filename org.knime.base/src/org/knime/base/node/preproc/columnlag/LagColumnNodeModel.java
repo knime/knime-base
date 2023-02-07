@@ -82,29 +82,10 @@ final class LagColumnNodeModel extends NodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         DataTableSpec dictTable = inSpecs[0];
         if (m_configuration == null) {
-            m_configuration = autoConfigure(dictTable);
+            m_configuration = LagColumnConfiguration.autoConfigure(dictTable);
             setWarningMessage("This node was configured automatically.");
         }
         return new DataTableSpec[]{new LagColumnStreamableOperator(m_configuration, inSpecs[0]).getOutSpec()};
-    }
-
-    private static LagColumnConfiguration autoConfigure(final DataTableSpec dictTable) throws InvalidSettingsException {
-        var config = new LagColumnConfiguration();
-        config.setLag(1);
-        config.setLagInterval(1);
-        config.setSkipInitialIncompleteRows(false);
-        config.setSkipLastIncompleteRows(true);
-        config.setColumn(getLastColumnName(dictTable));
-        return config;
-    }
-
-    private static String getLastColumnName(final DataTableSpec dictSpec) throws InvalidSettingsException {
-        int number_of_cols = dictSpec.getNumColumns();
-        if (number_of_cols > 0) {
-            return dictSpec.getColumnNames()[number_of_cols - 1]; //return the last column
-        } else {
-            throw new InvalidSettingsException("No columns available in the input.");
-        }
     }
 
     /**
