@@ -91,12 +91,12 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL)
     @Schema(title = "Lag interval",
         description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality) defines "
-            + "how many column copies and how many row shifts to apply.")
+            + "how many column copies and how many row shifts to apply.", min = 1)
     int m_lagInterval = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG)
     @Schema(title = "Lag",
-        description = " <i>L</i> = lag defines how many column copies and how many row shifts to apply.")
+        description = " <i>L</i> = lag defines how many column copies and how many row shifts to apply.", min = 1)
     int m_lag = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS)
