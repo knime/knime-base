@@ -82,6 +82,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.util.ColumnFilter;
+import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.DataValueColumnFilter;
 import org.knime.core.webui.node.dialog.impl.Schema;
 
@@ -129,11 +130,13 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
         }
 
         static ColType fromDisplayString(final String displayString) throws InvalidSettingsException {
-            return Stream.of(values())
-                    .filter(ct -> ct.displayString().equals(displayString))
-                    .findFirst()
-                    .orElseThrow(() -> new InvalidSettingsException("Unable to get col type for \""
-                            + displayString + "\""));
+            final var possibleTypes = values();
+            return Stream.of(possibleTypes)//
+                .filter(ct -> ct.displayString().equals(displayString))//
+                .findFirst()//
+                .orElseThrow(() -> new InvalidSettingsException(
+                    "Cannot find a fitting column type for the keyword \"" + displayString + "\"." + "Only types "
+                        + ConvenienceMethods.getShortStringFrom(List.of(possibleTypes), 4) + " are valid."));
         }
 
         /** @return associated filter. */
@@ -352,7 +355,8 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
         case 1:
             return super.getOutHiLiteHandler(0);
         default:
-            throw new IndexOutOfBoundsException("Invalid port: " + outIndex);
+            throw new IndexOutOfBoundsException(
+                "A wrong node port was specified. The index should be '0' or '1', not '" + outIndex + "'.");
         }
     }
 
