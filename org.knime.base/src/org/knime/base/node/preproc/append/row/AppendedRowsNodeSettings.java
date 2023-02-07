@@ -102,11 +102,11 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             description = "Choose the output column selection process:"
                     + "<ul>"
                     // Intersection option description
-                    + "<li><b>Columns in all tables</b>: Use only the columns that appear "
+                    + "<li><b>Intersection</b>: Use only the columns that appear "
                     + "in every input table. Any other column is ignored and won't appear "
                     + "in the output table.</li>"
                     // Union option description
-                    + "<li><b>Columns in any table</b>: Use all columns from all input "
+                    + "<li><b>Union</b>: Use all columns from all input "
                     + "tables. Fill rows with missing values if they miss cells for some columns.</li>"
                     + "</ul>")
     ColumnSetOperation m_columnSetOperation = ColumnSetOperation.UNION;
@@ -123,10 +123,10 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     }
 
     enum ColumnSetOperation {
-        @Schema(title="Columns in all tables")
+        @Schema(title="Intersection")
         INTERSECTION,
 
-        @Schema(title="Columns in any table")
+        @Schema(title="Union")
         UNION;
     }
 
