@@ -57,7 +57,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -130,22 +130,30 @@ final class RowFilterRefNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    private static final class IncludeOrExcludeRowsPersistor implements NodeSettingsPersistor<IncludeOrExcludeRows> {
+    private static final class IncludeOrExcludeRowsPersistor
+        implements FieldNodeSettingsPersistor<IncludeOrExcludeRows> {
+
+        private static final String KEY_INCLUDE_EXCLUDE = "inexclude";
 
         @Override
         public IncludeOrExcludeRows load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return RowFilterRefNodeDialogPane.INCLUDE.equals(settings.getString("inexclude")) //
+            return RowFilterRefNodeDialogPane.INCLUDE.equals(settings.getString(KEY_INCLUDE_EXCLUDE)) //
                 ? IncludeOrExcludeRows.INCLUDE //
                 : IncludeOrExcludeRows.EXCLUDE;
         }
 
         @Override
         public void save(final IncludeOrExcludeRows obj, final NodeSettingsWO settings) {
-            settings.addString("inexclude", //
+            settings.addString(KEY_INCLUDE_EXCLUDE, //
                 obj == IncludeOrExcludeRows.INCLUDE //
                     ? RowFilterRefNodeDialogPane.INCLUDE //
                     : RowFilterRefNodeDialogPane.EXCLUDE //
             );
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{KEY_INCLUDE_EXCLUDE};
         }
     }
 }

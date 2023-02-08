@@ -59,7 +59,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -110,7 +110,7 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
             COLUMN;
     }
 
-    private static final class OutputFormatPersistor implements NodeSettingsPersistor<OutputFormat> {
+    private static final class OutputFormatPersistor implements FieldNodeSettingsPersistor<OutputFormat> {
 
         @Override
         public OutputFormat load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -122,9 +122,13 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
             settings.addBoolean(CFG_TRANSPOSE_COL_HEADER, obj == OutputFormat.COLUMN);
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{CFG_TRANSPOSE_COL_HEADER};
+        }
     }
 
-    private static final class ColTypePersistor implements NodeSettingsPersistor<ColType> {
+    private static final class ColTypePersistor implements FieldNodeSettingsPersistor<ColType> {
 
         @Override
         public ColType load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -136,5 +140,9 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
             settings.addString(CFG_COLTYPE, obj.displayString());
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{CFG_COLTYPE};
+        }
     }
 }

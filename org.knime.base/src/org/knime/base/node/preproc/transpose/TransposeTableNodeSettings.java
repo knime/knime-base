@@ -53,7 +53,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -91,7 +91,7 @@ final class TransposeTableNodeSettings implements DefaultNodeSettings {
             SPECIFY_SIZE;
     }
 
-    private static final class ChunkingModePersistor implements NodeSettingsPersistor<ChunkingMode> {
+    private static final class ChunkingModePersistor implements FieldNodeSettingsPersistor<ChunkingMode> {
 
         @Override
         public ChunkingMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -114,5 +114,9 @@ final class TransposeTableNodeSettings implements DefaultNodeSettings {
 
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{CHUNKING_MODE_KEY};
+        }
     }
 }

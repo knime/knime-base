@@ -58,7 +58,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
 import org.knime.core.webui.node.dialog.impl.Schema.DoubleProvider;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -106,7 +106,7 @@ final class ColumnAppenderSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class RowIdTableSelectPersistor implements NodeSettingsPersistor<Integer> {
+    private static final class RowIdTableSelectPersistor implements FieldNodeSettingsPersistor<Integer> {
 
         @Override
         public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -128,6 +128,13 @@ final class ColumnAppenderSettings implements DefaultNodeSettings {
             settings.addInt(ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE_NUMBER, value);
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{ //
+                ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE, //
+                ColumnAppender2NodeModel.KEY_SELECTED_ROWID_TABLE_NUMBER //
+            };
+        }
     }
 
 }

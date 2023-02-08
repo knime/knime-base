@@ -57,7 +57,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -149,7 +149,7 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
     @Schema(title = "New column name", description = "Name of the newly created column with replaced Strings")
     String m_newColName = "ReplacedColumn";
 
-    private static final class PatternTypePersistor implements NodeSettingsPersistor<PatternType> {
+    private static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {
         @Override
         public PatternType load(final NodeSettingsRO settings) throws InvalidSettingsException {
             if (settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX, false)) {
@@ -163,9 +163,14 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
         public void save(final PatternType obj, final NodeSettingsWO settings) {
             settings.addBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX, obj == PatternType.REGEX);
         }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{StringReplacerSettings.CFG_PATTERN_IS_REGEX};
+        }
     }
 
-    private static final class ReplacementStrategyPersistor implements NodeSettingsPersistor<ReplacementStrategy> {
+    private static final class ReplacementStrategyPersistor implements FieldNodeSettingsPersistor<ReplacementStrategy> {
         @Override
         public ReplacementStrategy load(final NodeSettingsRO settings) throws InvalidSettingsException {
             if (settings.getBoolean(StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES)) {
@@ -179,6 +184,11 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
         public void save(final ReplacementStrategy obj, final NodeSettingsWO settings) {
             settings.addBoolean(StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES,
                 obj == ReplacementStrategy.ALL_OCCURRENCES);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES};
         }
     }
 

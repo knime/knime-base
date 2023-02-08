@@ -53,7 +53,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -87,7 +87,7 @@ final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
             EXCLUDE;
     }
 
-    private static final class ColumnReferenceModePersistor implements NodeSettingsPersistor<ColumnReferenceMode> {
+    private static final class ColumnReferenceModePersistor implements FieldNodeSettingsPersistor<ColumnReferenceMode> {
 
         @Override
         public ColumnReferenceMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -105,6 +105,10 @@ final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
             settings.addString(REFERENCE_MODE_KEY, value);
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{REFERENCE_MODE_KEY};
+        }
     }
 
 }

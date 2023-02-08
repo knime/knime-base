@@ -56,7 +56,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -114,7 +114,7 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
             + "which contain missing values in all columns but the new lag output.")
     boolean m_skipLastIncompleteRows = true;
 
-    private static final class ColumnNodeSettingsPersistor implements NodeSettingsPersistor<String> {
+    private static final class ColumnNodeSettingsPersistor implements FieldNodeSettingsPersistor<String> {
 
         @Override
         public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -128,7 +128,10 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
             settings.addString(LagColumnConfiguration.CFG_COLUMN, ROW_KEYS.equals(obj) ? null : obj);
         }
 
-
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{LagColumnConfiguration.CFG_COLUMN};
+        }
     }
 
     private static final class AllColumns implements ColumnChoicesProvider {

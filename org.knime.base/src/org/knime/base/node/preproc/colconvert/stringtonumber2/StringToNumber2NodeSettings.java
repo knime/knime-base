@@ -64,7 +64,7 @@ import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -116,7 +116,7 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
             LONG;
     }
 
-    private static final class DataTypeOptionssPersistor implements NodeSettingsPersistor<DataTypeOptions> {
+    private static final class DataTypeOptionssPersistor implements FieldNodeSettingsPersistor<DataTypeOptions> {
 
         @Override
         public DataTypeOptions load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -148,6 +148,11 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
             }
 
             settings.addDataType(AbstractStringToNumberNodeModel.CFG_PARSETYPE, dtype);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{AbstractStringToNumberNodeModel.CFG_PARSETYPE};
         }
 
     }

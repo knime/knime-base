@@ -61,7 +61,7 @@ import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -140,7 +140,7 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class RoundingOptionsPersistor implements NodeSettingsPersistor<RoundingOptions> {
+    private static final class RoundingOptionsPersistor implements FieldNodeSettingsPersistor<RoundingOptions> {
 
         @Override
         public RoundingOptions load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -154,6 +154,10 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{DoubleToIntNodeModel.CFG_TYPE_OF_ROUND};
+        }
     }
 
 }

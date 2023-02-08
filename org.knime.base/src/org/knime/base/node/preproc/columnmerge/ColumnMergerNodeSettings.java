@@ -56,7 +56,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -104,8 +104,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class OutputPlacementOptionsPersistor
-        implements NodeSettingsPersistor<OutputPlacement> {
+    private static final class OutputPlacementOptionsPersistor implements FieldNodeSettingsPersistor<OutputPlacement> {
 
         @Override
         public OutputPlacement load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -126,5 +125,9 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
             settings.addString(ColumnMergerConfiguration.CFG_OUTPUT_PLACEMENT, obj.name());
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{ColumnMergerConfiguration.CFG_OUTPUT_PLACEMENT};
+        }
     }
 }

@@ -56,7 +56,7 @@ import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -177,7 +177,8 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
     }
 
     /** Custom persistor for the duplicate row handling: true for REMOVE, false for KEEP */
-    private static final class DuplicateRowHandlingPersistor implements NodeSettingsPersistor<DuplicateRowHandling> {
+    private static final class DuplicateRowHandlingPersistor
+        implements FieldNodeSettingsPersistor<DuplicateRowHandling> {
 
         @Override
         public DuplicateRowHandling load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -192,6 +193,11 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
         public void save(final DuplicateRowHandling obj, final NodeSettingsWO settings) {
             settings.addBoolean(DuplicateRowFilterSettings.REMOVE_DUPLICATE_ROWS_KEY,
                 obj == DuplicateRowHandling.REMOVE);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{DuplicateRowFilterSettings.REMOVE_DUPLICATE_ROWS_KEY};
         }
     }
 

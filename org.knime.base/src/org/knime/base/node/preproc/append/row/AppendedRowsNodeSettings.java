@@ -53,7 +53,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
@@ -130,7 +130,7 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         UNION;
     }
 
-    private static final class RowIdResolutionPersistor implements NodeSettingsPersistor<RowIdResolution> {
+    private static final class RowIdResolutionPersistor implements FieldNodeSettingsPersistor<RowIdResolution> {
 
         @Override
         public RowIdResolution load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -151,9 +151,13 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             settings.addBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES, obj == RowIdResolution.FAIL);
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{AppendedRowsNodeModel.CFG_APPEND_SUFFIX, AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES};
+        }
     }
 
-    private static final class ColumnSetOperationPersistor implements NodeSettingsPersistor<ColumnSetOperation> {
+    private static final class ColumnSetOperationPersistor implements FieldNodeSettingsPersistor<ColumnSetOperation> {
 
         @Override
         public ColumnSetOperation load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -169,8 +173,9 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             settings.addBoolean(AppendedRowsNodeModel.CFG_INTERSECT_COLUMNS, obj == ColumnSetOperation.INTERSECTION);
         }
 
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{AppendedRowsNodeModel.CFG_INTERSECT_COLUMNS};
+        }
     }
-
-
-
 }
