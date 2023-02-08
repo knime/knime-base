@@ -134,7 +134,7 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
     @Persist(configKey = DuplicateRowFilterSettings.UPDATE_DOMAINS_KEY, optional = true)
     @Schema( //
         title = "Update domains of all columns", //
-        description = "Recompute the domain of all columns in the output tables such that the domain's" //
+        description = "Recompute the domains of all columns in the output tables such that the domains'" //
             + " bounds exactly match the bounds of the data in the output tables."//
     )
     boolean m_updateDomains;

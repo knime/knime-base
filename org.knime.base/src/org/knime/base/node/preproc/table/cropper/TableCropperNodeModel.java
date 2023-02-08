@@ -108,17 +108,14 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
     private static int[] getColumnIndicesFromNameRange(final DataTableSpec spec, final TableCropperSettings settings)
         throws InvalidSettingsException {
         int startColumnIndex = spec.findColumnIndex(settings.m_startColumnName);
-        CheckUtils.checkSetting(startColumnIndex >= 0,
-            "The provided table does not contain the start column ('%s').",
+        CheckUtils.checkSetting(startColumnIndex >= 0, "The provided table does not contain the start column ('%s').",
             settings.m_startColumnName);
         int endColumnIndex = spec.findColumnIndex(settings.m_endColumnName);
-        CheckUtils.checkSetting(endColumnIndex >= 0,
-            "The provided table does not contain the end column ('%s').",
+        CheckUtils.checkSetting(endColumnIndex >= 0, "The provided table does not contain the end column ('%s').",
             settings.m_endColumnName);
         CheckUtils.checkSetting(startColumnIndex <= endColumnIndex,
             "The start column must be positioned before the end column in the table.");
-        return IntStream.range(startColumnIndex,
-            endColumnIndex + 1).toArray();
+        return IntStream.range(startColumnIndex, endColumnIndex + 1).toArray();
     }
 
     @Override
@@ -128,7 +125,8 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
         var colIndices = getColumnIndicesToKeep(table.getDataTableSpec(), settings);
         var slice = defineSlice(colIndices, table.size(), settings);
         exec.setMessage("Cropping table");
-        var slicedTable = InternalTableAPI.slice(exec.createSubExecutionContext(settings.m_updateDomains ? 0.5 : 1.0), table, slice);
+        var slicedTable =
+            InternalTableAPI.slice(exec.createSubExecutionContext(settings.m_updateDomains ? 0.5 : 1.0), table, slice);
         if (settings.m_updateDomains) {
             var specWithNewDomain = recalculateDomain(slicedTable, exec.createSubProgress(0.5));
             slicedTable = exec.createSpecReplacerTable(slicedTable, specWithNewDomain);
@@ -139,8 +137,8 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
     private static Selection defineSlice(final int[] colIndices, final long numRows,
         final TableCropperSettings settings) {
         return Selection.all()//
-                .retainColumns(colIndices)//
-                .retainRows(getStartRow(settings), getEndRow(numRows, settings));
+            .retainColumns(colIndices)//
+            .retainRows(getStartRow(settings), getEndRow(numRows, settings));
     }
 
     private static DataTableSpec recalculateDomain(final BufferedDataTable table, final ExecutionMonitor exec)

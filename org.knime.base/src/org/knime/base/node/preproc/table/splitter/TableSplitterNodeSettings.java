@@ -108,8 +108,8 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
 
     @Schema( //
         title = "Update domains of all columns", //
-        description = "Recompute the domain of all columns in the output tables such that the domain's" //
-            + " bounds exactly match the bounds of the data in the output tables."//
+        description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
+            + "such that the domains' bounds exactly match the bounds of the data in the output table." //
     )
     @Persist(optional = true)
     boolean m_updateDomains;
