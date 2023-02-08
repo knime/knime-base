@@ -419,8 +419,8 @@ public abstract class AbstractMultiTableWriterNodeModel<C extends AbstractMultiT
             }
 
             @Override
-            public DataRow compute(final DataRow input) throws Exception {
-                return wrappedFunction.compute(input);
+            public DataRow compute(final DataRow input, final long rowIndex) throws Exception {
+                return wrappedFunction.compute(input, rowIndex);
             }
         };
 

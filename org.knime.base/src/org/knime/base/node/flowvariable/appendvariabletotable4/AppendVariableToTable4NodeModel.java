@@ -227,8 +227,8 @@ final class AppendVariableToTable4NodeModel extends NodeModel {
                     final StreamableFunction streamableFunction =
                         createColumnRearranger(in.getDataTableSpec(), conv, false).createStreamableFunction();
                     DataRow row;
-                    while ((row = in.poll()) != null) {
-                        out.push(streamableFunction.compute(row));
+                    for (long r = 0; (row = in.poll()) != null; r++) {
+                        out.push(streamableFunction.compute(row, r));
                     }
                     in.close();
                     out.close();

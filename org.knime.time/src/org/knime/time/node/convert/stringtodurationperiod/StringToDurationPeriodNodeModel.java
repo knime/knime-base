@@ -592,7 +592,7 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
 
                 // compute every row
                 DataRow row;
-                while ((row = in.poll()) != null) {
+                for (var r = 0L;(row = in.poll()) != null; r++) {
                     exec.checkCanceled();
                     DataCell[] datacells = new DataCell[includeIndexes.length];
                     for (int i = 0; i < includeIndexes.length; i++) {
@@ -601,14 +601,14 @@ final class StringToDurationPeriodNodeModel extends NodeModel {
                                 new DataColumnSpecCreator(inSpec.getColumnNames()[includeIndexes[i]], detectedTypes[i])
                                     .createSpec(),
                                 includeIndexes[i]);
-                            datacells[i] = cellFac.getCells(row)[0];
+                            datacells[i] = cellFac.getCells(row, r)[0];
                         } else {
                             final DataColumnSpec dataColSpec = new UniqueNameGenerator(inSpec).newColumn(
                                 inSpec.getColumnNames()[includeIndexes[i]] + m_suffix.getStringValue(),
                                 detectedTypes[i]);
                             final StringToDurationPeriodCellFactory cellFac =
                                 new StringToDurationPeriodCellFactory(dataColSpec, includeIndexes[i]);
-                            datacells[i] = cellFac.getCells(row)[0];
+                            datacells[i] = cellFac.getCells(row, r)[0];
                         }
                     }
                     if (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE)) {

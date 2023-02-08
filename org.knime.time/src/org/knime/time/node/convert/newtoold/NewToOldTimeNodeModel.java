@@ -221,7 +221,7 @@ final class NewToOldTimeNodeModel extends NodeModel {
                     Arrays.stream(includeList).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
 
                 DataRow row;
-                while ((row = in.poll()) != null) {
+                for (var r = 0L;(row = in.poll()) != null; r++) {
                     exec.checkCanceled();
                     DataCell[] datacells = new DataCell[includeIndeces.length];
                     for (int i = 0; i < includeIndeces.length; i++) {
@@ -230,13 +230,13 @@ final class NewToOldTimeNodeModel extends NodeModel {
                                 new DataColumnSpecCreator(includeList[i], DateAndTimeCell.TYPE);
                             final ConvertTimeCellFactory cellFac =
                                 new ConvertTimeCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i]);
-                            datacells[i] = cellFac.getCells(row)[0];
+                            datacells[i] = cellFac.getCells(row, r)[0];
                         } else {
                             final DataColumnSpec dataColSpec = new UniqueNameGenerator(inSpec)
                                 .newColumn(includeList[i] + m_suffix.getStringValue(), DateAndTimeCell.TYPE);
                             final ConvertTimeCellFactory cellFac =
                                 new ConvertTimeCellFactory(dataColSpec, includeIndeces[i]);
-                            datacells[i] = cellFac.getCells(row)[0];
+                            datacells[i] = cellFac.getCells(row, r)[0];
                         }
                     }
                     if (m_isReplaceOrAppend.getStringValue().equals(OPTION_REPLACE)) {
