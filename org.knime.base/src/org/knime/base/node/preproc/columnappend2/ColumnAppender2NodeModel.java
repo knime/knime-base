@@ -138,7 +138,8 @@ final class ColumnAppender2NodeModel extends NodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         // Sanity check settings even though dialog checks, in case any flow variables went bad.
         if (isSelectedMode(RowKeyMode.KEY_TABLE)) {
-            CheckUtils.checkSetting(getRowIDTableIndex() < m_numInPorts,
+            int tableIdx = getRowIDTableIndex();//NOSONAR
+            CheckUtils.checkSetting(tableIdx >= 0 && tableIdx < m_numInPorts,
                 "The selected port number for row key must be a number between 1 and %s (number of the last port)",
                 m_numInPorts);
         }
