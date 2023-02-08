@@ -94,13 +94,13 @@ final class ColumnHeaderInsertNodeModel extends NodeModel {
         if (lookupCol != null && !ROW_KEY_CONSTANT.equals(lookupCol)) {
             DataColumnSpec lookupColSpec = dictTable.getColumnSpec(lookupCol);
             if (lookupColSpec == null) {
-                throw new InvalidSettingsException("No such lookup column in "
-                        + "dictionary table (2nd input): " + lookupCol);
+                throw new InvalidSettingsException("Cannot find the specified lookup column \"" + lookupCol + "\". "
+                    + "Make sure it is present in the dictionary table (2nd input).");
             }
             if (!lookupColSpec.getType().isCompatible(StringValue.class)) {
-                throw new InvalidSettingsException("Lookup column \""
-                        + lookupCol + "\" is not string compatible: "
-                        + lookupColSpec.getType());
+                throw new InvalidSettingsException(
+                    "The specified lookup column \"" + lookupCol + "\" is not String-compatible. "
+                        + "Make sure the column type is String or related.");
             }
         } else {
             // use row key column
@@ -108,13 +108,13 @@ final class ColumnHeaderInsertNodeModel extends NodeModel {
         String valueColumn = m_config.getValueColumn();
         DataColumnSpec valueColumnSpec = dictTable.getColumnSpec(valueColumn);
         if (valueColumnSpec == null) {
-            throw new InvalidSettingsException("No such value column in "
-                    + "dictionary table (2nd input): " + lookupCol);
+            throw new InvalidSettingsException("Cannot find the specified value column \"" + valueColumn + "\". "
+                    + "Make sure it is present in the dictionary table (2nd input).");
         }
         if (!valueColumnSpec.getType().isCompatible(StringValue.class)) {
-            throw new InvalidSettingsException("Value column \""
-                    + valueColumn + "\" is not string compatible: "
-                    + valueColumnSpec.getType());
+            throw new InvalidSettingsException(
+                "The specified value column \"" + valueColumn + "\" is not String-compatible. "
+                    + "Make sure the column type is String or related.");
         }
         return null;
     }
@@ -138,7 +138,8 @@ final class ColumnHeaderInsertNodeModel extends NodeModel {
             return dictSpec.stream()//
                 .filter(c -> c.getType().isCompatible(StringValue.class))//
                 .findFirst()
-                .orElseThrow(() -> new InvalidSettingsException("No String columns available in the input."));
+                .orElseThrow(() -> new InvalidSettingsException(
+                    "No columns of type String were found in the input. Specify at least one."));
         }
     }
 
@@ -185,9 +186,9 @@ final class ColumnHeaderInsertNodeModel extends NodeModel {
             String value = valueCell.isMissing() ? lookup
                     : ((StringValue)valueCell).getStringValue();
             if (dictionaryMap.put(lookup, value) != null) {
-                throw new Exception("Multiple occurrences of lookup key \""
-                        + lookup + "\" in dictionary table; consider to remove "
-                        + "duplicates using, e.g. the GroupBy node.");
+                throw new Exception("Multiple occurrences of lookup key \"" + lookup
+                    + "\" have been found in dictionary table. The lookup keys must be unique. "
+                    + "Duplicates can be removed, e.g. by using the GroupBy node.");
             }
         }
 
@@ -197,10 +198,9 @@ final class ColumnHeaderInsertNodeModel extends NodeModel {
             String value = e.getValue();
             if (value == null) {
                 if (m_config.isFailIfNoMatch()) {
-                    throw new Exception("No name assignment for column \""
-                            + e.getKey() + "\" -- set the appropriate option "
-                            + "in the configuration dialog to keep the "
-                            + "original column name.");
+                    throw new Exception("Cannot find a name value for the input \"" + e.getKey() + "\". "
+                        + "Specify a name replacement for this column in the dictionary table (2nd input). "
+                        + "Otherwise, uncheck the dialog option for the node not to fail.");
                 } else {
                     value = e.getKey(); // (try to) keep original name
                 }

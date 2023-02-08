@@ -56,6 +56,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -112,7 +113,7 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
                 CheckUtils.checkSetting(m_nameMap.put(oldName, renaming.m_newName) == null,
                     "The column '%s' is renamed more than once.", oldName);
                 var newName = renaming.getNewName();
-                CheckUtils.checkSetting(!newName.isBlank(), "The new name for '%s' is invalid because it is blank.",
+                CheckUtils.checkSetting(StringUtils.isNotBlank(newName), "The new name for '%s' is invalid because it is blank.",
                     oldName);
                 CheckUtils.checkSetting(newNames.add(newName), "Multiple columns are renamed to '%s'.", newName);
             }
