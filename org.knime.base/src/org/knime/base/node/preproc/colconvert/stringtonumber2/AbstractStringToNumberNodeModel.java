@@ -63,7 +63,6 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.MissingCell;
-import org.knime.core.data.RowKey;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.ColumnRearranger;
@@ -475,8 +474,6 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
          */
         private DataTableSpec m_spec;
 
-        private long m_rowIndex;
-
         private final MessageBuilder m_messageBuilder;
 
         private DataType m_type;
@@ -504,7 +501,7 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
          * {@inheritDoc}
          */
         @Override
-        public DataCell[] getCells(final DataRow row) {
+        public DataCell[] getCells(final DataRow row, final long rowIndex) {
             DataCell[] newcells = new DataCell[m_colindices.length];
             for (int i = 0; i < newcells.length; i++) {
                 DataCell dc = row.getCell(m_colindices[i]);
@@ -544,10 +541,10 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
                             long parsedLong = Long.parseLong(corrected);
                             newcells[i] = new LongCell(parsedLong);
                         } else {
-                            m_messageBuilder.addRowIssue(0, i, m_rowIndex, "No valid parse type.");
+                            m_messageBuilder.addRowIssue(0, i, rowIndex, "No valid parse type.");
                         }
                     } catch (NumberFormatException e) {
-                        handleParseException(row, m_colindices[i], s, e);
+                        handleParseException(row, m_colindices[i], s, e, rowIndex);
                         newcells[i] = new MissingCell(e.getMessage());
                     }
                 } else {
@@ -557,12 +554,6 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
             return newcells;
         }
 
-        @Override
-        public void setProgress(final long curRowNr, final long rowCount, final RowKey lastKey,
-            final ExecutionMonitor exec) {
-            super.setProgress(curRowNr, rowCount, lastKey, exec);
-            m_rowIndex = curRowNr;
-        }
 
         /**
          * Handles the number parse exception, either by failing the execution or by recording the the error.
@@ -574,19 +565,19 @@ public abstract class AbstractStringToNumberNodeModel<T extends SettingsModel>
          *
          * @throws KNIMERuntimeException if fail on error is set...
          */
-        private void handleParseException(final DataRow row, final int column, final String value, final Exception e)
-            throws KNIMERuntimeException {
+        private void handleParseException(final DataRow row, final int column, final String value, final Exception e,
+            final long rowIndex) throws KNIMERuntimeException {
             String columnName = m_spec.getColumnSpec(column).getName();
             Supplier<String> message =
                 () -> String.format("%s in cell [\"%s\", column \"%s\", row %d] can not be transformed into a number",
                     value == null ? "<null>" : ("\"" + StringUtils.abbreviate(value, 15) + "\""), //
                     StringUtils.abbreviate(row.getKey().getString(), 15), //
                     columnName, //
-                    m_rowIndex + 1); // messages to the user are "number based"
+                    rowIndex + 1); // messages to the user are "number based"
             if (m_messageBuilder.getIssueCount() == 0) {
                 m_messageBuilder.withSummary(message.get());
             }
-            m_messageBuilder.addRowIssue(0, column, m_rowIndex, e.getMessage());
+            m_messageBuilder.addRowIssue(0, column, rowIndex, e.getMessage());
             if (m_failOnError) {
                 throw KNIMEException.of(getMessage().orElseThrow()).toUnchecked();
             } else {
