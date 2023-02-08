@@ -134,10 +134,12 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
         @Override
         public RowIdResolution load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX)) {
-                return RowIdResolution.APPEND;
-            } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES)) {
+            // NB: The order is important
+            // If both are true (for whatever reason) the node model will use DuplicatePolicy.Fail
+            if (settings.getBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES)) {
                 return RowIdResolution.FAIL;
+            } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX)) {
+                return RowIdResolution.APPEND;
             } else {
                 return RowIdResolution.SKIP;
             }
