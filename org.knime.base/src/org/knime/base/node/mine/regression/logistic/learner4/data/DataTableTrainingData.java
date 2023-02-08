@@ -229,8 +229,6 @@ public class DataTableTrainingData <T extends TrainingRow> extends AbstractTrain
      */
     private static class IdAppendFactory extends SingleCellFactory {
 
-        private int m_idCounter = 0;
-
         /**
          * @param newColSpec
          */
@@ -242,8 +240,8 @@ public class DataTableTrainingData <T extends TrainingRow> extends AbstractTrain
          * {@inheritDoc}
          */
         @Override
-        public DataCell getCell(final DataRow row) {
-            return new IntCell(m_idCounter++);
+        public DataCell getCell(final DataRow row, final long rowIndex) {
+            return new IntCell((int)rowIndex);
         }
 
     }
@@ -252,9 +250,6 @@ public class DataTableTrainingData <T extends TrainingRow> extends AbstractTrain
 
         /** Shuffled row number array. */
         private int[] m_shuffle;
-
-        /** Position in array. */
-        private int m_pos = 0;
 
         /** Constructor. */
         private RandomNumberAppendFactory(final Long seed,
@@ -285,10 +280,9 @@ public class DataTableTrainingData <T extends TrainingRow> extends AbstractTrain
 
         /** {@inheritDoc} */
         @Override
-        public DataCell getCell(final DataRow row) {
-            assert (m_pos <= m_shuffle.length);
-            DataCell nextRandomNumberCell = new IntCell(m_shuffle[m_pos]);
-            m_pos++;
+        public DataCell getCell(final DataRow row, final long rowIndex) {
+            assert (rowIndex <= m_shuffle.length);
+            DataCell nextRandomNumberCell = new IntCell(m_shuffle[(int)rowIndex]);
             return nextRandomNumberCell;
         }
     }

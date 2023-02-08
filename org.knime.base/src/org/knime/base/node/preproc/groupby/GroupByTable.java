@@ -383,10 +383,9 @@ public abstract class GroupByTable {
     throws CanceledExecutionException {
         final ColumnRearranger rearranger = new ColumnRearranger(dataTable.getSpec());
         rearranger.append(new SingleCellFactory(new DataColumnSpecCreator(retainOrderCol, IntCell.TYPE).createSpec()) {
-            private int m_id = 0;
             @Override
-            public DataCell getCell(final DataRow row) {
-                return new IntCell(m_id++);
+            public DataCell getCell(final DataRow row, final long rowIndex) {
+                return new IntCell((int)rowIndex);
             }
         });
         final String[] workingColsArray = workingCols.toArray(new String[0]);

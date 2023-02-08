@@ -167,9 +167,7 @@ public class RankNodeModel extends NodeModel {
         super(1, 1);
     }
 
-    private class OrderCellFactory extends SingleCellFactory {
-
-        private long m_rowNum = 0;
+    private static class OrderCellFactory extends SingleCellFactory {
 
         /**
          * @param newColSpec
@@ -178,12 +176,9 @@ public class RankNodeModel extends NodeModel {
             super(newColSpec);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
-        public DataCell getCell(final DataRow row) {
-            return new LongCell(m_rowNum++);
+        public DataCell getCell(final DataRow row, final long rowIndex) {
+            return new LongCell(rowIndex);
         }
 
     }

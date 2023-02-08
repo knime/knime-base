@@ -106,12 +106,10 @@ final class OrderPreprocessors {
             final DataColumnSpec orderColumn = nameGen.newColumn("order", LongCell.TYPE);
             ColumnRearranger cr = new ColumnRearranger(spec);
             cr.append(new SingleCellFactory(orderColumn) {
-                long m_idx = -1;
 
                 @Override
-                public DataCell getCell(final DataRow row) {
-                    m_idx++;
-                    return new LongCell(m_idx);
+                public DataCell getCell(final DataRow row, final long rowIndex) {
+                    return new LongCell(rowIndex);
                 }
             });
             return exec.createColumnRearrangeTable(table, cr, exec);

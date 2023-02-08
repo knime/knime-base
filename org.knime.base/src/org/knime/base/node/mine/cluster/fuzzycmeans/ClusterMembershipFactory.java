@@ -77,8 +77,6 @@ public class ClusterMembershipFactory implements CellFactory {
 
     private boolean m_noise;
 
-    private int m_rowCounter;
-
     /**
      * Constructor.
      *
@@ -88,18 +86,18 @@ public class ClusterMembershipFactory implements CellFactory {
         m_nrClusters = algo.getClusterCentres().length;
         m_weights = algo.getweightMatrix();
         m_noise = algo.noiseClustering();
-        m_rowCounter = 0;
     }
 
     /**
      * {@inheritDoc}
      */
-    public DataCell[] getCells(final DataRow row) {
+    @Override
+    public DataCell[] getCells(final DataRow row, final long rowIndex) {
         DataCell[] memberships = new DataCell[m_nrClusters + 1];
         int winnercluster = -1;
         double maxmembership = Double.MIN_VALUE;
         for (int i = 0; i < m_nrClusters; i++) {
-            double membership = m_weights[m_rowCounter][i];
+            double membership = m_weights[(int) rowIndex][i];
             memberships[i] = new DoubleCell(membership);
             if (membership > maxmembership) {
                 maxmembership = membership;
@@ -113,13 +111,13 @@ public class ClusterMembershipFactory implements CellFactory {
             memberships[memberships.length - 1] = new StringCell(
                     FuzzyClusterNodeModel.CLUSTER_KEY + winnercluster);
         }
-        m_rowCounter++;
         return memberships;
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public DataColumnSpec[] getColumnSpecs() {
         int nrclusters = m_nrClusters;
         DataColumnSpec[] newSpec = new DataColumnSpec[nrclusters + 1];
@@ -161,6 +159,7 @@ public class ClusterMembershipFactory implements CellFactory {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setProgress(final int curRowNr, final int rowCount,
             final RowKey lastKey, final ExecutionMonitor exec) {
         exec.setProgress((double)curRowNr / (double)rowCount,

@@ -198,11 +198,9 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
         final ColumnRearranger cR = new ColumnRearranger(data.getDataTableSpec());
         cR.append(new SingleCellFactory(false, new DataColumnSpecCreator(orderColName, LongCell.TYPE).createSpec()) {
 
-            long idx = Long.MIN_VALUE;
-
             @Override
-            public DataCell getCell(final DataRow row) {
-                return new LongCell(idx++);
+            public DataCell getCell(final DataRow row, final long rowIndex) {
+                return new LongCell(rowIndex - Long.MIN_VALUE);
             }
         });
 

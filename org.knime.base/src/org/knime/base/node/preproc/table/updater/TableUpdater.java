@@ -284,15 +284,13 @@ final class TableUpdater {
 
     private static final class OrderFactory extends SingleCellFactory {
 
-        private long m_counter;
-
         public OrderFactory(final String name) {
             super(false, new DataColumnSpecCreator(name, LongCell.TYPE).createSpec());
         }
 
         @Override
-        public DataCell getCell(final DataRow row) {
-            return new LongCell(m_counter++);//NOSONAR
+        public DataCell getCell(final DataRow row, final long rowIndex) {
+            return new LongCell(rowIndex);//NOSONAR
         }
 
     }
