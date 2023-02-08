@@ -60,6 +60,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.LocaleUtils;
@@ -80,12 +81,17 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
+import org.knime.core.node.message.Message;
+import org.knime.core.node.message.MessageBuilder;
+import org.knime.core.node.streamable.simple.SimpleStreamableFunctionWithInternalsNodeModel;
+import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.node.util.filter.InputFilter;
 import org.knime.core.util.UniqueNameGenerator;
@@ -96,13 +102,21 @@ import org.knime.time.util.DateTimeType;
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
-final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel {
+final class StringToDateTimeNodeModel
+    extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(StringToDateTimeNodeModel.class);
 
     static final String FORMAT_HISTORY_KEY = "string_to_date_formats";
 
     static final String OPTION_APPEND = "Append selected columns";
 
     static final String OPTION_REPLACE = "Replace selected columns";
+
+    /*
+     * Config key for the operator internals to propagate error messages.
+     */
+    private static final String CFG_KEY_ERROR_MESSAGES = "error_message";
 
     private final SettingsModelColumnFilter2 m_colSelect = createColSelectModel();
 
@@ -119,6 +133,8 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
     private String m_selectedType = DateTimeType.LOCAL_DATE_TIME.name();
 
     private int m_failCounter;
+
+    private MessageBuilder m_messageBuilder;
 
     private boolean m_hasValidatedConfiguration = false;
 
@@ -158,6 +174,13 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
     /** @return the boolean model, used in both dialog and model. */
     static SettingsModelBoolean createCancelOnFailModel() {
         return new SettingsModelBoolean("cancel_on_fail", true);
+    }
+
+    /**
+     * Constructor
+     */
+    public StringToDateTimeNodeModel() {
+        super(SimpleStreamableOperatorInternals.class);
     }
 
     /**
@@ -212,7 +235,7 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (!m_hasValidatedConfiguration) {
             setDefaultColumnSelection(inSpecs[0]);
-            throw new InvalidSettingsException("Node must be configured!");
+            throw new InvalidSettingsException("Node must be configured.");
         }
         return super.configure(inSpecs);
     }
@@ -223,12 +246,12 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws Exception {
-        final ColumnRearranger columnRearranger = createColumnRearranger(inData[0].getDataTableSpec());
+
+        var operatorInternals = createStreamingOperatorInternals();
+        final ColumnRearranger columnRearranger =
+            createColumnRearranger(inData[0].getDataTableSpec(), operatorInternals);
         final BufferedDataTable out = exec.createColumnRearrangeTable(inData[0], columnRearranger, exec);
-        if (m_failCounter > 0) {
-            setWarningMessage(
-                m_failCounter + " rows could not be converted. Check the message in the missing cells for details.");
-        }
+        setWarning(operatorInternals);
         return new BufferedDataTable[]{out};
     }
 
@@ -236,7 +259,9 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
      * {@inheritDoc}
      */
     @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec) {
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec inSpec,
+        final SimpleStreamableOperatorInternals internals) {
+        m_messageBuilder = createMessageBuilder(); // Initialize message builder to be used by CellFactory
         final ColumnRearranger rearranger = new ColumnRearranger(inSpec);
         final String[] includeList = m_colSelect.applyTo(inSpec).getIncludes();
         final int[] includeIndeces =
@@ -247,12 +272,13 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
                 final DataColumnSpecCreator dataColumnSpecCreator =
                     new DataColumnSpecCreator(includedCol, DateTimeType.valueOf(m_selectedType).getDataType());
                 final StringToTimeCellFactory cellFac =
-                    new StringToTimeCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i++]);
+                    new StringToTimeCellFactory(dataColumnSpecCreator.createSpec(), includeIndeces[i++], internals);
                 rearranger.replace(cellFac, includedCol);
             } else {
                 final DataColumnSpec dataColSpec = new UniqueNameGenerator(inSpec).newColumn(
                     includedCol + m_suffix.getStringValue(), DateTimeType.valueOf(m_selectedType).getDataType());
-                final StringToTimeCellFactory cellFac = new StringToTimeCellFactory(dataColSpec, includeIndeces[i++]);
+                final StringToTimeCellFactory cellFac =
+                    new StringToTimeCellFactory(dataColSpec, includeIndeces[i++], internals);
                 rearranger.append(cellFac);
             }
         }
@@ -294,7 +320,7 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
         final SettingsModelString formatClone = m_format.createCloneWithValidatedValue(settings);
         final String format = formatClone.getStringValue();
         if (StringUtils.isEmpty(format)) {
-            throw new InvalidSettingsException("Format must not be empty!");
+            throw new InvalidSettingsException("Format must not be empty.");
         }
         try {
             DateTimeFormatter.ofPattern(format);
@@ -336,7 +362,7 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
                 final String iso3Country = Locale.forLanguageTag(m_locale.getStringValue()).getISO3Country();
                 final String iso3Language = Locale.forLanguageTag(m_locale.getStringValue()).getISO3Language();
                 if (iso3Country.isEmpty() && iso3Language.isEmpty()) {
-                    throw new InvalidSettingsException("Unsupported locale '" + m_locale.getStringValue() + "'");
+                    throw new InvalidSettingsException("Unsupported locale '" + m_locale.getStringValue() + "'.");
                 }
             } catch (MissingResourceException ex) {
                 throw new InvalidSettingsException(
@@ -359,26 +385,32 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
     final class StringToTimeCellFactory extends SingleCellFactory {
         private final int m_colIndex;
 
+        private final SimpleStreamableOperatorInternals m_internals;
+
+        private final DataColumnSpec m_spec;
+
         /**
          * @param inSpec spec of the column after computation
          * @param colIndex index of the column to work on
+         * @param internals streamable operator internals to propagate the error messages
          */
-        public StringToTimeCellFactory(final DataColumnSpec inSpec, final int colIndex) {
+        public StringToTimeCellFactory(final DataColumnSpec inSpec, final int colIndex,
+            final SimpleStreamableOperatorInternals internals) {
             super(inSpec);
             m_colIndex = colIndex;
+            m_internals = internals;
+            m_spec = inSpec;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
-        public DataCell getCell(final DataRow row) {
+        public DataCell getCell(final DataRow row, final long rowIndex) {
             final DataCell cell = row.getCell(m_colIndex);
             if (cell.isMissing()) {
                 return cell;
             }
+
+            final String input = ((StringValue)cell).getStringValue();
             try {
-                final String input = ((StringValue)cell).getStringValue();
                 final Locale locale = Locale.forLanguageTag(m_locale.getStringValue());
                 final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(m_format.getStringValue(), locale)
                     .withChronology(Chronology.ofLocale(locale));
@@ -405,12 +437,77 @@ final class StringToDateTimeNodeModel extends SimpleStreamableFunctionNodeModel 
                 }
             } catch (DateTimeParseException e) {
                 m_failCounter++;
+                var msg = String.format("Could not parse date in cell [%s, column \"%s\", row %d]: %s.", //
+                    StringUtils.abbreviate(row.getKey().getString(), 15), //
+                    m_spec.getName(), rowIndex + 1, //
+                    e.getMessage() //
+                );
+                if (m_messageBuilder.getIssueCount() == 0) {
+                    m_messageBuilder.withSummary(msg);
+                }
+                m_messageBuilder.addRowIssue(0, m_colIndex, rowIndex, msg);
+
                 if (m_cancelOnFail.getBooleanValue()) {
-                    throw new IllegalArgumentException(
-                        "Failed to parse date in row '" + row.getKey() + "': " + e.getMessage());
+                    if (m_failCounter == 1L) {
+                        m_messageBuilder.addResolutions(
+                            "Deselect the \"Fail on error\" option to output missing values for non-matching strings.");
+                    }
+                    throw KNIMEException.of(m_messageBuilder.build().orElseThrow()).toUnchecked();
                 }
                 return new MissingCell(e.getMessage());
             }
+        }
+
+        @Override
+        public void afterProcessing() {
+            if (m_messageBuilder.getIssueCount() > 0) {
+                final var messageConfig = m_internals.getConfig().addConfig(CFG_KEY_ERROR_MESSAGES);
+                m_messageBuilder
+                    .withSummary("Problems in " + m_failCounter + " rows. First error: "
+                        + m_messageBuilder.getSummary().orElseThrow()) //
+                    .addResolutions("Change the date and time pattern to match all provided strings.") //
+                    .build() //
+                    .ifPresent(m -> m.saveTo(messageConfig));
+            }
+        }
+    }
+
+    private static Optional<Message>
+        getMessageFromOperatorInternals(final SimpleStreamableOperatorInternals internals) {
+        try {
+            return Message.load(internals.getConfig().getConfig(CFG_KEY_ERROR_MESSAGES));
+        } catch (InvalidSettingsException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    protected SimpleStreamableOperatorInternals
+        mergeStreamingOperatorInternals(final SimpleStreamableOperatorInternals[] operatorInternals) {
+
+        var anyMsg = Arrays.stream(operatorInternals).map(StringToDateTimeNodeModel::getMessageFromOperatorInternals)
+            .findFirst();
+
+        SimpleStreamableOperatorInternals res = new SimpleStreamableOperatorInternals();
+        if (anyMsg.isPresent()) {
+            var firstMsg = anyMsg.orElseThrow();
+            if (firstMsg.isPresent()) {
+                firstMsg.orElseThrow().saveTo(res.getConfig().addConfig(CFG_KEY_ERROR_MESSAGES));
+            }
+        }
+        return res;
+    }
+
+    @Override
+    protected void finishStreamableExecution(final SimpleStreamableOperatorInternals internals) {
+        setWarning(internals);
+    }
+
+    private void setWarning(final SimpleStreamableOperatorInternals internals) {
+        try {
+            Message.load(internals.getConfig().getConfig(CFG_KEY_ERROR_MESSAGES)).ifPresent(this::setWarning);
+        } catch (InvalidSettingsException ex) {
+            LOGGER.debug("Unable to restore warning message from streaming operators", ex);
         }
     }
 }
