@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Other" icon="./image_to_table.png">
-	<name>Image To Table</name>
+	<name>Image To Table (legacy)</name>
 	<shortDescription>
 	    Converts a given image into a table with one cell.
 	</shortDescription>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Visualizer" icon="./cond_box.png" >
-    <name>Conditional Box Plot (local)</name>
+    <name>Conditional Box Plot (local) (legacy)</name>
     
     <shortDescription>
         A box plot displays robust statistical parameters for numerical 
