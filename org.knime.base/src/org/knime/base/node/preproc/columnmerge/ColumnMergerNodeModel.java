@@ -92,10 +92,12 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
         final int secColIndex = spec.findColumnIndex(cfg.getSecondaryColumn());
 
         if (primColIndex < 0) {
-            throw new InvalidSettingsException("No such primary column: " + cfg.getPrimaryColumn());
+            throw new InvalidSettingsException(
+                "The selected primary column \"" + cfg.getPrimaryColumn() + "\" does not exist in the input table.");
         }
         if (secColIndex < 0) {
-            throw new InvalidSettingsException("No such secondary column: " + cfg.getSecondaryColumn());
+            throw new InvalidSettingsException("The selected secondary column \"" + cfg.getSecondaryColumn()
+                + "\" does not exist in the input table.");
         }
         DataColumnSpec c1 = spec.getColumnSpec(primColIndex);
         DataColumnSpec c2 = spec.getColumnSpec(secColIndex);
@@ -128,7 +130,8 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
             case AppendAsNewColumn:
                 return DataTableSpec.getUniqueColumnName(spec, cfg.getOutputName());
             default:
-                throw new InvalidSettingsException("Coding problem: unhandled case");
+                throw new InvalidSettingsException("Coding problem: Unrecognized option \""
+                    + cfg.getOutputPlacement().toString() + "\" for output placement selection.");
         }
     }
 
@@ -151,7 +154,8 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
                 result.append(fac);
                 return result;
             default:
-                throw new InvalidSettingsException("Coding problem: unhandled case");
+                throw new InvalidSettingsException("Coding problem: Unrecognized option \""
+                    + cfg.getOutputPlacement().toString() + "\" for output placement selection.");
         }
     }
 

@@ -90,8 +90,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
         + "</ul>")
     OutputPlacement m_outputPlacement;
 
-    @Persist(
-        configKey = ColumnMergerConfiguration.CFG_OUTPUT_NAME, settingsModel = SettingsModelString.class)
+    @Persist(configKey = ColumnMergerConfiguration.CFG_OUTPUT_NAME, settingsModel = SettingsModelString.class)
     @Schema(title = "New column name", description = "The name for the new column.")
     String m_outputName;
 
@@ -112,7 +111,8 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
             try {
                 return OutputPlacement.valueOf(outputPlacement);
             } catch (IllegalArgumentException ex) {
-                throw new InvalidSettingsException("Unknown output placement: " + outputPlacement, ex);
+                throw new InvalidSettingsException(
+                    "Unrecognized option \"" + outputPlacement + "\" for output placement selection.", ex);
             }
         }
 

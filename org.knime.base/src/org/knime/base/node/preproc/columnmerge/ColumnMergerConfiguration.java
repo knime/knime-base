@@ -162,14 +162,15 @@ final class ColumnMergerConfiguration {
         try {
             m_outputPlacement = OutputPlacement.valueOf(outputPlacement);
         } catch (Exception e) {
-            throw new InvalidSettingsException("Illegal value for output " + "placement parameter: " + outputPlacement,
-                e);
+            throw new InvalidSettingsException(
+                "Unrecognized option \"" + outputPlacement + "\" for output placement selection.", e);
         }
         m_outputName = settings.getString(CFG_OUTPUT_NAME);
         switch (m_outputPlacement) {
             case AppendAsNewColumn:
                 if (m_outputName == null || m_outputName.length() == 0) {
-                    throw new InvalidSettingsException("Illegal (empty) output column name");
+                    throw new InvalidSettingsException(
+                        "Output column name must not be empty if 'Append as new column' is selected.");
                 }
                 break;
             default:
