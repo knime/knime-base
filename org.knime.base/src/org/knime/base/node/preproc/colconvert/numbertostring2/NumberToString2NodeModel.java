@@ -126,8 +126,8 @@ public class NumberToString2NodeModel extends AbstractNumberToStringNodeModel<Se
         String[] inclCols = getInclCols(inSpec);
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
-            setWarningMessage("No columns selected,"
-                    + " returning input DataTable.");
+            setWarningMessage("No columns selected for conversion,"
+                    + " returning the unchanged input table as output table.");
             return new BufferedDataTable[]{inData[0]};
         }
 

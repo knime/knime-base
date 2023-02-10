@@ -102,7 +102,9 @@ public final class TableSpecUtils {
                 if (spec.getColumnSpec(colIdx).getType().isCompatible(clazz)) {
                     indices.add(colIdx);
                 } else {
-                    warningConsumer.accept(String.format("Ignoring column \"%s\"%n", inclCol));
+                    warningConsumer
+                        .accept(String.format("Skipping column \"%s\" because its type is not compatible to %s.",
+                            inclCol, clazz.getSimpleName()));
                 }
             } else {
                 throw new InvalidSettingsException(String.format("Column \"%s\" not found.", inclCol));

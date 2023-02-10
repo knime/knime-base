@@ -157,8 +157,8 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
         if (inclCols.length == 0) {
             // nothing to convert, let's return the input table.
             resultTable = inData;
-            setWarningMessage("No columns selected,"
-                    + " returning input DataTable.");
+            setWarningMessage("No columns selected for conversion,"
+                    + " returning the unchanged input table as output table.");
         } else {
             int[] indices = findColumnIndices(inData.getSpec());
             ConverterFactory converterFac

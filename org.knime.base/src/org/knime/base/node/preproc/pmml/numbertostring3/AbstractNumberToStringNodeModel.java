@@ -129,7 +129,7 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
         final String[] inclCols = getInclCols(spec);
         final StringBuilder warnings = new StringBuilder();
         if (inclCols.length == 0) {
-            warnings.append("No columns selected");
+            warnings.append("No columns selected.");
         }
         final int[] indices;
         if (isKeepAllSelected()) {
