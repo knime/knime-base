@@ -83,8 +83,6 @@ final class ColumnMergerNodeModel extends SimpleStreamableFunctionNodeModel {
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
         if (m_configuration == null) {
             m_configuration = autoConfigure(spec);
-            setWarningMessage("This node was configured automatically.");
-
         }
         ColumnMergerConfiguration cfg = m_configuration;
 
