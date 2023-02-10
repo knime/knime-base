@@ -723,13 +723,13 @@ final class ColumnAppender2NodeModel extends NodeModel {
      */
     enum RowKeyMode implements ButtonGroupEnumInterface {
 
-            @Schema(title = "Identical RowIDs and table lengths.")
+            @Schema(title = "Identical RowIDs and table lengths")
             IDENTICAL("Identical row keys and table lengths"), //
 
             @Schema(title = "Generate new row RowIDs")
             GENERATE("Generate new row keys"), //
 
-            @Schema(title = "Use the RowIDs from the selected input table")
+            @Schema(title = "Use RowIDs from the selected input table")
             KEY_TABLE("Use the row keys from the input table: ");
 
         private static final String TOOLTIP = "<html>Choose the way row keys of the output tables are decided.<br>"

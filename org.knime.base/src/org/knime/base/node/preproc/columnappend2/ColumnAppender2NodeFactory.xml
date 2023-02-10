@@ -43,10 +43,14 @@
 		    RowIDs are newly generated. If one of the input table is longer than the other, 
 		    missing values are inserted accordingly.
 		</option>
-		<option name = "Use RowIDs from one of the input tables">
-			The RowIDs of the table with the selected index are used. Tables with less number 
-			of rows will be filled with missing values accordingly. And tables with more number
-			of rows will be truncated.
+		<option name = "Use RowIDs from the selected input table">
+			The RowIDs of the table at the selected input port number are used. Tables with fewer 
+			rows will be filled with missing values accordingly. And tables with more rows will 
+			be truncated.
+		</option>
+		<option name = "RowID table number">
+			Select the table whose RowIDs should be used for the output table. This option is only 
+			available if <i>"Use RowIDs from the selected input table"</i> was selected above.
 		</option>
 	</tab>
 
