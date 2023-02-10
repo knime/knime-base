@@ -84,8 +84,7 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
     private final SettingsModelColumnName m_dataTableCol = RowRefNodeDialogPane.createDataTableColModel();
 
     /** Settings model for the reference column of the reference table. */
-    private final SettingsModelColumnName m_referenceTableCol =
-        RowRefNodeDialogPane.createReferenceTableColModel();
+    private final SettingsModelColumnName m_referenceTableCol = RowRefNodeDialogPane.createReferenceTableColModel();
 
     /** If domains should be updated. This element is only shown in the modern UI, defaults to "false" otherwise. */
     private final SettingsModelBoolean m_updateDomains = new SettingsModelBoolean(CFG_UPDATE_DOMAINS, false);
@@ -108,28 +107,31 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         if (!m_dataTableCol.useRowID()) {
             final DataColumnSpec dataColSpec = inSpecs[0].getColumnSpec(m_dataTableCol.getColumnName());
             if (dataColSpec == null) {
-                throw new InvalidSettingsException("Invalid data table column");
+                throw new InvalidSettingsException("The selected data column \"" + m_dataTableCol.getColumnName()
+                    + "\" does not exist in the table that should be filtered.");
             }
         }
         if (!m_referenceTableCol.useRowID()) {
             final DataColumnSpec refColSpec = inSpecs[1].getColumnSpec(m_referenceTableCol.getColumnName());
             if (refColSpec == null) {
-                throw new InvalidSettingsException("Invalid reference table column");
+                throw new InvalidSettingsException("The selected reference column \""
+                    + m_referenceTableCol.getColumnName() + "\" does not exist in the reference table.");
             }
         }
         if (m_dataTableCol.useRowID() != m_referenceTableCol.useRowID()) {
             if (m_dataTableCol.useRowID()) {
-                setWarningMessage("Using string representation of column " + m_referenceTableCol.getColumnName()
-                    + " for RowKey comparison");
+                setWarningMessage("Using string representation of reference table column "
+                    + m_referenceTableCol.getColumnName() + " for RowID comparison.");
             } else {
-                setWarningMessage("Using string representation of column " + m_dataTableCol.getColumnName()
-                    + " for RowKey comparison");
+                setWarningMessage("Using string representation of data table column " + m_dataTableCol.getColumnName()
+                    + " for RowID comparison.");
             }
         } else if (!m_dataTableCol.useRowID()) {
             final DataColumnSpec dataColSpec = inSpecs[0].getColumnSpec(m_dataTableCol.getColumnName());
             final DataColumnSpec refColSpec = inSpecs[1].getColumnSpec(m_referenceTableCol.getColumnName());
             if (!refColSpec.getType().equals(dataColSpec.getType())) {
-                setWarningMessage("Different column types using string " + "representation for comparison");
+                setWarningMessage(
+                    "The selected columns have different type. Using string representation for comparison.");
             }
         }
         return m_isSplitter ? new DataTableSpec[]{inSpecs[0], inSpecs[0]} : new DataTableSpec[]{inSpecs[0]};
@@ -149,7 +151,8 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         final DataTableSpec dataTableSpec = dataTable.getSpec();
         final int dataColIdx = dataTableSpec.findColumnIndex(dataColName);
         if (!useDataRowKey && dataColIdx < 0) {
-            throw new InvalidSettingsException("Column " + dataColName + " not found in table to be filtered");
+            throw new InvalidSettingsException("The selected data column \"" + dataColName
+                + "\" does not exist in the table that should be filtered.");
         }
         final BufferedDataTable refTable = inData[1];
         final String refColName = m_referenceTableCol.getColumnName();
@@ -157,7 +160,8 @@ public abstract class AbstractRowRefNodeModel extends NodeModel {
         final DataTableSpec refTableSpec = refTable.getSpec();
         final int refColIdx = refTableSpec.findColumnIndex(refColName);
         if (!useRefRowKey && refColIdx < 0) {
-            throw new InvalidSettingsException("Column " + refColName + " not found in reference table");
+            throw new InvalidSettingsException(
+                "The selected reference column \"" + refColName + "\" does not exist in the reference table.");
         }
         //check if we have to use String for comparison
         boolean filterByString = false;
