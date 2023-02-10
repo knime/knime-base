@@ -48,10 +48,12 @@
  */
 package org.knime.base.node.preproc.columnlag;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
 import org.knime.core.webui.node.dialog.persistence.NodeSettingsPersistor;
@@ -129,12 +131,14 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class AllColumns implements ChoicesProvider {
+    private static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
-            var spec = context.getDataTableSpecs()[0];
-            return spec == null ? new String[0] : spec.getColumnNames();
+        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(0)//
+                    .stream()//
+                    .flatMap(DataTableSpec::stream)//
+                    .toArray(DataColumnSpec[]::new);
         }
 
     }
