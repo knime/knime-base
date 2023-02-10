@@ -32,12 +32,15 @@
               each one shifted <i>I</i>, 2*<i>I</i>, 3*<i>I</i>, ... (<i>L</i>-1)*<i>I</i> steps backwards.
             </p>
         </intro>
-        <option name="Lag">
-            <i>L</i> = lag defines how many column copies and how many row shifts to apply
+        <option name="Column to lag">
+        	The column to be lagged.
         </option>
-        <option name="Lag Interval">
+        <option name="Lag">
+            <i>L</i> = lag defines how many lagged column copies to create.
+        </option>
+        <option name="Lag interval">
             <i>I</i> = lag interval (sometimes also called periodicity or seasonality) 
-            defines how many column copies and how many row shifts to apply
+            defines how many rows to shift per column copy.
         </option>
         <option name="Skip initial incomplete rows">
             If selected the first rows from the input table are omitted in the output so that the lag output column(s)

@@ -15,11 +15,11 @@
 				},
 				{
 					"type": "Control",
-					"scope": "#/properties/model/properties/lagInterval"
+					"scope": "#/properties/model/properties/lag"
 				},
 				{
 					"type": "Control",
-					"scope": "#/properties/model/properties/lag"
+					"scope": "#/properties/model/properties/lagInterval"
 				},
 				{
 					"type": "Control",
