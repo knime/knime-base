@@ -118,7 +118,6 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
             final ExecutionContext exec) throws Exception {
-        StringBuilder warnings = new StringBuilder();
         // find indices to work on.
         DataTableSpec inspec = inData[0].getDataTableSpec();
         String[] inclCols = getInclCols(inspec);
@@ -135,15 +134,7 @@ public class NumberToStringNodeModel extends AbstractNumberToStringNodeModel<Set
 
         BufferedDataTable resultTable =
                 exec.createColumnRearrangeTable(inData[0], colre, exec);
-        String errorMessage = converterFac.getErrorMessage();
 
-        if (errorMessage.length() > 0) {
-            warnings.append("Problems occurred, see Console messages.\n");
-        }
-        if (warnings.length() > 0) {
-            getLogger().warn(errorMessage);
-            setWarningMessage(warnings.toString());
-        }
         return new BufferedDataTable[]{resultTable};
     }
 }

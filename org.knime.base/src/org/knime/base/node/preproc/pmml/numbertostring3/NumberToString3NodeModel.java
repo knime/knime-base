@@ -149,7 +149,6 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
     @Override
     protected PortObject[] execute(final PortObject[] inObjects,
             final ExecutionContext exec) throws Exception {
-        StringBuilder warnings = new StringBuilder();
         BufferedDataTable inData = (BufferedDataTable)inObjects[0];
         DataTableSpec inSpec = inData.getDataTableSpec();
         // find indices to work on.
@@ -168,15 +167,6 @@ public class NumberToString3NodeModel extends AbstractNumberToStringNodeModel<Se
             colre.replace(converterFac, indices);
 
             resultTable = exec.createColumnRearrangeTable(inData, colre, exec);
-            String errorMessage = converterFac.getErrorMessage();
-
-            if (errorMessage.length() > 0) {
-                warnings.append("Problems occurred, see Console messages.\n");
-            }
-            if (warnings.length() > 0) {
-                getLogger().warn(errorMessage);
-                setWarningMessage(warnings.toString());
-            }
         }
 
         // the optional PMML in port (can be null)

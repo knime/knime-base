@@ -228,11 +228,6 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
          */
         private final DataTableSpec m_spec;
 
-        /*
-         * Error messages.
-         */
-        private final StringBuilder m_error;
-
         /**
          *
          * @param colindices the column indices to use.
@@ -241,7 +236,6 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
         public ConverterFactory(final int[] colindices, final DataTableSpec spec) {
             m_colindices = colindices;
             m_spec = spec;
-            m_error = new StringBuilder();
         }
 
         /**
@@ -298,14 +292,17 @@ public abstract class AbstractNumberToStringNodeModel<T extends SettingsModel> e
         }
 
         /**
-         * Error messages that occur during execution , i.e. NumberFormatException.
+         * This method was intended to return error messages, but never did, hence it is deprecated now.
          *
-         * @return error message
+         * @return Returns an empty string, because that is what it has returned in the past, in case somebody is still
+         *         checking for the length of the returned message.
+         *
+         * @deprecated since 5.0
          */
+        @Deprecated
         public String getErrorMessage() {
-            return m_error.toString();
+            return "";
         }
-
     } // end ConverterFactory
 
 }
