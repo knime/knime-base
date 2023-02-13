@@ -45,7 +45,7 @@
 
 package org.knime.base.data.aggregation;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.knime.core.data.DataTableSpec;
@@ -53,6 +53,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * Combines a method with the name to use for this method. It is used in the Column Aggregator node
@@ -85,12 +86,9 @@ public class NamedAggregationOperator extends AggregationMethodDecorator {
      * @param inclMissingCells <code>true</code> if missing cells should be
      * considered
      */
-    public NamedAggregationOperator(final String name,
-            final AggregationMethod method, final boolean inclMissingCells) {
+    public NamedAggregationOperator(final String name, final AggregationMethod method, final boolean inclMissingCells) {
         super(method, inclMissingCells);
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("name must not be empty");
-        }
+        CheckUtils.checkArgument(!(name == null || name.isEmpty()), "Aggregation method name must not be empty.");
         m_name = name;
     }
 
@@ -100,35 +98,28 @@ public class NamedAggregationOperator extends AggregationMethodDecorator {
      * {@link NamedAggregationOperator}s to save
      * @since 2.7
      */
-    public static void saveMethods(final NodeSettingsWO settings,
-            final List<NamedAggregationOperator> operators) {
+    public static void saveMethods(final NodeSettingsWO settings, final List<NamedAggregationOperator> operators) {
         if (settings == null) {
-            throw new NullPointerException("config must not be null");
+            throw new NullPointerException("Node settings are missing.");
         }
         if (operators == null) {
-            throw new NullPointerException("methods must not be null");
+            throw new NullPointerException("Operator methods are missing.");
         }
-        final String[] colNames = new String[operators.size()];
-        final String[] aggrMethods =
-            new String[operators.size()];
-        final boolean[] inclMissingVals =
-            new boolean[operators.size()];
-        for (int i = 0, length = operators.size();
-            i < length; i++) {
-            final NamedAggregationOperator operator =
-                operators.get(i);
+        final var colNames = new String[operators.size()];
+        final var aggrMethods = new String[operators.size()];
+        final var inclMissingVals = new boolean[operators.size()];
+        for (int i = 0, length = operators.size(); i < length; i++) {
+            final NamedAggregationOperator operator = operators.get(i);
             colNames[i] = operator.getName();
             aggrMethods[i] = operator.getId();
             inclMissingVals[i] = operator.inclMissingCells();
             if (operator.hasOptionalSettings()) {
                 try {
-                    NodeSettingsWO operatorSettings = settings.addNodeSettings(
-                       createSettingsKey(operator));
+                    NodeSettingsWO operatorSettings = settings.addNodeSettings(createSettingsKey(operator));
                     operator.saveSettingsTo(operatorSettings);
                 } catch (Exception e) {
-                    LOGGER.error(
-                    "Exception while saving settings for aggreation operator '"
-                        + operator.getId() + "', reason: " + e.getMessage());
+                    LOGGER.errorWithFormat("An exception occurred while saving the settings for the aggreation "
+                        + "operator \"%s\", reason: %s", operator.getId(), e.getMessage());
                 }
             }
         }
@@ -144,9 +135,8 @@ public class NamedAggregationOperator extends AggregationMethodDecorator {
      * @throws InvalidSettingsException if the settings are invalid
      * @since 2.7
      */
-    public static List<NamedAggregationOperator> loadOperators(
-         final NodeSettingsRO settings)
-    throws InvalidSettingsException {
+    public static List<NamedAggregationOperator> loadOperators(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
         return loadOperators(settings, null);
     }
 
@@ -157,28 +147,19 @@ public class NamedAggregationOperator extends AggregationMethodDecorator {
      * @throws InvalidSettingsException if the settings are invalid
      * @since 2.7
      */
-    public static List<NamedAggregationOperator> loadOperators(
-         final NodeSettingsRO settings, final DataTableSpec spec)
-    throws InvalidSettingsException {
-        final String[] resultColNames =
-            settings.getStringArray(CNFG_RESULT_COL_NAMES);
-        final String[] aggrMethods =
-            settings.getStringArray(CNFG_AGGR_METHODS);
-        final boolean[] inclMissingVals =
-            settings.getBooleanArray(CNFG_INCL_MISSING_VALS);
-        final List<NamedAggregationOperator> colAggrList = new LinkedList<>();
-        if (aggrMethods.length != resultColNames.length) {
-            throw new InvalidSettingsException("Name array and "
-                + "aggregation method array should be of equal size");
-        }
+    public static List<NamedAggregationOperator> loadOperators(final NodeSettingsRO settings, final DataTableSpec spec)
+            throws InvalidSettingsException {
+        final var resultColNames = settings.getStringArray(CNFG_RESULT_COL_NAMES);
+        final var aggrMethods = settings.getStringArray(CNFG_AGGR_METHODS);
+        CheckUtils.checkSetting(aggrMethods.length == resultColNames.length,
+                "Number of aggregation methods and result column names must be equal.");
+        final var inclMissingVals = settings.getBooleanArray(CNFG_INCL_MISSING_VALS);
+        final var colAggrList = new ArrayList<NamedAggregationOperator>();
         for (int i = 0, length = aggrMethods.length; i < length; i++) {
             final String resultColName = resultColNames[i];
-            final AggregationMethod method =
-                AggregationMethods.getMethod4Id(aggrMethods[i]);
+            final var method = AggregationMethods.getMethod4Id(aggrMethods[i]);
             final boolean inclMissingVal = inclMissingVals[i];
-            NamedAggregationOperator operator =
-                new NamedAggregationOperator(resultColName,
-                                         method, inclMissingVal);
+            var operator = new NamedAggregationOperator(resultColName, method, inclMissingVal);
             if (operator.hasOptionalSettings()) {
                 try {
                     NodeSettingsRO operatorSettings = settings.getNodeSettings(
@@ -192,9 +173,8 @@ public class NamedAggregationOperator extends AggregationMethodDecorator {
                         operator.loadValidatedSettings(operatorSettings);
                     }
                 } catch (Exception e) {
-                    LOGGER.error(
-                    "Exception while loading settings for aggreation operator '"
-                        + operator.getId() + "', reason: " + e.getMessage());
+                    LOGGER.errorWithFormat("An exception occurred while loading the settings for the aggreation "
+                        + "operator \"%s\", reason: %s", operator.getId(), e.getMessage());
                 }
             }
             colAggrList.add(operator);
@@ -211,19 +191,17 @@ public class NamedAggregationOperator extends AggregationMethodDecorator {
      * @throws InvalidSettingsException if the settings of an operator are not valid
      * @since 2.7
      */
-    public static void validateSettings(final NodeSettingsRO settings,
-                                        final List<NamedAggregationOperator> operators)
-        throws InvalidSettingsException {
+    public static void validateSettings(final NodeSettingsRO settings, final List<NamedAggregationOperator> operators)
+            throws InvalidSettingsException {
         for (NamedAggregationOperator operator : operators) {
             if (operator.hasOptionalSettings()) {
                 try {
                     final NodeSettingsRO operatorSettings = settings.getNodeSettings(createSettingsKey(operator));
                     operator.validateSettings(operatorSettings);
                 } catch (InvalidSettingsException e) {
-                    throw new InvalidSettingsException(
-                       "Invalid operator settings for result column '"
-                        + operator.getName()
-                        + "', reason: " + e.getMessage());
+                    throw new InvalidSettingsException(String.format(
+                        "Invalid operator settings for result column \"%s\", reason: %s", operator.getName(),
+                        e.getMessage()), e);
                 }
             }
         }
@@ -244,10 +222,9 @@ public class NamedAggregationOperator extends AggregationMethodDecorator {
                 try {
                     operator.configure(spec);
                 } catch (InvalidSettingsException e) {
-                    throw new InvalidSettingsException(
-                       "Invalid operator settings for result column '"
-                        + operator.getName()
-                        + "', reason: " + e.getMessage());
+                    throw new InvalidSettingsException(String.format(
+                        "Invalid operator settings for result column \"%s\", reason: %s", operator.getName(),
+                        e.getMessage()), e);
                 }
             }
         }
@@ -279,9 +256,7 @@ public class NamedAggregationOperator extends AggregationMethodDecorator {
      * @param name the name to set
      */
     public void setName(final String name) {
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("name must not be empty");
-        }
+        CheckUtils.checkArgument(!(name == null || name.isEmpty()), "Operator name must not be empty.");
         m_name = name;
     }
 

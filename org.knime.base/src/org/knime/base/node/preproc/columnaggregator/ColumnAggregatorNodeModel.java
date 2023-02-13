@@ -81,7 +81,7 @@ import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.core.node.streamable.PortInput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.StreamableOperator;
-import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
+import org.knime.core.node.util.CheckUtils;
 
 
 /**
@@ -93,6 +93,11 @@ public class ColumnAggregatorNodeModel extends NodeModel {
 
     /**Configuration key for the aggregation method settings.*/
     protected static final String CFG_AGGREGATION_METHODS = "aggregationMethods";
+
+    private static final String ERROR_NO_AGG_METHOD_SPECIFIED = "No aggregation method specified. At least one "
+        + "aggregation method is required to perform an aggregation.";
+    private static final String ERROR_NO_AGG_COLS_SPECIFIED = "No aggregated column(s) specified. At least one column "
+        + "is needed to perform an aggregation.";
 
     private final SettingsModelColumnFilter2 m_aggregationCols = createAggregationColsModel();
 
@@ -164,42 +169,20 @@ public class ColumnAggregatorNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
             throws InvalidSettingsException {
-        if (m_methods.isEmpty()) {
-            throw new InvalidSettingsException(
-                    "Please select at least one aggregation method");
-        }
+        CheckUtils.checkSetting(!m_methods.isEmpty(), ERROR_NO_AGG_METHOD_SPECIFIED);
         //check if at least one of the columns exists in the input table
-        final DataTableSpec inSpec = inSpecs[0];
-        final FilterResult filterResult = m_aggregationCols.applyTo(inSpec);
-        final List<String> selectedCols =
-            Arrays.asList(filterResult.getIncludes());
+        final var inSpec = inSpecs[0];
+        final var filterResult = m_aggregationCols.applyTo(inSpec);
+        final List<String> selectedCols = Arrays.asList(filterResult.getIncludes());
         if (selectedCols == null || selectedCols.isEmpty()) {
-            throw new InvalidSettingsException(
-                    "Please select at least one aggregation column");
-        }
-        int missing = 0;
-        for (final String colName : selectedCols) {
-            if (!inSpec.containsName(colName)) {
-                missing++;
-                setWarningMessage(colName + " not found in input table");
-            }
-        }
-        if (missing > 0) {
-            setWarningMessage(missing
-                    + " of the selected columns not found in input table. "
-                    + "See console for details.");
-        }
-        if (missing == selectedCols.size()) {
-            throw new InvalidSettingsException(
-                    "None of the selected columns found in input table.");
+            throw new InvalidSettingsException(ERROR_NO_AGG_COLS_SPECIFIED);
         }
         //configure also all aggregation operators to check if they can be
         //applied to the given input table
         NamedAggregationOperator.configure(inSpec, m_methods);
-        final AggregationCellFactory cellFactory = new AggregationCellFactory(
-                inSpec, selectedCols, GlobalSettings.DEFAULT, m_methods, Arrays.asList(getColsToRemove(inSpec)));
-        return new DataTableSpec[]{
-                createRearranger(inSpec, cellFactory).createSpec()};
+        final var cellFactory = new AggregationCellFactory(inSpec, selectedCols, GlobalSettings.DEFAULT, m_methods,
+            Arrays.asList(getColsToRemove(inSpec)));
+        return new DataTableSpec[]{ createRearranger(inSpec, cellFactory).createSpec() };
     }
 
     /**
@@ -210,10 +193,10 @@ public class ColumnAggregatorNodeModel extends NodeModel {
             final ExecutionContext exec) throws Exception {
         final BufferedDataTable table = inData[0];
         final DataTableSpec origSpec = table.getSpec();
-        final FilterResult filterResult = m_aggregationCols.applyTo(origSpec);
+        final var filterResult = m_aggregationCols.applyTo(origSpec);
         final List<String> selectedCols =
             Arrays.asList(filterResult.getIncludes());
-        final GlobalSettings globalSettings = GlobalSettings.builder()
+        final var globalSettings = GlobalSettings.builder()
                 .setFileStoreFactory(
                         FileStoreFactory.createWorkflowFileStoreFactory(exec))
                 .setGroupColNames(selectedCols)
@@ -222,7 +205,7 @@ public class ColumnAggregatorNodeModel extends NodeModel {
                 .setDataTableSpec(origSpec)
                 .setNoOfRows(table.size())
                 .setAggregationContext(AggregationContext.COLUMN_AGGREGATION).build();
-        final AggregationCellFactory cellFactory = new AggregationCellFactory(
+        final var cellFactory = new AggregationCellFactory(
                 origSpec, selectedCols, globalSettings, m_methods, Arrays.asList(getColsToRemove(origSpec)));
         final ColumnRearranger cr =
             createRearranger(origSpec, cellFactory);
@@ -231,9 +214,8 @@ public class ColumnAggregatorNodeModel extends NodeModel {
         return new BufferedDataTable[]{out};
     }
 
-    private ColumnRearranger createRearranger(final DataTableSpec oSpec,
-            final CellFactory cellFactory) {
-        final ColumnRearranger cr = new ColumnRearranger(oSpec);
+    private ColumnRearranger createRearranger(final DataTableSpec oSpec, final CellFactory cellFactory) {
+        final var cr = new ColumnRearranger(oSpec);
         cr.append(cellFactory);
         final String[] colsToRemove = getColsToRemove(oSpec);
         if (colsToRemove.length != 0) {
@@ -244,7 +226,7 @@ public class ColumnAggregatorNodeModel extends NodeModel {
 
     /** Determines which columns are not retained in the output according to the user configuration. */
     private String[] getColsToRemove(final DataTableSpec inSpec) {
-        final FilterResult filterResult = m_aggregationCols.applyTo(inSpec);
+        final var filterResult = m_aggregationCols.applyTo(inSpec);
         if (m_removeAggregationCols.getBooleanValue() && m_removeRetainedCols.getBooleanValue()) {
             return ArrayUtils.addAll(filterResult.getIncludes(), filterResult.getExcludes());
         } else if (m_removeAggregationCols.getBooleanValue()) {
@@ -290,28 +272,18 @@ public class ColumnAggregatorNodeModel extends NodeModel {
         m_removeAggregationCols.validateSettings(settings);
         m_valueDelimiter.validateSettings(settings);
         m_maxUniqueValues.validateSettings(settings);
-        if (!settings.containsKey(CFG_AGGREGATION_METHODS)) {
-            throw new InvalidSettingsException(
-                    "Methods configuration not found");
-        }
+        CheckUtils.checkSetting(settings.containsKey(CFG_AGGREGATION_METHODS),
+            "Settings for aggregation methods could not be found.");
         //check for duplicate column names
-        final NodeSettingsRO subSettings = settings.getNodeSettings(
-                ColumnAggregatorNodeModel.CFG_AGGREGATION_METHODS);
-        final List<NamedAggregationOperator> methods =
-            NamedAggregationOperator.loadOperators(subSettings);
-        if (methods.isEmpty()) {
-            throw new InvalidSettingsException(
-                    "Please select at least one aggregation method");
-        }
+        final NodeSettingsRO subSettings = settings.getNodeSettings(ColumnAggregatorNodeModel.CFG_AGGREGATION_METHODS);
+        final List<NamedAggregationOperator> methods = NamedAggregationOperator.loadOperators(subSettings);
+        CheckUtils.checkSetting(!methods.isEmpty(), ERROR_NO_AGG_METHOD_SPECIFIED);
         final Map<String, Integer> colNames = new HashMap<>(methods.size());
-        int colIdx = 1;
+        var colIdx = 1;
         for (final NamedAggregationOperator method : methods) {
             final Integer oldIdx = colNames.put(method.getName(), Integer.valueOf(colIdx));
-            if (oldIdx != null) {
-                throw new InvalidSettingsException("Duplicate column name '"
-                        + method.getName() + "' found in row " + oldIdx
-                        + " and " + colIdx);
-            }
+            CheckUtils.checkSetting(oldIdx == null, "Duplicate column name \"%s\" found at position %d and %d.",
+                    method.getName(), oldIdx, colIdx);
             colIdx++;
         }
         //validate the sub settings of all operators that require additional settings
@@ -335,7 +307,7 @@ public class ColumnAggregatorNodeModel extends NodeModel {
         m_methods.addAll(NamedAggregationOperator.loadOperators(subSettings));
         try {
             m_version.loadSettingsFrom(settings);
-        } catch (InvalidSettingsException e) {
+        } catch (InvalidSettingsException e) { // NOSONAR backwards compatibility
             //this flag was introduced in 2.10 to mark the implementation version
             m_version.setIntValue(0);
         }
@@ -384,9 +356,9 @@ public class ColumnAggregatorNodeModel extends NodeModel {
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
                 final DataTableSpec origSpec = (DataTableSpec)inSpecs[0];
-                final FilterResult filterResult = m_aggregationCols.applyTo(origSpec);
+                final var filterResult = m_aggregationCols.applyTo(origSpec);
                 final List<String> selectedCols = Arrays.asList(filterResult.getIncludes());
-                final GlobalSettings globalSettings = GlobalSettings.builder()
+                final var globalSettings = GlobalSettings.builder()
                         .setFileStoreFactory(FileStoreFactory.createWorkflowFileStoreFactory(exec))
                         .setGroupColNames(selectedCols)
                         .setMaxUniqueValues(m_maxUniqueValues.getIntValue())
@@ -394,10 +366,9 @@ public class ColumnAggregatorNodeModel extends NodeModel {
                         .setDataTableSpec(origSpec)
                         .setNoOfRows(-1)
                         .setAggregationContext(AggregationContext.COLUMN_AGGREGATION).build();
-                final AggregationCellFactory cellFactory = new AggregationCellFactory(origSpec,
+                final var cellFactory = new AggregationCellFactory(origSpec,
                     selectedCols, globalSettings, m_methods, Arrays.asList(getColsToRemove(origSpec)));
-                final ColumnRearranger cr = createRearranger(origSpec, cellFactory);
-                cr.createStreamableFunction().runFinal(inputs, outputs, exec);
+                createRearranger(origSpec, cellFactory).createStreamableFunction().runFinal(inputs, outputs, exec);
             }
         };
     }
