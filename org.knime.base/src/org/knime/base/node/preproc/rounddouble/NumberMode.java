@@ -93,7 +93,7 @@ public enum NumberMode {
                 return mode;
             }
         }
-        throw new IllegalArgumentException("argument out of range: " + description);
+        throw new IllegalArgumentException("Number mode \"" + description + "\" is not supported.");
     }
 
     /**

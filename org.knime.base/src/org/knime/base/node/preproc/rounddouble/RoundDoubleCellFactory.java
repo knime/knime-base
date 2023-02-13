@@ -90,24 +90,18 @@ class RoundDoubleCellFactory extends AbstractCellFactory {
      * @param newColSpecs The specs of the new columns (replaced or appended).
      */
     RoundDoubleCellFactory(final int precision, final NumberMode numberMode, final RoundingMode roundingMode,
-                           final RoundOutputType outputType, final int[] colIndexToRound,
-       final DataColumnSpec[] newColSpecs) {
+            final RoundOutputType outputType, final int[] colIndexToRound,
+            final DataColumnSpec[] newColSpecs) {
         super(newColSpecs);
-
-        // check for invalid arguments
         if (roundingMode == null) {
-            throw new IllegalArgumentException(
-                    "Rounding mode may not be null!");
+            throw new IllegalArgumentException("Rounding mode is missing.");
         }
         if (colIndexToRound == null) {
-            throw new IllegalArgumentException(
-                    "Array of column indices to round may not be null!");
+            throw new IllegalArgumentException("Column indices to round are missing.");
         }
         if (numberMode == null) {
-            throw new IllegalArgumentException(
-                    "Number mode may not be null!");
+            throw new IllegalArgumentException("Number mode is missing.");
         }
-
         m_precision = precision;
         m_roundingMode = roundingMode;
         m_outputType = outputType;

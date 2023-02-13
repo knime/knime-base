@@ -50,8 +50,10 @@ package org.knime.base.node.preproc.rounddouble;
 import java.io.File;
 import java.io.IOException;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -71,7 +73,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
-import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
+import org.knime.core.node.util.ConvenienceMethods;
 
 /**
  * The node model of the round double node. Rounding double values in specified
@@ -174,42 +176,39 @@ class RoundDoubleNodeModel extends SimpleStreamableFunctionNodeModel {
         //
         /// SPEC CHECKS
         //
-        FilterResult filteredCols = m_filterDoubleColModel.applyTo(dataSpec);
+        final var filteredCols = m_filterDoubleColModel.applyTo(dataSpec);
 
         // check if all included columns are available in the spec
-        String[] unknownCols = filteredCols.getRemovedFromIncludes();
+        final var unknownCols = filteredCols.getRemovedFromIncludes();
         if (unknownCols.length == 1) {
-            setWarningMessage("Column \"" + unknownCols[0] + "\" is not available.");
+            setWarningMessage("Column \"" + unknownCols[0] + "\" is not available in the input table.");
         } else if (unknownCols.length > 1) {
-            setWarningMessage("" + unknownCols.length + " selected columns are not available anymore.");
+            setWarningMessage("" + unknownCols.length + " selected columns are not available in the input table: "
+                + ConvenienceMethods.getShortStringFrom(Arrays.stream(unknownCols).iterator(), unknownCols.length, 3));
         }
 
         //
         /// CREATE COLUMN REARRANGER
         //
         // parameters
-        int precision = m_numberPrecisionModel.getIntValue();
-        boolean append = m_appendColumnsModel.getBooleanValue();
-        RoundingMode roundingMode = RoundingMode.valueOf(
-                m_roundingModeModel.getStringValue());
-        NumberMode numberMode = NumberMode.valueByDescription(
-                m_numberModeModel.getStringValue());
-        final RoundOutputType outputType = RoundOutputType.valueByTextLabel(m_outputTypeModel.getStringValue());
-        String colSuffix = m_columnSuffixModel.getStringValue();
+        final var precision = m_numberPrecisionModel.getIntValue();
+        final var append = m_appendColumnsModel.getBooleanValue();
+        final var roundingMode = RoundingMode.valueOf(m_roundingModeModel.getStringValue());
+        final var numberMode = NumberMode.valueByDescription(m_numberModeModel.getStringValue());
+        final var outputType = RoundOutputType.valueByTextLabel(m_outputTypeModel.getStringValue());
+        final var colSuffix = m_columnSuffixModel.getStringValue();
 
         // get array of indices of included columns
-        int[] includedColIndices = getIncludedColIndices(dataSpec, filteredCols.getIncludes());
+        final var includedColIndices = getIncludedColIndices(dataSpec, filteredCols.getIncludes());
 
-        ColumnRearranger cR = new ColumnRearranger(dataSpec);
+        final var cR = new ColumnRearranger(dataSpec);
         // create spec of new output columns
-        DataColumnSpec[] newColsSpecs = getNewColSpecs(append, colSuffix,
-                outputType, filteredCols.getIncludes(), dataSpec);
+        final var newColsSpecs = getNewColSpecs(append, colSuffix, outputType, filteredCols.getIncludes(), dataSpec);
 
         // Pass all necessary parameters to the cell factory, which rounds
         // the values and creates new cells to replace or append.
-        RoundDoubleCellFactory cellFac = new RoundDoubleCellFactory(precision,
-                numberMode, roundingMode, outputType, includedColIndices,
-                newColsSpecs);
+        final var cellFac = new RoundDoubleCellFactory(precision, numberMode, roundingMode, outputType,
+            includedColIndices, newColsSpecs);
 
         // replace or append columns
         if (append) {
@@ -224,10 +223,8 @@ class RoundDoubleNodeModel extends SimpleStreamableFunctionNodeModel {
     private static final DataColumnSpec[] getNewColSpecs(final boolean append,
             final String colSuffix, final RoundOutputType outputType,
             final String[] colNamesToRound, final DataTableSpec origInSpec) {
-        DataColumnSpec[] appColumnSpecs =
-            new DataColumnSpec[colNamesToRound.length];
-        int i = 0;
-
+        final var appColumnSpecs = new DataColumnSpec[colNamesToRound.length];
+        var i = 0;
         // walk through column names to round to create the new column specs
         for (String colName : colNamesToRound) {
             String newColName = colName;
@@ -256,12 +253,12 @@ class RoundDoubleNodeModel extends SimpleStreamableFunctionNodeModel {
      * @param includedColNames sorted list of column names to include (sorted by position in table)
      * @return An array containing the indicies of the included columns.
      */
-    private int[] getIncludedColIndices(final DataTableSpec dataSpec, final String[] includedColNames) {
-        int[] includedColIndices = new int[includedColNames.length];
+    private static int[] getIncludedColIndices(final DataTableSpec dataSpec, final String[] includedColNames) {
+        final var includedColIndices = new int[includedColNames.length];
         int noCols = dataSpec.getNumColumns();
         List<String> asList = Arrays.asList(includedColNames);
-        int j = 0;
-        for (int i = 0; i < noCols; i++) {
+        var j = 0;
+        for (var i = 0; i < noCols; i++) {
             String currColName = dataSpec.getColumnSpec(i).getName();
             if (asList.contains(currColName)) {
                 includedColIndices[j] = i;
@@ -299,58 +296,64 @@ class RoundDoubleNodeModel extends SimpleStreamableFunctionNodeModel {
         try {
             // added in 2.8
             m_outputTypeModel.validateSettings(settings);
-        } catch (InvalidSettingsException ise) {
+        } catch (InvalidSettingsException ise) { // NOSONAR for backwards compatibility
             RoundDoubleNodeDialog.getOutputAsStringModel().validateSettings(settings);
         }
         m_numberModeModel.validateSettings(settings);
 
         // additional sanity checks
-        StringBuffer errMsgBuffer = new StringBuffer();
-        boolean err = false;
+        final var errors = new ArrayList<String>();
+
+        // The following checks are "dead code" insofar as they are already checked by each model's validateSettings
+        // method. We leave them in for the time being, until we move the node to the modern UI framework.
 
         // precision number has to be between 0 and inf
-        int precision = ((SettingsModelIntegerBounded)m_numberPrecisionModel
+        final var precision = ((SettingsModelIntegerBounded)m_numberPrecisionModel
                 .createCloneWithValidatedValue(settings)).getIntValue();
         if (precision < MIN_PRECISION || precision > MAX_PRECISION) {
-            errMsgBuffer.append("Rounding precision has to be between "
-                    + MIN_PRECISION + " and " + MAX_PRECISION + "\n");
-            err = true;
+            errors.add(String.format("The rounding precision was \"%d\", but it has to be between %d and %d.",
+                precision, MIN_PRECISION, MAX_PRECISION));
         }
         // if rounded values have to be appended, check for valid column suffix
-        boolean append = ((SettingsModelBoolean)m_appendColumnsModel
+        final var append = ((SettingsModelBoolean)m_appendColumnsModel
                 .createCloneWithValidatedValue(settings)).getBooleanValue();
         if (append) {
-            String suffix = ((SettingsModelString)m_columnSuffixModel
+            final var suffix = ((SettingsModelString)m_columnSuffixModel
                     .createCloneWithValidatedValue(settings)).getStringValue();
             if (suffix.length() <= 0) {
-                errMsgBuffer.append("Column suffix may not be empty if append "
-                        + "columns is set!\n");
-                err = true;
+                errors.add("The column suffix may not be empty if columns should be appended.");
             }
         }
         // rounding mode string needs to be a valid round mode
-        String roundingModeString = ((SettingsModelString)m_roundingModeModel
+        final var roundingModeString = ((SettingsModelString)m_roundingModeModel
                 .createCloneWithValidatedValue(settings)).getStringValue();
         try {
             RoundingMode.valueOf(roundingModeString);
-        } catch (Exception e) {
-            errMsgBuffer.append("Specified round mode is not valid!\n");
-            err = true;
+        } catch (IllegalArgumentException e) { // NOSONAR used as presence-check
+            errors.add(String.format("The rounding mode \"%s\" is not supported. Choose one of: ", roundingModeString)
+                    + String.join(", ", ROUNDING_MODES));
         }
         // number mode string needs to be a valid number mode
-        String numberModeString = ((SettingsModelString)m_numberModeModel
+        final var numberModeString = ((SettingsModelString)m_numberModeModel
                 .createCloneWithValidatedValue(settings)).getStringValue();
         try {
             NumberMode.valueByDescription(numberModeString);
-        } catch (Exception e) {
-            errMsgBuffer.append("Specified number mode is not valid!\n");
-            err = true;
+        } catch (IllegalArgumentException e) { // NOSONAR used as presence-check
+            errors.add(String.format("The number mode \"%s\" is not supported. Choose one of: ", numberModeString)
+                + String.join(", ", NUMBER_MODES));
+        }
 
         // throw exception when at least one settings is invalid
-        } finally {
-            if (err) {
-                throw new InvalidSettingsException(errMsgBuffer.toString());
+        if (!errors.isEmpty()) {
+            final String msg;
+            if (errors.size() == 1) {
+                // single error needs no summary
+                msg = errors.get(0);
+            } else {
+                errors.add(0, "There were multiple problems: ");
+                msg = errors.stream().collect(Collectors.joining("\n\t- "));
             }
+            throw new InvalidSettingsException(msg);
         }
     }
 
@@ -367,7 +370,7 @@ class RoundDoubleNodeModel extends SimpleStreamableFunctionNodeModel {
         m_roundingModeModel.loadSettingsFrom(settings);
         try {
             m_outputTypeModel.loadSettingsFrom(settings);
-        } catch (InvalidSettingsException ise) {
+        } catch (InvalidSettingsException ise) { // NOSONAR backwards comp
             SettingsModelBoolean outputAsStringModelDeprecated = RoundDoubleNodeDialog.getOutputAsStringModel();
             outputAsStringModelDeprecated.loadSettingsFrom(settings);
             RoundOutputType mappedType;

@@ -113,7 +113,7 @@ final class RoundDoubleConfigKeys {
                     return t;
                 }
             }
-            throw new InvalidSettingsException("Invalid round output type \"" + label + "\"");
+            throw new InvalidSettingsException("Round output type \"" + label + "\" is unknown.");
         }
 
         static String[] getLabels() {
