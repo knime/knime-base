@@ -422,7 +422,9 @@ final class SendMailNodeDialog extends NodeDialogPane {
         switch (config.getFormat()) {
             case Html: m_formatHTMLButton.doClick(); break;
             case Text: m_formatTextButton.doClick(); break;
-            default: throw new RuntimeException("Unsupported format");
+            default:
+                throw new RuntimeException("The unsupported email format \"" + config.getFormat()
+                    + "\" was specified. Valid formats are only \"Html\" and \"Text\".");
         }
         URL[] attachedURLs = config.getAttachedURLs();
         m_attachmentList.setSelectedURLs(Arrays.asList(attachedURLs));
@@ -440,8 +442,9 @@ final class SendMailNodeDialog extends NodeDialogPane {
         int port;
         try {
             port = Integer.parseInt(portS);
-        } catch (Exception e) {
-            throw new InvalidSettingsException("Can't parse port (no integer): " + portS);
+        } catch (NumberFormatException e) {
+            throw new InvalidSettingsException(
+                "No integer SMTP port could be parsed from the input \"" + portS + "\".", e);
         }
         config.setSmtpPort(port);
         config.setUseAuthentication(m_useAuthenticationChecker.isSelected());
@@ -465,7 +468,8 @@ final class SendMailNodeDialog extends NodeDialogPane {
             try {
                 urls.add(MultipleURLList.convertToUrl(url));
             } catch (MalformedURLException ex) {
-                throw new InvalidSettingsException("Malformed URL or non-existing file: " + url);
+                throw new InvalidSettingsException(
+                    "The URL \"" + url + "\" could not be parsed. Make sure it is syntactically correct.", ex);
             }
         }
         config.setAttachedURLs(urls.toArray(new URL[urls.size()]));

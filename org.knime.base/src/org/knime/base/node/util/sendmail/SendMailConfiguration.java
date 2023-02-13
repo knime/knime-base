@@ -82,6 +82,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.util.FileUtil;
@@ -331,21 +332,33 @@ final class SendMailConfiguration {
         var connectionSecurityS = settings.getString("connectionSecurity");
         try {
             m_connectionSecurity = ConnectionSecurity.valueOf(connectionSecurityS);
-        } catch (Exception e) {
-            throw new InvalidSettingsException("Invalid connection security: " + connectionSecurityS, e);
+        } catch (IllegalArgumentException e) {
+            final var valids = ConnectionSecurity.values();
+            throw new InvalidSettingsException("The invalid connection security \"" + connectionSecurityS
+                + "\" was specified. Available are only "
+                + ConvenienceMethods.getShortStringFrom(Arrays.stream(valids).iterator(), valids.length, valids.length)
+                + ".", e);
         }
         var formatS = settings.getString("emailFormat");
         try {
             m_format = EMailFormat.valueOf(formatS);
-        } catch (Exception e) {
-            throw new InvalidSettingsException("Invalid email format: " + formatS, e);
+        } catch (IllegalArgumentException e) {
+            final var valids = EMailFormat.values();
+            throw new InvalidSettingsException("The invalid email format \"" + formatS
+                + "\" was specified. Available are only "
+                + ConvenienceMethods.getShortStringFrom(Arrays.stream(valids).iterator(), valids.length, valids.length)
+                + ".", e);
         }
         // added after preview was sent to customer
         var priorityS = settings.getString("emailPriority", EMailPriority.Normal.name());
         try {
             m_priority = EMailPriority.valueOf(priorityS);
-        } catch (Exception e) {
-            throw new InvalidSettingsException("Invalid email priority: " + priorityS, e);
+        } catch (IllegalArgumentException e) {
+            final var valids = EMailPriority.values();
+            throw new InvalidSettingsException("The invalid email priority \"" + priorityS
+                + "\" was specified. Available are only "
+                + ConvenienceMethods.getShortStringFrom(Arrays.stream(valids).iterator(), valids.length, valids.length)
+                + ".", e);
         }
         m_to = settings.getString("to");
         m_cc = settings.getString("cc");
@@ -380,7 +393,9 @@ final class SendMailConfiguration {
                 try {
                     url = new File(urlAsArray[i]).toURI().toURL();
                 } catch (MalformedURLException ex1) {
-                    throw new InvalidSettingsException("Unparseable URL: " + urlAsArray, ex);
+                    throw new InvalidSettingsException(
+                        "The URL \"" + urlAsArray[i] + "\" could not be parsed. "
+                            + "Make sure it is syntactically correct.", ex1);
                 }
             }
             m_attachedURLs[i] = url;
@@ -468,7 +483,8 @@ final class SendMailConfiguration {
      */
     void setConnectionSecurity(final ConnectionSecurity connectionSecurity) throws InvalidSettingsException {
         if (connectionSecurity == null) {
-            throw new InvalidSettingsException("connectionSecurity must not be null");
+            throw new InvalidSettingsException("The connection security is unavailable (null). "
+                + "Set it in the configuration dialog under the \"Mail Host (SMTP)\" tab.");
         }
         m_connectionSecurity = connectionSecurity;
     }
@@ -494,7 +510,8 @@ final class SendMailConfiguration {
      */
     void setFormat(final EMailFormat format) throws InvalidSettingsException {
         if (format == null) {
-            throw new InvalidSettingsException("format must not be null");
+            throw new InvalidSettingsException("The email format is unavailable (null). "
+                + "Set it in the configuration dialog under the \"Mail\" tab.");
         }
         m_format = format;
     }
@@ -510,7 +527,8 @@ final class SendMailConfiguration {
      */
     void setPriority(final EMailPriority priority) throws InvalidSettingsException {
         if (priority == null) {
-            throw new InvalidSettingsException("priority must not be null");
+            throw new InvalidSettingsException("The email priority is unavailable (null). "
+                + "Set it in the configuration dialog under the \"Mail\" tab.");
         }
         m_priority = priority;
     }
@@ -586,7 +604,8 @@ final class SendMailConfiguration {
      */
     void setAttachedURLs(final URL[] attachedURLs) throws InvalidSettingsException {
         if (attachedURLs == null || Arrays.asList(attachedURLs).contains(null)) {
-            throw new InvalidSettingsException("url list must not be null or contain null elements");
+            throw new InvalidSettingsException("Some attachments could not be found. " +
+                "Make sure all of them have correct and non-empty file paths.");
         }
         m_attachedURLs = attachedURLs;
     }
@@ -599,7 +618,8 @@ final class SendMailConfiguration {
      */
     void validateSettings() throws InvalidSettingsException {
         if (getSmtpHost() == null) {
-            throw new InvalidSettingsException("No SMTP host specified");
+            throw new InvalidSettingsException("No SMTP host was specified. "
+                + "Set it in the configuration dialog under the \"Mail Host (SMTP)\" tab.");
         }
     }
 
@@ -626,7 +646,8 @@ final class SendMailConfiguration {
             }
             if (!isOK) {
                 throw new InvalidSettingsException(String.format(
-                    "Recipient '%s' is not valid as the " + "domain is not in the allowed list (system property %s=%s)",
+                    "Recipient '%s' is not valid as the domain is not in the allowed list. "
+                        + "Check the system property \"%s\", which currently lists %s.",
                     address, PROPERTY_ALLOWED_RECIPIENT_DOMAINS, validDomainListString));
             }
         }
@@ -673,12 +694,11 @@ final class SendMailConfiguration {
             }
             t = sendMail(credProvider, protocol, session, message, mp);
         } catch (MessagingException e) {
-            if (e.getCause() instanceof SocketTimeoutException) {
-                String timeoutMessage = e.getMessage();
-                throw new InvalidSettingsException(timeoutMessage + ", try adjusting the smtp timeout settings", e);
-            } else {
-                throw new InvalidSettingsException("Error while communicating with the smtp server: " + e, e);
-            }
+            var isSocketTimeout = e.getCause() instanceof SocketTimeoutException;
+            var errorMessage = isSocketTimeout ? e.getMessage() : e.toString();
+            var resolutionMessage = isSocketTimeout ? " Try adjusting the SMTP timeout settings." : "";
+            throw new InvalidSettingsException("This error occurred while communicating with the SMTP server: \""
+                + errorMessage + "\"." + resolutionMessage, e);
         } finally {
             Thread.currentThread().setContextClassLoader(oldContextClassLoader);
             for (File d : tempDirs) {
@@ -694,7 +714,8 @@ final class SendMailConfiguration {
         try {
             return FlowVariableResolver.parse(m_text, flowVarResolver);
         } catch (NoSuchElementException nse) {
-            throw new InvalidSettingsException(nse.getMessage(), nse);
+            throw new InvalidSettingsException(
+                "A flow variable could not be resolved due to \"" + nse.getMessage() + "\".", nse);
         }
     }
 
@@ -776,7 +797,7 @@ final class SendMailConfiguration {
             message.setReplyTo(parseAndValidateRecipients(getReplyTo()));
         }
         if (message.getAllRecipients() == null) {
-            throw new InvalidSettingsException("No recipients specified");
+            throw new InvalidSettingsException("No recipients were specified. Set them in the configuration dialog.");
         }
         message.setHeader("X-Mailer", "KNIME/" + KNIMEConstants.VERSION);
         message.setHeader("X-Priority", m_priority.toXPriority());
@@ -797,7 +818,8 @@ final class SendMailConfiguration {
                 textType = "text/plain; charset=\"utf-8\"";
                 break;
             default:
-                throw new RuntimeException("Unsupported format: " + getFormat());
+                throw new RuntimeException("The unsupported email format \"" + getFormat() + "\" was specified. "
+                    + "Valid formats are only \"Html\" and \"Text\".");
         }
         contentBody.setContent(flowVarCorrectedText, textType);
         Multipart mp = new MimeMultipart();
@@ -813,7 +835,7 @@ final class SendMailConfiguration {
             try {
                 file = new File(url.toURI());
             } catch (URISyntaxException e) {
-                throw new IOException("Invalid attachment: " + url, e);
+                throw new IOException("The attachment at " + url + " could not be found. Is the URL correct?", e);
             }
         } else {
             var tempDir = FileUtil.createTempDir("send-mail-attachment");
@@ -821,12 +843,12 @@ final class SendMailConfiguration {
             try {
                 file = new File(tempDir, FilenameUtils.getName(url.toURI().getSchemeSpecificPart()));
             } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("The attachment at " + url + " could not be found. Is the URL correct?", e);
             }
             FileUtils.copyURLToFile(url, file);
         }
         if (!file.canRead()) {
-            throw new IOException("Unable to file attachment \"" + url + "\"");
+            throw new IOException("The KNIME AP does not have the permissions to read the file attachment at " + url + ".");
         }
         filePart.attachFile(file);
         String encodedFileName = MimeUtility.encodeText(file.getName(), StandardCharsets.UTF_8.name(), null);

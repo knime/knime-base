@@ -81,7 +81,7 @@ final class SendMailNodeModel extends NodeModel implements FlowVariableProvider 
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
             throws InvalidSettingsException {
         if (m_configuration == null) {
-            throw new InvalidSettingsException("No configuration available, configure in dialog.");
+            throw new InvalidSettingsException("No mail settings have been set. Configure them in the dialog.");
         }
         m_configuration.validateSettings();
         return new PortObjectSpec[0];
@@ -94,7 +94,8 @@ final class SendMailNodeModel extends NodeModel implements FlowVariableProvider 
         try {
             m_configuration.send(this, getCredentialsProvider());
         } catch (MessagingException e) {
-            throw new Exception(e.toString(), e); // toString() is better than getMessage()
+            // toString() is better than getMessage()
+            throw new Exception("The mail could not be sent due to the error \"" + e.toString() + "\".", e);
         }
         return new PortObject[0];
     }
