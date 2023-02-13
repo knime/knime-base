@@ -93,15 +93,15 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
 
     private static int[] getColumnIndicesToKeep(final DataTableSpec spec, final TableCropperSettings settings)
         throws InvalidSettingsException {
-        switch (settings.m_columnSelectionMode) {
-            case NUMBER_RANGE:
+        switch (settings.m_columnRangeMode) {
+            case BY_NUMBER:
                 return IntStream
                     .range(settings.m_startColumnNumber - 1, Math.min(settings.m_endColumnNumber, spec.getNumColumns()))
                     .toArray();
-            case NAME_RANGE:
+            case BY_NAME:
                 return getColumnIndicesFromNameRange(spec, settings);
             default:
-                throw new InvalidSettingsException("Unknown column selection mode: " + settings.m_columnSelectionMode);
+                throw new InvalidSettingsException("Unknown column selection mode: " + settings.m_columnRangeMode);
         }
     }
 

@@ -6,7 +6,7 @@
             "elements": [
                 {
                     "type": "Control",
-                    "scope": "#/properties/model/properties/columnSelectionMode",
+                    "scope": "#/properties/model/properties/columnRangeMode",
                     "options": {
                         "format": "valueSwitch"
                     }
@@ -22,11 +22,11 @@
                     "rule": {
                         "effect": "SHOW",
                         "condition": {
-                            "scope": "#/properties/model/properties/columnSelectionMode",
+                            "scope": "#/properties/model/properties/columnRangeMode",
                             "schema": {
                                 "oneOf": [
                                     {
-                                        "const": "NAME_RANGE"
+                                        "const": "BY_NAME"
                                     }
                                 ]
                             }
@@ -44,11 +44,11 @@
                     "rule": {
                         "effect": "SHOW",
                         "condition": {
-                            "scope": "#/properties/model/properties/columnSelectionMode",
+                            "scope": "#/properties/model/properties/columnRangeMode",
                             "schema": {
                                 "oneOf": [
                                     {
-                                        "const": "NAME_RANGE"
+                                        "const": "BY_NAME"
                                     }
                                 ]
                             }
@@ -64,11 +64,11 @@
                     "rule": {
                         "effect": "SHOW",
                         "condition": {
-                            "scope": "#/properties/model/properties/columnSelectionMode",
+                            "scope": "#/properties/model/properties/columnRangeMode",
                             "schema": {
                                 "oneOf": [
                                     {
-                                        "const": "NUMBER_RANGE"
+                                        "const": "BY_NUMBER"
                                     }
                                 ]
                             }
@@ -84,11 +84,11 @@
                     "rule": {
                         "effect": "SHOW",
                         "condition": {
-                            "scope": "#/properties/model/properties/columnSelectionMode",
+                            "scope": "#/properties/model/properties/columnRangeMode",
                             "schema": {
                                 "oneOf": [
                                     {
-                                        "const": "NUMBER_RANGE"
+                                        "const": "BY_NUMBER"
                                     }
                                 ]
                             }

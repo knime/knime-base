@@ -81,8 +81,15 @@ final class TableCropperSettings implements DefaultNodeSettings {
     TableCropperSettings() {
     }
 
-    @Schema(title = "Column range", description = "Specifies how the column range is defined.")
-    ColumnRangeMode m_columnSelectionMode = ColumnRangeMode.NAME_RANGE;
+    @Schema(title = "Column range mode",
+        description = "Specify the range of columns included in the output by defining the start and end column. "
+            + "The options for specifiying the start and end columns are:" //
+            + "<ul>" //
+            + "<li><b>By name</b>: Specify the name of the start and end columns to include.</li>"//
+            + "<li><b>By number</b>: Specify the start and end column by their number in the table. "//
+            + "The first column has number 1.</li>"//
+            + "</ul>")
+    ColumnRangeMode m_columnRangeMode = ColumnRangeMode.BY_NAME;
 
     @Schema(title = "Start column", description = "Select the first column to include.", choices = AllColumns.class)
     String m_startColumnName;
@@ -91,18 +98,20 @@ final class TableCropperSettings implements DefaultNodeSettings {
         choices = AllColumns.class)
     String m_endColumnName;
 
-    @Schema(title = "Start column number", description = "Number of the first column to include.", min = 1)
+    @Schema(title = "Start column number",
+        description = "Number of the first column to include (the first column of the table has number 1).", min = 1)
     int m_startColumnNumber = 1;
 
-    // TODO: Make max dependent on number of input columns (once AP-19952 is implemented)
-    @Schema(title = "End column number (inclusive)", description = "Number of the last column to include.", min = 1)
+    @Schema(title = "End column number (inclusive)",
+        description = "Number of the last column to include (the first column of the table has number 1).", min = 1)
     int m_endColumnNumber = 1;
 
     @Schema(title = "Start row number",
         description = "Select the first row to include (the first row of the table has number 1).", min = 1)
     long m_startRowNumber = 1;
 
-    @Schema(title = "End row number (inclusive)", description = "Select the last row to include.", min = 1)
+    @Schema(title = "End row number (inclusive)",
+        description = "Select the last row to include (the first row of the table has number 1).", min = 1)
     long m_endRowNumber = 1;
 
     @Schema( //
@@ -124,10 +133,10 @@ final class TableCropperSettings implements DefaultNodeSettings {
     }
 
     enum ColumnRangeMode {
-            @Schema(title = "Name range") //
-            NAME_RANGE, //
-            @Schema(title = "Number range") //
-            NUMBER_RANGE;
+            @Schema(title = "By name") //
+            BY_NAME, //
+            @Schema(title = "By number") //
+            BY_NUMBER;
     }
 
 }
