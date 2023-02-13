@@ -257,17 +257,19 @@ public class NominalValueRowFilterNodeModel extends NodeModel {
         }
         // are there some valid columns (nominal and with possible values)
         if (nrValidCols == 0) {
-            throw new InvalidSettingsException(
-                    "No nominal columns with possible values found! "
-                            + "Execute predecessor or check input table.");
+            throw new InvalidSettingsException("No nominal columns with possible values found. "
+                + "To make nominal columns usable by this node, their domain must be calculated."
+                + "For columns with few values (less than 60) this is done automatically. "
+                + "For more values, use the Domain Calculator node or specify the possible values manually "
+                + "using the Edit Nominal Domain node.");
         }
         m_selectedAttr.clear();
         if (m_selectedColumn != null && m_selectedColumn.length() > 0) {
             m_selectedColIdx = inSpecs[0].findColumnIndex(m_selectedColumn);
             // selected attribute not found in possible values
             if (m_selectedColIdx < 0) {
-                throw new InvalidSettingsException("Column " + m_selectedColumn
-                        + " not found in in spec!");
+                throw new InvalidSettingsException("The selected column \"" + m_selectedColumn
+                        + "\" is not present in the input table.");
             }
             m_selectedAttr.addAll(Arrays.asList(m_config.applyTo(inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain()
                 .getValues()).getIncludes()));
@@ -294,8 +296,8 @@ public class NominalValueRowFilterNodeModel extends NodeModel {
                 }
             }
             if (!validAttrVal && m_selectedAttr.size() > 0) {
-                throw new InvalidSettingsException("Selected attribute value "
-                        + m_selectedAttr + " not found!");
+                throw new InvalidSettingsException("Selected attribute value \""
+                        + m_selectedAttr + "\" was not found in column \"" + m_selectedColumn + "\".");
             }
 
             // return original spec,
