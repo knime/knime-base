@@ -136,7 +136,7 @@
             name="Property"
             path="/view/legacy"/>
       <category
-            after="property"
+            after="legacy"
             description="Utility nodes supporting visualizations in KNIME"
             icon="icons/16x16/category_view-util.png"
             level-id="view-util"
@@ -152,7 +152,7 @@
             path="/view">
       </category>
       <category
-            after="appender"
+            after="js-views"
             icon="icons/missing.gif"
             level-id="legacy"
             locked="true"
