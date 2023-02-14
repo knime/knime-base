@@ -68,9 +68,8 @@ final class ColumnRenamerSettings implements DefaultNodeSettings {
         @Schema(title = "Column", description = "The column to rename.", choices = AllColumns.class)
         String m_oldName;
 
-        // TODO UIEXT-695: Add minLength or regex preventing empty/blank names
         @Schema(title = "New name",
-            description = "The new column name. Must not be empty or consist only of whitespaces.")
+            description = "The new column name. Must not be empty or consist only of whitespaces.", pattern = "\\S+")
         String m_newName;
 
         String getOldName() {
