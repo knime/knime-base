@@ -37,13 +37,13 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
      */
     @Test
     public void test_https_location() throws IOException {
-        final String url = "https://www.rfc-editor.org/rfc/rfc1.txt";
+        final String url = "https://update.knime.com/analytics-platform/4.2/index.html";
 
         final byte[] expectedBytes = readUrl(url);
 
         final FSLocation loc = new FSLocation(FSCategory.CUSTOM_URL, "5000", url);
 
-        testReadFSLocation(Optional.empty(), loc, expectedBytes, "/rfc/rfc1.txt");
+        testReadFSLocation(Optional.empty(), loc, expectedBytes, "/analytics-platform/4.2/index.html");
     }
 
     private static byte[] readUrl(final String url) throws IOException, MalformedURLException {
