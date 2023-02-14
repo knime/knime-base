@@ -274,14 +274,14 @@ public class NominalValueRowFilterNodeModel extends NodeModel {
             m_selectedAttr.addAll(Arrays.asList(m_config.applyTo(inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain()
                 .getValues()).getIncludes()));
             // all values excluded?
-            if (m_selectedColumn != null && m_selectedAttr.size() == 0 && !m_config.isIncludeMissing()) {
+            if (m_splitter && m_selectedColumn != null && m_selectedAttr.size() == 0 && !m_config.isIncludeMissing()) {
                 setWarningMessage("All values are excluded! Input will be mirrored at out-port 1 (excluded)");
             }
             // all values included?
             boolean validAttrVal = false;
             if (inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain()
                     .hasValues()) {
-                if (inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain()
+                if (m_splitter && inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain()
                         .getValues().size() == m_selectedAttr.size() && m_config.isIncludeMissing()) {
                     setWarningMessage("All values are included! Input will be "
                             + "mirrored at out-port 0 (included)");

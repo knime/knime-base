@@ -14,8 +14,7 @@
         Filters the rows based on the selected value of a nominal attribute.
         A nominal column can be selected and one or more nominal value of this 
         attribute. Rows which have this nominal value in the selected column are 
-        included in the output data
-        at out-port 0.
+        included in the output data, all other rows are excluded.
         </p>
         <p>
 		In order for a nominal column to appear in the node dialog, its domain (the set of values that appear in the 
