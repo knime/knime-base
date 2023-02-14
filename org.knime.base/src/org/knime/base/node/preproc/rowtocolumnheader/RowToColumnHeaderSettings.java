@@ -77,8 +77,8 @@ final class RowToColumnHeaderSettings implements DefaultNodeSettings {
     @Persist(settingsModel = SettingsModelBoolean.class)
     @Schema(title = "Detect types of resulting columns",
         description = "Whether type analysis should be applied to the output table. "
-            + "For each column, the most specific of the four column types <tt>double</tt> "
-            + "(64-bit floating-point number), <tt>tt</tt> (64-bit integral number), <tt>int</tt> "
-            + "(32-bit integral number) and <tt>String</tt> is determined and the column is converted to this type.")
+            + "For each column, the most specific of the four column types <i>double</i> "
+            + "(64-bit floating-point number), <i>long</i> (64-bit integral number), <i>int</i> "
+            + "(32-bit integral number) and <i>String</i> is determined and the column is converted to this type.")
     boolean m_detectTypes;
 }
