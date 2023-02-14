@@ -60,17 +60,33 @@ import org.knime.core.webui.node.dialog.impl.Schema;
 @SuppressWarnings("restriction")
 final class ColumnRenamerSettings implements DefaultNodeSettings {
 
-    @Schema(title = "Renamings", description = "Allows to define new names for columns.")
-    Renaming[] m_renamings = new Renaming[0];
+    ColumnRenamerSettings(final SettingsCreationContext context) {
+        // pick the last column because a typical scenario is to rename columns appended by the previous node
+        var initialColumn = context.getDataTableSpec(0).map(s -> s.getColumnSpec(s.getNumColumns() - 1).getName());
+        if (initialColumn.isPresent()) {
+            // initialize as identity and let the NodeModel warn the user
+            var renaming = new Renaming();
+            renaming.m_oldName = initialColumn.get();
+            renaming.m_newName = renaming.m_oldName;
+            m_renamings = new Renaming[]{renaming};
+        }
+    }
 
-    public static final class Renaming implements DefaultNodeSettings {
+    ColumnRenamerSettings() {
+        // persistence and JSON conversion constructor
+    }
+
+    @Schema(title = "Renamings", description = "Allows to define new names for columns.")
+    public Renaming[] m_renamings = new Renaming[0];
+
+    static final class Renaming implements DefaultNodeSettings {
 
         @Schema(title = "Column", description = "The column to rename.", choices = AllColumns.class)
-        String m_oldName;
+        public String m_oldName;
 
         @Schema(title = "New name",
-            description = "The new column name. Must not be empty or consist only of whitespaces.", pattern = "\\S+")
-        String m_newName;
+            description = "The new column name. Must not be empty or consist only of whitespaces.", pattern = "\\S+.*")
+        public String m_newName;
 
         String getOldName() {
             return m_oldName;

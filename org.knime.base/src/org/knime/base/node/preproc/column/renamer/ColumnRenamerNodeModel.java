@@ -113,8 +113,8 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
                 CheckUtils.checkSetting(m_nameMap.put(oldName, renaming.m_newName) == null,
                     "The column '%s' is renamed more than once.", oldName);
                 var newName = renaming.getNewName();
-                CheckUtils.checkSetting(StringUtils.isNotBlank(newName), "The new name for '%s' is invalid because it is blank.",
-                    oldName);
+                CheckUtils.checkSetting(StringUtils.isNotBlank(newName),
+                    "The new name for '%s' is invalid because it is blank.", oldName);
                 CheckUtils.checkSetting(newNames.add(newName), "Multiple columns are renamed to '%s'.", newName);
             }
         }
@@ -163,7 +163,14 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
 
         private String rename(final String name) {
             var newName = m_nameMap.get(name);
-            return newName == null ? name : newName;
+            if (newName == null) {
+                return name;
+            } else {
+                if (name.equals(newName)) {
+                    setWarningMessage(String.format("The name of the column '%s' is not changed.", name));
+                }
+                return newName;
+            }
         }
     }
 
