@@ -95,9 +95,13 @@ final class DuplicateRowFilterSettings {
 
         static RowSelectionType loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
             try {
-                return valueOf(settings.getString(ROW_SELECTION_KEY));
-            } catch (final IllegalArgumentException | NullPointerException e) {
-                throw new InvalidSettingsException(e.getMessage(), e);
+                final var selectionString = settings.getString(ROW_SELECTION_KEY);
+                return valueOf(selectionString != null ? selectionString : "<not found>");
+            } catch (final IllegalArgumentException e) {
+                throw new InvalidSettingsException(
+                    "Could not read the row selection type (\"chosen\" rows) from the dialog settings. "
+                        + "Make sure it is set.",
+                    e);
             }
         }
 

@@ -351,8 +351,9 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
                 + m_settings.getRowSelectionType() + ") requires that a reference column is selected.");
             CheckUtils.checkSetting(inSpec.findColumnIndex(refCol) != -1,
                 "The input table does not contain the selected reference column \"" + refCol + "\".");
-            CheckUtils.checkSetting(Arrays.stream(groupCols.getIncludes()).noneMatch(grpCol -> refCol.equals(grpCol)),
-                "The selected reference column is also used for duplicate detection.");
+            CheckUtils.checkSetting(Arrays.stream(groupCols.getIncludes()).noneMatch(refCol::equals),
+                "The reference column for choosing a minimum or maximum of is also used for duplicate detection. "
+                    + "Choose a different reference column.");
         }
         return new DataTableSpec[]{createOutSpec(inSpec)};
     }
