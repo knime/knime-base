@@ -9,7 +9,6 @@
                     "scope": "#/properties/model/properties/renamings",
                     "options": {
                         "addButtonText": "Add column",
-                        "arrayElementTitle": "Renamed column",
                         "detail": {
                             "renaming": {
                                 "type": "HorizontalLayout",
