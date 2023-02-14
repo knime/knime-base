@@ -116,11 +116,17 @@
             name="Views"
             path="/"/>
       <category
+            description="Legacy view nodes"
+            level-id="legacy"
+            name="Legacy"
+            path="/view">
+      </category>
+      <category
             description="JavaScript based Views"
             icon="icons/16x16/category_javascript.png"
             level-id="js-views"
             name="JavaScript"
-            path="/view">
+            path="/view/legacy">
       </category>
       <category
             after="js-views"
@@ -128,7 +134,7 @@
             icon="icons/16x16/category_properties.png"
             level-id="property"
             name="Property"
-            path="/view"/>
+            path="/view/legacy"/>
       <category
             after="property"
             description="Utility nodes supporting visualizations in KNIME"
@@ -151,7 +157,7 @@
             level-id="legacy"
             locked="true"
             name="Local (Swing)"
-            path="/view">
+            path="/view/legacy">
       </category>
       <category
             after="view"
@@ -536,31 +542,31 @@
             factory-class="org.knime.base.node.io.filehandling.filereader.FileReaderNodeFactory">
       </node>
       <node
-            category-path="/view/property"
+            category-path="/view/legacy/property"
             factory-class="org.knime.base.node.viz.property.color.ColorManager2NodeFactory">
       </node>
       <node
             after="org.knime.base.node.viz.property.color.ColorManager2NodeFactory"
-            category-path="/view/property"
+            category-path="/view/legacy/property"
             factory-class="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"/>
       <node
             after="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"
-            category-path="/view/property"
+            category-path="/view/legacy/property"
             factory-class="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory">
       </node>
       <node
             after="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory"
-            category-path="/view/property"
+            category-path="/view/legacy/property"
             factory-class="org.knime.base.node.viz.property.color.ColorAppender2NodeFactory">
       </node>
       <node
             after="org.knime.base.node.viz.property.color.ColorAppender2NodeFactory"
-            category-path="/view/property"
+            category-path="/view/legacy/property"
             factory-class="org.knime.base.node.viz.property.size.SizeAppenderNodeFactory">
       </node>
       <node
             after="org.knime.base.node.viz.property.size.SizeAppenderNodeFactory"
-            category-path="/view/property"
+            category-path="/view/legacy/property"
             factory-class="org.knime.base.node.viz.property.shape.ShapeAppenderNodeFactory">
       </node>
       <node
@@ -1714,7 +1720,7 @@
             >
       </node>
       <node
-            category-path="/view/property"
+            category-path="/view/legacy/property"
             factory-class="org.knime.base.node.viz.property.color.extract.ColorExtractNodeFactory"
             >
       </node>
