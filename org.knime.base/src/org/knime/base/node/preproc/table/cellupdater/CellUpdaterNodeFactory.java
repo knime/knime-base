@@ -62,8 +62,9 @@ public final class CellUpdaterNodeFactory extends WebUINodeFactory<CellUpdaterNo
     private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder()//
         .name("Cell Updater")//
         .icon("./cell_updater.png")//
-        .shortDescription("Updates the value of a single cell of a table.")//
-        .fullDescription("Updates a single cell of the input table with the value of the specified flow variable.")//
+        .shortDescription("Update a single cell of a table with the value of the specified flow variable.")//
+        .fullDescription("Update a single cell of the input table with the value of the specified flow variable. "
+            + "The output table will be identical to the input table except for the single updated cell.")//
         .modelSettingsClass(CellUpdaterSettings.class)//
         .addInputPort("Input flow variable", FlowVariablePortObject.TYPE,
             "The flow variable connection that allows selecting the flow variable containing the new cell value.")//

@@ -63,34 +63,7 @@ import org.knime.core.webui.node.dialog.impl.Schema;
 @SuppressWarnings("restriction")
 final class CellUpdaterSettings implements DefaultNodeSettings {
 
-    /**
-     * Constructor for auto-configure.
-     *
-     * @param context the creation context
-     */
-    CellUpdaterSettings(final SettingsCreationContext context) {
-        var portObjects = context.getPortObjectSpecs();
-
-        if ((portObjects[0] != null) && (portObjects[1] != null)) {
-            var spec = (DataTableSpec)portObjects[1];
-            var varNames = context.getAvailableFlowVariableNames();
-            m_columnName = spec.getColumnSpec(0).getName();
-            m_columnNumber = 1;
-            m_rowNumber = 1;
-            m_countFromEnd = false;
-            m_flowVariableName = varNames[0];
-            m_columnMode = ColumnMode.BY_NAME;
-        }
-    }
-
-    /**
-     * Constructor for deserialization.
-     */
-    CellUpdaterSettings() {
-
-    }
-
-    @Schema(title = "Column mode", description = "Select whether to select the column by name or by number.")
+    @Schema(title = "Column specification", description = "Select whether to specify the column by name or by number.")
     ColumnMode m_columnMode = ColumnMode.BY_NAME;
 
     @Schema(title = "Column name", description = "Select the column that contains the target cell.",
@@ -108,7 +81,7 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
         description = "If selected, the rows will be counted from the end of the table.")
     boolean m_countFromEnd = false;
 
-    @Schema(title = "New cell value", description = "Select the flow variable that contains the new cell value.",
+    @Schema(title = "New cell value", description = "Select the flow variable containing the new cell value.",
         choices = AllVariables.class)
     String m_flowVariableName;
 

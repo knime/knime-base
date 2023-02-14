@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.table.cellupdater;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.base.data.replace.ReplacedColumnsDataRow;
@@ -88,6 +89,7 @@ final class CellUpdaterNodeModel extends WebUINodeModel<CellUpdaterSettings> {
     protected DataTableSpec[] configure(final PortObjectSpec[] inSpecs, final CellUpdaterSettings settings)
         throws InvalidSettingsException {
         final var spec = (DataTableSpec)inSpecs[1];
+        autoconfigureSettings(settings, spec);
         validateSettingsAgainstSpec(settings, spec);
         return new DataTableSpec[]{spec};
     }
@@ -99,34 +101,102 @@ final class CellUpdaterNodeModel extends WebUINodeModel<CellUpdaterSettings> {
         final var spec = table.getDataTableSpec();
 
         final int colIndex = getColumnIndex(settings, spec);
-        final DataType colType = getColumnType(colIndex, spec);
-
-        final DataCell newCell = getNewCellValue(settings);
-
-        CheckUtils.checkArgument(colType == newCell.getType(),
-            getTypeMismatchWarningMessage(colType, newCell.getType()));
-
         final var rowIndex = getRowIndex(settings, table.size());
+        final var selectedVar = getSelectedFlowVariable(settings);
+
+        final DataCell newCell = convertVariableToCell(selectedVar);
+
         BufferedDataTable outputTable = updateInputTable(exec, rowIndex, colIndex, table, newCell);
         return new PortObject[]{outputTable};
+    }
+
+    /**
+     * A Container class for holding the column index and flow variable name for a pair of type-matched column/flow
+     * variable.
+     */
+    private class Match {
+        private int matchedColumnIndex;
+
+        private String matchedVariableName;
+
+        Match(final int colIndex, final String varName) {
+            this.matchedColumnIndex = colIndex;
+            this.matchedVariableName = varName;
+        }
+    }
+
+    /**
+     * Matches the available input flow variables with the columns in the given DataTableSpec based on their data types.
+     * If a match is found, it returns the column index and the name of the matched flow variable as a Match object.
+     * Otherwise returns a Match object with 0 as the column index and the name of the first available flow variable.
+     *
+     * @param spec the DataTableSpec to match the flow variables against
+     * @return a Match object containing the column index and the name of the matched flow variable
+     */
+    private Match matchColumnsAndVariables(final DataTableSpec spec) {
+        final var availableVars = getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes());
+
+        for (Map.Entry<String, FlowVariable> fvEntry : availableVars.entrySet()) {
+            final FlowVariable fw = fvEntry.getValue();
+            if (fw == null) {
+                continue;
+            }
+            final String currentVarName = fw.getName();
+            DataType currentVarType = convertVariableToCell(fw).getType();
+
+            if (spec.containsCompatibleType(currentVarType.getPreferredValueClass())) {
+                for (int i = 0; i < spec.getNumColumns(); i++) {
+                    DataType currentColType = spec.getColumnSpec(i).getType();
+
+                    if (currentColType.isASuperTypeOf(currentVarType)) {
+                        return new Match(i, currentVarName);
+                    }
+                }
+            }
+        }
+
+        return new Match(0, availableVars.values().iterator().next().getName());
+    }
+
+    /**
+     * When the node gets connected to the input table, this autoconfiguration logic attempts to find the first pair of
+     * column/flow variable that have a matching type.
+     *
+     * Otherwise they are initialised to the first column and flow variable name respectively.
+     */
+    private void autoconfigureSettings(final CellUpdaterSettings settings, final DataTableSpec spec) {
+        // If settings.m_columnName is not null, settings have already been configured.
+        if (spec == null || settings.m_columnName != null) {
+            return;
+        }
+
+        final Match match = matchColumnsAndVariables(spec);
+
+        settings.m_columnName = spec.getColumnSpec(match.matchedColumnIndex).getName();
+        settings.m_columnNumber = match.matchedColumnIndex + 1;
+        settings.m_rowNumber = 1;
+        settings.m_countFromEnd = false;
+        settings.m_flowVariableName = match.matchedVariableName;
+        settings.m_columnMode = ColumnMode.BY_NAME;
     }
 
     private static long getRowIndex(final CellUpdaterSettings settings, final long rowCount)
         throws InvalidSettingsException {
         final var rowIndex = settings.m_countFromEnd ? (rowCount - settings.m_rowNumber) : (settings.m_rowNumber - 1);
         CheckUtils.checkSetting(rowIndex >= 0 && rowIndex < rowCount,
-            "The specified row number (%s) exceeds the number of rows in the table (%s).", settings.m_rowNumber,
-            rowCount);
+            "The row number %s does not exist in the input table with only %s row(s).", settings.m_rowNumber, rowCount);
         return rowIndex;
     }
 
-    private DataCell getNewCellValue(final CellUpdaterSettings settings) {
+    private FlowVariable getSelectedFlowVariable(final CellUpdaterSettings settings) {
         final var varTypes = VariableToCellConverterFactory.getSupportedTypes();
         final var availableVars = getAvailableInputFlowVariables(varTypes);
-        final FlowVariable selectedVar = availableVars.get(settings.m_flowVariableName);
+        return availableVars.get(settings.m_flowVariableName);
+    }
 
-        final var varConverter = VariableToCellConverterFactory.createConverter(selectedVar);
-        final var newCell = varConverter.getDataCell(selectedVar);
+    private static DataCell convertVariableToCell(final FlowVariable flowVar) {
+        final var varConverter = VariableToCellConverterFactory.createConverter(flowVar);
+        final var newCell = varConverter.getDataCell(flowVar);
 
         return newCell;
     }
@@ -198,24 +268,37 @@ final class CellUpdaterNodeModel extends WebUINodeModel<CellUpdaterSettings> {
         return spec.getColumnSpec(colIndex).getType();
     }
 
-    private static String getTypeMismatchWarningMessage(final DataType colType, final DataType newType) {
-        return String.format("Unable to update cell in a column of type \"%s\" with a value of type \"%s\".",
-            colType.getName(), newType.getName());
+    private static String getTypeMismatchWarningMessage(final String colName, final DataType currentType,
+        final DataType newType) {
+        return String.format("Incompatible update value of type \"%s\" for a cell of type \"%s\" in column \"%s\".",
+            currentType.getName(), newType.getName(), colName);
     }
 
-    private static void validateSettingsAgainstSpec(final CellUpdaterSettings settings, final DataTableSpec spec)
+    private void validateSettingsAgainstSpec(final CellUpdaterSettings settings, final DataTableSpec spec)
         throws InvalidSettingsException {
         if (settings.m_columnMode == ColumnMode.BY_NAME) {
             CheckUtils.checkSetting(spec.containsName(settings.m_columnName),
-                "The input table does not contain the column \"%s\"", settings.m_columnName);
+                "The input table does not contain the column \"%s\".", settings.m_columnName);
         } else {
             CheckUtils.checkSetting(settings.m_columnNumber > 0, "The column number needs to be a positive number.");
             CheckUtils.checkSetting(settings.m_columnNumber <= spec.getNumColumns(),
-                "The column number %s does not exist in the input table with %s columns.", settings.m_columnNumber,
-                spec.getNumColumns());
+                "The column number %s does not exist in the input table with only %s column(s).",
+                settings.m_columnNumber, spec.getNumColumns());
         }
 
         CheckUtils.checkSetting(settings.m_rowNumber > 0, "The row number needs to be a positive number.");
+
+        CheckUtils.checkSetting(getSelectedFlowVariable(settings) != null,
+            "The flow variable input does not contain the flow variable \"%s\".", settings.m_flowVariableName);
+
+        final String colName = spec.getColumnSpec(getColumnIndex(settings, spec)).getName();
+        final DataType currentType = getColumnType(getColumnIndex(settings, spec), spec);
+        final DataType newType = convertVariableToCell(getSelectedFlowVariable(settings)).getType();
+
+        if (!currentType.isASuperTypeOf(newType)) {
+            CheckUtils.checkSetting(currentType.equals(newType),
+                getTypeMismatchWarningMessage(colName, currentType, newType));
+        }
     }
 
 }
