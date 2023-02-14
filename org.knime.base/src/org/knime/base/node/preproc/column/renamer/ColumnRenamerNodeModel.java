@@ -96,9 +96,10 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
         return new BufferedDataTable[]{exec.createSpecReplacerTable(table, renamer.rename(table.getDataTableSpec()))};
     }
 
+    @SuppressWarnings("unused")// the Renamer constructor validates the settings
     @Override
     protected void validateSettings(final ColumnRenamerSettings settings) throws InvalidSettingsException {
-        // TODO validate the settings here once the validation behavior is fixed
+        new Renamer(settings);
     }
 
     private final class Renamer {
