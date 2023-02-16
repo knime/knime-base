@@ -1,89 +1,73 @@
 {
     "elements": [
         {
-            "type": "Section",
-            "label": "Cell Updater",
-            "elements": [
-                {
-                    "type": "Control",
+            "type": "Control",
+            "scope": "#/properties/model/properties/columnMode",
+            "options": {
+                "format": "valueSwitch"
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/columnName",
+            "options": {
+                "format": "columnSelection",
+                "showRowKeys": false,
+                "showNoneColumn": false
+            },
+            "rule": {
+                "effect": "SHOW",
+                "condition": {
                     "scope": "#/properties/model/properties/columnMode",
-                    "options": {
-                        "format": "valueSwitch"
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/columnName",
-                    "options": {
-                        "format": "columnSelection",
-                        "showRowKeys": false,
-                        "showNoneColumn": false
-                    },
-                    "rule": {
-                        "effect": "SHOW",
-                        "condition": {
-                            "scope": "#/properties/model/properties/columnMode",
-                            "schema": {
-                                "oneOf": [
-                                    {
-                                        "const": "BY_NAME"
-                                    }
-                                ]
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "const": "BY_NAME"
                             }
-                        }
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/columnNumber",
-                    "options": {
-                        "format": "Integer"
-                    },
-                    "rule": {
-                        "effect": "SHOW",
-                        "condition": {
-                            "scope": "#/properties/model/properties/columnMode",
-                            "schema": {
-                                "oneOf": [
-                                    {
-                                        "const": "BY_NUMBER"
-                                    }
-                                ]
-                            }
-                        }
+                        ]
                     }
                 }
-            ]
+            }
         },
         {
-            "type": "Section",
-            "elements": [
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/rowNumber",
-                    "options": {
-                        "format": "Integer"
+            "type": "Control",
+            "scope": "#/properties/model/properties/columnNumber",
+            "options": {
+                "format": "Integer"
+            },
+            "rule": {
+                "effect": "SHOW",
+                "condition": {
+                    "scope": "#/properties/model/properties/columnMode",
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "const": "BY_NUMBER"
+                            }
+                        ]
                     }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/countFromEnd"
                 }
-            ]
+            }
         },
         {
-            "type": "Section",
-            "elements": [
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/flowVariableName",
-                    "options": {
-                        "format": "columnSelection",
-                        "showRowKeys": false,
-                        "showNoneColumn": false
-                    }
-                }
-            ]
+            "type": "Control",
+            "scope": "#/properties/model/properties/rowNumber",
+            "options": {
+                "format": "Integer"
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/countFromEnd"
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/flowVariableName",
+            "options": {
+                "format": "columnSelection",
+                "showRowKeys": false,
+                "showNoneColumn": false
+            }
         }
     ]
 }
