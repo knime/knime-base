@@ -1,17 +1,11 @@
 {
     "elements": [
         {
-            "type": "Section",
-            "label": "Options",
-            "elements": [
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/consideredColumns",
-                    "options": {
-                        "format": "columnFilter"
-                    }
-                }
-            ]
+            "type": "Control",
+            "scope": "#/properties/model/properties/consideredColumns",
+            "options": {
+                "format": "columnFilter"
+            }
         },
         {
             "type": "Section",
