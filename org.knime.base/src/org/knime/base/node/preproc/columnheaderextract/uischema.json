@@ -2,6 +2,13 @@
     "elements": [
         {
             "type": "Control",
+            "scope": "#/properties/model/properties/transposeColHeader",
+            "options": {
+                "format": "valueSwitch"
+            }
+        },
+        {
+            "type": "Control",
             "scope": "#/properties/model/properties/replaceColHeader"
         },
         {
@@ -19,16 +26,10 @@
         },
         {
             "type": "Control",
-            "scope": "#/properties/model/properties/transposeColHeader",
-            "options": {
-                "format": "valueSwitch"
-            }
-        },
-        {
-            "type": "Control",
             "scope": "#/properties/model/properties/colTypeFilter",
             "options": {
-                "format": "valueSwitch"
+                "format": "valueSwitch",
+                "isAdvanced": true
             }
         }
     ]
