@@ -1,33 +1,26 @@
 {
     "elements": [
-       {
-            "type": "Section",
-            "label": "Column renaming",
-            "elements": [
-            	{
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/lookupColumn",
-                    "options": {
-                        "format": "columnSelection",
-                        "showRowKeys": true,
-                        "showNoneColumn": false
-                    }
-
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/valueColumn",
-                    "options": {
-                        "format": "columnSelection",
-                        "showRowKeys": false,
-                        "showNoneColumn": false
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/failIfNoMatch"
-                }
-            ]
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/lookupColumn",
+            "options": {
+                "format": "columnSelection",
+                "showRowKeys": true,
+                "showNoneColumn": false
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/valueColumn",
+            "options": {
+                "format": "columnSelection",
+                "showRowKeys": false,
+                "showNoneColumn": false
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/failIfNoMatch"
         }
     ]
 }
