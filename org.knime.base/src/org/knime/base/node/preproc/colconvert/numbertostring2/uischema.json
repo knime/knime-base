@@ -1,18 +1,12 @@
 {
     "elements": [
-       {
-            "type": "Section",
-            "label": "Column Selection",
-            "elements": [
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/columns",
-                    "label": "",
-                    "options": {
-                        "format": "columnFilter"
-                    }
-                }
-            ]
-       }
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/columns",
+            "label": "",
+            "options": {
+                "format": "columnFilter"
+            }
+        }
     ]
 }
