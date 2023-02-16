@@ -69,22 +69,22 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = ColumnMergerConfiguration.CFG_PRIMARY, settingsModel = SettingsModelString.class)
     @Schema(title = "Primary column",
-        description = " The column with the value that will be used unless it is missing.", choices = AllColumns.class)
+        description = "The column with the value that will be used, unless it is missing.", choices = AllColumns.class)
     String m_primaryColumn = "";
 
     @Persist(configKey = ColumnMergerConfiguration.CFG_SECONDARY, settingsModel = SettingsModelString.class)
-    @Schema(title = "Second column", description = "The column with the value that will be used otherwise.",
-        choices = AllColumns.class)
+    @Schema(title = "Secondary column", description = "The column with the value that will be used if it is missing "//
+        + "in the primary column.", choices = AllColumns.class)
     String m_secondaryColumn = "";
 
     @Persist(customPersistor = OutputPlacementOptionsPersistor.class)
-    @Schema(title = "Output placement", description = "Choose where to put the result column:"//
+    @Schema(title = "Replace/append columns", description = "Choose where to put the result column:"//
         + "<ul>"//
         + "<li><b>Replace primary</b>: Replace the primary column with the merge "
         + "result and keep the secondary column.</li>"//
         + "<li><b>Replace secondary</b>: Keep the primary column and replace the "
         + "secondary column with the merge result.</li>"//
-        + "<li><b>Replace both</b>: Replace the primary column with the merge "
+        + "<li><b>Replace primary and delete secondary</b>: Replace the primary column with the merge "
         + "result and remove the secondary column.</li>"//
         + "<li><b>Append as new column</b>: Append a new column with the name provided below.</li>"//
         + "</ul>")

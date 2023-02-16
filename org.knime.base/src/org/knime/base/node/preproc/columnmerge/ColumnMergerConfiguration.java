@@ -87,7 +87,7 @@ final class ColumnMergerConfiguration {
             @Schema(title = "Replace secondary")
             ReplaceSecondary,
             /** Replace both columns, put output at position of primary column. */
-            @Schema(title = "Replace both")
+            @Schema(title = "Replace primary and delete secondary")
             ReplaceBoth,
             /** Append as new column. */
             @Schema(title = "Append as new column")
