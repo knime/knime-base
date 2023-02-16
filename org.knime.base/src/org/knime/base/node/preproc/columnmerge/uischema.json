@@ -1,53 +1,47 @@
 {
 	"elements": [
 		{
-			"type": "Section",
-			"label": "Configuration",
-			"elements": [
-				{
-					"type": "Control",
-					"scope": "#/properties/model/properties/primaryColumn",
-					"options": {
-						"format": "columnSelection",
-						"showRowKeys": false,
-						"showNoneColumn": false
-					}
-				},
-				{
-					"type": "Control",
-					"scope": "#/properties/model/properties/secondaryColumn",
-					"options": {
-						"format": "columnSelection",
-						"showRowKeys": false,
-						"showNoneColumn": false
-					}
-				},
-				{
-					"type": "Control",
+			"type": "Control",
+			"scope": "#/properties/model/properties/primaryColumn",
+			"options": {
+				"format": "columnSelection",
+				"showRowKeys": false,
+				"showNoneColumn": false
+			}
+		},
+		{
+			"type": "Control",
+			"scope": "#/properties/model/properties/secondaryColumn",
+			"options": {
+				"format": "columnSelection",
+				"showRowKeys": false,
+				"showNoneColumn": false
+			}
+		},
+		{
+			"type": "Control",
+			"scope": "#/properties/model/properties/outputPlacement",
+			"options": {
+				"format": "radio",
+				"radioLayout": "vertical"
+			}
+		},
+		{
+			"type": "Control",
+			"scope": "#/properties/model/properties/outputName",
+			"rule": {
+				"effect": "SHOW",
+				"condition": {
 					"scope": "#/properties/model/properties/outputPlacement",
-					"options": {
-						"format": "radio",
-						"radioLayout": "vertical"
-					}
-				},
-				{
-					"type": "Control",
-					"scope": "#/properties/model/properties/outputName",
-					"rule": {
-						"effect": "SHOW",
-						"condition": {
-							"scope": "#/properties/model/properties/outputPlacement",
-							"schema": {
-								"oneOf": [
-									{
-										"const": "AppendAsNewColumn"
-									}
-								]
+					"schema": {
+						"oneOf": [
+							{
+								"const": "AppendAsNewColumn"
 							}
-						}
+						]
 					}
 				}
-			]
+			}
 		}
 	]
 }
