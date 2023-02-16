@@ -1,31 +1,25 @@
 {
     "elements": [
         {
-            "type": "Section",
-            "label": "Position of column headers",
-            "elements": [
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/headerRowIndex",
-                    "options": {
-                        "format": "integer"
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/discardBefore",
-                    "options": {
-                        "format": "checkbox"
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/detectTypes",
-                    "options": {
-                        "format": "checkbox"
-                    }
-                }
-            ]
+            "type": "Control",
+            "scope": "#/properties/model/properties/headerRowIndex",
+            "options": {
+                "format": "integer"
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/discardBefore",
+            "options": {
+                "format": "checkbox"
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/detectTypes",
+            "options": {
+                "format": "checkbox"
+            }
         }
     ]
 }
