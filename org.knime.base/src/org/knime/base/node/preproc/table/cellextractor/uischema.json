@@ -1,58 +1,64 @@
 {
     "elements": [
-       {
-            "type": "Section",
-            "label": "Cell Extractor",
-            "elements": [
-            	{
-                    "type": "Control",
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/columnSpecificationMode",
+            "options": {
+                "format": "valueSwitch"
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/columnName",
+            "options": {
+                "format": "columnSelection",
+                "showRowKeys": false,
+                "showNoneColumn": false
+            },
+            "rule": {
+                "effect": "SHOW",
+                "condition": {
                     "scope": "#/properties/model/properties/columnSpecificationMode",
-                    "options": {
-                        "format": "valueSwitch"
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "const": "BY_NAME"
+                            }
+                        ]
                     }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/columnName",
-                    "options": {
-                        "format": "columnSelection",
-                        "showRowKeys": false,
-                        "showNoneColumn": false
-                    },
-                    "rule": {
-                        "effect": "SHOW",
-                        "condition": {
-                            "scope": "#/properties/model/properties/columnSpecificationMode",
-                            "schema": {"oneOf": [{"const": "BY_NAME"}]}
-                        }
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/columnNumber",
-                    "options": {
-                        "format": "Integer"
-                    },
-                    "rule": {
-                        "effect": "SHOW",
-                        "condition": {
-                            "scope": "#/properties/model/properties/columnSpecificationMode",
-                            "schema": {"oneOf": [{"const": "BY_NUMBER"}]}
-                        }
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/rowNumber",
-                    "options": {
-                        "format": "Integer"
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/countFromEnd"
                 }
-            ]
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/columnNumber",
+            "options": {
+                "format": "Integer"
+            },
+            "rule": {
+                "effect": "SHOW",
+                "condition": {
+                    "scope": "#/properties/model/properties/columnSpecificationMode",
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "const": "BY_NUMBER"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/rowNumber",
+            "options": {
+                "format": "Integer"
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/countFromEnd"
         }
     ]
 }
