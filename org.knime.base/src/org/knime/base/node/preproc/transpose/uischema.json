@@ -1,31 +1,31 @@
 {
     "elements": [
-       {
-            "type": "Section",
-            "label": "Transpose table",
-            "elements": [
-            	{
-                    "type": "Control",
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/chunkingMode",
+            "options": {
+                "format": "valueSwitch"
+            }
+        },
+        {
+            "type": "Control",
+            "scope": "#/properties/model/properties/chunkSize",
+            "options": {
+                "format": "Integer"
+            },
+            "rule": {
+                "effect": "SHOW",
+                "condition": {
                     "scope": "#/properties/model/properties/chunkingMode",
-                    "options": {
-                        "format": "valueSwitch"
-                    }
-                },
-                {
-                    "type": "Control",
-                    "scope": "#/properties/model/properties/chunkSize",
-                    "options": {
-                        "format": "Integer"
-                    },
-                    "rule": {
-                        "effect": "SHOW",
-                        "condition": {
-                            "scope": "#/properties/model/properties/chunkingMode",
-                            "schema": {"oneOf": [{"const": "SPECIFY_SIZE"}]}
-                        }
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "const": "SPECIFY_SIZE"
+                            }
+                        ]
                     }
                 }
-            ]
+            }
         }
     ]
 }
