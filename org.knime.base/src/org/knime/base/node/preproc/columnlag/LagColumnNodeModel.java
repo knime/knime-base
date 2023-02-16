@@ -83,7 +83,6 @@ final class LagColumnNodeModel extends NodeModel {
         DataTableSpec dictTable = inSpecs[0];
         if (m_configuration == null) {
             m_configuration = LagColumnConfiguration.autoConfigure(dictTable);
-            setWarningMessage("This node was configured automatically.");
         }
         return new DataTableSpec[]{new LagColumnStreamableOperator(m_configuration, inSpecs[0]).getOutSpec()};
     }

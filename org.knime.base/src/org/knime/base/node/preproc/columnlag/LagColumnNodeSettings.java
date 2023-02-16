@@ -91,24 +91,24 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
     String m_column = ROW_KEYS;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG)
-    @Schema(title = "Lag",
-    description = " <i>L</i> = lag defines how many lagged column copies to create.", min = 1)
+    @Schema(title = "Steps",
+    description = " <i>L</i> = lag steps, defines how many lagged column copies to create. Appends one column per step.", min = 1)
     int m_lag = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL)
-    @Schema(title = "Lag interval",
-    description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality) defines "
+    @Schema(title = "Lag per step",
+    description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines "
             + "how many rows to shift per column copy.", min = 1)
     int m_lagInterval = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS)
-    @Schema(title = "Skip initial incomplete rows",
-        description = "If selected the first rows from the input table are omitted in the output so that the lag "
+    @Schema(title = "Drop incomplete rows at the top of the table",
+        description = "If selected, the first rows from the input table are omitted in the output so that the lag "
             + "output column(s) is not missing (unless the reference data is missing).")
     boolean m_skipInitialIncompleteRows;
 
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_LAST_COMPLETE_ROWS)
-    @Schema(title = "Skip last incomplete rows",
+    @Schema(title = "Drop incomplete rows at the bottom of the table",
         description = "If selected the rows containing the lagged values of the last real data row are "
             + "omitted (no artificial new rows). Otherwise new rows are added, "
             + "which contain missing values in all columns but the new lag output.")

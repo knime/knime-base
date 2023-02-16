@@ -35,19 +35,19 @@
         <option name="Column to lag">
         	The column to be lagged.
         </option>
-        <option name="Lag">
-            <i>L</i> = lag defines how many lagged column copies to create.
-        </option>
-        <option name="Lag interval">
-            <i>I</i> = lag interval (sometimes also called periodicity or seasonality) 
+        <option name="Lag per step">
+            <i>I</i> = lag interval (sometimes also called periodicity or seasonality), 
             defines how many rows to shift per column copy.
         </option>
-        <option name="Skip initial incomplete rows">
-            If selected the first rows from the input table are omitted in the output so that the lag output column(s)
+        <option name="Steps">
+            <i>L</i> = lag steps, defines how many lagged column copies to create. Appends one column per step.
+        </option>
+        <option name="Drop incomplete rows at the top of the table">
+            If selected, the first rows from the input table are omitted in the output so that the lag output column(s)
             is not missing (unless the reference data is missing).
         </option>
-        <option name="Skip last incomplete rows">
-            If selected the rows containing the lagged values of the last real data row are 
+        <option name="Drop incomplete rows at the bottom of the table">
+            If selected, the rows containing the lagged values of the last real data row are 
             omitted (no artificial new rows). Otherwise new rows are added, which contain missing values in all columns
             but the new lag output.
         </option>
