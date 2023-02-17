@@ -68,18 +68,18 @@ public final class Unpivot2NodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = Unpivot2NodeModel.CFG_VALUE_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
     @Schema(title = "Value columns",
-        description = "This list contains the names of the columns that are rotated into one single column.",
+        description = "This list contains the columns that are rotated into one single column.",
         choices = AllColumns.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
     @Persist(configKey = Unpivot2NodeModel.CFG_RETAINED_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
-    @Schema(title = "Retained columns", description = "This list contains the column names of the columns "
+    @Schema(title = "Retained columns", description = "This list contains the columns "
         + "which are duplicated by the number of selected value columns.", choices = AllColumns.class)
     ColumnFilter m_retainedColumns = new ColumnFilter();
 
     @Persist(configKey = Unpivot2NodeModel.CFG_MISSING_VALUES, settingsModel = SettingsModelBoolean.class)
     @Schema(title = "Skip rows containing missing cells",
-        description = "Skip all rows containing missing cells in selected value column(s).")
+        description = "Skip all rows containing missing cells in the selected value column(s).")
     boolean m_missingValues;
 
     @Persist(configKey = Unpivot2NodeModel.CFG_HILITING, settingsModel = SettingsModelBoolean.class)

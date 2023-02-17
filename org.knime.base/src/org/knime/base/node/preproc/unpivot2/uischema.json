@@ -34,9 +34,9 @@
 		},
 		{
 			"type": "Section",
-			"label": "Advanced settings",
+			"label": "Performance",
 			"options": {
-				"isAdvanced":true
+				"isAdvanced": true
 			},
 			"elements": [
 				{
