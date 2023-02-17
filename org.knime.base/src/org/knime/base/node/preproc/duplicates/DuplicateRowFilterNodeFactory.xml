@@ -14,65 +14,45 @@
         rows from the input table and keep only unique and chosen rows or
         mark the rows with additional information about their duplication status.
 		</intro>
-	<tab name="Options">
+	<tab name="Duplicate detection">
 		<option name="Choose columns for duplicates detection">
             Allows the selection of columns identifying the duplicates. Columns
             not selected are handled under "Row selection" in the "Advanced" tab.
 		</option>
 	</tab>
-	<tab name="Duplicate Rows">
-		<option name="Remove duplicates">
-            Advanced setting that removes duplicate rows and keeps only unique and chosen rows.
-		</option>
-		<option name="Keep duplicate rows">
-			Advanced setting that appends columns with additional information to the input table:
-			<ul>
-				<li><b>Add column showing the row status ('unique', 'chosen', 'duplicate') to all rows</b>: 
-				Appends a column with the row status:
-						<br/><i>unique</i>: There is no other row with the same 
-							values in the selected columns.
-						<br/><i>chosen</i>: This row was chosen from a set of duplicate
-                            rows.
-						<br/><i>duplicate</i>: This row is a duplicate and represented by
-							another row.
-				</li>
-				<li><b>Add column identifying the RowID</b>: Appends a column with the
-                    RowID of the chosen row for duplicate rows. Unique and chosen rows
-                    will not have a RowID assigned.
-				</li>
-			</ul>
+	<tab name="Duplicate handling">
+		<option name="Duplicate rows">
+        	<ul>
+        		<li><b>Remove duplicate rows:</b> Removes duplicate rows and keeps only unique and chosen rows.</li>
+        		<li><b>Keep duplicate rows:</b> Appends columns with additional information to the input table.</li>
+        	</ul>
 		</option>
 		<option name="Row chosen in case of duplicate">
-			Advanced setting that defines which row for each set of duplicates is selected:
 			<ul>
-				<li><b>First</b>:The first row in sequence is chosen.
-				</li>
-				<li><b>Last</b>:The last row in sequence is chosen.
-				</li>
-                <li><b>Minimum of</b>:The <i>first</i> row with the minimum value in the selected 
-                	column is chosen. In case of strings, the row will be chosen following lexicographical
-                	order. Missing values are sorted after the maximum value.
-				</li>
-				<li><b>Maximum of</b>:The <i>first</i> row with the maximum value in the selected 
-                	column is chosen. In case of strings, the row will be chosen following lexicographical
-                	order. Missing values are sorted before the minimum value.
-				</li>
-			</ul>
+            	<li><b>First:</b> The first row in sequence is chosen.</li>
+            	<li><b>Last:</b> The last row in sequence is chosen.</li>
+            	<li><b>Minimum of:</b> The first row with the minimum value in the selected column is chosen. 
+            		In case of strings, the row will be chosen following lexicographical order.
+            		Missing values are sorted after the maximum value.</li>
+            	<li><b>Maximum of:</b> The first row with the maximum value in the selected column is chosen. 
+            		In case of strings, the row will be chosen following lexicographical order. 
+            		Missing values are sorted before the minimum value.</li>
+           	</ul>
 		</option>
 	</tab>
-    <tab name="Additional options">
-		<option name="In-memory computation">
-            Advanced setting that, if selected, speeds up computation by utilizing working memory (RAM). The amount
-            of required memory is higher than for a regular computation and also depends
-            on the amount of input data.
+    <tab name="Performance">
+		<option name="Compute in memory">
+            If selected, computation is sped up by utilizing working memory (RAM). 
+            The amount of required memory is higher than for a regular computation and also depends on the amount 
+            of input data.
 		</option>
 		<option name="Retain row order">
-            Advanced setting that, if selected, ensures that the rows in the output table are in the same order as in the
-             input table.
+            If selected, the rows in the output table are guaranteed to have the same 
+            order as in the input table.
 		</option>
 		<option name="Update domains of all columns">
-            Advanced setting to enable recomputation of the domains of all columns in the output table such that the 
-            domains' bounds exactly match the bounds of the data in the output table.
+            Recompute the domains of all columns in the output tables such that the domains' 
+            bounds exactly match the bounds of the data in the output tables.
 		</option>
     </tab>
 	</fullDescription>
