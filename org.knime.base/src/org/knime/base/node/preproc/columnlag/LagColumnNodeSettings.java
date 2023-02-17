@@ -91,12 +91,12 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
     String m_column = ROW_KEYS;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG)
-    @Schema(title = "Steps",
-    description = " <i>L</i> = lag steps, defines how many lagged column copies to create. Appends one column per step.", min = 1)
+    @Schema(title = "Number of copies",
+    description = " <i>L</i> = defines how many lagged column copies to create.", min = 1)
     int m_lag = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL)
-    @Schema(title = "Lag per step",
+    @Schema(title = "Lag per copy",
     description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines "
             + "how many rows to shift per column copy.", min = 1)
     int m_lagInterval = 1;

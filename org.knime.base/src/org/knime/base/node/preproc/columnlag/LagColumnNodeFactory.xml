@@ -14,12 +14,12 @@
 			<ol>
 			<li>make a copy of the selected column and shift the cells <i>I</i> steps up (<i>I</i> = lag interval)</li>
 			<li>make <i>L</i> copies of the selected column and shift the cells of each copy 
-			     1, 2, 3, ... <i>L</i>-1 steps up (<i>L</i> = lag)</li>
+			     1, 2, 3, ... <i>L</i>-1 steps up (<i>L</i> = lag = number of copies)</li>
 			</ol> 
 			<p>
-			  The lag option <i>L</i> in this node is useful for time series prediction. If the rows are sorted in time 
-			  increasing order, to apply a lag <i>L</i> to the selected column means to place <i>L</i>-1 past values of the column
-			  and the current value of the column on one row.The data table can then be used for time series prediction.
+			  The option "Number of copies" (<i>L</i>) in this node is useful for time series prediction. If the rows are sorted in time 
+			  increasing order, to apply a lag <i>D</i> to the selected column means to place <i>D</i>-1 past values of the column
+			  and the current value of the column on one row. The data table can then be used for time series prediction.
 			</p>
             <p>
               The lag interval option <i>I</i> (periodicity or seasonality) in this node is useful to compare values 
@@ -35,12 +35,12 @@
         <option name="Column to lag">
         	The column to be lagged.
         </option>
-        <option name="Lag per step">
-            <i>I</i> = lag interval (sometimes also called periodicity or seasonality), 
-            defines how many rows to shift per column copy.
+        <option name="Lag per copy">
+            <i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines how many rows to shift 
+            per column copy.
         </option>
-        <option name="Steps">
-            <i>L</i> = lag steps, defines how many lagged column copies to create. Appends one column per step.
+        <option name="Number of copies">
+            <i>L</i> = defines how many lagged column copies to create.
         </option>
         <option name="Drop incomplete rows at the top of the table">
             If selected, the first rows from the input table are omitted in the output so that the lag output column(s)
