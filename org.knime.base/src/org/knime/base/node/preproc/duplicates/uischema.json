@@ -1,25 +1,27 @@
 {
     "elements": [
         {
-            "type": "Control",
-            "scope": "#/properties/model/properties/consideredColumns",
-            "options": {
-                "format": "columnFilter"
-            }
+            "type": "Section",
+            "label": "Duplicate detection",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/model/properties/consideredColumns",
+                    "options": {
+                        "format": "columnFilter"
+                    }
+                }
+            ]
         },
         {
             "type": "Section",
-            "label": "Duplicate rows",
-            "options": {
-                "isAdvanced": true
-            },
+            "label": "Duplicate handling",
             "elements": [
                 {
                     "type": "Control",
                     "scope": "#/properties/model/properties/duplicateHandling",
                     "label": "",
                     "options": {
-                        "isAdvanced": true,
                         "format": "radio",
                         "radioLayout": "vertical"
                     }
@@ -27,9 +29,6 @@
                 {
                     "type": "Control",
                     "scope": "#/properties/model/properties/addUniqueLabel",
-                    "options": {
-                        "isAdvanced": true
-                    },
                     "rule": {
                         "effect": "HIDE",
                         "condition": {
@@ -47,9 +46,6 @@
                 {
                     "type": "Control",
                     "scope": "#/properties/model/properties/addRowIdLabel",
-                    "options": {
-                        "isAdvanced": true
-                    },
                     "rule": {
                         "effect": "HIDE",
                         "condition": {
@@ -68,7 +64,6 @@
                     "type": "Control",
                     "scope": "#/properties/model/properties/rowSelectionType",
                     "options": {
-                        "isAdvanced": true,
                         "format": "radio",
                         "radioLayout": "vertical"
                     }
@@ -76,9 +71,6 @@
                 {
                     "type": "Control",
                     "scope": "#/properties/model/properties/selectedColumn",
-                    "options": {
-                        "isAdvanced": true
-                    },
                     "rule": {
                         "effect": "HIDE",
                         "condition": {
@@ -100,7 +92,7 @@
         },
         {
             "type": "Section",
-            "label": "Additional options",
+            "label": "Performance",
             "options": {
                 "isAdvanced": true
             },

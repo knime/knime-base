@@ -119,7 +119,7 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
     String m_selectedColumn;
 
     @Persist(configKey = DuplicateRowFilterSettings.IN_MEMORY_KEY)
-    @Schema(title = "In-memory computation",
+    @Schema(title = "Compute in memory",
         description = "If selected, computation is sped up by utilizing working memory (RAM). "
             + "The amount of required memory is higher than for a regular computation and also depends on the amount "
             + "of input data.")
