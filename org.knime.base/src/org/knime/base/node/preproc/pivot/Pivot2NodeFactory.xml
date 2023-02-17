@@ -180,4 +180,7 @@
         	the Pivot table with the Group table.
         </outPort>
     </ports>
+    <keywords>
+    	<keyword>Cross tab</keyword>
+    </keywords>
 </knimeNode>

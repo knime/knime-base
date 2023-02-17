@@ -65,4 +65,7 @@
 			columns identifying duplicates.
 		</outPort>
 	</ports>
+	<keywords>
+		<keyword>Unique</keyword>
+	</keywords>
 </knimeNode>

@@ -59,5 +59,6 @@
 	</ports>
 	<keywords>
 		<keyword>Row appender</keyword>
+		<keyword>Union</keyword>
 	</keywords>
 </knimeNode>

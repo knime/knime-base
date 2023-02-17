@@ -96,5 +96,6 @@
 	</ports>
 	<keywords>
 		<keyword>Remove columns</keyword>
+		<keyword>Select</keyword>
 	</keywords>
 </knimeNode>

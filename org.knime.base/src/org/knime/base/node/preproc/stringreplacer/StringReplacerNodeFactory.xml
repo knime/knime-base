@@ -51,5 +51,6 @@
     </ports>
     <keywords>
     	<keyword>RegEx</keyword>
+    	<keyword>Find replace</keyword>
     </keywords>
 </knimeNode>

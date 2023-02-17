@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="groupBy.png" type="Manipulator" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+<knimeNode icon="groupBy.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>GroupBy</name>
     <shortDescription>
     	Groups the table by the selected column(s) and aggregates the remaining
@@ -200,4 +202,8 @@
         	the selected columns.
 		</outPort>
     </ports>
+    <keywords>
+    	<keyword>Summarize</keyword>
+    	<keyword>Aggregate</keyword>
+    </keywords>
 </knimeNode>

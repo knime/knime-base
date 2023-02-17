@@ -68,7 +68,7 @@ public final class ColumnRenamerNodeFactory extends WebUINodeFactory<ColumnRenam
             .modelSettingsClass(ColumnRenamerSettings.class)//
             .addInputTable("Input Table", "The input table that contains columns that should be renamed.")//
             .addOutputTable("Output Table", "The input table with the renamed columns.")//
-            .keywords("Change column name")
+            .keywords("Change column name", "Select")
             .build();
 
     /**

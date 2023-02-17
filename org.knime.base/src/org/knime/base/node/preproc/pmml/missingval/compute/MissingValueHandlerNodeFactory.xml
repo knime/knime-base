@@ -34,4 +34,7 @@
         <outPort index="0" name="Output table">Table with replaced missing values</outPort>
         <outPort index="1" name="PMML Transformations">Table with PMML documenting the missing value replacement</outPort>
     </ports>
+    <keywords>
+    	<keyword>Imputation</keyword>
+    </keywords>
 </knimeNode>
