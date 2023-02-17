@@ -62,8 +62,8 @@ public final class RowAggregatorNodeFactory extends WebUINodeFactory<RowAggregat
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Row Aggregator")//
         .icon("./Row-aggregator.png")//
-        .shortDescription("Aggregate frequency columns.")//
-        .fullDescription("Aggregate frequency columns using an aggregation function. "
+        .shortDescription("Aggregate columns.")//
+        .fullDescription("Aggregate columns using an aggregation function. "
             + "The rows can optionally be grouped by a category column. Some aggregation functions "
             + "support using a weight from a weight column."
             + "<br/>"
@@ -72,10 +72,10 @@ public final class RowAggregatorNodeFactory extends WebUINodeFactory<RowAggregat
             + "preproc.groupby.GroupByNodeFactory\">GroupBy</a> node.")//
         .modelSettingsClass(RowAggregatorSettings.class)//
         .addInputTable("Input Table", "The table to aggregate.")//
-        .addOutputTable("Aggregated table", "The aggregated table.")//
-        .addOutputTable("Totals table", "Contains the single-row table with \"grand total\" values if, and only if, "
-            + "the corresponding output setting is enabled and a category column is selected. Otherwise, the output is "
-            + "inactive.")
+        .addOutputTable("Aggregation results", "The table containing aggregation results.")//
+        .addOutputTable("Grand-total results", "Contains the single-row table with \"grand total\" values if, and only "
+            + "if, the corresponding output setting is enabled and a category column is selected. Otherwise, the "
+            + "output is inactive.")
         .keywords("Group by")
         .build();
 

@@ -83,7 +83,7 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
                 + "</ul>")
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
-    @Schema(title = "Frequency columns", description = "Select the columns to apply the aggregation function to.",
+    @Schema(title = "Aggregation columns", description = "Select the columns to apply the aggregation function to.",
             choices = AggregatableColumns.class, withTypes = true, multiple = true)
     ColumnFilter m_frequencyColumns;
 
@@ -100,7 +100,7 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
 
     }
 
-    @Schema(title = "Weight column", description = "Select the column that defines the weight with which a frequency "
+    @Schema(title = "Weight column", description = "Select the column that defines the weight with which a "
         + "value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" "
         + "support a weight column",
             choices = WeightColumns .class)

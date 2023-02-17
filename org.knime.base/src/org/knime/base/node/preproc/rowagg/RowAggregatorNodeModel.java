@@ -102,8 +102,8 @@ import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.dialog.impl.WebUINodeModel;
 
 /**
- * A simplified {@link GroupByNodeModel} to aggregate numeric columns ("frequency attributes") of an input table,
- * optionally grouped by a single column ("class attribute"), with a single aggregation method.
+ * A simplified {@link GroupByNodeModel} to aggregate numeric columns of an input table,
+ * optionally grouped by a single column ("category attribute"), with a single aggregation method.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -121,9 +121,9 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     private static final Set<String> NOTHING_SELECTION = Set.of(NONE_COLUMN_PLACEHOLDER, "");
 
 
-    /** Settings error message that all aggregation functions except "count" need at least one frequency column. */
-    private static final String MISSING_FREQUENCY_COLUMNS = "Choose at least one frequency column to aggregate or "
-        + "choose the \"Occurrence count\" aggregation.";
+    /** Settings error message that all aggregation functions except "count" need at least one aggregation column. */
+    private static final String MISSING_AGGREGATION_COLUMNS = "Choose at least one aggregation column to aggregate or "
+        + "choose the \"Occurrence count\" aggregation function.";
     /** Settings error message that input is missing. */
     private static final String INPUT_MISSING = "No input specification available.";
 
@@ -395,14 +395,14 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         final var agg = settings.m_aggregationMethod;
         final var aggregatedColumns = getEffectiveAggregatedColumns(origSpec, settings);
         if (agg != AggregationFunction.COUNT) {
-            // all other aggregations than COUNT currently need at least one frequency column
+            // all other aggregations than COUNT currently need at least one aggregation column
             if (aggregatedColumns.isEmpty()) {
-                throw new InvalidSettingsException(MISSING_FREQUENCY_COLUMNS);
+                throw new InvalidSettingsException(MISSING_AGGREGATION_COLUMNS);
             }
             final var aggCols = aggregatedColumns.get();
             // only placeholder set, behave as if missing columns
             final var onlyPlaceholder = aggCols.length == 1 && NOTHING_SELECTION.contains(aggCols[0]);
-            CheckUtils.checkSetting(!onlyPlaceholder, MISSING_FREQUENCY_COLUMNS);
+            CheckUtils.checkSetting(!onlyPlaceholder, MISSING_AGGREGATION_COLUMNS);
         }
         if (aggregatedColumns.isPresent()) {
             checkSettingMissingAggregatedColumns(origSpec, aggregatedColumns.get());
@@ -474,7 +474,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             missing.stream()
                 .map(col -> "\"" + col + "\"")
                 .collect(Collectors.joining(", ",
-                    "Missing frequency column" + (missing.size() > 1 ? "s" : "") + ": ", ".")));
+                    "Missing aggregation column" + (missing.size() > 1 ? "s" : "") + ": ", ".")));
     }
 
     @Override
@@ -485,10 +485,6 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         }
 
         final var table = (BufferedDataTable) inPortObjects[0];
-        if (table.size() < 1) {
-            setWarningMessage("Input table empty.");
-        }
-
         final var inSpec = table.getDataTableSpec();
         final var gsb = createGlobalSettingsBuilder()
                 .setFileStoreFactory(FileStoreFactory.createWorkflowFileStoreFactory(exec))
