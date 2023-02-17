@@ -15,27 +15,27 @@
 			filtered out, i.e. they will not be in the output table.
 			The dialog allows setting the following parameters:
 		</intro>
-		<option name="Output columns">
+		<option name="How to combine input columns">
 			<ul>
 				<li><b>Intersection:</b> Use only the columns that appear
-                    in every input table. Any other column is ignored and won't appear
-                    in the output table.</li>
+                    in all input tables. Any other column is ignored and won't appear
+                    in the output table. Columns are matched by name.</li>
                 <li><b>Union:</b> Use all columns from all input
                     tables. Fill rows with missing values if they miss cells for some columns.</li>
 			</ul>
 		</option>
-		<option name="Resolution action for duplicate RowIDs">
+		<option name="If there are duplicate RowIDs">
 			<ul>
 				<li><b>Skip:</b> Duplicate row identifiers (RowID) occurring in the 
-	        second table are not appended to the output table. This option is 
-	        relatively memory intensive as it needs to cache the row IDs in
+	        second table and following tables are not appended to the output table. This option is 
+	        relatively memory intensive as it needs to cache the RowIDs in
 	        order to find duplicates. Furthermore a full data
 			duplication is needed.</li>
 				<li><b>Append suffix:</b> The output table will contain all rows, but
-            duplicate row identifiers are labeled with a suffix. Similar to
+            duplicate RowIDs are labeled with a suffix. Similar to
             the "Skip" option this method is also memory intensive.</li>
             	<li><b>Fail:</b> The node will fail during execution if duplicate 
-            row IDs are encountered. This option is efficient while checking 
+            RowIDs are encountered. This option is efficient while checking 
             uniqueness.</li>
 			</ul>
 		</option>
@@ -55,7 +55,7 @@
         	Table contributing subsequent rows.
         </dynInPort>
         
-        <outPort index="0" name="Concatenated table">Table with rows from both tables.</outPort>
+        <outPort index="0" name="Concatenated table">Table with rows from all tables.</outPort>
 	</ports>
 	<keywords>
 		<keyword>Row appender</keyword>

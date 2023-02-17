@@ -79,7 +79,7 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     String m_suffix = "_dup";
 
     @Persist(customPersistor = RowIdResolutionPersistor.class)
-    @Schema(title = "Resolution action for duplicate RowIDs",
+    @Schema(title = "If there are duplicate RowIDs",
             description = "Select how to resolve duplicate RowIDs:"
             + "<ul>"
             // Skip option description
@@ -89,16 +89,16 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             + "order to find duplicates. Furthermore a full data duplication is needed.</li>"
             // Append suffix option description
             + "<li><b>Append suffix</b>: The output table will contain all rows, but "
-            + "duplicate row identifiers are labeled with a suffix. Similar to "
+            + "duplicate RowIDs are labeled with a suffix. Similar to "
             + "the \"Skip Rows\" option this method is also memory intensive.</li>"
             // Fail option description
             + "<li><b>Fail</b>: The node will fail during execution if duplicate "
-            + "row IDs are encountered. This option is efficient while checking uniqueness.</li>"
+            + "RowIDs are encountered. This option is efficient while checking uniqueness.</li>"
             + "</ul>")
     RowIdResolution m_rowIdResolution = RowIdResolution.APPEND;
 
     @Persist(customPersistor = ColumnSetOperationPersistor.class)
-    @Schema(title = "Output columns",
+    @Schema(title = "How to combine input columns",
             description = "Choose the output column selection process:"
                     + "<ul>"
                     // Intersection option description
