@@ -23,54 +23,88 @@
 		</intro>
 
 		<tab name="Value columns">      
-			<option name="Includes">
-				This list contains the names of the columns that are rotated into one single column. 
-			</option>
-			<option name="Skip rows containing missing cells">
-				Skip all rows containing missing cells in selected value column(s).
-			</option>
-		</tab>
-
-		<tab name="Retained columns">
-			<option name="Includes">
-				This list contains the column names of the columns
-				which are duplicated by the number of selected value columns.
-			</option>
-		</tab>
-
-		<tab name="Manual">
-            
-            <option name="Buttons">
-                Use these buttons to move columns between the Include and Exclude 
+			<option name="Includes/exclude columns">
+				This list contains the columns that are rotated into one single column.
+				
+				<br/>
+				
+				<b>Manual selection</b>:
+				<ul>
+					<li><i>Buttons</i>: Use these buttons to move columns between the Include and Exclude 
                 list. Single-arrow buttons will move all selected columns.
                 Double-arrow buttons will move all columns (filtering is taken into
-                account).
-            </option>
-            
-            <option name="Any unknown columns">
-                Controls what happens with new columns when the input table changes.
-                If this placeholder is in the include list, then new columns are included, otherwise they are excluded.
-            </option>
-        </tab>
-
-        <tab name="Wildcard/Regex">
-        	<option name="Pattern">
-				Type a search pattern which matches columns to move into the
+                account).</li>
+					<li><i>Any unknown columns</i>: Controls what happens with new columns when the input table changes.
+                If this placeholder is in the include list, then new columns are included, otherwise they are excluded.</li>
+				</ul>
+				
+				<br/>
+				
+				<b>Wildcard/Regex</b>:
+				<ul>
+					<li><i>Pattern</i>: Type a search pattern which matches columns to move into the
 				Include or Exclude list. Which list is used can be specified.
 				You can use either Wildcards ('?' matching any
 				character, '*' matching a sequence of any characters) or Regex.
 				You can specify whether your pattern should be case sensitive and whether the pattern defines the
-				includes or the excludes.
+				includes or the excludes.</li>
+				</ul>
+				
+				<br/>
+				
+				<b>Types</b>:
+				<ul>
+					<li><i>Selected types</i>: Select the column types that you want to include.</li>
+				</ul>
 			</option>
-        </tab>
-
-        <tab name="Types">
-        	<option name="Selected types">
-				Select the column types that you want to include.
+			<option name="Skip rows containing missing cells">
+				Skip all rows containing missing cells in the selected value column(s).
 			</option>
-        </tab>
+		</tab>
 
-		<tab name="Advanced settings">
+		<tab name="Retained columns">
+			<option name="Includes/exclude columns">
+				This list contains the columns which are duplicated by the number of selected value columns.
+				
+				<br/>
+				
+				<b>Manual selection</b>:
+				<ul>
+					<li><i>Buttons</i>: Use these buttons to move columns between the Include and Exclude 
+                list. Single-arrow buttons will move all selected columns.
+                Double-arrow buttons will move all columns (filtering is taken into
+                account).</li>
+					<li><i>Any unknown columns</i>: Controls what happens with new columns when the input table changes.
+                If this placeholder is in the include list, then new columns are included, otherwise they are excluded.</li>
+				</ul>
+				
+				<br/>
+				
+				<b>Wildcard/Regex</b>:
+				<ul>
+					<li><i>Pattern</i>: Type a search pattern which matches columns to move into the
+				Include or Exclude list. Which list is used can be specified.
+				You can use either Wildcards ('?' matching any
+				character, '*' matching a sequence of any characters) or Regex.
+				You can specify whether your pattern should be case sensitive and whether the pattern defines the
+				includes or the excludes.</li>
+				</ul>
+				
+				<br/>
+				
+				<b>Types</b>:
+				<ul>
+					<li><i>Selected types</i>: Select the column types that you want to include.</li>
+				</ul>
+			</option>
+		</tab>
+
+
+
+
+
+
+		<tab name="Performance">
 			<option name="Enable hiliting">
 				Advanced setting that if selected enables hiliting between input and output data.
 			</option>
