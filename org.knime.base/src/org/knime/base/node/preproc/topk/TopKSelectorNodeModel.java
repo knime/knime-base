@@ -70,6 +70,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.ConvenienceMethods;
 
 /**
  * Node model for the Top K Selector node.
@@ -105,10 +106,12 @@ final class TopKSelectorNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         final var sk = m_settings.getSortKey();
-        CheckUtils.checkSetting(sk != null && !sk.isEmpty(), "No columns specified to select by.");
+        CheckUtils.checkSetting(sk != null && !sk.isEmpty(),
+            "No columns have been specified to select the top rows of. Set them in the dialog.");
         final DataTableSpec dts = inSpecs[IN_DATA];
         final List<String> missing = SortKeyItem.getMissing(sk, dts, TopKSelectorNodeModel::isRowKey);
-        CheckUtils.checkSetting(missing.isEmpty(), missingColumnsError(missing));
+        CheckUtils.checkSetting(missing.isEmpty(), String.format("The columns %s are configured but no longer exist.",
+            ConvenienceMethods.getShortStringFrom(missing, 3)));
         return inSpecs.clone();
     }
 
@@ -116,12 +119,13 @@ final class TopKSelectorNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
             throws Exception {
         final var sortKey = m_settings.getSortKey();
-        CheckUtils.checkNotNull(sortKey, "Sort key columns should not be null");
-        CheckUtils.checkSetting(!sortKey.isEmpty(), "Sort key should not be empty.");
+        CheckUtils.checkSetting(sortKey != null && !sortKey.isEmpty(),
+            "No columns have been specified to select the top rows of. Set them in the dialog.");
 
         final BufferedDataTable table = inData[IN_DATA];
         if (table.size() < m_settings.getK()) {
-            setWarningMessage(String.format("The input table has fewer rows (%s) than the specified k (%s)",
+            setWarningMessage(String.format(
+                "The input table has fewer rows (%s) than the specified k. Make sure the input has at least %s rows.",
                 table.size(), m_settings.getK()));
         }
         final boolean missingsLast = m_settings.isMissingToEnd();
@@ -138,21 +142,6 @@ final class TopKSelectorNodeModel extends NodeModel {
             outputOrder.getPostprocessor().postprocessSelection(elementSelector.getTopK(), rc);
         final BufferedDataTable outputTable = createOutputTable(topK, dts, exec.createSubExecutionContext(0.1));
         return new BufferedDataTable[]{outputTable};
-    }
-
-    private static String missingColumnsError(final Collection<String> missingColumns) {
-        final StringBuilder sb = new StringBuilder("The input table has changed. Some columns are missing: ");
-        final Iterator<String> iter = missingColumns.iterator();
-        for (int i = 0; i < 3 && iter.hasNext(); i++) {
-            sb.append("\"").append(iter.next()).append("\"");
-            if (iter.hasNext()) {
-                sb.append(", ");
-            }
-        }
-        if (missingColumns.size() > 3) {
-            sb.append("... <").append(missingColumns.size() - 3).append("more>");
-        }
-        return sb.toString();
     }
 
     private static boolean isRowKey(final String colName) {
@@ -185,7 +174,7 @@ final class TopKSelectorNodeModel extends NodeModel {
                 final DataRow row = iterator.next();
                 final long iFinal = i;
                 exec.setProgress(i / nrRows,
-                    () -> String.format("Consuming row %s (%s of %s).", row.getKey(), iFinal, (long)nrRows));
+                    () -> String.format("Consuming row %s (%s of %s)", row.getKey(), iFinal, (long)nrRows));
                 elementSelector.consume(row);
             }
         }

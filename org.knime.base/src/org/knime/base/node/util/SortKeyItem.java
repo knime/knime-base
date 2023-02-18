@@ -194,20 +194,23 @@ public final class SortKeyItem {
             final var entry = inclList[i];
             for (int j = i + 1; j < inclList.length; j++) {
                 if (entry.equals(inclList[j])) {
-                    throw new InvalidSettingsException("Duplicate column '"
-                            + entry + "' at positions " + i + " and " + j);
+                    throw new InvalidSettingsException(
+                        "The column \"" + entry + "\" appears multiple times at positions " + i + " and " + j
+                            + ". The entries must be unique.");
                 }
             }
         }
-        CheckUtils.checkSetting(settings.containsKey(sortOrderKey), "No sort order specified.");
+        CheckUtils.checkSetting(settings.containsKey(sortOrderKey),
+            "No sorting order was specified. Set it in the dialog.");
         final var sortOrders = CheckUtils.checkSettingNotNull(settings.getBooleanArray(sortOrderKey),
             "Invalid sort orders.");
-        CheckUtils.checkSetting(inclList.length == sortOrders.length, "Mismatch in number of columns and sort orders.");
+        CheckUtils.checkSetting(inclList.length == sortOrders.length,
+            "The number of columns and sort orders don't match up. Re-configure them in the dialog.");
         // don't require presence for backwards compat (added in 4.7)
         if (settings.containsKey(alphaNumCompKey)) {
             final var alphaNumComp = settings.getBooleanArray(alphaNumCompKey);
             CheckUtils.checkSetting(!(alphaNumComp == null || inclList.length != alphaNumComp.length),
-                    "Invalid entry for alphanumeric string comparison of sort columns.");
+                "The number of columns and alphanumeric string comparisons don't match up. Re-configure in the dialog.");
         }
     }
 
@@ -259,7 +262,8 @@ public final class SortKeyItem {
         final var idx = dts.findColumnIndex(colName);
         if (idx == -1) {
             if (!isRowKey.test(colName)) {
-                throw new IllegalArgumentException("Unknown column identifier: " + colName);
+                throw new IllegalArgumentException(
+                    "The column identifier \"" + colName + "\" does not refer to a known column.");
             }
             return OptionalInt.empty();
         }

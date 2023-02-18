@@ -186,7 +186,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
         throws NotConfigurableException {
         final DataTableSpec spec = specs[TopKSelectorNodeModel.IN_DATA];
         if (spec == null || spec.getNumColumns() < 1) {
-            throw new NotConfigurableException("No columns to select by.");
+            throw new NotConfigurableException("No columns are present in the input. Needs at least one column to execute.");
         }
 
         m_panel.load(settings, specs);
@@ -195,7 +195,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
             m_settings.loadValidatedSettingsFrom(settings);
 
         } catch (InvalidSettingsException e) {
-            throw new NotConfigurableException("Couldn't load settings", e);
+            throw new NotConfigurableException("The settings could not be loaded. Configure them in the dialog.", e);
         }
     }
 }
