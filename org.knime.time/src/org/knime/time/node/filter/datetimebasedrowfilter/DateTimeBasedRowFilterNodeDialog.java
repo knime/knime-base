@@ -67,6 +67,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdate.LocalDateValue;
@@ -479,25 +480,25 @@ final class DateTimeBasedRowFilterNodeDialog extends NodeDialogPane {
      * Checks if period or duration can be parsed
      */
     private void checkPeriodOrDuration() {
-        String warning = "";
+        final var inputValue = ((SettingsModelString)m_dialogCompPeriodOrDurationValue.getModel()).getStringValue();
+        var warning = "";
         try {
-            DurationPeriodFormatUtils
-                .parsePeriod(((SettingsModelString)m_dialogCompPeriodOrDurationValue.getModel()).getStringValue());
+            DurationPeriodFormatUtils.parsePeriod(inputValue);
             if (m_dialogCompColSelection.getSelectedAsSpec().getType().isCompatible(LocalTimeValue.class)) {
-                warning = "A date-based duration cannot be applied on a time!";
+                warning = String.format("The date-based duration \"%s\" cannot be applied to a time.", inputValue);
             }
         } catch (DateTimeParseException e) {
             try {
-                DurationPeriodFormatUtils.parseDuration(
-                    ((SettingsModelString)m_dialogCompPeriodOrDurationValue.getModel()).getStringValue());
+                DurationPeriodFormatUtils.parseDuration(inputValue);
                 if (m_dialogCompColSelection.getSelectedAsSpec().getType().isCompatible(LocalDateValue.class)) {
-                    warning = "A time-based duration cannot be applied on a date!";
+                    warning =
+                        String.format("The time-based duration \"%s\" cannot be applied to a date.", inputValue);
                 }
             } catch (DateTimeParseException e2) {
-                warning = "Value does not represent a duration!";
+                warning = String.format("The input value \"%s\" does not represent a duration.", inputValue);
             }
         }
-        if (!warning.equals("")) {
+        if (StringUtils.isNotBlank(warning)) {
             ((JComponent)m_dialogCompPeriodOrDurationValue.getComponentPanel().getComponent(1))
                 .setBorder(BorderFactory.createLineBorder(Color.RED));
             m_typeWarningLabel.setText(warning);
@@ -508,25 +509,22 @@ final class DateTimeBasedRowFilterNodeDialog extends NodeDialogPane {
     }
 
     /**
-     * Checks if granularity can be applied on column
+     * Checks if granularity can be applied to column
      */
     private void checkGranularity() {
+        final var inputValue = ((SettingsModelString)m_dialogCompNumericalGranularity.getModel()).getStringValue();
         String warning = "";
-        final TemporalAmount periodOrDuration =
-            Granularity.fromString(((SettingsModelString)m_dialogCompNumericalGranularity.getModel()).getStringValue())
-                .getPeriodOrDuration(1);
+        final TemporalAmount periodOrDuration = Granularity.fromString(inputValue).getPeriodOrDuration(1);
         if (periodOrDuration instanceof Period
             && m_dialogCompColSelection.getSelectedAsSpec().getType().isCompatible(LocalTimeValue.class)) {
-            warning = ((SettingsModelString)m_dialogCompNumericalGranularity.getModel()).getStringValue()
-                + " cannot be applied on a time!";
+            warning = String.format("The input value \"%s\" cannot be applied to a time.", inputValue);
         }
         if (periodOrDuration instanceof Duration
             && m_dialogCompColSelection.getSelectedAsSpec().getType().isCompatible(LocalDateValue.class)) {
-            warning = ((SettingsModelString)m_dialogCompNumericalGranularity.getModel()).getStringValue()
-                + " cannot be applied on a date!";
+            warning = String.format("The input value \"%s\" cannot be applied to a date.", inputValue);
         }
 
-        if (!warning.equals("")) {
+        if (StringUtils.isNotBlank(warning)) {
             ((JComponent)m_dialogCompNumericalGranularity.getComponentPanel().getComponent(1))
                 .setBorder(BorderFactory.createLineBorder(Color.RED));
             m_typeWarningLabel.setText(warning);
@@ -561,7 +559,7 @@ final class DateTimeBasedRowFilterNodeDialog extends NodeDialogPane {
                     .isAfter(((SettingsModelDateTime)m_dialogCompEndDateTime.getModel()).getZonedDateTime());
             }
             if (isStartAfterEnd) {
-                m_typeWarningLabel.setText("End date must not be before start date!");
+                m_typeWarningLabel.setText("The end date must not be before the start date. Enter a new end date.");
             }
         }
     }
@@ -572,7 +570,7 @@ final class DateTimeBasedRowFilterNodeDialog extends NodeDialogPane {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         updateWarningLabel();
-        if (!m_typeWarningLabel.getText().equals("")) {
+        if (StringUtils.isNotBlank(m_typeWarningLabel.getText())) {
             throw new InvalidSettingsException(m_typeWarningLabel.getText());
         }
         m_dialogCompColSelection.saveSettingsTo(settings);

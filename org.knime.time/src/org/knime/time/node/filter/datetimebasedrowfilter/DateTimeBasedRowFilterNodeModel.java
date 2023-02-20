@@ -58,6 +58,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAmount;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -99,9 +100,6 @@ import org.knime.time.util.SettingsModelDateTime;
 final class DateTimeBasedRowFilterNodeModel extends NodeModel {
 
     static final String FORMAT_HISTORY_KEY = "time_based_row_filter_formats";
-
-    static final String WARNING_MESSAGE_START_AFTER_END =
-        "Start date is after end date! Node created an empty data table.";
 
     private final SettingsModelString m_colSelect = createColSelectModel();
 
@@ -206,7 +204,7 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (inSpecs[0].findColumnIndex(m_colSelect.getStringValue()) < 0) {
-            throw new InvalidSettingsException("No configuration available!");
+            throw new InvalidSettingsException("The node was not configured yet. Open the dialog.");
         }
         return inSpecs;
     }
@@ -259,7 +257,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
      */
     private boolean filterRowLocalDate(final LocalDate localDate, final ZonedDateTime executionStartTime,
         final ZonedDateTime executionEndTime) throws ArithmeticException, DateTimeException {
-        LocalDate endDate = executionEndTime == null ? m_endDateTime.getLocalDate() : executionEndTime.toLocalDate();
+        final var isSetEndExecutionTime = executionEndTime != null;
+        var endDate = !isSetEndExecutionTime ? m_endDateTime.getLocalDate() : executionEndTime.toLocalDate();
         // if only an end date is given, look if given date is before
         if (!m_startBool.getBooleanValue()) {
             if ((localDate.equals(endDate) && m_endInclusive.getBooleanValue()) || localDate.isBefore(endDate)) {
@@ -268,8 +267,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
             return false;
         }
 
-        final LocalDate startDate =
-            executionStartTime == null ? m_startDateTime.getLocalDate() : executionStartTime.toLocalDate();
+        final var isSetStartExecutionTime = executionStartTime != null;
+        final var startDate = !isSetStartExecutionTime ? m_startDateTime.getLocalDate() : executionStartTime.toLocalDate();
         // if only a start date is given, look if given date is afterwards
         if (!m_endBool.getBooleanValue()) {
             if ((localDate.equals(startDate) && m_startInclusive.getBooleanValue()) || localDate.isAfter(startDate)) {
@@ -301,8 +300,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
 
         // this can be true, if the start or end date is defined by execution time
         if (startDate.isAfter(endDate) && m_endSelection.getStringValue().equals(EndMode.DateTime.name())
-            && (getWarningMessage() == null || getWarningMessage().isEmpty())) {
-            setWarningMessage(WARNING_MESSAGE_START_AFTER_END);
+            && StringUtils.isBlank(getWarningMessage())) {
+            setStartAfterEndMessage("date", isSetStartExecutionTime, isSetEndExecutionTime);
         }
         return false;
     }
@@ -317,7 +316,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
      */
     private boolean filterRowLocalTime(final LocalTime localTime, final ZonedDateTime executionStartTime,
         final ZonedDateTime executionEndTime) throws ArithmeticException, DateTimeException {
-        LocalTime endTime = executionEndTime == null ? m_endDateTime.getLocalTime() : executionEndTime.toLocalTime();
+        final var isSetEndExecutionTime = executionEndTime != null;
+        var endTime = !isSetEndExecutionTime ? m_endDateTime.getLocalTime() : executionEndTime.toLocalTime();
         // if only an end time is given, look if given time is before
         if (!m_startBool.getBooleanValue()) {
             if ((localTime.equals(endTime) && m_endInclusive.getBooleanValue()) || localTime.isBefore(endTime)) {
@@ -326,8 +326,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
             return false;
         }
 
-        final LocalTime startTime =
-            executionStartTime == null ? m_startDateTime.getLocalTime() : executionStartTime.toLocalTime();
+        final var isSetStartExecutionTime = executionStartTime != null;
+        final var startTime = !isSetStartExecutionTime ? m_startDateTime.getLocalTime() : executionStartTime.toLocalTime();
         // if only a start time is given, look if given time is afterwards
         if (!m_endBool.getBooleanValue()) {
             if ((localTime.equals(startTime) && m_startInclusive.getBooleanValue()) || localTime.isAfter(startTime)) {
@@ -359,8 +359,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
 
         // this can be true, if the start or end date is defined by execution time
         if (startTime.isAfter(endTime) && m_endSelection.getStringValue().equals(EndMode.DateTime.name())
-            && (getWarningMessage() == null || getWarningMessage().isEmpty())) {
-            setWarningMessage(WARNING_MESSAGE_START_AFTER_END);
+            && StringUtils.isBlank(getWarningMessage())) {
+            setStartAfterEndMessage("time", isSetStartExecutionTime, isSetEndExecutionTime);
         }
         return false;
     }
@@ -375,8 +375,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
      */
     private boolean filterRowLocalDateTime(final LocalDateTime localDateTime, final ZonedDateTime executionStartTime,
         final ZonedDateTime executionEndTime) throws ArithmeticException, DateTimeException {
-        LocalDateTime endDateTime =
-            executionEndTime == null ? m_endDateTime.getLocalDateTime() : executionEndTime.toLocalDateTime();
+        final var isSetEndExecutionTime = executionEndTime != null;
+        var endDateTime = !isSetEndExecutionTime ? m_endDateTime.getLocalDateTime() : executionEndTime.toLocalDateTime();
         // if only an end time is given, look if given time is before
         if (!m_startBool.getBooleanValue()) {
             if ((localDateTime.equals(endDateTime) && m_endInclusive.getBooleanValue())
@@ -386,8 +386,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
             return false;
         }
 
-        final LocalDateTime startDateTime =
-            executionStartTime == null ? m_startDateTime.getLocalDateTime() : executionStartTime.toLocalDateTime();
+        final var isSetStartExecutionTime = executionStartTime != null;
+        final var startDateTime = !isSetStartExecutionTime ? m_startDateTime.getLocalDateTime() : executionStartTime.toLocalDateTime();
         // if only a start time is given, look if given time is afterwards
         if (!m_endBool.getBooleanValue()) {
             if ((localDateTime.equals(startDateTime) && m_startInclusive.getBooleanValue())
@@ -420,8 +420,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
 
         // this can be true, if the start or end date is defined by execution time
         if (startDateTime.isAfter(endDateTime) && m_endSelection.getStringValue().equals(EndMode.DateTime.name())
-            && (getWarningMessage() == null || getWarningMessage().isEmpty())) {
-            setWarningMessage(WARNING_MESSAGE_START_AFTER_END);
+            && StringUtils.isBlank(getWarningMessage())) {
+            setStartAfterEndMessage("datetime", isSetStartExecutionTime, isSetEndExecutionTime);
         }
         return false;
     }
@@ -436,7 +436,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
      */
     private boolean filterRowZonedDateTime(final ZonedDateTime zonedDateTime, final ZonedDateTime executionStartTime,
         final ZonedDateTime executionEndTime) throws ArithmeticException, DateTimeException {
-        ZonedDateTime endDateTime = executionEndTime == null ? m_endDateTime.getZonedDateTime() : executionEndTime;
+        final var isSetEndExecutionTime = executionEndTime != null;
+        var endDateTime = !isSetEndExecutionTime ? m_endDateTime.getZonedDateTime() : executionEndTime;
         // if only an end time is given, look if given time is before
         if (!m_startBool.getBooleanValue()) {
             if ((zonedDateTime.equals(endDateTime) && m_endInclusive.getBooleanValue())
@@ -446,8 +447,8 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
             return false;
         }
 
-        final ZonedDateTime startDateTime =
-            executionStartTime == null ? m_startDateTime.getZonedDateTime() : executionStartTime;
+        final var isSetStartExecutionTime = executionStartTime != null;
+        final var startDateTime = !isSetStartExecutionTime ? m_startDateTime.getZonedDateTime() : executionStartTime;
         // if only a start time is given, look if given time is afterwards
         if (!m_endBool.getBooleanValue()) {
             if ((zonedDateTime.equals(startDateTime) && m_startInclusive.getBooleanValue())
@@ -480,10 +481,29 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
 
         // this can be true, if the start or end date is defined by execution time
         if (startDateTime.isAfter(endDateTime) && m_endSelection.getStringValue().equals(EndMode.DateTime.name())
-            && (getWarningMessage() == null || getWarningMessage().isEmpty())) {
-            setWarningMessage(WARNING_MESSAGE_START_AFTER_END);
+            && StringUtils.isBlank(getWarningMessage())) {
+            setStartAfterEndMessage("datetime", isSetStartExecutionTime, isSetEndExecutionTime);
         }
         return false;
+    }
+
+    /**
+     * Sets the message that the start time > end time. Also adds the possible cause of the times being set by to the
+     * execution time.
+     *
+     * @param isSetStartExecutionTime was the start time set to the execution time?
+     * @param isSetEndExecutionTime was the end time set to the execution time?
+     */
+    private void setStartAfterEndMessage(final String timeType, final boolean isSetStartExecutionTime, final boolean isSetEndExecutionTime) {
+        final var execTimeMsg = new StringBuilder();
+        if (isSetStartExecutionTime || isSetEndExecutionTime) {
+            execTimeMsg.append(" Reason could be the ");
+            var time = isSetStartExecutionTime ? (isSetEndExecutionTime ? "start and end" : "start") //NOSONAR
+                : (isSetEndExecutionTime ? "end" : ""); //NOSONAR
+            execTimeMsg.append(time + " " + timeType + " being set to the execution " + timeType + ".");
+        }
+        setWarningMessage("Node created an empty data table. The start " + timeType + " is after the end " + timeType
+            + "." + execTimeMsg.toString());
     }
 
     /**
