@@ -42,17 +42,17 @@
 	</tab>
     <tab name="Performance">
 		<option name="Compute in memory">
-            If selected, computation is sped up by utilizing working memory (RAM). 
+            Advanced setting that, if selected, computation is sped up by utilizing working memory (RAM). 
             The amount of required memory is higher than for a regular computation and also depends on the amount 
             of input data.
 		</option>
 		<option name="Retain row order">
-            If selected, the rows in the output table are guaranteed to have the same 
+            Advanced setting that, if selected, the rows in the output table are guaranteed to have the same 
             order as in the input table.
 		</option>
 		<option name="Update domains of all columns">
-            Recompute the domains of all columns in the output tables such that the domains' 
-            bounds exactly match the bounds of the data in the output tables.
+            Advanced setting to enable recomputation of the domains of all columns in the output tables such that the 
+            domains' bounds exactly match the bounds of the data in the output tables.
 		</option>
     </tab>
 	</fullDescription>
