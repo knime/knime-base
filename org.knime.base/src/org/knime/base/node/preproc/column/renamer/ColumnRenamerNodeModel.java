@@ -167,9 +167,6 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
             if (newName == null) {
                 return name;
             } else {
-                if (name.equals(newName)) {
-                    setWarningMessage(String.format("The name of the column '%s' is not changed.", name));
-                }
                 return newName;
             }
         }
