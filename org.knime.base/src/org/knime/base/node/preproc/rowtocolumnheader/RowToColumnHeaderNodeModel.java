@@ -70,6 +70,7 @@ import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.data.convert.map.CellValueProducerFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.v2.ReadValue;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -810,7 +811,12 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
     }
 
     private static String valueToString(final DataValue value) {
-        final var str = value.toString();
+        String str;
+        if (value instanceof ReadValue) {
+            str = ((ReadValue)value).getDataCell().toString();
+        } else {
+            str = value.toString();
+        }
         return str.isEmpty() ? null : str;
     }
 }
