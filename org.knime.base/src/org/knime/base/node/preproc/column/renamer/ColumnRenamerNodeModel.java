@@ -48,8 +48,6 @@
  */
 package org.knime.base.node.preproc.column.renamer;
 
-import static java.util.stream.Collectors.joining;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,6 +63,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.dialog.impl.WebUINodeModel;
 
@@ -112,11 +111,12 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
             for (var renaming : settings.m_renamings) {
                 var oldName = renaming.getOldName();
                 CheckUtils.checkSetting(m_nameMap.put(oldName, renaming.m_newName) == null,
-                    "The column '%s' is renamed more than once.", oldName);
+                    "The column '%s' is renamed more than once. There must be only one renaming per column.", oldName);
                 var newName = renaming.getNewName();
                 CheckUtils.checkSetting(StringUtils.isNotBlank(newName),
-                    "The new name for '%s' is invalid because it is blank.", oldName);
-                CheckUtils.checkSetting(newNames.add(newName), "Multiple columns are renamed to '%s'.", newName);
+                    "The new name for '%s' is invalid because it is blank. Enter a non-empty new name.", oldName);
+                CheckUtils.checkSetting(newNames.add(newName),
+                    "Multiple columns have been renamed to '%s'. Column names must be unique.", newName);
             }
         }
 
@@ -136,7 +136,8 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
                 var oldName = column.getName();
                 columnsToRename.remove(oldName);
                 var newName = rename(oldName);
-                CheckUtils.checkSetting(newNames.add(newName), "The column name '%s' is duplicated.", newName);
+                CheckUtils.checkSetting(newNames.add(newName),
+                    "The new column name '%s' occurs mutiple times. Column names must be unique.", newName);
                 columns.add(renameColumn(column, newName));
             }
             if (!columnsToRename.isEmpty()) {
@@ -147,12 +148,11 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
 
         private String createMissingColumnsWarning(final Set<String> missingColumns) {
             if (missingColumns.size() == 1) {
-                return String.format("The following column is configured but no longer exists: '%s'",
+                return String.format("The column '%s' is configured but no longer exists.",
                     missingColumns.iterator().next());
             } else {
-                return missingColumns.stream()//
-                    .map(n -> "'" + n + "'")//
-                    .collect(joining(", ", "The following columns are configured but no longer exist: ", ""));
+                return String.format("The columns %s are configured but no longer exist.",
+                    ConvenienceMethods.getShortStringFrom(missingColumns, 3));
             }
         }
 

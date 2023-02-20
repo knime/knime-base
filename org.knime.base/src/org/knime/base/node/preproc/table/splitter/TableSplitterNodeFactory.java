@@ -67,7 +67,7 @@ public final class TableSplitterNodeFactory extends WebUINodeFactory<TableSplitt
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
         .name("Table Splitter") //
         .icon("table-splitter.png") //
-        .shortDescription("Splits the input table at the row that matches a given condition") //
+        .shortDescription("Splits the input table at the row that matches a given condition.") //
         .fullDescription(DESCRIPTION) //
         .modelSettingsClass(TableSplitterNodeSettings.class) //
         .addInputTable("Input Table", "The table to split.") //

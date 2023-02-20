@@ -101,7 +101,8 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
             case BY_NAME:
                 return getColumnIndicesFromNameRange(spec, settings);
             default:
-                throw new InvalidSettingsException("Unknown column selection mode: " + settings.m_columnRangeMode);
+                throw new InvalidSettingsException(
+                    String.format("The column selection mode '%s' is unknown.", settings.m_columnRangeMode));
         }
     }
 

@@ -62,7 +62,7 @@ public final class ColumnRenamerNodeFactory extends WebUINodeFactory<ColumnRenam
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
             .name("Column Renamer")//
             .icon("./rename.png")//
-            .shortDescription("Renames columns")//
+            .shortDescription("Renames columns.")//
             .fullDescription("Renames columns according to the renaming scheme defined in the dialog. "
                 + "Column names must be unique, hence it is not possible to give two columns the same name.")//
             .modelSettingsClass(ColumnRenamerSettings.class)//

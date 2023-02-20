@@ -64,6 +64,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.commons.lang3.LocaleUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.knime.base.data.replace.ReplacedColumnsDataRow;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -94,6 +95,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -118,6 +120,8 @@ import org.knime.core.util.UniqueNameGenerator;
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
  */
 final class DateTimeToStringNodeModel extends NodeModel {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(DateTimeToStringNodeModel.class);
 
     static final String FORMAT_HISTORY_KEY = "string_to_date_formats";
 
@@ -362,6 +366,7 @@ final class DateTimeToStringNodeModel extends NodeModel {
             m_locale.setStringValue(locale.toLanguageTag());
         } catch (IllegalArgumentException e) {
             // do nothing, locale is already in correct format
+            LOGGER.debug(e);
         }
         m_locale.saveSettingsTo(settings);
     }
@@ -378,18 +383,16 @@ final class DateTimeToStringNodeModel extends NodeModel {
         m_locale.validateSettings(settings);
 
         final SettingsModelString formatClone = m_format.createCloneWithValidatedValue(settings);
-        final String format = formatClone.getStringValue();
+        final var format = formatClone.getStringValue();
         if (format == null || format.length() == 0) {
-            throw new InvalidSettingsException("Format must not be empty!");
+            throw new InvalidSettingsException("The date-time format is blank. Enter a non-empty format string.");
         }
         try {
             DateTimeFormatter.ofPattern(formatClone.getStringValue());
-        } catch (Exception e) {
-            String msg = "Invalid date format: \"" + format + "\".";
-            final String errMsg = e.getMessage();
-            if (errMsg != null && !errMsg.isEmpty()) {
-                msg += " Reason: " + errMsg;
-            }
+        } catch (IllegalArgumentException e) {
+            var errorMsg = e.getMessage();
+            var msg = String.format("The entered date format \"%s\" is invalid%s.", format,
+                StringUtils.isNotBlank(errorMsg) ? (" because: " + errorMsg) : "");
             throw new InvalidSettingsException(msg, e);
         }
     }
@@ -411,19 +414,20 @@ final class DateTimeToStringNodeModel extends NodeModel {
         }
         m_hasValidatedConfiguration = true;
 
+        final var localeString = m_locale.getStringValue();
         try {
             // check for backwards compatibility (AP-8915)
-            LocaleUtils.toLocale(m_locale.getStringValue());
+            LocaleUtils.toLocale(localeString);
         } catch (IllegalArgumentException e) {
+            LOGGER.debug("Could not read settings value '" + localeString + "' as locale", e);
             try {
-                final String iso3Country = Locale.forLanguageTag(m_locale.getStringValue()).getISO3Country();
-                final String iso3Language = Locale.forLanguageTag(m_locale.getStringValue()).getISO3Language();
+                final String iso3Country = Locale.forLanguageTag(localeString).getISO3Country();
+                final String iso3Language = Locale.forLanguageTag(localeString).getISO3Language();
                 if (iso3Country.isEmpty() && iso3Language.isEmpty()) {
-                    throw new InvalidSettingsException("Unsupported locale '" + m_locale.getStringValue() + "'");
+                    throw new InvalidSettingsException("The locale '" + localeString + "' is unsupported.");
                 }
             } catch (MissingResourceException ex) {
-                throw new InvalidSettingsException(
-                    "Unsupported locale '" + m_locale.getStringValue() + "': " + ex.getMessage(), ex);
+                throw new InvalidSettingsException("The locale '" + localeString + "' is unsupported.", ex);
             }
         }
     }
@@ -479,7 +483,7 @@ final class DateTimeToStringNodeModel extends NodeModel {
             } catch (UnsupportedTemporalTypeException e) {
                 return new MissingCell(e.getMessage());
             }
-            throw new IllegalStateException("Unexpected data type: " + cell.getClass());
+            throw new IllegalStateException("The data cell type " + cell.getClass() + " is not supported.");
         }
     }
 }

@@ -84,6 +84,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.ConvenienceMethods;
 
 /**
  * Performs table updates.
@@ -112,9 +113,10 @@ final class TableUpdater {
         throws InvalidSettingsException {
         m_columnMatching = ColumnMatching.matchSpecs(inputSpec, updateSpec);
         if (settings.m_unmatchedColumnsHandling == UnmatchedHandling.FAIL) {
+            final var missingCols = m_columnMatching.getUnmatchedUpdateSpec().getColumnNames();
             CheckUtils.checkSetting(m_columnMatching.getUnmatchedUpdateSpec().getNumColumns() == 0,
-                "The columns %s present in the update table are missing from the input table.",
-                Arrays.toString(m_columnMatching.getUnmatchedUpdateSpec().getColumnNames()));
+                "The columns %s in the update table are missing from the input table.",
+                ConvenienceMethods.getShortStringFrom(Arrays.stream(missingCols).iterator(), missingCols.length, 3));
         }
         m_inputSpec = inputSpec;
         m_updateSpec = updateSpec;
@@ -158,9 +160,9 @@ final class TableUpdater {
     BufferedDataTable update(final BufferedDataTable inputTable, final BufferedDataTable updateTable,
         final ExecutionContext exec) throws InvalidSettingsException, CanceledExecutionException {
         CheckUtils.checkArgument(m_inputSpec.equals(inputTable.getDataTableSpec()),
-            "The inputTable has a different spec than the spec provided during construction.");
+            "The input table has a different spec than the spec provided during construction.");
         CheckUtils.checkArgument(m_updateSpec.equals(updateTable.getDataTableSpec()),
-            "The updateTable has a different spec than the spec provided during construction.");
+            "The update table has a different spec than the spec provided during construction.");
 
         var canonicalizedTable = m_canonicalizer.canonicalizeNames(inputTable, exec);
         var canonicalizedUpdateTable = m_canonicalizer.canonicalizeNames(updateTable, exec);
@@ -219,7 +221,7 @@ final class TableUpdater {
         var result = joinImpl.joinOutputCombined().getResults().getTable();
         if (m_settings.m_unmatchedRowsHandling == UnmatchedHandling.FAIL) {
             CheckUtils.checkArgument(result.size() == table.size(),
-                "Some rows of the update table have Row IDs that do not occur in the input table");
+                "Some rows of the update table have RowIDs that do not occur in the input table.");
         }
         return result;
     }

@@ -83,6 +83,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.time.util.DurationPeriodFormatUtils;
@@ -223,22 +224,28 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             if (m_periodSelection.getStringValue().equals(DurationMode.Column.name())) {
                 final String periodColName = m_periodColSelect.getStringValue();
                 if (inSpecs[0].findColumnIndex(periodColName) < 0) {
-                    throw new InvalidSettingsException("Column " + periodColName + " not found in input table!");
+                    throw new InvalidSettingsException(
+                        "The colomn '" + periodColName + "' is no longer present in the input table. "
+                            + "Choose a different column or adapt the input.");
                 }
                 if (!(inSpecs[0].getColumnSpec(periodColName).getType().isCompatible(DurationValue.class)
                     || inSpecs[0].getColumnSpec(periodColName).getType().isCompatible(PeriodValue.class))) {
-                    throw new InvalidSettingsException("Column " + periodColName + " is not compatible!");
+                    throw new InvalidSettingsException(
+                        "The column '" + periodColName + "' is not compatible to a duration or period value.");
                 }
             }
         } else {
             if (m_numericalSelection.getStringValue().equals(NumericalMode.Column.name())) {
                 final String numericalColName = m_numericalColSelect.getStringValue();
                 if (inSpecs[0].findColumnIndex(numericalColName) < 0) {
-                    throw new InvalidSettingsException("Column " + numericalColName + " not found in input table!");
+                    throw new InvalidSettingsException(
+                        "The colomn '" + numericalColName + "' is no longer present in the input table. "
+                            + "Choose a different column or adapt the input.");
                 }
                 if (!(inSpecs[0].getColumnSpec(numericalColName).getType().isCompatible(IntValue.class)
                     || inSpecs[0].getColumnSpec(numericalColName).getType().isCompatible(LongValue.class))) {
-                    throw new InvalidSettingsException("Column " + numericalColName + " is not compatible!");
+                    throw new InvalidSettingsException(
+                        "The column '" + numericalColName + "' is not compatible to an integer or long value.");
                 }
             }
         }
@@ -378,6 +385,8 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
 
         private final int m_numericalColIdx;
 
+        private final MessageBuilder m_messageBuilder;
+
         /**
          * @param newColSpec new column spec
          * @param colIndex index of column to shift
@@ -390,13 +399,14 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             m_colIndex = colIndex;
             m_periodColIdx = periodColIdx;
             m_numericalColIdx = numericalColIdx;
+            m_messageBuilder = createMessageBuilder();
         }
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public DataCell getCell(final DataRow row) {
+        public DataCell getCell(final DataRow row, final long rowIndex) {
             final DataCell cell = row.getCell(m_colIndex);
             if (cell.isMissing()) {
                 return cell;
@@ -405,7 +415,9 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             if (m_periodSelection.isEnabled()) {
                 if (m_periodColIdx >= 0) {
                     if (row.getCell(m_periodColIdx).isMissing()) {
-                        return new MissingCell("The period cell containing the value to shift is missing.");
+                        final var missingReason = "The period cell containing the value to shift is missing.";
+                        m_messageBuilder.addRowIssue(0, m_colIndex, rowIndex, missingReason);
+                        return new MissingCell(missingReason);
                     }
                     period = ((PeriodValue)row.getCell(m_periodColIdx)).getPeriod();
                 } else {
@@ -417,7 +429,9 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
                 if (m_numericalColIdx >= 0) {
                     DataCell numericalCell = row.getCell(m_numericalColIdx);
                     if (numericalCell.isMissing()) {
-                        return new MissingCell("The numerical cell containing the value to shift is missing.");
+                        final var missingReason = "The numerical cell containing the value to shift is missing.";
+                        m_messageBuilder.addRowIssue(0, m_colIndex, rowIndex, missingReason);
+                        return new MissingCell(missingReason);
                     }
                     numericalValue = ((LongValue)numericalCell).getLongValue();
                 } else {
@@ -426,7 +440,8 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
                 try {
                     period = (Period)Granularity.fromString(granularity).getPeriodOrDuration(numericalValue);
                 } catch (ArithmeticException e) {
-                    setWarningMessage("A missing value has been generated due to integer overflow.");
+                    m_messageBuilder.addRowIssue(0, m_colIndex, rowIndex,
+                        "A missing value has been generated due to integer overflow.");
                     return new MissingCell(e.getMessage());
                 }
             }
@@ -443,9 +458,20 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
                 final ZonedDateTime zonedDateTime = ((ZonedDateTimeValue)cell).getZonedDateTime();
                 return ZonedDateTimeCellFactory.create(zonedDateTime.plus(period));
             }
-            throw new IllegalStateException("Unexpected data type: " + cell.getClass());
+            throw new IllegalStateException("The data cell type " + cell.getClass() + " is not supported.");
         }
 
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void afterProcessing() {
+            final var issueCount = m_messageBuilder.getIssueCount();
+            if (issueCount > 0) {
+                m_messageBuilder.withSummary("Problems occurred in " + issueCount + " rows.").build()
+                    .ifPresent(DateTimeShiftNodeModel.this::setWarning);
+            }
+        }
     }
 
     private final class DateTimeShiftDurationCellFactory extends SingleCellFactory {
@@ -455,6 +481,8 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
         private final int m_durationColIdx;
 
         private final int m_numericalColIdx;
+
+        private final MessageBuilder m_messageBuilder;
 
         /**
          * @param newColSpec new column spec
@@ -468,13 +496,14 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             m_colIndex = colIndex;
             m_durationColIdx = durationColIdx;
             m_numericalColIdx = numericalColIdx;
+            m_messageBuilder = createMessageBuilder();
         }
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public DataCell getCell(final DataRow row) {
+        public DataCell getCell(final DataRow row, final long rowIndex) {
             final DataCell cell = row.getCell(m_colIndex);
             if (cell.isMissing()) {
                 return cell;
@@ -483,7 +512,9 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
             if (m_periodSelection.isEnabled()) {
                 if (m_durationColIdx >= 0) {
                     if (row.getCell(m_durationColIdx).isMissing()) {
-                        return new MissingCell("The duration cell containing the value to shift is missing.");
+                        final var missingReason = "The duration cell containing the value to shift is missing.";
+                        m_messageBuilder.addRowIssue(0, m_colIndex, rowIndex, missingReason);
+                        return new MissingCell(missingReason);
                     }
                     duration = ((DurationValue)row.getCell(m_durationColIdx)).getDuration();
                 } else {
@@ -495,7 +526,9 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
                 if (m_numericalColIdx >= 0) {
                     final DataCell numericalCell = row.getCell(m_numericalColIdx);
                     if (numericalCell.isMissing()) {
-                        return new MissingCell("The numerical cell containing the value to shift is missing.");
+                        final var missingReason = "The numerical cell containing the value to shift is missing.";
+                        m_messageBuilder.addRowIssue(0, m_colIndex, rowIndex, missingReason);
+                        return new MissingCell(missingReason);
                     }
                     numericalValue = ((LongValue)numericalCell).getLongValue();
                 } else {
@@ -504,7 +537,8 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
                 try {
                     duration = (Duration)Granularity.fromString(granularity).getPeriodOrDuration(numericalValue);
                 } catch (ArithmeticException e) {
-                    setWarningMessage("A missing value has been generated due to integer overflow.");
+                    m_messageBuilder.addRowIssue(0, m_colIndex, rowIndex,
+                        "A missing value has been generated due to integer overflow.");
                     return new MissingCell(e.getMessage());
                 }
             }
@@ -521,8 +555,19 @@ final class DateTimeShiftNodeModel extends SimpleStreamableFunctionNodeModel {
                 final ZonedDateTime zonedDateTime = ((ZonedDateTimeValue)cell).getZonedDateTime();
                 return ZonedDateTimeCellFactory.create(zonedDateTime.plus(duration));
             }
-            throw new IllegalStateException("Unexpected data type: " + cell.getClass());
+            throw new IllegalStateException("The data cell type " + cell.getClass() + " is not supported.");
         }
 
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void afterProcessing() {
+            final var issueCount = m_messageBuilder.getIssueCount();
+            if (issueCount > 0) {
+                m_messageBuilder.withSummary("Problems occurred in " + issueCount + " rows.").build()
+                    .ifPresent(DateTimeShiftNodeModel.this::setWarning);
+            }
+        }
     }
 }

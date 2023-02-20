@@ -293,7 +293,7 @@ final class DateTimeToStringNodeDialog extends NodeDialogPane {
                             setTypeFormatWarningMessage(exception, exception.getMessage());
                         }
                     } else {
-                        throw new IllegalStateException("Unhandled date&time type: " + type.getName());
+                        throw new IllegalStateException("The type \"" + type.getName() + "\" is unhandled!");
                     }
                     i++;
                 }

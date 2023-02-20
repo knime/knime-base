@@ -191,7 +191,7 @@ final class ModifyDateNodeModel extends SimpleStreamableFunctionNodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (!m_hasValidatedConfiguration) {
-            throw new InvalidSettingsException("Node must be configured!");
+            throw new InvalidSettingsException("The node was not configured yet. Open the dialog.");
         }
         DataTableSpec in = inSpecs[0];
         ColumnRearranger r = createColumnRearranger(in);

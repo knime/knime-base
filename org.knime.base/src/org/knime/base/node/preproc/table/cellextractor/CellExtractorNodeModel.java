@@ -230,7 +230,7 @@ final class CellExtractorNodeModel extends WebUINodeModel<CellExtractorSettings>
         throws InvalidSettingsException {
         if (settings.m_columnSpecificationMode == ColumnSpecificationMode.BY_NAME) {
             CheckUtils.checkSetting(spec.containsName(settings.m_columnName),
-                "The input table does not contain the column '%s'", settings.m_columnName);
+                "The input table does not contain the column '%s'.", settings.m_columnName);
         } else {
             CheckUtils.checkSetting(settings.m_columnNumber > 0, "The column number needs to be a positive number.");
             CheckUtils.checkSetting(settings.m_columnNumber <= spec.getNumColumns(),

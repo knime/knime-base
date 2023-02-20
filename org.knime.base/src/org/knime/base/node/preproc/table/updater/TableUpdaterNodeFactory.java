@@ -64,7 +64,7 @@ public final class TableUpdaterNodeFactory extends WebUINodeFactory<TableUpdater
             .icon("Table-updater.png")//
             .shortDescription("Updates parts of a table.")//
             .fullDescription("Updates cells in the top input table with the matching cells in the bottom update table. "
-                + "A cell is matching if it is in the same column in both tables and has the same Row ID."
+                    + "A cell is matching if it is in the same column in both tables and has the same RowID."
                     + " The domains of the input table are expanded with the domains of the update table.")//
             .modelSettingsClass(TableUpdaterNodeSettings.class)//
             .addInputTable("Input Table", "The table that is updated by this node.")//

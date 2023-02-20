@@ -90,13 +90,13 @@ final class TableSplitterNodeModel extends WebUINodeModel<TableSplitterNodeSetti
 
     // Warning and error messages
 
-    private static final String NO_MATCHING_ROW_WARNING = "No matching row found. Bottom output table is empty";
+    private static final String NO_MATCHING_ROW_WARNING = "No matching row found. Bottom output table is empty.";
 
     private static final String ROWID_MISSING_CRITERIA_WARNING =
         "Selected matching criteria \"Missing\" for RowID. This will never match because RowID cannot be missing.";
 
     private static final String SELECTED_COLUMN_MISSING_ERROR =
-        "The selected column \"%s\" is not available. Please re-configure the node.";
+        "The selected column \"%s\" is not available. Re-configure the node to select another.";
 
     private static final String UNSUPPORTED_COLUMN_TYPE_ERROR =
         "The type \"%s\" of the selected column \"%s\" is not supported. Choose a string, integer, or long column.";
