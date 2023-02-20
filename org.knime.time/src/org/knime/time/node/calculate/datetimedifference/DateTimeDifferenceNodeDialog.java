@@ -79,9 +79,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.DataValueColumnFilter;
 import org.knime.time.util.DialogComponentDateTimeSelection;
+import org.knime.time.util.DialogComponentDateTimeSelection.DisplayOption;
 import org.knime.time.util.Granularity;
 import org.knime.time.util.SettingsModelDateTime;
-import org.knime.time.util.DialogComponentDateTimeSelection.DisplayOption;
 
 /**
  * The node dialog of the node which calculates differences between two date&time values.
@@ -274,25 +274,29 @@ final class DateTimeDifferenceNodeDialog extends NodeDialogPane {
     }
 
     private void updateWarningLabel() {
+        final var modusValue = ((SettingsModelString)m_dialogCompModusSelect.getModel()).getStringValue();
         m_warningLabel.setText("");
-        if (((SettingsModelString)m_dialogCompModusSelect.getModel()).getStringValue()
-            .equals(ModusOptions.Use2ndColumn.name()) && m_dialogComp1stColSelect.getSelectedAsSpec() != null
+        if (modusValue.equals(ModusOptions.Use2ndColumn.name()) && m_dialogComp1stColSelect.getSelectedAsSpec() != null
             && m_dialogComp2ndColSelect.getSelectedAsSpec() != null) {
-            if (!m_dialogComp2ndColSelect.getSelectedAsSpec().getType()
-                .isCompatible(m_dialogComp1stColSelect.getSelectedAsSpec().getType().getPreferredValueClass())) {
-                m_warningLabel.setText("The both selected columns do not have the same type and are not compatible.");
+            final var firstType = m_dialogComp1stColSelect.getSelectedAsSpec().getType();
+            final var secondType = m_dialogComp2ndColSelect.getSelectedAsSpec().getType();
+            if (!secondType.isCompatible(firstType.getPreferredValueClass())) {
+                m_warningLabel.setText(
+                    String.format("The selected columns of types %s and %s are not compatible. They must be the same.",
+                        firstType, secondType));
                 return;
             }
         }
-        if (((SettingsModelString)m_dialogCompCalculationSelect.getModel()).getStringValue()
-            .equals(OutputMode.Granularity.name())) {
+        final var calcValue = ((SettingsModelString)m_dialogCompCalculationSelect.getModel()).getStringValue();
+        if (calcValue.equals(OutputMode.Granularity.name())) {
             final Granularity granularity =
                 Granularity.fromString(((SettingsModelString)m_dialogCompGranularity.getModel()).getStringValue());
             if (m_dialogComp1stColSelect.getSelectedAsSpec() != null) {
-                final DataType type = m_dialogComp1stColSelect.getSelectedAsSpec().getType();
+                final var type = m_dialogComp1stColSelect.getSelectedAsSpec().getType();
                 if ((type.isCompatible(LocalTimeValue.class) && granularity.getChronoUnit().isDateBased())) {
-                    m_warningLabel.setText("The selected column is not compatible with the selected granularity: "
-                        + granularity.toString());
+                    m_warningLabel.setText(String.format(
+                        "The selected column of type %s is not compatible with the selected \"%s\" granularity.", type,
+                        granularity.toString()));
                 }
             }
         }

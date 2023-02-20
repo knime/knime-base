@@ -55,6 +55,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
+import java.util.List;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -62,6 +63,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.append.AppendedColumnRow;
 import org.knime.core.data.container.AbstractCellFactory;
@@ -94,6 +96,7 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.util.UniqueNameGenerator;
 import org.knime.time.util.Granularity;
 import org.knime.time.util.SettingsModelDateTime;
@@ -160,31 +163,39 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        final String colName1 = m_col1stSelectModel.getStringValue();
-        final String colName2 = m_col2ndSelectModel.getStringValue();
+        final var colName1 = m_col1stSelectModel.getStringValue();
+        final var colName2 = m_col2ndSelectModel.getStringValue();
+        final List<Class<? extends DataValue>> compatTypes =
+            List.of(LocalDateValue.class, LocalTimeValue.class, LocalDateTimeValue.class, ZonedDateTimeValue.class);
+        final var nonExistingWarning = "The column '%s' is configured but no longer exists in the input table.";
+        final var incompatibilityWarning = "The type of column '%s' is not compatible to any of the types "
+            + ConvenienceMethods.getShortStringFrom(compatTypes.stream().map(Class::getSimpleName).iterator(), 4, 4)
+            + ".";
+
+        // Checking definition, existence and compatibility of first column.
         if (colName1 == null) {
-            throw new InvalidSettingsException("Node must be configured!");
+            throw new InvalidSettingsException("The node was not configured yet. Open the dialog.");
         }
         if (inSpecs[0].findColumnIndex(colName1) < 0) {
-            throw new InvalidSettingsException("Column '" + colName1 + "' not found in input table!");
+            throw new InvalidSettingsException(String.format(nonExistingWarning, colName1));
         }
         final DataType type1 = inSpecs[0].getColumnSpec(colName1).getType();
-        if (!(type1.isCompatible(LocalDateValue.class) || type1.isCompatible(LocalTimeValue.class)
-            || type1.isCompatible(LocalDateTimeValue.class) || type1.isCompatible(ZonedDateTimeValue.class))) {
-            throw new InvalidSettingsException("Column '" + colName1 + "' is not compatible!");
+        if (compatTypes.stream().noneMatch(type1::isCompatible)) {
+            throw new InvalidSettingsException(String.format(incompatibilityWarning, colName1));
         }
+        // Checking existence and compatibility of second column.
         if (m_modusSelectModel.getStringValue().equals(ModusOptions.Use2ndColumn.name())) {
             if (inSpecs[0].findColumnIndex(colName2) < 0) {
-                throw new InvalidSettingsException("Column '" + colName2 + "' not found in input table!");
+                throw new InvalidSettingsException(String.format(nonExistingWarning, colName2));
             }
             final DataType type2 = inSpecs[0].getColumnSpec(colName2).getType();
-            if (!(type2.isCompatible(LocalDateValue.class) || type2.isCompatible(LocalTimeValue.class)
-                || type2.isCompatible(LocalDateTimeValue.class) || type2.isCompatible(ZonedDateTimeValue.class))) {
-                throw new InvalidSettingsException("Column '" + colName1 + "' is not compatible!");
+            if (compatTypes.stream().noneMatch(type2::isCompatible)) {
+                throw new InvalidSettingsException(String.format(incompatibilityWarning, colName2));
             }
             if (!type2.isCompatible(type1.getPreferredValueClass())) {
                 throw new InvalidSettingsException(
-                    "Column '" + colName1 + "' and column '" + colName2 + "' must be of the same type!");
+                    String.format("Column '%s' (%s type) and column '%s' (%s type) must have the same type.",
+                        colName1, type1, colName2, type2));
             }
         }
         return new DataTableSpec[]{
@@ -193,10 +204,13 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
 
     /**
      * {@inheritDoc}
+     * @throws InvalidSettingsException
+     * @throws CanceledExecutionException
+     * @throws InterruptedException
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
+        throws InvalidSettingsException, CanceledExecutionException, InterruptedException {
         if (m_modusSelectModel.getStringValue().equals(ModusOptions.UsePreviousRow.name())) {
             final BufferedDataTableRowOutput out = new BufferedDataTableRowOutput(
                 exec.createDataContainer(new DataTableSpecCreator(inData[0].getDataTableSpec())
@@ -212,9 +226,11 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
 
     /**
      * helper method to compute output
+     * @throws InterruptedException
+     * @throws CanceledExecutionException
      */
     private void execute(final RowInput inData, final RowOutput output, final ExecutionContext exec,
-        final long rowCount) throws Exception {
+        final long rowCount) throws InterruptedException, CanceledExecutionException {
         DataRow row;
         DataRow previousRow = inData.poll();
 
@@ -264,7 +280,7 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
         }
     }
 
-    private ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
+    private ColumnRearranger createColumnRearranger(final DataTableSpec spec) {
         final ColumnRearranger rearranger = new ColumnRearranger(spec);
 
         final ZonedDateTime fixedDateTime;
@@ -338,7 +354,7 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
         try {
             ModusOptions.valueOf(temp.getStringValue());
         } catch (IllegalArgumentException ex) {
-            throw new InvalidSettingsException("Unknown difference modus '" + temp.getStringValue() + "'");
+            throw new InvalidSettingsException("The difference modus '" + temp.getStringValue() + "' is unknown.");
         }
 
         m_fixedDateTimeModel.validateSettings(settings);
@@ -461,7 +477,7 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
                 } else if (granularity.equals(Granularity.NANOSECOND)) {
                     return LongCellFactory.create(days * 24 * 60 * 60 * 1_000_000_000);
                 } else {
-                    throw new IllegalStateException("Unknow granularity: " + granularity.toString());
+                    throw new IllegalStateException("The granularity '" + granularity + "' is unknown.");
                 }
             }
         }
