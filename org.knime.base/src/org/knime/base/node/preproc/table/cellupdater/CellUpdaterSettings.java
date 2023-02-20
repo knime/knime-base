@@ -48,8 +48,13 @@
  */
 package org.knime.base.node.preproc.table.cellupdater;
 
+import java.util.Map;
+import java.util.Optional;
+
+import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellConverterFactory;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
@@ -62,6 +67,28 @@ import org.knime.core.webui.node.dialog.impl.Schema;
  */
 @SuppressWarnings("restriction")
 final class CellUpdaterSettings implements DefaultNodeSettings {
+
+    /**
+     * Constructor for auto-configure.
+     *
+     * @param context the creation context
+     */
+    CellUpdaterSettings(final SettingsCreationContext context) {
+        var portObjects = context.getPortObjectSpecs();
+
+        if ((portObjects[0] != null) && (portObjects[1] != null)) {
+            var spec = (DataTableSpec)portObjects[1];
+            var vars = context.getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes());
+            autoconfigureSettings(vars, spec);
+        }
+    }
+
+    /**
+     * Constructor for deserialization.
+     */
+    CellUpdaterSettings() {
+
+    }
 
     @Schema(title = "Column specification", description = "Select whether to specify the column by name or by number.")
     ColumnMode m_columnMode = ColumnMode.BY_NAME;
@@ -111,6 +138,30 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
 
             @Schema(title = "Number")
             BY_NUMBER;
+    }
+
+    /**
+     * When the node gets connected to the input table, this autoconfiguration logic attempts to find the first pair of
+     * column/flow variable that have a matching type.
+     *
+     * Otherwise they are initialised to the first column and flow variable name respectively.
+     */
+    private void autoconfigureSettings(final Map<String, FlowVariable> availableVars,  final DataTableSpec spec) {
+        // If settings.m_columnName is not null, settings have already been configured.
+        // If spec is null, no input table is connected.
+        if (spec == null || m_columnName != null) {
+            return;
+        }
+
+        final CellUpdater.Match match = Optional.ofNullable(CellUpdater.matchColumnsAndVariables(spec, availableVars))
+            .orElse(new CellUpdater.Match(0, CellUpdater.getFirstFlowVariableName(availableVars)));
+
+        m_columnName = spec.getColumnSpec(match.getMatchedColIdx()).getName();
+        m_columnNumber = match.getMatchedColIdx() + 1;
+        m_rowNumber = 1;
+        m_countFromEnd = false;
+        m_flowVariableName = match.getMatchedVarName();
+        m_columnMode = ColumnMode.BY_NAME;
     }
 
 }
