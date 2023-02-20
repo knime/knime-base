@@ -92,10 +92,10 @@ final class CellExtractorSettings implements DefaultNodeSettings {
 
     @Schema(title = "Column number", description = "Provide the number of the column that contains the target cell.",
         min = 1)
-    int m_columnNumber;
+    int m_columnNumber = 1;
 
     @Schema(title = "Row number", description = "Provide the number of the row that contains the target cell.", min = 1)
-    int m_rowNumber;
+    int m_rowNumber = 1;
 
     @Schema(title = "Count rows from the end of the table",
         description = "If selected, the rows will be counted from the end of the table.")
