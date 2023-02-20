@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Visualizer" icon="./size_appender.png">
-	<name>Size Appender (legacy)</name>
+	<name>Size Appender</name>
 	
 	<shortDescription>
 	    Appends sizes to one selected column.
