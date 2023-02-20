@@ -118,6 +118,7 @@
       <category
             description="Legacy view nodes"
             level-id="legacy"
+            icon="icons/missing.gif"
             name="Legacy"
             path="/view">
       </category>
@@ -152,9 +153,9 @@
             path="/view">
       </category>
       <category
-            after="js-views"
+            after="property"
             icon="icons/missing.gif"
-            level-id="legacy"
+            level-id="localLegacy"
             locked="true"
             name="Local (Swing)"
             path="/view/legacy">
@@ -570,7 +571,7 @@
             factory-class="org.knime.base.node.viz.property.shape.ShapeAppenderNodeFactory">
       </node>
       <node
-            category-path="/view/legacy"
+            category-path="/view/legacy/localLegacy"
             factory-class="org.knime.base.node.viz.table.TableNodeFactory">
       </node>
       <node
@@ -853,28 +854,28 @@
            factory-class="org.knime.base.node.preproc.bitvector.expand.ExpandBitVectorNodeFactory"
            after="org.knime.base.node.preproc.bitvector.create.CreateBitVectorNodeFactory"/>
      <node
-           category-path="/view/legacy"
+           category-path="/view/legacy/localLegacy"
            factory-class="org.knime.base.node.viz.histogram.node.HistogramNodeFactory"/>
      <node
-           category-path="/view/legacy"
+           category-path="/view/legacy/localLegacy"
            factory-class="org.knime.base.node.viz.histogram.node.FixedColumnHistogramNodeFactory"/>
      <node
            category-path="/manipulation/column/column-transform"
            factory-class="org.knime.base.node.preproc.normalize.NormalizerApplyNodeFactory"/>
      <node
-           category-path="/view/legacy"
+           category-path="/view/legacy/localLegacy"
            factory-class="org.knime.base.node.viz.plotter.box.BoxPlotNodeFactory"/>
      <node
-           category-path="/view/legacy"
+           category-path="/view/legacy/localLegacy"
            factory-class="org.knime.base.node.viz.plotter.line.LinePlotterNodeFactory"/>
      <node
-           category-path="/view/legacy"
+           category-path="/view/legacy/localLegacy"
            factory-class="org.knime.base.node.viz.plotter.parcoord.ParallelCoordinateNodeFactory"/>
      <node
-           category-path="/view/legacy"
+           category-path="/view/legacy/localLegacy"
            factory-class="org.knime.base.node.viz.plotter.scatter.ScatterPlotterNodeFactory"/>
      <node
-           category-path="/view/legacy"
+           category-path="/view/legacy/localLegacy"
            factory-class="org.knime.base.node.viz.plotter.scattermatrix.ScatterMatrixNodeFactory"/>
      <node
            category-path="/manipulation/row/row-filter"
@@ -901,11 +902,11 @@
          category-path="/analytics/mining/clustering"
          factory-class="org.knime.base.node.mine.sota.predictor.SotaPredictorNodeFactory"/>
       <node
-            category-path="/view/legacy"
+            category-path="/view/legacy/localLegacy"
             factory-class="org.knime.base.node.viz.pie.node.fixed.FixedPieNodeFactory">
       </node>
       <node
-            category-path="/view/legacy"
+            category-path="/view/legacy/localLegacy"
             factory-class="org.knime.base.node.viz.pie.node.interactive.InteractivePieNodeFactory">
       </node>
       <node
@@ -1104,7 +1105,7 @@
             >
       </node>
       <node
-            category-path="/view/legacy"
+            category-path="/view/legacy/localLegacy"
             factory-class="org.knime.base.node.viz.condbox.ConditionalBoxPlotNodeFactory"
             />
       <node
@@ -1188,7 +1189,7 @@
             factory-class="org.knime.base.node.io.filehandling.imagewriter.table.ImageWriterTableNodeFactory">
       </node>
       <node
-            category-path="/view/legacy"
+            category-path="/view/legacy/localLegacy"
             factory-class="org.knime.base.node.viz.liftchart.LiftChartNodeFactory"
             >
       </node>
@@ -1937,7 +1938,7 @@
             >
       </node>
       <node
-            category-path="/view/legacy"
+            category-path="/view/legacy/localLegacy"
             factory-class="org.knime.base.node.viz.hilite.AutoHiLiteNodeFactory"
             >
       </node>
