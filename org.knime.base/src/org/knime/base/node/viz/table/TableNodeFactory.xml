@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./table.png" type="Visualizer">
-    <name>Interactive Table (local) (legacy)</name>
+    <name>Interactive Table (local)</name>
     <shortDescription>Displays data in a table view.</shortDescription>
     <fullDescription>
         <intro> Displays data in a table view. If the number of rows is 

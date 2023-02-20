@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Visualizer" icon="./shapemanager.png">
-	<name>Shape Manager (legacy)</name>
+	<name>Shape Manager</name>
 	
 	<shortDescription>
 	    Assigns shapes to one selected nominal column.

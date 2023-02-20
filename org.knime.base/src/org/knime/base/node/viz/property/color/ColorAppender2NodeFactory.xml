@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode type="Visualizer" icon="./color_appender.png">
-	<name>Color Appender (legacy)</name>
+	<name>Color Appender</name>
 	
 	<shortDescription>
 	    Assigns an existing color model to a table. 
