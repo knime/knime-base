@@ -54,6 +54,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Optional;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.base.node.preproc.valuelookup.BinarySearchDict.SortingOrder;
 import org.knime.base.node.preproc.valuelookup.UnsortedInputDict.IllegalLookupKeyException;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
@@ -103,10 +104,10 @@ final class DictFactory {
     }
 
     LookupDict initialiseDict() throws CanceledExecutionException {
-        var dictKeyColIndex = m_dictTable.getSpec().findColumnIndex(m_settings.m_dictKeyCol);
-        var dictKeyColType = m_dictTable.getSpec().getColumnSpec(dictKeyColIndex).getType();
-        var dictValueColIndices =
-            Arrays.stream(m_settings.m_dictValueCols).mapToInt(m_dictTable.getSpec()::findColumnIndex).toArray();
+        final var spec = m_dictTable.getSpec();
+        var dictKeyColIndex = spec.findColumnIndex(m_settings.m_dictKeyCol);
+        var dictKeyColType = spec.getColumnSpec(dictKeyColIndex).getType();
+        final var dictValueColIndices = spec.columnsToIndices(ArrayUtils.nullToEmpty(m_settings.m_dictValueCols));
 
         ArrayList<DataCell> keyCache = new ArrayList<>();
         ArrayList<DataCell[]> valueCache = new ArrayList<>();

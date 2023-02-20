@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -216,11 +217,10 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         var dictInputColIndex = dictSpec.findColumnIndex(modelSettings.m_dictKeyCol);
         CheckUtils.checkSetting(dictInputColIndex >= 0, "No such column \"%s\"", modelSettings.m_dictKeyCol);
 
-        var dictOutputColIndices = modelSettings.m_dictValueCols == null ? new int[]{}
-            : Arrays.stream(modelSettings.m_dictValueCols).mapToInt(dictSpec::findColumnIndex).toArray();
+        final var dictOutColIndices = dictSpec.columnsToIndices(ArrayUtils.nullToEmpty(modelSettings.m_dictValueCols));
         var insertedColumns = new ArrayList<DataColumnSpec>();
         // Add the columns to the output spec, but check for existence and uniquify name w.r.t. the input table
-        for (var col : dictOutputColIndices) {
+        for (var col : dictOutColIndices) {
             CheckUtils.checkSetting(col >= 0, "No such column \"%s\"", col);
             var oldSpec = dictSpec.getColumnSpec(col);
             var newSpec = new DataColumnSpecCreator(oldSpec);
