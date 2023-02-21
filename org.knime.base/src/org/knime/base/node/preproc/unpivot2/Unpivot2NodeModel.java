@@ -134,7 +134,7 @@ final class Unpivot2NodeModel extends NodeModel {
             m_retainedColumns.loadDefaults(in);
             m_valueColumns = createColumnFilterValueColumns();
             m_valueColumns.loadDefaults(in);
-            setWarningMessage("This node was auto-configured. No columns have been specified in the dialog. "
+            setWarningMessage("This node was auto-configured. No columns have been specified in the configuration. "
                 + "Now all suitable columns in 'value' and 'retained' column lists are used.");
         }
         return new DataTableSpec[]{createOutSpec(inSpecs[0])};

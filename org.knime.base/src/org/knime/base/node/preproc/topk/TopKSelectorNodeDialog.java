@@ -195,7 +195,7 @@ final class TopKSelectorNodeDialog extends NodeDialogPane {
             m_settings.loadValidatedSettingsFrom(settings);
 
         } catch (InvalidSettingsException e) {
-            throw new NotConfigurableException("The settings could not be loaded. Configure them in the dialog.", e);
+            throw new NotConfigurableException("The settings could not be loaded. Set them in the node configuration.", e);
         }
     }
 }

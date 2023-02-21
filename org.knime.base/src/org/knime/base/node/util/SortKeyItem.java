@@ -201,16 +201,16 @@ public final class SortKeyItem {
             }
         }
         CheckUtils.checkSetting(settings.containsKey(sortOrderKey),
-            "No sorting order was specified. Set it in the dialog.");
+            "No sorting order was specified. Set it in the node configuration.");
         final var sortOrders = CheckUtils.checkSettingNotNull(settings.getBooleanArray(sortOrderKey),
             "Invalid sort orders.");
         CheckUtils.checkSetting(inclList.length == sortOrders.length,
-            "The number of columns and sort orders don't match up. Re-configure them in the dialog.");
+            "The number of columns and sort orders don't match up. Change in the node configuration.");
         // don't require presence for backwards compat (added in 4.7)
         if (settings.containsKey(alphaNumCompKey)) {
             final var alphaNumComp = settings.getBooleanArray(alphaNumCompKey);
             CheckUtils.checkSetting(!(alphaNumComp == null || inclList.length != alphaNumComp.length),
-                "The number of columns and alphanumeric string comparisons don't match up. Re-configure in the dialog.");
+                "The number of columns and alphanumeric string comparisons don't match up. Change in the node configuration.");
         }
     }
 

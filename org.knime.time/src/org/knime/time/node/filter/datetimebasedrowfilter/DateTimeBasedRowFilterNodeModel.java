@@ -204,7 +204,7 @@ final class DateTimeBasedRowFilterNodeModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (inSpecs[0].findColumnIndex(m_colSelect.getStringValue()) < 0) {
-            throw new InvalidSettingsException("The node was not configured yet. Open the dialog.");
+            throw new InvalidSettingsException("The node was not configured yet.");
         }
         return inSpecs;
     }

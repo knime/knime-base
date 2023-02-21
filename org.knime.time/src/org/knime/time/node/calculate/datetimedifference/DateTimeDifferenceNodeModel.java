@@ -174,7 +174,7 @@ final class DateTimeDifferenceNodeModel extends NodeModel {
 
         // Checking definition, existence and compatibility of first column.
         if (colName1 == null) {
-            throw new InvalidSettingsException("The node was not configured yet. Open the dialog.");
+            throw new InvalidSettingsException("The node was not configured yet.");
         }
         if (inSpecs[0].findColumnIndex(colName1) < 0) {
             throw new InvalidSettingsException(String.format(nonExistingWarning, colName1));

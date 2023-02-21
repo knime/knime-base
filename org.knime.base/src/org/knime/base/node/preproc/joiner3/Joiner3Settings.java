@@ -469,7 +469,7 @@ class Joiner3Settings {
             .filter(mode -> mode.isIncludeMatchingRows() == isIncludeMatches()
                 && mode.isIncludeLeftUnmatchedRows() == isIncludeLeftUnmatched()
                 && mode.isIncludeRightUnmatchedRows() == isIncludeRightUnmatched())
-            .findFirst().orElseThrow(() -> new IllegalStateException("Unknown join mode selected in dialog."));
+            .findFirst().orElseThrow(() -> new IllegalStateException("Unknown join mode selected in node configuration."));
     }
 
     /**

@@ -184,7 +184,7 @@ final class TopKSelectorSettings {
                     TopKMode.getTopKModeByText(selectionMode);
                 } catch (IllegalArgumentException e) {
                     throw new InvalidSettingsException(String.format(
-                        "No selection mode was found for the input \"%s\". Re-configure it in the dialog.",
+                        "No selection mode was found for the input \"%s\". Change it in the configuration.",
                         selectionMode), e);
                 }
                 super.validateSettingsForModel(settings);

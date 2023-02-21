@@ -271,7 +271,7 @@ class EnrichmentPlotterModel extends NodeModel {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (m_settings.getCurveCount() == 0) {
-            throw new InvalidSettingsException("No curves defined in dialog.");
+            throw new InvalidSettingsException("No curves defined in node configuration.");
         }
 
         for (int i = 0; i < m_settings.getCurveCount(); i++) {

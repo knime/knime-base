@@ -107,7 +107,7 @@ final class TopKSelectorNodeModel extends NodeModel {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         final var sk = m_settings.getSortKey();
         CheckUtils.checkSetting(sk != null && !sk.isEmpty(),
-            "No columns have been specified to select the top rows of. Set them in the dialog.");
+            "No columns have been specified to select the top rows of. Set in the node configuration.");
         final DataTableSpec dts = inSpecs[IN_DATA];
         final List<String> missing = SortKeyItem.getMissing(sk, dts, TopKSelectorNodeModel::isRowKey);
         CheckUtils.checkSetting(missing.isEmpty(), String.format("The columns %s are configured but no longer exist.",
@@ -120,7 +120,7 @@ final class TopKSelectorNodeModel extends NodeModel {
             throws Exception {
         final var sortKey = m_settings.getSortKey();
         CheckUtils.checkSetting(sortKey != null && !sortKey.isEmpty(),
-            "No columns have been specified to select the top rows of. Set them in the dialog.");
+            "No columns have been specified to select the top rows of. Set in the node configuration.");
 
         final BufferedDataTable table = inData[IN_DATA];
         if (table.size() < m_settings.getK()) {

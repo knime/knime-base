@@ -208,7 +208,7 @@ class EntropyNodeModel extends NodeModel {
         if (m_referenceCol == null || m_clusteringCol == null) {
             throw new InvalidSettingsException(
                     "No auto configuration available\n"
-                            + "Please configure in dialog.");
+                            + "Please set in node configuration.");
 
         }
         DataTableSpec reference = inSpecs[INPORT_REFERENCE];

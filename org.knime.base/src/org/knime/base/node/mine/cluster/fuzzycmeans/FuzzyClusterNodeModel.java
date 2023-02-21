@@ -606,7 +606,7 @@ public class FuzzyClusterNodeModel extends NodeModel {
             }
             if (!m_keepAll) {
                 setWarningMessage("List of columns to use has been set"
-                    + " automatically, please check it in the dialog.");
+                    + " automatically, please check it in the node configuration.");
             }
         }
         HashSet<String> listAsHash = new HashSet<String>(m_list);
