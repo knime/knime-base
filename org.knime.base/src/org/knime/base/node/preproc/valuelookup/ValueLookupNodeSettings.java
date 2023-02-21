@@ -168,10 +168,10 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** The matching behaviour (only exact, exact or next lower, exact or next higher) */
     @Schema(title = "If no row matches", //
         description = "Defines what happens when a lookup key is not present in the dictionary: "
-            + "If \"Equal\" is selected, no match is found. "
-            + "If \"Equal or next smaller\" (\"- larger\") is selected, the next smaller (larger) item from the "
+            + "If \"Insert missing values\" is selected, missing values are inserted. "
+            + "If \"Match next smaller\" (\"- larger\") is selected, the next smaller (larger) value from the "
             + "dictionary is matched, based on the value of the lookup key. "
-            + "If no such element can be found, no match is found.")
+            + "If no such element can be found, a missing value is inserted.")
     MatchBehaviour m_matchBehaviour = MatchBehaviour.EQUAL;
 
     /** The search direction (forwards / backwards / binSearch) */
