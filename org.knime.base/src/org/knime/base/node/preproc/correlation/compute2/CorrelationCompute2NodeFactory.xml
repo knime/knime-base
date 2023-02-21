@@ -106,7 +106,7 @@
         </tab>
 
 		<tab name="Wildcard/Regex Selection">
-			<option name="">
+			<option name="Search Pattern">
 				Type a search pattern which matches columns to move into the
 				Include or Exclude list. Which list is used can be specified.
 				You can use either Wildcards ('?' matching any
