@@ -66,6 +66,8 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.testing.core.ExecutionContextExtension;
 
 /**
@@ -127,6 +129,9 @@ class ValueLookupNodeModelTest {
             new DefaultRow(RowKey.createRowKey(2L), new LongCell(2), new StringCell("2"))
         ).forEach(dictContainer ::addRowToTable);
         dictContainer.close();
+
+        m_settings = DefaultNodeSettings.createSettings(ValueLookupNodeSettings.class,
+            new PortObjectSpec[] { dts, dictDts });
         m_settings.m_createFoundCol = true;
         m_settings.m_dictKeyCol = "LongCol";
         m_settings.m_lookupCol = "LongCol";
@@ -138,7 +143,7 @@ class ValueLookupNodeModelTest {
                 assertTrue(c.hasNext(), "Table should have a next value");
                 final var r = c.next();
                 // "StringCol", "LongCol", "Match Found"
-                final var found = ((BooleanCell)r.getCell(2)).getBooleanValue();
+                final var found = ((BooleanCell)r.getCell(4)).getBooleanValue();
                 assertTrue(found, "Expected to find a match");
             }
         }

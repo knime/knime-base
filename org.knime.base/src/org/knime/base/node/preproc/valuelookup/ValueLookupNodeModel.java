@@ -53,7 +53,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.DictionaryTableChoices;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -217,10 +217,12 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         var dictInputColIndex = dictSpec.findColumnIndex(modelSettings.m_dictKeyCol);
         CheckUtils.checkSetting(dictInputColIndex >= 0, "No such column \"%s\"", modelSettings.m_dictKeyCol);
 
-        final var dictOutColIndices = dictSpec.columnsToIndices(ArrayUtils.nullToEmpty(modelSettings.m_dictValueCols));
-        var insertedColumns = new ArrayList<DataColumnSpec>();
+        final var dictValueCols = modelSettings.m_dictValueCols.getSelected(
+            DictionaryTableChoices.choices(dictSpec), dictSpec);
+        final var dictOutputColIndices = dictSpec.columnsToIndices(dictValueCols);
+        final var insertedColumns = new ArrayList<DataColumnSpec>();
         // Add the columns to the output spec, but check for existence and uniquify name w.r.t. the input table
-        for (var col : dictOutColIndices) {
+        for (var col : dictOutputColIndices) {
             CheckUtils.checkSetting(col >= 0, "No such column \"%s\"", col);
             var oldSpec = dictSpec.getColumnSpec(col);
             var newSpec = new DataColumnSpecCreator(oldSpec);
@@ -253,7 +255,7 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
 
         // Create the actual cell factory using the values that were checked and extracted above
         final var cellFactory = createCellFactory(modelSettings, insertedColumns.toArray(DataColumnSpec[]::new),
-            targetColIndex, dictTable, dictInitMon, comparator);
+            targetColIndex, dictTable, dictOutputColIndices, dictInitMon, comparator);
         rearranger.append(cellFactory); // All the new columns are appended to the end of the row
         return rearranger;
     }
@@ -266,6 +268,7 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
      * @param targetColIndex the column index of the cell that shall be looked up in the dictionary
      * @param dictTable the dictionary (can be null, as long as the factory is not queried with a row, since only on the
      *            first query the dictionary is initialised)
+     * @param indices of columns from dictionary that are included in the output
      * @param dictInitMon an {@link ExecutionMonitor} that represents the progress of reading the dictionary table
      * @param comparator Comparator that can compare cells from the key and lookup columns
      * @param dictInputColIndex the index of the key column in the dictionary table
@@ -276,7 +279,7 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
      */
     private static CellFactory createCellFactory(final ValueLookupNodeSettings modelSettings,
         final DataColumnSpec[] insertedColumns, final int targetColIndex, final BufferedDataTable dictTable,
-        final ExecutionMonitor dictInitMon, final Comparator<DataCell> comparator) {
+        final int[] dictOutputColIndices, final ExecutionMonitor dictInitMon, final Comparator<DataCell> comparator) {
         return new AbstractCellFactory(insertedColumns) { // NOSONAR: this anonymous class is easy to read
             /**
              * This map holds the input/output pairs of the dictionary table, once initialised. Will only be
@@ -288,7 +291,8 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
             public DataCell[] getCells(final DataRow row) {
                 if (m_dict == null) {
                     try {
-                        m_dict = new DictFactory(modelSettings, dictTable, comparator, dictInitMon).initialiseDict();
+                        m_dict = new DictFactory(modelSettings, dictTable, dictOutputColIndices, comparator,
+                            dictInitMon).initialiseDict();
                         LOGGER.debug("Using dictionary implementation \"" + m_dict.getClass().getSimpleName() + "\"");
                     } catch (CanceledExecutionException e) {//NOSONAR
                         // The execution has been cancelled -- return the right amount of missing cells as dummies.

@@ -54,7 +54,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Optional;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.knime.base.node.preproc.valuelookup.BinarySearchDict.SortingOrder;
 import org.knime.base.node.preproc.valuelookup.UnsortedInputDict.IllegalLookupKeyException;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
@@ -74,7 +73,7 @@ import org.knime.core.node.message.Message;
 
 /**
  * Factory class that, provided with the dictionary table and {@link ValueLookupNodeSettings} populates a suitable
- * {@link LookupDict} implementation and returns it.
+ * {@code LookupDict} implementation and returns it.
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
@@ -94,20 +93,23 @@ final class DictFactory {
 
     private DataRow m_currentRow;
 
+    private int[] m_dictOutputColIndices;
+
     DictFactory(final ValueLookupNodeSettings settings, final BufferedDataTable dictTable,
-        final Comparator<DataCell> comparator, final ExecutionMonitor dictInitMon) {
+            final int[] dictOutputColIndices, final Comparator<DataCell> comparator,
+            final ExecutionMonitor dictInitMon) {
         m_settings = settings;
         m_dictTable = dictTable;
+        m_dictOutputColIndices = dictOutputColIndices;
         m_comparator = comparator;
         m_dictInitMon = dictInitMon;
         m_updateProgressPeriod = m_dictTable.size() / 25 + 1; // This process will report ~25 discrete progress steps
     }
 
     LookupDict initialiseDict() throws CanceledExecutionException {
-        final var spec = m_dictTable.getSpec();
-        var dictKeyColIndex = spec.findColumnIndex(m_settings.m_dictKeyCol);
-        var dictKeyColType = spec.getColumnSpec(dictKeyColIndex).getType();
-        final var dictValueColIndices = spec.columnsToIndices(ArrayUtils.nullToEmpty(m_settings.m_dictValueCols));
+        final var dictSpec = m_dictTable.getSpec();
+        final var dictKeyColIndex = dictSpec.findColumnIndex(m_settings.m_dictKeyCol);
+        final var dictKeyColType = dictSpec.getColumnSpec(dictKeyColIndex).getType();
 
         ArrayList<DataCell> keyCache = new ArrayList<>();
         ArrayList<DataCell[]> valueCache = new ArrayList<>();
@@ -115,8 +117,8 @@ final class DictFactory {
             if (m_settings.m_stringMatchBehaviour == StringMatching.FULLSTRING && m_settings.m_caseSensitive
                 && !dictKeyColType.isCollectionType()) {
                 // Could try to do Binary Search
-                var binSearchDict = tryToInitialiseBinarySearchDict(dictionaryIterator, dictKeyColIndex,
-                    dictValueColIndices, keyCache, valueCache);
+                var binSearchDict = tryToInitialiseBinarySearchDict(dictionaryIterator, dictKeyColIndex, keyCache,
+                    valueCache);
                 if (binSearchDict.isPresent()) {
                     return binSearchDict.get();
                 }
@@ -134,7 +136,7 @@ final class DictFactory {
                     resultDict.insertSearchPair(keyCache.get(i), valueCache.get(i));
                 }
 
-                populateDictionary(resultDict, dictionaryIterator, dictKeyColIndex, dictValueColIndices);
+                populateDictionary(resultDict, dictionaryIterator, dictKeyColIndex);
             } catch (IllegalLookupKeyException e) {
                 // Most likely a PatternSyntaxException, or some other faulty data that couldn't be processed
                 throw KNIMEException
@@ -148,12 +150,13 @@ final class DictFactory {
     }
 
     private void populateDictionary(final UnsortedInputDict resultDict, final CloseableRowIterator dictionaryIterator,
-        final int dictKeyColIndex, final int[] dictValueColIndices)
+        final int dictKeyColIndex)
         throws CanceledExecutionException, IllegalLookupKeyException {
         while (dictionaryIterator.hasNext()) {
             m_currentRow = dictionaryIterator.next();
             DataCell input = m_currentRow.getCell(dictKeyColIndex);
-            var outputs = Arrays.stream(dictValueColIndices).mapToObj(m_currentRow::getCell).toArray(DataCell[]::new);
+            var outputs = Arrays.stream(m_dictOutputColIndices).mapToObj(m_currentRow::getCell)
+                    .toArray(DataCell[]::new);
             if (input.isMissing()) {
                 // Missing value is a collection type (it's compatible with all types), so handle that first
                 resultDict.insertSearchPair(input, outputs);
@@ -211,7 +214,7 @@ final class DictFactory {
      * @throws CanceledExecutionException
      */
     private Optional<BinarySearchDict> tryToInitialiseBinarySearchDict(final Iterator<DataRow> dictionaryIterator,
-        final int dictKeyColIndex, final int[] dictOutputColIndices, final ArrayList<DataCell> keyCache,
+        final int dictKeyColIndex, final ArrayList<DataCell> keyCache,
         final ArrayList<DataCell[]> valueCache) throws CanceledExecutionException {
         var couldBeAscendinglySorted = true;
         var couldBeDescendinglySorted = true;
@@ -222,7 +225,7 @@ final class DictFactory {
             // Read the next row and key from the iterator, and (maybe) add it to the cache
             m_currentRow = dictionaryIterator.next();
             var key = m_currentRow.getCell(dictKeyColIndex);
-            var values = Arrays.stream(dictOutputColIndices).mapToObj(m_currentRow::getCell).toArray(DataCell[]::new);
+            var values = Arrays.stream(m_dictOutputColIndices).mapToObj(m_currentRow::getCell).toArray(DataCell[]::new);
 
             // "compress" input data -- only add new entry if the key isn't already present
             // this prevents having to find the first / last item of a key later in the binary search

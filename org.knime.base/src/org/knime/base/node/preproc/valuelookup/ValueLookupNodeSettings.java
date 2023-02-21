@@ -48,7 +48,9 @@
  */
 package org.knime.base.node.preproc.valuelookup;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
 
@@ -72,20 +74,20 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             @Schema(title = "Wildcard")
             WILDCARD,
             /** Allow Regex in dictionary lookup column */
-            @Schema(title = "RegEx Pattern")
+            @Schema(title = "RegEx")
             REGEX;
     }
 
     /** Whether only exact matches are acceptable or the next-lower or next-higher match is also of interest */
     enum MatchBehaviour {
             /** Only match if the number is one of the dict values */
-            @Schema(title = "Equal")
+            @Schema(title = "Insert missing values")
             EQUAL,
             /** Match to the queried number or, if not available, the next lower number */
-            @Schema(title = "Equal or next smaller")
+            @Schema(title = "Match next smaller")
             EQUALORSMALLER,
             /** Match to the queried number or, if not available, the next higher number */
-            @Schema(title = "Equal or next larger")
+            @Schema(title = "Match next larger")
             EQUALORLARGER;
     }
 
@@ -100,7 +102,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     }
 
     /** Provides the columns names of the table at input port 0 */
-    static final class ColumnChoices0 implements ChoicesProvider {
+    static final class DataTableChoices implements ChoicesProvider {
         @Override
         public String[] choices(final SettingsCreationContext context) {
             final var spec = context.getDataTableSpecs()[0];
@@ -109,10 +111,18 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     }
 
     /** Provides the columns names of the table at input port 1 */
-    static final class ColumnChoices1 implements ChoicesProvider {
+    static final class DictionaryTableChoices implements ChoicesProvider {
         @Override
         public String[] choices(final SettingsCreationContext context) {
-            final var spec = context.getDataTableSpecs()[1];
+            return choices(context.getDataTableSpecs()[1]);
+        }
+
+        /**
+         * Returns possible column choices from the given data table spec or an empty list if the spec is {@code null}.
+         * @param spec data table spec to choose column names from
+         * @return choices or empty list if spec is {@code null}
+         */
+        static String[] choices(final DataTableSpec spec) {
             return spec == null ? new String[0] : spec.getColumnNames();
         }
     }
@@ -120,7 +130,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** The name of the lookup column in the data table */
     @Schema(title = "Lookup column (data table)", //
         description = "The column in the data table that will be used to look up cells in the dictionary", //
-        choices = ColumnChoices0.class)
+        choices = DataTableChoices.class)
     String m_lookupCol;
 
     /** Whether to delete the lookup column in the output table */
@@ -131,15 +141,16 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** The name of the key column in the dictionary table */
     @Schema(title = "Key column (dictionary table)", //
         description = "The column in the dictionary table that contains the search key / criterion", //
-        choices = ColumnChoices1.class)
+        choices = DictionaryTableChoices.class)
     String m_dictKeyCol;
 
     /** The names of the columns from the dictionary table that shall be added to the output table */
     @Schema(title = "New columns from dictionary table", //
         description = "The columns in the dictionary table that contain the values added to the data table", //
-        choices = ColumnChoices1.class, //
-        multiple = true)
-    String[] m_dictValueCols;
+        choices = DictionaryTableChoices.class, //
+        withTypes = false) // TODO: Types can be enabled once a bug in `ChoicesAndEnumDefinitionProvider.java:188` has
+                           // been addressed, that prohibits twinlists from having type for any but the first input port
+    ColumnFilter m_dictValueCols;
 
     /** The selected string match behaviour */
     @Schema(title = "String matching", //
@@ -155,7 +166,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     boolean m_caseSensitive = true;
 
     /** The matching behaviour (only exact, exact or next lower, exact or next higher) */
-    @Schema(title = "Match behavior", //
+    @Schema(title = "If no row matches", //
         description = "Defines what happens when a lookup key is not present in the dictionary: "
             + "If \"Equal\" is selected, no match is found. "
             + "If \"Equal or next smaller\" (\"- larger\") is selected, the next smaller (larger) item from the "
@@ -164,9 +175,9 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     MatchBehaviour m_matchBehaviour = MatchBehaviour.EQUAL;
 
     /** The search direction (forwards / backwards / binSearch) */
-    @Schema(title = "If multiple lines match", //
+    @Schema(title = "If multiple rows match", //
         description = "Specifies the direction in which to perform the search. "
-            + "This defines the behavior in case there are duplicate keys in the dictionary table.")
+            + "This defines the behavior in case there are multiple matching keys in the dictionary table.")
     SearchDirection m_searchDirection = SearchDirection.FORWARD;
 
     /** Whether to create a column that indicates whether a match has been found */
@@ -174,4 +185,17 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
         description = "When checked, a new column \"" + ValueLookupNodeModel.COLUMN_NAME_MATCHFOUND
             + "\" is appended to the output that contains a boolean indicating whether a match was found.")
     boolean m_createFoundCol = false; //NOSONAR: more verbosity
+
+
+    /**
+     * Constructor for de/serialization.
+     */
+    ValueLookupNodeSettings() {
+        // required by interface
+    }
+
+    ValueLookupNodeSettings(final SettingsCreationContext ctx) {
+        m_dictValueCols = ColumnFilter.createDefault(DictionaryTableChoices.class, ctx);
+    }
+
 }
