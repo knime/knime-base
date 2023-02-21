@@ -15,63 +15,40 @@
 			the dialog, columns can be moved between the Include and Exclude 
 			list.
 		</intro>
-		
-        <tab name="Manual Selection">
-			<option name="Include">
-				This list contains the names of those columns in the input table
-				to be included in the output table.
-			</option>
+		<option name="Include/exclude columns">
+			Select the columns to include in the output table.
 			
-			<option name="Exclude">
-				This list contains the names of those columns in the input table
-				to be excluded from the output table.
-			</option>
-
-            <option name="Filter">
-                Use one of these fields to filter either the Include or Exclude
-                list for certain column names or name substrings.
-            </option>
-            
-            <option name="Buttons">
-                Use these buttons to move columns between the Include and Exclude 
-                list. Single-arrow buttons will move all selected columns.
-                Double-arrow buttons will move all columns (filtering is taken into
-                account).
-            </option>
-            
-            <option name="Enforce Exclusion">
-                Select this option to enforce the current exclusion list to stay
-                the same even if the input table specification changes. If some
-                of the excluded columns are not available anymore, a warning
-                is displayed. (New columns will automatically be added to the
-                inclusion list.)
-            </option>
-
-            <option name="Enforce Inclusion">
-                Select this option to enforce the current inclusion list to stay
-                the same even if the input table specification changes. If some
-                of the included columns are not available anymore, a warning
-                is displayed. (New columns will automatically be added to the
-                exclusion list.)
-            </option>
-        </tab>
-
-        <tab name="Wildcard/Regex Selection">
-        	<option name="Search Pattern">
-				Type a search pattern which matches columns to move into the
-				Include or Exclude list. Which list is used can be specified.
-				You can use either Wildcards ('?' matching any
-				character, '*' matching a sequence of any characters) or Regex.
-				You can specify whether your pattern should be case sensitive.
-			</option>
-        </tab>
-
-        <tab name="Type Selection">
-        	<option name="Column Types">
-				Select the column types that you want to include. Column types
-				that are currently not present are depicted in italic.
-			</option>
-        </tab>
+			<br/>
+				
+			<b>Manual selection</b>:
+			<ul>
+				<li><i>Buttons</i>: Use these buttons to move columns between the Include and Exclude 
+	               list. Single-arrow buttons will move all selected columns.
+	               Double-arrow buttons will move all columns (filtering is taken into
+	               account).</li>
+				<li><i>Any unknown columns</i>: Controls what happens with new columns when the input table changes.
+               		If this placeholder is in the include list, then new columns are included, otherwise they are excluded.</li>
+			</ul>
+			
+			<br/>
+			
+			<b>Wildcard/Regex</b>:
+			<ul>
+				<li><i>Pattern</i>: Type a search pattern which matches columns to move into the
+					Include or Exclude list. Which list is used can be specified.
+					You can use either Wildcards ('?' matching any
+					character, '*' matching a sequence of any characters) or Regex.
+					You can specify whether your pattern should be case sensitive and whether the pattern defines the
+					includes or the excludes.</li>
+			</ul>
+			
+			<br/>
+			
+			<b>Types</b>:
+			<ul>
+				<li><i>Selected types</i>: Select the column types that you want to include.</li>
+			</ul>
+		</option>
 
 		<link href="https://www.knime.com/knime-introductory-course/chapter3/section1/column-filter">
 			KNIME E-Learning Course: Column Filter

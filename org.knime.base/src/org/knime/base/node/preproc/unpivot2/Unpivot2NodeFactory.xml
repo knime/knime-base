@@ -23,7 +23,7 @@
 		</intro>
 
 		<tab name="Value columns">      
-			<option name="Includes/exclude columns">
+			<option name="Include/exclude columns">
 				This list contains the columns that are rotated into one single column.
 				
 				<br/>
@@ -63,7 +63,7 @@
 		</tab>
 
 		<tab name="Retained columns">
-			<option name="Includes/exclude columns">
+			<option name="Include/exclude columns">
 				This list contains the columns which are duplicated by the number of selected value columns.
 				
 				<br/>
