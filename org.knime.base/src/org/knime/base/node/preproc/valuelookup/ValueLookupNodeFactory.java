@@ -84,6 +84,7 @@ public final class ValueLookupNodeFactory extends WebUINodeFactory<ValueLookupNo
         .keywords(
             "Cell replacer" // deprecated node replaced by this node, let users find the replacement node easily
         )
+        .sinceVersion(5, 0, 0)
         .build();
 
     /**

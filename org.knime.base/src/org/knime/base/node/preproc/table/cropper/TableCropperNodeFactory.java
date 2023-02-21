@@ -67,6 +67,7 @@ public final class TableCropperNodeFactory extends WebUINodeFactory<TableCropper
         .modelSettingsClass(TableCropperSettings.class)//
         .addInputTable("Input Table", "The table to crop.")//
         .addOutputTable("Cropped Table", "The cropped table.")//
+        .sinceVersion(5, 0, 0)
         .build();
 
     /**

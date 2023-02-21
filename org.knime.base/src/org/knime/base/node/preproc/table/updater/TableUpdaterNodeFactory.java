@@ -70,6 +70,7 @@ public final class TableUpdaterNodeFactory extends WebUINodeFactory<TableUpdater
             .addInputTable("Input Table", "The table that is updated by this node.")//
             .addInputTable("Update Table", "The table that contains the updates.")//
             .addOutputTable("Updated Table", "The updated table.")
+            .sinceVersion(5, 0, 0)
             .build();
 
     /**

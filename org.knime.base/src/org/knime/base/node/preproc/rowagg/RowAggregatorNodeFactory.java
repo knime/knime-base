@@ -77,6 +77,7 @@ public final class RowAggregatorNodeFactory extends WebUINodeFactory<RowAggregat
             + "if, the corresponding output setting is enabled and a category column is selected. Otherwise, the "
             + "output is inactive.")
         .keywords("Group by")
+        .sinceVersion(5, 0, 0)
         .build();
 
     /**

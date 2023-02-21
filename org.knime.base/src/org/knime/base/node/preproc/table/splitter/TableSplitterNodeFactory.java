@@ -73,6 +73,7 @@ public final class TableSplitterNodeFactory extends WebUINodeFactory<TableSplitt
         .addInputTable("Input Table", "The table to split.") //
         .addOutputTable("Top Output Table", "The top part of the split table.") //
         .addOutputTable("Bottom Output Table", "The bottom part of the split table.") //
+        .sinceVersion(5, 0, 0)
         .build();
 
     /**

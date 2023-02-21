@@ -70,6 +70,7 @@ public final class CellExtractorNodeFactory extends WebUINodeFactory<CellExtract
         .addOutputPort("Output flow variable", FlowVariablePortObject.TYPE,
             "Value of the extracted cell as a flow variable.")//
         .addOutputTable("Output table", "Table containing the extracted cell.")//
+        .sinceVersion(5, 0, 0)
         .build();
 
     /**

@@ -70,6 +70,7 @@ public final class CellUpdaterNodeFactory extends WebUINodeFactory<CellUpdaterNo
             "The flow variable connection that allows selecting the flow variable containing the new cell value.")//
         .addInputTable("Input table", "The input table containing the cell to be updated.")//
         .addOutputTable("Output table", "The output table containing the updated cell value.")//
+        .sinceVersion(5, 0, 0)
         .build();
 
     /**
