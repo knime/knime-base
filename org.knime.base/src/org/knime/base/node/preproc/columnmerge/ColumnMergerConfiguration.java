@@ -79,16 +79,15 @@ final class ColumnMergerConfiguration {
 
     /** Policy how to place output. */
     enum OutputPlacement {
-
+            /** Replace both columns, put output at position of primary column. */
+            @Schema(title = "Replace primary and delete secondary")
+            ReplaceBoth,
             /** Replace primary column. */
             @Schema(title = "Replace primary")
             ReplacePrimary,
             /** Replace secondary column. */
             @Schema(title = "Replace secondary")
             ReplaceSecondary,
-            /** Replace both columns, put output at position of primary column. */
-            @Schema(title = "Replace primary and delete secondary")
-            ReplaceBoth,
             /** Append as new column. */
             @Schema(title = "Append as new column")
             AppendAsNewColumn

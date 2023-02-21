@@ -80,12 +80,12 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     @Persist(customPersistor = OutputPlacementOptionsPersistor.class)
     @Schema(title = "Replace/append columns", description = "Choose where to put the result column:"//
         + "<ul>"//
+        + "<li><b>Replace primary and delete secondary</b>: Replace the primary column with the merge "
+        + "result and remove the secondary column.</li>"//
         + "<li><b>Replace primary</b>: Replace the primary column with the merge "
         + "result and keep the secondary column.</li>"//
         + "<li><b>Replace secondary</b>: Keep the primary column and replace the "
         + "secondary column with the merge result.</li>"//
-        + "<li><b>Replace primary and delete secondary</b>: Replace the primary column with the merge "
-        + "result and remove the secondary column.</li>"//
         + "<li><b>Append as new column</b>: Append a new column with the name provided below.</li>"//
         + "</ul>")
     OutputPlacement m_outputPlacement;
