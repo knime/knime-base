@@ -2,7 +2,7 @@
 <knimeNode icon="pivot.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-    <name>Pivoting</name>
+    <name>Pivot</name>
     <shortDescription>
     	Pivots and groups the input table by the selected columns for pivoting 
     	and	grouping; enhanced by column aggregations.

@@ -2,15 +2,15 @@
 <knimeNode icon="./row_to_column_header.png" type="Manipulator" xmlns="http://knime.org/node/v4.1" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
-    <name>Row to Column Header</name>
+    <name>Row to Column Names</name>
     
     <shortDescription>
-        Uses the values of a specified row of the input table as new column headers.
+        Uses the values of a specified row of the input table as new column names.
     </shortDescription>
     
     <fullDescription>
         <intro>
-            Uses the values of a specified row of the input table as new column headers.
+            Uses the values of a specified row of the input table as new column names.
             The node has two outports:
             The first port contains a new table with a column header corresponding to the specified row of the input
             table. If type guessing is activated, the cells of each column are converted to the most specific type
