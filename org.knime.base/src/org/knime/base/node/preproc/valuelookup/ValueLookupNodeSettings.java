@@ -74,7 +74,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             @Schema(title = "Wildcard")
             WILDCARD,
             /** Allow Regex in dictionary lookup column */
-            @Schema(title = "RegEx")
+            @Schema(title = "Regex")
             REGEX;
     }
 
@@ -127,43 +127,24 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    // ---- Match options
+
     /** The name of the lookup column in the data table */
     @Schema(title = "Lookup column (data table)", //
-        description = "The column in the data table that will be used to look up cells in the dictionary", //
+        description = "The column in the data table that will be used to look up cells in the dictionary.", //
         choices = DataTableChoices.class)
     String m_lookupCol;
 
-    /** Whether to delete the lookup column in the output table */
-    @Schema(title = "Delete lookup column", //
-        description = "When selected, the lookup column will be deleted from the data table") //
-    boolean m_deleteLookupCol = false; //NOSONAR: more verbosity
-
     /** The name of the key column in the dictionary table */
     @Schema(title = "Key column (dictionary table)", //
-        description = "The column in the dictionary table that contains the search key / criterion", //
+        description = "The column in the dictionary table that contains the search key / criterion.", //
         choices = DictionaryTableChoices.class)
     String m_dictKeyCol;
 
-    /** The names of the columns from the dictionary table that shall be added to the output table */
-    @Schema(title = "New columns from dictionary table", //
-        description = "The columns in the dictionary table that contain the values added to the data table", //
-        choices = DictionaryTableChoices.class, //
-        withTypes = false) // TODO: Types can be enabled once a bug in `ChoicesAndEnumDefinitionProvider.java:188` has
-                           // been addressed, that prohibits twinlists from having type for any but the first input port
-    ColumnFilter m_dictValueCols;
-
-    /** The selected string match behaviour */
-    @Schema(title = "String matching", //
-        description = "The matching behavior when matching strings: "
-            + "Full string matching matches a lookup string only if it exactly matches a search string. "
-            + "Substring matching matches a lookup string if the key in the dictionary is a substring of it. "
-            + "Wildcard and RegEx matching match a lookup string if a pattern in the dictionary matches to it.")
-    StringMatching m_stringMatchBehaviour = StringMatching.FULLSTRING;
-
-    /** Whether the string match shall be case sensitive */
-    @Schema(title = "Match strings case-sensitive", //
-        description = "When enabled, the string matching will be case-sensitive, otherwise case-insensitive")
-    boolean m_caseSensitive = true;
+    /** The search direction (forwards / backwards / binSearch) */
+    @Schema(title = "If multiple rows match", //
+        description = "Defines the behavior in case there are multiple matching keys in the dictionary table.")
+    SearchDirection m_searchDirection = SearchDirection.FORWARD;
 
     /** The matching behaviour (only exact, exact or next lower, exact or next higher) */
     @Schema(title = "If no row matches", //
@@ -174,11 +155,28 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             + "If no such element can be found, a missing value is inserted.")
     MatchBehaviour m_matchBehaviour = MatchBehaviour.EQUAL;
 
-    /** The search direction (forwards / backwards / binSearch) */
-    @Schema(title = "If multiple rows match", //
-        description = "Specifies the direction in which to perform the search. "
-            + "This defines the behavior in case there are multiple matching keys in the dictionary table.")
-    SearchDirection m_searchDirection = SearchDirection.FORWARD;
+    /** The selected string match behaviour */
+    @Schema(title = "String matching", //
+        description = "The matching behavior when matching strings: "
+            + "Full string matching matches a lookup string only if it exactly matches a search string. "
+            + "Substring matching matches a lookup string if the key in the dictionary is a substring of it. "
+            + "Wildcard and Regex matching match a lookup string if a pattern in the dictionary matches it.")
+    StringMatching m_stringMatchBehaviour = StringMatching.FULLSTRING;
+
+    /** Whether the string match shall be case sensitive */
+    @Schema(title = "Match strings case-sensitive", //
+        description = "When enabled, the string matching will be case-sensitive, otherwise case-insensitive.")
+    boolean m_caseSensitive = true;
+
+    // ---- Output options
+
+    /** The names of the columns from the dictionary table that shall be added to the output table */
+    @Schema(title = "Append columns (from dictionary table)", //
+        description = "The columns in the dictionary table that contain the values added to the data table.", //
+        choices = DictionaryTableChoices.class, //
+        withTypes = false) // TODO: Types can be enabled once a bug in `ChoicesAndEnumDefinitionProvider.java:188` has
+                           // been addressed, that prohibits twinlists from having type for any but the first input port
+    ColumnFilter m_dictValueCols;
 
     /** Whether to create a column that indicates whether a match has been found */
     @Schema(title = "Append a column indicating whether a match was found", //
@@ -186,6 +184,10 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             + "\" is appended to the output that contains a boolean indicating whether a match was found.")
     boolean m_createFoundCol = false; //NOSONAR: more verbosity
 
+    /** Whether to delete the lookup column in the output table */
+    @Schema(title = "Delete lookup column", //
+        description = "When selected, the lookup column will be deleted from the data table.") //
+    boolean m_deleteLookupCol = false; //NOSONAR: more verbosity
 
     /**
      * Constructor for de/serialization.
