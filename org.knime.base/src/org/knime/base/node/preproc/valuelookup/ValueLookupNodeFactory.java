@@ -65,22 +65,25 @@ public final class ValueLookupNodeFactory extends WebUINodeFactory<ValueLookupNo
         .name("Value Lookup")//
         .icon("./value_lookup.png")//
         .shortDescription("Uses a dictionary table to look up values and append the corresponding cells to a row.")//
-        .fullDescription("The node has two inputs: A data table and a dictionary table. "
-            + "The data table contains a column that can be used to look up values in the dictionary table. "
-            + "From the dictionary table, choose a column that serves as a lookup (key) column or criterion. "
-            + "Then select columns in the dictionary table that shall be inserted in the data table. "
-            + "For the data table, specify a column that contains the lookup values. "
-            + "When a lookup value matches an entry in the dictionary, the selected cells are added to the data table. "
-            + "Otherwise, missing cells will be inserted. \n"
-            + "Missing values are treated as ordinary values, i.e. they are valid as lookup and replacement value. "
-            + "The key column of the dictionary can be a collection type. "
-            + "Then, the values in the collection acta as alternative lookup values for the associated row.")//
+        .fullDescription("The node has two inputs: a data table and a dictionary table. <br/>"
+            + "From the data table select the column that is used to look up values in the dictionary table. <br/>"
+            + "From the dictionary table select a column that contains the search keys or criteria. <br/>"
+            + "When a lookup value matches an entry in the dictionary, cells from that row are appended to the data "
+            + "table. In case multiple rows match you can choose if you want to use the first match or the last match. "
+            + "If no rows match you can choose to insert missing values, match the next smaller value or match "
+            + "the next larger value. <br/>"
+            + "Missing values are treated as ordinary values, i.e. they are valid as lookup and replacement value. The "
+            + "key column of the dictionary can also be a collection type. Then, the values in the collection act as "
+            + "alternative lookup values for the associated row. <br/>"
+            + "<br/>"
+            + "In the output section you can select the columns in the dictionary table that shall be inserted in the "
+            + "output data table.")//
         .modelSettingsClass(ValueLookupNodeSettings.class)//
-        .addInputTable("Data Table", "The data table contains a column that contains lookup values")//
+        .addInputTable("Data Table", "The data table has a column that contains lookup values")//
         .addInputTable("Dictionary Table",
-            "The dictionary table contains a key column and value columns that will be inserted into the data table")//
+            "The dictionary table has a key column and value columns that will be inserted into the data table")//
         .addOutputTable("Data Table with additional columns",
-            "The output table is a copy of the data table but with the added values from the dictionary table")//
+            "The output table is the data table but with the added values from the dictionary table")//
         .keywords(
             "Cell replacer" // deprecated node replaced by this node, let users find the replacement node easily
         )
