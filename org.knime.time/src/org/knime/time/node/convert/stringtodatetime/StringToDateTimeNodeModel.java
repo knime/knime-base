@@ -380,7 +380,7 @@ final class StringToDateTimeNodeModel
     }
 
     /**
-     * This cell factory converts a single Date&Time cell to a String cell.
+     * This cell factory converts a single String cell to a Date&Time cell.
      */
     final class StringToTimeCellFactory extends SingleCellFactory {
         private final int m_colIndex;
@@ -388,6 +388,8 @@ final class StringToDateTimeNodeModel
         private final SimpleStreamableOperatorInternals m_internals;
 
         private final DataColumnSpec m_spec;
+
+        private final DateTimeFormatter m_formatter;
 
         /**
          * @param inSpec spec of the column after computation
@@ -400,6 +402,9 @@ final class StringToDateTimeNodeModel
             m_colIndex = colIndex;
             m_internals = internals;
             m_spec = inSpec;
+            final var locale = Locale.forLanguageTag(m_locale.getStringValue());
+            m_formatter = DateTimeFormatter.ofPattern(m_format.getStringValue(), locale)
+                        .withChronology(Chronology.ofLocale(locale));
         }
 
         @Override
@@ -411,25 +416,21 @@ final class StringToDateTimeNodeModel
 
             final String input = ((StringValue)cell).getStringValue();
             try {
-                final Locale locale = Locale.forLanguageTag(m_locale.getStringValue());
-                final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(m_format.getStringValue(), locale)
-                    .withChronology(Chronology.ofLocale(locale));
-
                 switch (DateTimeType.valueOf(m_selectedType)) {
                     case LOCAL_DATE: {
-                        final LocalDate ld = LocalDate.parse(input, formatter);
+                        final var ld = LocalDate.parse(input, m_formatter);
                         return LocalDateCellFactory.create(ld);
                     }
                     case LOCAL_TIME: {
-                        final LocalTime lt = LocalTime.parse(input, formatter);
+                        final var lt = LocalTime.parse(input, m_formatter);
                         return LocalTimeCellFactory.create(lt);
                     }
                     case LOCAL_DATE_TIME: {
-                        final LocalDateTime ldt = LocalDateTime.parse(input, formatter);
+                        final var ldt = LocalDateTime.parse(input, m_formatter);
                         return LocalDateTimeCellFactory.create(ldt);
                     }
                     case ZONED_DATE_TIME: {
-                        final ZonedDateTime zdt = ZonedDateTime.parse(input, formatter);
+                        final var zdt = ZonedDateTime.parse(input, m_formatter);
                         return ZonedDateTimeCellFactory.create(zdt);
                     }
                     default:
@@ -452,7 +453,7 @@ final class StringToDateTimeNodeModel
                         m_messageBuilder.addResolutions(
                             "Deselect the \"Fail on error\" option to output missing values for non-matching strings.");
                     }
-                    throw KNIMEException.of(m_messageBuilder.build().orElseThrow()).toUnchecked();
+                    throw KNIMEException.of(m_messageBuilder.build().orElseThrow(), e).toUnchecked();
                 }
                 return new MissingCell(e.getMessage());
             }
