@@ -124,7 +124,7 @@ final class CellUpdater {
     static String getTypeMismatchWarningMessage(final String colName, final DataType currentType,
         final DataType newType) {
         return String.format("Incompatible update value of type \"%s\" for a cell of type \"%s\" in column \"%s\".",
-            currentType.getName(), newType.getName(), colName);
+            newType.getName(), currentType.getName(), colName);
     }
 
     static String getFirstFlowVariableName(final Map<String, FlowVariable> availableVars) {

@@ -191,7 +191,12 @@ final class CellUpdaterNodeModel extends WebUINodeModel<CellUpdaterSettings> {
 
     private void validateSettingsAgainstSpec(final CellUpdaterSettings settings, final DataTableSpec spec)
         throws InvalidSettingsException {
+        CheckUtils.checkSetting(spec.getNumColumns() != 0, "The input table should contain at least one column.");
+
         if (settings.m_columnMode == ColumnMode.BY_NAME) {
+            // This is only reachable if the node was previously autoconfigured with an empty table attached.
+            CheckUtils.checkSetting(settings.m_columnName != null,
+                "Please select the column containing the cell to be updated.");
             CheckUtils.checkSetting(spec.containsName(settings.m_columnName),
                 "The input table does not contain the column \"%s\".", settings.m_columnName);
         } else {
@@ -203,6 +208,8 @@ final class CellUpdaterNodeModel extends WebUINodeModel<CellUpdaterSettings> {
 
         CheckUtils.checkSetting(settings.m_rowNumber > 0, "The row number needs to be a positive number.");
 
+        CheckUtils.checkSetting(settings.m_flowVariableName != null,
+            "Please select the flow variable containing the new value for the target cell.");
         CheckUtils.checkSetting(getSelectedFlowVariable(settings) != null,
             "The flow variable input does not contain the flow variable \"%s\".", settings.m_flowVariableName);
 

@@ -76,6 +76,7 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
     CellUpdaterSettings(final SettingsCreationContext context) {
         var portObjects = context.getPortObjectSpecs();
 
+        // only perform autoconfigure when both ports are connected
         if ((portObjects[0] != null) && (portObjects[1] != null)) {
             var spec = (DataTableSpec)portObjects[1];
             var vars = context.getAvailableInputFlowVariables(VariableToCellConverterFactory.getSupportedTypes());
@@ -147,9 +148,7 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
      * Otherwise they are initialised to the first column and flow variable name respectively.
      */
     private void autoconfigureSettings(final Map<String, FlowVariable> availableVars,  final DataTableSpec spec) {
-        // If settings.m_columnName is not null, settings have already been configured.
-        // If spec is null, no input table is connected.
-        if (spec == null || m_columnName != null) {
+        if (!isAutoconfigurable(availableVars, spec)) {
             return;
         }
 
@@ -162,6 +161,18 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
         m_countFromEnd = false;
         m_flowVariableName = match.getMatchedVarName();
         m_columnMode = ColumnMode.BY_NAME;
+    }
+
+    /*
+     * Check if the current state of the node makes it autoconfigurable.
+     *
+     * Cases:
+     * - availableVars is empty: there are no flow variables available (should never happen).
+     * - spec doesn't have any columns: the input table exists but is empty.
+     * - columnName is not null: the settings have already been configured.
+     */
+    private boolean isAutoconfigurable(final Map<String, FlowVariable> availableVars,  final DataTableSpec spec) {
+        return !(availableVars.isEmpty() || spec.getNumColumns() == 0 || m_columnName != null);
     }
 
 }
