@@ -52,6 +52,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import org.knime.core.data.container.RowFlushable;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -73,7 +74,7 @@ import org.knime.core.node.workflow.LoopStartNode;
  *
  * @author Adrian Nembach, KNIME.com
  */
-public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopEndNode {
+public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopEndNode, RowFlushable {
 
     private FeatureSelector m_featureSelector;
 
@@ -231,6 +232,13 @@ public class FeatureSelectionLoopEndNodeModel extends NodeModel implements LoopE
     @Override
     protected void onDispose() {
         clear();
+    }
+
+    @Override
+    public void flushRows() {
+        if (m_resultTable != null) {
+            m_resultTable.flushRows();
+        }
     }
 
 }
