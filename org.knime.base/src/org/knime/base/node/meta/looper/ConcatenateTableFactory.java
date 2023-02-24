@@ -64,6 +64,7 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.append.AppendedRowsTable;
 import org.knime.core.data.container.BlobSupportDataRow;
 import org.knime.core.data.container.ConcatenateTable;
+import org.knime.core.data.container.RowFlushable;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -81,7 +82,7 @@ import org.knime.core.util.DuplicateKeyException;
  * @author Martin Horn, University of Konstanz
  * @since 3.1
  */
-class ConcatenateTableFactory {
+class ConcatenateTableFactory implements RowFlushable {
 
     /** Maximum number of tables to be kept. If this threshold is exceeded the so far created
      * tables are copied into an entire new one.*/
@@ -398,5 +399,12 @@ class ConcatenateTableFactory {
             m_emptyTable.getCloseableTable().close();
         }
         m_duplicateChecker.clear();
+    }
+
+    @Override
+    public void flushRows() {
+        if (!m_tables.isEmpty()) {
+            m_tables.get(m_tables.size() - 1).flushRows();
+        }
     }
 }

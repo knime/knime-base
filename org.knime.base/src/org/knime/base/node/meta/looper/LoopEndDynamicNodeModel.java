@@ -53,9 +53,11 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.RowFlushable;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -77,7 +79,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  * @author based on {@link LoopEndNodeModel} by Thorsten Meinl, University of Konstanz
  * @since 4.5
  */
-final class LoopEndDynamicNodeModel extends NodeModel implements LoopEndNode {
+final class LoopEndDynamicNodeModel extends NodeModel implements LoopEndNode, RowFlushable {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LoopEndDynamicNodeModel.class);
 
@@ -160,6 +162,7 @@ final class LoopEndDynamicNodeModel extends NodeModel implements LoopEndNode {
             m_iteration++;
             continueLoop();
         }
+
         return result;
     }
 
@@ -226,6 +229,13 @@ final class LoopEndDynamicNodeModel extends NodeModel implements LoopEndNode {
             case UNMODIFIED:
             default:
                 return Optional.empty();
+        }
+    }
+
+    @Override
+    public void flushRows() {
+        if (m_tableFactories != null) {
+            Stream.of(m_tableFactories).forEach(RowFlushable::flushRows);
         }
     }
 }
