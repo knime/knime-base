@@ -68,7 +68,7 @@ final class TableCropperSettings implements DefaultNodeSettings {
      */
     TableCropperSettings(final SettingsCreationContext context) {
         var spec = context.getDataTableSpecs()[0];
-        if (spec != null) {
+        if (spec != null && spec.getNumColumns() > 0) {
             m_startColumnName = spec.getColumnSpec(0).getName();
             m_endColumnName = spec.getColumnSpec(spec.getNumColumns() - 1).getName();
             m_endColumnNumber = spec.getNumColumns(); // set end column to last column in table.

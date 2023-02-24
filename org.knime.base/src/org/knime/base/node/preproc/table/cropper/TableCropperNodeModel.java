@@ -81,6 +81,7 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final TableCropperSettings settings)
         throws InvalidSettingsException {
         var spec = inSpecs[0];
+        CheckUtils.checkSetting(spec.getNumColumns() > 0, "The input table should contain at least one column.");
 
         return new DataTableSpec[]{createOutputSpec(spec, settings)};
     }
@@ -108,14 +109,16 @@ final class TableCropperNodeModel extends WebUINodeModel<TableCropperSettings> {
 
     private static int[] getColumnIndicesFromNumberRange(final TableCropperSettings settings, final int numColumns)
         throws InvalidSettingsException {
-        var positionRange = new PositionRange(settings.m_startColumnNumber,
-            settings.m_startColumnCountFromEnd, settings.m_endColumnNumber, settings.m_endColumnCountFromEnd, "column")
-                .resolve(numColumns);
+        var positionRange = new PositionRange(settings.m_startColumnNumber, settings.m_startColumnCountFromEnd,
+            settings.m_endColumnNumber, settings.m_endColumnCountFromEnd, "column").resolve(numColumns);
         return IntStream.range((int)positionRange.getStart() - 1, (int)positionRange.getEnd()).toArray();
     }
 
     private static int[] getColumnIndicesFromNameRange(final DataTableSpec spec, final TableCropperSettings settings)
         throws InvalidSettingsException {
+        // This is only reachable if the node was previously autoconfigured with an empty table attached.
+        CheckUtils.checkSetting(settings.m_startColumnName != null, "Please select the first column to be included.");
+
         int startColumnIndex = spec.findColumnIndex(settings.m_startColumnName);
         CheckUtils.checkSetting(startColumnIndex >= 0, "The provided table does not contain the start column ('%s').",
             settings.m_startColumnName);
