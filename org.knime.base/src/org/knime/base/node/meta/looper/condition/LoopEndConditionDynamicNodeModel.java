@@ -60,6 +60,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.append.AppendedColumnRow;
+import org.knime.core.data.container.RowFlushable;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
 import org.knime.core.data.def.DefaultRow;
@@ -90,7 +91,7 @@ import org.knime.core.node.workflow.VariableType;
  * @author based on {@link LoopEndConditionNodeModel} by Thorsten Meinl, University of Konstanz
  * @since 4.5
  */
-final class LoopEndConditionDynamicNodeModel extends NodeModel implements LoopEndNode {
+final class LoopEndConditionDynamicNodeModel extends NodeModel implements LoopEndNode, RowFlushable {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LoopEndConditionDynamicNodeModel.class);
 
     private long m_startTime;
@@ -410,6 +411,14 @@ final class LoopEndConditionDynamicNodeModel extends NodeModel implements LoopEn
         } catch (IllegalArgumentException ex) {
             throw new InvalidSettingsException("Comparison value “" + s.value() + "” is not a valid "
                 + s.variableType().getSimpleType().getSimpleName() + ": " + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public void flushRows() {
+        if (m_collectContainers != null) {
+            m_variableContainer.flushRows();
+            Stream.of(m_collectContainers).forEach(RowFlushable::flushRows);
         }
     }
 }
