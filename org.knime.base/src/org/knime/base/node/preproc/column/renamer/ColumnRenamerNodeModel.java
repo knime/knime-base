@@ -83,6 +83,7 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final ColumnRenamerSettings modelSettings)
         throws InvalidSettingsException {
         var spec = inSpecs[0];
+        CheckUtils.checkSetting(spec.getNumColumns() > 0, "The input table should contain at least one column.");
         var renamer = new Renamer(modelSettings);
         return new DataTableSpec[]{renamer.rename(spec)};
     }
@@ -95,7 +96,7 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
         return new BufferedDataTable[]{exec.createSpecReplacerTable(table, renamer.rename(table.getDataTableSpec()))};
     }
 
-    @SuppressWarnings("unused")// the Renamer constructor validates the settings
+    @SuppressWarnings("unused") // the Renamer constructor validates the settings
     @Override
     protected void validateSettings(final ColumnRenamerSettings settings) throws InvalidSettingsException {
         new Renamer(settings);
@@ -109,6 +110,9 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
             m_nameMap = new HashMap<>();
             var newNames = new HashSet<String>();
             for (var renaming : settings.m_renamings) {
+                // This is reached in case the user clicks OK without selecting a column to be renamed.
+                CheckUtils.checkSetting(renaming.m_newName != null, "Please select a column to be renamed.");
+
                 var oldName = renaming.getOldName();
                 CheckUtils.checkSetting(m_nameMap.put(oldName, renaming.m_newName) == null,
                     "The column '%s' is renamed more than once. There must be only one renaming per column.", oldName);
