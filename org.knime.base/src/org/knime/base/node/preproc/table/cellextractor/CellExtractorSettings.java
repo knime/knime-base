@@ -67,7 +67,7 @@ final class CellExtractorSettings implements DefaultNodeSettings {
      */
     CellExtractorSettings(final SettingsCreationContext context) {
         var spec = context.getDataTableSpecs()[0];
-        if (spec != null) {
+        if (spec != null && spec.getNumColumns() > 0) {
             m_columnName = spec.getColumnSpec(0).getName();
             m_columnNumber = 1;
             m_rowNumber = 1;
