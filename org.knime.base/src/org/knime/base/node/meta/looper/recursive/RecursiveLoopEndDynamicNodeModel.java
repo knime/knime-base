@@ -49,12 +49,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -62,6 +64,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.append.AppendedColumnRow;
+import org.knime.core.data.container.RowFlushable;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.node.BufferedDataContainer;
@@ -87,7 +90,7 @@ import org.knime.core.node.workflow.VariableType;
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  * @author based on {@link RecursiveLoopEndNodeModel} by Iris Adae, University of Konstanz, Germany
  */
-class RecursiveLoopEndDynamicNodeModel extends NodeModel implements LoopEndNode {
+class RecursiveLoopEndDynamicNodeModel extends NodeModel implements LoopEndNode, RowFlushable {
 
     private static final VariableType<?>[] BOOLEAN_COMPATIBLE_TYPES =
         VariableType.BooleanType.INSTANCE.getConvertibleTypes().toArray(VariableType<?>[]::new);
@@ -264,6 +267,13 @@ class RecursiveLoopEndDynamicNodeModel extends NodeModel implements LoopEndNode 
             super.continueLoop();
         }
         return result;
+    }
+
+    @Override
+    public void flushRows() {
+        Stream.of(m_outContainers)//
+            .filter(Objects::nonNull)//
+            .forEach(RowFlushable::flushRows);
     }
 
     /**
