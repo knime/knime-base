@@ -52,6 +52,7 @@ import org.knime.base.node.flowvariable.converter.variabletocell.VariableToDataC
 import org.knime.base.node.flowvariable.variabletotablerow4.AbstractVariableToTableNodeModel;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.RowFlushable;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -74,7 +75,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implements LoopEndNode {
+final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel implements LoopEndNode, RowFlushable {
 
     @SuppressWarnings("hiding")
     static final String CFG_KEY_FILTER = AbstractVariableToTableNodeModel.CFG_KEY_FILTER;
@@ -215,6 +216,13 @@ final class LoopEndVariableNodeModel extends AbstractVariableToTableNodeModel im
      */
     static SettingsModelBoolean createPropagateLoopVariablesModel() {
         return new SettingsModelBoolean("propagateLoopVariables", false);
+    }
+
+    @Override
+    public void flushRows() {
+        if (m_container != null) {
+            m_container.flushRows();
+        }
     }
 
 }
