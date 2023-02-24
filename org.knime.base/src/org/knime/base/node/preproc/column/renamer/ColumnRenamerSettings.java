@@ -62,7 +62,9 @@ final class ColumnRenamerSettings implements DefaultNodeSettings {
 
     ColumnRenamerSettings(final SettingsCreationContext context) {
         // pick the last column because a typical scenario is to rename columns appended by the previous node
-        var initialColumn = context.getDataTableSpec(0).map(s -> s.getColumnSpec(s.getNumColumns() - 1).getName());
+        var initialColumn = context.getDataTableSpec(0)//
+            .filter(s -> s.getNumColumns() > 0)//
+            .map(s -> s.getColumnSpec(s.getNumColumns() - 1).getName());
         if (initialColumn.isPresent()) {
             // initialize as identity and let the NodeModel warn the user
             var renaming = new Renaming();
