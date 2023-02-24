@@ -59,6 +59,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.container.RowFlushable;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -78,7 +79,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
-final class LoopEndJoinNodeModel extends NodeModel implements LoopEndNode {
+final class LoopEndJoinNodeModel extends NodeModel implements LoopEndNode, RowFlushable {
 
     /** See bug 6544 - columns 51+ always had " (Iter #1)" appended. True only for deprecated node. */
     private final boolean m_appendIterSuffixForBackwardComp;
@@ -268,6 +269,11 @@ final class LoopEndJoinNodeModel extends NodeModel implements LoopEndNode {
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
         // no op
+    }
+
+    @Override
+    public void flushRows() {
+        // the node appends entire tables, which by definition must already be written
     }
 
 }
