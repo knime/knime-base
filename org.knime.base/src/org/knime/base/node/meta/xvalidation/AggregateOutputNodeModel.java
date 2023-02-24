@@ -64,6 +64,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.RowFlushable;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -85,7 +86,7 @@ import org.knime.core.node.workflow.LoopEndNode;
  * @author Bernd Wiswedel, University of Konstanz
  * @author Thorsten Meinl, University of Konstanz
  */
-public class AggregateOutputNodeModel extends NodeModel implements LoopEndNode {
+public class AggregateOutputNodeModel extends NodeModel implements LoopEndNode, RowFlushable {
     private static final DataTableSpec NOMINAL_STATISTICS_SPEC =
             new DataTableSpec(new DataColumnSpecCreator("Error in %",
                     DoubleCell.TYPE).createSpec(), new DataColumnSpecCreator(
@@ -350,6 +351,13 @@ public class AggregateOutputNodeModel extends NodeModel implements LoopEndNode {
             m_predictionTable.close();
             return new BufferedDataTable[]{m_predictionTable.getTable(),
                     cont.getTable()};
+        }
+    }
+
+    @Override
+    public void flushRows() {
+        if (m_predictionTable != null) {
+            m_predictionTable.flushRows();
         }
     }
 
