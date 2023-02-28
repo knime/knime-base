@@ -233,7 +233,7 @@ final class CellExtractorNodeModel extends WebUINodeModel<CellExtractorSettings>
         if (settings.m_columnSpecificationMode == ColumnSpecificationMode.BY_NAME) {
             // This is only reachable if the node was previously autoconfigured with an empty table attached.
             CheckUtils.checkSetting(settings.m_columnName != null,
-                "Please select the column containing the cell to be extracted.");
+                "Select the column containing the cell to be extracted.");
             CheckUtils.checkSetting(spec.containsName(settings.m_columnName),
                 "The input table does not contain the column '%s'.", settings.m_columnName);
         } else {
