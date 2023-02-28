@@ -111,7 +111,7 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
             var newNames = new HashSet<String>();
             for (var renaming : settings.m_renamings) {
                 // This is reached in case the user clicks OK without selecting a column to be renamed.
-                CheckUtils.checkSetting(renaming.m_newName != null, "Please select a column to be renamed.");
+                CheckUtils.checkSetting(renaming.m_newName != null, "Select a column to be renamed.");
 
                 var oldName = renaming.getOldName();
                 CheckUtils.checkSetting(m_nameMap.put(oldName, renaming.m_newName) == null,
