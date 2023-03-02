@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Filehandling functionality for KNIME
 Bundle-SymbolicName: org.knime.filehandling.core;singleton:=true
 Bundle-Version: 5.1.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.connections.base,
  org.knime.filehandling.core.connections.base.attributes,

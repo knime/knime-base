@@ -6,7 +6,7 @@ Bundle-Version: 4.4.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Require-Bundle: org.knime.core;bundle-version="[5.0.0,6.0.0)",
  org.knime.filehandling.core;bundle-version="[5.0.0,6.0.0)"
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Export-Package: org.knime.filehandling.core.example.node
 Automatic-Module-Name: org.knime.filehandling.core.example.node

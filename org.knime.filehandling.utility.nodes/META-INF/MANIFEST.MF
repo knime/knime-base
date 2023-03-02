@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.knime.filehandling.utility.nodes;singleton:=true
 Bundle-Version: 5.1.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Automatic-Module-Name: org.knime.filehandling.nodes
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.knime.base;bundle-version="[5.0.0,6.0.0)",
  org.knime.filehandling.core;bundle-version="[5.0.0,6.0.0)",
  org.knime.time;bundle-version="[5.0.0,6.0.0)",

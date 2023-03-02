@@ -36,6 +36,6 @@ Export-Package: org.knime.base.node.image.writepng,
   org.knime.base.node.viz.statistics,
   org.knime.core.node.defaultnodedialog
 Require-Bundle: org.knime.core;bundle-version="[5.0.0,6.0.0)"
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ClassPath: .
 Automatic-Module-Name: org.knime.deprecated

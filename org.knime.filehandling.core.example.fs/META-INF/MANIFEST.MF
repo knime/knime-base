@@ -11,6 +11,6 @@ Require-Bundle: org.knime.workbench.repository;bundle-version="[5.0.0,6.0.0)",
  org.apache.commons.lang3;bundle-version="[3.9.0,4.0.0)"
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: org.knime.filehandling.core.example.fs
 
