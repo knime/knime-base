@@ -52,7 +52,7 @@ try {
             )
         },
         'Integrated Workflowtests': {
-                workflowTests.runIntegratedWorkflowTests(profile: 'test')
+            workflowTests.runIntegratedWorkflowTests(profile: 'test',  nodeType: 'maven', configurations: workflowTests.DEFAULT_FEATURE_BRANCH_CONFIGURATIONS)
          },
     ]
 
