@@ -138,6 +138,8 @@
 	</profiles>
 
 	<repositories>
+		<!-- DO NOT add additonal repositories here without consulting with the DevOps team.
+		You are very likely to introduce circular dependencies between repositories, so be careful!  -->
 		<repository>
 			<id>p2-knime-core</id>
 			<layout>p2</layout>
