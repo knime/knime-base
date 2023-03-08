@@ -44,54 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   8 Mar 2023 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.column;
+package org.knime.base.node.preproc.double2int2;
 
-import java.util.stream.Stream;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-import org.knime.core.data.DataColumnSpec;
+import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
+import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
- * Settings for the Column Filter node.
+ * Tests for the DoubleToIntNodeSettings column choices provider.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-final class ColumnFilterNodeSettings implements DefaultNodeSettings {
+@SuppressWarnings("restriction")// WebUI* classes
+class DoubleToIntNodeSettingsTest {
 
-    ColumnFilterNodeSettings(final SettingsCreationContext context) {
-        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
+    @Test
+    void testColumnChoicesProvider() {
+        final var spec = new DataTableSpecCreator().addColumns(
+            new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
+            ).createSpec();
+        final var ctx = DefaultNodeSettings.createSettingsCreationContext(new DataTableSpec[] { spec });
+
+        final var expected = new String[] { "Double1" };
+        final var choices = new DoubleToIntNodeSettings.NumericalColumns().choices(ctx);
+        assertArrayEquals(expected, choices, "Wrong double column choices.");
     }
-
-    /**
-     * Constructor for persistence and conversion to JSON.
-     */
-    ColumnFilterNodeSettings() {
-    }
-
-    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
-    @Schema(title = "Column filter", description = "Select the columns to include in the output table.",
-        choices = AllColumns.class)
-    ColumnFilter m_columnFilter = new ColumnFilter();
-
-    static final class AllColumns implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(0)
-                    .map(DataTableSpec::stream)//
-                    .orElseGet(Stream::empty)//
-                    .toArray(DataColumnSpec[]::new);
-        }
-
-    }
-
 }

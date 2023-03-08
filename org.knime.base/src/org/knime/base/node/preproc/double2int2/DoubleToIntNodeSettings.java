@@ -48,7 +48,10 @@
  */
 package org.knime.base.node.preproc.double2int2;
 
+import java.util.stream.Stream;
+
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
@@ -93,7 +96,7 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = DoubleToIntNodeModel.CFG_INCLUDED_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
     @Schema(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list",
-        choices = NumericalColumns.class, withTypes = false)
+        choices = NumericalColumns.class)
     ColumnFilter m_inclCols = new ColumnFilter();
 
     @Persist(configKey = DoubleToIntNodeModel.CFG_LONG, settingsModel = SettingsModelBoolean.class)
@@ -120,22 +123,20 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     }
 
-    private static final class NumericalColumns implements ChoicesProvider {
+    static final class NumericalColumns implements ChoicesProvider {
 
         @Override
         public String[] choices(final SettingsCreationContext context) {
-            var spec = context.getDataTableSpecs()[0];
-            if (spec != null) {
-                return spec.stream()//
-                    .filter(c -> include(c.getType()))//
-                    .map(DataColumnSpec::getName)//
-                    .toArray(String[]::new);
-            }
-            return new String[0];
+            return context.getDataTableSpec(0)//
+                .map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .filter(c -> include(c.getType()))//
+                .map(DataColumnSpec::getName)//
+                .toArray(String[]::new);
         }
 
         private static boolean include(final DataType type) {
-            return (type.isCompatible(DoubleValue.class) && !type.isCompatible(IntValue.class));
+            return type.isCompatible(DoubleValue.class) && !type.isCompatible(IntValue.class);
         }
 
     }

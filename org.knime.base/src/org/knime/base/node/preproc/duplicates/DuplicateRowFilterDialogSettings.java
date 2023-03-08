@@ -48,11 +48,15 @@
  */
 package org.knime.base.node.preproc.duplicates;
 
+import java.util.stream.Stream;
+
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
@@ -201,13 +205,15 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
         }
     }
 
-    /** Provide all column names as choices */
-    private static final class AllColumns implements ChoicesProvider {
+    /** Provide all columns as choices */
+    static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
-            var spec = context.getDataTableSpecs()[0];
-            return spec != null ? spec.getColumnNames() : new String[0];
+        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(0)
+                    .map(DataTableSpec::stream)//
+                    .orElseGet(Stream::empty)//
+                    .toArray(DataColumnSpec[]::new);
         }
     }
 

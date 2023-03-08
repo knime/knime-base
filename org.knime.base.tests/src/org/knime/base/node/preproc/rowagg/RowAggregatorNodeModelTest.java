@@ -669,11 +669,15 @@ final class RowAggregatorNodeModelTest {
 
         final var expected = new String[] { "boolean", "int", "long", "double" };
 
-        final var resAggColumn = RowAggregatorNodeModel.filterAggregatableColumns(in);
+        final var resAggColumn = in.stream().filter(RowAggregatorNodeModel::isAggregatableColumn)//
+                .map(DataColumnSpec::getName)//
+                .toArray(String[]::new);
         assertArrayEquals(expected, resAggColumn,
             "Filter should only retain 'numeric-compatible' columns for aggregate column");
 
-        final var resWeightColumn = RowAggregatorNodeModel.filterWeightColumns(in);
+        final var resWeightColumn = in.stream().filter(RowAggregatorNodeModel::isWeightColumn)//
+                .map(DataColumnSpec::getName)//
+                .toArray(String[]::new);
         assertArrayEquals(expected, resWeightColumn,
                 "Filter should only retain 'numeric-compatible' columns for weight column");
     }
@@ -965,12 +969,12 @@ final class RowAggregatorNodeModelTest {
         return rowAgg.execute(ctx.createBufferedDataTables(in, ctx), ctx, settings);
     }
 
-    private static final class Column {
+    static final class Column {
 
         final String m_name;
         final DataType m_type;
 
-        private Column(final String name, final DataType type) {
+        Column(final String name, final DataType type) {
             m_name = name;
             m_type = type;
         }

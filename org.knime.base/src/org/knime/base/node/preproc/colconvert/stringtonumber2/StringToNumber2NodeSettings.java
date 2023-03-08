@@ -48,7 +48,10 @@
  */
 package org.knime.base.node.preproc.colconvert.stringtonumber2;
 
+import java.util.stream.Stream;
+
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.def.DoubleCell;
@@ -173,25 +176,19 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_INCLUDED_COLUMNS,
         settingsModel = SettingsModelColumnFilter2.class)
     @Schema(title = "Column selection", description = "Move the columns of interest into the &quot;Includes&quot; list",
-        choices = StringColumns.class, withTypes = false)
+        choices = StringColumns.class)
     ColumnFilter m_inclCols = new ColumnFilter();
 
-    private static final class StringColumns implements ChoicesProvider {
+    static final class StringColumns implements ChoicesProvider {
+
         @Override
         public String[] choices(final SettingsCreationContext context) {
-            var spec = context.getDataTableSpecs()[0];
-            if (spec != null) {
-                return spec.stream()//
-                    .filter(c -> include(c.getType())).map(DataColumnSpec::getName).toArray(String[]::new);
-            }
-
-            return new String[0];
-
-        }
-
-        private static boolean include(final DataType type) {
-            return type.isCompatible(StringValue.class);
-
+            return context.getDataTableSpec(0)//
+                .map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .filter(c -> c.getType().isCompatible(StringValue.class))//
+                .map(DataColumnSpec::getName)//
+                .toArray(String[]::new);
         }
 
     }

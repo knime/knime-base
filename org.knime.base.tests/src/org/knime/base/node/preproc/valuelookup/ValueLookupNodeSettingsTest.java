@@ -44,54 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   8 Mar 2023 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.column;
+package org.knime.base.node.preproc.valuelookup;
 
-import java.util.stream.Stream;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
+import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
+import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
 
 /**
- * Settings for the Column Filter node.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-final class ColumnFilterNodeSettings implements DefaultNodeSettings {
+@SuppressWarnings("restriction")// WebUI* classes
+class ValueLookupNodeSettingsTest {
 
-    ColumnFilterNodeSettings(final SettingsCreationContext context) {
-        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
-    }
+    @Test
+    void testColumnChoicesProvider() {
+        final var dataTableSpec = new DataTableSpecCreator().addColumns(
+            new DataColumnSpecCreator("Int1", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Double1", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Bool1", BooleanCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
+            ).createSpec();
 
-    /**
-     * Constructor for persistence and conversion to JSON.
-     */
-    ColumnFilterNodeSettings() {
-    }
+        final var dictionaryTableSpec = new DataTableSpecCreator().addColumns(
+            new DataColumnSpecCreator("DictInt1", IntCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("DictDouble1", DoubleCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("DictBool1", BooleanCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("DictString1", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("DictInt2", IntCell.TYPE).createSpec()
+            ).createSpec();
 
-    @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
-    @Schema(title = "Column filter", description = "Select the columns to include in the output table.",
-        choices = AllColumns.class)
-    ColumnFilter m_columnFilter = new ColumnFilter();
+        final var ctx = DefaultNodeSettings.createSettingsCreationContext(
+            new DataTableSpec[] { dataTableSpec, dictionaryTableSpec });
 
-    static final class AllColumns implements ColumnChoicesProvider {
+        // should pick all from data table (port 0)
+        final var dataTableChoices = new ValueLookupNodeSettings.DataTableChoices().columnChoices(ctx);
+        assertArrayEquals(dataTableSpec.stream().toArray(DataColumnSpec[]::new), dataTableChoices,
+            "Wrong \"data table\" column choices.");
 
-        @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(0)
-                    .map(DataTableSpec::stream)//
-                    .orElseGet(Stream::empty)//
-                    .toArray(DataColumnSpec[]::new);
-        }
-
+        // should pick all from dictionary table (port 1)
+        final var dictTableChoices = new ValueLookupNodeSettings.DictionaryTableChoices().columnChoices(ctx);
+        assertArrayEquals(dictionaryTableSpec.stream().toArray(DataColumnSpec[]::new), dictTableChoices,
+            "Wrong \"dictionary table\" column choices.");
     }
 
 }

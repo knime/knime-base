@@ -48,8 +48,13 @@
  */
 package org.knime.base.node.preproc.rowagg;
 
+import java.util.stream.Stream;
+
 import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunction;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
@@ -84,18 +89,18 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
     @Schema(title = "Aggregation columns", description = "Select the columns to apply the aggregation function to.",
-            choices = AggregatableColumns.class, withTypes = true, multiple = true)
+            choices = AggregatableColumns.class)
     ColumnFilter m_frequencyColumns;
 
-    static final class AggregatableColumns implements ChoicesProvider {
+    static final class AggregatableColumns implements ColumnChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
-            final var spec = context.getDataTableSpecs()[0];
-            if (spec == null) {
-                return new String[0];
-            }
-            return RowAggregatorNodeModel.filterAggregatableColumns(spec);
+        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(0)
+                    .map(DataTableSpec::stream)//
+                    .orElseGet(Stream::empty)//
+                    .filter(RowAggregatorNodeModel::isAggregatableColumn)//
+                    .toArray(DataColumnSpec[]::new);
         }
 
     }
@@ -106,16 +111,16 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
             choices = WeightColumns .class)
     String m_weightColumn;
 
-
     static final class WeightColumns implements ChoicesProvider {
 
         @Override
         public String[] choices(final SettingsCreationContext context) {
-            final var spec = context.getDataTableSpecs()[0];
-            if (spec == null) {
-                return new String[0];
-            }
-            return RowAggregatorNodeModel.filterWeightColumns(spec);
+            return context.getDataTableSpec(0)
+                    .map(DataTableSpec::stream)//
+                    .orElseGet(Stream::empty)//
+                    .filter(RowAggregatorNodeModel::isWeightColumn)//
+                    .map(DataColumnSpec::getName)
+                    .toArray(String[]::new);
         }
 
     }
@@ -129,8 +134,7 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
     static final class CategoryColumns implements ChoicesProvider {
         @Override
         public String[] choices(final SettingsCreationContext context) {
-            final var spec = context.getDataTableSpecs()[0];
-            return spec != null ? spec.getColumnNames() : new String[0];
+            return context.getDataTableSpec(0).map(DataTableSpec::getColumnNames).orElse(new String[0]);
         }
     }
 

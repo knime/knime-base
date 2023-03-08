@@ -48,8 +48,11 @@
  */
 package org.knime.base.node.preproc.colconvert.numbertostring2;
 
+import java.util.stream.Stream;
+
 import org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
@@ -85,21 +88,19 @@ final class NumberToStringSettings implements DefaultNodeSettings {
     @Persist(configKey = AbstractNumberToStringNodeModel.CFG_INCLUDED_COLUMNS,
         settingsModel = SettingsModelColumnFilter2.class)
     @Schema(title = "Columns", description = "Select the columns to convert to String.",
-        choices = NumericalColumns.class, withTypes = false)
+        choices = NumericalColumns.class)
     ColumnFilter m_columns = new ColumnFilter();
 
-    private static final class NumericalColumns implements ChoicesProvider {
+    static final class NumericalColumns implements ChoicesProvider {
 
         @Override
         public String[] choices(final SettingsCreationContext context) {
-            var spec = context.getDataTableSpecs()[0];
-            if (spec != null) {
-                return spec.stream()//
-                    .filter(c -> c.getType().isCompatible(DoubleValue.class))//
-                    .map(DataColumnSpec::getName)//
-                    .toArray(String[]::new);
-            }
-            return new String[0];
+            return context.getDataTableSpec(0)//
+                .map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .filter(c -> c.getType().isCompatible(DoubleValue.class))//
+                .map(DataColumnSpec::getName)//
+                .toArray(String[]::new);
         }
 
     }

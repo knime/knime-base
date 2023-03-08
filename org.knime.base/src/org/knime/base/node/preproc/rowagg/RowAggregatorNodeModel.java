@@ -149,50 +149,40 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     }
 
     /**
-     * Filter data table spec for columns that can be aggregated columns,
-     * i.e. columns compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
-     * @param spec data table spec
-     * @return column that can be aggregated columns
+     * Determine whether the given column is an aggregatable column,
+     * i.e. a column compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
+     * @param column data column spec
+     * @return {@code true} if the column can be aggregated, {@code false} otherwise
      */
-    static String[] filterAggregatableColumns(final DataTableSpec spec) {
-        return Objects.requireNonNull(spec).stream()
-                // In theory this should check the type of either (as configured):
-                // - the aggregated column type if weight column is none or
-                // - the result of the multiplication with the weight column if a weight column is selected.
-                // However, at this point we don't know the selected weight column here (and vice-versa), so we do the
-                // next-best thing. Note: This could filter too much, i.e. could remove columns that would be compatible
-                // _after_ applying the weight to them, which is currently not the case, since Multiply supports the
-                // same (input) types as Sum and Average.
-                // If we add numeric types and change the Multiply/Sum/Average, we should revisit this filter here.
-                .filter(c -> {
-                    final var t = c.getType();
-                    // COUNT, MIN, MAX trivially support all data types
-                    return SumNumeric.supportsDataType(t) && AverageNumeric.supportsDataType(t);
-                })
-                .map(DataColumnSpec::getName)
-                .toArray(String[]::new);
+    static boolean isAggregatableColumn(final DataColumnSpec column) {
+        // In theory this should check the type of either (as configured):
+        // - the aggregated column type if weight column is none or
+        // - the result of the multiplication with the weight column if a weight column is selected.
+        // However, at this point we don't know the selected weight column here (and vice-versa), so we do the
+        // next-best thing. Note: This could filter too much, i.e. could remove columns that would be compatible
+        // _after_ applying the weight to them, which is currently not the case, since Multiply supports the
+        // same (input) types as Sum and Average.
+        // If we add numeric types and change the Multiply/Sum/Average, we should revisit this filter here.
+        final var t = column.getType();
+        // COUNT, MIN, MAX trivially support all data types
+        return SumNumeric.supportsDataType(t) && AverageNumeric.supportsDataType(t);
     }
 
 
     /**
-     * Filter data table spec for columns that can be weight columns,
-     * i.e. columns compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
-     * @param spec data table spec
-     * @return columns that can be weight columns
+     * Determine whether the given column can be a weight column,
+     * i.e. a column compatible with {@link DoubleValue}, {@link IntValue}, or {@link LongValue}.
+     * @param column data column spec
+     * @return {@code true} if the column can be a weight column, {@code false} otherwise
      */
-    static String[] filterWeightColumns(final DataTableSpec spec) {
-        return Objects.requireNonNull(spec).stream()
-            .filter(wc -> {
-                // COUNT, MIN, MAX do not provide a weighted version
-                final var w = wc.getType();
-                // Since this function is called by a ChoicesProvider which only checks one column,
-                // we effectively have a hole in our types we need to check. But if this weight column alone is not
-                // supported, it cannot be supported in conjunction with another column.
-                final var l = DataType.getMissingCell().getType();
-                return MultiplyNumeric.supportsDataTypes(l, w);
-            })
-            .map(DataColumnSpec::getName)
-            .toArray(String[]::new);
+    static boolean isWeightColumn(final DataColumnSpec column) {
+        // COUNT, MIN, MAX do not provide a weighted version
+        final var w = column.getType();
+        // Since this function is called by a ChoicesProvider which only checks one column,
+        // we effectively have a hole in our types we need to check. But if this weight column alone is not
+        // supported, it cannot be supported in conjunction with another column.
+        final var l = DataType.getMissingCell().getType();
+        return MultiplyNumeric.supportsDataTypes(l, w);
     }
 
 
@@ -353,7 +343,11 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     private static Optional<String[]> getEffectiveAggregatedColumns(final DataTableSpec dts,
             final RowAggregatorSettings settings) {
         final var agg = settings.m_aggregationMethod;
-        final var aggCols = settings.m_frequencyColumns.getSelected(filterAggregatableColumns(dts), dts);
+        final var aggCols = settings.m_frequencyColumns.getSelected(
+            dts.stream()//
+                .filter(RowAggregatorNodeModel::isAggregatableColumn)//
+                .map(DataColumnSpec::getName)//
+                .toArray(String[]::new), dts);
         if (agg == AggregationFunction.COUNT || aggCols.length == 0) {
             // UI could still report an old value that is not used by COUNT (and is disabled/greyed-out in the UI)
             return Optional.empty();

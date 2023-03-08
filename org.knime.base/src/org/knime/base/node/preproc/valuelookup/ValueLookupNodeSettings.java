@@ -48,8 +48,11 @@
  */
 package org.knime.base.node.preproc.valuelookup;
 
+import java.util.stream.Stream;
+
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
+import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.impl.ColumnFilter;
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.impl.Schema;
@@ -101,29 +104,29 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             BACKWARD;
     }
 
-    /** Provides the columns names of the table at input port 0 */
-    static final class DataTableChoices implements ChoicesProvider {
+    /** Provides the column choices of the table at input port 0 */
+    static final class DataTableChoices implements ColumnChoicesProvider {
         @Override
-        public String[] choices(final SettingsCreationContext context) {
-            final var spec = context.getDataTableSpecs()[0];
-            return spec == null ? new String[0] : spec.getColumnNames();
+        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(0)//
+                    .map(DataTableSpec::stream)//
+                    .orElseGet(Stream::empty)//
+                    .toArray(DataColumnSpec[]::new);
         }
     }
 
-    /** Provides the columns names of the table at input port 1 */
-    static final class DictionaryTableChoices implements ChoicesProvider {
+    /** Provides the column choices of the table at input port 1 */
+    static final class DictionaryTableChoices implements ColumnChoicesProvider {
         @Override
-        public String[] choices(final SettingsCreationContext context) {
-            return choices(context.getDataTableSpecs()[1]);
+        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(1)//
+                    .map(DataTableSpec::stream)//
+                    .orElseGet(Stream::empty)//
+                    .toArray(DataColumnSpec[]::new);
         }
 
-        /**
-         * Returns possible column choices from the given data table spec or an empty list if the spec is {@code null}.
-         * @param spec data table spec to choose column names from
-         * @return choices or empty list if spec is {@code null}
-         */
         static String[] choices(final DataTableSpec spec) {
-            return spec == null ? new String[0] : spec.getColumnNames();
+            return spec.stream().map(DataColumnSpec::getName).toArray(String[]::new);
         }
     }
 
@@ -173,9 +176,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** The names of the columns from the dictionary table that shall be added to the output table */
     @Schema(title = "Append columns (from dictionary table)", //
         description = "The columns in the dictionary table that contain the values added to the data table.", //
-        choices = DictionaryTableChoices.class, //
-        withTypes = false) // TODO: Types can be enabled once a bug in `ChoicesAndEnumDefinitionProvider.java:188` has
-                           // been addressed, that prohibits twinlists from having type for any but the first input port
+        choices = DictionaryTableChoices.class)
     ColumnFilter m_dictValueCols;
 
     /** Whether to create a column that indicates whether a match has been found */
