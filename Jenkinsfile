@@ -6,7 +6,7 @@ library "knime-pipeline@$BN"
 properties([
 	// provide a list of upstream jobs which should trigger a rebuild of this job
 	pipelineTriggers([
-		upstream('knime-expressions/' + env.BRANCH_NAME.replaceAll('/', '%2F'))
+		upstream('knime-core/' + env.BRANCH_NAME.replaceAll('/', '%2F'))
 	]),
     parameters(workflowTests.getConfigurationsAsParameters() + fsTests.getFSConfigurationsAsParameters()),
 
