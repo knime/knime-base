@@ -537,7 +537,7 @@ class ColorManager2NodeModel extends NodeModel {
 
     private static final ColorHandler createNominalColorHandler(
             final Map<DataCell, ColorAttr> map) {
-        return new ColorHandler(new ColorModelNominal(map));
+        return new ColorHandler(new ColorModelNominal(map, null));
     }
 
     private static final ColorHandler createRangeColorHandler(

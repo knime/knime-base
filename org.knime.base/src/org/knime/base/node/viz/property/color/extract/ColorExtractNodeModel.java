@@ -64,7 +64,7 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.property.ColorHandler;
-import org.knime.core.data.property.ColorHandler.ColorModel;
+import org.knime.core.data.property.ColorModel;
 import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.data.property.ColorModelRange;
 import org.knime.core.node.BufferedDataTable;
