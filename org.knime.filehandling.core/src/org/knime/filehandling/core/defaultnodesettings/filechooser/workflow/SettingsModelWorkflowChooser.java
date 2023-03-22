@@ -70,6 +70,7 @@ import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemSpecificConfig;
+import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.LocalSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
@@ -102,7 +103,9 @@ public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFil
                 hasFSPort -> new RelativeToSpecificConfig(!hasFSPort, RelativeTo.SPACE,
                     Set.of(RelativeTo.MOUNTPOINT, RelativeTo.WORKFLOW, RelativeTo.SPACE)),
                 // LOCAL enabled when connection port is not present
-                hasFSPort -> new LocalSpecificConfig(!hasFSPort)));
+                hasFSPort -> new LocalSpecificConfig(!hasFSPort),
+                // Hub Space enabled when connection port is not present
+                hasFSPort -> new HubSpaceSpecificConfig(!hasFSPort)));
     }
 
     /**
