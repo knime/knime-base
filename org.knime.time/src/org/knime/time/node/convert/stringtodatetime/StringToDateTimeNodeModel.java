@@ -48,6 +48,7 @@
  */
 package org.knime.time.node.convert.stringtodatetime;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -188,29 +189,111 @@ final class StringToDateTimeNodeModel
      */
     static Collection<String> createPredefinedFormats() {
         // unique values
-        Set<String> formats = new LinkedHashSet<String>();
-        formats.add("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]");
-        formats.add("yyyy-MM-dd;HH:mm:ss[.SSS][.SS][.S]");
-        formats.add("dd.MM.yyyy;HH:mm:ss.S");
-        formats.add("yyyy-MM-dd HH:mm:ss.S");
+        Set<String> formats = new LinkedHashSet<>();
         formats.add("dd.MM.yyyy HH:mm:ss.S");
+        formats.add("dd.MM.yyyy");
+        formats.add("dd.MM.yyyy;HH:mm:ss.S");
+        formats.add("HH:mm:ss");
+        formats.add("HH:mm[:ss[.SSS]]");
+        formats.add("M/d/yyyy"); // standard google sheets date format
+        formats.add("yyyy-DDDXXX");
+        formats.add("yyyy-MM-dd G");
+        formats.add("yyyy-MM-dd HH:mm:ss'Z'");
+        formats.add("yyyy-MM-dd HH:mm:ss,SSS");
+        formats.add("yyyy-MM-dd HH:mm:ss,SSS'['VV']'");
+        formats.add("yyyy-MM-dd HH:mm:ss,SSS'Z'");
+        formats.add("yyyy-MM-dd HH:mm:ss,SSSXXX");
+        formats.add("yyyy-MM-dd HH:mm:ss,SSSXXX'['VV']'");
+        formats.add("yyyy-MM-dd HH:mm:ss.S");
+        formats.add("yyyy-MM-dd HH:mm:ss.SSS");
+        formats.add("yyyy-MM-dd HH:mm:ss.SSS'['VV']'");
+        formats.add("yyyy-MM-dd HH:mm:ss.SSS'Z'");
+        formats.add("yyyy-MM-dd HH:mm:ss.SSSXXX");
+        formats.add("yyyy-MM-dd HH:mm:ss.SSSXXX'['VV']'");
+        formats.add("yyyy-MM-dd HH:mm:ssX");
+        formats.add("yyyy-MM-dd HH:mm:ssXXX");
+        formats.add("yyyy-MM-dd HH:mm:ssXXX'['VV']'");
+        formats.add("yyyy-MM-dd HH:mm:ssZ");
+        formats.add("yyyy-MM-dd");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss,SSS");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss,SSS'['VV']'");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss,SSS'Z'");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss,SSSXXX");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss,SSSXXX'['VV']'");
         formats.add("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        formats.add("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]VV['['zzzz']']");
-        formats.add("yyyy-MM-dd;HH:mm:ssVV");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss.SSS'['VV']'");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         formats.add("yyyy-MM-dd'T'HH:mm:ss.SSSVV");
         formats.add("yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'");
-        formats.add("yyyy-MM-dd");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        formats.add("yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'");
+        formats.add("yyyy-MM-dd'T'HH:mm:ssX");
+        formats.add("yyyy-MM-dd'T'HH:mm:ssXXX");
+        formats.add("yyyy-MM-dd'T'HH:mm:ssXXX'['VV']'");
+        formats.add("yyyy-MM-dd'T'HH:mm:ssZ");
+        formats.add("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]VV['['zzzz']']");
+        formats.add("yyyy-MM-dd'T'HH:mm[:ss[.SSSSSS]]z");
+        formats.add("yyyy-MM-dd;HH:mm:ss[.SSS][.SS][.S]");
+        formats.add("yyyy-MM-dd;HH:mm:ss[.SSS][.SS][.S][z]");
+        formats.add("yyyy-MM-dd;HH:mm:ssVV");
+        formats.add("yyyy-MM-ddXXX");
         formats.add("yyyy/dd/MM");
-        formats.add("M/d/yyyy"); // standard google sheets date format
-        formats.add("dd.MM.yyyy");
-        formats.add("HH:mm[:ss[.SSS]]");
-        formats.add("HH:mm:ss");
+        formats.add("yyyyMMdd");
+        formats.add("yyyyMMddZ");
+
         // check also the StringHistory....
         String[] userFormats = StringHistory.getInstance(StringToDateTimeNodeModel.FORMAT_HISTORY_KEY).getHistory();
         for (String userFormat : userFormats) {
             formats.add(userFormat);
         }
         return formats;
+    }
+
+    /**
+     * @param dateTimeType whether input Strings represent a date, date and time, zoned date and time, etc.
+     * @param format string that allows to parse input Strings as an instance of the specified date time type
+     *
+     * @author Carl Witt, KNIME AG, Zurich, Switzerland
+     */
+    record DateTimeFormat(DateTimeType dateTimeType, String format) {
+    }
+
+    /**
+     * Tries the {@link #createPredefinedFormats()} and returns the first that is able to parse the input.
+     *
+     * @param input an example string, e.g., "2023-03-21T11:29:17.394856Z"
+     * @param locale the locale under which the formats are to be interpreted
+     * @return a {@link DateTimeType} and a format string that allows to parse inputs
+     */
+    static Optional<DateTimeFormat> guessFormat(final String input, final Locale locale) {
+        for (final String format : createPredefinedFormats()) {
+            final DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern(format, locale).withChronology(Chronology.ofLocale(locale));
+            try {
+                ZonedDateTime.parse(input, formatter);
+                return Optional.of(new DateTimeFormat(DateTimeType.ZONED_DATE_TIME, format));
+            } catch (DateTimeException e) { // NOSONAR, just checking if the format works
+            }
+            try {
+                LocalDateTime.parse(input, formatter);
+                return Optional.of(new DateTimeFormat(DateTimeType.LOCAL_DATE_TIME, format));
+            } catch (DateTimeException e) { // NOSONAR, just checking if the format works
+            }
+            try {
+                LocalDate.parse(input, formatter);
+                return Optional.of(new DateTimeFormat(DateTimeType.LOCAL_DATE, format));
+            } catch (DateTimeException e) { // NOSONAR, just checking if the format works
+            }
+            try {
+                LocalTime.parse(input, formatter);
+                return Optional.of(new DateTimeFormat(DateTimeType.LOCAL_TIME, format));
+            } catch (DateTimeException e) { // NOSONAR, just checking if the format works
+            }
+        }
+        return Optional.empty();
     }
 
     /**

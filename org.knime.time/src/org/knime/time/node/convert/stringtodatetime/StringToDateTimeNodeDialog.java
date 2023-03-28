@@ -59,10 +59,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
-import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
@@ -285,42 +283,14 @@ final class StringToDateTimeNodeDialog extends DataAwareNodeDialogPane {
     }
 
     private void guessFormat(final String preview) {
-        final Collection<String> formats = StringToDateTimeNodeModel.createPredefinedFormats();
-        for (final String format : formats) {
-            final Locale locale =
-                Locale.forLanguageTag(((SettingsModelString)m_dialogCompLocale.getModel()).getStringValue());
-            final DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern(format, locale).withChronology(Chronology.ofLocale(locale));
-            try {
-                ZonedDateTime.parse(preview, formatter);
-                m_typeCombobox.setSelectedItem(DateTimeType.ZONED_DATE_TIME);
-                m_formatModel.setStringValue(format);
-                return;
-            } catch (DateTimeException e) {
-            }
-            try {
-                LocalDateTime.parse(preview, formatter);
-                m_typeCombobox.setSelectedItem(DateTimeType.LOCAL_DATE_TIME);
-                m_formatModel.setStringValue(format);
-                return;
-            } catch (DateTimeException e) {
-            }
-            try {
-                LocalDate.parse(preview, formatter);
-                m_typeCombobox.setSelectedItem(DateTimeType.LOCAL_DATE);
-                m_formatModel.setStringValue(format);
-                return;
-            } catch (DateTimeException e) {
-            }
-            try {
-                LocalTime.parse(preview, formatter);
-                m_typeCombobox.setSelectedItem(DateTimeType.LOCAL_TIME);
-                m_formatModel.setStringValue(format);
-                return;
-            } catch (DateTimeException e) {
-            }
+        final var locale = Locale.forLanguageTag(((SettingsModelString)m_dialogCompLocale.getModel()).getStringValue());
+        var format = StringToDateTimeNodeModel.guessFormat(preview, locale);
+        if (format.isPresent()) {
+            m_typeCombobox.setSelectedItem(format.get().dateTimeType());
+            m_formatModel.setStringValue(format.get().format());
+        } else {
+            m_typeFormatWarningLabel.setText("No suitable format found!");
         }
-        m_typeFormatWarningLabel.setText("No suitable format found!");
     }
 
     /**
