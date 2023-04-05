@@ -5,7 +5,7 @@
     <name>Pivot</name>
     <shortDescription>
     	Pivots and groups the input table by the selected columns for pivoting 
-    	and	grouping; enhanced by column aggregations.
+    	and grouping; enhanced by column aggregations.
     </shortDescription>
     <fullDescription>
     	<intro>
@@ -115,10 +115,23 @@
             distinguish between columns that considered missing values in the
             aggregation process and columns that do not.
           </option>
-          <option name="Sort lexicographically">
-	        Lexicographically sorts all columns belonging to the same
-	        logical group, i.e., pivots (aggregations), groups, and overall
-	        totals. 
+          <option name="Output column order">
+            Defines the order of group and pivot columns in the output.
+            <ul>
+            	<li><b>Unspecified order:</b> The column order is not specified and may be determined by the 
+            		implementation.
+            	</li>
+            	<li><b>Retain order:</b> Use the input to determine the output order. Group output columns are ordered
+            	    the same as they are in the input table. Pivot columns are ordered based on their values' first
+            	    occurrence in the input table.
+            	</li>
+            	<li><b>Lexicographic order:</b> Group and pivot column orders are sorted in lexicographic order 
+            		based on their column names.
+            	</li>
+            	<li><b>Alphanumeric order:</b> Group and pivot column orders are sorted in alphanumeric order 
+            		based on their column names.
+            	</li>
+            </ul>
           </option>
           <option name="Maximum unique values per group">
 	        Defines the maximum number of unique values per group to avoid 
