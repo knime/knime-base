@@ -48,17 +48,20 @@
 package org.knime.base.node.flowvariable.tablerowtovariable3;
 
 import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.core.webui.node.dialog.impl.Schema;
 
 /**
  * Enums for this policies.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
+@SuppressWarnings("restriction")
 enum MissingValuePolicy implements ButtonGroupEnumInterface {
 
         /**
          * Fail the nodes execution.
          */
+        @Schema(title = "Fail")
         FAIL("Fail",
             "The execution will fail if the input table is empty or any of the selected columns contains missing "
                 + "values"),
@@ -66,6 +69,7 @@ enum MissingValuePolicy implements ButtonGroupEnumInterface {
         /**
          * Assign default values.
          */
+        @Schema(title = "Use defaults")
         DEFAULT("Use defaults if available",
             "Replaces missing cells by the (predefined) defaults. If no default is available the node will fail "
                 + "during execution."),
@@ -73,6 +77,7 @@ enum MissingValuePolicy implements ButtonGroupEnumInterface {
         /**
          * Omit missing values.
          */
+        @Schema(title = "Ignore")
         OMIT("Omit", "Omits the creation of flow variables for missing cells.");
 
     private final String m_name;
@@ -106,5 +111,4 @@ enum MissingValuePolicy implements ButtonGroupEnumInterface {
     public boolean isDefault() {
         return this == DEFAULT;
     }
-
 }

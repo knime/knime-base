@@ -48,42 +48,42 @@
  */
 package org.knime.base.node.meta.looper.variable.start;
 
-import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeDialog;
-import org.knime.core.node.NodeDialogPane;
+import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeSettings;
 import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
 
 /**
  * The {@link NodeFactory} creating the 'Table Row To Variable Loop Start' node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-public class LoopStartVariable3NodeFactory extends NodeFactory<LoopStartVariable2NodeModel> {
+@SuppressWarnings("restriction")
+public class LoopStartVariable3NodeFactory extends WebUINodeFactory<LoopStartVariable2NodeModel> {
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Table Row To Variable Loop Start")//
+        .icon("./loopstartvariable.png")//
+        .shortDescription("Iterates over an input data table, whereby each row defines an iteration "
+            + "with variable settings taken from the values in that row.")//
+        .fullDescription(
+            "This node uses each row of a data table to define new variable values for each loop iteration. "
+                + "The names of the variables are defined by the column names.")//
+        .modelSettingsClass(TableToVariable3NodeSettings.class)//
+        .addInputTable("Parameters table", "The table whose rows will constitute variables' "
+            + "values for each iteration.")//
+        .addOutputTable("Variables Connection", "Holds created flow variables.")//
+        // no since version, not sure since when this node is available
+        .build();
+
+    /** Set the node description */
+    public LoopStartVariable3NodeFactory() {
+        super(CONFIG);
+    }
 
     @Override
     public LoopStartVariable2NodeModel createNodeModel() {
         return new LoopStartVariable2NodeModel(false);
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<LoopStartVariable2NodeModel> createNodeView(final int viewIndex,
-        final LoopStartVariable2NodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new TableToVariable3NodeDialog();
     }
 
 }

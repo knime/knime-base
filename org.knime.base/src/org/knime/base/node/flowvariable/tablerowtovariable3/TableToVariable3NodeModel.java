@@ -140,31 +140,32 @@ public class TableToVariable3NodeModel extends NodeModel {
     private final SettingsModelColumnFilter2 m_columnSelection = getColumnFilter();
 
     static final SettingsModelString getOnMissing() {
-        return new SettingsModelString("missing_value_policy", MissingValuePolicy.DEFAULT.name());
+        return new SettingsModelString(TableToVariable3NodeSettings.CFG_KEY_ON_MISSING,
+            MissingValuePolicy.DEFAULT.name());
     }
 
     static final SettingsModelDouble getReplaceDouble() {
-        return new SettingsModelDouble("default_value_double", 0);
+        return new SettingsModelDouble(TableToVariable3NodeSettings.CFG_KEY_DEFAULT_VALUE_DOUBLE, 0);
     }
 
     static final SettingsModelString getReplaceString() {
-        return new SettingsModelString("default_value_string", "missing");
+        return new SettingsModelString(TableToVariable3NodeSettings.CFG_KEY_DEFAULT_VALUE_STRING, "missing");
     }
 
     static final SettingsModelString getReplaceBoolean() {
-        return new SettingsModelString("default_value_boolean", "false");
+        return new SettingsModelString(TableToVariable3NodeSettings.CFG_KEY_DEFAULT_VALUE_BOOLEAN, "false");
     }
 
     static final SettingsModelInteger getReplaceInteger() {
-        return new SettingsModelInteger("default_value_integer", 0);
+        return new SettingsModelInteger(TableToVariable3NodeSettings.CFG_KEY_DEFAULT_VALUE_INTEGER, 0);
     }
 
     static final SettingsModelLong getReplaceLong() {
-        return new SettingsModelLong("default_value_long", 0L);
+        return new SettingsModelLong(TableToVariable3NodeSettings.CFG_KEY_DEFAULT_VALUE_LONG, 0L);
     }
 
     static final SettingsModelColumnFilter2 getColumnFilter() {
-        return new SettingsModelColumnFilter2("column_selection", null,
+        return new SettingsModelColumnFilter2(TableToVariable3NodeSettings.CFG_KEY_COLUMNS, null,
             NameFilterConfiguration.FILTER_BY_NAMEPATTERN | DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE);
     }
 
@@ -225,13 +226,13 @@ public class TableToVariable3NodeModel extends NodeModel {
         if (elementType.isCompatible(BooleanValue.class)) {
             cell = CollectionCellFactory.createListCell(new ArrayList<BooleanCell>());
         } else if (elementType.isCompatible(IntValue.class)) {
-            cell = CollectionCellFactory.createListCell(new ArrayList<IntCell>());
+            cell = CollectionCellFactory.createListCell(new ArrayList<>());
         } else if (elementType.isCompatible(LongValue.class)) {
-            cell = CollectionCellFactory.createListCell(new ArrayList<LongCell>());
+            cell = CollectionCellFactory.createListCell(new ArrayList<>());
         } else if (elementType.isCompatible(DoubleValue.class)) {
-            cell = CollectionCellFactory.createListCell(new ArrayList<DoubleCell>());
+            cell = CollectionCellFactory.createListCell(new ArrayList<>());
         } else if (elementType.isCompatible(StringValue.class)) {
-            cell = CollectionCellFactory.createListCell(new ArrayList<StringCell>());
+            cell = CollectionCellFactory.createListCell(new ArrayList<>());
         } else {
             cell = CollectionCellFactory.createListCell(new ArrayList<>());
         }

@@ -47,40 +47,43 @@
  */
 package org.knime.base.node.flowvariable.tablerowtovariable3;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
 
 /**
  * The node factory for the table row to variable node.
  *
  * @author Bernd Wiswedel, University of Konstanz
  */
-public final class TableToVariable3NodeFactory extends NodeFactory<TableToVariable3NodeModel> {
+@SuppressWarnings("restriction")
+public final class TableToVariable3NodeFactory extends WebUINodeFactory<TableToVariable3NodeModel> {
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new TableToVariable3NodeDialog();
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Table Row to Variable")//
+        .icon("./table2variable.png")//
+        .shortDescription("""
+                Defines new flow variables based on the first row of the input table and exposes
+                them using a variable connection.
+                """)//
+        .fullDescription("""
+                This node uses the first row of a data table to define new flow variables. The names of the variables
+                are defined by the column names and the variable assignments (i.e. the values) are given by the values
+                in the row. The variables are exposed using a variables out connection.
+                """)//
+        .modelSettingsClass(TableToVariable3NodeSettings.class)//
+        .addInputTable("Parameters table", "The table whose first row will be converted to variables.")//
+        .addOutputTable("Variables Connection", "Holds created flow variables.")//
+        // no since version, not sure since when this node is available
+        .build();
+
+    /** Set the node description */
+    public TableToVariable3NodeFactory() {
+        super(CONFIG);
     }
 
     @Override
     public TableToVariable3NodeModel createNodeModel() {
         return new TableToVariable3NodeModel();
-    }
-
-    @Override
-    public NodeView<TableToVariable3NodeModel> createNodeView(final int index, final TableToVariable3NodeModel model) {
-        return null;
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
     }
 
 }

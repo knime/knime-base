@@ -72,7 +72,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * <code>NodeDialog</code> for the "TableRowToVariable" node. Exports the first row of a table into variables.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @deprecated replaced with Web UI dialog
  */
+@Deprecated(since = "5.1")
 public final class TableToVariable3NodeDialog extends NodeDialogPane {
 
     private final DialogComponentButtonGroup m_onMissing;

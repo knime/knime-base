@@ -315,6 +315,6 @@ Require-Bundle: org.apache.commons.math;bundle-version="[2.2.0,3.0.0)",
  jakarta.xml.bind;bundle-version="[2.3.3,3.0.0)",
  org.knime.core.ui;bundle-version="[5.0.0,6.0.0)",
  org.knime.core.table;bundle-version="[5.0.0,6.0.0)"
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Eclipse-BundleShape: dir
 Automatic-Module-Name: org.knime.base
