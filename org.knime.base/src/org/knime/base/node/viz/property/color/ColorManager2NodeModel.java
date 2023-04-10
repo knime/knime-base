@@ -60,6 +60,7 @@ import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.property.ColorAttr;
@@ -299,10 +300,8 @@ class ColorManager2NodeModel extends NodeModel {
     }
 
     /**
-     * Appends the given <code>ColorHandler</code> to the given
-     * <code>DataTableSpec</code> for the given column. If the spec
-     * already contains a ColorHandler, it will be removed and replaced by
-     * the new one.
+     * Attaches the given <code>ColorHandler</code> to the given
+     * <code>DataTableSpec</code> for the given column.
      * @param spec to which the ColorHandler is appended
      * @param columnName for this column
      * @param colorHdl ColorHandler
@@ -310,19 +309,13 @@ class ColorManager2NodeModel extends NodeModel {
      */
     static final DataTableSpec getOutSpec(final DataTableSpec spec,
             final String columnName, final ColorHandler colorHdl) {
-        DataColumnSpec[] cspecs = new DataColumnSpec[spec.getNumColumns()];
-        for (int i = 0; i < cspecs.length; i++) {
-            DataColumnSpec cspec = spec.getColumnSpec(i);
-            DataColumnSpecCreator cr = new DataColumnSpecCreator(cspec);
-            if (cspec.getName().equals(columnName)) {
-                cr.setColorHandler(colorHdl);
-            } else {
-                // delete other ColorHandler
-                cr.setColorHandler(null);
-            }
-            cspecs[i] = cr.createSpec();
-        }
-        return new DataTableSpec(cspecs);
+        final var tableSpecCreator = new DataTableSpecCreator(spec);
+        final var colIndex = spec.findColumnIndex(columnName);
+        final var columnSpec = spec.getColumnSpec(colIndex);
+        final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
+        columnSpecCreator.setColorHandler(colorHdl);
+        tableSpecCreator.replaceColumn(colIndex, columnSpecCreator.createSpec());
+        return tableSpecCreator.createSpec();
     }
 
     /**

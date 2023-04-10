@@ -321,20 +321,15 @@ public class JoinedTable implements DataTable {
             throw new IllegalArgumentException(
                     "Unknown method: " + duplicateMethod);
         }
-        boolean isLeftContainColorHandler = false;
+        // (allowing multiple color handlers since 5.1, as per AP-20239)
         boolean isLeftContainSizeHandler = false;
         boolean isLeftContainShapeHandler = false;
         for (DataColumnSpec s : leftCols) {
-            isLeftContainColorHandler |= s.getColorHandler() != null;
             isLeftContainSizeHandler |= s.getSizeHandler() != null;
             isLeftContainShapeHandler |= s.getShapeHandler() != null;
         }
         for (int i = 0; i < rightCols.length; i++) {
             DataColumnSpec s = rightCols[i];
-            boolean removeColorHandler = false;
-            if (s.getColorHandler() != null && isLeftContainColorHandler) {
-                removeColorHandler = true;
-            }
             boolean removeSizeHandler = false;
             if (s.getSizeHandler() != null && isLeftContainSizeHandler) {
                 removeSizeHandler = true;
@@ -343,11 +338,8 @@ public class JoinedTable implements DataTable {
             if (s.getShapeHandler() != null && isLeftContainShapeHandler) {
                 removeShapeHandler = true;
             }
-            if (removeColorHandler || removeSizeHandler || removeShapeHandler) {
+            if (removeSizeHandler || removeShapeHandler) {
                 DataColumnSpecCreator c = new DataColumnSpecCreator(s);
-                if (removeColorHandler) {
-                    c.setColorHandler(null);
-                }
                 if (removeSizeHandler) {
                     c.setSizeHandler(null);
                 }
