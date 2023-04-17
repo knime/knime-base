@@ -210,7 +210,8 @@ public final class SortKeyItem {
         if (settings.containsKey(alphaNumCompKey)) {
             final var alphaNumComp = settings.getBooleanArray(alphaNumCompKey);
             CheckUtils.checkSetting(!(alphaNumComp == null || inclList.length != alphaNumComp.length),
-                "The number of columns and alphanumeric string comparisons don't match up. Change in the node configuration.");
+                "The number of columns and alphanumeric string comparisons don't match up. Change in the node "
+                + "configuration.");
         }
     }
 
@@ -245,12 +246,12 @@ public final class SortKeyItem {
         final boolean missingsToEnd, final Predicate<String> isRowKey) {
         final var rc = RowComparator.on(dts);
         sortKey.forEach(pos -> {
-            final var ascending = pos.isAscendingOrder();
+            final var descending = !pos.isAscendingOrder();
             final var alphaNum = pos.isAlphaNumComp();
             resolveColumnName(dts, pos.getIdentifier(), isRowKey).ifPresentOrElse(
-                col -> rc.thenComparingColumn(col, c -> c.withDescendingSortOrder(!ascending)
+                col -> rc.thenComparingColumn(col, c -> c.withDescendingSortOrder(descending)
                     .withAlphanumericComparison(alphaNum).withMissingsLast(missingsToEnd)),
-                () -> rc.thenComparingRowKey(k -> k.withDescendingSortOrder(!ascending)
+                () -> rc.thenComparingRowKey(k -> k.withDescendingSortOrder(descending)
                     .withAlphanumericComparison(alphaNum))
             );
         });

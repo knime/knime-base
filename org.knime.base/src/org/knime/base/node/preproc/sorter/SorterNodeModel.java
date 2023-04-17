@@ -51,12 +51,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
+import java.util.function.Predicate;
 
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.base.node.util.SortKeyItem;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.BufferedDataTableSorter;
+import org.knime.core.data.sort.RowComparator;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -159,10 +162,8 @@ public class SorterNodeModel extends NodeModel {
      * @return the sorted data table
      * @throws Exception when node is canceled or settings are invalid
      *
-     * @see java.util.Arrays sort(java.lang.Object[], int, int,
-     *      java.util.Comparator)
-     * @see org.knime.core.node.NodeModel#execute(BufferedDataTable[],
-     *      ExecutionContext)
+     * @see java.util.Arrays sort(java.lang.Object[], int, int, java.util.Comparator)
+     * @see org.knime.core.node.NodeModel#execute(BufferedDataTable[], ExecutionContext)
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
@@ -175,11 +176,42 @@ public class SorterNodeModel extends NodeModel {
             return new BufferedDataTable[]{dataTable};
         }
         final var dts = dataTable.getDataTableSpec();
-        final var sorter = new BufferedDataTableSorter(dataTable,
-            SortKeyItem.toRowComparator(dts, m_sortKeyColumns, m_missingToEnd, SorterNodeModel::isRowKey));
+
+        // legacy behavior: if "sortMissingToEnd" is false, the sorter node would sort missing cells based on the
+        //                  column sort order (ASC/DESC) and _not_ always to the start. this means that the combination
+        //                  (DESC, missings at the start) is not possible to achieve with the Sorter node.
+        // In order to not break this legacy behavior, we do not use `SortKeyItem::toRowComparator`, but build the
+        // comparator on our own here.
+        final var rcb = RowComparator.on(dts);
+        m_sortKeyColumns.forEach(pos -> {
+            final var descending = !pos.isAscendingOrder();
+            final var alphaNum = pos.isAlphaNumComp();
+            resolveColumnName(dts, pos.getIdentifier(), SorterNodeModel::isRowKey).ifPresentOrElse(
+                col -> rcb.thenComparingColumn(col, c -> c.withDescendingSortOrder(descending)
+                    .withAlphanumericComparison(alphaNum).withMissingsLast(m_missingToEnd || descending)),
+                () -> rcb.thenComparingRowKey(k -> k.withDescendingSortOrder(descending)
+                    .withAlphanumericComparison(alphaNum))
+            );
+        });
+        final var comp = rcb.build();
+
+        final var sorter = new BufferedDataTableSorter(dataTable, comp);
         sorter.setSortInMemory(m_sortInMemory);
         final var sortedTable = sorter.sort(exec);
         return new BufferedDataTable[]{sortedTable};
+    }
+
+    private static OptionalInt resolveColumnName(final DataTableSpec dts, final String colName,
+        final Predicate<String> isRowKey) {
+        final var idx = dts.findColumnIndex(colName);
+        if (idx == -1) {
+            if (!isRowKey.test(colName)) {
+                throw new IllegalArgumentException(
+                    "The column identifier \"" + colName + "\" does not refer to a known column.");
+            }
+            return OptionalInt.empty();
+        }
+        return OptionalInt.of(idx);
     }
 
     private static boolean isRowKey(final String colName) {

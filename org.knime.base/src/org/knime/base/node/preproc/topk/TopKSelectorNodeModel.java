@@ -54,12 +54,15 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.OptionalInt;
+import java.util.function.Predicate;
 
 import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.base.node.util.SortKeyItem;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
+import org.knime.core.data.sort.RowComparator;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -119,8 +122,9 @@ final class TopKSelectorNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
             throws Exception {
         final var sortKey = m_settings.getSortKey();
-        CheckUtils.checkSetting(sortKey != null && !sortKey.isEmpty(),
-            "No columns have been specified to select the top rows of. Set in the node configuration.");
+        final var msg = "No columns have been specified to select the top rows of. Set in the node configuration.";
+        CheckUtils.checkSettingNotNull(sortKey, msg);
+        CheckUtils.checkSetting(!sortKey.isEmpty(), msg);
 
         final BufferedDataTable table = inData[IN_DATA];
         if (table.size() < m_settings.getK()) {
@@ -128,9 +132,27 @@ final class TopKSelectorNodeModel extends NodeModel {
                 "The input table has fewer rows (%s) than the specified k. Make sure the input has at least %s rows.",
                 table.size(), m_settings.getK()));
         }
-        final boolean missingsLast = m_settings.isMissingToEnd();
+        final var missingToEnd = m_settings.isMissingToEnd();
         final var dts = table.getDataTableSpec();
-        final var rc = SortKeyItem.toRowComparator(dts, sortKey, missingsLast, TopKSelectorNodeModel::isRowKey);
+
+        // legacy behavior: if "sortMissingToEnd" is false, the top-k selector node would sort missing cells based on
+        //                  the column sort order (ASC/DESC) and _not_ always to the start. this means that the
+        //                  combination (DESC, missings at the start) is not possible to achieve with the this node.
+        // In order to not break this legacy behavior, we do not use `SortKeyItem::toRowComparator`, but build the
+        // comparator on our own here.
+        final var rcb = RowComparator.on(dts);
+        sortKey.forEach(pos -> {
+            final var descending = !pos.isAscendingOrder();
+            final var alphaNum = pos.isAlphaNumComp();
+            resolveColumnName(dts, pos.getIdentifier(), TopKSelectorNodeModel::isRowKey).ifPresentOrElse(
+                col -> rcb.thenComparingColumn(col, c -> c.withDescendingSortOrder(descending)
+                    .withAlphanumericComparison(alphaNum).withMissingsLast(missingToEnd || descending)),
+                () -> rcb.thenComparingRowKey(k -> k.withDescendingSortOrder(descending)
+                    .withAlphanumericComparison(alphaNum))
+            );
+        });
+        final var rc = rcb.build();
+
         final TopKSelector elementSelector = createElementSelector(rc);
         final var outputOrder = m_settings.getOutputOrder();
         final OrderPreprocessor preprocessor = outputOrder.getPreprocessor();
@@ -142,6 +164,19 @@ final class TopKSelectorNodeModel extends NodeModel {
             outputOrder.getPostprocessor().postprocessSelection(elementSelector.getTopK(), rc);
         final BufferedDataTable outputTable = createOutputTable(topK, dts, exec.createSubExecutionContext(0.1));
         return new BufferedDataTable[]{outputTable};
+    }
+
+    private static OptionalInt resolveColumnName(final DataTableSpec dts, final String colName,
+        final Predicate<String> isRowKey) {
+        final var idx = dts.findColumnIndex(colName);
+        if (idx == -1) {
+            if (!isRowKey.test(colName)) {
+                throw new IllegalArgumentException(
+                    "The column identifier \"" + colName + "\" does not refer to a known column.");
+            }
+            return OptionalInt.empty();
+        }
+        return OptionalInt.of(idx);
     }
 
     private static boolean isRowKey(final String colName) {
