@@ -48,20 +48,24 @@ import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.knime.base.data.statistics.Statistics3Table;
+import org.knime.base.data.statistics.StatisticCalculator;
+import org.knime.base.data.statistics.calculation.DoubleMinMax;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomain;
+import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.property.ColorAttr;
 import org.knime.core.data.property.ColorHandler;
@@ -93,6 +97,24 @@ import org.knime.core.node.util.CheckUtils;
  */
 class ColorManager2NodeModel extends NodeModel {
 
+    static final String COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER = "<_COLUMNS-CONTAINED-IN-TABLE_>";
+
+    static final DataColumnSpec COLUMN_NAMES_SPEC =
+            new DataColumnSpecCreator(COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER, StringCell.TYPE).createSpec();
+
+    /** 'Paired' palette, contributed from http://colorbrewer2.org. */
+    private static final String[] PALETTE_SET1 = {"#33a02c", "#e31a1c", "#b15928", "#6a3d9a", "#1f78b4", "#ff7f00",
+        "#b2df8a", "#fdbf6f", "#fb9a99", "#cab2d6", "#a6cee3", "#ffff99"};
+
+    /** 'Set3' palette, contributed from http://colorbrewer2.org. */
+    private static final String[] PALETTE_SET2 = {"#fb8072", "#bc80bd", "#b3de69", "#80b1d3", "#fdb462", "#8dd3c7",
+        "#bebada", "#ffed6f", "#ccebc5", "#d9d9d9", "#fccde5", "#ffffb3"};
+
+    /** Colorblind safe palette, contributed from Color Universal Design, http://jfly.iam.u-tokyo.ac.jp/color/. */
+    private static final String[] PALETTE_SET3 = {"#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00",
+        "#CC79A7"};
+
+
     /**
      * Enum representing various options to deal with values that have not colors assigned yet.
      *
@@ -102,16 +124,16 @@ class ColorManager2NodeModel extends NodeModel {
     enum PaletteOption {
 
         /** Use user-defined set. */
-        CUSTOM_SET("custom_set"),
+        CUSTOM_SET("custom_set", null),
 
         /** Use color palette 1. */
-        SET1("set_1"),
+        SET1("set_1", PALETTE_SET1),
 
         /** Use color palette 2. */
-        SET2("set_2"),
+        SET2("set_2", PALETTE_SET2),
 
         /** Use color palette 3. */
-        SET3("set_3");
+        SET3("set_3", PALETTE_SET3);
 
         /** Missing name exception. */
         private static final String NAME_MUST_NOT_BE_NULL = "Name must not be null";
@@ -122,13 +144,21 @@ class ColorManager2NodeModel extends NodeModel {
         /** The settings representation of this enum. */
         private final String m_identifier;
 
+        private final String[] m_palette;
+
+        private final ColorAttr[] m_paletteAsColorAttr;
+
         /**
          * Constructor.
          *
          * @param identifier the settings name
+         * @param palette The color palette or null.
          */
-        private PaletteOption(final String identifier) {
+        PaletteOption(final String identifier, final String[] palette) {
             m_identifier = identifier;
+            m_palette = palette;
+            m_paletteAsColorAttr = palette == null ? null
+                : Arrays.stream(palette).map(Color::decode).map(ColorAttr::getInstance).toArray(ColorAttr[]::new);
         }
 
         /**
@@ -138,6 +168,20 @@ class ColorManager2NodeModel extends NodeModel {
          */
         String getSettingsName() {
             return m_identifier;
+        }
+
+        /**
+         * @return the palette (or <code>null</code> for {@link PaletteOption#CUSTOM_SET}).
+         */
+        String[] getPalette() {
+            return m_palette;
+        }
+
+        /**
+         * @return the paletteAsColorAttr (or <code>null</code> for {@link PaletteOption#CUSTOM_SET}).
+         */
+        ColorAttr[] getPaletteAsColorAttr() {
+            return m_paletteAsColorAttr;
         }
 
         /**
@@ -159,7 +203,7 @@ class ColorManager2NodeModel extends NodeModel {
 
     /** The selected column. */
     private String m_column;
-    /** true if color ranges, false for discrete colors. */
+    /** false if color ranges, true for discrete colors. */
     private boolean m_isNominal;
 
     /** Option for using palettes. */
@@ -231,72 +275,15 @@ class ColorManager2NodeModel extends NodeModel {
      */
     @Override
     protected PortObject[] execute(final PortObject[] data,
-            final ExecutionContext exec) throws CanceledExecutionException {
-        assert (data != null && data.length == 1 && data[INPORT] != null);
-        BufferedDataTable in = (BufferedDataTable)data[0];
-        DataTableSpec inSpec = in.getDataTableSpec();
-        ColorHandler colorHandler;
-        // if no column has been selected, guess first nominal column
-        if (m_column == null) {
-            // find first nominal column with possible values
-            String column =
-                DataTableSpec.guessNominalClassColumn(inSpec, false);
-            m_columnGuess = column;
-            m_isNominalGuess = true;
-            super.setWarningMessage(
-                    "Selected column \"" + column
-                    + "\" with default nominal color mapping.");
-            Set<DataCell> set =
-                inSpec.getColumnSpec(column).getDomain().getValues();
-            m_mapGuess.clear();
-            m_mapGuess.putAll(
-                    ColorManager2DialogNominal.createColorMapping(set, m_paletteOption));
-            colorHandler = createNominalColorHandler(m_mapGuess);
-            DataTableSpec newSpec = getOutSpec(inSpec, column, colorHandler);
-            BufferedDataTable changedSpecTable =
-                exec.createSpecReplacerTable(in, newSpec);
-            DataTableSpec modelSpec =
-                new DataTableSpec(newSpec.getColumnSpec(column));
-            ColorHandlerPortObject viewModel = new ColorHandlerPortObject(
-                    modelSpec, colorHandler.toString()
-                    + " based on column \"" + m_column + "\"");
-            return new PortObject[]{changedSpecTable, viewModel};
-        }
-        // find column index
-        int columnIndex = inSpec.findColumnIndex(m_column);
-        // create new column spec based on color settings
-        final DataColumnSpec cspec = inSpec.getColumnSpec(m_column);
-        if (m_isNominal) {
-            if (m_paletteOption.equals(PaletteOption.CUSTOM_SET)) {
-                colorHandler = createNominalColorHandler(m_map);
-            } else {
-                final Set<DataCell> set = new LinkedHashSet<>(cspec.getDomain().getValues());
-                m_map.clear();
-                m_map.putAll(ColorManager2DialogNominal.createColorMapping(set, m_paletteOption));
-                colorHandler = createNominalColorHandler(m_map);
-            }
-        } else {
-            DataColumnDomain dom = cspec.getDomain();
-            DataCell lower, upper;
-            if (dom.hasBounds()) {
-                lower = dom.getLowerBound();
-                upper = dom.getUpperBound();
-            } else {
-                Statistics3Table stat = new Statistics3Table(in, false, 0, Collections.<String>emptyList(), exec);
-                lower = stat.getMinCells()[columnIndex];
-                upper = stat.getMaxCells()[columnIndex];
-            }
-            colorHandler = createRangeColorHandler(lower, upper, m_map);
-        }
-        DataTableSpec newSpec =
-            getOutSpec(inSpec, m_column, colorHandler);
-        DataTableSpec modelSpec =
-            new DataTableSpec(newSpec.getColumnSpec(m_column));
-        BufferedDataTable changedSpecTable =
-            exec.createSpecReplacerTable(in, newSpec);
-        ColorHandlerPortObject viewModel = new ColorHandlerPortObject(
-                modelSpec, "Coloring on \"" + m_column + "\"");
-        return new PortObject[]{changedSpecTable, viewModel};
+            final ExecutionContext exec) throws CanceledExecutionException, InvalidSettingsException {
+        final var in = (BufferedDataTable)data[0];
+        final var inSpec = in.getDataTableSpec();
+        final var outputSpecification = computeOutputSpecification(inSpec, in, exec.createSubExecutionContext(0.0));
+        final var outputTableSpec = outputSpecification.dataSpec;
+        final var outputTable = outputTableSpec == inSpec ? in : exec.createSpecReplacerTable(in, outputTableSpec);
+        final var outputModelSpec = outputSpecification.modelSpec;
+        final var outputModel = new ColorHandlerPortObject(outputModelSpec, "Coloring on \"" + m_column + "\"");
+        return new PortObject[]{outputTable, outputModel};
     }
 
     /**
@@ -305,17 +292,29 @@ class ColorManager2NodeModel extends NodeModel {
      * @param spec to which the ColorHandler is appended
      * @param columnName for this column
      * @param colorHdl ColorHandler
-     * @return a new spec with ColorHandler
+     * @return Record of output table spec and model spec.
      */
-    static final DataTableSpec getOutSpec(final DataTableSpec spec,
+    static final OutputSpecification getOutputDataSpecification(final DataTableSpec spec,
             final String columnName, final ColorHandler colorHdl) {
-        final var tableSpecCreator = new DataTableSpecCreator(spec);
-        final var colIndex = spec.findColumnIndex(columnName);
-        final var columnSpec = spec.getColumnSpec(colIndex);
-        final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
-        columnSpecCreator.setColorHandler(colorHdl);
-        tableSpecCreator.replaceColumn(colIndex, columnSpecCreator.createSpec());
-        return tableSpecCreator.createSpec();
+        final DataTableSpec outputTableSpec;
+        final DataColumnSpec outputColumnSpec;
+        if (COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER.equals(columnName)) {
+            outputTableSpec = spec;
+            final var colorColSpec = new DataColumnSpecCreator(COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER, StringCell.TYPE);
+            colorColSpec.setDomain(new DataColumnDomainCreator(columnNamesToDataCellSet(spec)).createDomain());
+            colorColSpec.setColorHandler(colorHdl);
+            outputColumnSpec = colorColSpec.createSpec();
+        } else {
+            final var tableSpecCreator = new DataTableSpecCreator(spec);
+            final var colIndex = spec.findColumnIndex(columnName);
+            final var columnSpec = spec.getColumnSpec(colIndex);
+            final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
+            columnSpecCreator.setColorHandler(colorHdl);
+            outputColumnSpec = columnSpecCreator.createSpec();
+            tableSpecCreator.replaceColumn(colIndex, outputColumnSpec);
+            outputTableSpec = tableSpecCreator.createSpec();
+        }
+        return new OutputSpecification(outputTableSpec, new DataTableSpec(outputColumnSpec));
     }
 
     /**
@@ -327,91 +326,98 @@ class ColorManager2NodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
             throws InvalidSettingsException {
-        DataTableSpec spec = (DataTableSpec)inSpecs[INPORT];
-        if (spec == null) {
-            throw new InvalidSettingsException("No input");
+        final DataTableSpec spec = (DataTableSpec)inSpecs[INPORT];
+        CheckUtils.checkSettingNotNull(spec, "No input");
+        OutputSpecification outputSpec;
+        try {
+            outputSpec = computeOutputSpecification(spec, null, null);
+        } catch (CanceledExecutionException e) {
+            throw new InternalError("Can't fail as data is not iterated", e);
         }
+        return new PortObjectSpec[] {outputSpec.dataSpec, outputSpec.modelSpec};
+    }
+
+    /**
+     * Record representing the specs of both output ports.
+     */
+    record OutputSpecification(DataTableSpec dataSpec, DataTableSpec modelSpec) {}
+
+    private OutputSpecification computeOutputSpecification(final DataTableSpec spec, final BufferedDataTable table,
+        final ExecutionContext exec) throws InvalidSettingsException, CanceledExecutionException {
         // check null column
         if (m_column == null) {
             // find first nominal column with possible values
             String column = DataTableSpec.guessNominalClassColumn(spec, false);
-            if (column == null) {
-                throw new InvalidSettingsException(
-                    "No column selected and no categorical column available.");
-            }
+            CheckUtils.checkSettingNotNull(column, "No column selected and no categorical column available.");
             m_columnGuess = column;
             m_isNominalGuess = true;
-            Set<DataCell> set = spec.getColumnSpec(column).
-                    getDomain().getValues();
+            final Set<DataCell> set = spec.getColumnSpec(column).getDomain().getValues();
             m_mapGuess.clear();
-            m_mapGuess.putAll(
-                    ColorManager2DialogNominal.createColorMapping(set, m_paletteOption));
-            ColorHandler colorHandler = createNominalColorHandler(m_mapGuess);
-            DataTableSpec dataSpec = getOutSpec(spec, column, colorHandler);
-            DataTableSpec modelSpec =
-                new DataTableSpec(dataSpec.getColumnSpec(column));
-            super.setWarningMessage(
-                    "Selected column \"" + column
-                    + "\" with default nominal color mapping.");
-            return new DataTableSpec[]{dataSpec, modelSpec};
+            m_mapGuess.putAll(ColorManager2DialogNominal.createColorMapping(set, m_paletteOption));
+            setWarningMessage("Selected column \"" + column + "\" with default nominal color mapping.");
+            return getOutputDataSpecification(spec, column, createNominalColorHandler(m_mapGuess, m_paletteOption));
         }
+
+        var isColumnNameModel = COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER.equals(m_column);
         // check column in spec
-        if (!spec.containsName(m_column)) {
-            throw new InvalidSettingsException("Column \"" + m_column
-                    + "\" not found.");
-        }
-        // get domain
-        DataColumnDomain domain = spec.getColumnSpec(m_column).getDomain();
+        CheckUtils.checkSetting(spec.containsName(m_column) || isColumnNameModel, "Column \"%s\" not found.", m_column);
         // either set colors by ranges or discrete values
-        if (m_isNominal) {
-            // check if all values set are in the domain of the column spec
-            Set<DataCell> list = domain.getValues();
-            if (list == null) {
-                throw new InvalidSettingsException("Column \"" + m_column + "\""
-                        + " has no nominal values set: "
-                        + "execute predecessor or add Binner.");
+        if (isColumnNameModel || m_isNominal) {
+            final Set<DataCell> values;
+            final String columnName;
+            final ColorHandler colorHandler;
+            if (isColumnNameModel) {
+                values = columnNamesToDataCellSet(spec);
+                columnName = COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER;
+            } else {
+                // check if all values set are in the domain of the column spec
+                DataColumnDomain domain = spec.getColumnSpec(m_column).getDomain();
+                columnName = m_column;
+                values = domain.getValues();
+                CheckUtils.checkSettingNotNull(values,
+                    "Column \"%s\" has no nominal values set: execute predecessor or add Binner.", m_column);
             }
-            // check if the mapping values and the possible values match
-            if (m_paletteOption.equals(PaletteOption.CUSTOM_SET) && !m_map.keySet().containsAll(list)) {
-                throw new InvalidSettingsException(
-                       "Color mapping does not match possible values.");
+            checkValuesForCustomPalette(values);
+            if (m_paletteOption == PaletteOption.CUSTOM_SET) {
+                colorHandler = createNominalColorHandler(m_map, m_paletteOption);
+            } else {
+                final Set<DataCell> set = new LinkedHashSet<>(values);
+                m_map.clear();
+                m_map.putAll(ColorManager2DialogNominal.createColorMapping(set, m_paletteOption));
+                colorHandler = createNominalColorHandler(m_map, m_paletteOption);
             }
-        } else { // range
-            // check if double column is selected
-            if (!spec.getColumnSpec(m_column).getType()
-                    .isCompatible(DoubleValue.class)) {
-                throw new InvalidSettingsException("Column is not valid for"
-                        + " range color settings: "
-                        + spec.getColumnSpec(m_column).getType());
-            }
-            // check map
-            if (m_map.size() != 2) {
-                throw new InvalidSettingsException(
-                        "Color settings not yet available.");
-            }
-        }
-
-        // temp color handler
-        ColorHandler colorHandler;
-
-        // create new column spec based on color settings
-        DataColumnSpec cspec = spec.getColumnSpec(m_column);
-        if (m_isNominal) {
-            colorHandler = createNominalColorHandler(m_map);
-        } else {
+            return getOutputDataSpecification(spec, columnName, colorHandler);
+        } else { // range coloring
+            final DataColumnSpec cspec = spec.getColumnSpec(m_column);
+            CheckUtils.checkSetting(cspec.getType().isCompatible(DoubleValue.class),
+                "Column \"%s\" is not numeric (but %s) and not valid for numeric range coloring",
+                m_column, cspec.getType().toPrettyString());
+            CheckUtils.checkSetting(m_map.size() == 2, "Color settings not available.");
             DataColumnDomain dom = cspec.getDomain();
-            DataCell lower = null;
-            DataCell upper = null;
+            final DataCell lower;
+            final DataCell upper;
             if (dom.hasBounds()) {
                 lower = dom.getLowerBound();
                 upper = dom.getUpperBound();
+            } else if (table != null) {
+                final var doubleMinMax = new DoubleMinMax(true, m_column);
+                var statCalculator = new StatisticCalculator(spec, doubleMinMax);
+                statCalculator.evaluate(table, exec);
+                lower = new DoubleCell(doubleMinMax.getMin(m_column));
+                upper = new DoubleCell(doubleMinMax.getMax(m_column));
+            } else {
+                lower = null;
+                upper = null;
             }
-            colorHandler = createRangeColorHandler(lower, upper, m_map);
+
+            final var colorHandler = createRangeColorHandler(lower, upper, m_map);
+            return getOutputDataSpecification(spec, m_column, colorHandler);
         }
-        DataTableSpec dataSpec = getOutSpec(spec, m_column, colorHandler);
-        DataTableSpec modelSpec =
-            new DataTableSpec(dataSpec.getColumnSpec(m_column));
-        return new DataTableSpec[]{dataSpec, modelSpec};
+    }
+
+    private void checkValuesForCustomPalette(final Set<DataCell> colNamesSet) throws InvalidSettingsException {
+        CheckUtils.checkSetting(m_paletteOption != PaletteOption.CUSTOM_SET || m_map.keySet().containsAll(colNamesSet),
+            "Color mapping does not match possible values.");
     }
 
     /**
@@ -433,7 +439,6 @@ class ColorManager2NodeModel extends NodeModel {
         m_column = settings.getString(SELECTED_COLUMN);
         if (m_column != null) {
             m_isNominal = settings.getBoolean(IS_NOMINAL);
-            // nominal
             if (m_isNominal) {
                 DataCell[] values = settings.getDataCellArray(VALUES, new DataCell[0]);
                 for (int i = 0; i < values.length; i++) {
@@ -528,9 +533,9 @@ class ColorManager2NodeModel extends NodeModel {
         }
     }
 
-    private static final ColorHandler createNominalColorHandler(
-            final Map<DataCell, ColorAttr> map) {
-        return new ColorHandler(new ColorModelNominal(map, null));
+    private static final ColorHandler createNominalColorHandler(final Map<DataCell, ColorAttr> map,
+        final PaletteOption paletteOption) {
+        return new ColorHandler(new ColorModelNominal(map, paletteOption.getPaletteAsColorAttr()));
     }
 
     private static final ColorHandler createRangeColorHandler(
@@ -575,6 +580,15 @@ class ColorManager2NodeModel extends NodeModel {
             final ExecutionMonitor exec) throws IOException,
             CanceledExecutionException {
 
+    }
+
+    /**
+     * Column names of the non-null argument spec in a set containing {@link StringCell}.
+     */
+    static Set<DataCell> columnNamesToDataCellSet(final DataTableSpec dts) {
+        return Stream.of(dts.getColumnNames()) //
+            .map(StringCell::new) //
+            .collect(Collectors.toCollection(LinkedHashSet<DataCell>::new)); // order preserving
     }
 
 }

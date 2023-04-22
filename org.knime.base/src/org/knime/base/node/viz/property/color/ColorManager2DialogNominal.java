@@ -215,17 +215,12 @@ final class ColorManager2DialogNominal extends JPanel {
         Map<DataCell, ColorAttr> map = new LinkedHashMap<DataCell, ColorAttr>();
         int idx = 0;
         String[] palette = null;
-        switch (po) {
-            case SET1: palette = ColorManager2NodeDialogPane.PALETTE_SET1;
-            break;
-            case SET2: palette = ColorManager2NodeDialogPane.PALETTE_SET2;
-            break;
-            case SET3: palette = ColorManager2NodeDialogPane.PALETTE_SET3;
-            break;
-            default: palette = UNKNOWN_VALUE_PALETTE;
-            //palette = ColorManager2NodeDialogPane.PALETTE_SET1;
-            break;
-        }
+        palette = switch (po) {
+            case SET1 -> PaletteOption.SET1.getPalette();
+            case SET2 -> PaletteOption.SET2.getPalette();
+            case SET3 -> PaletteOption.SET3.getPalette();
+            default -> UNKNOWN_VALUE_PALETTE;
+        };
         List<DataCell> cellsSorted = new ArrayList<>(set);
         Collections.sort(cellsSorted, (a, b) -> {
             return String.CASE_INSENSITIVE_ORDER.compare(a.toString(), b.toString());

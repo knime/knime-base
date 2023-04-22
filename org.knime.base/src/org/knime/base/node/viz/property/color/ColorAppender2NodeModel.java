@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   23.05.2006 (gabriel): created
  */
@@ -50,41 +50,45 @@ package org.knime.base.node.viz.property.color;
 import java.io.File;
 import java.io.IOException;
 
-import org.knime.core.data.DataColumnSpec;
+import org.knime.base.node.viz.property.color.ColorManager2NodeModel.OutputSpecification;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.property.ColorHandler;
+import org.knime.core.data.property.ColorModel;
+import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.viewproperty.ColorHandlerPortObject;
 import org.knime.core.node.port.viewproperty.ViewPropertyPortObject;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  * Node model to append color settings to a column selected in the dialog.
- * 
+ *
  * @author Thomas Gabriel, University of Konstanz
  */
-public class ColorAppender2NodeModel extends NodeModel {
-    
-    private final SettingsModelString m_column = 
-        ColorAppender2NodeDialogPane.createColumnModel();
-    
+final class ColorAppender2NodeModel extends NodeModel {
+
+    private final SettingsModelBoolean m_applyToColumnNamesModel = createApplyToColumnNamesModel();
+    private final SettingsModelString m_columnModel = createColumnModel(m_applyToColumnNamesModel);
+
     /**
      * Create a new color appender model.
      */
-    public ColorAppender2NodeModel() {
-        super(new PortType[]{
-                ColorHandlerPortObject.TYPE, BufferedDataTable.TYPE},
-                new PortType[]{BufferedDataTable.TYPE});
+    ColorAppender2NodeModel(final boolean withModelOutput) {
+        super(new PortType[]{ColorHandlerPortObject.TYPE, BufferedDataTable.TYPE},
+            withModelOutput ? new PortType[]{BufferedDataTable.TYPE, ColorHandlerPortObject.TYPE}
+                : new PortType[]{BufferedDataTable.TYPE});
     }
 
     /**
@@ -93,67 +97,87 @@ public class ColorAppender2NodeModel extends NodeModel {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs)
             throws InvalidSettingsException {
-        DataTableSpec modelSpec = (DataTableSpec)inSpecs[0];
-        DataTableSpec dataSpec = (DataTableSpec)inSpecs[1];
-        DataTableSpec out = createOutputSpec(modelSpec, dataSpec);
-        return new DataTableSpec[]{out};
+        final var modelSpec = (DataTableSpec)inSpecs[0];
+        final var dataSpec = (DataTableSpec)inSpecs[1];
+        final var outputSpecification = createOutputSpec(modelSpec, dataSpec);
+        if (getNrOutPorts() == 1) { // deprecated node, as of 5.1
+            return new DataTableSpec[]{outputSpecification.dataSpec()};
+        } else {
+            return new PortObjectSpec[]{outputSpecification.dataSpec(), outputSpecification.modelSpec()};
+        }
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
     protected PortObject[] execute(final PortObject[] inData,
             final ExecutionContext exec) throws Exception {
-        DataTableSpec modelSpec = ((ViewPropertyPortObject)inData[0]).getSpec();
-        DataTableSpec dataSpec = ((BufferedDataTable)inData[1]).getSpec();
-        DataTableSpec outSpec = createOutputSpec(modelSpec, dataSpec);
-        BufferedDataTable table = exec.createSpecReplacerTable(
-                (BufferedDataTable)inData[1], outSpec);
-        return new BufferedDataTable[]{table};
+        final var modelSpec = ((ViewPropertyPortObject)inData[0]).getSpec();
+        final var dataSpec = ((BufferedDataTable)inData[1]).getSpec();
+        final var outputSpecification = createOutputSpec(modelSpec, dataSpec);
+        BufferedDataTable table =
+            exec.createSpecReplacerTable((BufferedDataTable)inData[1], outputSpecification.dataSpec());
+        if (getNrOutPorts() == 1) { // deprecated node, as of 5.1
+            return new BufferedDataTable[]{table};
+        } else {
+            return new PortObject[]{table, new ColorHandlerPortObject(outputSpecification.modelSpec(),
+                "Coloring on \"" + m_columnModel.getStringValue() + "\"")};
+        }
     }
 
-    private DataTableSpec createOutputSpec(final DataTableSpec modelSpec, 
+    private OutputSpecification createOutputSpec(final DataTableSpec modelSpec,
             final DataTableSpec dataSpec) throws InvalidSettingsException {
-        if (modelSpec == null || dataSpec == null) {
-            throw new InvalidSettingsException("Invalid input.");
-        }
-        if (modelSpec.getNumColumns() < 1) {
-            throw new InvalidSettingsException("No color information in input");
-        }
-        DataColumnSpec col = modelSpec.getColumnSpec(0);
-        ColorHandler colorHandler = col.getColorHandler();
-        if (col.getColorHandler() == null) {
-            throw new InvalidSettingsException("No color information in input");
-        }
-        String column = m_column.getStringValue();
-        if (column == null) { // auto-configuration/guessing
-            // TODO check for nominal/range coloring and guess last
-            // suitable column (while setting a warning message)
-            if (dataSpec.containsName(col.getName())) {
-                column = col.getName();
+        CheckUtils.checkSetting(modelSpec.getNumColumns() == 1, "No color information in input");
+        final var columnSpecPerModel = modelSpec.getColumnSpec(0);
+        final var inColorHandler = columnSpecPerModel.getColorHandler();
+        final var applyToColumnNames = m_applyToColumnNamesModel.getBooleanValue();
+        final var inColorModel = inColorHandler.getColorModel();
+        // for nominal columns we will apply the palette to unknown values in the data:
+        // e.g. if the model has definitions for colors A and B but the data now sees values for C and D
+        // we will apply the palette to these new values, while still leaving A and B assignments untouched.
+        final ColorModel colorModelOutput;
+        final String columnNameInOutput;
+        if (applyToColumnNames) {
+            final var columnNames = ColorManager2NodeModel.columnNamesToDataCellSet(dataSpec);
+            CheckUtils.checkSetting(inColorModel instanceof ColorModelNominal, "Node is configured to apply coloring "
+                + "to column names but the input model does not represent a model on nominal values.");
+            colorModelOutput = ((ColorModelNominal)inColorModel).applyToNewValues(columnNames);
+            columnNameInOutput = ColorManager2NodeModel.COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER;
+        } else {
+            var column = m_columnModel.getStringValue();
+            if (column == null) { // auto-configuration/guessing
+                // TODO check for nominal/range coloring and guess last
+                // suitable column (while setting a warning message)
+                if (dataSpec.containsName(columnSpecPerModel.getName())) { // NOSONAR (if merges)
+                    column = columnSpecPerModel.getName();
+                }
             }
+            CheckUtils.checkSettingNotNull(column, "Node is not properly configured.");
+            final var columnSpec = dataSpec.getColumnSpec(column);
+            CheckUtils.checkSettingNotNull(columnSpec, "Column \"%s\" not available.", column);
+            if (inColorModel instanceof ColorModelNominal nominalModel) {
+                final var possibleValues = columnSpec.getDomain().getValues();
+                CheckUtils.checkSettingNotNull(possibleValues, "Column \"%s\" does not have posssible values set in "
+                        + "its domain - execute predecessor or apply Domain Calculator", column);
+                colorModelOutput = nominalModel.applyToNewValues(possibleValues);
+            } else {
+                colorModelOutput = inColorModel;
+            }
+            columnNameInOutput = column;
         }
-        if (column == null) {
-            throw new InvalidSettingsException("Not configured.");
-        }
-        if (!dataSpec.containsName(column)) {
-            throw new InvalidSettingsException("Column \"" + column 
-                    + "\" not available.");
-        }
-        DataTableSpec spec = ColorManager2NodeModel.getOutSpec(
-                dataSpec, column, colorHandler);
-        return spec;
+        return ColorManager2NodeModel.getOutputDataSpecification(dataSpec, columnNameInOutput,
+            new ColorHandler(colorModelOutput));
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir, 
+    protected void loadInternals(final File nodeInternDir,
             final ExecutionMonitor exec)
             throws IOException, CanceledExecutionException {
-        
+
     }
 
     /**
@@ -162,7 +186,12 @@ public class ColorAppender2NodeModel extends NodeModel {
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_column.loadSettingsFrom(settings);
+        try {
+            m_applyToColumnNamesModel.loadSettingsFrom(settings);
+        } catch (InvalidSettingsException ise) {
+            m_applyToColumnNamesModel.setBooleanValue(false); // added in 5.1
+        }
+        m_columnModel.loadSettingsFrom(settings);
     }
 
     /**
@@ -170,7 +199,7 @@ public class ColorAppender2NodeModel extends NodeModel {
      */
     @Override
     protected void reset() {
-        
+
     }
 
     /**
@@ -187,7 +216,8 @@ public class ColorAppender2NodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_column.saveSettingsTo(settings);
+        m_applyToColumnNamesModel.saveSettingsTo(settings);
+        m_columnModel.saveSettingsTo(settings);
     }
 
     /**
@@ -196,7 +226,21 @@ public class ColorAppender2NodeModel extends NodeModel {
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_column.validateSettings(settings);
+        m_columnModel.validateSettings(settings);
     }
-   
+
+    static SettingsModelBoolean createApplyToColumnNamesModel() {
+        return new SettingsModelBoolean("apply_to_column_names", false);
+    }
+
+    /**
+     * @return settings model for column selection
+     */
+    static SettingsModelString createColumnModel(final SettingsModelBoolean applyToColumnNamesModel) {
+        final var result = new SettingsModelString("selected_column", null);
+        applyToColumnNamesModel.addChangeListener(e -> result.setEnabled(!applyToColumnNamesModel.getBooleanValue()));
+        result.setEnabled(!applyToColumnNamesModel.getBooleanValue());
+        return result;
+    }
+
 }

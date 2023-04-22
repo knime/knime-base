@@ -43,32 +43,29 @@
  * -------------------------------------------------------------------
  *
  * History
- *   24.05.2006 (gabriel): created
+ *   23.05.2006 (gabriel): created
  */
 package org.knime.base.node.viz.property.color;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.NodeDialogPane;
 
 /**
- * Dialog to select column to apply colors to.
+ * Factory to create <i>Color Appender</i> node.
  *
  * @author Thomas Gabriel, University of Konstanz
+ * @noreference This class is not intended to be referenced by clients.
+ * @since 5.1
  */
-public class ColorAppender2NodeDialogPane extends DefaultNodeSettingsPane {
+@SuppressWarnings("deprecation")
+public final class ColorAppender3NodeFactory extends ColorAppender2NodeFactory {
 
-    /**
-     * Create new color appender dialog.
-     */
-    @SuppressWarnings("unchecked")
-    public ColorAppender2NodeDialogPane() {
-        final var applyToColumnNamesModel = ColorAppender2NodeModel.createApplyToColumnNamesModel();
-        createNewGroup("Apply colors to...");
-        addDialogComponent(new DialogComponentBoolean(applyToColumnNamesModel, "Column names"));
-        addDialogComponent(
-            new DialogComponentColumnNameSelection(ColorAppender2NodeModel.createColumnModel(applyToColumnNamesModel),
-                "Column", 1, DataValue.class));
+    @Override
+    public ColorAppender2NodeModel createNodeModel() {
+        return new ColorAppender2NodeModel(true);
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return new ColorAppender2NodeDialogPane();
     }
 }

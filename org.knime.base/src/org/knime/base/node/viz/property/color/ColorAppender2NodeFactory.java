@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,29 +41,31 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   23.05.2006 (gabriel): created
  */
 package org.knime.base.node.viz.property.color;
 
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.core.node.NodeDialogPane;
 
 /**
  * Factory to create <i>Color Appender</i> node.
- * 
+ *
  * @author Thomas Gabriel, University of Konstanz
+ * @deprecated Replaced by {@link ColorAppender3NodeFactory}
  */
-public class ColorAppender2NodeFactory 
+@Deprecated(since = "5.1")
+public class ColorAppender2NodeFactory
     extends NodeFactory<ColorAppender2NodeModel> {
     /**
      * {@inheritDoc}
      */
     @Override
     public ColorAppender2NodeModel createNodeModel() {
-        return new ColorAppender2NodeModel();
+        return new ColorAppender2NodeModel(false);
     }
 
     /**
@@ -78,7 +80,7 @@ public class ColorAppender2NodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ColorAppender2NodeModel> 
+    public NodeView<ColorAppender2NodeModel>
         createNodeView(final int viewIndex, final ColorAppender2NodeModel nm) {
         assert false;
         return null;

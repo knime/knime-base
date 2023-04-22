@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   23.05.2006 (gabriel): created
  */
@@ -53,7 +53,7 @@ import org.knime.core.node.NodeView;
 
 /**
  * Factory to create <i>Color Appender</i> node.
- * 
+ *
  * @author Thomas Gabriel, University of Konstanz
  */
 @Deprecated
@@ -63,7 +63,7 @@ public class ColorAppenderNodeFactory extends NodeFactory<ColorAppender2NodeMode
      */
     @Override
     public ColorAppender2NodeModel createNodeModel() {
-        return new ColorAppender2NodeModel();
+        return new ColorAppender2NodeModel(false);
     }
 
     /**

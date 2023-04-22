@@ -52,7 +52,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -63,6 +62,7 @@ import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.data.property.ColorHandler;
 import org.knime.core.data.property.ColorModel;
 import org.knime.core.data.property.ColorModelNominal;
@@ -144,7 +144,7 @@ final class ColorExtractNodeModel extends NodeModel {
             DataRow row = new DefaultRow(keys[i], new DoubleCell(vals[i]),
                     new IntCell(clr.getRed()), new IntCell(clr.getGreen()),
                     new IntCell(clr.getBlue()), new IntCell(clr.getAlpha()),
-                    new IntCell(clr.getRGB()));
+                    new IntCell(clr.getRGB()), new StringCell(ColorModel.colorToHexString(clr)));
             cnt.addRowToTable(row);
         }
         cnt.close();
@@ -154,7 +154,7 @@ final class ColorExtractNodeModel extends NodeModel {
     private CloseableTable extractColorTable(final ColorModelNominal nom)
     throws InvalidSettingsException {
         DataType superType = null;
-        for (DataCell c : nom) {
+        for (DataCell c : nom.getValues()) {
             if (superType == null) {
                 superType = c.getType();
             } else {
@@ -166,13 +166,13 @@ final class ColorExtractNodeModel extends NodeModel {
         }
         DataTableSpec spec = createSpec(superType);
         DataContainer cnt = new DataContainer(spec);
-        int counter = 0;
-        for (DataCell c : nom) {
+        long counter = 0L;
+        for (DataCell c : nom.getValues()) {
             Color clr = nom.getColorAttr(c).getColor();
             DataRow row = new DefaultRow(RowKey.createRowKey(counter++),
                     c, new IntCell(clr.getRed()), new IntCell(clr.getGreen()),
                     new IntCell(clr.getBlue()), new IntCell(clr.getAlpha()),
-                    new IntCell(clr.getRGB()));
+                    new IntCell(clr.getRGB()), new StringCell(ColorModel.colorToHexString(clr)));
             cnt.addRowToTable(row);
         }
         cnt.close();
@@ -182,16 +182,16 @@ final class ColorExtractNodeModel extends NodeModel {
     /**
      * @param valueType
      * @return */
-    private DataTableSpec createSpec(final DataType valueType) {
-        DataTableSpec spec = new DataTableSpec(new DataColumnSpec[] {
+    private static DataTableSpec createSpec(final DataType valueType) {
+        return new DataTableSpec(
                 new DataColumnSpecCreator("value", valueType).createSpec(),
                 new DataColumnSpecCreator("R", IntCell.TYPE).createSpec(),
                 new DataColumnSpecCreator("G", IntCell.TYPE).createSpec(),
                 new DataColumnSpecCreator("B", IntCell.TYPE).createSpec(),
                 new DataColumnSpecCreator("A", IntCell.TYPE).createSpec(),
                 new DataColumnSpecCreator("RGBA", IntCell.TYPE).createSpec(),
-        });
-        return spec;
+                new DataColumnSpecCreator("RGB (Hex)", StringCell.TYPE).createSpec()
+        );
     }
 
     /** {@inheritDoc} */

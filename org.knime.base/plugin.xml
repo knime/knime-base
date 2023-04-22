@@ -551,10 +551,16 @@
       <node
             after="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory"
             category-path="/view/property"
+            deprecated="true"
             factory-class="org.knime.base.node.viz.property.color.ColorAppender2NodeFactory">
       </node>
       <node
-            after="org.knime.base.node.viz.property.color.ColorAppender2NodeFactory"
+            after="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory"
+            category-path="/view/property"
+            factory-class="org.knime.base.node.viz.property.color.ColorAppender3NodeFactory">
+      </node>
+      <node
+            after="org.knime.base.node.viz.property.color.ColorAppender3NodeFactory"
             category-path="/view/property"
             factory-class="org.knime.base.node.viz.property.size.SizeAppenderNodeFactory">
       </node>

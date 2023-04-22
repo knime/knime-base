@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode type="Visualizer" icon="./color_appender.png" deprecated="true">
+<knimeNode type="Visualizer" icon="./color_appender.png">
 	<name>Color Appender</name>
 	
 	<shortDescription>
@@ -26,21 +26,23 @@
 	    are two different datasets with the same class column. 
 	    </p>
 		</intro>
-        <option name="Append colors to column names">
-           If selected, the coloring is interpreted as a coloring based on column names, e.g. as used by a line chart.
-        </option>
-        <option name="Append colors to column">
-            Select the column to apply color settings to. It might be the same column, 
-            a different numeric column for which the color settings should be reused, 
-            or a nominal column if the color model was defined for nominal values. 
-            Color models for numeric and for nominal values are not compatible with each other.
-        </option>
+	    <option name="Append colors to column names">
+	       If selected, the coloring is interpreted as a coloring based on column names, e.g. as used by a line chart.
+	    </option>
+	    <option name="Append colors to column">
+		    Select the column to apply color settings to. It might be the same column, 
+		    a different numeric column for which the color settings should be reused, 
+		    or a nominal column if the color model was defined for nominal values. 
+		    Color models for numeric and for nominal values are not compatible with each other.
+	    </option>
 	</fullDescription>
 	
 	<ports>
 		<inPort index="0" name="Color Settings">Existing color model to be applied to the input table</inPort>
 		<inPort index="1" name="Table">Table to which colors are applied to</inPort>
 		<outPort index="0" name="Table with Colors">Table with colors for the selected column</outPort>
+		<outPort index="1" name="Amended Color Settings">The input color model, applied to the values found in the
+		 input table (palettes applied),</outPort>
 	</ports>	
 	
 </knimeNode>

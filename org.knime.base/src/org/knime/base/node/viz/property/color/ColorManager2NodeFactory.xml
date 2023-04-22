@@ -17,9 +17,13 @@
         color chooser.
 		</intro>
 		
-    <option name="Column(s): ">
+    <option name="Color by ...">
 	    Select the column whose possible values or ranges should be used for 
-	    color selection.
+	    color selection. Depending on the type of selected column, nominal or numeric, the controls below can be
+	    used to define a color scheme.
+	    The special value <tt>&lt;Column Names&gt;</tt> is used to define a color model based on column names. It
+	    can be used in visualization nodes such as the <tt>Line Plot</tt> to define color based on entire columns,
+	    not row values. 
     </option>
     <option name="Nominal: ">
 	    Assigns colors based on the possible attribute values of the selected 
@@ -35,16 +39,12 @@
 	    the attribute's value within the numeric range: the corresponding color 
 	    is set at the same position in the gradient.
     </option>
-    <option name="Alpha: ">
-        Adjust the color's alpha component in the range of 0..255. Please note,
-        alpha composition is expensive in cases when operations performed are 
-        not hardware-accelerated.
-    </option>
 	</fullDescription>
 	
 	<ports>
 		<inPort index="0" name="Table">Table to which color should be applied</inPort>
-		<outPort index="0" name="Table with Colors">Same table with color information appended to one attribute</outPort>
-		<outPort index="1" name="Color Settings">Color settings applied to the input table</outPort>
+		<outPort index="0" name="Table with Color information">Input table with color information appended to one 
+		  attribute. Note that for colorings on column names the output table is identical to the input. </outPort>
+		<outPort index="1" name="Color Model">Color model as applied to the input table (if applicable)</outPort>
 	</ports>	
 </knimeNode>

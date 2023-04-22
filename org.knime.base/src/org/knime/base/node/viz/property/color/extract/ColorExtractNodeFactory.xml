@@ -14,9 +14,10 @@
 				value as defined in the "Color Manager" node will be represented
 				by a data row in the node's output table. The columns represent
 				the	different color values for red (R), green (G), blue (B) and
-				alpha (A) -- all in the range of 0-255. The last column (RGBA)
+				alpha (A) -- all in the range of 0-255. RGBA
 				is the bitwise concatenation (Bits 24-31 are alpha, 
-				16-23 are red, 8-15 are green, 0-7 are blue). 
+				16-23 are red, 8-15 are green, 0-7 are blue), whereas RGB (hex) 
+				is the color code in hexadecimal representation.
             </p>
 		</intro>
 	</fullDescription>
