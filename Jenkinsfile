@@ -30,7 +30,7 @@ try {
                     "knime-timeseries", "knime-python", "knime-python-legacy", "knime-conda", "knime-stats", "knime-h2o", "knime-weka", "knime-birt", "knime-svm",
                     "knime-js-labs", "knime-optimization", "knime-streaming", "knime-textprocessing", "knime-chemistry", "knime-python", "knime-testing-internal",
                     "knime-exttool", "knime-parquet", "knime-bigdata", "knime-bigdata-externals", "knime-cloud", "knime-js-core", "knime-office365",
-                    "knime-database-proprietary","knime-svg", "knime-excel", "knime-wide-data"],
+                    "knime-database-proprietary","knime-svg", "knime-excel", "knime-wide-data", "knime-aws"],
                     ius: ["org.knime.features.chem.types.feature.group"]
                 ],
                 sidecarContainers: [
