@@ -1015,7 +1015,11 @@
             factory-class="org.knime.base.node.preproc.caseconvert.CaseConvertNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
-            factory-class="org.knime.base.node.preproc.stringreplacer.dict.SearchReplaceDictNodeFactory"/>
+            factory-class="org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeFactory"/>
+      <node
+            category-path="/manipulation/column/column-convert+replace"
+            factory-class="org.knime.base.node.preproc.stringreplacer.dict.SearchReplaceDictNodeFactory"
+            deprecated="true"/>
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.cellsplit.CellSplitterNodeFactory"

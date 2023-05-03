@@ -47,7 +47,6 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
-import org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings.PatternType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -104,7 +103,7 @@ public class StringReplacerSettings {
     private boolean m_enableEscaping;
 
     /** @since 5.1 */
-    private PatternType m_patternType = PatternType.defaultType;
+    private PatternType m_patternType = PatternType.DEFAULT;
 
     /**
      * Returns whether the pattern is a regular expression or a simple wildcard pattern.

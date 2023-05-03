@@ -44,39 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   5 Jan 2023 (chaubold): created
+ *   21 Dec 2022 (jasper): created
  */
-package org.knime.base.node.preproc.stringreplacer;
+package org.knime.base.node.preproc.stringreplacer.dict2;
 
+import org.knime.base.node.preproc.stringreplacer.CaseMatching;
+import org.knime.base.node.preproc.stringreplacer.PatternType;
+import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * The StringReplacerNodeSettings define the WebUI dialog of the StringReplacer Node. The serialization must go via the
- * {@link StringReplacerSettings}.
+ * Node Settings for the String Replacer (Dictionary)
  *
- * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
+ * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-final class StringReplacerNodeSettings implements DefaultNodeSettings {
+@SuppressWarnings("restriction") // New Node UI is not yet API
+public final class StringReplacerDictNodeSettings implements DefaultNodeSettings {
+
+    // Enums
+
+    /** What to do when multiple patterns match **/
+    enum MultipleMatchHandling {
+            @Label("Replace all")
+            REPLACEALL, //
+            @Label("Replace first")
+            REPLACEFIRST;
+
+        static final String OPTION_DESCRIPTION =
+            """
+            Select the strategy to use if multiple patterns match.
+            <ul>
+                <li>
+                    <i>Replace all</i> applies all replacements with matching patterns from the dictionary table
+                    consecutively.
+                </li>
+                <li>
+                    <i>Replace first</i> only applies the first replacement with a matching pattern.
+                </li>
+            </ul>
+            """;
+    }
 
     // Rules
 
@@ -91,8 +115,50 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
     }
 
     /** Indicates that the option "Append column" is enabled **/
-    interface IsAppendColumn {}
+    interface IsAppendColumns {}
 
+
+    // Helper methods
+
+    /** Filter a table spec for the string-compatible columns */
+    static DataColumnSpec[] getStringCompatibleColumns(final DataTableSpec tableSpec,
+        final boolean includeCollections) {
+        return tableSpec.stream().filter(spec -> spec.getType().isCompatible(StringValue.class) //
+            || (includeCollections //
+                && spec.getType().isCollectionType()
+                && spec.getType().getCollectionElementType().isCompatible(StringValue.class))) //
+            .toArray(DataColumnSpec[]::new);
+    }
+
+    /** Provides the string column choices of the table at input port 0 */
+    static final class TargetColumnChoices implements ColumnChoicesProvider {
+        @Override
+        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(0)//
+                .map(s -> getStringCompatibleColumns(s, false))//
+                .orElse(new DataColumnSpec[]{});
+        }
+    }
+
+    /** Provides the string column choices of the table at input port 1, including collections */
+    static final class PatternColumnChoices implements ColumnChoicesProvider {
+        @Override
+        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(1)//
+                .map(s -> getStringCompatibleColumns(s, true))//
+                .orElse(new DataColumnSpec[]{});
+        }
+    }
+
+    /** Provides the string column choices of the table at input port 1, excluding collections */
+    static final class ReplacementColumnChoices implements ColumnChoicesProvider {
+        @Override
+        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(1)//
+                .map(s -> getStringCompatibleColumns(s, false))//
+                .orElse(new DataColumnSpec[]{});
+        }
+    }
 
     // Layout
 
@@ -111,20 +177,17 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
     // Settings
 
     @Layout(DialogSections.ColumnSelection.class)
-    @Persist(configKey = StringReplacerSettings.CFG_COL_NAME)
-    @Widget(title = "Target column", description = "Select the column in which the strings should be replaced.")
-    @ChoicesWidget(choices = StringColumnChoices.class)
-    String m_colName;
+    @Widget(title = "Target columns", description = "Select the columns in which the strings should be replaced.")
+    @ChoicesWidget(choices = TargetColumnChoices.class)
+    ColumnFilter m_targetColumns;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(customPersistor = PatternTypePersistor.class)
     @Widget(title = PatternType.OPTION_NAME, description = PatternType.OPTION_DESCRIPTION)
     @ValueSwitchWidget
     @Signal(id = IsWildcard.class, condition = IsWildcard.Condition.class)
     PatternType m_patternType = PatternType.DEFAULT;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(configKey = StringReplacerSettings.CFG_ENABLE_ESCAPING)
     @Widget(title = "Use backslash as escape character", description = """
             If checked, the backslash character can be used to escape special characters. For instance, <tt>\\?</tt>
             will match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a
@@ -140,103 +203,55 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
     CaseMatching m_caseMatching = CaseMatching.DEFAULT;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(configKey = StringReplacerSettings.CFG_PATTERN)
-    @Widget(title = "Pattern", description = """
-            A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.
+    @Widget(title = "Pattern column", description = """
+            The column containing literal strings, wildcard patterns or regular expressions, depending on the matching
+            criterion selected above, or a collection thereof.
             """)
-    String m_pattern;
+    @ChoicesWidget(choices = PatternColumnChoices.class)
+    String m_patternColumn;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(configKey = StringReplacerSettings.CFG_REPLACEMENT)
-    @Widget(title = "Replacement text", description = """
-            The text that replaces the previous value in the cell if the pattern matched it. If you are using a
-            regular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group).
+    @Widget(title = "Replacement column", description = """
+            The column containing text that replaces the previous value in the cell if the pattern matched it. If you
+            are using regular expressions, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first
+            capture group).
             """)
-    String m_replacement;
+    @ChoicesWidget(choices = ReplacementColumnChoices.class)
+    String m_replacementColumn;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(customPersistor = ReplacementStrategyPersistor.class)
     @Widget(title = ReplacementStrategy.OPTION_NAME, description = ReplacementStrategy.OPTION_DESCRIPTION)
     @ValueSwitchWidget
     ReplacementStrategy m_replacementStrategy = ReplacementStrategy.DEFAULT;
 
+    @Layout(DialogSections.FindAndReplace.class)
+    @Widget(title = "If multiple patterns match", description = MultipleMatchHandling.OPTION_DESCRIPTION)
+    @ValueSwitchWidget
+    MultipleMatchHandling m_multipleMatchHandling = MultipleMatchHandling.REPLACEALL;
+
     @Layout(DialogSections.Output.class)
-    @Persist(configKey = StringReplacerSettings.CFG_CREATE_NEW_COL)
-    @Widget(title = "Append new column", description = """
-            If enabled, the strings will not be replaced in-place but a new column is appended that contains the
+    @Widget(title = "Append new columns", description = """
+            If enabled, the strings will not be replaced in-place but new columns are appended that contains the
             original string with the replacement applied.
             """)
-    @Signal(id = IsAppendColumn.class, condition = TrueCondition.class)
-    boolean m_createNewCol;
+    @Signal(id = IsAppendColumns.class, condition = TrueCondition.class)
+    boolean m_appendColumns;
 
     @Layout(DialogSections.Output.class)
-    @Persist(configKey = StringReplacerSettings.CFG_NEW_COL_NAME)
-    @Widget(title = "New column name", description = "The name of the created column with replaced strings")
-    @Effect(signals = IsAppendColumn.class, type = EffectType.SHOW)
-    String m_newColName = "ReplacedColumn";
+    @Widget(title = "Suffix for new columns",
+        description = "The suffix that is appended to the newly created columns with strings")
+    @Effect(signals = IsAppendColumns.class, type = EffectType.SHOW)
+    String m_columnSuffix = "_replaced";
 
-
-    // Persistors
-
-    private static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {
-        @Override
-        public PatternType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN)) {
-                final var isRegex = settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX);
-                return isRegex ? PatternType.REGEX : PatternType.WILDCARD;
-            } else {
-                return PatternType.LITERAL;
-            }
-        }
-
-        @Override
-        public void save(final PatternType patternType, final NodeSettingsWO settings) {
-            settings.addBoolean(StringReplacerSettings.CFG_FIND_PATTERN,
-                patternType == PatternType.REGEX || patternType == PatternType.WILDCARD);
-            settings.addBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX, patternType == PatternType.REGEX);
-        }
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{StringReplacerSettings.CFG_FIND_PATTERN, StringReplacerSettings.CFG_PATTERN_IS_REGEX};
-        }
+    /**
+     * Constructor for de/serialisation.
+     */
+    StringReplacerDictNodeSettings() {
+        // required by interface
     }
 
-    private static final class ReplacementStrategyPersistor implements FieldNodeSettingsPersistor<ReplacementStrategy> {
-        @Override
-        public ReplacementStrategy load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // TODO should be able to read both old (boolean) and new (enum constant) settings.
-            if (settings.getBoolean(StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES)) {
-                return ReplacementStrategy.ALL_OCCURRENCES;
-            } else {
-                return ReplacementStrategy.WHOLE_STRING;
-            }
-        }
-
-        @Override
-        public void save(final ReplacementStrategy obj, final NodeSettingsWO settings) {
-            settings.addBoolean(StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES,
-                obj == ReplacementStrategy.ALL_OCCURRENCES);
-        }
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES};
-        }
+    StringReplacerDictNodeSettings(final SettingsCreationContext ctx) {
+        m_targetColumns = ColumnFilter.createDefault(TargetColumnChoices.class, ctx);
     }
 
-    private static final class StringColumnChoices implements ChoicesProvider {
-        @Override
-        public String[] choices(final SettingsCreationContext context) {
-            final DataTableSpec specs = context.getDataTableSpecs()[0];
-            if (specs == null) {
-                return new String[0];
-            } else {
-                return specs.stream() //
-                    .filter(s -> s.getType().isCompatible(StringValue.class)) //
-                    .map(DataColumnSpec::getName) //
-                    .toArray(String[]::new);
-            }
-        }
-    }
 }

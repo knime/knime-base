@@ -54,7 +54,6 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings.PatternType;
 import org.knime.base.util.WildcardMatcher;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;

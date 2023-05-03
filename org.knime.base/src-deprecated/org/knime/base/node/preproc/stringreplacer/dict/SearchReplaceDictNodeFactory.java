@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,12 +41,13 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   Jun 16, 2007 (wiswedel): created
  */
 package org.knime.base.node.preproc.stringreplacer.dict;
 
+import org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
@@ -55,7 +56,9 @@ import org.knime.core.node.NodeView;
 /**
  * Factory for Search & Replace (Dictionary) node.
  * @author Bernd Wiswedel, University of Konstanz
+ * @deprecated use {@link StringReplacerDictNodeFactory}
  */
+@Deprecated(since = "5.1.0")
 public class SearchReplaceDictNodeFactory extends NodeFactory {
 
     /** {@inheritDoc} */

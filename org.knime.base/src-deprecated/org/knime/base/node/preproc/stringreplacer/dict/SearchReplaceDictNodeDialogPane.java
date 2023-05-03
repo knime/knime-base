@@ -81,7 +81,9 @@ import org.knime.core.node.workflow.FlowVariable.Type;
  * chooser panel to select the dictionary location, and a checkbox + textfield for the new column (if any).
  *
  * @author Bernd Wiswedel, University of Konstanz
+ * @deprecated
  */
+@Deprecated(since = "5.1.0")
 final class SearchReplaceDictNodeDialogPane extends NodeDialogPane {
 
     private final ColumnSelectionComboxBox m_targetColBox;

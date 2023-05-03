@@ -82,7 +82,9 @@ import org.knime.core.util.FileUtil;
  * NodeModel for Search & Replace (Dictionary) node.
  *
  * @author wiswedel, University of Konstanz
+ * @deprecated
  */
+@Deprecated(since = "5.1.0")
 final class SearchReplaceDictNodeModel extends SimpleStreamableFunctionNodeModel {
 
     /** Config key for dictionary location. */
