@@ -474,6 +474,8 @@ final class StringToDateTimeNodeModel
 
         private final DateTimeFormatter m_formatter;
 
+        private final DateTimeType m_enumType;
+
         /**
          * @param inSpec spec of the column after computation
          * @param colIndex index of the column to work on
@@ -488,6 +490,7 @@ final class StringToDateTimeNodeModel
             final var locale = Locale.forLanguageTag(m_locale.getStringValue());
             m_formatter = DateTimeFormatter.ofPattern(m_format.getStringValue(), locale)
                         .withChronology(Chronology.ofLocale(locale));
+            m_enumType = DateTimeType.valueOf(m_selectedType);
         }
 
         @Override
@@ -499,7 +502,7 @@ final class StringToDateTimeNodeModel
 
             final String input = ((StringValue)cell).getStringValue();
             try {
-                switch (DateTimeType.valueOf(m_selectedType)) {
+                switch (m_enumType) {
                     case LOCAL_DATE: {
                         final var ld = LocalDate.parse(input, m_formatter);
                         return LocalDateCellFactory.create(ld);
