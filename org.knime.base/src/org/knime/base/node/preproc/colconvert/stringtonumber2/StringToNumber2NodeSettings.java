@@ -63,12 +63,13 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  *
@@ -93,29 +94,29 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
 
     /** The decimal separator. */
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_DECIMALSEP, settingsModel = SettingsModelString.class)
-    @Schema(title = "Decimal separator",
+    @Widget(title = "Decimal separator",
         description = "Choose a decimal separator, which is used to mark the boundary between the integral and the "
             + " fractional parts of the decimal string.")
     String m_decimalSep = AbstractStringToNumberNodeModel.DEFAULT_DECIMAL_SEPARATOR;
 
     /** The thousands separator. */
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP, settingsModel = SettingsModelString.class)
-    @Schema(title = "Thousands separator",
+    @Widget(title = "Thousands separator",
         description = "Choose a thousands separator used in the decimal string to group together three digits.")
     String m_thousandsSep = AbstractStringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR;
 
     @Persist(customPersistor = DataTypeOptionssPersistor.class)
-    @Schema(title = "Type", description = "Choose the DataType that your string should be converted to.")
+    @Widget(title = "Type", description = "Choose the DataType that your string should be converted to.")
     DataTypeOptions m_parseType = DataTypeOptions.DOUBLE;
 
     enum DataTypeOptions {
-            @Schema(title = "Number (Integer)")
+            @Widget(title = "Number (Integer)")
             INT,
 
-            @Schema(title = "Number (Double)")
+            @Widget(title = "Number (Double)")
             DOUBLE,
 
-            @Schema(title = "Number (Long)")
+            @Widget(title = "Number (Long)")
             LONG;
     }
 
@@ -161,22 +162,21 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
     }
 
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_GENERIC_PARSE, settingsModel = SettingsModelBoolean.class)
-    @Schema(title = "Accept type suffix, e.g. 'd', 'D', 'f', 'F'",
+    @Widget(title = "Accept type suffix, e.g. 'd', 'D', 'f', 'F'",
         description = "When checked, the type suffix will be accepted, "
-            + "otherwise it fails to parse input like <tt>1d</tt>. "
-            + "These suffixes are typically used "
+            + "otherwise it fails to parse input like <tt>1d</tt>. " + "These suffixes are typically used "
             + "in java-style programs to represent floating point numbers ('f' for float and 'd' for double). "
             + "Default is not checked.")
     boolean m_genericParse = AbstractStringToNumberNodeModel.DEFAULT_GENERIC_PARSE;
 
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_FAIL_ON_ERROR, settingsModel = SettingsModelBoolean.class)
-    @Schema(title = "Fail on error", description = "When checked, the node will fail if an error occurs.")
+    @Widget(title = "Fail on error", description = "When checked, the node will fail if an error occurs.")
     boolean m_failOnError = AbstractStringToNumberNodeModel.DEFAULT_FAIL_ON_ERROR;
 
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_INCLUDED_COLUMNS,
         settingsModel = SettingsModelColumnFilter2.class)
-    @Schema(title = "Column selection", description = "Move the columns of interest into the &quot;Includes&quot; list",
-        choices = StringColumns.class)
+    @Widget(title = "Column selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
+    @ChoicesWidget(choices = StringColumns.class)
     ColumnFilter m_inclCols = new ColumnFilter();
 
     static final class StringColumns implements ChoicesProvider {

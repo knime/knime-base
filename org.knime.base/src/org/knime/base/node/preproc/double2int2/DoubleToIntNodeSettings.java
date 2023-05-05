@@ -60,12 +60,13 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings for the Web UI dialog of the Double to Int node. Double check backwards compatible loading if this class is
@@ -95,30 +96,30 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
     }
 
     @Persist(configKey = DoubleToIntNodeModel.CFG_INCLUDED_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
-    @Schema(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list",
-        choices = NumericalColumns.class)
+    @Widget(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
+            @ChoicesWidget( choices = NumericalColumns.class)
     ColumnFilter m_inclCols = new ColumnFilter();
 
     @Persist(configKey = DoubleToIntNodeModel.CFG_LONG, settingsModel = SettingsModelBoolean.class)
-    @Schema(title = "Create long values",
+    @Widget(title = "Create long values",
         description = "Use this option to generate 64bit long values instead of 32bit integer values. "
             + "This is useful if double values in the input are too big to fit into an integer.")
     boolean m_prodLong = false; //NOSONAR being explicit is desired here
 
     @Persist(customPersistor = RoundingOptionsPersistor.class)
-    @Schema(title = "Rounding type", description = "The type of rounding applied to the selected double cells. "
+    @Widget(title = "Rounding type", description = "The type of rounding applied to the selected double cells. "
         + "(Round: standard rounding, Floor: next smaller integer, Ceil: next bigger integer")
     RoundingOptions m_calctype;
 
     enum RoundingOptions {
 
-            @Schema(title = "Round")
+            @Widget(title = "Round")
             ROUND,
 
-            @Schema(title = "Floor")
+            @Widget(title = "Floor")
             FLOOR,
 
-            @Schema(title = "Ceil")
+            @Widget(title = "Ceil")
             CEIL;
 
     }

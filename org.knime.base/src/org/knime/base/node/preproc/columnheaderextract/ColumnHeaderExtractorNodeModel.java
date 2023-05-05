@@ -84,7 +84,7 @@ import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.util.ColumnFilter;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.DataValueColumnFilter;
-import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * This is the model implementation of ColumnHeaderExtractor.
@@ -105,16 +105,16 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
     /** Selected column type. */
     enum ColType {
         /** All columns. */
-        @Schema(title = "All")
+        @Widget(title = "All")
         ALL(DataValue.class),
         /** String-compatible columns. */
-        @Schema(title = "String")
+        @Widget(title = "String")
         STRING(StringValue.class),
         /** Integer-compatible columns. */
-        @Schema(title = "Integer")
+        @Widget(title = "Integer")
         INTEGER(IntValue.class),
         /** Double-compatible columns. */
-        @Schema(title = "Double")
+        @Widget(title = "Double")
         DOUBLE(DoubleValue.class);
 
         private final ColumnFilter m_filter;

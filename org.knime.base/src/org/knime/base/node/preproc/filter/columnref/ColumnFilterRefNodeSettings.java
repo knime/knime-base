@@ -51,10 +51,10 @@ package org.knime.base.node.preproc.filter.columnref;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  *
@@ -66,12 +66,12 @@ final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
     private static final String REFERENCE_MODE_KEY = "inexclude";
 
     @Persist(customPersistor = ColumnReferenceModePersistor.class)
-    @Schema(title = "Include or exclude columns from the reference table",
+    @Widget(title = "Include or exclude columns from the reference table",
         description = "Includes or excludes columns that appear in the reference table from the first table.")
     ColumnReferenceMode m_columnReferenceMode = ColumnReferenceMode.INCLUDE;
 
     @Persist(configKey = "type_compatibility")
-    @Schema(title = "Ensure type compatibility",
+    @Widget(title = "Ensure type compatibility",
         description = "Ensures that the matching columns don't only have the "
             + "same name but also the same type. Columns are only included or "
             + "excluded if the column type of the first table is a super-type "
@@ -80,10 +80,10 @@ final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
     boolean m_typeCompatibility;
 
     enum ColumnReferenceMode {
-            @Schema(title = "Include")
+            @Widget(title = "Include")
             INCLUDE,
 
-            @Schema(title = "Exclude")
+            @Widget(title = "Exclude")
             EXCLUDE;
     }
 

@@ -54,11 +54,12 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * The StringReplacerNodeSettings define the WebUI dialog of the StringReplacer Node. The serialization must go via the
@@ -70,20 +71,20 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = StringReplacerSettings.CFG_COL_NAME)
-    @Schema(title = "Target column", description = "Name of the column whose cells should be processed",
-        choices = StringColumnChoices.class)
+    @Widget(title = "Target column", description = "Name of the column whose cells should be processed")
+    @ChoicesWidget(choices = StringColumnChoices.class)
     String m_colName;
 
     enum PatternType {
-            @Schema(title = "Wildcard")
+            @Widget(title = "Wildcard")
             WILDCARD,
 
-            @Schema(title = "Regular expression")
+            @Widget(title = "Regular expression")
             REGEX;
     }
 
     @Persist(customPersistor = PatternTypePersistor.class)
-    @Schema(title = "Matching criteria", description = "Select the type of pattern which you want to use." + "<ul>" //
+    @Widget(title = "Matching criteria", description = "Select the type of pattern which you want to use." + "<ul>" //
         + "<li><b>Wildcard:</b> If you select <i>wildcard</i>, " //
         + "then <b>*</b> and <b>?</b> are (the only) meta-characters. They match an arbitrary number of " //
         + "characters or a single character, respectively.</li>" //
@@ -95,27 +96,26 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
     PatternType m_patternType = PatternType.WILDCARD;
 
     @Persist(configKey = StringReplacerSettings.CFG_PATTERN)
-    @Schema(title = "Find",
-        description = "Either a wildcard pattern or a regular expression, "
-            + "depending on the pattern type selected above.")
+    @Widget(title = "Find", description = "Either a wildcard pattern or a regular expression, "
+        + "depending on the pattern type selected above.")
     String m_pattern;
 
     @Persist(configKey = StringReplacerSettings.CFG_REPLACEMENT)
-    @Schema(title = "Replacement text",
+    @Widget(title = "Replacement text",
         description = "The text that replaces that previous value in the cell if the pattern matched the previous "
             + "value. If you are using a regular expression, you may also use backreferences (e.g. <b>$1</b>).")
     String m_replacement;
 
     enum ReplacementStrategy {
-            @Schema(title = "Whole string")
+            @Widget(title = "Whole string")
             WHOLE_STRING,
 
-            @Schema(title = "All occurrences")
+            @Widget(title = "All occurrences")
             ALL_OCCURRENCES;
     }
 
     @Persist(customPersistor = ReplacementStrategyPersistor.class)
-    @Schema(title = "Replacement strategy", description = //
+    @Widget(title = "Replacement strategy", description = //
     "Whether the whole cell content is replaced on a match or whether each " //
         + "occurrence is replaced inside the text individually." //
         + "<ul>" //
@@ -129,24 +129,24 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
     ReplacementStrategy m_replacementStrategy = ReplacementStrategy.WHOLE_STRING;
 
     @Persist(configKey = StringReplacerSettings.CFG_CASE_SENSITIVE)
-    @Schema(title = "Case sensitive", description = "Check this if the pattern should be case sensitive")
+    @Widget(title = "Case sensitive", description = "Check this if the pattern should be case sensitive")
     boolean m_caseSensitive;
 
     @Persist(configKey = StringReplacerSettings.CFG_ENABLE_ESCAPING)
-    @Schema(title = "Use backslash as escape character",
+    @Widget(title = "Use backslash as escape character",
         description = "If you want to replace the wildcard characters <b>*</b> and <b>?</b> themselves, " //
             + "you need to enable this option and escape them using a backslash (<b>\\*</b> or <b>\\?</b>). " //
             + "In order to replace a backslash you need to escape the backslash, too (<b>\\\\</b>).")
     boolean m_enableEscaping;
 
     @Persist(configKey = StringReplacerSettings.CFG_CREATE_NEW_COL)
-    @Schema(title = "Create new column",
+    @Widget(title = "Create new column",
         description = "Creates a new column with the name entered in the text field instead "
             + "of replacing the values in the original column.")
     boolean m_createNewCol;
 
     @Persist(configKey = StringReplacerSettings.CFG_NEW_COL_NAME)
-    @Schema(title = "New column name", description = "Name of the newly created column with replaced Strings")
+    @Widget(title = "New column name", description = "Name of the newly created column with replaced Strings")
     String m_newColName = "ReplacedColumn";
 
     private static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {

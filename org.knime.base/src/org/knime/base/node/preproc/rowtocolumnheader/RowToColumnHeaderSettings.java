@@ -50,9 +50,10 @@ package org.knime.base.node.preproc.rowtocolumnheader;
 
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings class for the Row to Column Header node.
@@ -63,19 +64,19 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 final class RowToColumnHeaderSettings implements DefaultNodeSettings {
 
     @Persist(settingsModel = SettingsModelInteger.class)
-    @Schema(title = "Number of rows before the header",
-        description = "Number of rows in the input table that precede the row that should be used as new column header",
-        min = 0)
+    @Widget(title = "Number of rows before the header",
+        description = "Number of rows in the input table that precede the row that should be used as new column header")
+    @NumberInputWidget(min = 0)
     int m_headerRowIndex;
 
     @Persist(settingsModel = SettingsModelBoolean.class)
-    @Schema(title = "Discard rows before header row",
+    @Widget(title = "Discard rows before header row",
         description = "Whether rows before the row containing the new column header should be discarded. "
             + "Otherwise they are treated as additional output rows.")
     boolean m_discardBefore;
 
     @Persist(settingsModel = SettingsModelBoolean.class)
-    @Schema(title = "Detect types of resulting columns",
+    @Widget(title = "Detect types of resulting columns",
         description = "Whether type analysis should be applied to the output table. "
             + "For each column, the most specific of the four column types <i>double</i> "
             + "(64-bit floating-point number), <i>long</i> (64-bit integral number), <i>int</i> "

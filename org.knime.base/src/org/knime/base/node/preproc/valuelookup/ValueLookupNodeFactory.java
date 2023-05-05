@@ -49,8 +49,8 @@
 package org.knime.base.node.preproc.valuelookup;
 
 import org.knime.core.node.NodeFactory;
-import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * {@link NodeFactory} for the Value Lookup node, which looks up values in a dictionary table and adds them to an input

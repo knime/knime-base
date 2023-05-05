@@ -48,8 +48,8 @@
  */
 package org.knime.base.node.preproc.table.updater;
 
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * The settings of the Table Updater
@@ -59,26 +59,26 @@ import org.knime.core.webui.node.dialog.impl.Schema;
 @SuppressWarnings("restriction")
 final class TableUpdaterNodeSettings implements DefaultNodeSettings {
 
-    @Schema(title = "Columns missing in input table",
+    @Widget(title = "Columns missing in input table",
         description = "Controls how to deal with columns in the update table that are not part of the input table.")
     UnmatchedHandling m_unmatchedColumnsHandling = UnmatchedHandling.IGNORE;
 
-    @Schema(title = "Rows missing in input table",
+    @Widget(title = "Rows missing in input table",
         description = "Controls how to deal with rows in the update table whose Row IDs don't occur "
             + "in the input table.")
     UnmatchedHandling m_unmatchedRowsHandling = UnmatchedHandling.IGNORE;
 
-    @Schema(title = "Perform update with missing values",
+    @Widget(title = "Perform update with missing values",
         description = "If unchecked, the values in the input table remain unchanged if the corresponding value in "
             + "the update table is missing. If checked, all values are updated.")
     boolean m_performUpdateWithMissingValues = true;
 
     enum UnmatchedHandling {
-            @Schema(title = "Ignore")
+            @Widget(title = "Ignore")
             IGNORE, //
-            @Schema(title = "Append")
+            @Widget(title = "Append")
             APPEND, //
-            @Schema(title = "Fail")
+            @Widget(title = "Fail")
             FAIL;
     }
 }

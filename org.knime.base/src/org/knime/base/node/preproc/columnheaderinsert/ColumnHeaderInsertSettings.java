@@ -50,15 +50,15 @@ package org.knime.base.node.preproc.columnheaderinsert;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.StringValue;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * Settings of the Insert Column Header (Dictionary) Node.
- * Only used for the Web UI dialog, please double-check backwards compatible loading if this class is ever
- * used in the NodeModel.
+ * Settings of the Insert Column Header (Dictionary) Node. Only used for the Web UI dialog, please double-check
+ * backwards compatible loading if this class is ever used in the NodeModel.
  *
  * @author Jonas Klotz, KNIME GmbH, Berlin, Germany
  */
@@ -66,19 +66,19 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
 
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_LOOKUP_COLUMN)
-    @Schema(title = "Lookup column",
-        description = "The column in the 2nd input table containing the \"old\" names of the columns.",
-        choices = StringColumnsSecondTable.class)
+    @Widget(title = "Lookup column",
+        description = "The column in the 2nd input table containing the \"old\" names of the columns.")
+    @ChoicesWidget(choices = StringColumnsSecondTable.class)
     String m_lookupColumn;
 
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_VALUE_COLUMN)
-    @Schema(title = "Names column",
-        description = "The column in the 2nd input table containing the \"new\" names of the columns.",
-        choices = StringColumnsSecondTable.class)
+    @Widget(title = "Names column",
+        description = "The column in the 2nd input table containing the \"new\" names of the columns.")
+    @ChoicesWidget(choices = StringColumnsSecondTable.class)
     String m_valueColumn;
 
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_FAIL_IF_NO_MATCH)
-    @Schema(title = "Fail if no assignment in dictionary table",
+    @Widget(title = "Fail if no assignment in dictionary table",
         description = "If selected, the node fails if there is no matching entry of a column name"
             + " in the dictionary table. Otherwise it will keep the original column name.")
     boolean m_failIfNoMatch;
@@ -92,13 +92,11 @@ final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
                 return new String[0];
             } else {
                 return spec.stream()//
-                        .filter(c -> c.getType().isCompatible(StringValue.class))//
-                        .map(DataColumnSpec::getName)//
-                        .toArray(String[]::new);
+                    .filter(c -> c.getType().isCompatible(StringValue.class))//
+                    .map(DataColumnSpec::getName)//
+                    .toArray(String[]::new);
             }
         }
 
     }
 }
-
-

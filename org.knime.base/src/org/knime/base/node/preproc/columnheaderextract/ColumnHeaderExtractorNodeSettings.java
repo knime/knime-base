@@ -57,10 +57,10 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings of the Column Header Extractor dialog. Not used by the NodeModel, yet. If it ever is please double check
@@ -72,7 +72,7 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
 
     @Persist(settingsModel = SettingsModelBoolean.class)
-    @Schema(title = "Generate new column names",
+    @Widget(title = "Generate new column names",
         description = "If selected, the column names of both output tables will be replaced "//
             + "with automatically generated names by combining the prefix provided below with the corresponding "//
             + "column number (e.g. \"Column 1\", \"Column 2\", and so on). "//
@@ -80,11 +80,11 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
     boolean m_replaceColHeader;
 
     @Persist(settingsModel = SettingsModelString.class)
-    @Schema(title = "Prefix", description = "Prefix to use when generating new column names.")
+    @Widget(title = "Prefix", description = "Prefix to use when generating new column names.")
     String m_unifyHeaderPrefix;
 
     @Persist(customPersistor = OutputFormatPersistor.class)
-    @Schema(title = "Output format for column names",
+    @Widget(title = "Output format for column names",
         description = "The format in which the first output table provides the extracted column names:" //
             + "<ul>"//
             + "<li><b>Row</b>: The column names are output as a single row with a column per name.</li>"//
@@ -93,7 +93,7 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
     OutputFormat m_transposeColHeader;
 
     @Persist(customPersistor = ColTypePersistor.class)
-    @Schema(title = "Restrain column types", description = "Select the type of the columns to extract the names from:"//
+    @Widget(title = "Restrain column types", description = "Select the type of the columns to extract the names from:"//
         + "<ul>"//
         + "<li><b>All</b>: All columns are processed.</li>"//
         + "<li><b>String</b>: Only string-compatible columns are processed, "//
@@ -105,9 +105,9 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
     ColType m_colTypeFilter;
 
     enum OutputFormat {
-            @Schema(title = "Row")
+            @Widget(title = "Row")
             ROW, //
-            @Schema(title = "Column")
+            @Widget(title = "Column")
             COLUMN;
     }
 

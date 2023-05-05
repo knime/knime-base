@@ -53,11 +53,12 @@ import java.util.stream.Stream;
 import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunction;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings for the Row Aggregator node model.
@@ -67,68 +68,60 @@ import org.knime.core.webui.node.dialog.impl.Schema;
 @SuppressWarnings("restriction")
 final class RowAggregatorSettings implements DefaultNodeSettings {
 
-    @Schema(title = "Aggregation",
-            description = "Select the aggregation function to be applied on all rows belonging to the same category."
-                + "<ul>"
-                // COUNT
-                + "<li><i>Occurrence count:</i>"
-                + " Count how many rows occur</li>"
-                // SUM
-                + "<li><i>Sum:</i>"
-                + " Sum up values, optionally weighted by the value from the weight column</li>"
-                // AVERAGE
-                + "<li><i>Average:</i>"
-                + " Calculate the mean value, optionally weighted by the value from the weight column</li>"
-                // MIN
-                + "<li><i>Minimum:</i>"
-                + " Calculate the minimum value</li>"
-                // MAX
-                + "<li><i>Maximum:</i>"
-                + " Calculate the maximum value</li>"
-                + "</ul>")
+    @Widget(title = "Aggregation",
+        description = "Select the aggregation function to be applied on all rows belonging to the same category."
+            + "<ul>"
+            // COUNT
+            + "<li><i>Occurrence count:</i>" + " Count how many rows occur</li>"
+            // SUM
+            + "<li><i>Sum:</i>" + " Sum up values, optionally weighted by the value from the weight column</li>"
+            // AVERAGE
+            + "<li><i>Average:</i>"
+            + " Calculate the mean value, optionally weighted by the value from the weight column</li>"
+            // MIN
+            + "<li><i>Minimum:</i>" + " Calculate the minimum value</li>"
+            // MAX
+            + "<li><i>Maximum:</i>" + " Calculate the maximum value</li>" + "</ul>")
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
-    @Schema(title = "Aggregation columns", description = "Select the columns to apply the aggregation function to.",
-            choices = AggregatableColumns.class)
+    @Widget(title = "Aggregation columns", description = "Select the columns to apply the aggregation function to.")
+    @ChoicesWidget(choices = AggregatableColumns.class)
     ColumnFilter m_frequencyColumns;
 
     static final class AggregatableColumns implements ColumnChoicesProvider {
 
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(0)
-                    .map(DataTableSpec::stream)//
-                    .orElseGet(Stream::empty)//
-                    .filter(RowAggregatorNodeModel::isAggregatableColumn)//
-                    .toArray(DataColumnSpec[]::new);
+            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .filter(RowAggregatorNodeModel::isAggregatableColumn)//
+                .toArray(DataColumnSpec[]::new);
         }
 
     }
 
-    @Schema(title = "Weight column", description = "Select the column that defines the weight with which a "
+    @Widget(title = "Weight column", description = "Select the column that defines the weight with which a "
         + "value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" "
-        + "support a weight column",
-            choices = WeightColumns .class)
+        + "support a weight column")
+    @ChoicesWidget(choices = WeightColumns.class)
     String m_weightColumn;
 
     static final class WeightColumns implements ChoicesProvider {
 
         @Override
         public String[] choices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(0)
-                    .map(DataTableSpec::stream)//
-                    .orElseGet(Stream::empty)//
-                    .filter(RowAggregatorNodeModel::isWeightColumn)//
-                    .map(DataColumnSpec::getName)
-                    .toArray(String[]::new);
+            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .filter(RowAggregatorNodeModel::isWeightColumn)//
+                .map(DataColumnSpec::getName).toArray(String[]::new);
         }
 
     }
 
-    @Schema(title = "Category column", description = "Select the column that defines the category on which rows "
+    @Widget(title = "Category column", description = "Select the column that defines the category on which rows "
         + "are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same "
-        + "group will be calculated.",
-            choices = CategoryColumns.class)
+        + "group will be calculated.")
+    @ChoicesWidget(choices = CategoryColumns.class)
     String m_categoryColumn;
 
     static final class CategoryColumns implements ChoicesProvider {
@@ -138,11 +131,10 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
         }
     }
 
-    @Schema(title = "Additional \"grand totals\" at second output port",
-            description = "If a category column is selected, additionally compute the aggregations <i>without</i> the "
-                + "category column (\"grand totals\") and output them in the second output table. "
-                + "The second output is inactive if no category "
-                + "column is selected or this setting is not enabled.")
+    @Widget(title = "Additional \"grand totals\" at second output port",
+        description = "If a category column is selected, additionally compute the aggregations <i>without</i> the "
+            + "category column (\"grand totals\") and output them in the second output table. "
+            + "The second output is inactive if no category " + "column is selected or this setting is not enabled.")
     boolean m_grandTotals;
 
     /**

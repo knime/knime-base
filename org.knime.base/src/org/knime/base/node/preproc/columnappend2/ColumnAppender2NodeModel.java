@@ -83,7 +83,7 @@ import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.UniqueNameGenerator;
-import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * This is the model implementation of ColumnAppender.
@@ -723,13 +723,13 @@ final class ColumnAppender2NodeModel extends NodeModel {
      */
     enum RowKeyMode implements ButtonGroupEnumInterface {
 
-            @Schema(title = "Identical RowIDs and table lengths")
+            @Widget(title = "Identical RowIDs and table lengths")
             IDENTICAL("Identical row keys and table lengths"), //
 
-            @Schema(title = "Generate new row RowIDs")
+            @Widget(title = "Generate new row RowIDs")
             GENERATE("Generate new row keys"), //
 
-            @Schema(title = "Use RowIDs from the selected input table")
+            @Widget(title = "Use RowIDs from the selected input table")
             KEY_TABLE("Use the row keys from the input table: ");
 
         private static final String TOOLTIP = "<html>Choose the way row keys of the output tables are decided.<br>"

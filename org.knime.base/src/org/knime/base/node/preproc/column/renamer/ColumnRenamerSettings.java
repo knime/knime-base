@@ -48,9 +48,11 @@
  */
 package org.knime.base.node.preproc.column.renamer;
 
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings of the Column Renamer node.
@@ -78,16 +80,18 @@ final class ColumnRenamerSettings implements DefaultNodeSettings {
         // persistence and JSON conversion constructor
     }
 
-    @Schema(title = "Renamings", description = "Allows to define new names for columns.")
+    @Widget(title = "Renamings", description = "Allows to define new names for columns.")
     public Renaming[] m_renamings = new Renaming[0];
 
     static final class Renaming implements DefaultNodeSettings {
 
-        @Schema(title = "Column", description = "The column to rename.", choices = AllColumns.class)
+        @Widget(title = "Column", description = "The column to rename.")
+        @ChoicesWidget(choices = AllColumns.class)
         public String m_oldName;
 
-        @Schema(title = "New name",
-            description = "The new column name. Must not be empty or consist only of whitespaces.", pattern = "\\S+.*")
+        @Widget(title = "New name",
+            description = "The new column name. Must not be empty or consist only of whitespaces.")
+        @TextInputWidget(pattern = "\\S+.*")
         public String m_newName;
 
         String getOldName() {

@@ -50,10 +50,11 @@ package org.knime.base.node.preproc.table.splitter;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings of the Table Splitter node.
@@ -63,21 +64,21 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 @SuppressWarnings("restriction")
 public final class TableSplitterNodeSettings implements DefaultNodeSettings {
 
-    @Schema( //
+    @Widget( //
         title = "Find splitting row by", //
         description = "Select if the table should be split at the first matching row or at the last matching row." //
     )
     FindSplittingRowMode m_findSplittingRowMode = FindSplittingRowMode.FIRST_MATCH;
 
-    @Schema( //
+    @Widget( //
         title = "Lookup column",
         description = "Select the column that should be used to evaluate the matching criteria. "
-            + "Only columns of type String, Number (integer), or Number (long) can be selected.", //
-        choices = ColumnChoices.class //
+            + "Only columns of type String, Number (integer), or Number (long) can be selected.")
+    @ChoicesWidget(choices = ColumnChoices.class //
     )
     String m_lookupColumn = TableSplitterNodeModel.ROWID_PLACEHOLDER;
 
-    @Schema( //
+    @Widget( //
         title = "Matching criteria", //
         description = "Select criteria for matching the row:" + "<ul>"
             + "<li><b>Equals:</b> compares the value of the cell to a given search pattern.</li>"
@@ -87,26 +88,26 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
     )
     MatchingCriteria m_matchingCriteria = MatchingCriteria.EQUALS;
 
-    @Schema( //
+    @Widget( //
         title = "Search pattern", //
         description = "Select a search pattern to compare the value of the selected column. "
             + "If a number column is selected the search pattern must be a parsable number." //
     )
     String m_searchPattern = "";
 
-    @Schema( //
+    @Widget( //
         title = "Include matching row in top output table", //
         description = "Select this option to include the row that split the table in the top output table." //
     )
     boolean m_includeMatchingRowInTopTable = true;
 
-    @Schema( //
+    @Widget( //
         title = "Include matching row in bottom output table", //
         description = "Select this option to include the row that split the table in the bottom output table." //
     )
     boolean m_includeMatchingRowInBottomTable;
 
-    @Schema( //
+    @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
             + "such that the domains' bounds exactly match the bounds of the data in the output table." //
@@ -116,19 +117,19 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
 
     /** Modes for finding the matching row. "First match" or "Last match". */
     enum FindSplittingRowMode {
-            @Schema(title = "First match") //
+            @Widget(title = "First match") //
             FIRST_MATCH, //
-            @Schema(title = "Last match") //
+            @Widget(title = "Last match") //
             LAST_MATCH;
     }
 
     /** Matching criteria. "Equals", "Missing", or "Empty". */
     enum MatchingCriteria {
-            @Schema(title = "Equals") //
+            @Widget(title = "Equals") //
             EQUALS, //
-            @Schema(title = "Missing") //
+            @Widget(title = "Missing") //
             MISSING, //
-            @Schema(title = "Empty") //
+            @Widget(title = "Empty") //
             EMPTY;
     }
 

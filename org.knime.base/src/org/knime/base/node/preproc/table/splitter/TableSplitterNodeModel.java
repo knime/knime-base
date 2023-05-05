@@ -74,8 +74,8 @@ import org.knime.core.node.InternalTableAPI;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.workflow.WorkflowTableBackendSettings;
 import org.knime.core.table.row.Selection;
-import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.dialog.impl.WebUINodeModel;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * Model of the Table Splitter node.

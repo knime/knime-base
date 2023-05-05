@@ -52,12 +52,13 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings for the Column Filter node.
@@ -78,18 +79,17 @@ final class ColumnFilterNodeSettings implements DefaultNodeSettings {
     }
 
     @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
-    @Schema(title = "Column filter", description = "Select the columns to include in the output table.",
-        choices = AllColumns.class)
+    @Widget(title = "Column filter", description = "Select the columns to include in the output table.")
+    @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(0)
-                    .map(DataTableSpec::stream)//
-                    .orElseGet(Stream::empty)//
-                    .toArray(DataColumnSpec[]::new);
+            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .toArray(DataColumnSpec[]::new);
         }
 
     }

@@ -53,11 +53,13 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  *
@@ -73,8 +75,8 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
      */
     LagColumnNodeSettings(final SettingsCreationContext context) {
         m_column = context.getDataTableSpec(0)//
-                .map(LagColumnConfiguration::findDefaultColumn)//
-                .orElse(ROW_KEYS);
+            .map(LagColumnConfiguration::findDefaultColumn)//
+            .orElse(ROW_KEYS);
     }
 
     /**
@@ -87,28 +89,30 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
     private static final String ROW_KEYS = "<row-keys>";
 
     @Persist(customPersistor = ColumnNodeSettingsPersistor.class)
-    @Schema(title = "Column to lag", description = "The column to be lagged.", choices = AllColumns.class)
+    @Widget(title = "Column to lag", description = "The column to be lagged.")
+    @ChoicesWidget(choices = AllColumns.class)
     String m_column = ROW_KEYS;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG)
-    @Schema(title = "Number of copies",
-    description = " <i>L</i> = defines how many lagged column copies to create.", min = 1)
+    @Widget(title = "Number of copies", description = " <i>L</i> = defines how many lagged column copies to create.")
+    @NumberInputWidget(min = 1)
     int m_lag = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG_INTERVAL)
-    @Schema(title = "Lag per copy",
-    description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines "
-            + "how many rows to shift per column copy.", min = 1)
+    @Widget(title = "Lag per copy",
+        description = "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines "
+            + "how many rows to shift per column copy.")
+    @NumberInputWidget(min = 1)
     int m_lagInterval = 1;
 
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_INITIAL_COMPLETE_ROWS)
-    @Schema(title = "Drop incomplete rows at the top of the table",
+    @Widget(title = "Drop incomplete rows at the top of the table",
         description = "If selected, the first rows from the input table are omitted in the output so that the lag "
             + "output column(s) is not missing (unless the reference data is missing).")
     boolean m_skipInitialIncompleteRows;
 
     @Persist(configKey = LagColumnConfiguration.CFG_SKIP_LAST_COMPLETE_ROWS)
-    @Schema(title = "Drop incomplete rows at the bottom of the table",
+    @Widget(title = "Drop incomplete rows at the bottom of the table",
         description = "If selected the rows containing the lagged values of the last real data row are "
             + "omitted (no artificial new rows). Otherwise new rows are added, "
             + "which contain missing values in all columns but the new lag output.")
@@ -139,9 +143,9 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
             return context.getDataTableSpec(0)//
-                    .stream()//
-                    .flatMap(DataTableSpec::stream)//
-                    .toArray(DataColumnSpec[]::new);
+                .stream()//
+                .flatMap(DataTableSpec::stream)//
+                .toArray(DataColumnSpec[]::new);
         }
 
     }

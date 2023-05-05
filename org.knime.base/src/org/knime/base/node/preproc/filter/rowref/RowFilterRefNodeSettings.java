@@ -54,11 +54,12 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * {@link DefaultNodeSettings} implementation for the Reference Row Filter to auto-generate a Web-UI based dialog. Note
@@ -70,25 +71,25 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
     @Persist(settingsModel = SettingsModelColumnName.class, configKey = "dataTableColumn")
-    @Schema(title = "Data column",
-        description = "The column from the table to be filtered that should be used for comparison.",
-        choices = DataColumnChoices.class)
+    @Widget(title = "Data column",
+        description = "The column from the table to be filtered that should be used for comparison.")
+    @ChoicesWidget(choices = DataColumnChoices.class)
     String m_dataColumn = "<row-keys>";
 
     @Persist(settingsModel = SettingsModelColumnName.class, configKey = "referenceTableColumn")
-    @Schema(title = "Reference column",
-        description = "The column from the filter table that should be used for comparison.",
-        choices = ReferenceColumnChoices.class)
+    @Widget(title = "Reference column",
+        description = "The column from the filter table that should be used for comparison.")
+    @ChoicesWidget(choices = ReferenceColumnChoices.class)
     String m_referenceColumn = "<row-keys>";
 
     @Persist(customPersistor = IncludeOrExcludeRowsPersistor.class)
-    @Schema(title = "Include or exclude rows from the reference table",
+    @Widget(title = "Include or exclude rows from the reference table",
         description = "Includes or excludes all rows from the reference table in the resulting table from the first "
             + "input.")
     IncludeOrExcludeRows m_inexclude = IncludeOrExcludeRows.INCLUDE;
 
     @Persist(settingsModel = SettingsModelBoolean.class)
-    @Schema( //
+    @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
             + "such that the domains' bounds exactly match the bounds of the data in the output table." //
@@ -96,10 +97,10 @@ final class RowFilterRefNodeSettings implements DefaultNodeSettings {
     boolean m_updateDomains;
 
     enum IncludeOrExcludeRows {
-            @Schema(title = "Include")
+            @Widget(title = "Include")
             INCLUDE,
 
-            @Schema(title = "Exclude")
+            @Widget(title = "Exclude")
             EXCLUDE;
     }
 

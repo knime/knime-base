@@ -56,12 +56,13 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings class to generate the node dialog.
@@ -97,15 +98,16 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     static final String CFG_KEY_DEFAULT_VALUE_BOOLEAN = "default_value_boolean";
 
     @Persist(configKey = CFG_KEY_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
-    @Schema(title = "Output as variables", description = """
+    @Widget(title = "Output as variables", description = """
             Select the columns to be converted to flow variables. For each selected column, a flow variable
             is created. The name of the flow variable corresponds to the column name and the value corresponds
             to the value of the first row in that column.
-            """, choices = AllColumns.class)
+            """)
+    @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
     @Persist(configKey = CFG_KEY_ON_MISSING, settingsModel = SettingsModelString.class)
-    @Schema(title = "If value in cell is missing", description = """
+    @Widget(title = "If value in cell is missing", description = """
             Behavior in case of missing values in the first row or an input table with no rows.
             <ul>
                 <li>
@@ -127,7 +129,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     MissingValuePolicy m_onMissing = MissingValuePolicy.OMIT;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_STRING)
-    @Schema(title = "Default string", description = """
+    @Widget(title = "Default string", description = """
             The default flow variable value for string columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
@@ -135,28 +137,28 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
 
     // used to be string, keeping it like that for the sake of backwards compatibility
     @Persist(customPersistor = Persistor.class)
-    @Schema(title = "Default boolean", description = """
+    @Widget(title = "Default boolean", description = """
             The default flow variable value for boolean columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
     BooleanStringBridge m_defaultValueBoolean = BooleanStringBridge.FALSE;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_INTEGER)
-    @Schema(title = "Default integer", description = """
+    @Widget(title = "Default integer", description = """
             The default flow variable value for integer columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
     int m_defaultValueInteger;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_LONG)
-    @Schema(title = "Default long", description = """
+    @Widget(title = "Default long", description = """
             The default flow variable value for long columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
     long m_defaultValueLong;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_DOUBLE)
-    @Schema(title = "Default double", description = """
+    @Widget(title = "Default double", description = """
             The default flow variable value for double columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
@@ -199,9 +201,8 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     }
 
     private enum BooleanStringBridge {
-            @Schema(title = "true")
-            TRUE,
-            @Schema(title = "false")
+            @Widget(title = "true")
+            TRUE, @Widget(title = "false")
             FALSE;
     }
 }

@@ -56,12 +56,13 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * {@link DefaultNodeSettings} implementation for the Duplicate Row Filter to auto-generate a Web-UI based dialog. Note
@@ -73,14 +74,14 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
     @Persist(configKey = DuplicateRowFilterSettings.GROUP_COLS_KEY, settingsModel = SettingsModelColumnFilter2.class)
-    @Schema(title = "Choose columns for duplicates detection",
+    @Widget(title = "Choose columns for duplicates detection",
         description = "Allows the selection of columns identifying the duplicates. "
-            + "Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.",
-        choices = AllColumns.class, multiple = true)
+            + "Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.")
+    @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_consideredColumns;
 
     @Persist(customPersistor = DuplicateRowHandlingPersistor.class)
-    @Schema(title = "Duplicate rows", description = "Choose how duplicate rows should be handled." //
+    @Widget(title = "Duplicate rows", description = "Choose how duplicate rows should be handled." //
         + "<ul>" //
         + "<li><b>Remove duplicate rows:</b> Removes duplicate rows and keeps only unique and chosen rows.</li>" //
         + "<li><b>Keep duplicate rows:</b> Appends columns with additional information to the input table.</li>" //
@@ -88,7 +89,7 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
     DuplicateRowHandling m_duplicateHandling = DuplicateRowHandling.REMOVE;
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_DUPLICATE_FLAG_KEY)
-    @Schema(title = "Add column showing the row status ('unique', 'chosen', 'duplicate') to all rows",
+    @Widget(title = "Add column showing the row status ('unique', 'chosen', 'duplicate') to all rows",
         description = "Appends a column with the row status:" //
             + "<ul>" //
             + "<li><i>unique:</i> There is no other row with the same values in the selected columns.</li>" //
@@ -98,13 +99,13 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
     boolean m_addUniqueLabel = true;
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_ID_FLAG_KEY)
-    @Schema(title = "Add column identifying the RowID of the chosen row for each duplicate row",
+    @Widget(title = "Add column identifying the RowID of the chosen row for each duplicate row",
         description = "Appends a column with the RowID of the chosen row for duplicate rows. "
             + "Unique and chosen rows will not have a RowID assigned. ")
     boolean m_addRowIdLabel;
 
     @Persist(configKey = DuplicateRowFilterSettings.RowSelectionType.ROW_SELECTION_KEY)
-    @Schema(title = "Row chosen in case of duplicate",
+    @Widget(title = "Row chosen in case of duplicate",
         description = "Defines which row for each set of duplicates is selected." //
             + "<ul>" //
             + "<li><b>First:</b> The first row in sequence is chosen.</li>"
@@ -119,24 +120,25 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
     RowSelection m_rowSelectionType = RowSelection.FIRST;
 
     @Persist(configKey = DuplicateRowFilterSettings.REFERENCE_COL_KEY)
-    @Schema(title = "Column", choices = AllColumns.class)
+    @Widget(title = "Column")
+    @ChoicesWidget(choices = AllColumns.class)
     String m_selectedColumn;
 
     @Persist(configKey = DuplicateRowFilterSettings.IN_MEMORY_KEY)
-    @Schema(title = "Compute in memory",
+    @Widget(title = "Compute in memory",
         description = "If selected, computation is sped up by utilizing working memory (RAM). "
             + "The amount of required memory is higher than for a regular computation and also depends on the amount "
             + "of input data.")
     boolean m_inMemory;
 
     @Persist(configKey = DuplicateRowFilterSettings.RETAIN_ROW_ORDER_KEY)
-    @Schema(title = "Retain row order",
+    @Widget(title = "Retain row order",
         description = "If selected, the rows in the output table are guaranteed to have the same "
             + "order as in the input table.")
     boolean m_retainOrder = true;
 
     @Persist(configKey = DuplicateRowFilterSettings.UPDATE_DOMAINS_KEY, optional = true)
-    @Schema( //
+    @Widget( //
         title = "Update domains of all columns", //
         description = "Recompute the domains of all columns in the output tables such that the domains'" //
             + " bounds exactly match the bounds of the data in the output tables."//
@@ -158,25 +160,25 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
     /** Options for the duplicate row handling */
     enum DuplicateRowHandling {
-            @Schema(title = "Remove duplicate rows")
+            @Widget(title = "Remove duplicate rows")
             REMOVE,
 
-            @Schema(title = "Keep duplicate rows")
+            @Widget(title = "Keep duplicate rows")
             KEEP;
     }
 
     /** Options for the row selection */
     enum RowSelection {
-            @Schema(title = "First")
+            @Widget(title = "First")
             FIRST,
 
-            @Schema(title = "Last")
+            @Widget(title = "Last")
             LAST,
 
-            @Schema(title = "Minimum of")
+            @Widget(title = "Minimum of")
             MINIMUM,
 
-            @Schema(title = "Maximum of")
+            @Widget(title = "Maximum of")
             MAXIMUM;
     }
 
@@ -210,10 +212,9 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(0)
-                    .map(DataTableSpec::stream)//
-                    .orElseGet(Stream::empty)//
-                    .toArray(DataColumnSpec[]::new);
+            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .toArray(DataColumnSpec[]::new);
         }
     }
 

@@ -52,11 +52,12 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings of the Unpivoting node.
@@ -67,23 +68,25 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 public final class Unpivot2NodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = Unpivot2NodeModel.CFG_VALUE_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
-    @Schema(title = "Value columns",
-        description = "This list contains the columns that are rotated into one single column.",
-        choices = AllColumns.class)
+    @Widget(title = "Value columns",
+        description = "This list contains the columns that are rotated into one single column.")
+    @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
 
     @Persist(configKey = Unpivot2NodeModel.CFG_RETAINED_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
-    @Schema(title = "Retained columns", description = "This list contains the columns "
-        + "which are duplicated by the number of selected value columns.", choices = AllColumns.class)
+    @Widget(title = "Retained columns",
+        description = "This list contains the columns "
+            + "which are duplicated by the number of selected value columns.")
+    @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_retainedColumns = new ColumnFilter();
 
     @Persist(configKey = Unpivot2NodeModel.CFG_MISSING_VALUES, settingsModel = SettingsModelBoolean.class)
-    @Schema(title = "Skip rows containing missing cells",
+    @Widget(title = "Skip rows containing missing cells",
         description = "Skip all rows containing missing cells in the selected value column(s).")
     boolean m_missingValues;
 
     @Persist(configKey = Unpivot2NodeModel.CFG_HILITING, settingsModel = SettingsModelBoolean.class)
-    @Schema(title = "Enable hiliting", description = "Select if hiliting is enabled between input and output data.")
+    @Widget(title = "Enable hiliting", description = "Select if hiliting is enabled between input and output data.")
     boolean m_enableHilite;
 
     private static final class AllColumns implements ColumnChoicesProvider {

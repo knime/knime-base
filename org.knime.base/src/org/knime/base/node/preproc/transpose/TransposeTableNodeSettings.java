@@ -51,10 +51,10 @@ package org.knime.base.node.preproc.transpose;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Currently only used for the node dialogue, backwards compatible loading is ensured by the node model. If this is ever
@@ -68,7 +68,7 @@ final class TransposeTableNodeSettings implements DefaultNodeSettings {
     private static final String CHUNKING_MODE_KEY = "guess_or_fixed";
 
     @Persist(customPersistor = ChunkingModePersistor.class)
-    @Schema(title = "Chunk size configuration",
+    @Widget(title = "Chunk size configuration",
         description = "Select how the node should handle chunking while processing the input table:<ul>"
             + "<li><b>Automatic:</b> Use a dynamic chunk size that adapts to the "
             + "current memory available. The number of columns read will be maximized for performance.</li>"
@@ -78,16 +78,16 @@ final class TransposeTableNodeSettings implements DefaultNodeSettings {
     ChunkingMode m_chunkingMode = ChunkingMode.GUESS_SIZE;
 
     @Persist(configKey = "chunk_size")
-    @Schema(title = "Columns per chunk",
+    @Widget(title = "Columns per chunk",
         description = "The number of columns read during one iteration over the table. "
             + "Increasing this value yields faster execution time, but also increases memory consumption.")
     int m_chunkSize;
 
     enum ChunkingMode {
-            @Schema(title = "Automatic")
+            @Widget(title = "Automatic")
             GUESS_SIZE,
 
-            @Schema(title = "Manual")
+            @Widget(title = "Manual")
             SPECIFY_SIZE;
     }
 

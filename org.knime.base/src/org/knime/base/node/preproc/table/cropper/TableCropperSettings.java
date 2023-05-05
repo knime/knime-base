@@ -48,10 +48,12 @@
  */
 package org.knime.base.node.preproc.table.cropper;
 
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings of the Range Filter node.
@@ -81,7 +83,7 @@ final class TableCropperSettings implements DefaultNodeSettings {
     TableCropperSettings() {
     }
 
-    @Schema(title = "Column range mode",
+    @Widget(title = "Column range mode",
         description = "Specify the range of columns included in the output by defining the start and end column. "
             + "The options for specifiying the start and end columns are:" //
             + "<ul>" //
@@ -91,44 +93,49 @@ final class TableCropperSettings implements DefaultNodeSettings {
             + "</ul>")
     ColumnRangeMode m_columnRangeMode = ColumnRangeMode.BY_NAME;
 
-    @Schema(title = "Start column", description = "Select the first column to include.", choices = AllColumns.class)
+    @Widget(title = "Start column", description = "Select the first column to include.")
+    @ChoicesWidget(choices = AllColumns.class)
     String m_startColumnName;
 
-    @Schema(title = "End column (inclusive)", description = "Select the last column to include.",
-        choices = AllColumns.class)
+    @Widget(title = "End column (inclusive)", description = "Select the last column to include.")
+    @ChoicesWidget(choices = AllColumns.class)
     String m_endColumnName;
 
-    @Schema(title = "Start column number",
-        description = "Select the first column to include (the first column of the table has number 1).", min = 1)
+    @Widget(title = "Start column number",
+        description = "Select the first column to include (the first column of the table has number 1).")
+    @NumberInputWidget(min = 1)
     int m_startColumnNumber = 1;
 
-    @Schema(title = "Start counting columns from the end of the table",
+    @Widget(title = "Start counting columns from the end of the table",
         description = "If selected, the start column will be counted from the end of the table.")
     boolean m_startColumnCountFromEnd;
 
-    @Schema(title = "End column number (inclusive)", description = "Select the last column to include.", min = 1)
+    @Widget(title = "End column number (inclusive)", description = "Select the last column to include.")
+    @NumberInputWidget(min = 1)
     int m_endColumnNumber = 1;
 
-    @Schema(title = "Start counting columns from the end of the table",
+    @Widget(title = "Start counting columns from the end of the table",
         description = "If selected, the end column will be counted from the end of the table.")
     boolean m_endColumnCountFromEnd;
 
-    @Schema(title = "Start row number",
-        description = "Select the first row to include (the first row of the table has number 1).", min = 1)
+    @Widget(title = "Start row number",
+        description = "Select the first row to include (the first row of the table has number 1).")
+    @NumberInputWidget(min = 1)
     long m_startRowNumber = 1;
 
-    @Schema(title = "Start counting rows from the end of the table",
+    @Widget(title = "Start counting rows from the end of the table",
         description = "If selected, the start row will be counted from the end of the table.")
     boolean m_startRowCountFromEnd;
 
-    @Schema(title = "End row number (inclusive)", description = "Select the last row to include.", min = 1)
+    @Widget(title = "End row number (inclusive)", description = "Select the last row to include.")
+    @NumberInputWidget(min = 1)
     long m_endRowNumber = 1;
 
-    @Schema(title = "Start counting rows from the end of the table",
+    @Widget(title = "Start counting rows from the end of the table",
         description = "If selected, the end row will be counted from the end of the table.")
     boolean m_endRowCountFromEnd;
 
-    @Schema( //
+    @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
             + "such that the domains' bounds exactly match the bounds of the data in the output table." //
@@ -147,9 +154,9 @@ final class TableCropperSettings implements DefaultNodeSettings {
     }
 
     enum ColumnRangeMode {
-            @Schema(title = "By name") //
+            @Widget(title = "By name") //
             BY_NAME, //
-            @Schema(title = "By number") //
+            @Widget(title = "By number") //
             BY_NUMBER;
     }
 

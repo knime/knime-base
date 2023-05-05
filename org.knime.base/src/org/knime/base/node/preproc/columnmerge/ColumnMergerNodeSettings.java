@@ -53,11 +53,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  *
@@ -68,17 +69,19 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = ColumnMergerConfiguration.CFG_PRIMARY, settingsModel = SettingsModelString.class)
-    @Schema(title = "Primary column",
-        description = "The column with the value that will be used, unless it is missing.", choices = AllColumns.class)
+    @Widget(title = "Primary column",
+        description = "The column with the value that will be used, unless it is missing.")
+    @ChoicesWidget(choices = AllColumns.class)
     String m_primaryColumn = "";
 
     @Persist(configKey = ColumnMergerConfiguration.CFG_SECONDARY, settingsModel = SettingsModelString.class)
-    @Schema(title = "Secondary column", description = "The column with the value that will be used if it is missing "//
-        + "in the primary column.", choices = AllColumns.class)
+    @Widget(title = "Secondary column", description = "The column with the value that will be used if it is missing "//
+        + "in the primary column.")
+    @ChoicesWidget(choices = AllColumns.class)
     String m_secondaryColumn = "";
 
     @Persist(customPersistor = OutputPlacementOptionsPersistor.class)
-    @Schema(title = "Replace/append columns", description = "Choose where to put the result column:"//
+    @Widget(title = "Replace/append columns", description = "Choose where to put the result column:"//
         + "<ul>"//
         + "<li><b>Replace primary and delete secondary</b>: Replace the primary column with the merge "
         + "result and remove the secondary column.</li>"//
@@ -91,7 +94,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
     OutputPlacement m_outputPlacement;
 
     @Persist(configKey = ColumnMergerConfiguration.CFG_OUTPUT_NAME, settingsModel = SettingsModelString.class)
-    @Schema(title = "New column name", description = "The name for the new column.")
+    @Widget(title = "New column name", description = "The name for the new column.")
     String m_outputName;
 
     private static final class AllColumns implements ChoicesProvider {

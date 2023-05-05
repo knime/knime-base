@@ -48,8 +48,8 @@
  */
 package org.knime.base.node.preproc.column.renamer;
 
-import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * NodeFactory of the ColumnRenamer node.

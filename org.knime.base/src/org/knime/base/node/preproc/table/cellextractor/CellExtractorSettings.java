@@ -48,9 +48,11 @@
  */
 package org.knime.base.node.preproc.table.cellextractor;
 
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings of the Cell Extractor node.
@@ -83,21 +85,22 @@ final class CellExtractorSettings implements DefaultNodeSettings {
 
     }
 
-    @Schema(title = "Column specification", description = "Select whether to specify the column by name or by number.")
+    @Widget(title = "Column specification", description = "Select whether to specify the column by name or by number.")
     ColumnSpecificationMode m_columnSpecificationMode = ColumnSpecificationMode.BY_NAME;
 
-    @Schema(title = "Column name", description = "Select the column that contains the target cell.",
-        choices = AllColumns.class)
+    @Widget(title = "Column name", description = "Select the column that contains the target cell.")
+    @ChoicesWidget(choices = AllColumns.class)
     String m_columnName;
 
-    @Schema(title = "Column number", description = "Provide the number of the column that contains the target cell.",
-        min = 1)
+    @Widget(title = "Column number", description = "Provide the number of the column that contains the target cell.")
+    @NumberInputWidget(min = 1)
     int m_columnNumber = 1;
 
-    @Schema(title = "Row number", description = "Provide the number of the row that contains the target cell.", min = 1)
+    @Widget(title = "Row number", description = "Provide the number of the row that contains the target cell.")
+    @NumberInputWidget(min = 1)
     int m_rowNumber = 1;
 
-    @Schema(title = "Count rows from the end of the table",
+    @Widget(title = "Count rows from the end of the table",
         description = "If selected, the rows will be counted from the end of the table.")
     boolean m_countFromEnd;
 
@@ -115,10 +118,10 @@ final class CellExtractorSettings implements DefaultNodeSettings {
     }
 
     enum ColumnSpecificationMode {
-            @Schema(title = "Name")
+            @Widget(title = "Name")
             BY_NAME,
 
-            @Schema(title = "Number")
+            @Widget(title = "Number")
             BY_NUMBER;
     }
 

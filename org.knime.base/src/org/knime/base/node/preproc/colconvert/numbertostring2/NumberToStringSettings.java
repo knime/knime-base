@@ -55,11 +55,12 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings for the Number to String Web UI dialog.
@@ -87,8 +88,8 @@ final class NumberToStringSettings implements DefaultNodeSettings {
 
     @Persist(configKey = AbstractNumberToStringNodeModel.CFG_INCLUDED_COLUMNS,
         settingsModel = SettingsModelColumnFilter2.class)
-    @Schema(title = "Columns", description = "Select the columns to convert to String.",
-        choices = NumericalColumns.class)
+    @Widget(title = "Columns", description = "Select the columns to convert to String.")
+    @ChoicesWidget(choices = NumericalColumns.class)
     ColumnFilter m_columns = new ColumnFilter();
 
     static final class NumericalColumns implements ChoicesProvider {

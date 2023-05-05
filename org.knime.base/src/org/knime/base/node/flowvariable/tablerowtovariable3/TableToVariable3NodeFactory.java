@@ -47,8 +47,8 @@
  */
 package org.knime.base.node.flowvariable.tablerowtovariable3;
 
-import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * The node factory for the table row to variable node.

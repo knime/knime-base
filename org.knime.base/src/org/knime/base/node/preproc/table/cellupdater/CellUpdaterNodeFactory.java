@@ -49,8 +49,8 @@
 package org.knime.base.node.preproc.table.cellupdater;
 
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  *

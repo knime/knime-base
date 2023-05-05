@@ -55,11 +55,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.impl.Schema.DoubleProvider;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings for the Column Appender node.
@@ -70,31 +71,30 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 final class ColumnAppenderSettings implements DefaultNodeSettings {
 
     @Persist(configKey = ColumnAppender2NodeModel.KEY_SELECTED_ROWID_MODE, settingsModel = SettingsModelString.class)
-    @Schema(title = "RowID mode", description = "Determines the RowIDs of the output table:"
-            + "<ul>"//
-            + "<li><b>Identical RowIDs and table lengths</b>: If the RowIDs in both input tables exactly match "
-            + "(i.e. the RowID names, their order, and their number have to match) this option can "//
-            + "be checked in order to allow a faster execution with less memory consumption. "//
-            + "If the RowIDs (names, order, number) don't match exactly the node execution will fail. "//
-            + "<br/><br/>" //
-            + "If this option <i>is NOT checked</i> the result table is newly created. "//
-            + "This might result in a longer processing time. "//
-            + "However, in this case the number of rows in the input tables can differ and missing "//
-            + "values are added accordingly. The RowIDs are either generated new or taken from "//
-            + "one of the input tables (see options below).</li>"//
-            + "<li><b>Generate new RowIDs</b>: RowIDs are newly generated. "//
-            + "If one of the input tables is longer than the other, missing values are inserted accordingly.</li> "//
-            + "<li><b>Use RowIDs from the selected input table</b>: "//
-            + "The RowIDs of the table at the selected input port number are used. "//
-            + "Tables with fewer rows will be filled with missing values accordingly. "//
-            + "And tables with more rows will be truncated.</li>"//
-            + "</ul>")
+    @Widget(title = "RowID mode", description = "Determines the RowIDs of the output table:" + "<ul>"//
+        + "<li><b>Identical RowIDs and table lengths</b>: If the RowIDs in both input tables exactly match "
+        + "(i.e. the RowID names, their order, and their number have to match) this option can "//
+        + "be checked in order to allow a faster execution with less memory consumption. "//
+        + "If the RowIDs (names, order, number) don't match exactly the node execution will fail. "//
+        + "<br/><br/>" //
+        + "If this option <i>is NOT checked</i> the result table is newly created. "//
+        + "This might result in a longer processing time. "//
+        + "However, in this case the number of rows in the input tables can differ and missing "//
+        + "values are added accordingly. The RowIDs are either generated new or taken from "//
+        + "one of the input tables (see options below).</li>"//
+        + "<li><b>Generate new RowIDs</b>: RowIDs are newly generated. "//
+        + "If one of the input tables is longer than the other, missing values are inserted accordingly.</li> "//
+        + "<li><b>Use RowIDs from the selected input table</b>: "//
+        + "The RowIDs of the table at the selected input port number are used. "//
+        + "Tables with fewer rows will be filled with missing values accordingly. "//
+        + "And tables with more rows will be truncated.</li>"//
+        + "</ul>")
     RowKeyMode m_rowIdMode = RowKeyMode.IDENTICAL;
 
     @Persist(customPersistor = RowIdTableSelectPersistor.class)
-    @Schema(title = "RowID table number",
-        description = "Select the table whose RowIDs should be used for the output table.", min = 1,
-        maxProvider = NumTables.class)
+    @Widget(title = "RowID table number",
+        description = "Select the table whose RowIDs should be used for the output table.")
+    @NumberInputWidget(min = 1, maxProvider = NumTables.class)
     int m_rowIdTableSelect = 1;
 
     private static final class NumTables implements DoubleProvider {

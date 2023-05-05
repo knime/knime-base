@@ -51,10 +51,10 @@ package org.knime.base.node.preproc.append.row;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
-import org.knime.core.webui.node.dialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Currently only used for the node dialogue, backwards compatible loading is ensured
@@ -69,17 +69,17 @@ import org.knime.core.webui.node.dialog.persistence.field.Persist;
 final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = AppendedRowsNodeModel.CFG_HILITING)
-    @Schema(title = "Enable hiliting",
+    @Widget(title = "Enable hiliting",
             description = "Enable hiliting between both inputs and the concatenated output table.")
     boolean m_enableHiliting = false; //NOSONAR being explicit is desired here
 
     @Persist(configKey = AppendedRowsNodeModel.CFG_SUFFIX)
-    @Schema(title = "Suffix",
+    @Widget(title = "Suffix",
             description = "The suffix to be appended to RowIDs.")
     String m_suffix = "_dup";
 
     @Persist(customPersistor = RowIdResolutionPersistor.class)
-    @Schema(title = "If there are duplicate RowIDs",
+    @Widget(title = "If there are duplicate RowIDs",
             description = "Select how to resolve duplicate RowIDs:"
             + "<ul>"
             // Skip option description
@@ -98,7 +98,7 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     RowIdResolution m_rowIdResolution = RowIdResolution.APPEND;
 
     @Persist(customPersistor = ColumnSetOperationPersistor.class)
-    @Schema(title = "How to combine input columns",
+    @Widget(title = "How to combine input columns",
             description = "Choose the output column selection process:"
                     + "<ul>"
                     // Intersection option description
@@ -112,21 +112,21 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     ColumnSetOperation m_columnSetOperation = ColumnSetOperation.UNION;
 
     enum RowIdResolution {
-        @Schema(title="Skip")
+        @Widget(title="Skip")
         SKIP,
 
-        @Schema(title="Append suffix")
+        @Widget(title="Append suffix")
         APPEND,
 
-        @Schema(title="Fail")
+        @Widget(title="Fail")
         FAIL;
     }
 
     enum ColumnSetOperation {
-        @Schema(title="Intersection")
+        @Widget(title="Intersection")
         INTERSECTION,
 
-        @Schema(title="Union")
+        @Widget(title="Union")
         UNION;
     }
 

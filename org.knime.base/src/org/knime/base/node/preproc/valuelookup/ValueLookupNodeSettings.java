@@ -52,10 +52,11 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnFilter;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Node Settings for the Value Lookup Node
@@ -68,39 +69,39 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** How Strings in the target column / dictionary lookup shall be handled */
     enum StringMatching {
             /** Only match exact correspondence */
-            @Schema(title = "Full string")
+            @Widget(title = "Full string")
             FULLSTRING,
             /** Match if dictionary lookup is substring of target column */
-            @Schema(title = "Substring")
+            @Widget(title = "Substring")
             SUBSTRING,
             /** Allow Wildcards in dictionary lookup column */
-            @Schema(title = "Wildcard")
+            @Widget(title = "Wildcard")
             WILDCARD,
             /** Allow Regex in dictionary lookup column */
-            @Schema(title = "Regex")
+            @Widget(title = "Regex")
             REGEX;
     }
 
     /** Whether only exact matches are acceptable or the next-lower or next-higher match is also of interest */
     enum MatchBehaviour {
             /** Only match if the number is one of the dict values */
-            @Schema(title = "Insert missing values")
+            @Widget(title = "Insert missing values")
             EQUAL,
             /** Match to the queried number or, if not available, the next lower number */
-            @Schema(title = "Match next smaller")
+            @Widget(title = "Match next smaller")
             EQUALORSMALLER,
             /** Match to the queried number or, if not available, the next higher number */
-            @Schema(title = "Match next larger")
+            @Widget(title = "Match next larger")
             EQUALORLARGER;
     }
 
     /** In what direction to search (determines which match is selected, can speed up things) */
     enum SearchDirection {
             /** Search forwards through input table, select first match */
-            @Schema(title = "Use first")
+            @Widget(title = "Use first")
             FORWARD,
             /** Search backwards through input table, select last match */
-            @Schema(title = "Use last")
+            @Widget(title = "Use last")
             BACKWARD;
     }
 
@@ -109,9 +110,9 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
             return context.getDataTableSpec(0)//
-                    .map(DataTableSpec::stream)//
-                    .orElseGet(Stream::empty)//
-                    .toArray(DataColumnSpec[]::new);
+                .map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .toArray(DataColumnSpec[]::new);
         }
     }
 
@@ -120,9 +121,9 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
             return context.getDataTableSpec(1)//
-                    .map(DataTableSpec::stream)//
-                    .orElseGet(Stream::empty)//
-                    .toArray(DataColumnSpec[]::new);
+                .map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .toArray(DataColumnSpec[]::new);
         }
 
         static String[] choices(final DataTableSpec spec) {
@@ -133,24 +134,24 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     // ---- Match options
 
     /** The name of the lookup column in the data table */
-    @Schema(title = "Lookup column (data table)", //
-        description = "The column in the data table that will be used to look up cells in the dictionary.", //
-        choices = DataTableChoices.class)
+    @Widget(title = "Lookup column (data table)", //
+        description = "The column in the data table that will be used to look up cells in the dictionary.") //
+    @ChoicesWidget(choices = DataTableChoices.class)
     String m_lookupCol;
 
     /** The name of the key column in the dictionary table */
-    @Schema(title = "Key column (dictionary table)", //
-        description = "The column in the dictionary table that contains the search key / criterion.", //
-        choices = DictionaryTableChoices.class)
+    @Widget(title = "Key column (dictionary table)", //
+        description = "The column in the dictionary table that contains the search key / criterion.") //
+    @ChoicesWidget(choices = DictionaryTableChoices.class)
     String m_dictKeyCol;
 
     /** The search direction (forwards / backwards / binSearch) */
-    @Schema(title = "If multiple rows match", //
+    @Widget(title = "If multiple rows match", //
         description = "Defines the behavior in case there are multiple matching keys in the dictionary table.")
     SearchDirection m_searchDirection = SearchDirection.FORWARD;
 
     /** The matching behaviour (only exact, exact or next lower, exact or next higher) */
-    @Schema(title = "If no row matches", //
+    @Widget(title = "If no row matches", //
         description = "Defines what happens when a lookup key is not present in the dictionary: "
             + "If \"Insert missing values\" is selected, missing values are inserted. "
             + "If \"Match next smaller\" (\"- larger\") is selected, the next smaller (larger) value from the "
@@ -159,7 +160,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     MatchBehaviour m_matchBehaviour = MatchBehaviour.EQUAL;
 
     /** The selected string match behaviour */
-    @Schema(title = "String matching", //
+    @Widget(title = "String matching", //
         description = "The matching behavior when matching strings: "
             + "Full string matching matches a lookup string only if it exactly matches a search string. "
             + "Substring matching matches a lookup string if the key in the dictionary is a substring of it. "
@@ -167,26 +168,26 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     StringMatching m_stringMatchBehaviour = StringMatching.FULLSTRING;
 
     /** Whether the string match shall be case sensitive */
-    @Schema(title = "Match strings case-sensitive", //
+    @Widget(title = "Match strings case-sensitive", //
         description = "When enabled, the string matching will be case-sensitive, otherwise case-insensitive.")
     boolean m_caseSensitive = true;
 
     // ---- Output options
 
     /** The names of the columns from the dictionary table that shall be added to the output table */
-    @Schema(title = "Append columns (from dictionary table)", //
-        description = "The columns in the dictionary table that contain the values added to the data table.", //
-        choices = DictionaryTableChoices.class)
+    @Widget(title = "Append columns (from dictionary table)", //
+        description = "The columns in the dictionary table that contain the values added to the data table.") //
+    @ChoicesWidget(choices = DictionaryTableChoices.class)
     ColumnFilter m_dictValueCols;
 
     /** Whether to create a column that indicates whether a match has been found */
-    @Schema(title = "Append a column indicating whether a match was found", //
+    @Widget(title = "Append a column indicating whether a match was found", //
         description = "When checked, a new column \"" + ValueLookupNodeModel.COLUMN_NAME_MATCHFOUND
             + "\" is appended to the output that contains a boolean indicating whether a match was found.")
     boolean m_createFoundCol = false; //NOSONAR: more verbosity
 
     /** Whether to delete the lookup column in the output table */
-    @Schema(title = "Delete lookup column", //
+    @Widget(title = "Delete lookup column", //
         description = "When selected, the lookup column will be deleted from the data table.") //
     boolean m_deleteLookupCol = false; //NOSONAR: more verbosity
 

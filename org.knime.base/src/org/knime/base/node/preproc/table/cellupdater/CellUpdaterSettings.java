@@ -55,10 +55,12 @@ import org.knime.base.node.flowvariable.converter.variabletocell.VariableToCellC
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.impl.ChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.impl.Schema;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings of the Cell Updater node.
@@ -91,26 +93,27 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
 
     }
 
-    @Schema(title = "Column specification", description = "Select whether to specify the column by name or by number.")
+    @Widget(title = "Column specification", description = "Select whether to specify the column by name or by number.")
     ColumnMode m_columnMode = ColumnMode.BY_NAME;
 
-    @Schema(title = "Column name", description = "Select the column that contains the target cell.",
-        choices = AllColumns.class)
+    @Widget(title = "Column name", description = "Select the column that contains the target cell.")
+    @ChoicesWidget(choices = AllColumns.class)
     String m_columnName;
 
-    @Schema(title = "Column number", description = "Provide the number of the column that contains the target cell.",
-        min = 1)
+    @Widget(title = "Column number", description = "Provide the number of the column that contains the target cell.")
+    @NumberInputWidget(min = 1)
     int m_columnNumber = 1;
 
-    @Schema(title = "Row number", description = "Provide the number of the row that contains the target cell.", min = 1)
+    @Widget(title = "Row number", description = "Provide the number of the row that contains the target cell.")
+    @NumberInputWidget(min = 1)
     int m_rowNumber = 1;
 
-    @Schema(title = "Count rows from the end of the table",
+    @Widget(title = "Count rows from the end of the table",
         description = "If selected, the rows will be counted from the end of the table.")
     boolean m_countFromEnd = false;
 
-    @Schema(title = "New cell value", description = "Select the flow variable containing the new cell value.",
-        choices = AllVariables.class)
+    @Widget(title = "New cell value", description = "Select the flow variable containing the new cell value.")
+    @ChoicesWidget(choices = AllVariables.class)
     String m_flowVariableName;
 
     private static final class AllColumns implements ColumnChoicesProvider {
@@ -118,8 +121,8 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
             return context.getDataTableSpec(1).stream()//
-                    .flatMap(DataTableSpec::stream)//
-                    .toArray(DataColumnSpec[]::new);
+                .flatMap(DataTableSpec::stream)//
+                .toArray(DataColumnSpec[]::new);
         }
 
     }
@@ -134,10 +137,10 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
     }
 
     enum ColumnMode {
-            @Schema(title = "Name")
+            @Widget(title = "Name")
             BY_NAME,
 
-            @Schema(title = "Number")
+            @Widget(title = "Number")
             BY_NUMBER;
     }
 
@@ -147,7 +150,7 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
      *
      * Otherwise they are initialised to the first column and flow variable name respectively.
      */
-    private void autoconfigureSettings(final Map<String, FlowVariable> availableVars,  final DataTableSpec spec) {
+    private void autoconfigureSettings(final Map<String, FlowVariable> availableVars, final DataTableSpec spec) {
         if (!isAutoconfigurable(availableVars, spec)) {
             return;
         }
@@ -171,7 +174,7 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
      * - spec doesn't have any columns: the input table exists but is empty.
      * - columnName is not null: the settings have already been configured.
      */
-    private boolean isAutoconfigurable(final Map<String, FlowVariable> availableVars,  final DataTableSpec spec) {
+    private boolean isAutoconfigurable(final Map<String, FlowVariable> availableVars, final DataTableSpec spec) {
         return !(availableVars.isEmpty() || spec.getNumColumns() == 0 || m_columnName != null);
     }
 

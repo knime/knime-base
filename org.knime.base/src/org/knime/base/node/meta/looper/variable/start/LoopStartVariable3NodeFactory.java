@@ -50,8 +50,8 @@ package org.knime.base.node.meta.looper.variable.start;
 
 import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeSettings;
 import org.knime.core.node.NodeFactory;
-import org.knime.core.webui.node.dialog.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.dialog.impl.WebUINodeFactory;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * The {@link NodeFactory} creating the 'Table Row To Variable Loop Start' node.
