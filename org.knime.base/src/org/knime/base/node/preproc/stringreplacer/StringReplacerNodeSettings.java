@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import java.util.Optional;
+
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
@@ -55,13 +57,13 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
@@ -79,58 +81,61 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
-
-    @Section(title = "Column Selection")
-    interface ColumnSelectionSection {
-    }
-
-    @Persist(configKey = StringReplacerSettings.CFG_COL_NAME)
-    @Widget(title = "Target column", description = "Name of the column whose cells should be processed")
-    @ChoicesWidget(choices = StringColumnChoices.class)
-    @Layout(ColumnSelectionSection.class)
-    String m_colName;
+    // Enums
 
     enum PatternType {
+            @Label("Literal")
+            LITERAL,
+
             @Label("Wildcard")
             WILDCARD,
 
             @Label("Regular expression")
             REGEX;
+
+        static final String OPTION_DESCRIPTION = """
+                Select the type of pattern which you want to use.
+                <ul>
+                    <li><i>Literal</i> matches the pattern as is.</li>
+                    <li>
+                        <i>Wildcard</i> matches <tt>*</tt> to zero or more arbitrary characters and matches
+                        <tt>?</tt> to  any single character.
+                    </li>
+                    <li>
+                        <i>Regular expression</i>
+                        matches using the full functionality of Java regular expressions, including backreferences
+                        in the replacement text. See the
+                        <a href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">Java API
+                        </a> for details.
+                    </li>
+                </ul>
+                """;
+
+        static final PatternType defaultType = LITERAL;
+
+        static Optional<PatternType> get(final String name) {
+            if (LITERAL.name().equals(name)) {
+                return Optional.of(LITERAL);
+            } else if (WILDCARD.name().equals(name)) {
+                return Optional.of(WILDCARD);
+            } else if (REGEX.name().equals(name)) {
+                return Optional.of(REGEX);
+            } else {
+                return Optional.empty();
+            }
+        }
     }
 
-    @Section(title = "Find & Replace")
-    @After(ColumnSelectionSection.class)
-    interface FindAndReplaceSection {
+    /** Whether to distinguish between upper-case and lower-case letters **/
+    enum CaseMatching {
+            @Label("Case insensitive")
+            CASEINSENSITIVE, //
+            @Label("Case sensitive")
+            CASESENSITIVE;
+
+        static final String OPTION_DESCRIPTION =
+            "Specifies whether strings should be matched case-insensitive or case-sensitive.";
     }
-
-    @Persist(customPersistor = PatternTypePersistor.class)
-    @Widget(title = "Matching criteria", description = "Select the type of pattern which you want to use." + "<ul>" //
-        + "<li><b>Wildcard:</b> If you select <i>wildcard</i>, " //
-        + "then <b>*</b> and <b>?</b> are (the only) meta-characters. They match an arbitrary number of " //
-        + "characters or a single character, respectively.</li>" //
-        + "<li><b>Regular expression:</b> If you select <i>regular expression</i> you can use the full functionality" //
-        + " of Java regular expressions, including backreferences in the replacement text. See the " //
-        + "<a href=\"http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html\">Java API</a> "
-        + "for details.</li>" //
-        + "</ul>")
-    @ValueSwitchWidget
-    @Layout(FindAndReplaceSection.class)
-    PatternType m_patternType = PatternType.WILDCARD;
-
-    @Persist(configKey = StringReplacerSettings.CFG_PATTERN)
-    @Widget(title = "Find",
-        description = "Either a wildcard pattern or a regular expression, "
-            + "depending on the pattern type selected above.")
-    @Layout(FindAndReplaceSection.class)
-    String m_pattern;
-
-    @Persist(configKey = StringReplacerSettings.CFG_REPLACEMENT)
-    @Widget(title = "Replacement text",
-        description = "The text that replaces that previous value in the cell if the pattern matched the previous "
-            + "value. If you are using a regular expression, you may also use backreferences (e.g. <b>$1</b>).")
-    @Layout(FindAndReplaceSection.class)
-    String m_replacement;
 
     enum ReplacementStrategy {
             @Label("Whole string")
@@ -138,78 +143,169 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
             @Label("All occurrences")
             ALL_OCCURRENCES;
+
+        static final String OPTION_DESCRIPTION = """
+                Select what to replace in case a string matches a pattern.
+                <ul>
+                    <li>
+                        <i>Whole string</i> replaces the entire string with the replacement string, requiring an
+                        exact  match of the whole string.
+                    </li>
+                    <li>
+                        <i>All occurrences</i> replaces all occurrences of the pattern with the replacement string.
+                        Note that when e.g. matching on the RegEx-pattern <tt>.*</tt>, an empty string at the end
+                        of the input is also matched and replaced. To avoid that, use e.g. the pattern <tt>^.*</tt>
+                        to indicate that the match has to start at the beginning of the string.
+                    </li>
+                </ul>
+                """;
     }
 
-    @Persist(customPersistor = ReplacementStrategyPersistor.class)
-    @Widget(title = "Replacement strategy", description = //
-    "Whether the whole cell content is replaced on a match or whether each " //
-        + "occurrence is replaced inside the text individually." //
-        + "<ul>" //
-        + "<li><b>Whole string:</b> " //
-        + "The entire string (i.e. the entire cell content) is replaced when it completely " //
-        + "matches the search pattern (including the meta characters <b>*</b> and <b>?</b>). </li>" //
-        + "<li><b>All occurrences:</b> " //
-        + "All occurrences of the entered pattern are replaced in the target column. The meta" //
-        + "characters <b>*</b> and <b>?</b> are not allowed in the pattern in this case.</li>" //
-        + "</ul>")
+
+    // Rules
+
+    /** Indicates that the "Wildcard" pattern type is selected */
+    interface IsWildcard {
+        class Condition extends OneOfEnumCondition<PatternType> {
+            @Override
+            public PatternType[] oneOf() {
+                return new PatternType[]{PatternType.WILDCARD};
+            }
+        }
+    }
+
+    /** Indicates that the option "Append column" is enabled **/
+    interface IsAppendColumn {}
+
+
+    // Layout
+
+    interface DialogSections {
+        @Section(title = "Column Selection")
+        interface ColumnSelection {}
+
+        @Section(title = "Find & Replace")
+        interface FindAndReplace {}
+
+        @Section(title = "Output")
+        interface Output {}
+    }
+
+
+    // Settings
+
+    @Layout(DialogSections.ColumnSelection.class)
+    @Persist(configKey = StringReplacerSettings.CFG_COL_NAME)
+    @Widget(title = "Target column", description = "Select the column in which the strings should be replaced.")
+    @ChoicesWidget(choices = StringColumnChoices.class)
+    String m_colName;
+
+    @Layout(DialogSections.FindAndReplace.class)
+    @Persist(customPersistor = PatternTypePersistor.class)
+    @Widget(title = "Pattern type", description = PatternType.OPTION_DESCRIPTION)
     @ValueSwitchWidget
-    @Layout(FindAndReplaceSection.class)
-    ReplacementStrategy m_replacementStrategy = ReplacementStrategy.WHOLE_STRING;
+    @Signal(id = IsWildcard.class, condition = IsWildcard.Condition.class)
+    PatternType m_patternType = PatternType.LITERAL;
 
-    @Persist(configKey = StringReplacerSettings.CFG_CASE_SENSITIVE)
-    @Widget(title = "Case sensitive", description = "Check this if the pattern should be case sensitive")
-    @Layout(FindAndReplaceSection.class)
-    boolean m_caseSensitive;
-
+    @Layout(DialogSections.FindAndReplace.class)
     @Persist(configKey = StringReplacerSettings.CFG_ENABLE_ESCAPING)
-    @Widget(title = "Use backslash as escape character",
-        description = "If you want to replace the wildcard characters <b>*</b> and <b>?</b> themselves, " //
-            + "you need to enable this option and escape them using a backslash (<b>\\*</b> or <b>\\?</b>). " //
-            + "In order to replace a backslash you need to escape the backslash, too (<b>\\\\</b>).")
-    @Layout(FindAndReplaceSection.class)
+    @Widget(title = "Use backslash as escape character", description = """
+            If checked, the backslash character can be used to escape special characters. For instance, <tt>\\?</tt>
+            will match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a
+            backslash you need to escape the backslash, too (<tt>\\</tt>).
+            """)
+    @Effect(signals = IsWildcard.class, type = EffectType.SHOW)
     boolean m_enableEscaping;
 
-    @Section(title = "Output")
-    @After(FindAndReplaceSection.class)
-    interface OutputSection {
-    }
+    @Layout(DialogSections.FindAndReplace.class)
+    @Persist(customPersistor = CaseMatchingPersistor.class)
+    @Widget(title = "Case sensitive",
+        description = "If checked, the matching will distinguish between upper and lower case letters.")
+    @ValueSwitchWidget
+    CaseMatching m_caseMatching;
 
-    interface CreateNewColSelected {
-    }
+    @Layout(DialogSections.FindAndReplace.class)
+    @Persist(configKey = StringReplacerSettings.CFG_PATTERN)
+    @Widget(title = "Pattern", description = """
+            A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.
+            """)
+    String m_pattern;
 
+    @Layout(DialogSections.FindAndReplace.class)
+    @Persist(configKey = StringReplacerSettings.CFG_REPLACEMENT)
+    @Widget(title = "Replacement text", description = """
+            The text that replaces the previous value in the cell if the pattern matched it. If you are using a
+            regular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group).
+            """)
+    String m_replacement;
+
+    @Layout(DialogSections.FindAndReplace.class)
+    @Persist(customPersistor = ReplacementStrategyPersistor.class)
+    @Widget(title = "Replacement strategy", description = ReplacementStrategy.OPTION_DESCRIPTION)
+    @ValueSwitchWidget
+    ReplacementStrategy m_replacementStrategy = ReplacementStrategy.WHOLE_STRING;
+
+    @Layout(DialogSections.Output.class)
     @Persist(configKey = StringReplacerSettings.CFG_CREATE_NEW_COL)
-    @Widget(title = "Create new column",
-        description = "Creates a new column with the name entered in the text field instead "
-            + "of replacing the values in the original column.")
-    @Signal(id = CreateNewColSelected.class, condition = TrueCondition.class)
-    @Layout(OutputSection.class)
+    @Widget(title = "Append new column", description = """
+            If enabled, the strings will not be replaced in-place but a new column is appended that contains the
+            original string with the replacement applied.
+            """)
+    @Signal(id = IsAppendColumn.class, condition = TrueCondition.class)
     boolean m_createNewCol;
 
+    @Layout(DialogSections.Output.class)
     @Persist(configKey = StringReplacerSettings.CFG_NEW_COL_NAME)
-    @Widget(title = "New column name", description = "Name of the newly created column with replaced Strings")
-    @Layout(OutputSection.class)
-    @Effect(signals = CreateNewColSelected.class, type = EffectType.SHOW)
+    @Widget(title = "New column name", description = "The name of the created column with replaced strings")
+    @Effect(signals = IsAppendColumn.class, type = EffectType.SHOW)
     String m_newColName = "ReplacedColumn";
+
+
+    // Persistors
 
     private static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {
         @Override
         public PatternType load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX, false)) {
-                return PatternType.REGEX;
+            if (settings.getBoolean(StringReplacerSettings.CFG_FIND_PATTERN)) {
+                final var isRegex = settings.getBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX);
+                return isRegex ? PatternType.REGEX : PatternType.WILDCARD;
             } else {
-                return PatternType.WILDCARD;
+                return PatternType.LITERAL;
             }
         }
 
         @Override
-        public void save(final PatternType obj, final NodeSettingsWO settings) {
-            settings.addBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX, obj == PatternType.REGEX);
+        public void save(final PatternType patternType, final NodeSettingsWO settings) {
+            settings.addBoolean(StringReplacerSettings.CFG_FIND_PATTERN,
+                patternType == PatternType.REGEX || patternType == PatternType.WILDCARD);
+            settings.addBoolean(StringReplacerSettings.CFG_PATTERN_IS_REGEX, patternType == PatternType.REGEX);
         }
 
         @Override
         public String[] getConfigKeys() {
-            return new String[]{StringReplacerSettings.CFG_PATTERN_IS_REGEX};
+            return new String[]{StringReplacerSettings.CFG_FIND_PATTERN, StringReplacerSettings.CFG_PATTERN_IS_REGEX};
         }
+    }
+
+    private static final class CaseMatchingPersistor implements FieldNodeSettingsPersistor<CaseMatching> {
+
+        @Override
+        public CaseMatching load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(StringReplacerSettings.CFG_CASE_SENSITIVE) ? CaseMatching.CASESENSITIVE
+                : CaseMatching.CASEINSENSITIVE;
+        }
+
+        @Override
+        public void save(final CaseMatching matchingStrategy, final NodeSettingsWO settings) {
+            settings.addBoolean(StringReplacerSettings.CFG_CASE_SENSITIVE,
+                matchingStrategy == CaseMatching.CASESENSITIVE);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{StringReplacerSettings.CFG_CASE_SENSITIVE};
+        }
+
     }
 
     private static final class ReplacementStrategyPersistor implements FieldNodeSettingsPersistor<ReplacementStrategy> {

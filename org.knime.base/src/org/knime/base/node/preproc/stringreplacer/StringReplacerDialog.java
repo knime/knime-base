@@ -77,7 +77,9 @@ import org.knime.core.node.util.ColumnSelectionComboxBox;
  * enter the pattern, the replacement string and several other options.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated
  */
+@Deprecated(since = "5.0")
 public class StringReplacerDialog extends NodeDialogPane {
     private final StringReplacerSettings m_settings =
             new StringReplacerSettings();
@@ -252,10 +254,14 @@ public class StringReplacerDialog extends NodeDialogPane {
         }
         m_replacement.setText(m_settings.replacement());
         m_enableEscaping.setSelected(m_settings.enableEscaping());
-        if (m_settings.patternIsRegex()) {
-            m_regularExpression.doClick();
-        } else {
-            m_wildcardPattern.doClick();
+        try {
+            if (m_settings.patternIsRegex()) {
+                m_regularExpression.doClick();
+            } else {
+                m_wildcardPattern.doClick();
+            }
+        } catch (InvalidSettingsException e) {
+            throw new NotConfigurableException("Cannot configure literal matching in old dialogue", e);
         }
     }
 

@@ -4,49 +4,76 @@
 		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>String Replacer</name>
 
-    <shortDescription>Replaces values in string cells if they match a certain wildcard pattern.</shortDescription>
+    <shortDescription>Replaces strings if they match a certain pattern.</shortDescription>
 
     <fullDescription>
-        <intro>Replaces values in string cells if they match a certain wildcard pattern.</intro>
-        <option name="Target column">Name of the column whose cells should be processed</option>
-        <option name="Pattern type">
-            Select the type of pattern which you want to use. If you select <i>wildcard</i>, then <b>*</b> and <b>?</b>
-            are (the only) meta-characters. They match an arbitrary number of characters or a single character,
-            respectively.<br />
-            If you select <i>regular expression</i> you can use the full functionality of Java regular expressions,
-            including backreferences in the replacement text. See the
-            <a href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">Java API</a> for details.
+        <intro>
+        	This node replaces strings in a selected target column.
+			In the configuration dialog, a pattern and a replacement text are specified.
+			If the pattern doesn't match, the result string equals the input string.
+			You can choose to modify strings in-place or add the result strings to a new column.
+		</intro>
+        <option name="Target column">Select the column in which the strings should be replaced.</option>
+		<option name="Pattern type">
+			Select the type of pattern which you want to use.
+			<ul>
+				<li><i>Literal</i> matches the pattern as is.</li>
+				<li>
+					<i>Wildcard</i>	matches	<tt>*</tt> to zero or more arbitrary characters and matches	<tt>?</tt> to
+					any single character.
+				</li>
+				<li>
+					<i>Regular expression</i>
+					matches using the full functionality of Java regular expressions, including backreferences in the
+					replacement text. See the
+					<a href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">Java API</a> for 
+					details.
+				</li>
+			</ul>
+        </option>
+        <option name="Case sensitive">
+        	If checked, the matching will distinguish between upper and lower case letters.
+        </option>
+        <option name="Use backslash as escape character">
+        	Only relevant for wildcard matching.
+            If checked, the backslash character can be used to escape special characters. For instance, <tt>\?</tt>
+            will match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a
+            backslash you need to escape the backslash, too (<tt>\\</tt>).
         </option>
         <option name="Pattern">
-            Either a wildcard pattern or a regular expression, depending on the pattern type selected above.
+            A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.
         </option>
         <option name="Replacement text">
-            The text that replaces that previous value in the cell if the pattern matched the previous value. If
-            you are using a regular expression, you may also use backreferences (e.g. <b>$1</b>).
+            The text that replaces that previous value in the cell if the pattern matched it. If you are using a
+            regular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group).
         </option>
-        <option name="Replace whole string">
-        	The entire string (i.e. the entire cell content) is replaced when it completely matches the search pattern 
-        	(including the meta characters <b>*</b> and <b>?</b>). 
-        </option>
-        <option name="Replace all substrings">
-            All occurrences of the entered pattern are replaced in the target column. The meta
-            characters <b>*</b> and <b>?</b> are not allowed in the pattern in this case. 
-        </option>
-        <option name="Case sensitive search">Check this if the pattern should be case sensitive</option>
-        <option name="Use backslash as escape character">
-            If you want to replace the wildcard characters <b>*</b> and <b>?</b> themselves, you need to enable this
-            option and escape them using a backslash (<b>\*</b> or <b>\?</b>). In order to replace a backslash you need
-            to escape the backslash, too (<b>\\</b>). 
+        <option name="Replacement strategy">
+        	Select what to replace in case a string matches a pattern.
+			<ul>
+				<li>
+					<i>Whole string</i> replaces the entire string with the replacement string, requiring an exact
+					match of the whole string.
+				</li>
+				<li>
+                    <i>All occurrences</i> replaces all occurrences of the pattern with the replacement string. Note
+                    that when e.g. matching on the RegEx-pattern '.*', an empty string at the end of the input is also
+                    matched and replaced. To avoid that, use e.g. the pattern '^.*' to indicate that the match has to
+                    start at the beginning.
+				</li>
+			</ul>
         </option>
         <option name="Append new column">
-            Creates a new column with the name entered in the text field instead of replacing the values in the original column.
+			If enabled, the strings will not be replaced in-place but a new column is appended that contains the
+			original string with the replacement applied.
         </option>
     </fullDescription>
 
     <ports>
-        <inPort index="0" name="Input">Arbitrary input data.</inPort>
-        <outPort index="0" name="Input with replaced values">
-            Input table with replaced values or an additional column.
+        <inPort index="0" name="Input">
+        The input table contains the string column to perform the replacement on.
+        </inPort>
+        <outPort index="0" name="Input with replaced strings">
+            Input table with updated string column or an additional column.
         </outPort>
     </ports>
     <keywords>

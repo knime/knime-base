@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings.PatternType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -58,6 +59,15 @@ import org.knime.core.node.NodeSettingsWO;
  */
 public class StringReplacerSettings {
 
+    /**
+     * Whether to match a pattern (true) or a literal string (false)
+     */
+    static final String CFG_FIND_PATTERN = "findPattern";
+
+    /**
+     * Whether the provided pattern is a regular expression (true) or a wildcard pattern (false). Only relevant if
+     * {@link StringReplacerSettings#CFG_FIND_PATTERN} is true.
+     */
     static final String CFG_PATTERN_IS_REGEX = "patternIsRegex";
 
     static final String CFG_ENABLE_ESCAPING = "enableEscaping";
@@ -92,18 +102,26 @@ public class StringReplacerSettings {
 
     /** @since 2.8 */
     private boolean m_enableEscaping;
-    /** @since 2.8 */
-    private boolean m_patternIsRegex;
 
+    /** @since 5.1 */
+    private PatternType m_patternType = PatternType.defaultType;
 
     /**
      * Returns whether the pattern is a regular expression or a simple wildcard pattern.
      *
      * @return <code>true</code> if it is a regular expression, <code>false</code> if it contains wildcards
+     * @throws InvalidSettingsException
      * @since 2.8
+     * @deprecated
      */
-    public boolean patternIsRegex() {
-        return m_patternIsRegex;
+    @Deprecated(since = "5.1")
+    public boolean patternIsRegex() throws InvalidSettingsException {
+        return switch (m_patternType) {
+            case REGEX -> true;
+            case WILDCARD -> false;
+            default -> throw new InvalidSettingsException(
+                "Pattern type " + m_patternType.name() + " needs to be retrieved by the patternType() method.");
+        };
     }
 
     /**
@@ -111,11 +129,32 @@ public class StringReplacerSettings {
      *
      * @param regex <code>true</code> if it is a regular expression, <code>false</code> if it contains wildcards
      * @since 2.8
+     * @deprecated
      */
+    @Deprecated(since = "5.1")
     public void patternIsRegex(final boolean regex) {
-        m_patternIsRegex = regex;
+        m_patternType = regex ? PatternType.REGEX : PatternType.WILDCARD;
     }
 
+    /**
+     * Returns what pattern type is configured in the settings
+     *
+     * @return the pattern type
+     * @since 5.1
+     */
+    public PatternType patternType() {
+        return m_patternType;
+    }
+
+    /**
+     * Set what pattern type to use
+     *
+     * @param pt the pattern type to use
+     * @since 5.1
+     */
+    public void patternType(final PatternType pt) {
+        m_patternType = pt;
+    }
 
     /**
      * Returns whether escaping via a backslash is enabled.
@@ -140,8 +179,7 @@ public class StringReplacerSettings {
     /**
      * Returns if the pattern should match case sensitive or not.
      *
-     * @return <code>true</code> if the matches should be case sensitive,
-     *         <code>false</code> otherwise
+     * @return <code>true</code> if the matches should be case sensitive, <code>false</code> otherwise
      */
     public boolean caseSensitive() {
         return m_caseSensitive;
@@ -150,8 +188,7 @@ public class StringReplacerSettings {
     /**
      * Sets if the pattern should match case sensitive or not.
      *
-     * @param b <code>true</code> if the matches should be case sensitive,
-     *            <code>false</code> otherwise
+     * @param b <code>true</code> if the matches should be case sensitive, <code>false</code> otherwise
      */
     public void caseSensitive(final boolean b) {
         m_caseSensitive = b;
@@ -176,11 +213,9 @@ public class StringReplacerSettings {
     }
 
     /**
-     * Returns if a new column should be created instead of overriding the
-     * values in the target column.
+     * Returns if a new column should be created instead of overriding the values in the target column.
      *
-     * @return <code>true</code> if a new column should be created,
-     *         <code>false</code> otherwise
+     * @return <code>true</code> if a new column should be created, <code>false</code> otherwise
      * @see #newColumnName()
      */
     public boolean createNewColumn() {
@@ -188,11 +223,9 @@ public class StringReplacerSettings {
     }
 
     /**
-     * Sets if a new column should be created instead of overriding the values
-     * in the target column.
+     * Sets if a new column should be created instead of overriding the values in the target column.
      *
-     * @param b <code>true</code> if a new column should be created,
-     *            <code>false</code> otherwise
+     * @param b <code>true</code> if a new column should be created, <code>false</code> otherwise
      * @see #newColumnName(String)
      */
     public void createNewColumn(final boolean b) {
@@ -205,8 +238,7 @@ public class StringReplacerSettings {
      * @param settings node settings
      * @throws InvalidSettingsException if settings are missing
      */
-    public void loadSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_caseSensitive = settings.getBoolean(CFG_CASE_SENSITIVE);
         m_colName = settings.getString(CFG_COL_NAME);
         m_createNewCol = settings.getBoolean(CFG_CREATE_NEW_COL);
@@ -217,7 +249,14 @@ public class StringReplacerSettings {
 
         /** @since 2.8 */
         m_enableEscaping = settings.getBoolean(CFG_ENABLE_ESCAPING, false);
-        m_patternIsRegex = settings.getBoolean(CFG_PATTERN_IS_REGEX, false);
+
+        /** @since 5.1 */
+        if (settings.getBoolean(CFG_FIND_PATTERN, true)) {
+            final var isRegex = settings.getBoolean(CFG_PATTERN_IS_REGEX);
+            m_patternType = isRegex ? PatternType.REGEX : PatternType.WILDCARD;
+        } else {
+            m_patternType = PatternType.LITERAL;
+        }
     }
 
     /**
@@ -231,11 +270,17 @@ public class StringReplacerSettings {
         m_createNewCol = settings.getBoolean(CFG_CREATE_NEW_COL, false);
         m_newColName = settings.getString(CFG_NEW_COL_NAME, null);
         m_pattern = settings.getString(CFG_PATTERN, "");
-        m_replaceAllOccurrences =
-                settings.getBoolean(CFG_REPLACE_ALL_OCCURENCES, false);
+        m_replaceAllOccurrences = settings.getBoolean(CFG_REPLACE_ALL_OCCURENCES, false);
         m_replacement = settings.getString(CFG_REPLACEMENT, "");
         m_enableEscaping = settings.getBoolean(CFG_ENABLE_ESCAPING, false);
-        m_patternIsRegex = settings.getBoolean(CFG_PATTERN_IS_REGEX, false);
+
+        /** @since 5.1 */
+        if (settings.getBoolean(CFG_FIND_PATTERN, true)) {
+            final var isRegex = settings.getBoolean(CFG_PATTERN_IS_REGEX, false);
+            m_patternType = isRegex ? PatternType.REGEX : PatternType.WILDCARD;
+        } else {
+            m_patternType = PatternType.LITERAL;
+        }
     }
 
     /**
@@ -277,11 +322,10 @@ public class StringReplacerSettings {
     }
 
     /**
-     * Returns if the whole string or all occurrences of the pattern should be
-     * replaced.
+     * Returns if the whole string or all occurrences of the pattern should be replaced.
      *
-     * @return <code>true</code> if all occurrences should be replaced,
-     *         <code>false</code> if the whole string should be replaced
+     * @return <code>true</code> if all occurrences should be replaced, <code>false</code> if the whole string should be
+     *         replaced
      *
      */
     public boolean replaceAllOccurrences() {
@@ -289,11 +333,10 @@ public class StringReplacerSettings {
     }
 
     /**
-     * Sets if the whole string or all occurrences of the pattern should be
-     * replaced.
+     * Sets if the whole string or all occurrences of the pattern should be replaced.
      *
-     * @param b <code>true</code> if all occurrences should be replaced,
-     *         <code>false</code> if the whole string should be replaced
+     * @param b <code>true</code> if all occurrences should be replaced, <code>false</code> if the whole string should
+     *            be replaced
      *
      */
     public void replaceAllOccurrences(final boolean b) {
@@ -332,6 +375,8 @@ public class StringReplacerSettings {
         settings.addBoolean(CFG_REPLACE_ALL_OCCURENCES, m_replaceAllOccurrences);
         settings.addString(CFG_REPLACEMENT, m_replacement);
         settings.addBoolean(CFG_ENABLE_ESCAPING, m_enableEscaping);
-        settings.addBoolean(CFG_PATTERN_IS_REGEX, m_patternIsRegex);
+        settings.addBoolean(CFG_FIND_PATTERN,
+            m_patternType == PatternType.REGEX || m_patternType == PatternType.WILDCARD);
+        settings.addBoolean(CFG_PATTERN_IS_REGEX, m_patternType == PatternType.REGEX);
     }
 }
