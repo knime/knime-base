@@ -8,7 +8,7 @@ Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Automatic-Module-Name: org.knime.filehandling.core.tests.common
-Require-Bundle: org.knime.core.util;bundle-version="[5.0.0,6.0.0)",
+Require-Bundle: org.knime.core.util;bundle-version="[6.0.0,7.0.0)",
  org.knime.core;bundle-version="[5.0.0,6.0.0)",
  org.knime.filehandling.core;bundle-version="[5.0.0,6.0.0)"
 Export-Package: org.knime.filehandling.core.tests.common.workflow

@@ -52,9 +52,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
-
 import org.apache.xmlbeans.SchemaType;
 import org.dmg.pmml.ApplyDocument.Apply;
 import org.dmg.pmml.ConstantDocument.Constant;
@@ -91,6 +88,9 @@ import org.knime.core.node.port.pmml.PMMLMiningSchemaTranslator;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLTranslator;
 import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
+
+import jakarta.json.Json;
+import jakarta.json.JsonObjectBuilder;
 
 /**
  * A general regression model translator class between KNIME and PMML.
