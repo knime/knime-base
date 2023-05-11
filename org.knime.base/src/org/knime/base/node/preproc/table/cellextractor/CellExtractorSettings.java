@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.table.cellextractor;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -118,10 +119,10 @@ final class CellExtractorSettings implements DefaultNodeSettings {
     }
 
     enum ColumnSpecificationMode {
-            @Widget(title = "Name")
+            @Label("Name")
             BY_NAME,
 
-            @Widget(title = "Number")
+            @Label("Number")
             BY_NUMBER;
     }
 

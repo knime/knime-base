@@ -54,6 +54,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -80,10 +81,10 @@ final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
     boolean m_typeCompatibility;
 
     enum ColumnReferenceMode {
-            @Widget(title = "Include")
+            @Label("Include")
             INCLUDE,
 
-            @Widget(title = "Exclude")
+            @Label("Exclude")
             EXCLUDE;
     }
 

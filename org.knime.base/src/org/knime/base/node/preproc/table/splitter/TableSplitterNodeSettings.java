@@ -54,6 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -117,19 +118,19 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
 
     /** Modes for finding the matching row. "First match" or "Last match". */
     enum FindSplittingRowMode {
-            @Widget(title = "First match") //
+            @Label("First match") //
             FIRST_MATCH, //
-            @Widget(title = "Last match") //
+            @Label("Last match") //
             LAST_MATCH;
     }
 
     /** Matching criteria. "Equals", "Missing", or "Empty". */
     enum MatchingCriteria {
-            @Widget(title = "Equals") //
+            @Label("Equals") //
             EQUALS, //
-            @Widget(title = "Missing") //
+            @Label("Missing") //
             MISSING, //
-            @Widget(title = "Empty") //
+            @Label("Empty") //
             EMPTY;
     }
 

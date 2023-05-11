@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -160,25 +161,25 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
     /** Options for the duplicate row handling */
     enum DuplicateRowHandling {
-            @Widget(title = "Remove duplicate rows")
+            @Label("Remove duplicate rows")
             REMOVE,
 
-            @Widget(title = "Keep duplicate rows")
+            @Label("Keep duplicate rows")
             KEEP;
     }
 
     /** Options for the row selection */
     enum RowSelection {
-            @Widget(title = "First")
+            @Label("First")
             FIRST,
 
-            @Widget(title = "Last")
+            @Label("Last")
             LAST,
 
-            @Widget(title = "Minimum of")
+            @Label("Minimum of")
             MINIMUM,
 
-            @Widget(title = "Maximum of")
+            @Label("Maximum of")
             MAXIMUM;
     }
 

@@ -60,6 +60,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -105,9 +106,9 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
     ColType m_colTypeFilter;
 
     enum OutputFormat {
-            @Widget(title = "Row")
+            @Label("Row")
             ROW, //
-            @Widget(title = "Column")
+            @Label("Column")
             COLUMN;
     }
 

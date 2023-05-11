@@ -54,6 +54,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -84,10 +85,10 @@ final class TransposeTableNodeSettings implements DefaultNodeSettings {
     int m_chunkSize;
 
     enum ChunkingMode {
-            @Widget(title = "Automatic")
+            @Label("Automatic")
             GUESS_SIZE,
 
-            @Widget(title = "Manual")
+            @Label("Manual")
             SPECIFY_SIZE;
     }
 

@@ -56,6 +56,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -69,39 +70,39 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** How Strings in the target column / dictionary lookup shall be handled */
     enum StringMatching {
             /** Only match exact correspondence */
-            @Widget(title = "Full string")
+            @Label("Full string")
             FULLSTRING,
             /** Match if dictionary lookup is substring of target column */
-            @Widget(title = "Substring")
+            @Label("Substring")
             SUBSTRING,
             /** Allow Wildcards in dictionary lookup column */
-            @Widget(title = "Wildcard")
+            @Label("Wildcard")
             WILDCARD,
             /** Allow Regex in dictionary lookup column */
-            @Widget(title = "Regex")
+            @Label("Regex")
             REGEX;
     }
 
     /** Whether only exact matches are acceptable or the next-lower or next-higher match is also of interest */
     enum MatchBehaviour {
             /** Only match if the number is one of the dict values */
-            @Widget(title = "Insert missing values")
+            @Label("Insert missing values")
             EQUAL,
             /** Match to the queried number or, if not available, the next lower number */
-            @Widget(title = "Match next smaller")
+            @Label("Match next smaller")
             EQUALORSMALLER,
             /** Match to the queried number or, if not available, the next higher number */
-            @Widget(title = "Match next larger")
+            @Label("Match next larger")
             EQUALORLARGER;
     }
 
     /** In what direction to search (determines which match is selected, can speed up things) */
     enum SearchDirection {
             /** Search forwards through input table, select first match */
-            @Widget(title = "Use first")
+            @Label("Use first")
             FORWARD,
             /** Search backwards through input table, select last match */
-            @Widget(title = "Use last")
+            @Label("Use last")
             BACKWARD;
     }
 

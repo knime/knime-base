@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -110,13 +111,13 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
     DataTypeOptions m_parseType = DataTypeOptions.DOUBLE;
 
     enum DataTypeOptions {
-            @Widget(title = "Number (Integer)")
+            @Label("Number (Integer)")
             INT,
 
-            @Widget(title = "Number (Double)")
+            @Label("Number (Double)")
             DOUBLE,
 
-            @Widget(title = "Number (Long)")
+            @Label("Number (Long)")
             LONG;
     }
 

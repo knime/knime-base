@@ -52,6 +52,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -154,9 +155,9 @@ final class TableCropperSettings implements DefaultNodeSettings {
     }
 
     enum ColumnRangeMode {
-            @Widget(title = "By name") //
+            @Label("By name") //
             BY_NAME, //
-            @Widget(title = "By number") //
+            @Label("By number") //
             BY_NUMBER;
     }
 

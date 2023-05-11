@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.table.updater;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -74,11 +75,11 @@ final class TableUpdaterNodeSettings implements DefaultNodeSettings {
     boolean m_performUpdateWithMissingValues = true;
 
     enum UnmatchedHandling {
-            @Widget(title = "Ignore")
+            @Label("Ignore")
             IGNORE, //
-            @Widget(title = "Append")
+            @Label("Append")
             APPEND, //
-            @Widget(title = "Fail")
+            @Label("Fail")
             FAIL;
     }
 }

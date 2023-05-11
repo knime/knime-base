@@ -51,7 +51,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
  * Configuration to column merger node.
@@ -80,16 +80,16 @@ final class ColumnMergerConfiguration {
     /** Policy how to place output. */
     enum OutputPlacement {
             /** Replace both columns, put output at position of primary column. */
-            @Widget(title = "Replace primary and delete secondary")
+            @Label("Replace primary and delete secondary")
             ReplaceBoth,
             /** Replace primary column. */
-            @Widget(title = "Replace primary")
+            @Label("Replace primary")
             ReplacePrimary,
             /** Replace secondary column. */
-            @Widget(title = "Replace secondary")
+            @Label("Replace secondary")
             ReplaceSecondary,
             /** Append as new column. */
-            @Widget(title = "Append as new column")
+            @Label("Append as new column")
             AppendAsNewColumn
     }
 

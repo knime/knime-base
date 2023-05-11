@@ -84,7 +84,7 @@ import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.util.ColumnFilter;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.DataValueColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
  * This is the model implementation of ColumnHeaderExtractor.
@@ -104,18 +104,18 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     /** Selected column type. */
     enum ColType {
-        /** All columns. */
-        @Widget(title = "All")
-        ALL(DataValue.class),
-        /** String-compatible columns. */
-        @Widget(title = "String")
-        STRING(StringValue.class),
-        /** Integer-compatible columns. */
-        @Widget(title = "Integer")
-        INTEGER(IntValue.class),
-        /** Double-compatible columns. */
-        @Widget(title = "Double")
-        DOUBLE(DoubleValue.class);
+            /** All columns. */
+            @Label("All")
+            ALL(DataValue.class),
+            /** String-compatible columns. */
+            @Label("String")
+            STRING(StringValue.class),
+            /** Integer-compatible columns. */
+            @Label("Integer")
+            INTEGER(IntValue.class),
+            /** Double-compatible columns. */
+            @Label("Double")
+            DOUBLE(DoubleValue.class);
 
         private final ColumnFilter m_filter;
 
@@ -212,7 +212,7 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-            throws Exception {
+        throws Exception {
         final var inSpec = inData[0].getDataTableSpec();
         final Map<Integer, String> scheme = renamingScheme(inSpec);
         DataTableSpec spec0 = createOutSpecPort0(inSpec, scheme);
@@ -262,7 +262,7 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
     private DataTableSpec createOutSpecPort0(final DataTableSpec spec, final Map<Integer, String> scheme) {
         final String[] colNames;
         if (m_transposeColHeader.getBooleanValue()) {
-            colNames = new String[] { "Column Header" };
+            colNames = new String[]{"Column Header"};
         } else if (m_replaceColHeader.getBooleanValue()) {
             colNames = scheme.values().stream().toArray(String[]::new);
         } else {
@@ -337,26 +337,26 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
 
     @Override
     protected void loadInternals(final File internDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 
     @Override
     protected void saveInternals(final File internDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
         switch (outIndex) {
-        case 0:
-            return m_hiliteHandler;
-        case 1:
-            return super.getOutHiLiteHandler(0);
-        default:
-            throw new IndexOutOfBoundsException(
-                "A wrong node port was specified. The index should be '0' or '1', not '" + outIndex + "'.");
+            case 0:
+                return m_hiliteHandler;
+            case 1:
+                return super.getOutHiLiteHandler(0);
+            default:
+                throw new IndexOutOfBoundsException(
+                    "A wrong node port was specified. The index should be '0' or '1', not '" + outIndex + "'.");
         }
     }
 
@@ -365,8 +365,10 @@ public class ColumnHeaderExtractorNodeModel extends NodeModel {
         return new SettingsModelBoolean("replaceColHeader", true);
     }
 
-    /** @param replaceColHeader column header model (enable/disable listener)
-     * @return new settings model for prefix of new header */
+    /**
+     * @param replaceColHeader column header model (enable/disable listener)
+     * @return new settings model for prefix of new header
+     */
     static SettingsModelString createUnifyHeaderPrefix(final SettingsModelBoolean replaceColHeader) {
         final var result = new SettingsModelString("unifyHeaderPrefix", "Column ");
         replaceColHeader.addChangeListener(chEvent -> result.setEnabled(replaceColHeader.getBooleanValue()));

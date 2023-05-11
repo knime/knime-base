@@ -97,7 +97,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -187,9 +187,9 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
 
     enum AggregationFunction {
-        @Widget(title = "Occurrence count")
+        @Label("Occurrence count")
         COUNT(null, null),
-        @Widget(title = "Sum")
+        @Label("Sum")
         SUM(
             (gs, os) -> DataValueAggregate.create()
                 .withOperatorInfo("SumNumeric_1.0", "Sum",
@@ -212,7 +212,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                 .withWeighting(weight, MultiplyNumeric::new)
                 .build(gs, os)
         ),
-        @Widget(title = "Average")
+        @Label("Average")
         AVERAGE(
             (gs, os) -> DataValueAggregate.create()
                 .withOperatorInfo("AverageNumeric_1.0", "Average",
@@ -231,9 +231,9 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                 .withWeighting(weight, MultiplyNumeric::new)
                 .build(gs, os)
         ),
-        @Widget(title = "Minimum")
+        @Label("Minimum")
         MIN(MinOperator::new, null),
-        @Widget(title = "Maximum")
+        @Label("Maximum")
         MAX(MaxOperator::new, null);
 
         private BiFunction<GlobalSettings, OperatorColumnSettings, AggregationOperator> m_unweighted;

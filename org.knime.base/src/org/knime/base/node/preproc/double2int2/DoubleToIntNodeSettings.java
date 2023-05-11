@@ -66,6 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -113,13 +114,13 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     enum RoundingOptions {
 
-            @Widget(title = "Round")
+            @Label("Round")
             ROUND,
 
-            @Widget(title = "Floor")
+            @Label("Floor")
             FLOOR,
 
-            @Widget(title = "Ceil")
+            @Label("Ceil")
             CEIL;
 
     }

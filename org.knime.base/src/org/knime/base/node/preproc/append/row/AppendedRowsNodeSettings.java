@@ -54,6 +54,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -112,21 +113,21 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     ColumnSetOperation m_columnSetOperation = ColumnSetOperation.UNION;
 
     enum RowIdResolution {
-        @Widget(title="Skip")
+        @Label("Skip")
         SKIP,
 
-        @Widget(title="Append suffix")
+        @Label("Append suffix")
         APPEND,
 
-        @Widget(title="Fail")
+        @Label("Fail")
         FAIL;
     }
 
     enum ColumnSetOperation {
-        @Widget(title="Intersection")
+        @Label("Intersection")
         INTERSECTION,
 
-        @Widget(title="Union")
+        @Label("Union")
         UNION;
     }
 
