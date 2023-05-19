@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -134,7 +135,8 @@ public class DefaultIndividualTableReaderTest {
         when(m_read.getMaxProgress()).thenReturn(OptionalLong.of(10));
         m_testInstance.fillOutput(m_read, m_output, m_monitor);
         verify(m_read, times(3)).next();
-        verify(m_read, times(2)).getProgress();
+        // getProgress is only called every 973 rows
+        verify(m_read, never()).getProgress();
         verify(m_output).push(m_first);
         verify(m_output).push(m_second);
     }

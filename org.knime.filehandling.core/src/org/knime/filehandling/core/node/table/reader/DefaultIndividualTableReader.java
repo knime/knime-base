@@ -129,22 +129,29 @@ public final class DefaultIndividualTableReader<V> implements IndividualTableRea
         RandomAccessible<V> next;
         for (long i = 1; (next = read.next()) != null; i++) {
             progress.checkCanceled();
-            final long finalI = i;
-            progress.setMessage(() -> String.format("Reading row %s", finalI));
+            if (reportProgress(i)) {
+                final long finalI = i;
+                progress.setMessage(() -> String.format("Reading row %s", finalI));
+            }
             output.push(toRow(next));
         }
     }
 
     private void fillOutputWithProgress(final Read<V> read, final RowOutput output,
         final ExecutionMonitor progress, final double size) throws Exception {
-        final double doubleSize = size;
         RandomAccessible<V> next;
         for (long i = 1; (next = read.next()) != null; i++) {
             progress.checkCanceled();
-            final long finalI = i;
-            progress.setProgress(read.getProgress() / doubleSize, () -> String.format("Reading row %s", finalI));
+            if (reportProgress(i)) {
+                final long finalI = i;
+                progress.setProgress(read.getProgress() / size, () -> String.format("Reading row %s", finalI));
+            }
             output.push(toRow(next));
         }
+    }
+
+    private static boolean reportProgress(final long rowIndex) {
+        return rowIndex % 973 == 0;
     }
 
 }
