@@ -166,7 +166,15 @@ public final class ReadUtils {
         return decorated;
     }
 
-    private static <V> Read<V> decorateSkipEmpty(final Read<V> read, final TableReadConfig<?> config) {
+    /**
+     * Skips empty rows in the given read if necessary according to the config.
+     *
+     * @param <V> the type of values read
+     * @param read to decorate
+     * @param config for reading
+     * @return the decorated read if decoration is necessary, otherwise the input read
+     */
+    public static <V> Read<V> decorateSkipEmpty(final Read<V> read, final TableReadConfig<?> config) {
         if (config.skipEmptyRows()) {
             return new SkipEmptyRead<>(read);
         } else {
@@ -174,7 +182,15 @@ public final class ReadUtils {
         }
     }
 
-    private static <V> Read<V> decorateAllowShortRows(final Read<V> read, final TableReadConfig<?> config) {
+    /**
+     * Enforces the same number of columns in all rows if not {@link TableReadConfig#allowShortRows()}.
+     *
+     * @param <V> the type of values read
+     * @param read to decorate
+     * @param config for reading
+     * @return the decorated read if decoration is necessary, otherwise the input read
+     */
+    public static <V> Read<V> decorateAllowShortRows(final Read<V> read, final TableReadConfig<?> config) {
         if (!config.allowShortRows()) {
             return new CheckSameSizeRead<>(read);
         } else {

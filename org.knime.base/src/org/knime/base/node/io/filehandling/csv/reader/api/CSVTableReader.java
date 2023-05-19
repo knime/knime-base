@@ -51,12 +51,18 @@ package org.knime.base.node.io.filehandling.csv.reader.api;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.nio.channels.Channels;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.OptionalLong;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import org.knime.base.node.io.filehandling.csv.reader.LimittedReader;
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
@@ -71,6 +77,7 @@ import org.knime.filehandling.core.node.table.reader.spec.TableSpecGuesser;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
+import org.knime.filehandling.core.util.FileCompressionUtils;
 
 import com.univocity.parsers.common.TextParsingException;
 import com.univocity.parsers.csv.CsvParser;
@@ -89,8 +96,58 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     @Override
     public Read<String> read(final FSPath path, final TableReadConfig<CSVTableReaderConfig> config)
         throws IOException {
-        return decorateForReading(new CsvRead(path, config), config);
+        return decorateForSequentialReading(new CsvRead(path, config), config);
     }
+
+    @SuppressWarnings("resource") // the returned reads are closed by the client
+    @Override
+    public List<Read<String>> multiRead(final FSPath item, final TableReadConfig<CSVTableReaderConfig> config)
+        throws IOException {
+        if (cannotParallelize(item, config)) {
+            return List.of(read(item, config));
+        }
+
+        var csvConfig = config.getReaderSpecificConfig();
+        var fileSize = Files.size(item);
+        var maxNumChunks = csvConfig.getMaxNumChunksPerFile();
+        var minChunkSize = csvConfig.getMinChunkSizeInBytes();
+        var numChunks = findNumberOfChunks(fileSize, maxNumChunks, minChunkSize);
+        if (numChunks == 1) {
+            return List.of(read(item, config));
+        }
+        var chunkSize = fileSize / numChunks;
+        if (fileSize % numChunks > 0) {
+            // if fileSize is not divisible by numChunks, then each chunk would actually need
+            // to read a fraction of a byte more, which in the worst case can lead to rows not being read
+            // hence we increase the individual chunkSize by 1 byte to ensure that everything is read
+            chunkSize++;
+        }
+        var reads = new ArrayList<Read<String>>(numChunks);
+        for (int i = 0; i < numChunks; i++) {//NOSONAR
+            Read<String> read = new ParallelCsvRead(item, i * chunkSize, chunkSize, config);
+            read = ReadUtils.decorateAllowShortRows(read, config);
+            read = ReadUtils.decorateSkipEmpty(read, config);
+            reads.add(read);
+        }
+        return reads;
+    }
+
+    private static int findNumberOfChunks(final long fileSize, final int maxNumChunks, final long minChunkSize) {
+        var numChunksWithMinSize = fileSize / minChunkSize;
+        return (int)Math.max(1, Math.min(maxNumChunks, numChunksWithMinSize));
+
+    }
+
+    private static boolean cannotParallelize(final FSPath item, final TableReadConfig<CSVTableReaderConfig> config) {
+        var csvConfig = config.getReaderSpecificConfig();
+        return !TableReader.isLocalPath(item)
+                || FileCompressionUtils.mightBeCompressed(item)//
+                || config.limitRows()//
+                || config.skipRows()//
+                || !csvConfig.noRowDelimitersInQuotes()//
+                || csvConfig.skipLines();
+    }
+
 
     /**
      * Parses the provided {@link InputStream} containing csv into a {@link Read} using the given
@@ -105,12 +162,12 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
     public static Read<String> read(final InputStream inputStream,
         final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
         final var read = new CsvRead(inputStream, config);
-        return decorateForReading(read, config);
+        return decorateForSequentialReading(read, config);
     }
 
     @Override
-    public TypedReaderTableSpec<Class<?>> readSpec(final FSPath path, final TableReadConfig<CSVTableReaderConfig> config,
-        final ExecutionMonitor exec) throws IOException {
+    public TypedReaderTableSpec<Class<?>> readSpec(final FSPath path,
+        final TableReadConfig<CSVTableReaderConfig> config, final ExecutionMonitor exec) throws IOException {
         final TableSpecGuesser<FSPath, Class<?>, String> guesser = createGuesser(config.getReaderSpecificConfig());
         try (final var read = new CsvRead(path, config)) {
             return guesser.guessSpec(read, config, exec, path);
@@ -131,22 +188,174 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      * @throws IOException if a stream can not be created from the provided file.
      */
     @SuppressWarnings("resource") // closing the read is the responsibility of the caller
-    private static Read<String> decorateForReading(final CsvRead read,
+    private static Read<String> decorateForSequentialReading(final CsvRead read,
         final TableReadConfig<CSVTableReaderConfig> config) {
-        Read<String> filtered = read;
+        Read<String> decorated = read;
         final boolean hasColumnHeader = config.useColumnHeaderIdx();
         final boolean skipRows = config.skipRows();
         if (skipRows) {
             final long numRowsToSkip = config.getNumRowsToSkip();
-            filtered = ReadUtils.skip(filtered, hasColumnHeader ? (numRowsToSkip + 1) : numRowsToSkip);
+            decorated = ReadUtils.skip(decorated, hasColumnHeader ? (numRowsToSkip + 1) : numRowsToSkip);
         }
         if (config.limitRows()) {
             final long numRowsToKeep = config.getMaxRows();
             // in case we skip rows, we already skipped the column header
             // otherwise we have to read one more row since the first is the column header
-            filtered = ReadUtils.limit(filtered, hasColumnHeader && !skipRows ? (numRowsToKeep + 1) : numRowsToKeep);
+            decorated = ReadUtils.limit(decorated, hasColumnHeader && !skipRows ? (numRowsToKeep + 1) : numRowsToKeep);
         }
-        return filtered;
+        return ReadUtils.decorateForReading(decorated, config);
+    }
+
+    private static final class ParallelCsvRead implements Read<String> {
+
+        private final LimittedReader m_reader;
+
+        private final CsvParser m_parser;
+
+        private final ErrorHandler m_errorParser;
+
+        private final long m_limit;
+
+        private boolean m_skipRow;
+
+        ParallelCsvRead(final FSPath path, final long offset, final long numBytesToRead,
+            final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
+            CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
+            m_errorParser = new ErrorHandler(csvReaderConfig.getCsvSettings());
+            @SuppressWarnings("resource") // closed by m_reader
+            var stream = createInputStream(path, offset);
+            var csvSettings = csvReaderConfig.getCsvSettings();
+            m_reader = createReader(stream, numBytesToRead, csvReaderConfig);
+            @SuppressWarnings("resource") // we close the underlying m_reader
+            var decoratedReader = decorateForReading(m_reader, csvReaderConfig, csvSettings);
+            // has to happen after the line separator is potentially changed by decorateForReading
+            m_parser = new CsvParser(csvSettings);
+            m_parser.beginParsing(decoratedReader);
+            m_limit = numBytesToRead;
+            // when we read an offset, we likely start reading in the middle of a row, therefore we skip this partial
+            // row
+            m_skipRow = offset > 0 || config.useColumnHeaderIdx();
+        }
+
+        // csvSettings have to passed separately because CSVTableReadConfig#getCSVSettings clones them
+        // and the line separator change has to happen in the settings that are used to create the parser
+        private static Reader decorateForReading(final Reader reader, final CSVTableReaderConfig config,
+            final CsvParserSettings csvSettings) {
+            if (config.useLineBreakRowDelimiter()) {
+                csvSettings.getFormat().setLineSeparator(OSIndependentNewLineReader.LINE_BREAK);
+                return new BufferedReader(new OSIndependentNewLineReader(reader));
+            } else {
+                return new BufferedReader(reader);
+            }
+        }
+
+        @SuppressWarnings("resource")// responsibility of the caller
+        private static InputStream createInputStream(final FSPath path, final long offset) throws IOException {
+            var channel = Files.newByteChannel(path, StandardOpenOption.READ);
+            channel.position(offset);
+            return Channels.newInputStream(channel);
+        }
+
+        private static LimittedReader createReader(final InputStream stream, final long bytesToRead,
+            final CSVTableReaderConfig config) {
+            final var charset = getCharset(config);
+            return new LimittedReader(stream, charset, config.getLineSeparator(), bytesToRead);
+        }
+
+        @Override
+        public RandomAccessible<String> next() throws IOException {
+            try {
+                if (m_skipRow) {
+                    m_skipRow = false;
+                    m_parser.parseNext();
+                }
+                var row = m_parser.parseNext();
+                return row == null ? null : RandomAccessibleUtils.createFromArrayUnsafe(row);
+            } catch (TextParsingException ex) {
+                throw m_errorParser.parse(ex);
+            }
+        }
+
+        @Override
+        public OptionalLong getMaxProgress() {
+            return OptionalLong.of(m_limit);
+        }
+
+        @Override
+        public long getProgress() {
+            return m_reader.getByteCount();
+        }
+
+        @Override
+        public void close() throws IOException {
+            m_parser.stopParsing();
+            m_reader.close();
+        }
+
+        @Override
+        public boolean needsDecoration() {
+            return false;
+        }
+
+    }
+
+    private static Charset getCharset(final CSVTableReaderConfig config) {
+        final String charSetName = config.getCharSetName();
+        return charSetName == null ? Charset.defaultCharset() : Charset.forName(charSetName);
+    }
+
+    private static final class ErrorHandler {
+
+        private static final NodeLogger LOGGER = NodeLogger.getLogger(ErrorHandler.class);
+
+        private static final Pattern INDEX_EXTRACTION_PATTERN =
+                Pattern.compile("Index (\\d+) out of bounds for length \\d+");
+
+        private final CsvParserSettings m_csvParserSettings;
+
+        ErrorHandler(final CsvParserSettings csvParserSettings) {
+            m_csvParserSettings = csvParserSettings;
+        }
+
+        IOException parse(final TextParsingException e) {
+          //Log original exception message
+            LOGGER.debug(e.getMessage(), e);
+            final Throwable cause = e.getCause();
+            if (cause instanceof ArrayIndexOutOfBoundsException) {
+                final String message = cause.getMessage();
+                //Exception handling in case maxCharsPerCol or maxCols are exceeded like in the AbstractParser
+                final int index = extractErrorIndex(message);
+                // for some reason when running in non-debug mode the memory limit per column exception often
+                // contains a null message
+                if (index == m_csvParserSettings.getMaxCharsPerColumn() || message == null) {
+                    return new IOException("Memory limit per column exceeded. Please adapt the according setting.",
+                        e);
+                } else if (index == m_csvParserSettings.getMaxColumns()) {
+                    return new IOException("Number of parsed columns exceeds the defined limit ("
+                        + m_csvParserSettings.getMaxColumns() + "). Please adapt the according setting.", e);
+                } else {
+                    // fall through to default exception
+                }
+            }
+            return new IOException(
+                "Something went wrong during the parsing process. For further details please have a look into "
+                    + "the log.",
+                e);
+        }
+
+        private static int extractErrorIndex(final String message) {
+            if (message != null) {
+                final var matcher = INDEX_EXTRACTION_PATTERN.matcher(message);
+                if (matcher.find()) {
+                    try {
+                        return Integer.parseInt(matcher.group(1));
+                    } catch (NumberFormatException ex) {
+                        LOGGER.debug("Can't parse the matched number.", ex);
+                    }
+                }
+            }
+            return -1;
+        }
     }
 
     /**
@@ -156,10 +365,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
      */
     private static final class CsvRead implements Read<String> {
 
-        private static final Pattern INDEX_EXTRACTION_PATTERN =
-            Pattern.compile("Index (\\d+) out of bounds for length \\d+");
-
-        private static final NodeLogger LOGGER = NodeLogger.getLogger(CsvRead.class);
+        private final ErrorHandler m_errorParser;
 
         /** a parser used to parse the file */
         private final CsvParser m_parser;
@@ -169,9 +375,6 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
         /** the size of the file being read */
         private final long m_size;
-
-        /** the {@link CsvParserSettings} */
-        private final CsvParserSettings m_csvParserSettings;
 
         /** The {@link CompressionAwareCountingInputStream} which creates the necessary streams */
         private final CompressionAwareCountingInputStream m_compressionAwareStream;
@@ -206,26 +409,27 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             m_compressionAwareStream = inputStream;
 
             final CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
-            // Get the Univocity Parser settings from the reader specific configuration.
-            m_csvParserSettings = csvReaderConfig.getCsvSettings();
-            m_reader = createReader(csvReaderConfig);
+            var csvSettings = csvReaderConfig.getCsvSettings();
+            m_errorParser = new ErrorHandler(csvSettings);
+            m_reader = createReader(csvReaderConfig, csvSettings, m_compressionAwareStream);
             if (csvReaderConfig.skipLines()) {
                 skipLines(csvReaderConfig.getNumLinesToSkip());
             }
-            m_parser = new CsvParser(m_csvParserSettings);
+            m_parser = new CsvParser(csvSettings);
             m_parser.beginParsing(m_reader);
         }
 
         @SuppressWarnings("resource")
-        private BufferedReader createReader(final CSVTableReaderConfig csvReaderConfig) {
-            final String charSetName = csvReaderConfig.getCharSetName();
-            final Charset charset = charSetName == null ? Charset.defaultCharset() : Charset.forName(charSetName);
+        private static BufferedReader createReader(final CSVTableReaderConfig csvReaderConfig,
+            // csvSettings need to be passed separately because CSVTableReaderConfig.getCsvSettings clones them
+            final CsvParserSettings csvSettings, final InputStream stream) {
+            final var charset = getCharset(csvReaderConfig);
             if (csvReaderConfig.useLineBreakRowDelimiter()) {
-                m_csvParserSettings.getFormat().setLineSeparator(OSIndependentNewLineReader.LINE_BREAK);
+                csvSettings.getFormat().setLineSeparator(OSIndependentNewLineReader.LINE_BREAK);
                 return new BufferedReader(
-                    new OSIndependentNewLineReader(BomEncodingUtils.createReader(m_compressionAwareStream, charset)));
+                    new OSIndependentNewLineReader(BomEncodingUtils.createReader(stream, charset)));
             } else {
-                return BomEncodingUtils.createBufferedReader(m_compressionAwareStream, charset);
+                return BomEncodingUtils.createBufferedReader(stream, charset);
             }
         }
 
@@ -235,46 +439,9 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             try {
                 row = m_parser.parseNext();
             } catch (final TextParsingException e) {
-                //Log original exception message
-                LOGGER.debug(e.getMessage(), e);
-                final Throwable cause = e.getCause();
-                if (cause instanceof ArrayIndexOutOfBoundsException) {
-                    final String message = cause.getMessage();
-                    //Exception handling in case maxCharsPerCol or maxCols are exceeded like in the AbstractParser
-                    final int index = extractErrorIndex(message);
-                    // for some reason when running in non-debug mode the memory limit per column exception often
-                    // contains a null message
-                    if (index == m_csvParserSettings.getMaxCharsPerColumn() || message == null) {
-                        throw new IOException("Memory limit per column exceeded. Please adapt the according setting.",
-                            e);
-                    } else if (index == m_csvParserSettings.getMaxColumns()) {
-                        throw new IOException("Number of parsed columns exceeds the defined limit ("
-                            + m_csvParserSettings.getMaxColumns() + "). Please adapt the according setting.", e);
-                    } else {
-                        // fall through to default exception
-                    }
-                }
-                throw new IOException(
-                    "Something went wrong during the parsing process. For further details please have a look into "
-                        + "the log.",
-                    e);
-
+                throw m_errorParser.parse(e);
             }
             return row == null ? null : RandomAccessibleUtils.createFromArrayUnsafe(row);
-        }
-
-        private static int extractErrorIndex(final String message) {
-            if (message != null) {
-                final var matcher = INDEX_EXTRACTION_PATTERN.matcher(message);
-                if (matcher.find()) {
-                    try {
-                        return Integer.parseInt(matcher.group(1));
-                    } catch (NumberFormatException ex) {
-                        LOGGER.debug("Can't parse the matched number.", ex);
-                    }
-                }
-            }
-            return -1;
         }
 
         @Override
@@ -305,6 +472,11 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             for (var i = 0; i < n; i++) {
                 m_reader.readLine(); //NOSONAR
             }
+        }
+
+        @Override
+        public boolean needsDecoration() {
+            return false;
         }
 
     }

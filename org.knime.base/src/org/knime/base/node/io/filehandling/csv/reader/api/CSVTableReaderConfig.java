@@ -109,9 +109,17 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
 
     private QuoteOption m_quoteOption;
 
+    /** If true enables parallel reading of CSV files. Added in 5.1.0. Default is false **/
+    private boolean m_noLineSeparatorsInQuotes;
+
     private char m_thousandsSeparator = '\0';
 
     private char m_decimalSeparator = '.';
+
+    private int m_maxNumChunksPerFile = Runtime.getRuntime().availableProcessors() / 2;
+
+    // defaults to 64MB
+    private long m_minChunkSizeInBytes = 1L << 26;
 
     /**
      * Constructor.
@@ -347,6 +355,58 @@ public final class CSVTableReaderConfig implements ReaderSpecificConfig<CSVTable
      */
     public QuoteOption getQuoteOption() {
         return m_quoteOption;
+    }
+
+    /**
+     * @return true if there are no line separators inside of quotes.
+     * @since 5.1
+     */
+    public boolean noRowDelimitersInQuotes() {
+        return m_noLineSeparatorsInQuotes;
+    }
+
+    /**
+     * @param noRowDelimitersInQuotes whether quotes may contain line separators
+     * @since 5.1
+     */
+    public void noRowDelimitersInQuotes(final boolean noRowDelimitersInQuotes) {
+        m_noLineSeparatorsInQuotes = noRowDelimitersInQuotes;
+    }
+
+    /**
+     * The default is the number of available processors.
+     *
+     * @return the maximum number of chunks to split a single file into
+     * @since 5.1
+     */
+    public int getMaxNumChunksPerFile() {
+        return m_maxNumChunksPerFile ;
+    }
+
+    /**
+     * @param maxNumChunksPerFile the maximum number of chunks to split a single file into
+     * @since 5.1
+     */
+    public void setMaxNumChunksPerFile(final int maxNumChunksPerFile) {
+        m_maxNumChunksPerFile = maxNumChunksPerFile;
+    }
+
+    /**
+     * The default is 64MB.
+     *
+     * @return the minimum size of a chunk individual files are split into
+     * @since 5.1
+     */
+    public long getMinChunkSizeInBytes() {
+        return m_minChunkSizeInBytes;
+    }
+
+    /**
+     * @param minChunkSizeInBytes the minimum size of a chunk individual files are split into
+     * @since 5.1
+     */
+    public void setMinChunkSizeInBytes(final long minChunkSizeInBytes) {
+        m_minChunkSizeInBytes = minChunkSizeInBytes;
     }
 
     /**

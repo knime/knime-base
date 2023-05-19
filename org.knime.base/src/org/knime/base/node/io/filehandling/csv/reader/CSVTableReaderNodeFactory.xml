@@ -26,6 +26,17 @@
             <i>More information about file handling in KNIME can be found in the official</i> 
             <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling Guide.</i></a>
             </p>
+            
+            <p>
+            <b>Parallel reading</b>: Individual files can be read in parallel if 
+            </p>
+            <ul>
+                <li>They are located on the machine that is running this node.</li>
+                <li>They don't contain any quotes that contain row delimiters.</li>
+                <li>They are not gzip compressed.</li>
+                <li>No lines or rows are limited or skipped.</li>
+                <li>The file index is not prepended to the RowID.</li>
+            </ul>
 
 		</intro>
 		<tab name="Settings">
@@ -144,6 +155,7 @@
 			  Select this box if you want to prepend a prefix that depends on the index of the source file to the row IDs.
 			  The prefix for the first file is "File_0_", for the second "File_1_" and so on.
 			  This option is useful if the row IDs within a single file are unique but the same row IDs appear in multiple files.
+			  Prepending the file index prevents parallel reading of individual files.
 			</option>
 			<option name="Support short data rows">
 	          Select this box if some rows may be shorter than others (filled with missing values).
@@ -203,6 +215,10 @@
 			<option name="Replace empty quoted strings with missing values">
 				Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cells.
 			</option>
+			<option name="Quotes contain no row delimiters">
+			    Check this box if there are no quotes that contain row delimiters inside the files.
+			    The absence of row delimiters inside of quotes is necessary for parallel reading of individual files.
+			</option>
 			<option name="Table specification">
 			  If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
 	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
@@ -236,15 +252,18 @@
 	    <tab name="Limit Rows">
 			<option name="Skip first lines">
 	          If enabled, the specified number of lines are skipped in the input file before the parsing starts. 
-	          Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments) 
+	          Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).
+	          Skipping lines prevents parallel reading of individual files.
 			</option>
 			<option name="Skip first data rows">
 	          If enabled, the specified number of valid data rows are skipped. This has no effect on which row will be 
 	          chosen as a column header.
+	          Skipping rows prevents parallel reading of individual files.
 			</option>
 			<option name="Limit data rows">
 	          If enabled, only the specified number of data rows are read. The column header row (if selected) is 
-	          not taken into account.    
+	          not taken into account.
+	          Limiting rows prevents parallel reading of individual files.
 			</option>
         </tab>
         <tab name="Encoding">

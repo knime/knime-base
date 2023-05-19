@@ -176,6 +176,9 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
     private final ButtonGroup m_quoteOptionsButtonGroup;
 
+    private final JCheckBox m_noRowDelimitersInQuotes =
+        new JCheckBox("Quotes contain no row delimiters (necessary for parallel reading)");
+
     private final JButton m_startAutodetection;
 
     private final JButton m_autoDetectionSettings;
@@ -610,6 +613,18 @@ public abstract class AbstractCSVTableReaderNodeDialog
         gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(Box.createHorizontalBox(), gbc);
+        gbc.insets = new Insets(0, 0, 5, 0);
+        gbc.gridx = 0;
+        gbc.gridwidth = QuoteOption.values().length;
+        ++gbc.gridy;
+        panel.add(m_noRowDelimitersInQuotes, gbc);
+        gbc.insets = new Insets(5, 0, 0, 0);
+        ++gbc.gridy;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(Box.createHorizontalBox(), gbc);
+
         return panel;
     }
 
@@ -902,6 +917,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
         csvReaderConfig
             .setQuoteOption(QuoteOption.valueOf(m_quoteOptionsButtonGroup.getSelection().getActionCommand()));
 
+        csvReaderConfig.noRowDelimitersInQuotes(m_noRowDelimitersInQuotes.isSelected());
+
         csvReaderConfig.setCharSetName(m_encodingPanel.getSelectedCharsetName().orElse(null));
 
         csvReaderConfig.setAutoDetectionBufferSize(m_autoDetectionBufferSize);
@@ -1025,6 +1042,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_replaceQuotedEmptyStringChecker.setSelected(csvReaderConfig.replaceEmptyWithMissing());
 
         setQuoteOption(csvReaderConfig.getQuoteOption());
+
+        m_noRowDelimitersInQuotes.setSelected(csvReaderConfig.noRowDelimitersInQuotes());
 
         m_encodingPanel.loadSettings(csvReaderConfig.getCharSetName());
 

@@ -86,6 +86,13 @@ enum CSVMultiTableReadConfigSerializer
 
         INSTANCE;
 
+
+    private static final String CFG_MAX_NUM_CHUNKS_PER_FILE = "max_num_chunks_per_file";
+
+    private static final String CFG_MIN_CHUNK_SIZE = "min_chunk_size_in_bytes";
+
+    private static final String CFG_NO_ROW_DELIMITERS_IN_QUOTES = "no_row_delimiters_in_quotes";
+
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVMultiTableReadConfigSerializer.class);
 
     private static final boolean DEFAULT_FAIL_ON_DIFFERING_SPECS = true;
@@ -337,6 +344,11 @@ enum CSVMultiTableReadConfigSerializer
         }
         cc.setQuoteOption(quoteOption);
 
+        cc.noRowDelimitersInQuotes(settings.getBoolean(CFG_NO_ROW_DELIMITERS_IN_QUOTES, false));
+
+        cc.setMinChunkSizeInBytes(settings.getLong(CFG_MIN_CHUNK_SIZE, cc.getMinChunkSizeInBytes()));
+        cc.setMaxNumChunksPerFile(settings.getInt(CFG_MAX_NUM_CHUNKS_PER_FILE, cc.getMaxNumChunksPerFile()));
+
         cc.limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_MEMORY_PER_COLUMN, true));
         cc.setMaxColumns(settings.getInt(CFG_MAXIMUM_NUMBER_OF_COLUMNS, CSVTableReaderConfig.DEFAULT_MAX_COLUMNS));
 
@@ -430,6 +442,18 @@ enum CSVMultiTableReadConfigSerializer
         }
         cc.setQuoteOption(quoteOption);
 
+        if (settings.containsKey(CFG_NO_ROW_DELIMITERS_IN_QUOTES)) {
+            cc.noRowDelimitersInQuotes(settings.getBoolean(CFG_NO_ROW_DELIMITERS_IN_QUOTES));
+        }
+
+        if (settings.containsKey(CFG_MIN_CHUNK_SIZE)) {
+            cc.setMinChunkSizeInBytes(settings.getLong(CFG_MIN_CHUNK_SIZE));
+        }
+
+        if (settings.containsKey(CFG_MAX_NUM_CHUNKS_PER_FILE)) {
+            cc.setMaxNumChunksPerFile(settings.getInt(CFG_MAX_NUM_CHUNKS_PER_FILE));
+        }
+
         cc.limitCharsPerColumn(settings.getBoolean(CFG_LIMIT_MEMORY_PER_COLUMN));
         cc.setMaxColumns(settings.getInt(CFG_MAXIMUM_NUMBER_OF_COLUMNS));
 
@@ -513,6 +537,10 @@ enum CSVMultiTableReadConfigSerializer
 
         settings.addString(CFG_QUOTE_OPTION, cc.getQuoteOption().name());
         settings.addBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING, cc.replaceEmptyWithMissing());
+        settings.addBoolean(CFG_NO_ROW_DELIMITERS_IN_QUOTES, cc.noRowDelimitersInQuotes());
+
+        settings.addLong(CFG_MIN_CHUNK_SIZE, cc.getMinChunkSizeInBytes());
+        settings.addInt(CFG_MAX_NUM_CHUNKS_PER_FILE, cc.getMaxNumChunksPerFile());
 
         settings.addString(CFG_THOUSANDS_SEPARATOR, cc.getThousandsSeparator());
         settings.addString(CFG_DECIMAL_SEPARATOR, cc.getDecimalSeparator());
