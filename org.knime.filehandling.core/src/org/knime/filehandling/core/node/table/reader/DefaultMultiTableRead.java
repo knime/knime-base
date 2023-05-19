@@ -94,6 +94,8 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
 
     private final boolean m_keepReadsOpen;
 
+    private final TypeMapperExceptionParser m_typeMapperExceptionParser;
+
     /**
      * Constructor.
      *
@@ -136,6 +138,8 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
         m_sourceGroup = sourceGroup;
         m_individualTableReaderFactorySupplier = individualTableReaderFactorySupplier;
         m_keepReadsOpen = keepReadsOpen;
+        m_typeMapperExceptionParser =
+            new TypeMapperExceptionParser(sourceGroup.size(), tableReadConfig.limitRowsForSpec());
     }
 
     @Override
@@ -148,6 +152,7 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
         return m_tableSpecConfig;
     }
 
+    @SuppressWarnings("resource")
     @Override
     public void fillRowOutput(final RowOutput output, final ExecutionMonitor exec, final FileStoreFactory fsFactory)
         throws Exception {
@@ -186,7 +191,6 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
                 final ExecutionMonitor progress = exec.createSubProgress(1.0 / m_sourceGroup.size());
                 final IndividualTableReader<V> reader = individualTableReaderFactory.apply(item, fsFactory);
                 // the opened resource will be closed by the MultiReadsCloser
-                @SuppressWarnings("resource")
                 final Read<V> read = m_readFn.apply(item);
                 // keep only our special read(s) open
                 if (m_keepReadsOpen) {
@@ -195,7 +199,7 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
                 try {
                     reader.fillOutput(read, output, progress);
                 } catch (TypeMapperException e) {
-                    processAndThrowTypeMapperException(item, e);
+                    throw m_typeMapperExceptionParser.parse(e, item.toString());
                 } finally {
                     if (!m_keepReadsOpen) {
                         // close all other kinds of reads
@@ -257,22 +261,5 @@ public final class DefaultMultiTableRead<I, T, V> implements MultiTableRead<T> {
             final IndividualTableReader<V> reader = individualTableReaderFactory.apply(p, f);
             return new IndividualTablePreviewRowIterator<>(m_readFn.apply(p), reader::toRow);
         });
-    }
-
-    private void processAndThrowTypeMapperException(final I item, final TypeMapperException e) {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(String.format("Row with ID '%s' ", e.getRowKey()));
-        if (m_sourceGroup.size() > 1) {
-            builder.append(String.format("in file '%s' ", item.toString()));
-        }
-        builder.append("can't be converted to the configured data types.");
-        if (m_tableReadConfig.limitRowsForSpec()) {
-            builder
-            .append(" Increasing the number of scanned rows or changing the target types might resolve the issue.");
-        } else {
-            builder.append(" Changing the target types might resolve the issue.");
-        }
-        builder.append(String.format(" Content of row: %s", e.getRandomAccessible()));
-        throw new MappingRuntimeException(builder.toString(), e);
     }
 }

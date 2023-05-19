@@ -55,7 +55,6 @@ import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.BufferedDataTableRowOutput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -168,10 +167,7 @@ public final class MultiTableReader<I, C extends ReaderSpecificConfig<C>, T> {
         specExec.setProgress(1.0);
         exec.setMessage("Reading table");
         final MultiTableRead<T> multiTableRead = runConfig.withoutTransformation(sourceGroup);
-        final BufferedDataTableRowOutput output =
-            new BufferedDataTableRowOutput(exec.createDataContainer(multiTableRead.getOutputSpec()));
-        fillRowOutput(multiTableRead, output, exec.createSubExecutionContext(specConfigured ? 1 : 0.5));
-        return output.getDataTable();
+        return multiTableRead.readTable(exec.createSubExecutionContext(specConfigured ? 1 : 0.5));
     }
 
     private boolean isConfiguredWith(final MultiTableReadConfig<C, T> config, final SourceGroup<I> sourceGroup) {

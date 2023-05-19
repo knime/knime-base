@@ -51,15 +51,34 @@ package org.knime.filehandling.core.node.table.reader;
 import static org.knime.filehandling.core.node.table.reader.util.MultiTableUtils.transformToString;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InternalTableAPI;
+import org.knime.core.node.KNIMEConstants;
+import org.knime.core.node.streamable.BufferedDataTableRowOutput;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.ThreadUtils;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
@@ -74,6 +93,8 @@ import org.knime.filehandling.core.node.table.reader.selector.TableTransformatio
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.type.mapping.DefaultTypeMapper;
 import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapper;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapperException;
+import org.knime.filehandling.core.node.table.reader.util.IndividualTableReader;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.StagedMultiTableRead;
 import org.knime.filehandling.core.node.table.reader.util.TableTransformationFactory;
@@ -166,14 +187,29 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
         return createMultiTableRead(sourceGroup, transformationModel, tableReadConfig, tableSpecConfig);
     }
 
-    private DefaultMultiTableRead<I, T, V> createMultiTableRead(final SourceGroup<I> sourceGroup,
+    // TODO remove tableReadConfig parameter as it is part of m_config
+    private MultiTableRead<T> createMultiTableRead(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel, final TableReadConfig<C> tableReadConfig,
         final TableSpecConfig<T> tableSpecConfig) {
         final var keepReadsOpen = m_reader instanceof KeepReadOpenReader;
-        return new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, tableReadConfig), () -> {
-            IndividualTableReaderFactory<I, T, V> factory = createIndividualTableReaderFactory(transformationModel);
+        var delegate = new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, tableReadConfig), () -> {
+            var factory = createIndividualTableReaderFactory(transformationModel);
             return factory::create;
         }, tableReadConfig, tableSpecConfig, keepReadsOpen);
+        if (!canBeParallelized(sourceGroup)) {
+            return delegate;
+        }
+        var typeMapperExceptionParser =
+            new TypeMapperExceptionParser(sourceGroup.size(), tableReadConfig.limitRowsForSpec());
+        return new ParallelMultiTableRead(delegate, sourceGroup,
+            () -> createIndividualTableReaderFactory(transformationModel), typeMapperExceptionParser);
+    }
+
+    private boolean canBeParallelized(final SourceGroup<I> sourceGroup) {
+        var tableReadConfig = m_config.getTableReadConfig();
+        var specialRowIDs = tableReadConfig.useRowIDIdx() ? tableReadConfig.prependSourceIdxToRowID()
+            : !"Row".equals(tableReadConfig.getPrefixForGeneratedRowIDs());
+        return !specialRowIDs && m_reader.canBeReadInParallel(sourceGroup);
     }
 
     private IndividualTableReaderFactory<I, T, V>
@@ -192,9 +228,15 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
         }
     }
 
+    @SuppressWarnings("resource")
     private Read<V> createRead(final I path, final TableReadConfig<C> config) throws IOException {
         final Read<V> rawRead = m_reader.read(path, config);
-        if (config.decorateRead()) {
+        return decorateRead(config, rawRead);
+    }
+
+    @SuppressWarnings("deprecation")
+    private Read<V> decorateRead(final TableReadConfig<C> config, final Read<V> rawRead) {
+        if (config.decorateRead() && rawRead.needsDecoration()) {
             return ReadUtils.decorateForReading(rawRead, config);
         }
         return rawRead;
@@ -217,5 +259,220 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
 
     private static <I> boolean containsAll(final Set<I> keys, final SourceGroup<I> sourceGroup) {
         return sourceGroup.stream().allMatch(keys::contains);
+    }
+
+    private final class ParallelMultiTableRead implements MultiTableRead<T> {
+
+        private final DefaultMultiTableRead<I, T, V> m_delegate;
+
+        private final SourceGroup<I> m_sourceGroup;
+
+        private final Supplier<IndividualTableReaderFactory<I, T, V>> m_readerFactorySupplier;
+
+        private final TypeMapperExceptionParser m_typeMapperExceptionParser;
+
+        ParallelMultiTableRead(final DefaultMultiTableRead<I, T, V> delegate, final SourceGroup<I> sourceGroup,
+            final Supplier<IndividualTableReaderFactory<I, T, V>> readerFactory,
+            final TypeMapperExceptionParser typeMapperExceptionParser) {
+            m_delegate = delegate;
+            m_sourceGroup = sourceGroup;
+            m_readerFactorySupplier = readerFactory;
+            m_typeMapperExceptionParser = typeMapperExceptionParser;
+        }
+
+        @Override
+        public BufferedDataTable readTable(final ExecutionContext exec) throws Exception {
+            var fsFactory = FileStoreFactory.createFileStoreFactory(exec);
+            var tables = new ArrayList<BufferedDataTable>();
+            for (I item : m_sourceGroup) {
+                exec.checkCanceled();
+                final var itemExec = exec.createSubExecutionContext(1.0 / m_sourceGroup.size());
+                var reads = createReads(item);
+                var chunkReaders = reads.stream()//
+                        .map(r -> new TableChunkReader(r, m_readerFactorySupplier.get().create(item, fsFactory),//
+                            itemExec.createSilentSubExecutionContext(1.0 / reads.size()))//
+                        ).toList();
+                if (chunkReaders.size() == 1) {
+                    // if there is only one chunk execute in current thread
+                    try {
+                        tables.add(chunkReaders.get(0).readTableChunk());
+                    } catch (Exception ex) {
+                        throw tryToParseException(ex, item);
+                    }
+                } else {
+                    var tableChunks = readChunksInParallel(chunkReaders, item);
+                    validateChunks(tableChunks);
+                    tables.addAll(tableChunks);
+                }
+            }
+            var concatenatedTable = concatenateTables(exec, tables);
+            return sanitizeDomain(exec, concatenatedTable);
+        }
+
+        private BufferedDataTable sanitizeDomain(final ExecutionContext exec, final BufferedDataTable table) {
+            var tableSpec = table.getDataTableSpec();
+            var columnsWithTooManyPossibleValues = pruneColumnsWithTooManyPossibleValues(tableSpec);
+            if (columnsWithTooManyPossibleValues.isEmpty()) {
+                return table;
+            }
+            var specCreator = new DataTableSpecCreator(tableSpec);
+            columnsWithTooManyPossibleValues
+                .forEach(c -> specCreator.replaceColumn(tableSpec.findColumnIndex(c.getName()), c));
+            return exec.createSpecReplacerTable(table, specCreator.createSpec());
+        }
+
+        /**
+         * The concatenation logic does not respect the maximal number of possible values, so we have to enforce it
+         */
+        private static List<DataColumnSpec> pruneColumnsWithTooManyPossibleValues(final DataTableSpec spec) {
+            var maxNumPossibleValues = DataContainerSettings.getDefault().getMaxDomainValues();
+            return spec.stream()//
+                    .filter(c -> {
+                        var domain = c.getDomain();
+                        return domain.hasValues() && domain.getValues().size() > maxNumPossibleValues;
+                    }).map(DefaultStagedMultiTableRead.ParallelMultiTableRead::dropPossibleValues)//
+                    .toList();
+        }
+
+        private static DataColumnSpec dropPossibleValues(final DataColumnSpec spec) {
+            var specCreator = new DataColumnSpecCreator(spec);
+            var domainCreator = new DataColumnDomainCreator(spec.getDomain());
+            domainCreator.setValues(null);
+            specCreator.setDomain(domainCreator.createDomain());
+            return specCreator.createSpec();
+        }
+
+        private BufferedDataTable concatenateTables(final ExecutionContext exec,
+            final ArrayList<BufferedDataTable> tables) throws CanceledExecutionException {
+            if (m_config.getTableReadConfig().useRowIDIdx()) {
+                return exec.createConcatenateTable(exec.createSubProgress(0), tables.toArray(BufferedDataTable[]::new));
+            } else {
+                return InternalTableAPI.concatenateWithNewRowID(exec, tables.toArray(BufferedDataTable[]::new));
+            }
+        }
+
+        private void validateChunks(final ArrayList<BufferedDataTable> tableChunks) {
+            if (!m_config.getTableReadConfig().allowShortRows()) {
+                CheckUtils.checkArgument(//
+                    tableChunks.stream()//
+                    .mapToInt(t -> getNumColumns(t))//
+                    .distinct()//
+                    .count() == 1, //
+                        "Not all rows have the same number of cells.");
+            }
+        }
+
+        private ArrayList<BufferedDataTable> readChunksInParallel(final List<TableChunkReader> chunkReaders,
+            final I item) throws Exception {
+            try {
+                // runInvisible ensures that the waiting thread does not block a core token
+                return KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(() -> {
+                    var tableFutures = submitChunks(chunkReaders);
+                    return collectChunks(item, tableFutures);
+                });
+            } catch (ExecutionException ex) {//NOSONAR
+                throw toExceptionOrThrowError(ex.getCause());
+            }
+        }
+
+        private ArrayList<Future<BufferedDataTable>> submitChunks(final List<TableChunkReader> chunkReaders)
+            throws InterruptedException {
+            var tableFutures = new ArrayList<Future<BufferedDataTable>>(chunkReaders.size());
+            for (var reader : chunkReaders) {
+                tableFutures.add(KNIMEConstants.GLOBAL_THREAD_POOL
+                    .submit(ThreadUtils.callableWithContext(reader::readTableChunk)));
+            }
+            return tableFutures;
+        }
+
+        private ArrayList<BufferedDataTable> collectChunks(final I item,
+            final ArrayList<Future<BufferedDataTable>> tableFutures) throws Exception {
+            var chunks = new ArrayList<BufferedDataTable>();
+            for (var future : tableFutures) {
+                try {
+                    chunks.add(future.get());
+                } catch (ExecutionException ex) {//NOSONAR
+                    throw tryToParseException(ex.getCause(), item);
+                }
+            }
+            return chunks;
+        }
+
+        private static int getNumColumns(final BufferedDataTable table) {
+            return table.getDataTableSpec().getNumColumns();
+        }
+
+        private List<Read<V>> createReads(final I item) throws IOException {
+            var rawReads = m_reader.multiRead(item, m_config.getTableReadConfig());
+            return rawReads.stream()//
+                    .map(r -> decorateRead(m_config.getTableReadConfig(), r))//
+                    .toList();
+        }
+
+        private final class TableChunkReader {
+            private final Read<V> m_read;
+
+            private final IndividualTableReader<V> m_tableReader;
+
+            private final ExecutionContext m_exec;
+
+            TableChunkReader(final Read<V> read, final IndividualTableReader<V> reader, final ExecutionContext exec) {
+                m_read = read;
+                m_tableReader = reader;
+                m_exec = exec;
+            }
+
+            BufferedDataTable readTableChunk() throws Exception {
+                try {
+                    var container = m_exec.createDataContainer(getOutputSpec());
+                    var rowOutput = new BufferedDataTableRowOutput(container);
+                    m_tableReader.fillOutput(m_read, rowOutput, m_exec);
+                    container.close();
+                    return container.getTable();
+                } finally {
+                    m_read.close();
+                }
+            }
+        }
+
+        private Exception tryToParseException(final Throwable throwable, final I item) throws Exception {
+            if (throwable instanceof TypeMapperException typeMapperException) {
+                return m_typeMapperExceptionParser.parse(typeMapperException, item.toString());
+            }
+            return toExceptionOrThrowError(throwable);
+        }
+
+        private static Exception toExceptionOrThrowError(final Throwable throwable) throws Exception {
+            if (throwable instanceof Exception exception) {
+                throw exception;
+            } else if (throwable instanceof Error error) {
+                throw error;
+            } else {
+                throw new IllegalStateException(throwable);
+            }
+        }
+
+
+        @Override
+        public DataTableSpec getOutputSpec() {
+            return m_delegate.getOutputSpec();
+        }
+
+        @Override
+        public TableSpecConfig<T> getTableSpecConfig() {
+            return m_delegate.getTableSpecConfig();
+        }
+
+        @Override
+        public PreviewRowIterator createPreviewIterator() {
+            return m_delegate.createPreviewIterator();
+        }
+
+        @Override
+        public void fillRowOutput(final RowOutput output, final ExecutionMonitor exec, final FileStoreFactory fsFactory)
+            throws Exception {
+            m_delegate.fillRowOutput(output, exec, fsFactory);
+        }
+
     }
 }

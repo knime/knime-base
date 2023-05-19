@@ -44,74 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2020 (Tobias): created
+ *   May 16, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.filehandling.core.node.table.reader.util;
+package org.knime.filehandling.core.node.table.reader;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.filestore.FileStoreFactory;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.streamable.BufferedDataTableRowOutput;
-import org.knime.core.node.streamable.RowOutput;
-import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.type.mapping.MappingRuntimeException;
+import org.knime.filehandling.core.node.table.reader.type.mapping.TypeMapperException;
 
 /**
- * Encapsulates information necessary to read tables from multiple items.
+ * Utility class that parses {@link TypeMapperException}.
  *
- * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type used to identify external data types
  */
-public interface MultiTableRead<T> {
+final class TypeMapperExceptionParser {
 
-    /**
-     * Returns the {@link DataTableSpec} of the currently read table.
-     *
-     * @return the {@link DataTableSpec} of the currently read table
-     */
-    DataTableSpec getOutputSpec();
+    private final int m_numItems;
 
-    /**
-     * Allows to create the {@link TableSpecConfig}.
-     *
-     * @return the {@link TableSpecConfig}
-     */
-    TableSpecConfig<T> getTableSpecConfig();
+    private final boolean m_limitRowsForSpec;
 
-    /**
-     * Creates a {@link PreviewRowIterator} that is backed by this {@link MultiTableRead}.
-     *
-     * @return a {@link PreviewRowIterator} for use in the dialog
-     */
-    PreviewRowIterator createPreviewIterator();
-
-    /**
-     * Fills the provided {@link RowOutput} with the data from this {@link MultiTableRead}.
-     *
-     * @param output to push to
-     * @param exec for progress monitoring and canceling
-     * @param fsFactory the {@link FileStoreFactory} to use for cell creation
-     * @throws Exception if something goes awry
-     */
-    // can't be specialized because the type mapping throws Exception
-    void fillRowOutput(RowOutput output, ExecutionMonitor exec, FileStoreFactory fsFactory) throws Exception; // NOSONAR
-
-    /**
-     * Read the table.
-     * 
-     * @param exec for table creation
-     * @return the table
-     * @throws Exception if something goes awry
-     */
-    default BufferedDataTable readTable(final ExecutionContext exec) throws Exception {
-        final BufferedDataTableRowOutput output =
-                new BufferedDataTableRowOutput(exec.createDataContainer(getOutputSpec()));
-        final FileStoreFactory fsFactory = FileStoreFactory.createFileStoreFactory(exec);
-        fillRowOutput(output, exec, fsFactory);
-        return output.getDataTable();
+    TypeMapperExceptionParser(final int numItems, final boolean limitRowsForSpec) {
+        m_numItems = numItems;
+        m_limitRowsForSpec = limitRowsForSpec;
     }
 
+    MappingRuntimeException parse(final TypeMapperException e, final String item) {
+        final var builder = new StringBuilder();
+        builder.append(String.format("Row with ID '%s' ", e.getRowKey()));
+        if (m_numItems > 1) {
+            builder.append(String.format("in file '%s' ", item));
+        }
+        builder.append("can't be converted to the configured data types.");
+        if (m_limitRowsForSpec) {
+            builder
+            .append(" Increasing the number of scanned rows or changing the target types might resolve the issue.");
+        } else {
+            builder.append(" Changing the target types might resolve the issue.");
+        }
+        builder.append(String.format(" Content of row: %s", e.getRandomAccessible()));
+        return new MappingRuntimeException(builder.toString(), e);
+    }
 }

@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -81,6 +82,30 @@ public interface GenericTableReader<I, C extends ReaderSpecificConfig<C>, T, V> 
      */
     // TODO add separate parameter for doing pushdown e.g. filtering
     Read<V> read(I item, TableReadConfig<C> config) throws IOException;
+
+    /**
+     * Creates a list of reads that correspond to chunks of item.
+     * The order of the list must correspond to the order of the chunks in the table.
+     *
+     * @param item to read
+     * @param config for reading
+     * @return a list of reads that correspond to chunks of the item
+     * @throws IOException if creating the read fails due to IO problems
+     */
+    @SuppressWarnings("resource")
+    default List<Read<V>> multiRead(final I item, final TableReadConfig<C> config) throws IOException {
+        return List.of(read(item, config));
+    }
+
+    /**
+     * Indicates whether it is possible to read multiple instances of this SourceGroup in parallel.
+     *
+     * @param sourceGroup to potentially read in parallel
+     * @return true if it is save to read multiple instances of the source group in parallel
+     */
+    default boolean canBeReadInParallel(final SourceGroup<I> sourceGroup) {
+        return false;
+    }
 
     /**
      * Reads the spec of the table stored at the input item. Note that the spec should not be filtered i.e. any

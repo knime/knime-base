@@ -72,6 +72,7 @@ import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContext;
 import org.knime.filehandling.core.node.table.reader.rowkey.GenericRowKeyGeneratorContextFactory;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
@@ -135,6 +136,9 @@ public class DefaultStagedMultiTableReadTest {
     private MultiTableReadConfig<DummyReaderSpecificConfig, String> m_config;
 
     @Mock
+    private TableReadConfig<DummyReaderSpecificConfig> m_tableReadConfig;
+
+    @Mock
     private TableTransformation<String> m_defaultTransformationModel;
 
     @Mock
@@ -194,6 +198,8 @@ public class DefaultStagedMultiTableReadTest {
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
 
+        TableReadConfig<DummyReaderSpecificConfig> tableReadConfig = Mockito.mock(TableReadConfig.class);
+        when(m_config.getTableReadConfig()).thenReturn(tableReadConfig);
         final MultiTableRead<String> mtr = m_testInstance.withoutTransformation(m_sourceGroup);
         assertEquals(knimeSpec, mtr.getOutputSpec());
 
@@ -210,6 +216,7 @@ public class DefaultStagedMultiTableReadTest {
     public void testWithTransformationTypeMapping() {
         TableTransformation<String> lastColumnToString = mockTransformationModel();
         when(m_pp3.getConverterFactory().getDestinationType()).thenReturn(StringCell.TYPE);
+        when(m_config.getTableReadConfig()).thenReturn(m_tableReadConfig);
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "B", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, StringCell.TYPE});
         MultiTableRead<String> mtr = m_testInstance.withTransformation(m_sourceGroup, lastColumnToString);
@@ -223,6 +230,7 @@ public class DefaultStagedMultiTableReadTest {
     public void testWithTransformationFiltering() {
         TableTransformation<String> filterSecondColumn = mockTransformationModel();
         when(m_transformation2.keep()).thenReturn(false);
+        when(m_config.getTableReadConfig()).thenReturn(m_tableReadConfig);
         final DataTableSpec knimeSpec =
             new DataTableSpec(TABLE_NAME, new String[]{"A", "C"}, new DataType[]{StringCell.TYPE, DoubleCell.TYPE});
         MultiTableRead<String> mtr = m_testInstance.withTransformation(m_sourceGroup, filterSecondColumn);
@@ -236,6 +244,7 @@ public class DefaultStagedMultiTableReadTest {
     public void testWithTransformationRenaming() {
         TableTransformation<String> renameSecondColumn = mockTransformationModel();
         when(m_transformation2.getName()).thenReturn("M");
+        when(m_config.getTableReadConfig()).thenReturn(m_tableReadConfig);
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "M", "C"},
             new DataType[]{StringCell.TYPE, IntCell.TYPE, DoubleCell.TYPE});
         MultiTableRead<String> mtr = m_testInstance.withTransformation(m_sourceGroup, renameSecondColumn);
@@ -251,6 +260,8 @@ public class DefaultStagedMultiTableReadTest {
         when(m_transformation1.getPosition()).thenReturn(0);
         when(m_transformation2.getPosition()).thenReturn(2);
         when(m_transformation3.getPosition()).thenReturn(1);
+
+        when(m_config.getTableReadConfig()).thenReturn(m_tableReadConfig);
 
         final DataTableSpec knimeSpec = new DataTableSpec(TABLE_NAME, new String[]{"A", "C", "B"},
             new DataType[]{StringCell.TYPE, DoubleCell.TYPE, IntCell.TYPE});
