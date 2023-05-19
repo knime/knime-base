@@ -102,4 +102,9 @@ public abstract class AbstractReadDecorator<V> implements Read<V> {
         m_source.close();
     }
 
+    @Override
+    public boolean needsDecoration() {
+        return m_source.needsDecoration();
+    }
+
 }

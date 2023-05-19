@@ -183,6 +183,11 @@ public final class DefaultExtractColumnHeaderRead<V> implements ExtractColumnHea
     }
 
     @Override
+    public boolean needsDecoration() {
+        return m_read.needsDecoration();
+    }
+
+    @Override
     public Optional<RandomAccessible<V>> getColumnHeaders() throws IOException {
         // Check if the column header row comes after the number of rows to read and if so read it
         if (m_columnHeaderIdx >= m_numRowsReturned) {

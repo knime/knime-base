@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.node.table.reader.config;
 
 import org.knime.core.node.context.DeepCopy;
+import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
@@ -188,7 +189,9 @@ public interface TableReadConfig<C extends ReaderSpecificConfig<C>> extends Deep
      * Returns whether the {@link Read} needs to be decorated by the framework.
      *
      * @return <code>true</code> if the {@link Read} needs to be decorated by the framework
+     * @deprecated the respective reader should instead implement {@link GenericTableReader#readsNeedDecoration()}
      */
+    @Deprecated
     boolean decorateRead();
 
 }

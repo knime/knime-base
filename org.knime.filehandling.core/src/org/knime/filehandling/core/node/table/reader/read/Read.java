@@ -94,6 +94,21 @@ public interface Read<V> extends AutoCloseable {
      */
     long getProgress();
 
+    /**
+     * Indicates whether the Read requires decoration by the framework.
+     * The decorations done by the framework depending on the configuration are
+     * <ul>
+     * <li>Skipping of empty rows
+     * <li>Checking that all rows have the same number of columns
+     * <li>Skipping the header row
+     * </ul>
+     *
+     * @return true if the Read should be decorated by the framework
+     */
+    default boolean needsDecoration() {
+        return true;
+    }
+
     @Override
     void close() throws IOException;
 
