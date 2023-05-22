@@ -53,6 +53,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Path;
+import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
@@ -114,6 +115,30 @@ public class ExceptionUtil {
             return getFirstThrowable(t.getCause(), predicate);
         }
     }
+
+    /**
+     * Returns an {@link Optional} with either the last {@link Throwable} (in the cause chain) that is evaluated as
+     * {@code true} by the passed {@link Predicate}, or empty if none is evaluated as {@code true}.
+     *
+     * @param t a throwable, possibly with cause chain.
+     * @param predicate a predicate, used to test the throwable
+     * @return optional with the first throwable accepted by the predicate or empty if none is accepted
+     */
+    public static Optional<Throwable> getLastThrowable(final Throwable t, final Predicate<Throwable> predicate) {
+        final var causes = new LinkedList<Throwable>();
+        causes.add(t);
+
+        Throwable currCause = t.getCause();
+        while (currCause != null && !causes.contains(currCause)) {
+            causes.add(0, currCause);
+            currCause = currCause.getCause();
+        }
+
+        return causes.stream()//
+            .filter(predicate)//
+            .findFirst();
+    }
+
 
     public static String getDeepestNIOErrorMessage(final Throwable t) {
         String deeperMsg = null;
