@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -201,8 +202,8 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
     }
 
     private enum BooleanStringBridge {
-            @Widget(title = "true")
-            TRUE, @Widget(title = "false")
+            @Label("true")
+            TRUE, @Label("false")
             FALSE;
     }
 }
