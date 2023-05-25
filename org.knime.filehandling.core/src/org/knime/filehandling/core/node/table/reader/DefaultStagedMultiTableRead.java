@@ -163,8 +163,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
             final TableSpecConfig<T> tableSpecConfig = m_config.getTableSpecConfig();
             final TableTransformation<T> configuredTransformation = tableSpecConfig.getTableTransformation();
             if (tableSpecConfig.isConfiguredWith(m_config.getConfigID(), transformToString(sourceGroup))) {
-                return createMultiTableRead(sourceGroup, configuredTransformation, m_config.getTableReadConfig(),
-                    tableSpecConfig);
+                return createMultiTableRead(sourceGroup, configuredTransformation, tableSpecConfig);
             } else {
                 final TableTransformation<T> adaptedTransformation =
                     m_tableTransformationFactory.createFromExisting(m_rawSpec, m_config, configuredTransformation);
@@ -180,17 +179,16 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
     @Override
     public MultiTableRead<T> withTransformation(final SourceGroup<I> sourceGroup,
         final TableTransformation<T> transformationModel) {
-        final TableReadConfig<C> tableReadConfig = m_config.getTableReadConfig();
         final ConfigID id = m_config.getConfigID();
         final TableSpecConfig<T> tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(
             sourceGroup.getID(), id, m_individualSpecs, transformationModel, m_itemIdColumn);
-        return createMultiTableRead(sourceGroup, transformationModel, tableReadConfig, tableSpecConfig);
+        return createMultiTableRead(sourceGroup, transformationModel, tableSpecConfig);
     }
 
-    // TODO remove tableReadConfig parameter as it is part of m_config
     private MultiTableRead<T> createMultiTableRead(final SourceGroup<I> sourceGroup,
-        final TableTransformation<T> transformationModel, final TableReadConfig<C> tableReadConfig,
+        final TableTransformation<T> transformationModel,
         final TableSpecConfig<T> tableSpecConfig) {
+        var tableReadConfig = m_config.getTableReadConfig();
         final var keepReadsOpen = m_reader instanceof KeepReadOpenReader;
         var delegate = new DefaultMultiTableRead<>(sourceGroup, p -> createRead(p, tableReadConfig), () -> {
             var factory = createIndividualTableReaderFactory(transformationModel);
