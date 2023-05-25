@@ -540,6 +540,10 @@
             factory-class="org.knime.base.node.viz.property.color.ColorManager2NodeFactory">
       </node>
       <node
+            category-path="/view/property"
+            factory-class="org.knime.base.node.viz.format.number.NumberFormatManagerNodeFactory">
+      </node>
+      <node
             after="org.knime.base.node.viz.property.color.ColorManager2NodeFactory"
             category-path="/view/property"
             factory-class="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"/>
