@@ -51,7 +51,6 @@ package org.knime.filehandling.core.connections.config;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Locale;
-import java.util.Optional;
 
 import org.knime.core.util.auth.Authenticator;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
@@ -82,10 +81,6 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
 
     private final String m_spaceId;
 
-    private final boolean m_useSpaceVersion;
-
-    private final String m_spaceVersion;
-
     /**
      * Creates a config for a {@link FSCategory#CONNECTED} Hub Space file system.
      *
@@ -94,10 +89,6 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
      *            https://api.hub.knime.com/repository/.
      * @param authenticator {@link Authenticator} to use to authenticate against the REST API.
      * @param spaceId The unique KNIME ID (repository item ID) of the space, e.g. *YK_q3iKGm3WUlAzo.
-     * @param useSpaceVersion Whether to connect to a particular version of the Space, or not. If true, the file system
-     *            will be read-only.
-     * @param spaceVersion Specifies the Space version to connect to. May be null to indicate the newest available
-     *            version.
      * @param connectionTimeout The timeout to use when opening a TCP/IP connection to a the target host.
      * @param readTimeout The per-request timeout that defines how long to wait for an answer after having sent a
      *            request/command to the target host.
@@ -106,8 +97,6 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
         final URI repositoryAddress, //
         final Authenticator authenticator, //
         final String spaceId, //
-        final boolean useSpaceVersion,//
-        final String spaceVersion,
         final Duration connectionTimeout, //
         final Duration readTimeout) {
 
@@ -115,8 +104,6 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
         m_repositoryAddress = repositoryAddress;
         m_authenticator = authenticator;
         m_spaceId = spaceId;
-        m_useSpaceVersion = useSpaceVersion;
-        m_spaceVersion = spaceVersion;
         setConnectionTimeout(connectionTimeout);
         setReadTimeout(readTimeout);
     }
@@ -137,8 +124,6 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
         m_repositoryAddress = repositoryAddress;
         m_authenticator = authenticator;
         m_spaceId = spaceId;
-        m_useSpaceVersion = false;
-        m_spaceVersion = null;
     }
 
     /**
@@ -161,22 +146,6 @@ public class HubSpaceFSConnectionConfig extends TimeoutFSConnectionConfig {
      */
     public String getSpaceId() {
         return m_spaceId;
-    }
-
-    /**
-     * @return whether or not to connect to a specific version of the Hub Space. If true, the file system will be
-     *         read-only.
-     */
-    public boolean useSpaceVersion() {
-        return m_useSpaceVersion;
-    }
-
-    /**
-     * @return the version of the Space to connect to. If empty, but {@link #useSpaceVersion()} returns true, this
-     *         indicates that the newest available version should be connected to.
-     */
-    public Optional<String> getSpaceVersion() {
-        return Optional.ofNullable(m_spaceVersion);
     }
 
     /**

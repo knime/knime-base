@@ -229,13 +229,4 @@ public interface SpaceAware {
      * @throws IOException
      */
     List<Space> getSpacesOwnedByAccount(String accountNameOrID) throws IOException;
-
-    /**
-     * Lists all versions of the given Hub Space.
-     *
-     * @param spaceId The space id.
-     * @return a {@link List} of {@link SpaceVersion}s for the given Space.
-     * @throws IOException
-     */
-    List<SpaceVersion> getSpaceVersions(String spaceId) throws IOException;
 }

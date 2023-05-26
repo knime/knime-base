@@ -239,7 +239,9 @@ public final class HubSpaceVersionSelector extends JPanel {
         @Override
         protected List<SpaceVersion> doInBackgroundWithContext() throws Exception {
             if (m_currSpaceId != null) {
-                return m_hubAccess.fetchSpaceVersions(m_currSpaceId);
+//                AP-20417: Remove space-level versioning
+//                return m_hubAccess.fetchSpaceVersions(m_currSpaceId);
+                return null;
             } else {
                 return null; // NOSONAR
             }
