@@ -105,6 +105,11 @@
             deprecated="false"
             factory-class="org.knime.time.node.window.LoopStartWindowNodeFactory">
       </node>
+      <node
+            category-path="/applications/timeseries"
+            deprecated="false"
+            factory-class="org.knime.time.node.formatter.TemporalFormatManagerNodeFactory">
+      </node>
    </extension>
    <extension
          point="org.knime.workbench.repository.categories">
@@ -337,6 +342,16 @@
             AggregationOperator="org.knime.base.data.aggregation.datetime.LocalDateMeanOperator"
             deprecated="false">
       </AggregationOperator>
+   </extension>
+   <extension
+         point="org.knime.core.ValueFormatModel">
+      <dataValue
+            valueClass="org.knime.core.data.time.localdate.LocalDateValue">
+         <formatModel
+               modelClass="org.knime.core.data.time.ValueFormatModelDateTime"
+               modelSerializer="org.knime.core.data.property.ValueFormatModelNumber$ValueFormatModelNumberSerializer">
+         </formatModel>
+      </dataValue>
    </extension>
    
 </plugin>
