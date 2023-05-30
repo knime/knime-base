@@ -50,12 +50,14 @@ package org.knime.filehandling.core.defaultnodesettings;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.channels.UnresolvedAddressException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
 /**
@@ -223,8 +225,12 @@ public class ExceptionUtil {
      * @return a {@link IOException} that wraps (or is) the given {@link Throwable}.
      */
     public static IOException wrapAsIOException(final Throwable e) {
-        if (e instanceof IOException) {
-            return (IOException)e;
+        if (e instanceof IOException ioe) {
+            return ioe;
+        } else if (e instanceof UnresolvedAddressException) {
+            return new IOException("Unable to connect: The host is unknown.", e);
+        } else if ((e instanceof TimeoutException) && (e.getMessage() == null)) {
+            return new IOException("Unable to connect: Connection timed out.", e);
         } else {
             return new IOException(e.getMessage(), e);
         }
