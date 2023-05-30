@@ -59,7 +59,9 @@ import org.knime.core.data.DoubleValue;
  *
  * @author Anastasia Zhukova, KNIME GmbH, Konstanz, Germany
  * @since 3.5
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public class ZeroNumber extends Statistic {
     private int[] m_zeros;
 

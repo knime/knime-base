@@ -69,7 +69,9 @@ import org.knime.core.util.MutableInteger;
  *
  * @author Marcel Hanser
  * @since 2.12
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public class NominalValue extends Statistic {
     private final int m_maxAmountOfCountedValues;
 

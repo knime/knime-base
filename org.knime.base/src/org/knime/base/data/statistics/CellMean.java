@@ -60,7 +60,9 @@ import org.knime.core.data.def.DoubleCell;
  * as mean that can be a MissingCell if all cells in the column are missing or the table is empty.
  * @author Alexander Fillbrunn
  * @since 2.12
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public class CellMean extends Statistic {
 
     private double[] m_sums;

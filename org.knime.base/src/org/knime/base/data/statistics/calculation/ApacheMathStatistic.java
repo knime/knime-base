@@ -14,7 +14,9 @@ import org.knime.core.data.DoubleValue;
  *
  * @author Marcel Hanser
  * @since 2.12
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public class ApacheMathStatistic extends Statistic {
 
     private final StorelessUnivariateStatistic m_statistic;

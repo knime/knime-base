@@ -58,7 +58,9 @@ import org.knime.core.data.DataValue;
  *
  * @author Marcel Hanser
  * @since 2.12
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public class MissingValue extends Statistic {
     private int[] m_missingValues;
 

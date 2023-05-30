@@ -103,7 +103,9 @@ import org.knime.core.node.InvalidSettingsException;
  *
  * @author Marcel Hanser
  * @since 2.11
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public class StatisticCalculator {
     private final Set<String> m_colToSortOn = new LinkedHashSet<String>();
 

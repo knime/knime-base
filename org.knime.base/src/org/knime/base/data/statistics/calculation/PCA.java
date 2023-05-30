@@ -69,7 +69,9 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  * @since 4.0
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public final class PCA {
 
     /** The covariance matrix. */

@@ -57,7 +57,10 @@ import org.knime.core.data.DataValue;
  *
  * @author Marcel Hanser
  * @since 2.11
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+
+@Deprecated(since = "5.1")
 public abstract class StatisticSorted extends Statistic {
     /**
      * @param clazz DataValue implementations for which this statistic is defined

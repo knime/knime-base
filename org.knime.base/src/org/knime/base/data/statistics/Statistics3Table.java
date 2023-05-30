@@ -101,9 +101,9 @@ import org.knime.core.util.MutableInteger;
  * @author Thomas Gabriel, University of Konstanz
  * @author Gabor Bakos
  * @since 2.8
- * @deprecated use the {@link StatisticCalculator} framework instead.
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
-@Deprecated
+@Deprecated(since = "5.1")
 public class Statistics3Table {
     /** Specification for the stats in the columns. */
     private static final DataTableSpec STATISTICS_SPECIFICATION;

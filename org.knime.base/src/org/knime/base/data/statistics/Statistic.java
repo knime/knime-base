@@ -38,7 +38,10 @@ import org.knime.core.node.util.ConvenienceMethods;
  *
  * @author Marcel Hanser
  * @since 2.11
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+
+@Deprecated(since = "5.1")
 public abstract class Statistic {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(Statistic.class);
 

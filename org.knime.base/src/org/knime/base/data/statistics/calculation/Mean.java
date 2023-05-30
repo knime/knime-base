@@ -53,7 +53,9 @@ package org.knime.base.data.statistics.calculation;
  *
  * @author Marcel Hanser
  * @since 2.12
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public class Mean extends ApacheMathStatistic {
 
     /**

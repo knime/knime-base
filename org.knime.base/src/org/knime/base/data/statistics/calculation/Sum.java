@@ -52,7 +52,9 @@ package org.knime.base.data.statistics.calculation;
  * Calculates the sum
  * @author Anastasia Zhukova, KNIME GmbH, Konstanz, Germany
  * @since 3.5
+ * @deprecated see {@link org.knime.core.data.statistics}
  */
+@Deprecated(since = "5.1")
 public class Sum extends ApacheMathStatistic {
 
     /**
