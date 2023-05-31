@@ -52,6 +52,7 @@ import static org.knime.filehandling.core.node.table.reader.util.MultiTableUtils
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -349,7 +350,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
             }
         }
 
-        private void validateChunks(final ArrayList<BufferedDataTable> tableChunks) {
+        private void validateChunks(final Collection<BufferedDataTable> tableChunks) {
             if (!m_config.getTableReadConfig().allowShortRows()) {
                 CheckUtils.checkArgument(//
                     tableChunks.stream()//
@@ -360,7 +361,7 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
             }
         }
 
-        private ArrayList<BufferedDataTable> readChunksInParallel(final List<TableChunkReader> chunkReaders,
+        private Collection<BufferedDataTable> readChunksInParallel(final Iterable<TableChunkReader> chunkReaders,
             final I item) throws Exception {
             try {
                 // runInvisible ensures that the waiting thread does not block a core token
@@ -373,9 +374,9 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
             }
         }
 
-        private ArrayList<Future<BufferedDataTable>> submitChunks(final List<TableChunkReader> chunkReaders)
+        private Collection<Future<BufferedDataTable>> submitChunks(final Iterable<TableChunkReader> chunkReaders)
             throws InterruptedException {
-            var tableFutures = new ArrayList<Future<BufferedDataTable>>(chunkReaders.size());
+            var tableFutures = new ArrayList<Future<BufferedDataTable>>();
             for (var reader : chunkReaders) {
                 tableFutures.add(KNIMEConstants.GLOBAL_THREAD_POOL
                     .submit(ThreadUtils.callableWithContext(reader::readTableChunk)));
@@ -383,8 +384,8 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
             return tableFutures;
         }
 
-        private ArrayList<BufferedDataTable> collectChunks(final I item,
-            final ArrayList<Future<BufferedDataTable>> tableFutures) throws Exception {
+        private Collection<BufferedDataTable> collectChunks(final I item,
+            final Iterable<Future<BufferedDataTable>> tableFutures) throws Exception {
             var chunks = new ArrayList<BufferedDataTable>();
             for (var future : tableFutures) {
                 try {
