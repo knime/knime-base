@@ -57,7 +57,6 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -97,24 +96,6 @@ public interface TableReader<C extends ReaderSpecificConfig<C>, T, V> extends Ge
     default DataCell createIdentifierCell(final FSPath item) {
         final FSLocation fsLocation = item.toFSLocation();
         return new SimpleFSLocationCellFactory(fsLocation).createCell(fsLocation);
-    }
-
-    @Override
-    default boolean canBeReadInParallel(final SourceGroup<FSPath> sourceGroup) {
-        return isLocalPath(sourceGroup.iterator().next());
-    }
-
-    /**
-     * Checks if a FSPath is on this machine.
-     *
-     * @param path to check for being a local path
-     * @return true if the path is located on the local machine
-     */
-    public static boolean isLocalPath(final FSPath path) {
-        var fsType = path.toFSLocation().getFSType();
-        return fsType == FSType.LOCAL_FS//
-                || fsType == FSType.RELATIVE_TO_WORKFLOW//
-                || fsType == FSType.RELATIVE_TO_WORKFLOW_DATA_AREA;
     }
 
 }

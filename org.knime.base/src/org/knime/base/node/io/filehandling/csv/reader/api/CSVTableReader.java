@@ -67,6 +67,8 @@ import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.meta.FSType;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
@@ -140,12 +142,30 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
     private static boolean cannotParallelize(final FSPath item, final TableReadConfig<CSVTableReaderConfig> config) {
         var csvConfig = config.getReaderSpecificConfig();
-        return !TableReader.isLocalPath(item)
+        return !isLocalPath(item)
                 || FileCompressionUtils.mightBeCompressed(item)//
                 || config.limitRows()//
                 || config.skipRows()//
                 || !csvConfig.noRowDelimitersInQuotes()//
                 || csvConfig.skipLines();
+    }
+
+    @Override
+    public boolean canBeReadInParallel(final SourceGroup<FSPath> sourceGroup) {
+        return isLocalPath(sourceGroup.iterator().next());
+    }
+
+    /**
+     * Checks if a FSPath is on this machine.
+     *
+     * @param path to check for being a local path
+     * @return true if the path is located on the local machine
+     */
+    private static boolean isLocalPath(final FSPath path) {
+        var fsType = path.toFSLocation().getFSType();
+        return fsType == FSType.LOCAL_FS//
+                || fsType == FSType.RELATIVE_TO_WORKFLOW//
+                || fsType == FSType.RELATIVE_TO_WORKFLOW_DATA_AREA;
     }
 
 
