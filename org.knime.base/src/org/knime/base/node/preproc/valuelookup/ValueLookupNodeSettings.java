@@ -53,10 +53,19 @@ import java.util.stream.Stream;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -94,6 +103,15 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             /** Match to the queried number or, if not available, the next higher number */
             @Label("Match next larger")
             EQUALORLARGER;
+
+        static class IsNotEqual extends OneOfEnumCondition<MatchBehaviour> {
+
+            @Override
+            public MatchBehaviour[] oneOf() {
+                return new MatchBehaviour[]{EQUALORSMALLER, EQUALORLARGER};
+            }
+
+        }
     }
 
     /** In what direction to search (determines which match is selected, can speed up things) */
@@ -132,23 +150,33 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    @Section(title = "Matching")
+    interface MatchingSection {
+    }
+
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
+
     // ---- Match options
 
     /** The name of the lookup column in the data table */
     @Widget(title = "Lookup column (data table)", //
         description = "The column in the data table that will be used to look up cells in the dictionary.") //
     @ChoicesWidget(choices = DataTableChoices.class)
+    @Layout(MatchingSection.class)
     String m_lookupCol;
 
     /** The name of the key column in the dictionary table */
     @Widget(title = "Key column (dictionary table)", //
         description = "The column in the dictionary table that contains the search key / criterion.") //
     @ChoicesWidget(choices = DictionaryTableChoices.class)
+    @Layout(MatchingSection.class)
     String m_dictKeyCol;
 
     /** The search direction (forwards / backwards / binSearch) */
     @Widget(title = "If multiple rows match", //
         description = "Defines the behavior in case there are multiple matching keys in the dictionary table.")
+    @ValueSwitchWidget
+    @Layout(MatchingSection.class)
     SearchDirection m_searchDirection = SearchDirection.FORWARD;
 
     /** The matching behaviour (only exact, exact or next lower, exact or next higher) */
@@ -158,6 +186,9 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             + "If \"Match next smaller\" (\"- larger\") is selected, the next smaller (larger) value from the "
             + "dictionary is matched, based on the value of the lookup key. "
             + "If no such element can be found, a missing value is inserted.")
+    @RadioButtonsWidget(horizontal = true)
+    @Signal(condition = MatchBehaviour.IsNotEqual.class)
+    @Layout(MatchingSection.class)
     MatchBehaviour m_matchBehaviour = MatchBehaviour.EQUAL;
 
     /** The selected string match behaviour */
@@ -165,31 +196,45 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
         description = "The matching behavior when matching strings: "
             + "Full string matching matches a lookup string only if it exactly matches a search string. "
             + "Substring matching matches a lookup string if the key in the dictionary is a substring of it. "
-            + "Wildcard and Regex matching match a lookup string if a pattern in the dictionary matches it.")
+            + "Wildcard and Regex matching match a lookup string if a pattern in the dictionary matches it.",
+        advanced = true)
+    @ValueSwitchWidget
+    @Effect(signals = MatchBehaviour.IsNotEqual.class, type = EffectType.DISABLE)
+    @Layout(MatchingSection.class)
     StringMatching m_stringMatchBehaviour = StringMatching.FULLSTRING;
 
     /** Whether the string match shall be case sensitive */
     @Widget(title = "Match strings case-sensitive", //
-        description = "When enabled, the string matching will be case-sensitive, otherwise case-insensitive.")
+        description = "When enabled, the string matching will be case-sensitive, otherwise case-insensitive.",
+        advanced = true)
+    @Layout(MatchingSection.class)
+    @Effect(signals = MatchBehaviour.IsNotEqual.class, type = EffectType.DISABLE)
     boolean m_caseSensitive = true;
 
     // ---- Output options
+
+    @Section(title = "Output")
+    @After(MatchingSection.class)
+    interface OutputSection {}
 
     /** The names of the columns from the dictionary table that shall be added to the output table */
     @Widget(title = "Append columns (from dictionary table)", //
         description = "The columns in the dictionary table that contain the values added to the data table.") //
     @ChoicesWidget(choices = DictionaryTableChoices.class)
+    @Layout(OutputSection.class)
     ColumnFilter m_dictValueCols;
 
     /** Whether to create a column that indicates whether a match has been found */
     @Widget(title = "Append a column indicating whether a match was found", //
         description = "When checked, a new column \"" + ValueLookupNodeModel.COLUMN_NAME_MATCHFOUND
             + "\" is appended to the output that contains a boolean indicating whether a match was found.")
+    @Layout(OutputSection.class)
     boolean m_createFoundCol = false; //NOSONAR: more verbosity
 
     /** Whether to delete the lookup column in the output table */
     @Widget(title = "Delete lookup column", //
         description = "When selected, the lookup column will be deleted from the data table.") //
+    @Layout(OutputSection.class)
     boolean m_deleteLookupCol = false; //NOSONAR: more verbosity
 
     /**

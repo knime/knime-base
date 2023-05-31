@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.colconvert.stringtonumber2;
 
 import java.util.stream.Stream;
 
+import org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeSettings.ParsingOptionsSection;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -64,6 +65,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
@@ -80,6 +84,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Jonas Klotz, KNIME GmbH, Berlin
  */
 @SuppressWarnings("restriction")
+@Layout(ParsingOptionsSection.class)
 final class StringToNumber2NodeSettings implements DefaultNodeSettings {
 
     /**
@@ -93,6 +98,15 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
         m_inclCols = ColumnFilter.createDefault(StringColumns.class, context);
     }
 
+    @Section(title="Column Selection")
+    interface ColumnSelectionSection {
+    }
+
+    @Section(title="Parsing options")
+    @After(ColumnSelectionSection.class)
+    interface ParsingOptionsSection {
+    }
+
     /** The decimal separator. */
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_DECIMALSEP, settingsModel = SettingsModelString.class)
     @Widget(title = "Decimal separator",
@@ -103,7 +117,7 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
     /** The thousands separator. */
     @Persist(configKey = AbstractStringToNumberNodeModel.CFG_THOUSANDSSEP, settingsModel = SettingsModelString.class)
     @Widget(title = "Thousands separator",
-        description = "Choose a thousands separator used in the decimal string to group together three digits.")
+    description = "Choose a thousands separator used in the decimal string to group together three digits.")
     String m_thousandsSep = AbstractStringToNumberNodeModel.DEFAULT_THOUSANDS_SEPARATOR;
 
     @Persist(customPersistor = DataTypeOptionssPersistor.class)
@@ -178,6 +192,7 @@ final class StringToNumber2NodeSettings implements DefaultNodeSettings {
         settingsModel = SettingsModelColumnFilter2.class)
     @Widget(title = "Column selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
     @ChoicesWidget(choices = StringColumns.class)
+    @Layout(ColumnSelectionSection.class)
     ColumnFilter m_inclCols = new ColumnFilter();
 
     static final class StringColumns implements ChoicesProvider {

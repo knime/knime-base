@@ -56,11 +56,16 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -95,14 +100,20 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Column specification", description = "Select whether to specify the column by name or by number.")
+    @ValueSwitchWidget
+    @Signal(condition = ColumnMode.IsByName.class)
     ColumnMode m_columnMode = ColumnMode.BY_NAME;
+
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
 
     @Widget(title = "Column name", description = "Select the column that contains the target cell.")
     @ChoicesWidget(choices = AllColumns.class)
+    @Effect(signals = ColumnMode.IsByName.class, type = EffectType.SHOW)
     String m_columnName;
 
     @Widget(title = "Column number", description = "Provide the number of the column that contains the target cell.")
     @NumberInputWidget(min = 1)
+    @Effect(signals = ColumnMode.IsByName.class, type = EffectType.HIDE)
     int m_columnNumber = 1;
 
     @Widget(title = "Row number", description = "Provide the number of the row that contains the target cell.")
@@ -143,6 +154,15 @@ final class CellUpdaterSettings implements DefaultNodeSettings {
 
             @Label("Number")
             BY_NUMBER;
+
+        static class IsByName extends OneOfEnumCondition<ColumnMode> {
+
+            @Override
+            public ColumnMode[] oneOf() {
+                return new ColumnMode[]{BY_NAME};
+            }
+
+        }
     }
 
     /**

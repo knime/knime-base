@@ -57,12 +57,21 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -74,12 +83,24 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
+    @Section(title = "Duplicate detection")
+    @Before(DuplicateHandlingSection.class)
+    interface DuplicateDetectionSection {
+    }
+
     @Persist(configKey = DuplicateRowFilterSettings.GROUP_COLS_KEY, settingsModel = SettingsModelColumnFilter2.class)
     @Widget(title = "Choose columns for duplicates detection",
         description = "Allows the selection of columns identifying the duplicates. "
             + "Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.")
     @ChoicesWidget(choices = AllColumns.class)
+    @Layout(DuplicateDetectionSection.class)
     ColumnFilter m_consideredColumns;
+
+    @Section(title = "Duplicate handling")
+    @After(DuplicateDetectionSection.class)
+    @Before(PerformanceSection.class)
+    interface DuplicateHandlingSection {
+    }
 
     @Persist(customPersistor = DuplicateRowHandlingPersistor.class)
     @Widget(title = "Duplicate rows", description = "Choose how duplicate rows should be handled." //
@@ -87,6 +108,9 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
         + "<li><b>Remove duplicate rows:</b> Removes duplicate rows and keeps only unique and chosen rows.</li>" //
         + "<li><b>Keep duplicate rows:</b> Appends columns with additional information to the input table.</li>" //
         + "</ul")
+    @RadioButtonsWidget
+    @Signal(condition = DuplicateRowHandling.IsRemove.class)
+    @Layout(DuplicateHandlingSection.class)
     DuplicateRowHandling m_duplicateHandling = DuplicateRowHandling.REMOVE;
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_DUPLICATE_FLAG_KEY)
@@ -97,12 +121,16 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
             + "<li><i>chosen:</i> This row was chosen from a set of duplicate rows.</li>" //
             + "<li><i>duplicate:</i> This row is a duplicate and represented by another row.</li>" //
             + "</ul")
+    @Effect(signals = DuplicateRowHandling.IsRemove.class, type = EffectType.HIDE)
+    @Layout(DuplicateHandlingSection.class)
     boolean m_addUniqueLabel = true;
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_ID_FLAG_KEY)
     @Widget(title = "Add column identifying the RowID of the chosen row for each duplicate row",
         description = "Appends a column with the RowID of the chosen row for duplicate rows. "
             + "Unique and chosen rows will not have a RowID assigned. ")
+    @Effect(signals = DuplicateRowHandling.IsRemove.class, type = EffectType.HIDE)
+    @Layout(DuplicateHandlingSection.class)
     boolean m_addRowIdLabel;
 
     @Persist(configKey = DuplicateRowFilterSettings.RowSelectionType.ROW_SELECTION_KEY)
@@ -118,24 +146,36 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
             + /* */ "In case of strings, the row will be chosen following lexicographical order. "
             + /* */ "Missing values are sorted before the minimum value.</li>" //
             + "</ul>")
+    @RadioButtonsWidget
+    @Signal(condition = RowSelection.IsFirstOrLast.class)
+    @Layout(DuplicateHandlingSection.class)
     RowSelection m_rowSelectionType = RowSelection.FIRST;
 
     @Persist(configKey = DuplicateRowFilterSettings.REFERENCE_COL_KEY)
     @Widget(title = "Column")
     @ChoicesWidget(choices = AllColumns.class)
+    @Effect(signals = RowSelection.IsFirstOrLast.class, type = EffectType.HIDE)
+    @Layout(DuplicateHandlingSection.class)
     String m_selectedColumn;
+
+    @Section(title = "Performance", advanced = true)
+    @After(DuplicateHandlingSection.class)
+    interface PerformanceSection {
+    }
 
     @Persist(configKey = DuplicateRowFilterSettings.IN_MEMORY_KEY)
     @Widget(title = "Compute in memory",
         description = "If selected, computation is sped up by utilizing working memory (RAM). "
             + "The amount of required memory is higher than for a regular computation and also depends on the amount "
             + "of input data.")
+    @Layout(PerformanceSection.class)
     boolean m_inMemory;
 
     @Persist(configKey = DuplicateRowFilterSettings.RETAIN_ROW_ORDER_KEY)
     @Widget(title = "Retain row order",
         description = "If selected, the rows in the output table are guaranteed to have the same "
             + "order as in the input table.")
+    @Layout(PerformanceSection.class)
     boolean m_retainOrder = true;
 
     @Persist(configKey = DuplicateRowFilterSettings.UPDATE_DOMAINS_KEY, optional = true)
@@ -144,6 +184,7 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
         description = "Recompute the domains of all columns in the output tables such that the domains'" //
             + " bounds exactly match the bounds of the data in the output tables."//
     )
+    @Layout(PerformanceSection.class)
     boolean m_updateDomains;
 
     /** Constructor for deserialization */
@@ -166,6 +207,18 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
             @Label("Keep duplicate rows")
             KEEP;
+
+        static class IsRemove extends OneOfEnumCondition<DuplicateRowHandling> {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public DuplicateRowHandling[] oneOf() {
+                return new DuplicateRowHandling[]{REMOVE};
+            }
+
+        }
     }
 
     /** Options for the row selection */
@@ -181,6 +234,18 @@ final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
             @Label("Maximum of")
             MAXIMUM;
+
+        static class IsFirstOrLast extends OneOfEnumCondition<RowSelection> {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public RowSelection[] oneOf() {
+                return new RowSelection[]{FIRST, LAST};
+            }
+
+        }
     }
 
     /** Custom persistor for the duplicate row handling: true for REMOVE, false for KEEP */

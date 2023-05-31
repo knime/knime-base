@@ -97,6 +97,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
@@ -274,6 +275,30 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
         boolean supportsWeightColumn() {
             return m_weighted != null;
+        }
+
+        static class IsCount extends OneOfEnumCondition<AggregationFunction> {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public AggregationFunction[] oneOf() {
+                return new AggregationFunction[] {COUNT};
+            }
+
+        }
+
+        static class IsCountOrMinOrMax extends OneOfEnumCondition<AggregationFunction> {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public AggregationFunction[] oneOf() {
+                return new AggregationFunction[] {COUNT, MIN, MAX};
+            }
+
         }
     }
 

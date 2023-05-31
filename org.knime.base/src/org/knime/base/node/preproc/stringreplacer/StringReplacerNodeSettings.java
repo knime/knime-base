@@ -55,11 +55,19 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -71,9 +79,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
+
+    @Section(title = "Column Selection")
+    interface ColumnSelectionSection {
+    }
+
     @Persist(configKey = StringReplacerSettings.CFG_COL_NAME)
     @Widget(title = "Target column", description = "Name of the column whose cells should be processed")
     @ChoicesWidget(choices = StringColumnChoices.class)
+    @Layout(ColumnSelectionSection.class)
     String m_colName;
 
     enum PatternType {
@@ -82,6 +97,11 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
 
             @Label("Regular expression")
             REGEX;
+    }
+
+    @Section(title = "Find & Replace")
+    @After(ColumnSelectionSection.class)
+    interface FindAndReplaceSection {
     }
 
     @Persist(customPersistor = PatternTypePersistor.class)
@@ -94,17 +114,22 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
         + "<a href=\"http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html\">Java API</a> "
         + "for details.</li>" //
         + "</ul>")
+    @ValueSwitchWidget
+    @Layout(FindAndReplaceSection.class)
     PatternType m_patternType = PatternType.WILDCARD;
 
     @Persist(configKey = StringReplacerSettings.CFG_PATTERN)
-    @Widget(title = "Find", description = "Either a wildcard pattern or a regular expression, "
-        + "depending on the pattern type selected above.")
+    @Widget(title = "Find",
+        description = "Either a wildcard pattern or a regular expression, "
+            + "depending on the pattern type selected above.")
+    @Layout(FindAndReplaceSection.class)
     String m_pattern;
 
     @Persist(configKey = StringReplacerSettings.CFG_REPLACEMENT)
     @Widget(title = "Replacement text",
         description = "The text that replaces that previous value in the cell if the pattern matched the previous "
             + "value. If you are using a regular expression, you may also use backreferences (e.g. <b>$1</b>).")
+    @Layout(FindAndReplaceSection.class)
     String m_replacement;
 
     enum ReplacementStrategy {
@@ -127,10 +152,13 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
         + "All occurrences of the entered pattern are replaced in the target column. The meta" //
         + "characters <b>*</b> and <b>?</b> are not allowed in the pattern in this case.</li>" //
         + "</ul>")
+    @ValueSwitchWidget
+    @Layout(FindAndReplaceSection.class)
     ReplacementStrategy m_replacementStrategy = ReplacementStrategy.WHOLE_STRING;
 
     @Persist(configKey = StringReplacerSettings.CFG_CASE_SENSITIVE)
     @Widget(title = "Case sensitive", description = "Check this if the pattern should be case sensitive")
+    @Layout(FindAndReplaceSection.class)
     boolean m_caseSensitive;
 
     @Persist(configKey = StringReplacerSettings.CFG_ENABLE_ESCAPING)
@@ -138,16 +166,29 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
         description = "If you want to replace the wildcard characters <b>*</b> and <b>?</b> themselves, " //
             + "you need to enable this option and escape them using a backslash (<b>\\*</b> or <b>\\?</b>). " //
             + "In order to replace a backslash you need to escape the backslash, too (<b>\\\\</b>).")
+    @Layout(FindAndReplaceSection.class)
     boolean m_enableEscaping;
+
+    @Section(title = "Output")
+    @After(FindAndReplaceSection.class)
+    interface OutputSection {
+    }
+
+    interface CreateNewColSelected {
+    }
 
     @Persist(configKey = StringReplacerSettings.CFG_CREATE_NEW_COL)
     @Widget(title = "Create new column",
         description = "Creates a new column with the name entered in the text field instead "
             + "of replacing the values in the original column.")
+    @Signal(id = CreateNewColSelected.class, condition = TrueCondition.class)
+    @Layout(OutputSection.class)
     boolean m_createNewCol;
 
     @Persist(configKey = StringReplacerSettings.CFG_NEW_COL_NAME)
     @Widget(title = "New column name", description = "Name of the newly created column with replaced Strings")
+    @Layout(OutputSection.class)
+    @Effect(signals = CreateNewColSelected.class, type = EffectType.SHOW)
     String m_newColName = "ReplacedColumn";
 
     private static final class PatternTypePersistor implements FieldNodeSettingsPersistor<PatternType> {

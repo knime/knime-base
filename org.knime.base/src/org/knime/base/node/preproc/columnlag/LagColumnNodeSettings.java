@@ -88,9 +88,11 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
     private static final String ROW_KEYS = "<row-keys>";
 
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
+
     @Persist(customPersistor = ColumnNodeSettingsPersistor.class)
     @Widget(title = "Column to lag", description = "The column to be lagged.")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesWidget(choices = AllColumns.class, showRowKeys = true)
     String m_column = ROW_KEYS;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG)

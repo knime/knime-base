@@ -54,10 +54,15 @@ import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunc
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.IsNoneColumnStringCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -67,6 +72,25 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  */
 @SuppressWarnings("restriction")
 final class RowAggregatorSettings implements DefaultNodeSettings {
+
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
+
+    interface IsNoneCategoryColumnSelected {
+    }
+
+    @Widget(title = "Category column", description = "Select the column that defines the category on which rows "
+        + "are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same "
+        + "group will be calculated.")
+    @ChoicesWidget(choices = CategoryColumns.class, showNoneColumn = true)
+    @Signal(id = IsNoneCategoryColumnSelected.class, condition = IsNoneColumnStringCondition.class)
+    String m_categoryColumn;
+
+    static final class CategoryColumns implements ChoicesProvider {
+        @Override
+        public String[] choices(final SettingsCreationContext context) {
+            return context.getDataTableSpec(0).map(DataTableSpec::getColumnNames).orElse(new String[0]);
+        }
+    }
 
     @Widget(title = "Aggregation",
         description = "Select the aggregation function to be applied on all rows belonging to the same category."
@@ -82,10 +106,14 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
             + "<li><i>Minimum:</i>" + " Calculate the minimum value</li>"
             // MAX
             + "<li><i>Maximum:</i>" + " Calculate the maximum value</li>" + "</ul>")
+    @RadioButtonsWidget(horizontal = true)
+    @Signal(condition = AggregationFunction.IsCount.class)
+    @Signal(condition = AggregationFunction.IsCountOrMinOrMax.class)
     AggregationFunction m_aggregationMethod = AggregationFunction.SUM;
 
     @Widget(title = "Aggregation columns", description = "Select the columns to apply the aggregation function to.")
     @ChoicesWidget(choices = AggregatableColumns.class)
+    @Effect(signals = AggregationFunction.IsCount.class, type = EffectType.DISABLE)
     ColumnFilter m_frequencyColumns;
 
     static final class AggregatableColumns implements ColumnChoicesProvider {
@@ -103,7 +131,8 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
     @Widget(title = "Weight column", description = "Select the column that defines the weight with which a "
         + "value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" "
         + "support a weight column")
-    @ChoicesWidget(choices = WeightColumns.class)
+    @ChoicesWidget(choices = WeightColumns.class, showNoneColumn = true)
+    @Effect(signals = AggregationFunction.IsCountOrMinOrMax.class, type = EffectType.DISABLE)
     String m_weightColumn;
 
     static final class WeightColumns implements ChoicesProvider {
@@ -118,23 +147,11 @@ final class RowAggregatorSettings implements DefaultNodeSettings {
 
     }
 
-    @Widget(title = "Category column", description = "Select the column that defines the category on which rows "
-        + "are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same "
-        + "group will be calculated.")
-    @ChoicesWidget(choices = CategoryColumns.class)
-    String m_categoryColumn;
-
-    static final class CategoryColumns implements ChoicesProvider {
-        @Override
-        public String[] choices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::getColumnNames).orElse(new String[0]);
-        }
-    }
-
     @Widget(title = "Additional \"grand totals\" at second output port",
         description = "If a category column is selected, additionally compute the aggregations <i>without</i> the "
             + "category column (\"grand totals\") and output them in the second output table. "
             + "The second output is inactive if no category " + "column is selected or this setting is not enabled.")
+    @Effect(signals = IsNoneCategoryColumnSelected.class, type = EffectType.DISABLE)
     boolean m_grandTotals;
 
     /**

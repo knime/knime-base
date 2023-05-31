@@ -49,10 +49,15 @@
 package org.knime.base.node.preproc.column.renamer;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Settings of the Column Renamer node.
@@ -81,23 +86,34 @@ final class ColumnRenamerSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Renamings", description = "Allows to define new names for columns.")
+    @ArrayWidget(addButtonText = "Add column")
     public Renaming[] m_renamings = new Renaming[0];
+
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
 
     static final class Renaming implements DefaultNodeSettings {
 
+        @HorizontalLayout
+        interface RenamingLayout {
+        }
+
         @Widget(title = "Column", description = "The column to rename.")
         @ChoicesWidget(choices = AllColumns.class)
+        @Layout(RenamingLayout.class)
         public String m_oldName;
 
         @Widget(title = "New name",
             description = "The new column name. Must not be empty or consist only of whitespaces.")
         @TextInputWidget(pattern = "\\S+.*")
+        @Layout(RenamingLayout.class)
         public String m_newName;
 
+        @JsonIgnore
         String getOldName() {
             return m_oldName;
         }
 
+        @JsonIgnore
         String getNewName() {
             return m_newName;
         }

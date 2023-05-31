@@ -65,10 +65,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
 
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
+
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_LOOKUP_COLUMN)
     @Widget(title = "Lookup column",
         description = "The column in the 2nd input table containing the \"old\" names of the columns.")
-    @ChoicesWidget(choices = StringColumnsSecondTable.class)
+    @ChoicesWidget(choices = StringColumnsSecondTable.class, showRowKeys = true)
     String m_lookupColumn;
 
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_VALUE_COLUMN)

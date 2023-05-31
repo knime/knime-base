@@ -61,12 +61,17 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -77,7 +82,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  */
 @SuppressWarnings("restriction")
 final class DoubleToIntNodeSettings implements DefaultNodeSettings {
-
 
     /**
      * Constructor for persistence and conversion from JSON.
@@ -96,20 +100,25 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
         m_inclCols = ColumnFilter.createDefault(NumericalColumns.class, context);
     }
 
+    @Section(title = "Column Selection")
+    @Before(RoundingOptionsSection.class)
+    interface ColumnSelectionSection {}
+
     @Persist(configKey = DoubleToIntNodeModel.CFG_INCLUDED_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
     @Widget(title = "Column Selection", description = "Move the columns of interest into the &quot;Includes&quot; list")
-            @ChoicesWidget( choices = NumericalColumns.class)
+    @ChoicesWidget(choices = NumericalColumns.class)
+    @Layout(ColumnSelectionSection.class)
     ColumnFilter m_inclCols = new ColumnFilter();
 
-    @Persist(configKey = DoubleToIntNodeModel.CFG_LONG, settingsModel = SettingsModelBoolean.class)
-    @Widget(title = "Create long values",
-        description = "Use this option to generate 64bit long values instead of 32bit integer values. "
-            + "This is useful if double values in the input are too big to fit into an integer.")
-    boolean m_prodLong = false; //NOSONAR being explicit is desired here
+    @Section(title = "Rounding Options")
+    @After(ColumnSelectionSection.class)
+    interface RoundingOptionsSection {}
 
     @Persist(customPersistor = RoundingOptionsPersistor.class)
     @Widget(title = "Rounding type", description = "The type of rounding applied to the selected double cells. "
         + "(Round: standard rounding, Floor: next smaller integer, Ceil: next bigger integer")
+    @Layout(RoundingOptionsSection.class)
+    @ValueSwitchWidget
     RoundingOptions m_calctype;
 
     enum RoundingOptions {
@@ -124,6 +133,13 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
             CEIL;
 
     }
+
+    @Persist(configKey = DoubleToIntNodeModel.CFG_LONG, settingsModel = SettingsModelBoolean.class)
+    @Widget(title = "Create long values",
+        description = "Use this option to generate 64bit long values instead of 32bit integer values. "
+            + "This is useful if double values in the input are too big to fit into an integer.")
+    @Layout(RoundingOptionsSection.class)
+    boolean m_prodLong = false; //NOSONAR being explicit is desired here
 
     static final class NumericalColumns implements ChoicesProvider {
 

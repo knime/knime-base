@@ -51,6 +51,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
@@ -90,7 +91,19 @@ final class ColumnMergerConfiguration {
             ReplaceSecondary,
             /** Append as new column. */
             @Label("Append as new column")
-            AppendAsNewColumn
+            AppendAsNewColumn;
+
+        static class IsAppendAsNewColumn extends OneOfEnumCondition<OutputPlacement> {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public OutputPlacement[] oneOf() {
+                return new OutputPlacement[]{AppendAsNewColumn};
+            }
+
+        }
     }
 
     /** @return the primaryColumn */

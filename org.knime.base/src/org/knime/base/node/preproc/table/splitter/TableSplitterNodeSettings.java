@@ -51,10 +51,18 @@ package org.knime.base.node.preproc.table.splitter;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -65,18 +73,26 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class TableSplitterNodeSettings implements DefaultNodeSettings {
 
+    @Section(title = "Find splitting row")
+    interface FindSplittingRowSection {
+    }
+
     @Widget( //
         title = "Find splitting row by", //
         description = "Select if the table should be split at the first matching row or at the last matching row." //
     )
+    @Layout(FindSplittingRowSection.class)
+    @ValueSwitchWidget
     FindSplittingRowMode m_findSplittingRowMode = FindSplittingRowMode.FIRST_MATCH;
+
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
 
     @Widget( //
         title = "Lookup column",
         description = "Select the column that should be used to evaluate the matching criteria. "
             + "Only columns of type String, Number (integer), or Number (long) can be selected.")
-    @ChoicesWidget(choices = ColumnChoices.class //
-    )
+    @ChoicesWidget(choices = ColumnChoices.class, showRowKeys = true)
+    @Layout(FindSplittingRowSection.class)
     String m_lookupColumn = TableSplitterNodeModel.ROWID_PLACEHOLDER;
 
     @Widget( //
@@ -87,6 +103,8 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
             + "<li><b>Empty:</b> matches rows that have an empty or missing value at the selected column. "
             + "Strings and Row IDs containing only whitespace characters will also match.</li>" + "</ul>"//
     )
+    @Layout(FindSplittingRowSection.class)
+    @Signal(condition = MatchingCriteria.IsEquals.class)
     MatchingCriteria m_matchingCriteria = MatchingCriteria.EQUALS;
 
     @Widget( //
@@ -94,26 +112,36 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
         description = "Select a search pattern to compare the value of the selected column. "
             + "If a number column is selected the search pattern must be a parsable number." //
     )
+    @Layout(FindSplittingRowSection.class)
+    @Effect(signals = MatchingCriteria.IsEquals.class, type = EffectType.SHOW)
     String m_searchPattern = "";
+
+    @Section(title = "Output")
+    @After(FindSplittingRowSection.class)
+    interface OutputSection {
+    }
 
     @Widget( //
         title = "Include matching row in top output table", //
         description = "Select this option to include the row that split the table in the top output table." //
     )
+    @Layout(OutputSection.class)
     boolean m_includeMatchingRowInTopTable = true;
 
     @Widget( //
         title = "Include matching row in bottom output table", //
         description = "Select this option to include the row that split the table in the bottom output table." //
     )
+    @Layout(OutputSection.class)
     boolean m_includeMatchingRowInBottomTable;
 
     @Widget( //
         title = "Update domains of all columns", //
         description = "Advanced setting to enable recomputation of the domains of all columns in the output table " //
-            + "such that the domains' bounds exactly match the bounds of the data in the output table." //
-    )
+            + "such that the domains' bounds exactly match the bounds of the data in the output table.", //
+        advanced = true)
     @Persist(optional = true)
+    @Layout(OutputSection.class)
     boolean m_updateDomains;
 
     /** Modes for finding the matching row. "First match" or "Last match". */
@@ -132,6 +160,15 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
             MISSING, //
             @Label("Empty") //
             EMPTY;
+
+        static class IsEquals extends OneOfEnumCondition<MatchingCriteria> {
+
+            @Override
+            public MatchingCriteria[] oneOf() {
+                return new MatchingCriteria[]{EQUALS};
+            }
+
+        }
     }
 
     /**

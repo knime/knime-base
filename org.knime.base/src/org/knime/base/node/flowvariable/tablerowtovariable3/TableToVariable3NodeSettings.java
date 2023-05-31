@@ -57,8 +57,15 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -98,6 +105,15 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
 
     static final String CFG_KEY_DEFAULT_VALUE_BOOLEAN = "default_value_boolean";
 
+    @Section(title = "Output as variables")
+    interface OutputAsVariablesSection {
+    }
+
+    @Section(title = "Missing Values")
+    @After(OutputAsVariablesSection.class)
+    interface MissingValuesSection {
+    }
+
     @Persist(configKey = CFG_KEY_COLUMNS, settingsModel = SettingsModelColumnFilter2.class)
     @Widget(title = "Output as variables", description = """
             Select the columns to be converted to flow variables. For each selected column, a flow variable
@@ -105,7 +121,16 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             to the value of the first row in that column.
             """)
     @ChoicesWidget(choices = AllColumns.class)
+    @Layout(OutputAsVariablesSection.class)
     ColumnFilter m_valueColumns = new ColumnFilter();
+
+    static class UsesDefaultMissingValuesPolicy extends OneOfEnumCondition<MissingValuePolicy> {
+
+        @Override
+        public MissingValuePolicy[] oneOf() {
+            return new MissingValuePolicy[]{MissingValuePolicy.DEFAULT};
+        }
+    }
 
     @Persist(configKey = CFG_KEY_ON_MISSING, settingsModel = SettingsModelString.class)
     @Widget(title = "If value in cell is missing", description = """
@@ -127,6 +152,8 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
                 </li>
             </ul>
             """)
+    @Layout(MissingValuesSection.class)
+    @Signal(condition=UsesDefaultMissingValuesPolicy.class)
     MissingValuePolicy m_onMissing = MissingValuePolicy.OMIT;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_STRING)
@@ -134,6 +161,8 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             The default flow variable value for string columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
+    @Layout(MissingValuesSection.class)
+    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
     String m_defaultValueString = "missing";
 
     // used to be string, keeping it like that for the sake of backwards compatibility
@@ -142,6 +171,8 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             The default flow variable value for boolean columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
+    @Layout(MissingValuesSection.class)
+    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
     BooleanStringBridge m_defaultValueBoolean = BooleanStringBridge.FALSE;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_INTEGER)
@@ -149,6 +180,8 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             The default flow variable value for integer columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
+    @Layout(MissingValuesSection.class)
+    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
     int m_defaultValueInteger;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_LONG)
@@ -156,6 +189,8 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             The default flow variable value for long columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
+    @Layout(MissingValuesSection.class)
+    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
     long m_defaultValueLong;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_DOUBLE)
@@ -163,6 +198,8 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             The default flow variable value for double columns in case of an empty input table
             or a missing value in the first row of the input table.
             """)
+    @Layout(MissingValuesSection.class)
+    @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
     double m_defaultValueDouble;
 
     /**

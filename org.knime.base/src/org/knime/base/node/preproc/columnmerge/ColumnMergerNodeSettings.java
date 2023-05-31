@@ -56,8 +56,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -67,6 +71,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  */
 @SuppressWarnings("restriction")
 public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
+
+    // TODO: UIEXT-1007 migrate String to ColumnSelection
 
     @Persist(configKey = ColumnMergerConfiguration.CFG_PRIMARY, settingsModel = SettingsModelString.class)
     @Widget(title = "Primary column",
@@ -91,10 +97,13 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
         + "secondary column with the merge result.</li>"//
         + "<li><b>Append as new column</b>: Append a new column with the name provided below.</li>"//
         + "</ul>")
+    @RadioButtonsWidget
+    @Signal(condition = OutputPlacement.IsAppendAsNewColumn.class)
     OutputPlacement m_outputPlacement;
 
     @Persist(configKey = ColumnMergerConfiguration.CFG_OUTPUT_NAME, settingsModel = SettingsModelString.class)
     @Widget(title = "New column name", description = "The name for the new column.")
+    @Effect(signals = OutputPlacement.IsAppendAsNewColumn.class, type = EffectType.SHOW)
     String m_outputName;
 
     private static final class AllColumns implements ChoicesProvider {
