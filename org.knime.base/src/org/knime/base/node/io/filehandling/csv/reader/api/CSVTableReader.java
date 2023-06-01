@@ -52,7 +52,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.nio.channels.Channels;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -62,7 +61,7 @@ import java.util.OptionalLong;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import org.knime.base.node.io.filehandling.csv.reader.LimittedReader;
+import org.knime.base.node.io.filehandling.csv.reader.ChunkReader;
 import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.NodeLogger;
@@ -228,7 +227,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
     private static final class ParallelCsvRead implements Read<String> {
 
-        private final LimittedReader m_reader;
+        private final ChunkReader m_reader;
 
         private final CsvParser m_parser;
 
@@ -238,14 +237,14 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
         private boolean m_skipRow;
 
+        private long m_numRowsRead;
+
         ParallelCsvRead(final FSPath path, final long offset, final long numBytesToRead,
             final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
             CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
             m_errorParser = new ErrorHandler(csvReaderConfig.getCsvSettings());
-            @SuppressWarnings("resource") // closed by m_reader
-            var stream = createInputStream(path, offset);
             var csvSettings = csvReaderConfig.getCsvSettings();
-            m_reader = createReader(stream, numBytesToRead, csvReaderConfig);
+            m_reader = createReader(path, offset, numBytesToRead, csvReaderConfig);
             @SuppressWarnings("resource") // we close the underlying m_reader
             var decoratedReader = decorateForReading(m_reader, csvReaderConfig, csvSettings);
             // has to happen after the line separator is potentially changed by decorateForReading
@@ -269,17 +268,18 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             }
         }
 
-        @SuppressWarnings("resource")// responsibility of the caller
-        private static InputStream createInputStream(final FSPath path, final long offset) throws IOException {
+        @SuppressWarnings("resource") // the channel is closed by ChunkReader
+        private static ChunkReader createReader(final FSPath path, final long offset, final long bytesToRead,
+            final CSVTableReaderConfig config) throws IOException {
+            var charset = getCharset(config);
             var channel = Files.newByteChannel(path, StandardOpenOption.READ);
-            channel.position(offset);
-            return Channels.newInputStream(channel);
-        }
-
-        private static LimittedReader createReader(final InputStream stream, final long bytesToRead,
-            final CSVTableReaderConfig config) {
-            final var charset = getCharset(config);
-            return new LimittedReader(stream, charset, config.getLineSeparator(), bytesToRead);
+            if (offset == 0) {
+                // skip the ByteOrderMark if it is present
+                BomEncodingUtils.skipBom(channel, charset);
+            } else {
+                channel.position(offset);
+            }
+            return new ChunkReader(channel, charset, bytesToRead, config.getLineSeparator());
         }
 
         @Override
@@ -290,6 +290,7 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                     m_parser.parseNext();
                 }
                 var row = m_parser.parseNext();
+                m_numRowsRead++;
                 return row == null ? null : RandomAccessibleUtils.createFromArrayUnsafe(row);
             } catch (TextParsingException ex) {
                 throw m_errorParser.parse(ex);
