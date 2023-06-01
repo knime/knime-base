@@ -49,6 +49,7 @@
 package org.knime.filehandling.core.util;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -56,7 +57,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
@@ -64,7 +67,7 @@ import org.junit.Test;
 
 /**
  * Contains tests for {@link BomEncodingUtils}.
- * 
+ *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
  *
@@ -118,6 +121,43 @@ public final class BomEncodingUtilsTest {
         testEncoding(Charset.forName("UTF-32BE"), ByteOrderMark.UTF_32BE);
 
     }
+
+    @Test
+    public void testSkipBom() throws Exception {
+        var charsets = List.of(StandardCharsets.UTF_8, StandardCharsets.UTF_16LE, StandardCharsets.UTF_16BE,
+            Charset.forName("UTF-32LE"), Charset.forName("UTF-32BE")).iterator();
+        var boms = List.of(ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_32LE,
+            ByteOrderMark.UTF_32BE).iterator();
+        while (charsets.hasNext()) {
+            var charset = charsets.next();
+            testSkipBom(charset, null);
+            testSkipBom(charset, boms.next());
+        }
+    }
+
+    @Test
+    public void testSkipBomChannelHasLessBytesThanBomSize() throws Exception {
+        var encodedString = StandardCharsets.UTF_8.encode("f").array();
+        try (var channel = new SeekableInMemoryByteChannel(encodedString)) {
+            assertEquals("The channel has more bytes than expected.", 1, channel.size());
+            BomEncodingUtils.skipBom(channel, StandardCharsets.UTF_8);
+            assertEquals("The channel should be at position 0 because it contains fewer bytes than the bom has.", 0,
+                channel.position());
+        }
+    }
+
+    private static void testSkipBom(final Charset charset, final ByteOrderMark bom) throws IOException {
+        final byte[] encodedString = createEncodedString(charset, bom);
+        try (var channel = new SeekableInMemoryByteChannel(encodedString)) {
+            BomEncodingUtils.skipBom(channel, charset);
+            if (bom == null) {
+                assertEquals("No BOM, so no bytes should have been skipped.", 0, channel.position());
+            } else {
+                assertEquals("The BOM should have been skipped.", bom.length(), channel.position());
+            }
+        }
+    }
+
 
     private void testEncoding(final Charset charset) throws IOException {
         testEncoding(charset, null);

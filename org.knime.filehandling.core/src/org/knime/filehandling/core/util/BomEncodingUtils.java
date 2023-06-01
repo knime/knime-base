@@ -52,6 +52,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -153,7 +155,48 @@ public final class BomEncodingUtils {
     }
 
     private static InputStream getBomDecodedInputStream(final InputStream input, final Charset charset) {
-        final ByteOrderMark bom;
+        final ByteOrderMark bom = getBOM(charset);
+        if (bom == null) {
+            return input;
+        } else {
+            return new BOMInputStream(input, bom);
+        }
+    }
+
+    /**
+     * Skips the ByteOrderMark at the current position (typically the start of the channel) if it is present. If it is
+     * not present, the channel position is reset to the position before the call to this method.
+     *
+     * @param channel to skip the BOM in
+     * @param charset encoding of the channel
+     * @throws IOException if {@link SeekableByteChannel#position()}, {@link SeekableByteChannel#position(long)} or
+     *             {@link SeekableByteChannel#read(ByteBuffer)} throws an IOException
+     */
+    public static void skipBom(final SeekableByteChannel channel, final Charset charset) throws IOException {
+        var bom = getBOM(charset);
+        if (bom == null) {
+            return;
+        }
+        var bomBytes = bom.getBytes();
+        var buffer = ByteBuffer.allocate(bomBytes.length);
+        var previousPosition = channel.position();
+        var numRead = channel.read(buffer);
+        if (numRead < bomBytes.length) {
+            // the channel contains fewer bytes than the BOM
+            channel.position(previousPosition);
+            return;
+        }
+        buffer.flip();
+        for (int i = 0; i < bomBytes.length; i++) {
+            if (buffer.get() != bomBytes[i]) {
+                channel.position(previousPosition);
+                return;
+            }
+        }
+    }
+
+    private static ByteOrderMark getBOM(final Charset charset) {
+        ByteOrderMark bom = null;
         // note that StandardCharsets.UTF_16 automatically detects the BOM itself
         if (charset.name().equals(ByteOrderMark.UTF_8.getCharsetName())) {
             bom = ByteOrderMark.UTF_8;
@@ -165,10 +208,7 @@ public final class BomEncodingUtils {
             bom = ByteOrderMark.UTF_32LE;
         } else if (charset.name().equals(ByteOrderMark.UTF_32BE.getCharsetName())) {
             bom = ByteOrderMark.UTF_32BE;
-        } else {
-            return input;
         }
-        return new BOMInputStream(input, bom);
-
+        return bom;
     }
 }
