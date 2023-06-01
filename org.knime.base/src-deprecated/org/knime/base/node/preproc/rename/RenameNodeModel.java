@@ -125,14 +125,15 @@ public class RenameNodeModel extends SimpleStreamableFunctionNodeModel {
         DataTableSpec inSpec = in.getDataTableSpec();
         final DataTableSpec outSpec = configure(new DataTableSpec[]{inSpec})[0];
 
-        // a data table wrapper that returns the "right" DTS (no iteration)
-        BufferedDataTable out = exec.createSpecReplacerTable(in, outSpec);
 
+        BufferedDataTable out = in;
         //create replace columns if a column type has changed (toString)
         ColumnRearranger colre = createColumnRearranger(inSpec, outSpec);
         if(colre!=null) {
             out = exec.createColumnRearrangeTable(out, colre, exec);
         }
+        // a data table wrapper that returns the "right" DTS (no iteration)
+        out = exec.createSpecReplacerTable(out, outSpec);
         return new BufferedDataTable[]{out};
     }
 
@@ -166,7 +167,7 @@ public class RenameNodeModel extends SimpleStreamableFunctionNodeModel {
                 changedColumnsIndex[i] = toStringColumnsIndex.get(i);
             }
             ToStringCellsFactory cellsFactory = new ToStringCellsFactory(changedColumns, changedColumnsIndex);
-            ColumnRearranger rearranger = new ColumnRearranger(outSpec);
+            ColumnRearranger rearranger = new ColumnRearranger(inSpec);
             rearranger.replace(cellsFactory, changedColumnsIndex);
             return rearranger;
         } else {
