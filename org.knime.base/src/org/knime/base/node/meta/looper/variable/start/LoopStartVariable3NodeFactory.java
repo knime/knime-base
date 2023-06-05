@@ -70,6 +70,7 @@ public class LoopStartVariable3NodeFactory extends WebUINodeFactory<LoopStartVar
             "This node uses each row of a data table to define new variable values for each loop iteration. "
                 + "The names of the variables are defined by the column names.")//
         .modelSettingsClass(TableToVariable3NodeSettings.class)//
+        .nodeType(NodeType.LoopStart)//
         .addInputTable("Parameters table", "The table whose rows will constitute variables' "
             + "values for each iteration.")//
         .addOutputTable("Variables Connection", "Holds created flow variables.")//

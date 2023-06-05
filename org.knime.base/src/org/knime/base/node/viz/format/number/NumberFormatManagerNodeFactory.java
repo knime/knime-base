@@ -66,6 +66,7 @@ public class NumberFormatManagerNodeFactory extends WebUINodeFactory<NumberForma
                 selected columns are displayed in views, e.g., the Table View.
                 """)//
         .modelSettingsClass(NumberFormatManagerNodeSettings.class)//
+        .nodeType(NodeType.Visualizer)//
         .addInputTable("Data table", "Table to attach formats to.")//
         .addOutputTable("Data table", "Table with formats attached to columns.")//
         .sinceVersion(5, 1, 0)

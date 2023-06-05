@@ -71,6 +71,7 @@ public final class TableToVariable3NodeFactory extends WebUINodeFactory<TableToV
                 in the row. The variables are exposed using a variables out connection.
                 """)//
         .modelSettingsClass(TableToVariable3NodeSettings.class)//
+        .nodeType(NodeType.Other)//
         .addInputTable("Parameters table", "The table whose first row will be converted to variables.")//
         .addOutputTable("Variables Connection", "Holds created flow variables.")//
         // no since version, not sure since when this node is available
