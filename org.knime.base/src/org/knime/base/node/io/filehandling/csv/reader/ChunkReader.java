@@ -60,7 +60,10 @@ import java.nio.charset.CoderResult;
 /**
  * A reader for reading chunks of a file.
  * This is done by reading up to a specified number of bytes and then terminating after a specified end sequence.
- * Does not take care Byte-Order-Marks, these have to be filtered out beforehand.
+ * Does not take care of Byte-Order-Marks, these have to be filtered out beforehand.
+ *
+ * The implementation is inspired by {@code sun.nio.cs.StreamDecoder} but is heavily refactored to fit our specific
+ * use-case.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -280,6 +283,12 @@ public final class ChunkReader extends Reader {
         }
     }
 
+    /**
+     * Fills m_buffer by reading from m_channel via {@link ReadableByteChannel#read(ByteBuffer)}.
+     *
+     * @return the number of bytes read from the channel or -1 if the channel is closed or is already EOF.
+     * @throws IOException if reading from the channel fails
+     */
     private int fillByteBuffer() throws IOException {
         m_buffer.compact();
         var numRead = m_channel.isOpen() ? m_channel.read(m_buffer) : -1;
@@ -289,7 +298,6 @@ public final class ChunkReader extends Reader {
             return numRead;
         }
         return m_buffer.remaining();
-
     }
 
     @Override
