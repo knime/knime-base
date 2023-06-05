@@ -237,8 +237,6 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
         private boolean m_skipRow;
 
-        private long m_numRowsRead;
-
         ParallelCsvRead(final FSPath path, final long offset, final long numBytesToRead,
             final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
             CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
@@ -290,7 +288,6 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                     m_parser.parseNext();
                 }
                 var row = m_parser.parseNext();
-                m_numRowsRead++;
                 return row == null ? null : RandomAccessibleUtils.createFromArrayUnsafe(row);
             } catch (TextParsingException ex) {
                 throw m_errorParser.parse(ex);
