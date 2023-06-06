@@ -51,11 +51,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CellFactory;
@@ -123,17 +125,38 @@ public class RenameNodeModel extends SimpleStreamableFunctionNodeModel {
         throws Exception {
         BufferedDataTable in = inData[0];
         DataTableSpec inSpec = in.getDataTableSpec();
-        final DataTableSpec outSpec = configure(new DataTableSpec[]{inSpec})[0];
+        DataTableSpec outSpec = configure(new DataTableSpec[]{inSpec})[0];
 
-        // a data table wrapper that returns the "right" DTS (no iteration)
-        BufferedDataTable out = exec.createSpecReplacerTable(in, outSpec);
 
+        BufferedDataTable out = in;
         //create replace columns if a column type has changed (toString)
         ColumnRearranger colre = createColumnRearranger(inSpec, outSpec);
         if(colre!=null) {
             out = exec.createColumnRearrangeTable(out, colre, exec);
+            var convertedColumns = getToStringColumnIndices(inSpec, outSpec);
+            var tableSpecCreator = new DataTableSpecCreator(outSpec);
+            var convertedSpec = out.getDataTableSpec();
+            for (int i : convertedColumns) {
+                tableSpecCreator.replaceColumn(i, convertedSpec.getColumnSpec(i));
+            }
+            outSpec = tableSpecCreator.createSpec();
         }
+        // a data table wrapper that returns the "right" DTS (no iteration)
+        out = exec.createSpecReplacerTable(out, outSpec);
         return new BufferedDataTable[]{out};
+    }
+
+    private static List<Integer> getToStringColumnIndices(final DataTableSpec inSpec, final DataTableSpec outSpec) {
+        return IntStream.range(0, inSpec.getNumColumns())//
+                .filter(i -> requiresToString(inSpec.getColumnSpec(i), outSpec.getColumnSpec(i)))//
+                .boxed()//
+                .toList();
+    }
+
+    private static boolean requiresToString(final DataColumnSpec inSpec, final DataColumnSpec outSpec) {
+        var oldType = inSpec.getType();
+        var newType = outSpec.getType();
+        return newType.equals(StringCell.TYPE) && !StringCell.TYPE.isASuperTypeOf(oldType);
     }
 
     /**
@@ -166,7 +189,7 @@ public class RenameNodeModel extends SimpleStreamableFunctionNodeModel {
                 changedColumnsIndex[i] = toStringColumnsIndex.get(i);
             }
             ToStringCellsFactory cellsFactory = new ToStringCellsFactory(changedColumns, changedColumnsIndex);
-            ColumnRearranger rearranger = new ColumnRearranger(outSpec);
+            ColumnRearranger rearranger = new ColumnRearranger(inSpec);
             rearranger.replace(cellsFactory, changedColumnsIndex);
             return rearranger;
         } else {
