@@ -146,7 +146,8 @@ public final class ChunkReader extends Reader {
             int numCharsRead = readIntoCharBuffer(charBuffer, numCharsToRead);
             if (numCharsRead < numCharsToRead) {
                 // reached the end of the input
-                break;
+                var numTotalRead = charBuffer.position();
+                return numTotalRead == 0 ? -1 : numTotalRead;
             }
         }
 
@@ -202,7 +203,7 @@ public final class ChunkReader extends Reader {
                 var result = m_decoder.decode(m_buffer, charBuffer, endOfFile);
                 m_bytesDecoded += m_buffer.position() - posBeforeDecode;
                 var action = reactToCoderResult(result, endOfFile, charBuffer, oldPosition);
-                endOfFile = action.endOfFile();
+                endOfFile = endOfFile || action.endOfFile();
                 if (action.shouldBreak()) {
                     break;
                 }
