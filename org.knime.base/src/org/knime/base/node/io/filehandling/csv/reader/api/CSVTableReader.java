@@ -237,21 +237,24 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
         private boolean m_skipRow;
 
+        private boolean m_parsingStarted;
+
+        private final Reader m_parserReader;
+
         ParallelCsvRead(final FSPath path, final long offset, final long numBytesToRead,
             final TableReadConfig<CSVTableReaderConfig> config) throws IOException {
-            CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
-            m_errorParser = new ErrorHandler(csvReaderConfig.getCsvSettings());
-            var csvSettings = csvReaderConfig.getCsvSettings();
-            m_reader = createReader(path, offset, numBytesToRead, csvReaderConfig);
-            @SuppressWarnings("resource") // we close the underlying m_reader
-            var decoratedReader = decorateForReading(m_reader, csvReaderConfig, csvSettings);
-            // has to happen after the line separator is potentially changed by decorateForReading
-            m_parser = new CsvParser(csvSettings);
-            m_parser.beginParsing(decoratedReader);
             m_limit = numBytesToRead;
             // when we read an offset, we likely start reading in the middle of a row, therefore we skip this partial
             // row
             m_skipRow = offset > 0 || config.useColumnHeaderIdx();
+            CSVTableReaderConfig csvReaderConfig = config.getReaderSpecificConfig();
+            m_errorParser = new ErrorHandler(csvReaderConfig.getCsvSettings());
+            var csvSettings = csvReaderConfig.getCsvSettings();
+            m_reader = createReader(path, offset, numBytesToRead, csvReaderConfig);
+            m_parserReader = decorateForReading(m_reader, csvReaderConfig, csvSettings);
+            // has to happen after the line separator is potentially changed by decorateForReading
+            m_parser = new CsvParser(csvSettings);
+            // parsing is started on the first next call because it directly starts reading from the channel
         }
 
         // csvSettings have to passed separately because CSVTableReadConfig#getCSVSettings clones them
@@ -282,6 +285,10 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
 
         @Override
         public RandomAccessible<String> next() throws IOException {
+            if (!m_parsingStarted) {
+                m_parsingStarted = true;
+                m_parser.beginParsing(m_parserReader);
+            }
             try {
                 if (m_skipRow) {
                     m_skipRow = false;
