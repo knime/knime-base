@@ -74,10 +74,12 @@ import org.knime.core.data.append.AppendedRowsRowInput;
 import org.knime.core.data.append.AppendedRowsTable;
 import org.knime.core.data.append.AppendedRowsTable.DuplicatePolicy;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InternalTableAPI;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
@@ -114,6 +116,12 @@ public class AppendedRowsNodeModel extends NodeModel {
     static final String CFG_FAIL_ON_DUPLICATES = "fail_on_duplicates";
 
     /**
+     * NodeSettings key flag if new RowIDs should be generated. This option was added in v5.1
+     * and will overrule the other RowID related settings (fail, skip, append).
+     */
+    static final String CFG_NEW_ROWIDS = "create_new_rowids";
+
+    /**
      * NodeSettings key if to append suffix (boolean). If false, skip the rows.
      */
     static final String CFG_APPEND_SUFFIX = "append_suffix";
@@ -129,7 +137,9 @@ public class AppendedRowsNodeModel extends NodeModel {
 
     private boolean m_isFailOnDuplicate = false;
 
-    private boolean m_isAppendSuffix = true;
+    private boolean m_isAppendSuffix = false;
+
+    private boolean m_createNewRowIDs = true;
 
     private String m_suffix = "_dup";
 
@@ -143,6 +153,7 @@ public class AppendedRowsNodeModel extends NodeModel {
     private final HiLiteTranslator m_hiliteTranslator = new HiLiteTranslator();
     /** Default hilite handler used if hilite translation is disabled. */
     private final HiLiteHandler m_dftHiliteHandler = new HiLiteHandler();
+
 
     /**
      * Creates new node model with two inputs and one output.
@@ -193,13 +204,11 @@ public class AppendedRowsNodeModel extends NodeModel {
             noNullSpecs[i] = noNullArray[i].getDataTableSpec();
         }
 
-        //table can only be wrapped if a suffix is to be append or the node fails in case of duplicate row ID's
-        if (m_isAppendSuffix || m_isFailOnDuplicate) {
+        //table can only be wrapped for the row id strategies append suffix, fail and create new
+        if (m_isAppendSuffix || m_isFailOnDuplicate || m_createNewRowIDs) {
             //just wrap the tables virtually instead of traversing it and copying the rows
 
-            //virtually create the concatenated table (no traverse necessary)
-            Optional<String> suffix = m_isAppendSuffix ? Optional.of(m_suffix) : Optional.empty();
-            BufferedDataTable concatTable = exec.createConcatenateTable(exec, suffix, m_isFailOnDuplicate, noNullArray);
+            BufferedDataTable concatTable = concatenate(exec, noNullArray);
             if (m_isIntersection) {
                 //wrap the table and filter the non-intersecting columns
                 DataTableSpec actualOutSpec = getOutputSpec(noNullSpecs);
@@ -210,10 +219,8 @@ public class AppendedRowsNodeModel extends NodeModel {
                 concatTable = exec.createColumnRearrangeTable(concatTable, cr, exec);
             }
             if (m_enableHiliting) {
-                AppendedRowsTable tmp = new AppendedRowsTable(DuplicatePolicy.Fail, null, noNullArray);
-                Map<RowKey, Set<RowKey>> map =
-                    createHiliteTranslationMap(createDuplicateMap(tmp, exec, m_suffix == null ? "" : m_suffix));
-                m_hiliteTranslator.setMapper(new DefaultHiLiteMapper(map));
+                DefaultHiLiteMapper mapper = createHiliteMapper(exec, noNullArray);
+                m_hiliteTranslator.setMapper(mapper);
             }
             return new BufferedDataTable[]{concatTable};
         } else {
@@ -230,6 +237,17 @@ public class AppendedRowsNodeModel extends NodeModel {
             return new BufferedDataTable[]{output.getDataTable()};
         }
 
+    }
+
+    private BufferedDataTable concatenate(final ExecutionContext exec, final BufferedDataTable[] tables)
+        throws CanceledExecutionException {
+        if (m_createNewRowIDs) {
+            return InternalTableAPI.concatenateWithNewRowID(exec, tables);
+        } else {
+            //virtually create the concatenated table (no traverse necessary)
+            Optional<String> suffix = m_isAppendSuffix ? Optional.of(m_suffix) : Optional.empty();
+            return exec.createConcatenateTable(exec, suffix, m_isFailOnDuplicate, tables);
+        }
     }
 
     private static BufferedDataTable[] noNullArray(final BufferedDataTable[] rawInData) {
@@ -271,7 +289,9 @@ public class AppendedRowsNodeModel extends NodeModel {
         }
 
         AppendedRowsTable.DuplicatePolicy duplPolicy;
-        if (m_isFailOnDuplicate) {
+        if (m_createNewRowIDs) {
+            duplPolicy = AppendedRowsTable.DuplicatePolicy.CreateNew;
+        } else if (m_isFailOnDuplicate) {
             duplPolicy = AppendedRowsTable.DuplicatePolicy.Fail;
         } else if (m_isAppendSuffix) {
             duplPolicy = AppendedRowsTable.DuplicatePolicy.AppendSuffix;
@@ -279,7 +299,7 @@ public class AppendedRowsNodeModel extends NodeModel {
             duplPolicy = AppendedRowsTable.DuplicatePolicy.Skip;
         }
         AppendedRowsRowInput appendedInput = AppendedRowsRowInput.create(corrected,
-            duplPolicy, m_suffix, exec, totalRowCount);
+            duplPolicy, m_suffix, exec, totalRowCount, m_enableHiliting);
         try {
             DataRow next;
             // note, this iterator throws runtime exceptions when canceled.
@@ -390,6 +410,7 @@ public class AppendedRowsNodeModel extends NodeModel {
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
+        settings.addBoolean(CFG_NEW_ROWIDS, m_createNewRowIDs);
         // added in v2.3
         settings.addBoolean(CFG_FAIL_ON_DUPLICATES, m_isFailOnDuplicate);
         settings.addBoolean(CFG_APPEND_SUFFIX, m_isAppendSuffix);
@@ -430,6 +451,8 @@ public class AppendedRowsNodeModel extends NodeModel {
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
         m_isIntersection = settings.getBoolean(CFG_INTERSECT_COLUMNS);
+        // added in v5.1
+        m_createNewRowIDs = settings.getBoolean(CFG_NEW_ROWIDS, false);
         // added in v2.3
         m_isFailOnDuplicate =
             settings.getBoolean(CFG_FAIL_ON_DUPLICATES, false);
@@ -520,7 +543,20 @@ public class AppendedRowsNodeModel extends NodeModel {
         }
     }
 
-    private Map<RowKey, RowKey> createDuplicateMap(final DataTable table, final ExecutionContext exec, final String suffix) throws CanceledExecutionException {
+    private DefaultHiLiteMapper createHiliteMapper(final ExecutionContext exec, final BufferedDataTable[] tables)
+        throws CanceledExecutionException {
+        if (m_createNewRowIDs) {
+            return new DefaultHiLiteMapper(createNewRowIDHiliteTranslation(tables));
+        }
+        AppendedRowsTable tmp = new AppendedRowsTable(DuplicatePolicy.Fail, null, tables);
+        Map<RowKey, Set<RowKey>> map =
+            createHiliteTranslationMap(createDuplicateMap(tmp, exec, m_suffix == null ? "" : m_suffix));
+        return new DefaultHiLiteMapper(map);
+    }
+
+
+    private static Map<RowKey, RowKey> createDuplicateMap(final DataTable table, final ExecutionContext exec,
+        final String suffix) throws CanceledExecutionException {
         Map<RowKey, RowKey> duplicateMap = new HashMap<RowKey, RowKey>();
 
         RowIterator it = table.iterator();
@@ -537,6 +573,22 @@ public class AppendedRowsNodeModel extends NodeModel {
             duplicateMap.put(key, origKey);
         }
         return duplicateMap;
+    }
+
+    private static Map<RowKey, Set<RowKey>> createNewRowIDHiliteTranslation(final BufferedDataTable[] tables) {
+        Map<RowKey, Set<RowKey>> translation = new HashMap<>();
+        long i = 0;
+        for (var table : tables) {
+            var iterable = table.filter(TableFilter.materializeCols());
+            try (var iterator = iterable.iterator()) {
+                while (iterator.hasNext()) {
+                    translation.put(RowKey.createRowKey(i), Set.of(iterator.next().getKey()));
+                    i++;
+                }
+            }
+        }
+
+        return translation;
     }
 
     private Map<RowKey, Set<RowKey>> createHiliteTranslationMap(final Map<RowKey, RowKey> dupMap) {
