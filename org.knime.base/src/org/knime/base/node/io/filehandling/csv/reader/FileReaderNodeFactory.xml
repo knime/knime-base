@@ -36,6 +36,7 @@
                 <li>They are not gzip compressed.</li>
                 <li>No lines or rows are limited or skipped.</li>
                 <li>The file index is not prepended to the RowID.</li>
+                <li>They are not encoded with UTF-16 (UTF-16LE and UTF-16BE are fine).</li>
             </ul>
             
 		</intro>

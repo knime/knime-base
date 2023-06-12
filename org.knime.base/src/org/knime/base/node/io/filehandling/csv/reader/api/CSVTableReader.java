@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -146,7 +147,8 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
                 || config.limitRows()//
                 || config.skipRows()//
                 || !csvConfig.noRowDelimitersInQuotes()//
-                || csvConfig.skipLines();
+                || csvConfig.skipLines()//
+                || StandardCharsets.UTF_16.equals(getCharset(csvConfig));
     }
 
     @Override
