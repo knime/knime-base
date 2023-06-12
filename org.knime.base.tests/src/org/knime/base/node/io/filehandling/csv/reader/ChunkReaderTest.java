@@ -118,6 +118,27 @@ final class ChunkReaderTest {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("provideCharsets")
+    void testEndSequenceAtChunkEndAndReadLen(final Charset charset) throws Exception {
+        var textAligningWithChunkSize = "Foo!";
+        var more = " There is more here!";
+        var text = textAligningWithChunkSize + more;
+        try (var reader = createReader(text, charset, charset.encode(textAligningWithChunkSize).limit(), "!")) {
+            var cbuf = new char[textAligningWithChunkSize.length()];
+            int numRead = reader.read(cbuf);
+            var expectedChars = textAligningWithChunkSize.toCharArray();
+            assertEquals(expectedChars.length, numRead, "The first read should read up until chunksize.");
+            assertArrayEquals(expectedChars, cbuf, "Unexpected characters read.");
+            cbuf = new char[more.length()];
+            numRead = reader.read(cbuf);
+            expectedChars = more.toCharArray();
+            assertEquals(expectedChars.length, numRead,
+                "The reader should continue reading until it hits the end sequence.");
+            assertArrayEquals(expectedChars, cbuf, "Unexpected characters read.");
+        }
+    }
+
     private static Stream<Arguments> provideCharsets() {
         return Stream.of(new Charset[] {//
             StandardCharsets.ISO_8859_1,//
