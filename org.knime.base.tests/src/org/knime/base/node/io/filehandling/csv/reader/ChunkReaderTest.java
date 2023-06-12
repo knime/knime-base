@@ -56,9 +56,14 @@ import java.io.ByteArrayInputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for the {@link ChunkReader}.
@@ -70,11 +75,12 @@ final class ChunkReaderTest {
 
     private static final Charset UTF_8 = Charset.forName("utf8");
 
-    @Test
-    void testReadingInsideOfTheChunk() throws Exception {
+    @ParameterizedTest
+    @MethodSource("provideCharsets")
+    void testReadingInsideOfTheChunk(final Charset charset) throws Exception {
         var text = "Some text to be read by the ChunkReader for testing.";
-
-        try (var reader = createReader(text, UTF_8, text.length(), ".")) {
+        int chunkSize = charset.encode(text).limit() + 3;
+        try (var reader = createReader(text, charset, chunkSize, ".")) {
             var cbuf = new char[3];
             int numRead = reader.read(cbuf);
             assertEquals(3, numRead, "It should be possible to read three chars.");
@@ -82,11 +88,13 @@ final class ChunkReaderTest {
         }
     }
 
-    @Test
-    void testEndSequenceTerminationOutsideOfChunk() throws Exception {
+    @ParameterizedTest
+    @MethodSource("provideCharsets")
+    void testEndSequenceTerminationOutsideOfChunk(final Charset charset) throws Exception {
         var whatTheReaderShouldRead = "Foo bar baz.";
+        int chunkSize = charset.encode(whatTheReaderShouldRead).limit() - (int)charset.newEncoder().maxBytesPerChar();
         var text = whatTheReaderShouldRead + " There is more here!";
-        try (var reader = createReader(text, UTF_8, 8, ".")) {
+        try (var reader = createReader(text, charset, chunkSize, ".")) {
             var cbuf = new char[100];
             int numRead = reader.read(cbuf);
             char[] expectedChars = whatTheReaderShouldRead.toCharArray();
@@ -96,11 +104,12 @@ final class ChunkReaderTest {
         }
     }
 
-    @Test
-    void testLenAlignsWithChunkSize() throws Exception {
+    @ParameterizedTest
+    @MethodSource("provideCharsets")
+    void testEndSequenceAtChunkEnd(final Charset charset) throws Exception {
         var textAligningWithChunkSize = "Foo!";
         var text = textAligningWithChunkSize + " There is more here!";
-        try (var reader = createReader(text, UTF_8, textAligningWithChunkSize.length(), "!")) {
+        try (var reader = createReader(text, charset, charset.encode(textAligningWithChunkSize).limit(), "!")) {
             var cbuf = new char[text.length()];
             int numRead = reader.read(cbuf);
             var expectedChars = text.toCharArray();
@@ -109,10 +118,23 @@ final class ChunkReaderTest {
         }
     }
 
-    @Test
-    void testNoMoreReadsPossibleAfterEndSequence() throws Exception {
+    private static Stream<Arguments> provideCharsets() {
+        return Stream.of(new Charset[] {//
+            StandardCharsets.ISO_8859_1,//
+            StandardCharsets.US_ASCII,//
+            StandardCharsets.UTF_16,//
+            StandardCharsets.UTF_16BE,//
+            StandardCharsets.UTF_16LE,//
+            StandardCharsets.UTF_8//
+        }).map(Arguments::of);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideCharsets")
+    void testNoMoreReadsPossibleAfterEndSequence(final Charset charset) throws Exception {
         var text = "Foo!Bar and a lot more stuff that could be read.";
-        try (var reader = createReader(text, UTF_8, "Foo".length(), "!")) {
+        var chunkSize = charset.encode("Foo").limit();
+        try (var reader = createReader(text, charset, chunkSize, "!")) {
             var cbuf = new char[10];
             int n = reader.read(cbuf);
             assertEquals("Foo!", String.valueOf(cbuf, 0, n), "The reader should read 'Foo!'");
@@ -144,7 +166,7 @@ final class ChunkReaderTest {
     @SuppressWarnings("resource") // channel is closed by the ChunkReader
     private static ChunkReader createReader(final String text, final Charset charset, final long chunkSize,
         final String endSequence) {
-        return new ChunkReader(createChannel(text, charset), charset, chunkSize, endSequence, 4);
+        return new ChunkReader(createChannel(text, charset), charset, chunkSize, endSequence, 5);
     }
 
     private static ReadableByteChannel createChannel(final String text, final Charset charset) {
