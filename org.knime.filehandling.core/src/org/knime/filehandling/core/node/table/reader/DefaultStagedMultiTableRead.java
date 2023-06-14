@@ -60,14 +60,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataColumnSpecCreator.MergeOptions;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.container.DataContainerSettings;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.BufferedDataTable;
@@ -305,41 +303,13 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
                 }
             }
             var concatenatedTable = concatenateTables(exec, tables);
-            return sanitizeDomain(exec, concatenatedTable);
+            // We use our own merge logic because the merge logic of table concatenation does not update the bounds if
+            // one of the table contains null bounds e.g. because the corresponding table does not exist in the
+            // underlying file or all values were missing
+            var mergedSpec = mergeSpecs(tables.stream().map(BufferedDataTable::getDataTableSpec));
+            return exec.createSpecReplacerTable(concatenatedTable, mergedSpec);
         }
 
-        private BufferedDataTable sanitizeDomain(final ExecutionContext exec, final BufferedDataTable table) {
-            var tableSpec = table.getDataTableSpec();
-            var columnsWithTooManyPossibleValues = pruneColumnsWithTooManyPossibleValues(tableSpec);
-            if (columnsWithTooManyPossibleValues.isEmpty()) {
-                return table;
-            }
-            var specCreator = new DataTableSpecCreator(tableSpec);
-            columnsWithTooManyPossibleValues
-                .forEach(c -> specCreator.replaceColumn(tableSpec.findColumnIndex(c.getName()), c));
-            return exec.createSpecReplacerTable(table, specCreator.createSpec());
-        }
-
-        /**
-         * The concatenation logic does not respect the maximal number of possible values, so we have to enforce it
-         */
-        private static List<DataColumnSpec> pruneColumnsWithTooManyPossibleValues(final DataTableSpec spec) {
-            var maxNumPossibleValues = DataContainerSettings.getDefault().getMaxDomainValues();
-            return spec.stream()//
-                    .filter(c -> {
-                        var domain = c.getDomain();
-                        return domain.hasValues() && domain.getValues().size() > maxNumPossibleValues;
-                    }).map(DefaultStagedMultiTableRead.ParallelMultiTableRead::dropPossibleValues)//
-                    .toList();
-        }
-
-        private static DataColumnSpec dropPossibleValues(final DataColumnSpec spec) {
-            var specCreator = new DataColumnSpecCreator(spec);
-            var domainCreator = new DataColumnDomainCreator(spec.getDomain());
-            domainCreator.setValues(null);
-            specCreator.setDomain(domainCreator.createDomain());
-            return specCreator.createSpec();
-        }
 
         private BufferedDataTable concatenateTables(final ExecutionContext exec,
             final ArrayList<BufferedDataTable> tables) throws CanceledExecutionException {
@@ -348,6 +318,13 @@ final class DefaultStagedMultiTableRead<I, C extends ReaderSpecificConfig<C>, T,
             } else {
                 return InternalTableAPI.concatenateWithNewRowID(exec, tables.toArray(BufferedDataTable[]::new));
             }
+        }
+        
+        private DataTableSpec mergeSpecs(final Stream<DataTableSpec> specs) {
+            // varying types should not happen because we determine the common DataType beforehand
+            var merger = new DataTableSpecMerger(MergeOptions.ALLOW_VARYING_ELEMENT_NAMES);
+            specs.forEach(merger::merge);
+            return merger.createMergedSpec();
         }
 
         private void validateChunks(final Collection<BufferedDataTable> tableChunks) {
