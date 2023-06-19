@@ -59,6 +59,8 @@ import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.SpaceAware;
 import org.knime.filehandling.core.connections.SpaceAware.Space;
+import org.knime.filehandling.core.connections.ItemVersionAware;
+import org.knime.filehandling.core.connections.ItemVersionAware.RepositoryItemVersion;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
@@ -180,6 +182,25 @@ public final class HubAccessUtil {
 
                 if (fileSystemProvider instanceof SpaceAware) {
                     return ((SpaceAware)fileSystemProvider).getSpace(spaceId);
+                } else {
+                    throw new IllegalStateException("Chosen file system does not provide access to Hub Spaces");
+                }
+            }
+        }
+
+        /**
+         * @param id The repository item id.
+         * @return The {@link RepositoryItemVersion} object.
+         * @throws IOException
+         */
+        @SuppressWarnings("resource")
+        public List<RepositoryItemVersion> fetchRepositoryItemVersions(final String id) throws IOException {
+            try (var connection = createFSConnection()) {
+                final var fileSystemProvider = connection.getFileSystem().provider();
+
+                if (fileSystemProvider instanceof ItemVersionAware) {
+                    var provider = (ItemVersionAware)fileSystemProvider;
+                    return provider.getRepositoryItemVersions(id);
                 } else {
                     throw new IllegalStateException("Chosen file system does not provide access to Hub Spaces");
                 }

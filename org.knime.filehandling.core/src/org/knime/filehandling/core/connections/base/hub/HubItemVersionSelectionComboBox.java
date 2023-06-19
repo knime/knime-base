@@ -69,15 +69,15 @@ import javax.swing.ListCellRenderer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.knime.filehandling.core.connections.SpaceAware.SpaceVersion;
-import org.knime.filehandling.core.connections.base.hub.HubSpaceVersionSelectionComboBox.SpaceVersionComboItem;
+import org.knime.filehandling.core.connections.ItemVersionAware.RepositoryItemVersion;
+import org.knime.filehandling.core.connections.base.hub.HubItemVersionSelectionComboBox.ItemVersionComboItem;
 
 /**
- * {@link JComboBox} subclass to select a Hub Space version.
+ * {@link JComboBox} subclass to select a Hub repository item version.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionComboItem> {
+final class HubItemVersionSelectionComboBox extends JComboBox<ItemVersionComboItem> {
 
     private static final DateTimeFormatter LONG_DATE_TIME_FORMATTER =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:SS z");
@@ -86,10 +86,10 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
 
     private ChangeListener m_changeListener; // NOSONAR
 
-    public HubSpaceVersionSelectionComboBox() {
+    public HubItemVersionSelectionComboBox() {
         super();
-        setModel(new SpaceVersionComboModel());
-        setRenderer(new SpaceVersionComboboxCellRenderer());
+        setModel(new ItemVersionComboModel());
+        setRenderer(new ItemVersionComboboxCellRenderer());
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         setPreferredSize(new Dimension(250, 25));
 
@@ -101,8 +101,8 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
     }
 
     @Override
-    public SpaceVersionComboItem getSelectedItem() {
-        return ((SpaceVersionComboModel)getModel()).getSelectedItem();
+    public ItemVersionComboItem getSelectedItem() {
+        return ((ItemVersionComboModel)getModel()).getSelectedItem();
     }
 
     void setChangeListener(final ChangeListener changeListener) {
@@ -120,47 +120,46 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
         }
     }
 
-    void setItems(final List<SpaceVersion> items, final String selectedSpaceVersion) {
-        ((SpaceVersionComboModel)getModel()).setItems(items, selectedSpaceVersion);
+    void setItems(final List<RepositoryItemVersion> items, final String selectedItemVersion) {
+        ((ItemVersionComboModel)getModel()).setItems(items, selectedItemVersion);
     }
 
     public void clearItemsAndSelection() {
-        ((SpaceVersionComboModel)getModel()).clearItemsAndSelection();
+        ((ItemVersionComboModel)getModel()).clearItemsAndSelection();
     }
 
     /**
-     * {@link ComboBoxModel} that maintains a list of (resolved) {@link SpaceVersionComboItem}s, plus one pseudo-item to
-     * reference the "latest version".
+     * {@link ComboBoxModel} that maintains a list of (resolved) {@link ItemVersionComboItem}s.
      */
-    private static class SpaceVersionComboModel extends AbstractListModel<SpaceVersionComboItem>
-        implements ComboBoxModel<SpaceVersionComboItem> {
+    private static class ItemVersionComboModel extends AbstractListModel<ItemVersionComboItem>
+        implements ComboBoxModel<ItemVersionComboItem> {
         private static final long serialVersionUID = 1L;
 
-        private List<SpaceVersionComboItem> m_items = new ArrayList<>(); //NOSONAR not intended for serialization
+        private List<ItemVersionComboItem> m_items = new ArrayList<>(); //NOSONAR not intended for serialization
 
-        private SpaceVersionComboItem m_selectedItem; //NOSONAR not intended for serialization
+        private ItemVersionComboItem m_selectedItem; //NOSONAR not intended for serialization
 
-        void setItems(final List<SpaceVersion> spaceVersions, final String selectedSpaceVersion) {
+        void setItems(final List<RepositoryItemVersion> itemVersions, final String selectedItemVersion) {
             m_items.clear();
 
-            var sortedVersionItems = spaceVersions.stream() //
+            var sortedVersionItems = itemVersions.stream() //
                 .sorted((l, r) -> Long.compare(r.getVersion(), l.getVersion())) // sort in descending order
-                .map(SpaceVersionComboItem::new)//
+                .map(ItemVersionComboItem::new)//
                 .collect(Collectors.toList());
-            m_items.add(new SpaceVersionComboItem(sortedVersionItems.get(0).getSpaceVersion(), true));
             m_items.addAll(sortedVersionItems);
 
-            if (selectedSpaceVersion == null) {
+            if (selectedItemVersion == null && !m_items.isEmpty()) {
                 setSelectedItem(m_items.get(0)); // pick latest
             } else {
-                setSelectedItem(selectedSpaceVersion);
+                setSelectedItem(selectedItemVersion);
             }
         }
 
         public void clearItemsAndSelection() {
             m_items.clear();
-            m_items.add(new SpaceVersionComboItem(""));
-            setSelectedItem(m_items.get(0));
+            if (!m_items.isEmpty()) {
+                setSelectedItem(m_items.get(0));
+            }
         }
 
         @Override
@@ -168,12 +167,11 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
             final var previouslySelectedItem = m_selectedItem;
 
             if (newItem instanceof String) {
-                var str = (String)newItem;
                 m_selectedItem = m_items.stream() //
                     .filter(i -> i.getVersion().equals(newItem)) //
-                    .findFirst().orElse(new SpaceVersionComboItem(str));
-            } else if (newItem instanceof SpaceVersionComboItem) {
-                final var comboItem = (SpaceVersionComboItem)newItem;
+                    .findFirst().orElse(null);
+            } else if (newItem instanceof ItemVersionComboItem) {
+                final var comboItem = (ItemVersionComboItem)newItem;
                 m_selectedItem = m_items.stream() //
                     .filter(i -> Objects.equals(i.getVersion(), comboItem.getVersion())) //
                     .findFirst().orElse(m_items.get(0));
@@ -187,7 +185,7 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
         }
 
         @Override
-        public SpaceVersionComboItem getSelectedItem() {
+        public ItemVersionComboItem getSelectedItem() {
             return m_selectedItem;
         }
 
@@ -197,84 +195,57 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
         }
 
         @Override
-        public SpaceVersionComboItem getElementAt(final int index) {
+        public ItemVersionComboItem getElementAt(final int index) {
             return m_items.get(index);
         }
     }
 
     /**
-     * {@link ListCellRenderer} that displays each {@link SpaceVersionComboItem} in a single line.
+     * {@link ListCellRenderer} that displays each {@link ItemVersionComboItem} in a single line.
      */
-    private class SpaceVersionComboboxCellRenderer implements ListCellRenderer<SpaceVersionComboItem> {
+    private class ItemVersionComboboxCellRenderer implements ListCellRenderer<ItemVersionComboItem> {
 
         private final DefaultListCellRenderer m_versionInfoLabel = new DefaultListCellRenderer();
 
-        SpaceVersionComboboxCellRenderer() {
+        ItemVersionComboboxCellRenderer() {
         }
 
         @Override
-        public Component getListCellRendererComponent(final JList<? extends SpaceVersionComboItem> list, //
-            final SpaceVersionComboItem item, //
+        public Component getListCellRendererComponent(final JList<? extends ItemVersionComboItem> list, //
+            final ItemVersionComboItem item, //
             final int index, //
             final boolean isSelected, //
             final boolean cellHasFocus) {
 
             m_versionInfoLabel.getListCellRendererComponent(list, item, index, isSelected, cellHasFocus);
 
-            if (item != null && item.isResolved()) {
+            if (item != null) {
                 m_versionInfoLabel.setToolTipText(item.getToolTip());
             } else {
-                m_versionInfoLabel.setToolTipText(null);
+                m_versionInfoLabel.setToolTipText("");
             }
 
             return m_versionInfoLabel;
         }
     }
 
-    static class SpaceVersionComboItem {
+    static class ItemVersionComboItem {
 
-        private final String m_version;
+        private final RepositoryItemVersion m_itemVersion;
 
-        private final SpaceVersion m_spaceVersion;
-
-        SpaceVersionComboItem(final SpaceVersion spaceVersion) {
-            this(spaceVersion, false);
-        }
-
-        SpaceVersionComboItem(final SpaceVersion spaceVersion, final boolean isLatest) {
-            m_spaceVersion = spaceVersion;
-            if (isLatest) {
-                m_version = "";
-            } else {
-                m_version = Long.toString(spaceVersion.getVersion());
-            }
-        }
-
-        SpaceVersionComboItem(final String version) {
-            m_version = version;
-            m_spaceVersion = null;
+        ItemVersionComboItem(final RepositoryItemVersion itemVersion) {
+            m_itemVersion = itemVersion;
         }
 
         /**
-         * @return the version number as a String, or an empty string to mean the "latest" version.
+         * @return the version number as a String.
          */
         public String getVersion() {
-            return m_version;
+            return String.valueOf(m_itemVersion.getVersion());
         }
 
-        public boolean isLatestVersion() {
-            return m_version.isEmpty();
-        }
-
-        SpaceVersion getSpaceVersion() {
-            return m_spaceVersion;
-        }
-
-        /**
-         * @return the isResolved
-         */
-        public boolean isResolved() {
-            return m_spaceVersion != null;
+        RepositoryItemVersion getItemVersion() {
+            return m_itemVersion;
         }
 
         @Override
@@ -283,21 +254,7 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
         }
 
         private String createName() {
-            String name;
-            if (isResolved()) {
-                if (isLatestVersion()) {
-                    name = String.format("Latest version (#%d)", m_spaceVersion.getVersion());
-                } else {
-                    name = String.format("#%d %s", m_spaceVersion.getVersion(), m_spaceVersion.getTitle());
-                }
-            } else {
-                if (isLatestVersion()) {
-                    name = "Latest version";
-                } else {
-                    name = m_version;
-                }
-            }
-            return name;
+            return String.format("#%d %s", m_itemVersion.getVersion(), m_itemVersion.getTitle());
         }
 
         public static String truncateName(final String name) {
@@ -309,23 +266,13 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
         }
 
         public String getToolTip() {
-            if (isResolved()) {
-                return String.format(
-                    "<html><b>Version number:</b> %d<br><b>Title:</b> %s<br><b>Created on:</b> %s<br><b>Author:</b> %s<br><b>Description:</b> %s</html>", //
-                    m_spaceVersion.getVersion(), //
-                    m_spaceVersion.getTitle(), //
-                    LONG_DATE_TIME_FORMATTER.format(toZonedDateTime(m_spaceVersion.getCreatedOn())), //
-                    m_spaceVersion.getAuthor(), //
-                    m_spaceVersion.getDescription());
-            } else {
-                if (isLatestVersion()) {
-                    return "Latest version";
-                } else {
-                    return String.format(
-                        "<html><b>Version number:</b> %d<br><b>Title:</b> ?<br><b>Created on:</b> ?<br><b>Author:</b> ?<br><b>Description:</b> ?</html>", //
-                        m_spaceVersion.getVersion());
-                }
-            }
+            return String.format(
+                "<html><b>Version number:</b> %d<br><b>Title:</b> %s<br><b>Created on:</b> %s<br><b>Author:</b> %s<br><b>Description:</b> %s</html>", //
+                m_itemVersion.getVersion(), //
+                m_itemVersion.getTitle(), //
+                LONG_DATE_TIME_FORMATTER.format(toZonedDateTime(m_itemVersion.getCreatedOn())), //
+                m_itemVersion.getAuthor(), //
+                m_itemVersion.getDescription());
         }
 
         private static ZonedDateTime toZonedDateTime(final Instant instant) {
@@ -334,7 +281,7 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
 
         @Override
         public int hashCode() {
-            return Objects.hash(m_version, m_spaceVersion);
+            return Objects.hash(m_itemVersion);
         }
 
         @Override
@@ -348,9 +295,8 @@ final class HubSpaceVersionSelectionComboBox extends JComboBox<SpaceVersionCombo
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            SpaceVersionComboItem other = (SpaceVersionComboItem)obj;
-            return Objects.equals(m_version, other.m_version) //
-                && Objects.equals(m_spaceVersion, other.m_spaceVersion);
+            ItemVersionComboItem other = (ItemVersionComboItem)obj;
+            return Objects.equals(m_itemVersion, other.m_itemVersion);
         }
     }
 }

@@ -50,6 +50,7 @@ package org.knime.filehandling.core.connections.base.hub;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.swing.event.ChangeEvent;
@@ -60,64 +61,37 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-import com.google.common.base.Objects;
-
 /**
- * The settings class containing a flag whether to use a Space version or not, as well as the Space version to use.
+ * The settings class containing a flag whether to use a Item version or not, as well as the Item version to use.
  *
  * @author Bjoern Lohrmann, KNIME GmbH
  */
-public class HubSpaceVersionSettings {
+public class HubItemVersionSettings {
 
-    private static final String CFG_USE_SPACE_VERSION = "useSpaceVersion";
+    private static final String CFG_ITEM_VERSION = "itemVersion";
 
-    private static final String CFG_SPACE_VERSION = "spaceVersion";
-
-    private boolean m_useSpaceVersion = false;
-
-    private String m_spaceVersion = null;
+    private String m_itemVersion = null; //NOSONAR
 
     private final List<ChangeListener> m_listeners = new ArrayList<>();
-
-    /**
-     * @return true, if a Space version is set, false otherwise.
-     */
-    public boolean useSpaceVersion() {
-        return m_useSpaceVersion;
-    }
-
-    /**
-     * Sets whether a Space version shall be set or not.
-     *
-     * @param useSpaceVersion
-     */
-    public void setUseSpaceVersion(final boolean useSpaceVersion) {
-        boolean changed = m_useSpaceVersion != useSpaceVersion;
-        m_useSpaceVersion = useSpaceVersion;
-
-        if (changed) {
-            fireChangeListeners();
-        }
-    }
 
     /**
      * @return an empty {@link Optional}, if the "latest" version is set, a number (as String), if a specific version is
      *         set.
      */
-    public Optional<String> getSpaceVersion() {
-        return Optional.ofNullable(m_spaceVersion);
+    public Optional<String> getItemVersion() {
+        return Optional.ofNullable(m_itemVersion);
     }
 
     /**
-     * Sets the Space version to use.
+     * Sets the Item version to use.
      *
      * @param version A number (as String) to specify a concrete version, or null to set the "latest" version.
      */
-    public void setSpaceVersion(final String version) {
-        var oldVersion = m_spaceVersion;
-        m_spaceVersion = StringUtils.isBlank(version) ? null : version;
+    public void setItemVersion(final String version) {
+        var oldVersion = m_itemVersion;
+        m_itemVersion = StringUtils.isBlank(version) ? null : version;
 
-        if (!Objects.equal(oldVersion, m_spaceVersion)) {
+        if (!Objects.equals(oldVersion, m_itemVersion)) {
             fireChangeListeners();
         }
     }
@@ -153,9 +127,8 @@ public class HubSpaceVersionSettings {
      * @param settings The settings object to load from.
      * @throws InvalidSettingsException Thrown when settings are missing and settings are required (see constructor).
      */
-    public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_useSpaceVersion = settings.getBoolean(CFG_USE_SPACE_VERSION);
-        m_spaceVersion = settings.getString(CFG_SPACE_VERSION);
+    public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {// NOSONAR
+        m_itemVersion = settings.getString(CFG_ITEM_VERSION);
         fireChangeListeners();
     }
 
@@ -164,9 +137,8 @@ public class HubSpaceVersionSettings {
      *
      * @param settings The settings object to save settings to.
      */
-    public void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_USE_SPACE_VERSION, m_useSpaceVersion);
-        settings.addString(CFG_SPACE_VERSION, m_spaceVersion);
+    public void saveSettingsTo(final NodeSettingsWO settings) {// NOSONAR
+        settings.addString(CFG_ITEM_VERSION, m_itemVersion);
     }
 
     /**
@@ -175,9 +147,8 @@ public class HubSpaceVersionSettings {
      * @param settings The settings object to validate.
      * @throws InvalidSettingsException
      */
-    public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        settings.getBoolean(CFG_USE_SPACE_VERSION);
-        settings.getString(CFG_SPACE_VERSION);
+    public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {// NOSONAR
+        settings.getString(CFG_ITEM_VERSION);
     }
 
     /**
@@ -186,7 +157,7 @@ public class HubSpaceVersionSettings {
      * @throws InvalidSettingsException
      */
     public void validate() throws InvalidSettingsException {
-        if (m_useSpaceVersion && m_spaceVersion != null && m_spaceVersion.isEmpty()) {
+        if (StringUtils.isBlank(m_itemVersion)) {
             throw new InvalidSettingsException("No version selected");
         }
     }

@@ -44,119 +44,98 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 22, 2022 (Zkriya Rakhimberdiyev): created
+ *   Jun 13, 2023 (Zkriya Rakhimberdiyev): created
  */
 package org.knime.filehandling.core.connections;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 /**
- * An interface providing methods for handling spaces. Some file system providers can
- * implement this interface to allow interacting with Hub spaces.
+ * This interface provides methods for working with Hub repository item versions. Some file system providers can
+ * implement this interface to allow interacting with item versions.
  *
- * @author Zkriya Rakhimberdiyev
+ * @author Zkriya Rakhimberdiyev, Redfield SE
  */
-public interface SpaceAware extends ItemVersionAware {
+public interface ItemVersionAware {
 
     /**
-     * Wrapper object for space details.
+     * Wrapper object for Item version details.
      */
-    public static class Space {
+    class RepositoryItemVersion {
 
-        private final String m_name;
+        private final long m_version;
 
-        private final String m_owner;
+        private final String m_title;
 
-        private final boolean m_isPrivate;
+        private final String m_description;
 
-        private final String m_spaceId;
+        private final String m_author;
 
-        private final String m_path;
+        private final Instant m_createdOn;
 
         /**
-         * Space constructor.
+         * Constructor.
          *
-         * @param name Name of the Space.
-         * @param owner Name of the account that owns the Space.
-         * @param isPrivate True when this is a private Space, false if it is public.
-         * @param spaceId space id Repository item ID (aka KNIME ID) of the Space.
-         * @param path Path of the space within the file tree of the Hub, e.g. /Users/joe/Private. For shared spaces
-         *            this is the actual path of the Space.
+         * @param version
+         * @param title
+         * @param description
+         * @param author
+         * @param createdOn
          */
-        public Space(final String name, //
-            final String owner, //
-            final boolean isPrivate, //
-            final String spaceId,
-            final String path) {
+        public RepositoryItemVersion(final long version, final String title, final String description, final String author,
+            final Instant createdOn) {
 
-            m_name = name;
-            m_owner = owner;
-            m_isPrivate = isPrivate;
-            m_spaceId = spaceId;
-            m_path = path;
+            m_version = version;
+            m_title = title;
+            m_description = description;
+            m_author = author;
+            m_createdOn = createdOn;
         }
 
         /**
-         * @return the name of the Space.
+         * @return the numeric version
          */
-        public String getName() {
-            return m_name;
+        public long getVersion() {
+            return m_version;
         }
 
         /**
-         * @return the name of the owner account.
+         * @return the title
          */
-        public String getOwner() {
-            return m_owner;
+        public String getTitle() {
+            return m_title;
         }
 
         /**
-         * @return true if this is a private Space, false if it is a public Space.
+         * @return the description
          */
-        public boolean isPrivate() {
-            return m_isPrivate;
+        public String getDescription() {
+            return m_description;
         }
 
         /**
-         * @return the repository item ID (aka KNIME ID) of the Space.
+         * @return the author account name
          */
-        public String getSpaceId() {
-            return m_spaceId;
+        public String getAuthor() {
+            return m_author;
         }
 
         /**
-         * @return path of the space within the file tree of the Hub, e.g. /Users/joe/Private. For shared spaces this is
-         *         the actual path of the Space.
+         * @return the createdOn
          */
-        public String getPath() {
-            return m_path;
+        public Instant getCreatedOn() {
+            return m_createdOn;
         }
     }
 
     /**
-     * Gets all the Hub Spaces accessible to the user.
+     * Lists all versions of the given Hub repository item.
      *
-     * @return list of {@link Space}s.
+     * @param id The repository item id.
+     * @return a {@link List} of {@link RepositoryItemVersion}s for the given repository item.
      * @throws IOException
      */
-    List<Space> getSpaces() throws IOException;
-
-    /**
-     * Gets the space by it's id.
-     *
-     * @param id The space id.
-     * @return The space.
-     * @throws IOException
-     */
-    Space getSpace(String id) throws IOException;
-
-    /**
-     * Lists all Hub Spaces owned by the given account, which are accessible by the current user.
-     *
-     * @param accountNameOrID The account name ("joe.blank") or ID ("user:eda5b6ca-a8b8-46a7-86b2-9b27a24cc972").
-     * @return the list of {@link Space}s.
-     * @throws IOException
-     */
-    List<Space> getSpacesOwnedByAccount(String accountNameOrID) throws IOException;
+    List<RepositoryItemVersion> getRepositoryItemVersions(String id) throws IOException;
 }

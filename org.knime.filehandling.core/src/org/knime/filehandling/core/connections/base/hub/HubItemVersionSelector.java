@@ -60,25 +60,28 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.node.FlowVariableModel;
+import org.knime.core.node.FlowVariableModelButton;
+import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.connections.SpaceAware.SpaceVersion;
+import org.knime.filehandling.core.connections.ItemVersionAware.RepositoryItemVersion;
 import org.knime.filehandling.core.connections.base.hub.HubAccessUtil.HubAccess;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.core.defaultnodesettings.status.DefaultStatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusView;
 
 /**
- * Hub Space version selector component.
+ * Hub repository item version selector component.
  *
  * @author Alexander Bondaletov
  */
-public final class HubSpaceVersionSelector extends JPanel {
+public final class HubItemVersionSelector extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private final HubSpaceVersionSettings m_versionSettings; //NOSONAR not intended for serialization
+    private final HubItemVersionSettings m_versionSettings; //NOSONAR not intended for serialization
 
-    private final HubSpaceVersionSelectionComboBox m_comboBox;
+    private final HubItemVersionSelectionComboBox m_comboBox;
 
     private final StatusView m_statusView; // NOSONAR
 
@@ -86,30 +89,42 @@ public final class HubSpaceVersionSelector extends JPanel {
 
     private final HubAccess m_hubAccess; //NOSONAR not intended for serialization
 
-    private FetchSpaceVersionsSwingWorker m_fetchVersionsWorker = null; //NOSONAR not intended for serialization
+    private FetchItemVersionsSwingWorker m_fetchVersionsWorker = null; //NOSONAR not intended for serialization
 
-    private String m_spaceId = null;
+    private FlowVariableModel m_itemVersionFvm; //NOSONAR not intended for serialization
 
-    private boolean m_ignoreSettingsChange = false;
+    private final FlowVariableModelButton m_itemVersionFvmBtn;
+
+    private boolean m_overwrittenByVariable = false; // NOSONAR
+
+    private String m_itemId = null; // NOSONAR
+
+    private boolean m_ignoreSettingsChange = false; // NOSONAR
 
     /**
      * Constructor.
      *
      * @param versionSettings The version settings instance to use.
      * @param hubAccess The {@link HubAccess} instance to fetch versions from KNIME Hub.
+     * @param itemVersionFvm the {@link FlowVariableModel} for the item version
      */
-    public HubSpaceVersionSelector(final HubSpaceVersionSettings versionSettings, final HubAccess hubAccess) {
+    public HubItemVersionSelector(final HubItemVersionSettings versionSettings, final HubAccess hubAccess,
+        final FlowVariableModel itemVersionFvm) {
 
         m_versionSettings = versionSettings;
         m_versionSettings.addChangeListener(e -> onVersionSettingsChanged());
 
         m_hubAccess = hubAccess;
 
-        m_comboBox = new HubSpaceVersionSelectionComboBox();
-        m_comboBox.setChangeListener(this::onSpaceVersionSelectionChanged);
+        m_comboBox = new HubItemVersionSelectionComboBox();
+        m_comboBox.setChangeListener(this::onItemVersionSelectionChanged);
 
         m_statusView = new StatusView(300);
         m_statusViewPlaceholder = Box.createHorizontalStrut((int)m_statusView.getPanel().getPreferredSize().getWidth());
+
+        m_itemVersionFvm = itemVersionFvm;
+        m_itemVersionFvm.addChangeListener(e -> onItemVersionFvmChanged());
+        m_itemVersionFvmBtn = new FlowVariableModelButton(m_itemVersionFvm);
 
         final var gbc = new GridBagConstraints();
         setLayout(new GridBagLayout());
@@ -118,8 +133,12 @@ public final class HubSpaceVersionSelector extends JPanel {
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 0, 0, 5);
-
         add(m_comboBox, gbc);
+
+        gbc.gridx += 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        add(m_itemVersionFvmBtn, gbc);
 
         gbc.gridx += 1;
         gbc.anchor = GridBagConstraints.LINE_START;
@@ -129,16 +148,16 @@ public final class HubSpaceVersionSelector extends JPanel {
 
         gbc.gridx += 1;
         add(m_statusViewPlaceholder, gbc);
-        m_statusViewPlaceholder.setVisible(false); // when the HubSpaceVersionSelector is enabled, the glue is invisible (see setEnabled())
-
+        m_statusViewPlaceholder.setVisible(false); // when the HubItemVersionSelector is enabled, the glue
+                                                    // is invisible (see setEnabled())
     }
 
     /**
-     * Invoked to transfer changes from the UI (HubSpaceSelectionComboBox) to the underlying settings (HubSpaceSettings)
+     * Invoked to transfer changes from the UI to the underlying settings (HubSpaceSettings)
      *
      * @param ignored
      */
-    private void onSpaceVersionSelectionChanged(final ChangeEvent ignored) {
+    private void onItemVersionSelectionChanged(final ChangeEvent ignored) {
         if (!isEnabled() || m_ignoreSettingsChange) {
             return;
         }
@@ -149,31 +168,77 @@ public final class HubSpaceVersionSelector extends JPanel {
         // To avoid event loops (UI change -> settings change -> UI change -> ...)
         // we use m_ignoreSettingsChange as a circuit breaker here.
         m_ignoreSettingsChange = true;
-        if (selectedItem == null || selectedItem.isLatestVersion()) {
-            m_versionSettings.setSpaceVersion(null); // sets the "latest" version
+        if (selectedItem == null) {
+            m_versionSettings.setItemVersion(null);
         } else {
-            m_versionSettings.setSpaceVersion(selectedItem.getVersion());
+            m_versionSettings.setItemVersion(selectedItem.getVersion());
+        }
+        m_ignoreSettingsChange = false;
+    }
+
+    private void onItemVersionFvmChanged() {
+        if (!isEnabled() || m_ignoreSettingsChange) {
+            return;
+        }
+
+        m_ignoreSettingsChange = true;
+
+        String itemVersionValue = null;
+        if (m_itemVersionFvm.isVariableReplacementEnabled()) {
+            itemVersionValue = m_itemVersionFvm.getVariableValue()//
+                .map(flowVar -> flowVar.getValue(StringType.INSTANCE))//
+                .orElse(null);
+        }
+
+        if (StringUtils.isNotBlank(itemVersionValue)) {
+            m_overwrittenByVariable = true;
+            m_comboBox.setEnabled(false);
+            m_comboBox.setSelectedItem(itemVersionValue);
+            m_versionSettings.setItemVersion(itemVersionValue);
+        } else {
+            m_overwrittenByVariable = false;
+            m_comboBox.setEnabled(true);
+            m_comboBox.setSelectedItem(null);
+            m_versionSettings.setItemVersion(null);
+            triggerFetchItemVersions(m_itemId);
         }
         m_ignoreSettingsChange = false;
     }
 
     /**
-     * Invoked by surrounding code when the selected Space has changed and the version selection needs to be updated.
-     *
-     * @param spaceId The space ID to use.
+     * @param enabled Whether the selector is enabled or not.
      */
-    public void setSpaceId(final String spaceId) {
-        m_spaceId = spaceId;
+    @Override
+    public void setEnabled(final boolean enabled) {
+        var wasEnabled = isEnabled();
+        super.setEnabled(enabled);
+        updateEnabledness();
+        if (enabled && !wasEnabled && m_itemId != null) {
+            triggerFetchItemVersions(m_itemId);
+        }
+    }
+
+    private void updateEnabledness() {
+        var effectivelyEnabled = isEnabled();
+        m_comboBox.setEnabled(!m_overwrittenByVariable && effectivelyEnabled);
+        m_itemVersionFvmBtn.setEnabled(effectivelyEnabled);
+        m_statusView.getPanel().setVisible(effectivelyEnabled);
+        m_statusViewPlaceholder.setVisible(!effectivelyEnabled);
+    }
+
+    /**
+     * Invoked by surrounding code when the selected repository item has changed and the version selection needs to be
+     * updated.
+     *
+     * @param itemId The repository item ID to use.
+     */
+    public void setItemId(final String itemId) {
+        m_itemId = itemId;
 
         if (!isEnabled()) {
             return;
         }
-
-        if (m_versionSettings.useSpaceVersion()) {
-            triggerFetchSpaceVersions(m_spaceId);
-        } else {
-            m_comboBox.clearItemsAndSelection();
-        }
+        triggerFetchItemVersions(m_itemId);
     }
 
     /**
@@ -187,61 +252,35 @@ public final class HubSpaceVersionSelector extends JPanel {
 
         updateEnabledness();
         m_ignoreSettingsChange = true;
-        if (m_versionSettings.useSpaceVersion()) {
-            m_comboBox.setSelectedItem(m_versionSettings.getSpaceVersion().orElse(null));
-            triggerFetchSpaceVersions(m_spaceId);
-        } else {
-            m_comboBox.clearItemsAndSelection();
-        }
+        m_comboBox.setSelectedItem(m_versionSettings.getItemVersion().orElse(null));
+        triggerFetchItemVersions(m_itemId);
         m_ignoreSettingsChange = false;
     }
 
-    /**
-     * @param enabled Whether the selector is enabled or not.
-     */
-    @Override
-    public void setEnabled(final boolean enabled) {
-        var wasEnabled = isEnabled();
-        super.setEnabled(enabled);
-        updateEnabledness();
-        if (enabled && !wasEnabled && m_spaceId != null) {
-            triggerFetchSpaceVersions(m_spaceId);
-        }
-    }
-
-    private void updateEnabledness() {
-        var effectivelyEnabled = isEnabled() && m_versionSettings.useSpaceVersion();
-        m_comboBox.setEnabled(effectivelyEnabled);
-        m_statusView.getPanel().setVisible(effectivelyEnabled);
-        m_statusViewPlaceholder.setVisible(!effectivelyEnabled);
-    }
-
-    private void triggerFetchSpaceVersions(final String spaceId) {
+    private void triggerFetchItemVersions(final String itemId) {
         if (m_fetchVersionsWorker != null) {
             m_fetchVersionsWorker.cancel(true);
             m_fetchVersionsWorker = null;
         }
 
-        m_fetchVersionsWorker = new FetchSpaceVersionsSwingWorker(spaceId);
+        m_fetchVersionsWorker = new FetchItemVersionsSwingWorker(itemId);
         m_fetchVersionsWorker.execute();
     }
 
-    private class FetchSpaceVersionsSwingWorker extends SwingWorkerWithContext<List<SpaceVersion>, Void> {
+    private class FetchItemVersionsSwingWorker extends SwingWorkerWithContext<List<RepositoryItemVersion>, Void> {
 
-        private final String m_currSpaceId;
+        private final String m_currItemId;
 
-        FetchSpaceVersionsSwingWorker(final String spaceId) {
-            m_currSpaceId = StringUtils.isBlank(spaceId) ? null : HubSpaceSelector.sanitizeSpaceId(spaceId);
+        FetchItemVersionsSwingWorker(final String spaceId) {
+            m_currItemId = StringUtils.isBlank(spaceId) ? null : HubSpaceSelector.sanitizeSpaceId(spaceId);
             m_comboBox.setEnabled(false);
             m_statusView.setStatus(DefaultStatusMessage.mkInfo("Loading versions..."));
         }
 
         @Override
-        protected List<SpaceVersion> doInBackgroundWithContext() throws Exception {
-            if (m_currSpaceId != null) {
-//                AP-20417: Remove space-level versioning
-//                return m_hubAccess.fetchSpaceVersions(m_currSpaceId);
-                return null;
+        protected List<RepositoryItemVersion> doInBackgroundWithContext() throws Exception {
+            if (m_currItemId != null) {
+                return m_hubAccess.fetchRepositoryItemVersions(m_currItemId);
             } else {
                 return null; // NOSONAR
             }
@@ -258,10 +297,10 @@ public final class HubSpaceVersionSelector extends JPanel {
 
             try {
                 var result = get();
-                if (result == null || result.isEmpty()) { // no (valid) space id was given or no versions exist
+                if (result == null || result.isEmpty()) { // no (valid) item id was given or no versions exist
                     m_comboBox.clearItemsAndSelection();
                 } else {
-                    m_comboBox.setItems(result, m_versionSettings.getSpaceVersion().orElse(null));
+                    m_comboBox.setItems(result, m_versionSettings.getItemVersion().orElse(null));
                 }
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
