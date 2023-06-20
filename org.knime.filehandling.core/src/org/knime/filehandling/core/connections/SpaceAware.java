@@ -57,7 +57,7 @@ import java.util.List;
  *
  * @author Zkriya Rakhimberdiyev
  */
-public interface SpaceAware extends ItemVersionAware {
+public interface SpaceAware {
 
     /**
      * Wrapper object for space details.
