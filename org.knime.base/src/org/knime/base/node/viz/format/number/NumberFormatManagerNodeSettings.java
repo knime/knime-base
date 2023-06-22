@@ -173,8 +173,8 @@ final class NumberFormatManagerNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Always show decimal separator", description = """
             Whether to always show the decimal separator, even if no fractional digits are present.
-            If enabled, output like <code>1.</code> can be generated.
-            If disabled, the same input would be shown as <code>1</code>.
+            If enabled, output like <tt>1.</tt> can be generated.
+            If disabled, the same input would be shown as <tt>1</tt>.
             """)
     @Layout(DialogLayout.Separators.class)
     boolean m_alwaysShowDecimalSeparator;
