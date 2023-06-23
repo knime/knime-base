@@ -57,10 +57,10 @@ import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.util.auth.Authenticator;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.ItemVersionAware.RepositoryItemVersion;
 import org.knime.filehandling.core.connections.SpaceAware;
 import org.knime.filehandling.core.connections.SpaceAware.Space;
-import org.knime.filehandling.core.connections.ItemVersionAware;
-import org.knime.filehandling.core.connections.ItemVersionAware.RepositoryItemVersion;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
@@ -189,21 +189,22 @@ public final class HubAccessUtil {
         }
 
         /**
-         * @param id The repository item id.
-         * @return The {@link RepositoryItemVersion} object.
+         * @param itemLocation The {@link FSLocation} of the repository item.
+         * @return a list of the {@link RepositoryItemVersion}s, or an empty list of no versions exist.
          * @throws IOException
          */
         @SuppressWarnings("resource")
-        public List<RepositoryItemVersion> fetchRepositoryItemVersions(final String id) throws IOException {
+        public List<RepositoryItemVersion> fetchRepositoryItemVersions(final FSLocation itemLocation)
+            throws IOException {
             try (var connection = createFSConnection()) {
-                final var fileSystemProvider = connection.getFileSystem().provider();
 
-                if (fileSystemProvider instanceof ItemVersionAware) {
-                    var provider = (ItemVersionAware)fileSystemProvider;
-                    return provider.getRepositoryItemVersions(id);
-                } else {
-                    throw new IllegalStateException("Chosen file system does not provide access to Hub Spaces");
-                }
+                final var itemVersionAware = connection.getFileSystem()//
+                    .getItemVersionAware()//
+                    .orElseThrow(
+                        () -> new IllegalStateException("Chosen file system does not provide access to a Hub space."));
+
+                final var path = connection.getFileSystem().getPath(itemLocation);
+                return itemVersionAware.getRepositoryItemVersions(path);
             }
         }
     }

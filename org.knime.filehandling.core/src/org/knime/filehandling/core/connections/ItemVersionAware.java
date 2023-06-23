@@ -133,9 +133,21 @@ public interface ItemVersionAware {
     /**
      * Lists all versions of the given Hub repository item.
      *
-     * @param id The repository item id.
+     * @param itemPath The {@link FSPath} of the repository item.
      * @return a {@link List} of {@link RepositoryItemVersion}s for the given repository item.
      * @throws IOException
      */
-    List<RepositoryItemVersion> getRepositoryItemVersions(String id) throws IOException;
+    List<RepositoryItemVersion> getRepositoryItemVersions(FSPath itemPath) throws IOException;
+
+    /**
+     * Creates repository item version.
+     *
+     * @param itemPath The {@link FSPath} of the repository item.
+     * @param title The title of the version to be created.
+     * @param description The desciption of the version to be created. May be null.
+     * @return created repository item version
+     * @throws IOException if an item version could not be created
+     */
+    RepositoryItemVersion createRepositoryItemVersion(FSPath itemPath, String title, String description)
+        throws IOException;
 }

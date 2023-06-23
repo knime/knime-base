@@ -358,6 +358,18 @@ public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
         }
     }
 
+    /**
+     * @return an {@link Optional} that contains a {@link ItemVersionAware} instance, if this file system is
+     *         {@link ItemVersionAware}; an empty {@link Optional} otherwise.
+     */
+    public Optional<ItemVersionAware> getItemVersionAware() {
+        if (provider() instanceof ItemVersionAware) {
+            return Optional.of((ItemVersionAware)provider());
+        } else {
+            return Optional.empty();
+        }
+    }
+
     @Override
     public abstract FSFileSystemProvider<T, ?> provider();
 

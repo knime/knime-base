@@ -64,6 +64,7 @@ import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.FlowVariableModelButton;
 import org.knime.core.node.workflow.VariableType.StringType;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.ItemVersionAware.RepositoryItemVersion;
 import org.knime.filehandling.core.connections.base.hub.HubAccessUtil.HubAccess;
 import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
@@ -97,7 +98,7 @@ public final class HubItemVersionSelector extends JPanel {
 
     private boolean m_overwrittenByVariable = false; // NOSONAR
 
-    private String m_itemId = null; // NOSONAR
+    private FSLocation m_itemLocation = null; // NOSONAR
 
     private boolean m_ignoreSettingsChange = false; // NOSONAR
 
@@ -153,7 +154,7 @@ public final class HubItemVersionSelector extends JPanel {
     }
 
     /**
-     * Invoked to transfer changes from the UI to the underlying settings (HubSpaceSettings)
+     * Invoked to transfer changes from the UI to the underlying {@link HubItemVersionSettings}.
      *
      * @param ignored
      */
@@ -200,7 +201,7 @@ public final class HubItemVersionSelector extends JPanel {
             m_comboBox.setEnabled(true);
             m_comboBox.setSelectedItem(null);
             m_versionSettings.setItemVersion(null);
-            triggerFetchItemVersions(m_itemId);
+            triggerFetchItemVersions(m_itemLocation);
         }
         m_ignoreSettingsChange = false;
     }
@@ -213,8 +214,8 @@ public final class HubItemVersionSelector extends JPanel {
         var wasEnabled = isEnabled();
         super.setEnabled(enabled);
         updateEnabledness();
-        if (enabled && !wasEnabled && m_itemId != null) {
-            triggerFetchItemVersions(m_itemId);
+        if (enabled && !wasEnabled && m_itemLocation != null) {
+            triggerFetchItemVersions(m_itemLocation);
         }
     }
 
@@ -230,15 +231,15 @@ public final class HubItemVersionSelector extends JPanel {
      * Invoked by surrounding code when the selected repository item has changed and the version selection needs to be
      * updated.
      *
-     * @param itemId The repository item ID to use.
+     * @param itemLocation The {@link FSLocation} of the repository item.
      */
-    public void setItemId(final String itemId) {
-        m_itemId = itemId;
+    public void setItemLocation(final FSLocation itemLocation) {
+        m_itemLocation = itemLocation;
 
         if (!isEnabled()) {
             return;
         }
-        triggerFetchItemVersions(m_itemId);
+        triggerFetchItemVersions(m_itemLocation);
     }
 
     /**
@@ -253,34 +254,34 @@ public final class HubItemVersionSelector extends JPanel {
         updateEnabledness();
         m_ignoreSettingsChange = true;
         m_comboBox.setSelectedItem(m_versionSettings.getItemVersion().orElse(null));
-        triggerFetchItemVersions(m_itemId);
+        triggerFetchItemVersions(m_itemLocation);
         m_ignoreSettingsChange = false;
     }
 
-    private void triggerFetchItemVersions(final String itemId) {
+    private void triggerFetchItemVersions(final FSLocation itemLocation) {
         if (m_fetchVersionsWorker != null) {
             m_fetchVersionsWorker.cancel(true);
             m_fetchVersionsWorker = null;
         }
 
-        m_fetchVersionsWorker = new FetchItemVersionsSwingWorker(itemId);
+        m_fetchVersionsWorker = new FetchItemVersionsSwingWorker(itemLocation);
         m_fetchVersionsWorker.execute();
     }
 
     private class FetchItemVersionsSwingWorker extends SwingWorkerWithContext<List<RepositoryItemVersion>, Void> {
 
-        private final String m_currItemId;
+        private final FSLocation m_currItemLocation;
 
-        FetchItemVersionsSwingWorker(final String spaceId) {
-            m_currItemId = StringUtils.isBlank(spaceId) ? null : HubSpaceSelector.sanitizeSpaceId(spaceId);
+        FetchItemVersionsSwingWorker(final FSLocation itemLocation) {
+            m_currItemLocation = itemLocation;
             m_comboBox.setEnabled(false);
             m_statusView.setStatus(DefaultStatusMessage.mkInfo("Loading versions..."));
         }
 
         @Override
         protected List<RepositoryItemVersion> doInBackgroundWithContext() throws Exception {
-            if (m_currItemId != null) {
-                return m_hubAccess.fetchRepositoryItemVersions(m_currItemId);
+            if (m_currItemLocation != null) {
+                return m_hubAccess.fetchRepositoryItemVersions(m_currItemLocation);
             } else {
                 return null; // NOSONAR
             }
