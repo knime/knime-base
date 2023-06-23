@@ -53,12 +53,15 @@ import java.io.UncheckedIOException;
 import java.nio.channels.UnresolvedAddressException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystemException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * FIXME: this code is copied from org.knime.kerberos and should be moved to org.knime.core so that it is usable
@@ -239,11 +242,29 @@ public class ExceptionUtil {
     /**
      * Creates a formatted {@link AccessDeniedException}.
      *
-     * @param path the path for which the {@link AccessDeniedException} occured
+     * @param path the path for which the {@link AccessDeniedException} occurred
      * @return the formatted {@link AccessDeniedException}
      */
     public static AccessDeniedException createAccessDeniedException(final Path path) {
         return new FormattedAccessDeniedException(path);
+    }
+
+    /**
+     * Creates a formatted {@link NoSuchFileException}.
+     *
+     * @param e The original exception
+     * @param fileType The file type, e.g. "File", or "Workflow". May be null.
+     * @return the formatted {@link NoSuchFileException}
+     */
+    public static NoSuchFileException createFormattedNoSuchFileException(final NoSuchFileException e,
+        final String fileType) {
+        if (StringUtils.isBlank(fileType)) {
+            return new FormattedNoSuchFileException(e, "File/Folder");
+        } else {
+            var trimmed = fileType.trim();
+            return new FormattedNoSuchFileException(e,
+                Character.toUpperCase(trimmed.charAt(0)) + fileType.substring(1));
+        }
     }
 
     /**
@@ -259,7 +280,7 @@ public class ExceptionUtil {
      *
      * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
      */
-    private static final class FormattedAccessDeniedException extends AccessDeniedException
+    private static final class FormattedAccessDeniedException extends AccessDeniedException // NOSONAR ignore
         implements FormattedNIOException {
 
         private static final String MSG_PREFIX = "Unable to access";
@@ -276,6 +297,29 @@ public class ExceptionUtil {
          */
         public FormattedAccessDeniedException(final Path path) {
             super(path.toString(), null, MSG_PREFIX);
+        }
+
+        @Override
+        public String getMessage() {
+            return getReason() + " " + getFile();
+        }
+    }
+
+    /**
+     * An {@link NoSuchFileException} with a more user-friendly error message.
+     *
+     * @author Bjoern Lohrmann, KNIME GmbH
+     */
+    private static final class FormattedNoSuchFileException extends NoSuchFileException // NOSONAR ignore
+        implements FormattedNIOException {
+
+        private static final String MSG_FORMAT = "%s does not exist:";
+
+        private static final long serialVersionUID = 1L;
+
+        FormattedNoSuchFileException(final NoSuchFileException e, final String fileType) {
+            super(e.getFile(), e.getOtherFile(), String.format(MSG_FORMAT, fileType));
+            initCause(e.getCause());
         }
 
         @Override

@@ -54,14 +54,18 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.filehandling.core.connections.meta.FSDescriptorRegistry;
+import org.knime.filehandling.core.connections.meta.FSType;
 import org.knime.filehandling.core.connections.uriexport.URIExporterFactory;
 import org.knime.filehandling.core.connections.uriexport.URIExporterID;
 import org.knime.filehandling.core.connections.uriexport.URIExporterIDs;
@@ -71,10 +75,11 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSetti
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.ConnectedFileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.FileSystemSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.HubSpaceSpecificConfig;
-import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.LocalSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filesystemchooser.config.RelativeToSpecificConfig;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * Workflow chooser settings model for Call Workflow and Create Deployment nodes.
@@ -83,6 +88,8 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils
  * @author Dionysios Stolis, KNIME GmbH, Berlin, Germany
  */
 public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFileChooser<SettingsModelWorkflowChooser> {
+
+    private final int m_fsConnectionPortIdx;
 
     /**
      * @param configName stores the selected workflow
@@ -102,8 +109,6 @@ public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFil
                 // - space relative does not make sense, as we would use a space connector, i.e., the CONNECTED case
                 hasFSPort -> new RelativeToSpecificConfig(!hasFSPort, RelativeTo.SPACE,
                     Set.of(RelativeTo.MOUNTPOINT, RelativeTo.WORKFLOW, RelativeTo.SPACE)),
-                // LOCAL enabled when connection port is not present
-                hasFSPort -> new LocalSpecificConfig(!hasFSPort),
                 // Hub Space enabled when connection port is not present
                 hasFSPort -> new HubSpaceSpecificConfig(!hasFSPort)));
     }
@@ -117,11 +122,19 @@ public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFil
     public SettingsModelWorkflowChooser(final String configName, final String fileSystemPortIdentifier,
         final PortsConfiguration portsConfig, final List<Function<Boolean, FileSystemSpecificConfig>> creators) {
         super(configName, portsConfig, fileSystemPortIdentifier, EnumConfig.create(FilterMode.WORKFLOW), creators);
+
+        final var portIndices = portsConfig.getInputPortLocation().get(fileSystemPortIdentifier);
+        if (portIndices != null) {
+            m_fsConnectionPortIdx = portIndices[0];
+        } else {
+            m_fsConnectionPortIdx = -1;
+        }
     }
 
     /** Copy constructor */
     private SettingsModelWorkflowChooser(final SettingsModelWorkflowChooser toCopy) {
         super(toCopy);
+        m_fsConnectionPortIdx = toCopy.m_fsConnectionPortIdx;
     }
 
     /**
@@ -138,6 +151,27 @@ public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFil
     @Override
     protected String getModelTypeID() {
         return "SMID_WorkflowChooser";
+    }
+
+    @Override
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+
+        super.configureInModel(specs, statusMessageConsumer);
+
+        if (m_fsConnectionPortIdx != -1) {
+            checkFSConnectionCompatibility((FileSystemPortObjectSpec) specs[m_fsConnectionPortIdx]);
+        }
+    }
+
+    private static void checkFSConnectionCompatibility(final FileSystemPortObjectSpec inSpec)
+        throws InvalidSettingsException {
+
+        final var inType = inSpec.getFSType();
+
+        CheckUtils.checkSetting(FSType.HUB_SPACE.equals(inType) || FSType.RELATIVE_TO_SPACE.equals(inType),
+            "Ingoing file system connection does not connect to a Hub Space. "
+            + "Please attach the Space Connector instead.");
     }
 
     /**

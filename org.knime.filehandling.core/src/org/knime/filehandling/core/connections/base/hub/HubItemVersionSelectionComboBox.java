@@ -58,6 +58,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractListModel;
@@ -272,7 +273,7 @@ final class HubItemVersionSelectionComboBox extends JComboBox<ItemVersionComboIt
                 m_itemVersion.getTitle(), //
                 LONG_DATE_TIME_FORMATTER.format(toZonedDateTime(m_itemVersion.getCreatedOn())), //
                 m_itemVersion.getAuthor(), //
-                m_itemVersion.getDescription());
+                Optional.ofNullable(m_itemVersion.getDescription()).orElse(""));
         }
 
         private static ZonedDateTime toZonedDateTime(final Instant instant) {

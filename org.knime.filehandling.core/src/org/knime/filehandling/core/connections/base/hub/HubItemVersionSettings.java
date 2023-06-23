@@ -57,6 +57,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -160,5 +161,16 @@ public class HubItemVersionSettings {
         if (StringUtils.isBlank(m_itemVersion)) {
             throw new InvalidSettingsException("No version selected");
         }
+    }
+
+    /**
+     * Returns the keys corresponding to the item version configuration within the node settings. If the item version
+     * settings are not located at the top most level of the settings, you will have to prefix the returned array.</br>
+     * Use this method when creating the {@link FlowVariableModel} for the item version in the node dialog.
+     *
+     * @return the keys corresponding to the item version configuration
+     */
+    public String[] getKeysForItemVersion() {
+        return new String[] {CFG_ITEM_VERSION};
     }
 }

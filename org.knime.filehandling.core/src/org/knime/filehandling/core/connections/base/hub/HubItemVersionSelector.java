@@ -53,13 +53,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 
-import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.FlowVariableModelButton;
 import org.knime.core.node.workflow.VariableType.StringType;
@@ -183,19 +183,17 @@ public final class HubItemVersionSelector extends JPanel {
         }
 
         m_ignoreSettingsChange = true;
-
-        String itemVersionValue = null;
+        Optional<String> itemVersionValueOpt = Optional.empty();
         if (m_itemVersionFvm.isVariableReplacementEnabled()) {
-            itemVersionValue = m_itemVersionFvm.getVariableValue()//
-                .map(flowVar -> flowVar.getValue(StringType.INSTANCE))//
-                .orElse(null);
+            itemVersionValueOpt = m_itemVersionFvm.getVariableValue()//
+                .map(flowVar -> flowVar.getValue(StringType.INSTANCE));
         }
 
-        if (StringUtils.isNotBlank(itemVersionValue)) {
+        if (itemVersionValueOpt.isPresent()) {
             m_overwrittenByVariable = true;
+            m_comboBox.setSelectedItem(itemVersionValueOpt.get());
+            m_versionSettings.setItemVersion(itemVersionValueOpt.get());
             m_comboBox.setEnabled(false);
-            m_comboBox.setSelectedItem(itemVersionValue);
-            m_versionSettings.setItemVersion(itemVersionValue);
         } else {
             m_overwrittenByVariable = false;
             m_comboBox.setEnabled(true);
