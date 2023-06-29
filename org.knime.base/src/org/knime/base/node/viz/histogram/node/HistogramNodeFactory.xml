@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./interactiveHistogram.png" type="Visualizer">
-	<name>Interactive Histogram (local)</name>
+	<name>Interactive Histogram (legacy)</name>
 	<shortDescription>
 		Displays data in an interactive histogram view with hiliting support.
 	</shortDescription>	
