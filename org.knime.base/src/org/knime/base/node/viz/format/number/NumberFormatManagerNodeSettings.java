@@ -134,7 +134,7 @@ final class NumberFormatManagerNodeSettings implements DefaultNodeSettings {
 
     // Settings
 
-    @Widget(description = """
+    @Widget(title = "Columns to format", description = """
             Select the columns to attach the selected format to.
             This does not change the data, only the way the values in the column are displayed in views.
             """)
