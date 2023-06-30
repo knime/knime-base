@@ -80,8 +80,8 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
     String m_suffix = "_dup";
 
     @Persist(customPersistor = RowIdResolutionPersistor.class)
-    @Widget(title = "RowID Handling",
-            description = "Select how the RowIDs of the output table are generated:"
+    @Widget(title = "If there are duplicate RowIDs",
+            description = "Select how to resolve duplicate RowIDs:"
             + "<ul>"
             // Skip option description
             + "<li><b>Skip</b>: Duplicate row identifiers (RowID) occurring in the "
@@ -92,13 +92,11 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             + "<li><b>Append suffix</b>: The output table will contain all rows, but "
             + "duplicate RowIDs are labeled with a suffix. Similar to "
             + "the \"Skip Rows\" option this method is also memory intensive.</li>"
-            + "<li><b>Create new</b>: All rows are included in the output table and receive new RowIDs following "
-            + "the format Row0, Row1, etc.</li>"
             // Fail option description
-            + "<li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. "
-            + "This option is efficient while checking uniqueness.</li>"
+            + "<li><b>Fail</b>: The node will fail during execution if duplicate "
+            + "RowIDs are encountered. This option is efficient while checking uniqueness.</li>"
             + "</ul>")
-    RowIdResolution m_rowIdResolution = RowIdResolution.NEW;
+    RowIdResolution m_rowIdResolution = RowIdResolution.APPEND;
 
     @Persist(customPersistor = ColumnSetOperationPersistor.class)
     @Widget(title = "How to combine input columns",
@@ -121,9 +119,6 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         @Label("Append suffix")
         APPEND,
 
-        @Label("Create new")
-        NEW,
-
         @Label("Fail")
         FAIL;
     }
@@ -141,11 +136,8 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
         @Override
         public RowIdResolution load(final NodeSettingsRO settings) throws InvalidSettingsException {
             // NB: The order is important
-            // If all three are true (for whatever reason) the node model will use RowIdResolution.NEW.
-            // RowIdResolution.NEW was added in 5.1
-            if (settings.getBoolean(AppendedRowsNodeModel.CFG_NEW_ROWIDS, false)) {
-                return RowIdResolution.NEW;
-            } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES)) {
+            // If both are true (for whatever reason) the node model will use DuplicatePolicy.Fail
+            if (settings.getBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES)) {
                 return RowIdResolution.FAIL;
             } else if (settings.getBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX)) {
                 return RowIdResolution.APPEND;
@@ -156,15 +148,13 @@ final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
         @Override
         public void save(final RowIdResolution obj, final NodeSettingsWO settings) {
-            settings.addBoolean(AppendedRowsNodeModel.CFG_NEW_ROWIDS, obj == RowIdResolution.NEW);
             settings.addBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX, obj == RowIdResolution.APPEND);
             settings.addBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES, obj == RowIdResolution.FAIL);
         }
 
         @Override
         public String[] getConfigKeys() {
-            return new String[]{AppendedRowsNodeModel.CFG_NEW_ROWIDS, AppendedRowsNodeModel.CFG_APPEND_SUFFIX,
-                AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES};
+            return new String[]{AppendedRowsNodeModel.CFG_APPEND_SUFFIX, AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES};
         }
     }
 

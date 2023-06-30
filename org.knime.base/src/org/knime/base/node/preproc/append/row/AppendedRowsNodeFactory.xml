@@ -34,8 +34,6 @@
 				<li><b>Append suffix:</b> The output table will contain all rows, but
             duplicate RowIDs are labeled with a suffix. Similar to
             the "Skip" option this method is also memory intensive.</li>
-                <li><b>Create new:</b> All rows are included in the output table and receive new RowIDs following the 
-                format Row0, Row1, etc.</li>
             	<li><b>Fail:</b> The node will fail during execution if duplicate 
             RowIDs are encountered. This option is efficient while checking 
             uniqueness.</li>
