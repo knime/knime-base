@@ -157,10 +157,8 @@ final class HubItemVersionSelectionComboBox extends JComboBox<ItemVersionComboIt
         }
 
         public void clearItemsAndSelection() {
+            m_selectedItem = null;
             m_items.clear();
-            if (!m_items.isEmpty()) {
-                setSelectedItem(m_items.get(0));
-            }
         }
 
         @Override
