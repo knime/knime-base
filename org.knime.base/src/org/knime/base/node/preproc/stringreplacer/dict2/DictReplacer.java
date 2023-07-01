@@ -55,10 +55,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings.MultipleMatchHandling;
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.StringValue;
-import org.knime.core.data.collection.CellCollection;
 
 /**
  * Wrapper of a pattern-replacement dictionary for the String Replacer (Dictionary)
@@ -134,24 +132,10 @@ public abstract sealed class DictReplacer<K> permits StringReplacer, PatternRepl
         if (replacement.isMissing()) {
             throw new IllegalReplacementException("The replacement column contains a missing cell");
         }
-        if (patternCol.getType().isCollectionType()) {
-            if (!patternCol.getType().getCollectionElementType().isCompatible(StringValue.class)) {
-                throw new IllegalSearchPatternException(
-                    "The elements of the pattern collection are not string-compatible.");
-            }
-            var patterns = (CellCollection)patternCol;
-            for (DataCell pattern : patterns) {
-                if (pattern.isMissing()) {
-                    throw new IllegalSearchPatternException("The pattern collection contains a missing value");
-                }
-                this.addToDictionary(((StringValue)pattern).getStringValue(), replacement.toString());
-            }
-        } else {
-            if (!patternCol.getType().isCompatible(StringValue.class)) {
-                throw new IllegalSearchPatternException("The pattern column is not string-compatible.");
-            }
-            this.addToDictionary(((StringValue)patternCol).getStringValue(), replacement.toString());
+        if (!patternCol.getType().isCompatible(StringValue.class)) {
+            throw new IllegalSearchPatternException("The pattern column is not string-compatible.");
         }
+        this.addToDictionary(((StringValue)patternCol).getStringValue(), replacement.toString());
     }
 
     /**

@@ -31,21 +31,23 @@
 				</li>
 			</ul>
         </option>
-        <option name="Case sensitive">
-        	If checked, the matching will distinguish between upper and lower case letters.
-        </option>
         <option name="Use backslash as escape character">
         	Only relevant for wildcard matching.
             If checked, the backslash character can be used to escape special characters. For instance, <tt>\?</tt>
             will match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a
             backslash you need to escape the backslash, too (<tt>\\</tt>).
         </option>
+        <option name="Case sensitive">
+        	If checked, the matching will distinguish between upper and lower case letters.
+        </option>
         <option name="Pattern">
             A literal string, wildcard pattern or regular expression, depending on the pattern type selected above.
         </option>
         <option name="Replacement text">
             The text that replaces that previous value in the cell if the pattern matched it. If you are using a
-            regular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group).
+            regular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group,
+            named capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt> to refer to
+            them).
         </option>
         <option name="Replacement strategy">
         	Select what to replace in case a string matches a pattern.
@@ -65,6 +67,9 @@
         <option name="Append new column">
 			If enabled, the strings will not be replaced in-place but a new column is appended that contains the
 			original string with the replacement applied.
+        </option>
+        <option name="New column name">
+			The name of the created column with replaced strings, only relevant if <i>Append new column</i> is enabled.
         </option>
     </fullDescription>
 

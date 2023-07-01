@@ -68,11 +68,8 @@ public final class StringReplacerDictNodeFactory extends WebUINodeFactory<String
         .fullDescription("""
             This node replaces strings in selected columns.
             The dictionary table provides the patterns to search for and the values to replace matches with.
-            The pattern column in the dictionary can be a collection, with multiple patterns for each replacement value.
             If no pattern matches, the result string equals the input string.
-            You can choose to modify strings in-place or add the result strings in new columns.<br/>
-            The node uses Java regular expressions, see the
-            <a href="http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html">Java API</a> for details.
+            You can choose to modify strings in-place or add the result strings in new columns.
             """)//
         .modelSettingsClass(StringReplacerDictNodeSettings.class)//
         .addInputTable("Data Table", "The data table contains the string columns to perform the replacement on.")//

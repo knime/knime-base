@@ -54,7 +54,6 @@ import java.util.Arrays;
 import org.knime.base.node.preproc.stringreplacer.PatternType;
 import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalReplacementException;
 import org.knime.base.node.preproc.stringreplacer.dict2.DictReplacer.IllegalSearchPatternException;
-import org.knime.base.node.preproc.stringreplacer.dict2.StringReplacerDictNodeSettings.MultipleMatchHandling;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -122,13 +121,6 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
             "Select a pattern column from the dictionary table");
         CheckUtils.checkSettingNotNull(modelSettings.m_replacementColumn,
             "Select a replacement column from the dictionary table");
-
-        // disallow consecutive application of replacements if pattern collections are used, since they might not have
-        // a defined order.
-        CheckUtils.checkSetting(
-            !(modelSettings.m_multipleMatchHandling == MultipleMatchHandling.REPLACEALL
-                && inSpecs[1].getColumnSpec(modelSettings.m_patternColumn).getType().isCollectionType()),
-            "You cannot use the option \"Replace all\" when using collections of patterns.");
 
         // Create a dummy rearranger to extract the result spec
         var rearranger = createColumnRearranger(modelSettings, inSpecs[0], inSpecs[1], null, null);
@@ -205,7 +197,7 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
         CheckUtils.checkArgumentNotNull(targetSpec, "No spec available for data table");
         CheckUtils.checkArgumentNotNull(dictSpec, "No spec available for dictionary table");
 
-        var stringCols = StringReplacerDictNodeSettings.getStringCompatibleColumns(targetSpec, false);
+        var stringCols = StringReplacerDictNodeSettings.getStringCompatibleColumns(targetSpec);
         var stringColNames = Arrays.stream(stringCols).map(DataColumnSpec::getName).toArray(String[]::new);
 
         var targetCols = modelSettings.m_targetColumns.getSelected(stringColNames, targetSpec);
@@ -222,10 +214,7 @@ public class StringReplacerDictNodeModel extends WebUINodeModel<StringReplacerDi
         var patternColIndex = dictSpec.findColumnIndex(modelSettings.m_patternColumn);
         CheckUtils.checkSetting(patternColIndex >= 0, "No such pattern column \"%s\" in dictionary table",
             modelSettings.m_patternColumn);
-        var patternColType = dictSpec.getColumnSpec(patternColIndex).getType();
-        var patternType =
-            patternColType.isCollectionType() ? patternColType.getCollectionElementType() : patternColType;
-        CheckUtils.checkSetting(patternType.isCompatible(StringValue.class),
+        CheckUtils.checkSetting(dictSpec.getColumnSpec(patternColIndex).getType().isCompatible(StringValue.class),
             "The pattern column type is not string-compatible");
         var replacementColIndex = dictSpec.findColumnIndex(modelSettings.m_replacementColumn);
         CheckUtils.checkSetting(replacementColIndex >= 0, "No such replacement column \"%s\" in dictionary table",

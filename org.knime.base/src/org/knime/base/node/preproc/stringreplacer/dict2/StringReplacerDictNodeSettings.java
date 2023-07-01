@@ -121,12 +121,8 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     // Helper methods
 
     /** Filter a table spec for the string-compatible columns */
-    static DataColumnSpec[] getStringCompatibleColumns(final DataTableSpec tableSpec,
-        final boolean includeCollections) {
-        return tableSpec.stream().filter(spec -> spec.getType().isCompatible(StringValue.class) //
-            || (includeCollections //
-                && spec.getType().isCollectionType()
-                && spec.getType().getCollectionElementType().isCompatible(StringValue.class))) //
+    static DataColumnSpec[] getStringCompatibleColumns(final DataTableSpec tableSpec) {
+        return tableSpec.stream().filter(spec -> spec.getType().isCompatible(StringValue.class))
             .toArray(DataColumnSpec[]::new);
     }
 
@@ -134,28 +130,18 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     static final class TargetColumnChoices implements ColumnChoicesProvider {
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(0)//
-                .map(s -> getStringCompatibleColumns(s, false))//
+            return context.getDataTableSpec(0)// data table
+                .map(s -> getStringCompatibleColumns(s))//
                 .orElse(new DataColumnSpec[]{});
         }
     }
 
     /** Provides the string column choices of the table at input port 1, including collections */
-    static final class PatternColumnChoices implements ColumnChoicesProvider {
+    static final class PatternAndReplacementColumnChoices implements ColumnChoicesProvider {
         @Override
         public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(1)//
-                .map(s -> getStringCompatibleColumns(s, true))//
-                .orElse(new DataColumnSpec[]{});
-        }
-    }
-
-    /** Provides the string column choices of the table at input port 1, excluding collections */
-    static final class ReplacementColumnChoices implements ColumnChoicesProvider {
-        @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
-            return context.getDataTableSpec(1)//
-                .map(s -> getStringCompatibleColumns(s, false))//
+            return context.getDataTableSpec(1)// dictionary table
+                .map(s -> getStringCompatibleColumns(s))//
                 .orElse(new DataColumnSpec[]{});
         }
     }
@@ -205,18 +191,19 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     @Layout(DialogSections.FindAndReplace.class)
     @Widget(title = "Pattern column", description = """
             The column containing literal strings, wildcard patterns or regular expressions, depending on the matching
-            criterion selected above, or a collection thereof.
+            criterion selected above.
             """)
-    @ChoicesWidget(choices = PatternColumnChoices.class)
+    @ChoicesWidget(choices = PatternAndReplacementColumnChoices.class)
     String m_patternColumn;
 
     @Layout(DialogSections.FindAndReplace.class)
     @Widget(title = "Replacement column", description = """
             The column containing text that replaces the previous value in the cell if the pattern matched it. If you
             are using regular expressions, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first
-            capture group).
+            capture group, named capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt>
+            to refer to them).
             """)
-    @ChoicesWidget(choices = ReplacementColumnChoices.class)
+    @ChoicesWidget(choices = PatternAndReplacementColumnChoices.class)
     String m_replacementColumn;
 
     @Layout(DialogSections.FindAndReplace.class)

@@ -150,7 +150,9 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = StringReplacerSettings.CFG_REPLACEMENT)
     @Widget(title = "Replacement text", description = """
             The text that replaces the previous value in the cell if the pattern matched it. If you are using a
-            regular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group).
+            regular expression, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first capture group,
+            named capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt> to refer to
+            them).
             """)
     String m_replacement;
 
@@ -205,7 +207,6 @@ final class StringReplacerNodeSettings implements DefaultNodeSettings {
     private static final class ReplacementStrategyPersistor implements FieldNodeSettingsPersistor<ReplacementStrategy> {
         @Override
         public ReplacementStrategy load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // TODO should be able to read both old (boolean) and new (enum constant) settings.
             if (settings.getBoolean(StringReplacerSettings.CFG_REPLACE_ALL_OCCURENCES)) {
                 return ReplacementStrategy.ALL_OCCURRENCES;
             } else {
