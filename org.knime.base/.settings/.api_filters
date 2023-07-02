@@ -1,9 +1,81 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
-    <resource path="src-deprecated/org/knime/base/node/preproc/stringreplacer/dict/SearchReplaceDictNodeFactory.java" type="org.knime.base.node.preproc.stringreplacer.dict.SearchReplaceDictNodeFactory">
-        <filter comment="Deprecated SearchReplaceDictNodeFactory but the class still exists." id="305365105">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.filestore.FileStore">
+        <filter id="305426566">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.stringreplacer.dict.SearchReplaceDictNodeFactory"/>
+                <message_argument value="org.knime.core.data.filestore.FileStore"/>
+                <message_argument value="org.knime.base_5.0.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.filestore.FileStoreCell">
+        <filter id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.filestore.FileStoreCell"/>
+                <message_argument value="org.knime.base_5.0.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.filestore.FileStoreFactory">
+        <filter id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.filestore.FileStoreFactory"/>
+                <message_argument value="org.knime.base_5.0.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.filestore.FileStoreKey">
+        <filter id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.filestore.FileStoreKey"/>
+                <message_argument value="org.knime.base_5.0.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.filestore.FileStorePortObject">
+        <filter id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.filestore.FileStorePortObject"/>
+                <message_argument value="org.knime.base_5.0.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.filestore.FileStoreUtil">
+        <filter id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.filestore.FileStoreUtil"/>
+                <message_argument value="org.knime.base_5.0.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerDialog.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerDialog">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerDialog"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeFactory.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFactory"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeModel.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeModel"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerSettings.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerSettings">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerSettings"/>
                 <message_argument value="org.knime.base_5.1.0"/>
             </message_arguments>
         </filter>
