@@ -141,7 +141,11 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
         final ValueFormatHandler handler) {
         final var tableSpecCreator = new DataTableSpecCreator(in);
         for (String columnName : targetColumns) {
-            final var columnSpecCreator = new DataColumnSpecCreator(in.getColumnSpec(columnName));
+            DataColumnSpec columnSpec = in.getColumnSpec(columnName);
+            if(columnSpec == null) {
+                continue; // skip columns that do not exist anymore
+            }
+            final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
             columnSpecCreator.setValueFormatHandler(handler);
             final var outputColumnSpec = columnSpecCreator.createSpec();
             tableSpecCreator.replaceColumn(in.findColumnIndex(columnName), outputColumnSpec);
