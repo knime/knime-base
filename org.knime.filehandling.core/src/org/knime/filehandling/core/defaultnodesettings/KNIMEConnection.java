@@ -56,6 +56,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.WorkflowContext;
+import org.knime.core.node.workflow.contextv2.JobExecutorInfo;
+import org.knime.core.node.workflow.contextv2.RestLocationInfo;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -281,10 +283,26 @@ public class KNIMEConnection {
     }
 
     /**
+     * Determines if a mountpoint is valid. Three cases for validity are possible:
+     *   1. Not an absolute-URL mountpoint.
+     *   2. We are an executor operating on the same server as was configured via mount ID.
+     *      Important: this assumes that the user has not changed the mount ID
+     *      as we match on the default ID here!
+     *   3. The mount point is registered as mounted in the global mountpoint table.
+     *
      * @return whether the mountpoint is valid
      */
     public boolean isValid() {
-        return !getType().equals(Type.MOUNTPOINT_ABSOLUTE)
+        final var contextV2 = WorkflowContextUtil.getWorkflowContextV2Optional();
+        final var isExecutor = contextV2 //
+                .filter(cxt -> cxt.getExecutorInfo() instanceof JobExecutorInfo) //
+                .isPresent();
+        final var isMyDefaultMountId = contextV2 //
+                .filter(cxt -> cxt.getLocationInfo() instanceof RestLocationInfo) //
+                .map(cxt -> ((RestLocationInfo)cxt.getLocationInfo()).getDefaultMountId().equals(getId())) //
+                .orElse(false);
+
+        return getType() != Type.MOUNTPOINT_ABSOLUTE || (isExecutor && isMyDefaultMountId)
             || MountPointFileSystemAccessService.instance().getAllMountedIDs().contains(m_key);
     }
 
