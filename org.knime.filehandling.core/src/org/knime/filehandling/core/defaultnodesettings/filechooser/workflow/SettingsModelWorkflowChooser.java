@@ -169,9 +169,9 @@ public final class SettingsModelWorkflowChooser extends AbstractSettingsModelFil
 
         final var inType = inSpec.getFSType();
 
-        CheckUtils.checkSetting(FSType.HUB_SPACE.equals(inType) || FSType.RELATIVE_TO_SPACE.equals(inType),
-            "Ingoing file system connection does not connect to a Hub Space. "
-            + "Please attach the Space Connector instead.");
+        CheckUtils.checkSetting(!FSType.LOCAL_FS.equals(inType),
+            "Call Workflow nodes do not support the local file system. "
+                + "Please attach a Mountpoint or Space Connector instead.");
     }
 
     /**
