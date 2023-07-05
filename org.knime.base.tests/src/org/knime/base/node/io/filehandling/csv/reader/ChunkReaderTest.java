@@ -99,8 +99,7 @@ final class ChunkReaderTest {
             int numRead = reader.read(cbuf);
             char[] expectedChars = whatTheReaderShouldRead.toCharArray();
             assertEquals(expectedChars.length, numRead, "The reader should have terminated at '.'.");
-            assertArrayEquals(expectedChars, Arrays.copyOf(cbuf, numRead),
-                "Unexpected chars read.");
+            assertArrayEquals(expectedChars, Arrays.copyOf(cbuf, numRead), "Unexpected chars read.");
         }
     }
 
@@ -140,12 +139,12 @@ final class ChunkReaderTest {
     }
 
     private static Stream<Arguments> provideCharsets() {
-        return Stream.of(new Charset[] {//
-            StandardCharsets.ISO_8859_1,//
-            StandardCharsets.US_ASCII,//
-            StandardCharsets.UTF_16,//
-            StandardCharsets.UTF_16BE,//
-            StandardCharsets.UTF_16LE,//
+        return Stream.of(new Charset[]{//
+            StandardCharsets.ISO_8859_1, //
+            StandardCharsets.US_ASCII, //
+            StandardCharsets.UTF_16, //
+            StandardCharsets.UTF_16BE, //
+            StandardCharsets.UTF_16LE, //
             StandardCharsets.UTF_8//
         }).map(Arguments::of);
     }
@@ -182,6 +181,16 @@ final class ChunkReaderTest {
             // do nothing, we just want to test if close is correctly invoked
         }
         assertFalse(channel.isOpen(), "The reader should close the channel.");
+    }
+
+    @Test
+    void testReplaceMalformedInput() throws Exception {
+        byte[] malformedBytes = {(byte)0xC3, (byte)0x28}; // Invalid 2 Octet Sequence
+        try (var channel = Channels.newChannel(new ByteArrayInputStream(malformedBytes));
+                var reader = new ChunkReader(channel, StandardCharsets.UTF_8, 10, "!", 5)) {
+            assertEquals('\uFFFD', reader.read(),
+                "Malformed input should be replaced with the unicode replacement character \\uFFFD.");
+        }
     }
 
     @SuppressWarnings("resource") // channel is closed by the ChunkReader

@@ -56,6 +56,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
 
 /**
  * A reader for reading chunks of a file.
@@ -110,7 +111,10 @@ public final class ChunkReader extends Reader {
     ChunkReader(final ReadableByteChannel channel, final Charset charset, final long chunkSize,
         final String endSequence, final int bufferSize) {
         m_chunkSize = chunkSize;
-        m_decoder = charset.newDecoder();
+        // same behavior as sun.nio.cs.StreamDecoder
+        m_decoder = charset.newDecoder()//
+            .onMalformedInput(CodingErrorAction.REPLACE)//
+            .onUnmappableCharacter(CodingErrorAction.REPLACE);
         m_channel = channel;
         var encoder = charset.newEncoder();
         m_maxBytesPerChar = (int)Math.ceil(encoder.maxBytesPerChar());
