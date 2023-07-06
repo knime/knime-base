@@ -284,7 +284,16 @@ public class KNIMEConnection {
      * @return whether the mountpoint is valid
      */
     public boolean isValid() {
-        return !getType().equals(Type.MOUNTPOINT_ABSOLUTE)
+        final var contextV1 = WorkflowContextUtil.getWorkflowContextOptional();
+        final var isExecutor = contextV1 //
+                .flatMap(WorkflowContext::getRemoteRepositoryAddress) //
+                .isPresent();
+        final var isMyDefaultMountId = contextV1 //
+                .flatMap(WorkflowContext::getRemoteMountId) //
+                .map(id -> getId().equals(id)) //
+                .orElse(false);
+
+        return getType() != Type.MOUNTPOINT_ABSOLUTE || (isExecutor && isMyDefaultMountId)
             || MountPointFileSystemAccessService.instance().getAllMountedIDs().contains(m_key);
     }
 
