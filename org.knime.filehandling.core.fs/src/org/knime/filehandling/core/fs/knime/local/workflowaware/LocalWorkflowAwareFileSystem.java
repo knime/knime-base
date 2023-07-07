@@ -158,7 +158,8 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
             // we must be able to view workflows themselves, but must never be able to see files inside workflows
             && (isWorkflow(path) || !isPartOfWorkflow(path)) //
             // we must never be able to see metadata files, e.g. the .metadata folder
-            && !isReservedForLocalMetadata(path);
+            && !isReservedForMetadataFolder(path)//
+            && !isReservedForMetainfoFile(path);
     }
 
     /**
@@ -279,15 +280,26 @@ public abstract class LocalWorkflowAwareFileSystem extends BaseFileSystem<LocalW
 
     /**
      * Validate recursive if given path (from the workflow-aware FS) points to hidden metadata
-     * on local disk, e.g. the .metadata folder at the root of an Eclipse workspace, or
-     * the workflows.meta file inside a workflow group.
+     * on local disk, e.g. the .metadata folder at the root of an Eclipse workspace.
      *
      * @param path workflow-aware file system path to check
      * @return {@code true} if given path points to hidden metadata.
      */
-    boolean isReservedForLocalMetadata(final LocalWorkflowAwarePath path) {
+    boolean isReservedForMetadataFolder(final LocalWorkflowAwarePath path) {
         final var toCheck = (LocalWorkflowAwarePath)path.toAbsolutePath().normalize();
-        return toCheck.startsWith(METADATA_FOLDER_PATH) || toCheck.endsWith(WorkflowPersistor.METAINFO_FILE);
+        return toCheck.startsWith(METADATA_FOLDER_PATH);
+    }
+
+    /**
+     * Validate recursive if given path (from the workflow-aware FS) points to hidden metainfo file
+     * on local disk, e.g. the workflows.meta file inside a workflow group.
+     *
+     * @param path workflow-aware file system path to check
+     * @return {@code true} if given path points to hidden metainfo file.
+     */
+    boolean isReservedForMetainfoFile(final LocalWorkflowAwarePath path) {
+        final var toCheck = (LocalWorkflowAwarePath)path.toAbsolutePath().normalize();
+        return toCheck.endsWith(WorkflowPersistor.METAINFO_FILE);
     }
 
     /**

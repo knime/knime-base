@@ -53,6 +53,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
@@ -63,12 +64,14 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.knime.core.node.workflow.WorkflowContext;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
@@ -100,7 +103,9 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     }
 
     @Override
-    protected InputStream newInputStreamInternal(final LocalWorkflowAwarePath path, final OpenOption... options) throws IOException {
+    protected InputStream newInputStreamInternal(final LocalWorkflowAwarePath path, final OpenOption... options)
+        throws IOException {
+
         checkSupport(path, Operation.NEW_INPUT_STREAM);
         return Files.newInputStream(toLocalPathWithAccessibilityCheck(path), options);
     }
@@ -110,8 +115,12 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
         return getFileSystemInternal().isPartOfWorkflow(path);
     }
 
-    private boolean isReservedForLocalMetadata(final LocalWorkflowAwarePath path) {
-        return getFileSystemInternal().isReservedForLocalMetadata(path);
+    private boolean isReservedForMetadataFolder(final LocalWorkflowAwarePath path) {
+        return getFileSystemInternal().isReservedForMetadataFolder(path);
+    }
+
+    private boolean isReservedForMetainfoFile(final LocalWorkflowAwarePath path) {
+        return getFileSystemInternal().isReservedForMetainfoFile(path);
     }
 
     private void checkSupport(final LocalWorkflowAwarePath path, final Operation operation) throws IOException {
@@ -128,13 +137,13 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     }
 
     @Override
-    protected OutputStream newOutputStreamInternal(final LocalWorkflowAwarePath path, final OpenOption... options) throws IOException {
-        checkSupport(path, Operation.NEW_OUTPUT_STREAM);
+    protected OutputStream newOutputStreamInternal(final LocalWorkflowAwarePath path, final OpenOption... options)
+        throws IOException {
 
-        if (isReservedForLocalMetadata(path)) {
-            throw new FileSystemException(path.toString(), null, "Path is reserved for internal use");
+        if (isReservedForMetainfoFile(path)) {
+            return NullOutputStream.NULL_OUTPUT_STREAM;
         }
-
+        checkSupport(path, Operation.NEW_OUTPUT_STREAM);
         return Files.newOutputStream(toLocalPathWithAccessibilityCheck(path), options);
     }
 
@@ -164,27 +173,41 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
     @Override
     protected SeekableByteChannel newByteChannelInternal(final LocalWorkflowAwarePath path,
         final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-        if (isPartOfWorkflow(path)) {
-            throw new IOException(path.toString()  + " points to/into a workflow. Workflows cannot be opened for reading/writing");
-        }
 
-        if (isReservedForLocalMetadata(path)) {
+        if (isPartOfWorkflow(path)) {
+            throw new IOException(
+                path.toString() + " points to/into a workflow. Workflows cannot be opened for reading/writing");
+        }
+        if (isReservedForMetadataFolder(path)) {
             throw new FileSystemException(path.toString(), null, "Path is reserved for internal use");
         }
 
-        checkSupport(path, Operation.NEW_INPUT_STREAM);
+        // AP-20346 we silently ignore writes to workflowset.meta
+        if (isReservedForMetainfoFile(path) && options.contains(StandardOpenOption.WRITE)) {
+            return new NullByteChannel();
+        }
+
+        checkSupport(path, options.contains(StandardOpenOption.READ)//
+            ? Operation.NEW_INPUT_STREAM//
+            : Operation.NEW_OUTPUT_STREAM);
+
         return Files.newByteChannel(toLocalPathWithAccessibilityCheck(path), options);
     }
 
     @Override
     protected void createDirectoryInternal(final LocalWorkflowAwarePath dir, final FileAttribute<?>... attrs)
         throws IOException {
-        checkSupport(dir, Operation.CREATE_FOLDER);
 
-        if (isReservedForLocalMetadata(dir)) {
+        if (isReservedForMetadataFolder(dir)) {
             throw new FileSystemException(dir.toString(), null, "Path is reserved for internal use");
         }
 
+        // AP-20346 we silently ignore writes to workflowset.meta
+        if (isReservedForMetainfoFile(dir)) {
+            return;
+        }
+
+        checkSupport(dir, Operation.CREATE_FOLDER);
         Files.createDirectory(toLocalPathWithAccessibilityCheck(checkCastAndAbsolutizePath(dir)), attrs);
     }
 
@@ -290,7 +313,7 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
         checkFileSystemOpenAndNotClosing();
         final var absoluteDest = checkCastAndAbsolutizePath(dest);
 
-        if (isReservedForLocalMetadata(absoluteDest)) {
+        if (isReservedForMetadataFolder(absoluteDest) || isReservedForMetainfoFile(absoluteDest)) {
             throw new FileSystemException(dest.toString(), null, "Path is reserved for internal use");
         }
 
@@ -334,5 +357,57 @@ public abstract class LocalWorkflowAwareFileSystemProvider<F extends LocalWorkfl
         checkFileSystemOpenAndNotClosing();
         var checkedPath = checkCastAndAbsolutizePath(path);
         return getEntity(checkedPath).orElseThrow(() -> new NoSuchFileException(path.toString()));
+    }
+
+    private static class NullByteChannel implements SeekableByteChannel {
+
+        private boolean open;
+
+        private NullByteChannel() {
+            open = true;
+        }
+
+        @Override
+        public boolean isOpen() {
+            return open;
+        }
+
+        @Override
+        public void close() throws IOException {
+            open = false;
+        }
+
+        @Override
+        public int read(final ByteBuffer dst) throws IOException {
+            return 0; // No data to read
+        }
+
+        @Override
+        public int write(final ByteBuffer src) throws IOException {
+            // Discard the written bytes
+            int remaining = src.remaining();
+            src.position(src.position() + remaining);
+            return remaining;
+        }
+
+        @Override
+        public long position() throws IOException {
+            return 0; // Always at position 0
+        }
+
+        @Override
+        public SeekableByteChannel position(final long newPosition) throws IOException {
+            return this; // Ignore the new position
+        }
+
+        @Override
+        public long size() throws IOException {
+            return 0; // Always size 0
+        }
+
+        @Override
+        public SeekableByteChannel truncate(final long size) throws IOException {
+            return this; // Ignore truncation
+        }
     }
 }
