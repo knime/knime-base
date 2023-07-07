@@ -52,6 +52,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -252,6 +254,98 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         }
     }
 
+    private void assertMetaFilePathIsInaccessible(final LocalWorkflowAwarePath path) throws IOException {
+        @SuppressWarnings("resource")
+        final var fs = path.getFileSystem();
+
+        assertFalse(fs.isPathAccessible(path));
+        try {
+            fs.toLocalPathWithAccessibilityCheck(path); // throws exception
+            fail("Path should not exist or be accessible");
+        } catch (NoSuchFileException e) {
+            assertEquals(path.toString(), e.getFile());
+        }
+
+        // does not exist
+        assertFalse(Files.exists(path));
+
+        // cannot read attributes
+        try {
+            Files.readAttributes(path, BasicFileAttributes.class);
+            fail("Path should not exist or be accessible");
+        } catch (NoSuchFileException e) {// NOSONAR
+        }
+
+        // cannot read
+        try (var stream = Files.newInputStream(path)) {
+            fail("Path should not exist or be accessible");
+        } catch (NoSuchFileException e) { // NOSONAR
+        }
+
+        // can write with output stream
+        try (var stream = Files.newOutputStream(path)) {
+            stream.write("Some text".getBytes(StandardCharsets.UTF_8));
+        }
+
+        // can write with channel
+        try (var channel = Files.newByteChannel(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
+            ByteBuffer buff = ByteBuffer.wrap("Hello world".getBytes(StandardCharsets.UTF_8));
+            channel.write(buff);
+        }
+
+        // cannot copy from
+        try {
+            Files.copy(path, fs.getPath("/wontbecreated"));
+            fail("Path should not be accessible");
+        } catch (NoSuchFileException e) {
+            assertEquals(path.toString(), e.getFile());
+        }
+
+        // cannot copy to
+        try {
+            var testFile = fs.getPath("/testfile");
+            Files.writeString(testFile, "test");
+            Files.copy(testFile, path, StandardCopyOption.REPLACE_EXISTING);
+            fail("Path should not be accessible");
+        } catch (FileSystemException e) {// NOSONAR
+        }
+
+        // cannot move from
+        try {
+            Files.move(path, fs.getPath("/wontbecreated"));
+            fail("Path should not be accessible");
+        } catch (NoSuchFileException e) {
+            assertEquals(path.toString(), e.getFile());
+        }
+
+        // cannot move to
+        try {
+            var testFile = fs.getPath("/testfile");
+            Files.writeString(testFile, "test");
+            Files.move(testFile, path, StandardCopyOption.REPLACE_EXISTING);
+            fail("Path should not be accessible");
+        } catch (FileSystemException e) {// NOSONAR
+        }
+
+        // does not show up in directory listing (1)
+        var relParent = Optional.ofNullable(path.getParent()).orElse(fs.getPath(""));
+        try (var stream = Files.list(relParent)) {
+            var list = stream.collect(Collectors.toList());
+            assertFalse(list.contains(path));
+        } catch (NoSuchFileException e) {
+            assertTrue(Files.notExists(relParent));
+        }
+
+        // does not show up in directory listing (2)
+        var absParent = path.toAbsolutePath().normalize().getParent();
+        try (var stream = Files.list(absParent)) {
+            var list = stream.collect(Collectors.toList());
+            assertFalse(list.contains(path.toAbsolutePath().normalize()));
+        } catch (NoSuchFileException e) {
+            assertTrue(Files.notExists(absParent));
+        }
+    }
+
     @Test
     public void testMetadataFolderIsInaccessible() throws IOException {
         @SuppressWarnings("resource")
@@ -271,20 +365,20 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
         Files.createDirectory(m_mountpointRoot.resolve("testfolder"));
         Files.writeString(m_mountpointRoot.resolve("testfolder").resolve("workflowset.meta"), "");
 
-        assertPathIsInaccessible(fs.getPath("../workflowset.meta"));
-        assertPathIsInaccessible(fs.getPath("../testfolder/workflowset.meta"));
+        assertMetaFilePathIsInaccessible(fs.getPath("../workflowset.meta"));
+        assertMetaFilePathIsInaccessible(fs.getPath("../testfolder/workflowset.meta"));
     }
 
     @Test
-    public void insideMetadataFileWitMountpointRelative() throws IOException {
+    public void insideMetaFileWitMountpointRelative() throws IOException {
         @SuppressWarnings("resource")
         final var fs = getMountpointRelativeFS();
         Files.writeString(m_mountpointRoot.resolve("workflowset.meta"), "");
         Files.createDirectory(m_mountpointRoot.resolve("testfolder"));
         Files.writeString(m_mountpointRoot.resolve("testfolder").resolve("workflowset.meta"), "");
 
-        assertPathIsInaccessible(fs.getPath("workflowset.meta"));
-        assertPathIsInaccessible(fs.getPath("testfolder/workflowset.meta"));
+        assertMetaFilePathIsInaccessible(fs.getPath("workflowset.meta"));
+        assertMetaFilePathIsInaccessible(fs.getPath("testfolder/workflowset.meta"));
     }
 
     @Test
