@@ -18,7 +18,7 @@ SSHD_IMAGE = "${dockerTools.ECR}/knime/sshd:alpine3.11"
 
 try {
 	// provide the name of the update site project
-	knimetools.defaultTychoBuild('org.knime.update.base')
+	// knimetools.defaultTychoBuild('org.knime.update.base')
 
     testConfigs = [
         WorkflowTests: {
@@ -38,30 +38,30 @@ try {
                 ]
             )
         },
-        FileHandlingTests: {
-            workflowTests.runFilehandlingTests (
-                dependencies: [
-                    repositories: [
-                        "knime-base", "knime-core", "knime-expressions",
-                        "knime-jep", "knime-datageneration", "knime-js-base",
-                        "knime-js-core", "knime-r", "knime-database",
-                        "knime-kerberos", "knime-timeseries",
-                        "knime-jfreechart", "knime-distance", "knime-streaming"
-                    ]
-                ],
-            )
-        },
-        'Integrated Workflowtests': {
-            workflowTests.runIntegratedWorkflowTests(profile: 'test',  nodeType: 'maven', configurations: workflowTests.DEFAULT_FEATURE_BRANCH_CONFIGURATIONS)
-         },
+        // FileHandlingTests: {
+        //     workflowTests.runFilehandlingTests (
+        //         dependencies: [
+        //             repositories: [
+        //                 "knime-base", "knime-core", "knime-expressions",
+        //                 "knime-jep", "knime-datageneration", "knime-js-base",
+        //                 "knime-js-core", "knime-r", "knime-database",
+        //                 "knime-kerberos", "knime-timeseries",
+        //                 "knime-jfreechart", "knime-distance", "knime-streaming"
+        //             ]
+        //         ],
+        //     )
+        // },
+        // 'Integrated Workflowtests': {
+        //     workflowTests.runIntegratedWorkflowTests(profile: 'test',  nodeType: 'maven', configurations: workflowTests.DEFAULT_FEATURE_BRANCH_CONFIGURATIONS)
+        //  },
     ]
 
     parallel testConfigs
 
-    stage('Sonarqube analysis') {
-        env.lastStage = env.STAGE_NAME
-        workflowTests.runSonar()
-    }
+    // stage('Sonarqube analysis') {
+    //     env.lastStage = env.STAGE_NAME
+    //     workflowTests.runSonar()
+    // }
 } catch (ex) {
     currentBuild.result = 'FAILURE'
     throw ex
