@@ -23,6 +23,7 @@ try {
     testConfigs = [
         WorkflowTests: {
             workflowTests.runTests(
+                testflowsDir: "Testflows (master)/knime-base/Mining",
                 dependencies: [
                     repositories:  ["knime-base", "knime-expressions", "knime-core", "knime-core-ui", "knime-pmml", "knime-pmml-compilation",
                     "knime-pmml-translation", "knime-r", "knime-jep","knime-kerberos", "knime-database", "knime-datageneration",
