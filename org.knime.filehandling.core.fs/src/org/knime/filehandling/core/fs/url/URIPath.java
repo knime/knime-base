@@ -167,6 +167,13 @@ class URIPath extends UnixStylePath {
 
     @SuppressWarnings("resource")
     @Override
+    public Path resolve(final Path other) {
+        final var resolved = super.resolve(other);
+        return new URIPath(getFileSystem(), resolved.toString(), ((URIPath)other).m_uri);
+    }
+
+    @SuppressWarnings("resource")
+    @Override
     public int compareTo(final Path other) {
         if (other.getFileSystem() != m_fileSystem) {
             throw new IllegalArgumentException("Cannot compare paths across different file systems");
