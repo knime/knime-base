@@ -165,13 +165,17 @@ class URIPath extends UnixStylePath {
         return this;
     }
 
-    @SuppressWarnings("resource")
     @Override
-    public Path resolve(final Path other) {
-        final var resolved = super.resolve(other);
-        return new URIPath(getFileSystem(), resolved.toString(), ((URIPath)other).m_uri);
+    public Path toAbsolutePath() {
+        if (m_isAbsolute) {
+            return this;
+        } else {
+            final var absPath = super.toAbsolutePath();
+            // we should not change the URI when converting a relative to an absolute path
+            // otherwise this will drop query parameters from workflow/mountpoint-relative knime:// URLs
+            return new URIPath(getFileSystem(), absPath.toString(), m_uri);
+        }
     }
-
     @SuppressWarnings("resource")
     @Override
     public int compareTo(final Path other) {
