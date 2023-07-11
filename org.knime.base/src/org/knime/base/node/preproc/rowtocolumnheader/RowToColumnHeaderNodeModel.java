@@ -66,10 +66,12 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.data.convert.map.CellValueProducerFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.v2.ReadValue;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -577,7 +579,7 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
                     RowToColumnHeaderNodeModel::valueToString)) {
 
                 for (ConvertingCursorRead<String>.WrappedRow row; (row = read.next()) != null;) {
-                    builder.addRowToTable(converter.convert(row.getRowKey().toString(), row));
+                    builder.addRowToTable(converter.convert(row.getRowKey().getString(), row));
                     processed++;
                     progressTick(exec, processed, numRows);
                 }
@@ -802,8 +804,23 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
         return new SettingsModelBoolean(DETECT_TYPES, true);
     }
 
+    /**
+     * Converts a {@link DataValue} to a string representation so it can be used as a column name.
+     * Since the Columnar Backend doesn't provide a useful {@link #toString()} method, we convert to {@link DataCell}
+     * first.
+     *
+     * @param value data value to convert
+     * @return resulting string representation
+     */
     private static String valueToString(final DataValue value) {
-        final var str = value.toString();
+        final String str;
+        if (value instanceof StringValue) {
+            str = ((StringValue)value).getStringValue();
+        } else if (value instanceof ReadValue) {
+            str = ((ReadValue)value).getDataCell().toString();
+        } else {
+            str = value.toString();
+        }
         return str.isEmpty() ? null : str;
     }
 }
