@@ -48,6 +48,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.data.renderer.ComplexNumberValueRenderer">
+        <filter comment="follow new API in core" id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.data.renderer.ComplexNumberValueRenderer"/>
+                <message_argument value="org.knime.base_5.0.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerDialog.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerDialog">
         <filter id="305365105">
             <message_arguments>
