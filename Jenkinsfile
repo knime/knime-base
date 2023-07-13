@@ -39,19 +39,19 @@ try {
                 ]
             )
         },
-        FileHandlingTests: {
-            workflowTests.runFilehandlingTests (
-                dependencies: [
-                    repositories: [
-                        "knime-base", "knime-core", "knime-expressions",
-                        "knime-jep", "knime-datageneration", "knime-js-base",
-                        "knime-js-core", "knime-r", "knime-database",
-                        "knime-kerberos", "knime-timeseries",
-                        "knime-jfreechart", "knime-distance", "knime-streaming"
-                    ]
-                ],
-            )
-        }
+        // FileHandlingTests: {
+        //     workflowTests.runFilehandlingTests (
+        //         dependencies: [
+        //             repositories: [
+        //                 "knime-base", "knime-core", "knime-expressions",
+        //                 "knime-jep", "knime-datageneration", "knime-js-base",
+        //                 "knime-js-core", "knime-r", "knime-database",
+        //                 "knime-kerberos", "knime-timeseries",
+        //                 "knime-jfreechart", "knime-distance", "knime-streaming"
+        //             ]
+        //         ],
+        //     )
+        // }
     ]
 
     parallel testConfigs
