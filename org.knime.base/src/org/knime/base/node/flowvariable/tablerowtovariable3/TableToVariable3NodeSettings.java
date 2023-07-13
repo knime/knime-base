@@ -154,6 +154,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             """)
     @Layout(MissingValuesSection.class)
     @Signal(condition=UsesDefaultMissingValuesPolicy.class)
+    @ValueSwitchWidget
     MissingValuePolicy m_onMissing = MissingValuePolicy.OMIT;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_STRING)
@@ -173,6 +174,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
             """)
     @Layout(MissingValuesSection.class)
     @Effect(signals= {UsesDefaultMissingValuesPolicy.class}, type = EffectType.SHOW)
+    @ValueSwitchWidget
     BooleanStringBridge m_defaultValueBoolean = BooleanStringBridge.FALSE;
 
     @Persist(configKey = CFG_KEY_DEFAULT_VALUE_INTEGER)
