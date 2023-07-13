@@ -1,0 +1,3 @@
+-Dknime.tablebackend=org.knime.core.data.columnar.ColumnarTableBackend
+-Dknime.tablebackend.force=true
+-Dknime.tablebackend.testmode=true
