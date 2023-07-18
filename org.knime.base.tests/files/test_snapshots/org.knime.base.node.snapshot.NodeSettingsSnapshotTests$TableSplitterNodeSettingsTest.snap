@@ -1,0 +1,150 @@
+{
+  "data" : {
+    "model" : {
+      "findSplittingRowMode" : "FIRST_MATCH",
+      "lookupColumn" : "<row-keys>",
+      "matchingCriteria" : "EQUALS",
+      "searchPattern" : "",
+      "includeMatchingRowInTopTable" : true,
+      "includeMatchingRowInBottomTable" : false,
+      "updateDomains" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "findSplittingRowMode" : {
+            "oneOf" : [ {
+              "const" : "FIRST_MATCH",
+              "title" : "First match"
+            }, {
+              "const" : "LAST_MATCH",
+              "title" : "Last match"
+            } ],
+            "title" : "Find splitting row by",
+            "description" : "Select if the table should be split at the first matching row or at the last matching row.",
+            "default" : "FIRST_MATCH"
+          },
+          "includeMatchingRowInBottomTable" : {
+            "type" : "boolean",
+            "title" : "Include matching row in bottom output table",
+            "description" : "Select this option to include the row that split the table in the bottom output table.",
+            "default" : false
+          },
+          "includeMatchingRowInTopTable" : {
+            "type" : "boolean",
+            "title" : "Include matching row in top output table",
+            "description" : "Select this option to include the row that split the table in the top output table.",
+            "default" : true
+          },
+          "lookupColumn" : {
+            "type" : "string",
+            "title" : "Lookup column",
+            "description" : "Select the column that should be used to evaluate the matching criteria. Only columns of type String, Number (integer), or Number (long) can be selected.",
+            "default" : "<row-keys>"
+          },
+          "matchingCriteria" : {
+            "oneOf" : [ {
+              "const" : "EQUALS",
+              "title" : "Equals"
+            }, {
+              "const" : "MISSING",
+              "title" : "Missing"
+            }, {
+              "const" : "EMPTY",
+              "title" : "Empty"
+            } ],
+            "title" : "Matching criteria",
+            "description" : "Select criteria for matching the row:<ul><li><b>Equals:</b> compares the value of the cell to a given search pattern.</li><li><b>Missing:</b> only matches rows that have a missing value at the selected column.</li><li><b>Empty:</b> matches rows that have an empty or missing value at the selected column. Strings and Row IDs containing only whitespace characters will also match.</li></ul>",
+            "default" : "EQUALS"
+          },
+          "searchPattern" : {
+            "type" : "string",
+            "title" : "Search pattern",
+            "description" : "Select a search pattern to compare the value of the selected column. If a number column is selected the search pattern must be a parsable number.",
+            "default" : ""
+          },
+          "updateDomains" : {
+            "type" : "boolean",
+            "title" : "Update domains of all columns",
+            "description" : "Advanced setting to enable recomputation of the domains of all columns in the output table such that the domains' bounds exactly match the bounds of the data in the output table.",
+            "default" : false,
+            "configKeys" : [ "updateDomains" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Find splitting row",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/findSplittingRowMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/lookupColumn",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "test2",
+            "text" : "test2"
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : true,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/matchingCriteria",
+        "options" : { }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/searchPattern",
+        "options" : { },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/matchingCriteria",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "EQUALS"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/includeMatchingRowInTopTable",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/includeMatchingRowInBottomTable",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/updateDomains",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      } ]
+    } ]
+  }
+}

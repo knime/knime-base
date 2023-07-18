@@ -71,7 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Adrian Nembach, KNIME GmbH, Konstany, Germany
  */
 @SuppressWarnings("restriction")
-final class TableCropperSettings implements DefaultNodeSettings {
+public final class TableCropperSettings implements DefaultNodeSettings {
 
     /**
      * Constructor for auto-configure.

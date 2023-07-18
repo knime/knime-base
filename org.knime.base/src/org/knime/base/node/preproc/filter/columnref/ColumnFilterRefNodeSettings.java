@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Ivan Prigarin, KNIME GbmH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
+public final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
 
     private static final String REFERENCE_MODE_KEY = "inexclude";
 

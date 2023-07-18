@@ -1,0 +1,259 @@
+{
+  "data" : {
+    "model" : {
+      "decimalSep" : ".",
+      "thousandsSep" : "",
+      "parseType" : "DOUBLE",
+      "genericParse" : false,
+      "failOnError" : false,
+      "inclCols" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test2" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "decimalSep" : {
+            "type" : "string",
+            "title" : "Decimal separator",
+            "description" : "Choose a decimal separator, which is used to mark the boundary between the integral and the  fractional parts of the decimal string.",
+            "default" : ".",
+            "configKeys" : [ "decimal_separator" ]
+          },
+          "failOnError" : {
+            "type" : "boolean",
+            "title" : "Fail on error",
+            "description" : "When checked, the node will fail if an error occurs.",
+            "default" : false,
+            "configKeys" : [ "fail_on_error" ]
+          },
+          "genericParse" : {
+            "type" : "boolean",
+            "title" : "Accept type suffix, e.g. 'd', 'D', 'f', 'F'",
+            "description" : "When checked, the type suffix will be accepted, otherwise it fails to parse input like <tt>1d</tt>. These suffixes are typically used in java-style programs to represent floating point numbers ('f' for float and 'd' for double). Default is not checked.",
+            "default" : false,
+            "configKeys" : [ "generic_parse" ]
+          },
+          "inclCols" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Column selection",
+            "description" : "Move the columns of interest into the &quot;Includes&quot; list",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "include" ]
+          },
+          "parseType" : {
+            "oneOf" : [ {
+              "const" : "INT",
+              "title" : "Number (Integer)"
+            }, {
+              "const" : "DOUBLE",
+              "title" : "Number (Double)"
+            }, {
+              "const" : "LONG",
+              "title" : "Number (Long)"
+            } ],
+            "title" : "Type",
+            "description" : "Choose the DataType that your string should be converted to.",
+            "default" : "DOUBLE",
+            "configKeys" : [ "parse_type" ]
+          },
+          "thousandsSep" : {
+            "type" : "string",
+            "title" : "Thousands separator",
+            "description" : "Choose a thousands separator used in the decimal string to group together three digits.",
+            "default" : "",
+            "configKeys" : [ "thousands_separator" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Column Selection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/inclCols",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "test2",
+            "text" : "test2"
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      } ]
+    }, {
+      "label" : "Parsing options",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/decimalSep",
+        "options" : { }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/thousandsSep",
+        "options" : { }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/parseType",
+        "options" : { }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/genericParse",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failOnError",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  }
+}

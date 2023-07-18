@@ -1,0 +1,348 @@
+{
+  "data" : {
+    "model" : {
+      "valueColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "onMissing" : "OMIT",
+      "defaultValueString" : "missing",
+      "defaultValueBoolean" : "FALSE",
+      "defaultValueInteger" : 0,
+      "defaultValueLong" : 0,
+      "defaultValueDouble" : 0.0
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "defaultValueBoolean" : {
+            "oneOf" : [ {
+              "const" : "TRUE",
+              "title" : "true"
+            }, {
+              "const" : "FALSE",
+              "title" : "false"
+            } ],
+            "title" : "Default boolean",
+            "description" : "The default flow variable value for boolean columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
+            "default" : "FALSE",
+            "configKeys" : [ "default_value_boolean" ]
+          },
+          "defaultValueDouble" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Default double",
+            "description" : "The default flow variable value for double columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
+            "default" : 0.0,
+            "configKeys" : [ "default_value_double" ]
+          },
+          "defaultValueInteger" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Default integer",
+            "description" : "The default flow variable value for integer columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
+            "default" : 0,
+            "configKeys" : [ "default_value_integer" ]
+          },
+          "defaultValueLong" : {
+            "type" : "integer",
+            "format" : "int64",
+            "title" : "Default long",
+            "description" : "The default flow variable value for long columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
+            "default" : 0,
+            "configKeys" : [ "default_value_long" ]
+          },
+          "defaultValueString" : {
+            "type" : "string",
+            "title" : "Default string",
+            "description" : "The default flow variable value for string columns in case of an empty input table\nor a missing value in the first row of the input table.\n",
+            "default" : "missing",
+            "configKeys" : [ "default_value_string" ]
+          },
+          "onMissing" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "DEFAULT",
+              "title" : "Use defaults"
+            }, {
+              "const" : "OMIT",
+              "title" : "Ignore"
+            } ],
+            "title" : "If value in cell is missing",
+            "description" : "Behavior in case of missing values in the first row or an input table with no rows.\n<ul>\n    <li>\n        <b>Fail:</b> Ensures that the node will fail during execution if the input table is empty\n        or contains missing values in the columns to convert.\n    </li>\n    <li>\n        <b>Use defaults:</b> Replaces missing values with the configured defaults.\n        If a column has a type for which no flow variable type exists, the default value for missing strings\n        will be output. If the column holds lists or sets of string,\n        boolean, double, integer, or long, an empty list of the according type will be output.\n        If the column holds lists or sets of another type, an empty string list will be output.\n    </li>\n    <li>\n        <b>Ignore:</b> Missing cells will not be converted and therefore be omitted from the output.\n    </li>\n</ul>\n",
+            "default" : "OMIT",
+            "configKeys" : [ "missing_value_policy" ]
+          },
+          "valueColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Output as variables",
+            "description" : "Select the columns to be converted to flow variables. For each selected column, a flow variable\nis created. The name of the flow variable corresponds to the column name and the value corresponds\nto the value of the first row in that column.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "column_selection" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Output as variables",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/valueColumns",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1",
+            "type" : {
+              "id" : "org.knime.core.data.DoubleValue",
+              "text" : "Number (double)"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+          }, {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      } ]
+    }, {
+      "label" : "Missing Values",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/onMissing",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultValueString",
+        "options" : { },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/onMissing",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "DEFAULT"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultValueBoolean",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/onMissing",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "DEFAULT"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultValueInteger",
+        "options" : { },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/onMissing",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "DEFAULT"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultValueLong",
+        "options" : { },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/onMissing",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "DEFAULT"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/defaultValueDouble",
+        "options" : { },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/onMissing",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "DEFAULT"
+              } ]
+            }
+          }
+        }
+      } ]
+    } ]
+  }
+}

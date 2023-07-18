@@ -81,7 +81,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
+public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettings {
 
     @Section(title = "Duplicate detection")
     @Before(DuplicateHandlingSection.class)

@@ -64,7 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Ivan Prigarin, KNIME GbmH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class TransposeTableNodeSettings implements DefaultNodeSettings {
+public final class TransposeTableNodeSettings implements DefaultNodeSettings {
 
     private static final String CHUNKING_MODE_KEY = "guess_or_fixed";
 

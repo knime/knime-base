@@ -1,0 +1,63 @@
+{
+  "data" : {
+    "model" : {
+      "headerRowIndex" : 0,
+      "discardBefore" : false,
+      "detectTypes" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "detectTypes" : {
+            "type" : "boolean",
+            "title" : "Detect types of resulting columns",
+            "description" : "Whether type analysis should be applied to the output table. For each column, the most specific of the four column types <i>double</i> (64-bit floating-point number), <i>long</i> (64-bit integral number), <i>int</i> (32-bit integral number) and <i>String</i> is determined and the column is converted to this type.",
+            "default" : false,
+            "configKeys" : [ "detectTypes" ]
+          },
+          "discardBefore" : {
+            "type" : "boolean",
+            "title" : "Discard rows before header row",
+            "description" : "Whether rows before the row containing the new column header should be discarded. Otherwise they are treated as additional output rows.",
+            "default" : false,
+            "configKeys" : [ "discardBefore" ]
+          },
+          "headerRowIndex" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of rows before the header",
+            "description" : "Number of rows in the input table that precede the row that should be used as new column header",
+            "default" : 0,
+            "minimum" : 0,
+            "configKeys" : [ "headerRowIndex" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/headerRowIndex",
+      "options" : {
+        "format" : "integer"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/discardBefore",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/detectTypes",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  }
+}

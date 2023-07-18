@@ -1,0 +1,110 @@
+{
+  "data" : {
+    "model" : {
+      "column" : "test2",
+      "lag" : 1,
+      "lagInterval" : 1,
+      "skipInitialIncompleteRows" : false,
+      "skipLastIncompleteRows" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "column" : {
+            "type" : "string",
+            "title" : "Column to lag",
+            "description" : "The column to be lagged.",
+            "default" : "test2",
+            "configKeys" : [ "column" ]
+          },
+          "lag" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of copies",
+            "description" : " <i>L</i> = defines how many lagged column copies to create.",
+            "default" : 1,
+            "minimum" : 1,
+            "configKeys" : [ "lag" ]
+          },
+          "lagInterval" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Lag per copy",
+            "description" : "<i>I</i> = lag interval (sometimes also called periodicity or seasonality), defines how many rows to shift per column copy.",
+            "default" : 1,
+            "minimum" : 1,
+            "configKeys" : [ "lag_interval" ]
+          },
+          "skipInitialIncompleteRows" : {
+            "type" : "boolean",
+            "title" : "Drop incomplete rows at the top of the table",
+            "description" : "If selected, the first rows from the input table are omitted in the output so that the lag output column(s) is not missing (unless the reference data is missing).",
+            "default" : false,
+            "configKeys" : [ "skipInitialIncompleteRows" ]
+          },
+          "skipLastIncompleteRows" : {
+            "type" : "boolean",
+            "title" : "Drop incomplete rows at the bottom of the table",
+            "description" : "If selected the rows containing the lagged values of the last real data row are omitted (no artificial new rows). Otherwise new rows are added, which contain missing values in all columns but the new lag output.",
+            "default" : true,
+            "configKeys" : [ "skipLastIncompleteRows" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/column",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (double)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }, {
+          "id" : "test2",
+          "text" : "test2",
+          "type" : {
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : true,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/lag",
+      "options" : { }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/lagInterval",
+      "options" : { }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/skipInitialIncompleteRows",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/skipLastIncompleteRows",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  }
+}

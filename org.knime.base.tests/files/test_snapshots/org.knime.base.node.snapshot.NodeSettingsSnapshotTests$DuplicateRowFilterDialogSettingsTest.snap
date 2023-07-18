@@ -1,0 +1,359 @@
+{
+  "data" : {
+    "model" : {
+      "duplicateHandling" : "REMOVE",
+      "addUniqueLabel" : true,
+      "addRowIdLabel" : false,
+      "rowSelectionType" : "FIRST",
+      "selectedColumn" : "test1",
+      "inMemory" : false,
+      "retainOrder" : true,
+      "updateDomains" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "addRowIdLabel" : {
+            "type" : "boolean",
+            "title" : "Add column identifying the RowID of the chosen row for each duplicate row",
+            "description" : "Appends a column with the RowID of the chosen row for duplicate rows. Unique and chosen rows will not have a RowID assigned. ",
+            "default" : false,
+            "configKeys" : [ "add_row_id_flag" ]
+          },
+          "addUniqueLabel" : {
+            "type" : "boolean",
+            "title" : "Add column showing the row status ('unique', 'chosen', 'duplicate') to all rows",
+            "description" : "Appends a column with the row status:<ul><li><i>unique:</i> There is no other row with the same values in the selected columns.</li><li><i>chosen:</i> This row was chosen from a set of duplicate rows.</li><li><i>duplicate:</i> This row is a duplicate and represented by another row.</li></ul",
+            "default" : true,
+            "configKeys" : [ "add_row_duplicate_flag" ]
+          },
+          "consideredColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Choose columns for duplicates detection",
+            "description" : "Allows the selection of columns identifying the duplicates. Columns not selected are handled under \"Row selection\" in the \"Advanced\" settings.",
+            "configKeys" : [ "group_cols" ]
+          },
+          "duplicateHandling" : {
+            "oneOf" : [ {
+              "const" : "REMOVE",
+              "title" : "Remove duplicate rows"
+            }, {
+              "const" : "KEEP",
+              "title" : "Keep duplicate rows"
+            } ],
+            "title" : "Duplicate rows",
+            "description" : "Choose how duplicate rows should be handled.<ul><li><b>Remove duplicate rows:</b> Removes duplicate rows and keeps only unique and chosen rows.</li><li><b>Keep duplicate rows:</b> Appends columns with additional information to the input table.</li></ul",
+            "default" : "REMOVE",
+            "configKeys" : [ "remove_duplicates" ]
+          },
+          "inMemory" : {
+            "type" : "boolean",
+            "title" : "Compute in memory",
+            "description" : "If selected, computation is sped up by utilizing working memory (RAM). The amount of required memory is higher than for a regular computation and also depends on the amount of input data.",
+            "default" : false,
+            "configKeys" : [ "in_memory" ]
+          },
+          "retainOrder" : {
+            "type" : "boolean",
+            "title" : "Retain row order",
+            "description" : "If selected, the rows in the output table are guaranteed to have the same order as in the input table.",
+            "default" : true,
+            "configKeys" : [ "retain_order" ]
+          },
+          "rowSelectionType" : {
+            "oneOf" : [ {
+              "const" : "FIRST",
+              "title" : "First"
+            }, {
+              "const" : "LAST",
+              "title" : "Last"
+            }, {
+              "const" : "MINIMUM",
+              "title" : "Minimum of"
+            }, {
+              "const" : "MAXIMUM",
+              "title" : "Maximum of"
+            } ],
+            "title" : "Row chosen in case of duplicate",
+            "description" : "Defines which row for each set of duplicates is selected.<ul><li><b>First:</b> The first row in sequence is chosen.</li><li><b>Last:</b> The last row in sequence is chosen.</li><li><b>Minimum of:</b> The first row with the minimum value in the selected column is chosen. In case of strings, the row will be chosen following lexicographical order. Missing values are sorted after the maximum value.</li><li><b>Maximum of:</b> The first row with the maximum value in the selected column is chosen. In case of strings, the row will be chosen following lexicographical order. Missing values are sorted before the minimum value.</li></ul>",
+            "default" : "FIRST",
+            "configKeys" : [ "row_selection" ]
+          },
+          "selectedColumn" : {
+            "type" : "string",
+            "title" : "Column",
+            "default" : "test1",
+            "configKeys" : [ "reference_col" ]
+          },
+          "updateDomains" : {
+            "type" : "boolean",
+            "title" : "Update domains of all columns",
+            "description" : "Recompute the domains of all columns in the output tables such that the domains' bounds exactly match the bounds of the data in the output tables.",
+            "default" : false,
+            "configKeys" : [ "update_domains" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Duplicate detection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/consideredColumns",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1",
+            "type" : {
+              "id" : "org.knime.core.data.DoubleValue",
+              "text" : "Number (double)"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+          }, {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      } ]
+    }, {
+      "label" : "Duplicate handling",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/duplicateHandling",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/addUniqueLabel",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/duplicateHandling",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "REMOVE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/addRowIdLabel",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/duplicateHandling",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "REMOVE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowSelectionType",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/selectedColumn",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1",
+            "type" : {
+              "id" : "org.knime.core.data.DoubleValue",
+              "text" : "Number (double)"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+          }, {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/rowSelectionType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "FIRST"
+              }, {
+                "const" : "LAST"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Performance",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/inMemory",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/retainOrder",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/updateDomains",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  }
+}

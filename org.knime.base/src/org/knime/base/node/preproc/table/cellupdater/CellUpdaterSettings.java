@@ -74,7 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Ivan Prigarin, KNIME GmbH, Konstany, Germany
  */
 @SuppressWarnings("restriction")
-final class CellUpdaterSettings implements DefaultNodeSettings {
+public final class CellUpdaterSettings implements DefaultNodeSettings {
 
     /**
      * Constructor for auto-configure.

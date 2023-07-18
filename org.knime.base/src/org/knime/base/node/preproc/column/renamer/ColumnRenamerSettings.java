@@ -65,7 +65,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class ColumnRenamerSettings implements DefaultNodeSettings {
+public final class ColumnRenamerSettings implements DefaultNodeSettings {
 
     ColumnRenamerSettings(final SettingsCreationContext context) {
         // pick the last column because a typical scenario is to rename columns appended by the previous node

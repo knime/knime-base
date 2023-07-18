@@ -81,7 +81,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Jonas Klotz, KNIME GmbH, Berlin
  */
 @SuppressWarnings("restriction")
-final class DoubleToIntNodeSettings implements DefaultNodeSettings {
+public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
 
     /**
      * Constructor for persistence and conversion from JSON.
@@ -119,7 +119,7 @@ final class DoubleToIntNodeSettings implements DefaultNodeSettings {
         + "(Round: standard rounding, Floor: next smaller integer, Ceil: next bigger integer")
     @Layout(RoundingOptionsSection.class)
     @ValueSwitchWidget
-    RoundingOptions m_calctype;
+    RoundingOptions m_calctype = RoundingOptions.ROUND;
 
     enum RoundingOptions {
 

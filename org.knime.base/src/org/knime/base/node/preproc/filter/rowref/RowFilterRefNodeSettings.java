@@ -70,7 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class RowFilterRefNodeSettings implements DefaultNodeSettings {
+public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
 
     // TODO: UIEXT-1007 migrate String to ColumnSelection
 

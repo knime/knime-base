@@ -67,7 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Adrian Nembach, KNIME GbmH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class AppendedRowsNodeSettings implements DefaultNodeSettings {
+public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = AppendedRowsNodeModel.CFG_HILITING)
     @Widget(title = "Enable hiliting",

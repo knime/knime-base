@@ -58,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class TableUpdaterNodeSettings implements DefaultNodeSettings {
+public final class TableUpdaterNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Columns missing in input table",
         description = "Controls how to deal with columns in the update table that are not part of the input table.")

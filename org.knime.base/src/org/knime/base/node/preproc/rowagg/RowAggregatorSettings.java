@@ -71,7 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class RowAggregatorSettings implements DefaultNodeSettings {
+public final class RowAggregatorSettings implements DefaultNodeSettings {
 
     // TODO: UIEXT-1007 migrate String to ColumnSelection
 

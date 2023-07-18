@@ -1,0 +1,379 @@
+{
+  "data" : {
+    "model" : {
+      "targetColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test2" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "patternType" : "LITERAL",
+      "enableEscaping" : false,
+      "caseMatching" : "CASEINSENSITIVE",
+      "replacementStrategy" : "WHOLE_STRING",
+      "multipleMatchHandling" : "REPLACEALL",
+      "appendColumns" : false,
+      "columnSuffix" : "_replaced"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendColumns" : {
+            "type" : "boolean",
+            "title" : "Append new columns",
+            "description" : "If enabled, the strings will not be replaced in-place but new columns are appended that contains the\noriginal string with the replacement applied.\n",
+            "default" : false
+          },
+          "caseMatching" : {
+            "oneOf" : [ {
+              "const" : "CASEINSENSITIVE",
+              "title" : "Case insensitive"
+            }, {
+              "const" : "CASESENSITIVE",
+              "title" : "Case sensitive"
+            } ],
+            "title" : "Case sensitive",
+            "description" : "Specifies whether matching will distinguish between upper and lower case letters.",
+            "default" : "CASEINSENSITIVE",
+            "configKeys" : [ "caseSensitive" ]
+          },
+          "columnSuffix" : {
+            "type" : "string",
+            "title" : "Suffix for new columns",
+            "description" : "The suffix that is appended to the newly created columns with strings",
+            "default" : "_replaced"
+          },
+          "enableEscaping" : {
+            "type" : "boolean",
+            "title" : "Use backslash as escape character",
+            "description" : "If checked, the backslash character can be used to escape special characters. For instance, <tt>\\?</tt>\nwill match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a\nbackslash you need to escape the backslash, too (<tt>\\</tt>).\n",
+            "default" : false
+          },
+          "multipleMatchHandling" : {
+            "oneOf" : [ {
+              "const" : "REPLACEALL",
+              "title" : "Replace all"
+            }, {
+              "const" : "REPLACEFIRST",
+              "title" : "Replace first"
+            } ],
+            "title" : "If multiple patterns match",
+            "description" : "Select the strategy to use if multiple patterns match.\n<ul>\n    <li>\n        <i>Replace all</i> applies all replacements with matching patterns from the dictionary table\n        consecutively.\n    </li>\n    <li>\n        <i>Replace first</i> only applies the first replacement with a matching pattern.\n    </li>\n</ul>\n",
+            "default" : "REPLACEALL"
+          },
+          "patternColumn" : {
+            "type" : "string",
+            "title" : "Pattern column",
+            "description" : "The column containing literal strings, wildcard patterns or regular expressions, depending on the matching\ncriterion selected above.\n"
+          },
+          "patternType" : {
+            "oneOf" : [ {
+              "const" : "LITERAL",
+              "title" : "Literal"
+            }, {
+              "const" : "WILDCARD",
+              "title" : "Wildcard"
+            }, {
+              "const" : "REGEX",
+              "title" : "Regular expression"
+            } ],
+            "title" : "Pattern type",
+            "description" : "Select the type of pattern which you want to use.\n<ul>\n    <li><i>Literal</i> matches the pattern as is.</li>\n    <li>\n        <i>Wildcard</i> matches <tt>*</tt> to zero or more arbitrary characters and matches\n        <tt>?</tt> to any single character.\n    </li>\n    <li>\n        <i>Regular expression</i>\n        matches using the full functionality of Java regular expressions, including back references\n        in the replacement text. See the\n        <a href=\"http://docs.oracle.com/javase/6/docs/api/java/util/regex/Pattern.html\">Java API\n        </a> for details.\n    </li>\n</ul>\n",
+            "default" : "LITERAL"
+          },
+          "replacementColumn" : {
+            "type" : "string",
+            "title" : "Replacement column",
+            "description" : "The column containing text that replaces the previous value in the cell if the pattern matched it. If you\nare using regular expressions, you may also use backreferences (e.g. <tt>$1</tt> to refer to the first\ncapture group, named capture groups can also be used with <tt>(?&lt;group&gt;)</tt> and <tt>${group}</tt>\nto refer to them).\n"
+          },
+          "replacementStrategy" : {
+            "oneOf" : [ {
+              "const" : "WHOLE_STRING",
+              "title" : "Whole string"
+            }, {
+              "const" : "ALL_OCCURRENCES",
+              "title" : "All occurrences"
+            } ],
+            "title" : "Replacement strategy",
+            "description" : "Select what to replace in case a string matches a pattern.\n<ul>\n    <li>\n        <i>Whole string</i> replaces the entire string with the replacement string, requiring an\n        exact  match of the whole string.\n    </li>\n    <li>\n        <i>All occurrences</i> replaces all occurrences of the pattern with the replacement string.\n        Note that when e.g. matching on the RegEx-pattern <tt>.*</tt>, an empty string at the end\n        of the input is also matched and replaced. To avoid that, use e.g. the pattern <tt>^.*</tt>\n        to indicate that the match has to start at the beginning of the string.\n    </li>\n</ul>\n",
+            "default" : "WHOLE_STRING"
+          },
+          "targetColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Target columns",
+            "description" : "Select the columns in which the strings should be replaced.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Column Selection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/targetColumns",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      } ]
+    }, {
+      "label" : "Find & Replace",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/patternType",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/enableEscaping",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/patternType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "WILDCARD"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/caseMatching",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/patternColumn",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/replacementColumn",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/replacementStrategy",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/multipleMatchHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendColumns",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnSuffix",
+        "options" : { },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/appendColumns",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    } ]
+  }
+}

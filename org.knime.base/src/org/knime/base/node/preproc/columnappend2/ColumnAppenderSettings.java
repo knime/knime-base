@@ -68,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class ColumnAppenderSettings implements DefaultNodeSettings {
+public final class ColumnAppenderSettings implements DefaultNodeSettings {
 
     @Persist(configKey = ColumnAppender2NodeModel.KEY_SELECTED_ROWID_MODE, settingsModel = SettingsModelString.class)
     @Widget(title = "RowID mode", description = "Determines the RowIDs of the output table:" + "<ul>"//

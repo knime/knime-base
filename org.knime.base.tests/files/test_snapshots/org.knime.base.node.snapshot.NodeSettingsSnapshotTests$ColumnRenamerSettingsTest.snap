@@ -1,0 +1,79 @@
+{
+  "data" : {
+    "model" : {
+      "renamings" : [ {
+        "oldName" : "test2",
+        "newName" : "test2"
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "renamings" : {
+            "title" : "Renamings",
+            "description" : "Allows to define new names for columns.",
+            "default" : [ {
+              "oldName" : "test2",
+              "newName" : "test2"
+            } ],
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "newName" : {
+                  "type" : "string",
+                  "title" : "New name",
+                  "description" : "The new column name. Must not be empty or consist only of whitespaces.",
+                  "pattern" : "\\S+.*"
+                },
+                "oldName" : {
+                  "type" : "string",
+                  "title" : "Column",
+                  "description" : "The column to rename."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/renamings",
+      "options" : {
+        "detail" : [ {
+          "type" : "HorizontalLayout",
+          "elements" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/oldName",
+            "options" : {
+              "possibleValues" : [ {
+                "id" : "test1",
+                "text" : "test1"
+              }, {
+                "id" : "test2",
+                "text" : "test2"
+              } ],
+              "format" : "dropDown",
+              "showNoneColumn" : false,
+              "showRowKeys" : false,
+              "showSearch" : true,
+              "showMode" : true
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/newName",
+            "options" : { }
+          } ]
+        } ],
+        "addButtonText" : "Add column"
+      }
+    } ]
+  }
+}

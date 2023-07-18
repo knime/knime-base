@@ -1,0 +1,98 @@
+{
+  "data" : {
+    "model" : {
+      "enableHiliting" : false,
+      "suffix" : "_dup",
+      "rowIdResolution" : "APPEND",
+      "columnSetOperation" : "UNION"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSetOperation" : {
+            "oneOf" : [ {
+              "const" : "INTERSECTION",
+              "title" : "Intersection"
+            }, {
+              "const" : "UNION",
+              "title" : "Union"
+            } ],
+            "title" : "How to combine input columns",
+            "description" : "Choose the output column selection process:<ul><li><b>Intersection</b>: Use only the columns that appear in every input table. Any other column is ignored and won't appear in the output table.</li><li><b>Union</b>: Use all columns from all input tables. Fill rows with missing values if they miss cells for some columns.</li></ul>",
+            "default" : "UNION",
+            "configKeys" : [ "intersection_of_columns" ]
+          },
+          "enableHiliting" : {
+            "type" : "boolean",
+            "title" : "Enable hiliting",
+            "description" : "Enable hiliting between both inputs and the concatenated output table.",
+            "default" : false,
+            "configKeys" : [ "enable_hiliting" ]
+          },
+          "rowIdResolution" : {
+            "oneOf" : [ {
+              "const" : "SKIP",
+              "title" : "Skip"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append suffix"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "If there are duplicate RowIDs",
+            "description" : "Select how to resolve duplicate RowIDs:<ul><li><b>Skip</b>: Duplicate row identifiers (RowID) occurring in the second table are not appended to the output table. This option is relatively memory intensive as it needs to cache the row IDs in order to find duplicates. Furthermore a full data duplication is needed.</li><li><b>Append suffix</b>: The output table will contain all rows, but duplicate RowIDs are labeled with a suffix. Similar to the \"Skip Rows\" option this method is also memory intensive.</li><li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This option is efficient while checking uniqueness.</li></ul>",
+            "default" : "APPEND",
+            "configKeys" : [ "append_suffix", "fail_on_duplicates" ]
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Suffix",
+            "description" : "The suffix to be appended to RowIDs.",
+            "default" : "_dup",
+            "configKeys" : [ "suffix" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnSetOperation",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/rowIdResolution",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/suffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/rowIdResolution",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "APPEND"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/enableHiliting",
+      "options" : {
+        "isAdvanced" : true
+      }
+    } ]
+  }
+}

@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Jonas Klotz, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
+public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
 
     // TODO: UIEXT-1007 migrate String to ColumnSelection
 

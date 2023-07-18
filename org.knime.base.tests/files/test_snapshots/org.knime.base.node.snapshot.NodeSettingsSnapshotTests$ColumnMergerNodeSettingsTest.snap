@@ -1,0 +1,115 @@
+{
+  "data" : {
+    "model" : {
+      "primaryColumn" : "",
+      "secondaryColumn" : ""
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "outputName" : {
+            "type" : "string",
+            "title" : "New column name",
+            "description" : "The name for the new column.",
+            "configKeys" : [ "outputName" ]
+          },
+          "outputPlacement" : {
+            "oneOf" : [ {
+              "const" : "ReplaceBoth",
+              "title" : "Replace primary and delete secondary"
+            }, {
+              "const" : "ReplacePrimary",
+              "title" : "Replace primary"
+            }, {
+              "const" : "ReplaceSecondary",
+              "title" : "Replace secondary"
+            }, {
+              "const" : "AppendAsNewColumn",
+              "title" : "Append as new column"
+            } ],
+            "title" : "Replace/append columns",
+            "description" : "Choose where to put the result column:<ul><li><b>Replace primary and delete secondary</b>: Replace the primary column with the merge result and remove the secondary column.</li><li><b>Replace primary</b>: Replace the primary column with the merge result and keep the secondary column.</li><li><b>Replace secondary</b>: Keep the primary column and replace the secondary column with the merge result.</li><li><b>Append as new column</b>: Append a new column with the name provided below.</li></ul>",
+            "configKeys" : [ "outputPlacement" ]
+          },
+          "primaryColumn" : {
+            "type" : "string",
+            "title" : "Primary column",
+            "description" : "The column with the value that will be used, unless it is missing.",
+            "default" : "",
+            "configKeys" : [ "primaryColumn" ]
+          },
+          "secondaryColumn" : {
+            "type" : "string",
+            "title" : "Secondary column",
+            "description" : "The column with the value that will be used if it is missing in the primary column.",
+            "default" : "",
+            "configKeys" : [ "secondaryColumn" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/primaryColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/secondaryColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputPlacement",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputName",
+      "options" : { },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/outputPlacement",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "AppendAsNewColumn"
+            } ]
+          }
+        }
+      }
+    } ]
+  }
+}

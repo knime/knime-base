@@ -1,0 +1,123 @@
+{
+  "data" : {
+    "model" : {
+      "columnSpecificationMode" : "BY_NAME",
+      "columnName" : "test1",
+      "columnNumber" : 1,
+      "rowNumber" : 1,
+      "countFromEnd" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnName" : {
+            "type" : "string",
+            "title" : "Column name",
+            "description" : "Select the column that contains the target cell.",
+            "default" : "test1"
+          },
+          "columnNumber" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Column number",
+            "description" : "Provide the number of the column that contains the target cell.",
+            "default" : 1,
+            "minimum" : 1
+          },
+          "columnSpecificationMode" : {
+            "oneOf" : [ {
+              "const" : "BY_NAME",
+              "title" : "Name"
+            }, {
+              "const" : "BY_NUMBER",
+              "title" : "Number"
+            } ],
+            "title" : "Column specification",
+            "description" : "Select whether to specify the column by name or by number.",
+            "default" : "BY_NAME"
+          },
+          "countFromEnd" : {
+            "type" : "boolean",
+            "title" : "Count rows from the end of the table",
+            "description" : "If selected, the rows will be counted from the end of the table.",
+            "default" : false
+          },
+          "rowNumber" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Row number",
+            "description" : "Provide the number of the row that contains the target cell.",
+            "default" : 1,
+            "minimum" : 1
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnSpecificationMode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnName",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/columnSpecificationMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "BY_NAME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnNumber",
+      "options" : { },
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/columnSpecificationMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "BY_NAME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/rowNumber",
+      "options" : { }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/countFromEnd",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  }
+}

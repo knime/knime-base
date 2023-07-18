@@ -67,7 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-final class NumberFormatManagerNodeSettings implements DefaultNodeSettings {
+public final class NumberFormatManagerNodeSettings implements DefaultNodeSettings {
 
     // Types
 

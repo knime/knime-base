@@ -70,7 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
+public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
 
     @Persist(settingsModel = SettingsModelBoolean.class)
     @Widget(title = "Generate new column names",
@@ -103,7 +103,7 @@ final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
         + "<li><b>Double</b>: Only double-compatible columns are processed. "//
         + "This includes integer and long columns.</li>"//
         + "</ul>")
-    ColType m_colTypeFilter;
+    ColType m_colTypeFilter = ColType.ALL;
 
     enum OutputFormat {
             @Label("Row")

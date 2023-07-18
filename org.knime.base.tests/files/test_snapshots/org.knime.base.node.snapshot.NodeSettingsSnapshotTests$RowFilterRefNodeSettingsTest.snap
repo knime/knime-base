@@ -1,0 +1,104 @@
+{
+  "data" : {
+    "model" : {
+      "dataColumn" : "<row-keys>",
+      "referenceColumn" : "<row-keys>",
+      "inexclude" : "INCLUDE",
+      "updateDomains" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "dataColumn" : {
+            "type" : "string",
+            "title" : "Data column",
+            "description" : "The column from the table to be filtered that should be used for comparison.",
+            "default" : "<row-keys>",
+            "configKeys" : [ "dataTableColumn" ]
+          },
+          "inexclude" : {
+            "oneOf" : [ {
+              "const" : "INCLUDE",
+              "title" : "Include"
+            }, {
+              "const" : "EXCLUDE",
+              "title" : "Exclude"
+            } ],
+            "title" : "Include or exclude rows from the reference table",
+            "description" : "Includes or excludes all rows from the reference table in the resulting table from the first input.",
+            "default" : "INCLUDE",
+            "configKeys" : [ "inexclude" ]
+          },
+          "referenceColumn" : {
+            "type" : "string",
+            "title" : "Reference column",
+            "description" : "The column from the filter table that should be used for comparison.",
+            "default" : "<row-keys>",
+            "configKeys" : [ "referenceTableColumn" ]
+          },
+          "updateDomains" : {
+            "type" : "boolean",
+            "title" : "Update domains of all columns",
+            "description" : "Advanced setting to enable recomputation of the domains of all columns in the output table such that the domains' bounds exactly match the bounds of the data in the output table.",
+            "default" : false,
+            "configKeys" : [ "updateDomains" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/dataColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : true,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/referenceColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : true,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/inexclude",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/updateDomains",
+      "options" : {
+        "format" : "checkbox",
+        "isAdvanced" : true
+      }
+    } ]
+  }
+}

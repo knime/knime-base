@@ -1,0 +1,73 @@
+{
+  "data" : {
+    "model" : {
+      "failIfNoMatch" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "failIfNoMatch" : {
+            "type" : "boolean",
+            "title" : "Fail if no assignment in dictionary table",
+            "description" : "If selected, the node fails if there is no matching entry of a column name in the dictionary table. Otherwise it will keep the original column name.",
+            "default" : false,
+            "configKeys" : [ "failIfNoMatch" ]
+          },
+          "lookupColumn" : {
+            "type" : "string",
+            "title" : "Lookup column",
+            "description" : "The column in the 2nd input table containing the \"old\" names of the columns.",
+            "configKeys" : [ "lookupColumn" ]
+          },
+          "valueColumn" : {
+            "type" : "string",
+            "title" : "Names column",
+            "description" : "The column in the 2nd input table containing the \"new\" names of the columns.",
+            "configKeys" : [ "valueColumn" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/lookupColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : true,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/valueColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/failIfNoMatch",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "data" : {
+    "model" : {
+      "unmatchedColumnsHandling" : "IGNORE",
+      "unmatchedRowsHandling" : "IGNORE",
+      "performUpdateWithMissingValues" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "performUpdateWithMissingValues" : {
+            "type" : "boolean",
+            "title" : "Perform update with missing values",
+            "description" : "If unchecked, the values in the input table remain unchanged if the corresponding value in the update table is missing. If checked, all values are updated.",
+            "default" : true
+          },
+          "unmatchedColumnsHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "Columns missing in input table",
+            "description" : "Controls how to deal with columns in the update table that are not part of the input table.",
+            "default" : "IGNORE"
+          },
+          "unmatchedRowsHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "Rows missing in input table",
+            "description" : "Controls how to deal with rows in the update table whose Row IDs don't occur in the input table.",
+            "default" : "IGNORE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/unmatchedColumnsHandling",
+      "options" : { }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/unmatchedRowsHandling",
+      "options" : { }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/performUpdateWithMissingValues",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  }
+}

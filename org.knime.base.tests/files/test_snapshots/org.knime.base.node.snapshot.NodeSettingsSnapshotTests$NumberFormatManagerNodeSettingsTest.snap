@@ -1,0 +1,282 @@
+{
+  "data" : {
+    "model" : {
+      "columnsToFormat" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "minimumDecimals" : 0,
+      "maximumDecimals" : 3,
+      "groupSeparator" : "THIN_SPACE",
+      "decimalSeparator" : "DOT",
+      "alwaysShowDecimalSeparator" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "alwaysShowDecimalSeparator" : {
+            "type" : "boolean",
+            "title" : "Always show decimal separator",
+            "description" : "Whether to always show the decimal separator, even if no fractional digits are present.\nIf enabled, output like <tt>1.</tt> can be generated.\nIf disabled, the same input would be shown as <tt>1</tt>.\n",
+            "default" : false
+          },
+          "columnsToFormat" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns to format",
+            "description" : "Select the columns to attach the selected format to.\nThis does not change the data, only the way the values in the column are displayed in views.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "decimalSeparator" : {
+            "oneOf" : [ {
+              "const" : "DOT",
+              "title" : "Dot"
+            }, {
+              "const" : "COMMA",
+              "title" : "Comma"
+            } ],
+            "title" : "Decimal separator",
+            "description" : "The decimal separator to use.",
+            "default" : "DOT"
+          },
+          "groupSeparator" : {
+            "oneOf" : [ {
+              "const" : "THIN_SPACE",
+              "title" : "Thin space"
+            }, {
+              "const" : "DOT",
+              "title" : "Dot"
+            }, {
+              "const" : "COMMA",
+              "title" : "Comma"
+            }, {
+              "const" : "APOSTROPHE",
+              "title" : "Apostrophe"
+            }, {
+              "const" : "UNDERSCORE",
+              "title" : "Underscore"
+            }, {
+              "const" : "NONE",
+              "title" : "None"
+            } ],
+            "title" : "Group separator",
+            "description" : "The separator between groups of integer digits.\nFor instance, <tt>1,000,000</tt> uses a comma and <tt>1'000'000</tt>\n uses an apostrophe as group separator.\n",
+            "default" : "THIN_SPACE"
+          },
+          "maximumDecimals" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum number of decimals",
+            "description" : "The formatted number is rounded to the given number of decimals.\nFor instance, <tt>1.2599</tt> with 2 decimals is shown as <tt>1.26</tt>.\n",
+            "default" : 3,
+            "minimum" : 0
+          },
+          "minimumDecimals" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Minimum number of decimals",
+            "description" : "The formatted number will show trailing zeros until the requested number of decimals are reached.\nFor instance, <tt>1.2</tt> with 2 decimals is shown as <tt>1.20</tt>.\n",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Columns",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnsToFormat",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1",
+            "type" : {
+              "id" : "org.knime.core.data.DoubleValue",
+              "text" : "Number (double)"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      } ]
+    }, {
+      "label" : "Digits",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "HorizontalLayout",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/minimumDecimals",
+          "options" : { }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/maximumDecimals",
+          "options" : { }
+        } ]
+      } ]
+    }, {
+      "label" : "Separators",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/groupSeparator",
+        "options" : { }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/decimalSeparator",
+        "options" : { }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/alwaysShowDecimalSeparator",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  }
+}

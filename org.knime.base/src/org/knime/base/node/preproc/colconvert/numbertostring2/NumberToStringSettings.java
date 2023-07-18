@@ -68,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class NumberToStringSettings implements DefaultNodeSettings {
+public final class NumberToStringSettings implements DefaultNodeSettings {
 
     /**
      * Constructor for initialization.

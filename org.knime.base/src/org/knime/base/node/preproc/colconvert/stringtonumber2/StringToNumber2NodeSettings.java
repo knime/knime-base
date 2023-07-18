@@ -85,7 +85,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  */
 @SuppressWarnings("restriction")
 @Layout(ParsingOptionsSection.class)
-final class StringToNumber2NodeSettings implements DefaultNodeSettings {
+public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
 
     /**
      * Constructor for persistence and conversion from JSON.

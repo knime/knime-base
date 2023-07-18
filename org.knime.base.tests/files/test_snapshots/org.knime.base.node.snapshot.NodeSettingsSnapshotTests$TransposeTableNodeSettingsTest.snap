@@ -1,0 +1,65 @@
+{
+  "data" : {
+    "model" : {
+      "chunkingMode" : "GUESS_SIZE",
+      "chunkSize" : 0
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "chunkSize" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Columns per chunk",
+            "description" : "The number of columns read during one iteration over the table. Increasing this value yields faster execution time, but also increases memory consumption.",
+            "default" : 0,
+            "configKeys" : [ "chunk_size" ]
+          },
+          "chunkingMode" : {
+            "oneOf" : [ {
+              "const" : "GUESS_SIZE",
+              "title" : "Automatic"
+            }, {
+              "const" : "SPECIFY_SIZE",
+              "title" : "Manual"
+            } ],
+            "title" : "Chunk size configuration",
+            "description" : "Select how the node should handle chunking while processing the input table:<ul><li><b>Automatic:</b> Use a dynamic chunk size that adapts to the current memory available. The number of columns read will be maximized for performance.</li><li><b>Manual:</b> Manually specify the number of columns read during one iteration over the table. Larger chunk sizes lead to more memory consumption, but yield faster execution time.</li></ul>",
+            "default" : "GUESS_SIZE",
+            "configKeys" : [ "guess_or_fixed" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/chunkingMode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/chunkSize",
+      "options" : {
+        "format" : "Integer"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/chunkingMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "SPECIFY_SIZE"
+            } ]
+          }
+        }
+      }
+    } ]
+  }
+}

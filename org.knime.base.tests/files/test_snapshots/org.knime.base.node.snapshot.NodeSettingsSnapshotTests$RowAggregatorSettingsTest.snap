@@ -1,0 +1,300 @@
+{
+  "data" : {
+    "model" : {
+      "aggregationMethod" : "SUM",
+      "frequencyColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "grandTotals" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "aggregationMethod" : {
+            "oneOf" : [ {
+              "const" : "COUNT",
+              "title" : "Occurrence count"
+            }, {
+              "const" : "SUM",
+              "title" : "Sum"
+            }, {
+              "const" : "AVERAGE",
+              "title" : "Average"
+            }, {
+              "const" : "MIN",
+              "title" : "Minimum"
+            }, {
+              "const" : "MAX",
+              "title" : "Maximum"
+            } ],
+            "title" : "Aggregation",
+            "description" : "Select the aggregation function to be applied on all rows belonging to the same category.<ul><li><i>Occurrence count:</i> Count how many rows occur</li><li><i>Sum:</i> Sum up values, optionally weighted by the value from the weight column</li><li><i>Average:</i> Calculate the mean value, optionally weighted by the value from the weight column</li><li><i>Minimum:</i> Calculate the minimum value</li><li><i>Maximum:</i> Calculate the maximum value</li></ul>",
+            "default" : "SUM"
+          },
+          "categoryColumn" : {
+            "type" : "string",
+            "title" : "Category column",
+            "description" : "Select the column that defines the category on which rows are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same group will be calculated."
+          },
+          "frequencyColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Aggregation columns",
+            "description" : "Select the columns to apply the aggregation function to.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "grandTotals" : {
+            "type" : "boolean",
+            "title" : "Additional \"grand totals\" at second output port",
+            "description" : "If a category column is selected, additionally compute the aggregations <i>without</i> the category column (\"grand totals\") and output them in the second output table. The second output is inactive if no category column is selected or this setting is not enabled.",
+            "default" : false
+          },
+          "weightColumn" : {
+            "type" : "string",
+            "title" : "Weight column",
+            "description" : "Select the column that defines the weight with which a value is multiplied before aggregation. Note, that only the aggregation functions \"Sum\" and \"Average\" support a weight column"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/categoryColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        }, {
+          "id" : "test2",
+          "text" : "test2"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : true,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/aggregationMethod",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "horizontal"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/frequencyColumns",
+      "options" : {
+        "format" : "columnFilter",
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (double)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        } ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      },
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/aggregationMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "COUNT"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/weightColumn",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1"
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : true,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      },
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/aggregationMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "COUNT"
+            }, {
+              "const" : "MIN"
+            }, {
+              "const" : "MAX"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/grandTotals",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/categoryColumn",
+          "schema" : {
+            "const" : "<none>"
+          }
+        }
+      }
+    } ]
+  }
+}

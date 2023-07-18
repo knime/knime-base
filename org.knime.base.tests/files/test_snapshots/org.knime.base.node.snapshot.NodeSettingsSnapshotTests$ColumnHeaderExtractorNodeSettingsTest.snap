@@ -1,0 +1,93 @@
+{
+  "data" : {
+    "model" : {
+      "replaceColHeader" : false,
+      "colTypeFilter" : "ALL"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "colTypeFilter" : {
+            "oneOf" : [ {
+              "const" : "ALL",
+              "title" : "All"
+            }, {
+              "const" : "STRING",
+              "title" : "String"
+            }, {
+              "const" : "INTEGER",
+              "title" : "Integer"
+            }, {
+              "const" : "DOUBLE",
+              "title" : "Double"
+            } ],
+            "title" : "Restrain column types",
+            "description" : "Select the type of the columns to extract the names from:<ul><li><b>All</b>: All columns are processed.</li><li><b>String</b>: Only string-compatible columns are processed, this includes e.g. XML columns.</li><li><b>Integer</b>: Only integer-compatible columns are processed.</li><li><b>Double</b>: Only double-compatible columns are processed. This includes integer and long columns.</li></ul>",
+            "default" : "ALL",
+            "configKeys" : [ "coltype" ]
+          },
+          "replaceColHeader" : {
+            "type" : "boolean",
+            "title" : "Generate new column names",
+            "description" : "If selected, the column names of both output tables will be replaced with automatically generated names by combining the prefix provided below with the corresponding column number (e.g. \"Column 1\", \"Column 2\", and so on). <br><br>Otherwise, the original column names will be used.",
+            "default" : false,
+            "configKeys" : [ "replaceColHeader" ]
+          },
+          "transposeColHeader" : {
+            "oneOf" : [ {
+              "const" : "ROW",
+              "title" : "Row"
+            }, {
+              "const" : "COLUMN",
+              "title" : "Column"
+            } ],
+            "title" : "Output format for column names",
+            "description" : "The format in which the first output table provides the extracted column names:<ul><li><b>Row</b>: The column names are output as a single row with a column per name.</li><li><b>Column</b>: The column names are output as a single column with a row per name.</li></ul>",
+            "configKeys" : [ "transposeColHeader" ]
+          },
+          "unifyHeaderPrefix" : {
+            "type" : "string",
+            "title" : "Prefix",
+            "description" : "Prefix to use when generating new column names.",
+            "configKeys" : [ "unifyHeaderPrefix" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/transposeColHeader",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replaceColHeader"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/unifyHeaderPrefix",
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/replaceColHeader",
+          "schema" : {
+            "const" : false
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/colTypeFilter",
+      "options" : {
+        "format" : "valueSwitch",
+        "isAdvanced" : true
+      }
+    } ]
+  }
+}

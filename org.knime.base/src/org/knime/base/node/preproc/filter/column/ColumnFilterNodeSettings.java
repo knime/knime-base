@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class ColumnFilterNodeSettings implements DefaultNodeSettings {
+public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
 
     ColumnFilterNodeSettings(final SettingsCreationContext context) {
         m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);

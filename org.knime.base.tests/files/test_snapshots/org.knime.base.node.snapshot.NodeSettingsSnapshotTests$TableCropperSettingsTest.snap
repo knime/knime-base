@@ -1,0 +1,285 @@
+{
+  "data" : {
+    "model" : {
+      "columnRangeMode" : "BY_NAME",
+      "startColumnName" : "test1",
+      "endColumnName" : "test2",
+      "startColumnNumber" : 1,
+      "startColumnCountFromEnd" : false,
+      "endColumnNumber" : 2,
+      "endColumnCountFromEnd" : false,
+      "startRowNumber" : 1,
+      "startRowCountFromEnd" : false,
+      "endRowNumber" : 1,
+      "endRowCountFromEnd" : false,
+      "updateDomains" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnRangeMode" : {
+            "oneOf" : [ {
+              "const" : "BY_NAME",
+              "title" : "By name"
+            }, {
+              "const" : "BY_NUMBER",
+              "title" : "By number"
+            } ],
+            "title" : "Column range mode",
+            "description" : "Specify the range of columns included in the output by defining the start and end column. The options for specifiying the start and end columns are:<ul><li><b>By name</b>: Specify the name of the start and end columns to include.</li><li><b>By number</b>: Specify the start and end column by their number in the table. The first column has number 1.</li></ul>",
+            "default" : "BY_NAME"
+          },
+          "endColumnCountFromEnd" : {
+            "type" : "boolean",
+            "title" : "Start counting columns from the end of the table",
+            "description" : "If selected, the end column will be counted from the end of the table.",
+            "default" : false
+          },
+          "endColumnName" : {
+            "type" : "string",
+            "title" : "End column (inclusive)",
+            "description" : "Select the last column to include.",
+            "default" : "test2"
+          },
+          "endColumnNumber" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "End column number (inclusive)",
+            "description" : "Select the last column to include.",
+            "default" : 2,
+            "minimum" : 1
+          },
+          "endRowCountFromEnd" : {
+            "type" : "boolean",
+            "title" : "Start counting rows from the end of the table",
+            "description" : "If selected, the end row will be counted from the end of the table.",
+            "default" : false
+          },
+          "endRowNumber" : {
+            "type" : "integer",
+            "format" : "int64",
+            "title" : "End row number (inclusive)",
+            "description" : "Select the last row to include.",
+            "default" : 1,
+            "minimum" : 1
+          },
+          "startColumnCountFromEnd" : {
+            "type" : "boolean",
+            "title" : "Start counting columns from the end of the table",
+            "description" : "If selected, the start column will be counted from the end of the table.",
+            "default" : false
+          },
+          "startColumnName" : {
+            "type" : "string",
+            "title" : "Start column",
+            "description" : "Select the first column to include.",
+            "default" : "test1"
+          },
+          "startColumnNumber" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Start column number",
+            "description" : "Select the first column to include (the first column of the table has number 1).",
+            "default" : 1,
+            "minimum" : 1
+          },
+          "startRowCountFromEnd" : {
+            "type" : "boolean",
+            "title" : "Start counting rows from the end of the table",
+            "description" : "If selected, the start row will be counted from the end of the table.",
+            "default" : false
+          },
+          "startRowNumber" : {
+            "type" : "integer",
+            "format" : "int64",
+            "title" : "Start row number",
+            "description" : "Select the first row to include (the first row of the table has number 1).",
+            "default" : 1,
+            "minimum" : 1
+          },
+          "updateDomains" : {
+            "type" : "boolean",
+            "title" : "Update domains of all columns",
+            "description" : "Advanced setting to enable recomputation of the domains of all columns in the output table such that the domains' bounds exactly match the bounds of the data in the output table.",
+            "default" : false,
+            "configKeys" : [ "updateDomains" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Columns",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnRangeMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/startColumnName",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1"
+          }, {
+            "id" : "test2",
+            "text" : "test2"
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnRangeMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BY_NAME"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/endColumnName",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1"
+          }, {
+            "id" : "test2",
+            "text" : "test2"
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnRangeMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BY_NAME"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/startColumnNumber",
+        "options" : { },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnRangeMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BY_NAME"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/startColumnCountFromEnd",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnRangeMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BY_NAME"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/endColumnNumber",
+        "options" : { },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnRangeMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BY_NAME"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/endColumnCountFromEnd",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnRangeMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "BY_NAME"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Rows",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/startRowNumber",
+        "options" : { }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/startRowCountFromEnd",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/endRowNumber",
+        "options" : { }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/endRowCountFromEnd",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/updateDomains",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  }
+}
