@@ -82,9 +82,9 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
 
     /** What to do when multiple patterns match **/
     enum MultipleMatchHandling {
-            @Label("Replace all")
+            @Label("Apply all")
             REPLACEALL, //
-            @Label("Replace first")
+            @Label("Apply first")
             REPLACEFIRST;
 
         static final String OPTION_DESCRIPTION =
