@@ -91,7 +91,7 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
         title = "Lookup column",
         description = "Select the column that should be used to evaluate the matching criteria. "
             + "Only columns of type String, Number (integer), or Number (long) can be selected.")
-    @ChoicesWidget(choices = ColumnChoices.class, showRowKeys = true)
+    @ChoicesWidget(choices = ColumnChoices.class, showRowKeysColumn = true)
     @Layout(FindSplittingRowSection.class)
     String m_lookupColumn = TableSplitterNodeModel.ROWID_PLACEHOLDER;
 

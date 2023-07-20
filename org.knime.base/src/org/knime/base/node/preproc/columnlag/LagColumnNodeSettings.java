@@ -92,7 +92,7 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
 
     @Persist(customPersistor = ColumnNodeSettingsPersistor.class)
     @Widget(title = "Column to lag", description = "The column to be lagged.")
-    @ChoicesWidget(choices = AllColumns.class, showRowKeys = true)
+    @ChoicesWidget(choices = AllColumns.class, showRowKeysColumn = true)
     String m_column = ROW_KEYS;
 
     @Persist(configKey = LagColumnConfiguration.CFG_LAG)

@@ -70,7 +70,7 @@ public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_LOOKUP_COLUMN)
     @Widget(title = "Lookup column",
         description = "The column in the 2nd input table containing the \"old\" names of the columns.")
-    @ChoicesWidget(choices = StringColumnsSecondTable.class, showRowKeys = true)
+    @ChoicesWidget(choices = StringColumnsSecondTable.class, showRowKeysColumn = true)
     String m_lookupColumn;
 
     @Persist(configKey = ColumnHeaderInsertConfig.CFG_VALUE_COLUMN)

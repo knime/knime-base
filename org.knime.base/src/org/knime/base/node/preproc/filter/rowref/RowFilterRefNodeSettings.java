@@ -77,13 +77,13 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
     @Persist(settingsModel = SettingsModelColumnName.class, configKey = "dataTableColumn")
     @Widget(title = "Data column",
         description = "The column from the table to be filtered that should be used for comparison.")
-    @ChoicesWidget(choices = DataColumnChoices.class, showRowKeys = true)
+    @ChoicesWidget(choices = DataColumnChoices.class, showRowKeysColumn = true)
     String m_dataColumn = "<row-keys>";
 
     @Persist(settingsModel = SettingsModelColumnName.class, configKey = "referenceTableColumn")
     @Widget(title = "Reference column",
         description = "The column from the filter table that should be used for comparison.")
-    @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeys = true)
+    @ChoicesWidget(choices = ReferenceColumnChoices.class, showRowKeysColumn = true)
     String m_referenceColumn = "<row-keys>";
 
     @Persist(customPersistor = IncludeOrExcludeRowsPersistor.class)
