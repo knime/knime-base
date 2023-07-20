@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Filehandling Nodes
 Bundle-SymbolicName: org.knime.filehandling.utility.nodes;singleton:=true
-Bundle-Version: 5.1.0.qualifier
+Bundle-Version: 5.2.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Automatic-Module-Name: org.knime.filehandling.nodes
 Bundle-RequiredExecutionEnvironment: JavaSE-17

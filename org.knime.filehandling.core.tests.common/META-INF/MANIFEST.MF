@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Common classes shared by filehandling unit/integration tests
 Bundle-SymbolicName: org.knime.filehandling.core.tests.common;singleton:=true
-Bundle-Version: 5.0.0.qualifier
+Bundle-Version: 5.2.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-ActivationPolicy: lazy
