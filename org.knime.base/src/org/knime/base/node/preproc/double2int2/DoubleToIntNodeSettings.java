@@ -95,7 +95,7 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
      *
      * @param context of settings creation
      */
-    DoubleToIntNodeSettings(final SettingsCreationContext context) {
+    DoubleToIntNodeSettings(final DefaultNodeSettingsContext context) {
         this();
         m_inclCols = ColumnFilter.createDefault(NumericalColumns.class, context);
     }
@@ -144,7 +144,7 @@ public final class DoubleToIntNodeSettings implements DefaultNodeSettings {
     static final class NumericalColumns implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//

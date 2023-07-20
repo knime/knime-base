@@ -214,7 +214,7 @@ public final class TableToVariable3NodeSettings implements DefaultNodeSettings {
 
     private static final class AllColumns implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .stream()//
                 .flatMap(DataTableSpec::stream)//

@@ -129,7 +129,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     /** Provides the string column choices of the table at input port 0 */
     static final class TargetColumnChoices implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)// data table
                 .map(s -> getStringCompatibleColumns(s))//
                 .orElse(new DataColumnSpec[]{});
@@ -139,7 +139,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     /** Provides the string column choices of the table at input port 1, including collections */
     static final class PatternAndReplacementColumnChoices implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(1)// dictionary table
                 .map(s -> getStringCompatibleColumns(s))//
                 .orElse(new DataColumnSpec[]{});
@@ -237,7 +237,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
         // required by interface
     }
 
-    StringReplacerDictNodeSettings(final SettingsCreationContext ctx) {
+    StringReplacerDictNodeSettings(final DefaultNodeSettingsContext ctx) {
         m_targetColumns = ColumnFilter.createDefault(TargetColumnChoices.class, ctx);
     }
 

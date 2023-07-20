@@ -76,7 +76,7 @@ class StringToNumber2NodeSettingsTest {
             new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
             new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
             ).createSpec();
-        final var ctx = DefaultNodeSettings.createSettingsCreationContext(new DataTableSpec[] { spec });
+        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[] { spec });
 
         final var choices = new StringToNumber2NodeSettings.StringColumns().choices(ctx);
         assertArrayEquals(new String[] {"String1"}, choices, "Wrong string-compatible column choices.");

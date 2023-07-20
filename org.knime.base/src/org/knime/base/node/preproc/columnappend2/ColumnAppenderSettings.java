@@ -100,7 +100,7 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
     private static final class NumTables implements DoubleProvider {
 
         @Override
-        public double getValue(final SettingsCreationContext context) {
+        public double getValue(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpecs().length;
         }
 

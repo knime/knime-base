@@ -77,7 +77,7 @@ class NumberToStringSettingsTest {
             new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
             new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
             ).createSpec();
-        final var ctx = DefaultNodeSettings.createSettingsCreationContext(new DataTableSpec[] { spec });
+        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[] { spec });
 
         final var expected = new String[] { "Int1", "Double1", "Bool1", "Int2" };
         final var choices = new NumberToStringSettings.NumericalColumns().choices(ctx);

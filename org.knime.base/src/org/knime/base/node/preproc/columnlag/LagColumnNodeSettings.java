@@ -73,7 +73,7 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
      *
      * @param context of the settings creation
      */
-    LagColumnNodeSettings(final SettingsCreationContext context) {
+    LagColumnNodeSettings(final DefaultNodeSettingsContext context) {
         m_column = context.getDataTableSpec(0)//
             .map(LagColumnConfiguration::findDefaultColumn)//
             .orElse(ROW_KEYS);
@@ -143,7 +143,7 @@ public final class LagColumnNodeSettings implements DefaultNodeSettings {
     private static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .stream()//
                 .flatMap(DataTableSpec::stream)//

@@ -93,7 +93,7 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
     public StringToNumber2NodeSettings() {
     }
 
-    StringToNumber2NodeSettings(final SettingsCreationContext context) {
+    StringToNumber2NodeSettings(final DefaultNodeSettingsContext context) {
         this();
         m_inclCols = ColumnFilter.createDefault(StringColumns.class, context);
     }
@@ -198,7 +198,7 @@ public final class StringToNumber2NodeSettings implements DefaultNodeSettings {
     static final class StringColumns implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//

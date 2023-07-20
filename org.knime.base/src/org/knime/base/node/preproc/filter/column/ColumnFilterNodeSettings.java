@@ -68,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
 
-    ColumnFilterNodeSettings(final SettingsCreationContext context) {
+    ColumnFilterNodeSettings(final DefaultNodeSettingsContext context) {
         m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
     }
 
@@ -86,7 +86,7 @@ public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
     static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .toArray(DataColumnSpec[]::new);

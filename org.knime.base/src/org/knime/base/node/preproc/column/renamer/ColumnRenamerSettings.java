@@ -67,7 +67,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @SuppressWarnings("restriction")
 public final class ColumnRenamerSettings implements DefaultNodeSettings {
 
-    ColumnRenamerSettings(final SettingsCreationContext context) {
+    ColumnRenamerSettings(final DefaultNodeSettingsContext context) {
         // pick the last column because a typical scenario is to rename columns appended by the previous node
         var initialColumn = context.getDataTableSpec(0)//
             .filter(s -> s.getNumColumns() > 0)//
@@ -122,7 +122,7 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
     private static final class AllColumns implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             var spec = context.getDataTableSpecs()[0];
             return spec == null ? new String[0] : spec.getColumnNames();
         }

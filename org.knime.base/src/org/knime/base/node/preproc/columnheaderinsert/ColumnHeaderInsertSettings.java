@@ -88,7 +88,7 @@ public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {
     private static final class StringColumnsSecondTable implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             var spec = context.getDataTableSpecs()[1];
             if (spec == null) {
                 return new String[0];

@@ -75,7 +75,7 @@ public final class NumberToStringSettings implements DefaultNodeSettings {
      *
      * @param context of the settings creation
      */
-    NumberToStringSettings(final SettingsCreationContext context) {
+    NumberToStringSettings(final DefaultNodeSettingsContext context) {
         m_columns = ColumnFilter.createDefault(NumericalColumns.class, context);
     }
 
@@ -95,7 +95,7 @@ public final class NumberToStringSettings implements DefaultNodeSettings {
     static final class NumericalColumns implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//

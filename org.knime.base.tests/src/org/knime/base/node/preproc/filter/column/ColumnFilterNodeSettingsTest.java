@@ -78,7 +78,7 @@ class ColumnFilterNodeSettingsTest {
             new DataColumnSpecCreator("String1", StringCell.TYPE).createSpec(),
             new DataColumnSpecCreator("Int2", IntCell.TYPE).createSpec()
             ).createSpec();
-        final var ctx = DefaultNodeSettings.createSettingsCreationContext(new DataTableSpec[] { spec });
+        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[] { spec });
 
         final var choices = new ColumnFilterNodeSettings.AllColumns().columnChoices(ctx);
         assertArrayEquals(spec.stream().toArray(DataColumnSpec[]::new), choices,

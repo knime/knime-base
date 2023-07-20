@@ -108,7 +108,7 @@ public final class ColumnMergerNodeSettings implements DefaultNodeSettings {
 
     private static final class AllColumns implements ChoicesProvider {
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             var spec = context.getDataTableSpecs()[0];
             return spec == null ? new String[0] : spec.getColumnNames();
         }

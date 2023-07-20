@@ -178,7 +178,7 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
     private static final class ColumnChoices implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             final DataTableSpec specs = context.getDataTableSpecs()[0];
             if (specs == null) {
                 return new String[0];

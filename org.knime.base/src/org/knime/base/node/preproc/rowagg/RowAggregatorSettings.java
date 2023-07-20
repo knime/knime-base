@@ -87,7 +87,7 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
 
     static final class CategoryColumns implements ChoicesProvider {
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::getColumnNames).orElse(new String[0]);
         }
     }
@@ -119,7 +119,7 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     static final class AggregatableColumns implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .filter(RowAggregatorNodeModel::isAggregatableColumn)//
@@ -138,7 +138,7 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
     static final class WeightColumns implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .filter(RowAggregatorNodeModel::isWeightColumn)//
@@ -161,7 +161,7 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
         // required by interface
     }
 
-    RowAggregatorSettings(final SettingsCreationContext ctx) {
+    RowAggregatorSettings(final DefaultNodeSettingsContext ctx) {
         m_frequencyColumns = ColumnFilter.createDefault(AggregatableColumns.class, ctx);
     }
 }

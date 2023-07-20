@@ -118,7 +118,7 @@ public final class RowFilterRefNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             final DataTableSpec specs = context.getDataTableSpecs()[m_portIdx];
             return specs != null ? specs.getColumnNames() : new String[0];
         }

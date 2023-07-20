@@ -78,7 +78,7 @@ public final class TableCropperSettings implements DefaultNodeSettings {
      *
      * @param context of the creation
      */
-    TableCropperSettings(final SettingsCreationContext context) {
+    TableCropperSettings(final DefaultNodeSettingsContext context) {
         var spec = context.getDataTableSpecs()[0];
         if (spec != null && spec.getNumColumns() > 0) {
             m_startColumnName = spec.getColumnSpec(0).getName();
@@ -193,7 +193,7 @@ public final class TableCropperSettings implements DefaultNodeSettings {
     private static final class AllColumns implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             var spec = context.getDataTableSpecs()[0];
             return spec != null ? spec.getColumnNames() : new String[0];
         }

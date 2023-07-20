@@ -181,7 +181,7 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
 
     // Utility
 
-    NumberFormatManagerNodeSettings(final SettingsCreationContext ctx) {
+    NumberFormatManagerNodeSettings(final DefaultNodeSettingsContext ctx) {
         m_columnsToFormat = ColumnFilter.createDefault(NumberColumns.class, ctx);
     }
 
@@ -192,7 +192,7 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
     static final class NumberColumns implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .filter(NumberFormatManagerNodeModel::isTargetColumn)//

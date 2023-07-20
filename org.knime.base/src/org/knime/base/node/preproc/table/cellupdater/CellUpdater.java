@@ -93,7 +93,7 @@ final class CellUpdater {
      * Otherwise returns a Match object with 0 as the column index and the name of the first available flow variable.
      *
      * @param spec the DataTableSpec to match the flow variables against
-     * @param availableVars the map of flow variables received from SettingsCreationContext
+     * @param availableVars the map of flow variables received from DefaultNodeSettingsContext
      * @return a Match object containing the column index and the name of the matched flow variable, or null if no match
      *         was found.
      */

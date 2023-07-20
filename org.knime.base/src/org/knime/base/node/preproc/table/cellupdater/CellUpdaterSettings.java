@@ -81,7 +81,7 @@ public final class CellUpdaterSettings implements DefaultNodeSettings {
      *
      * @param context the creation context
      */
-    CellUpdaterSettings(final SettingsCreationContext context) {
+    CellUpdaterSettings(final DefaultNodeSettingsContext context) {
         var portObjects = context.getPortObjectSpecs();
 
         // only perform autoconfigure when both ports are connected
@@ -131,7 +131,7 @@ public final class CellUpdaterSettings implements DefaultNodeSettings {
     private static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(1).stream()//
                 .flatMap(DataTableSpec::stream)//
                 .toArray(DataColumnSpec[]::new);
@@ -142,7 +142,7 @@ public final class CellUpdaterSettings implements DefaultNodeSettings {
     private static final class AllVariables implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             return context.getAvailableFlowVariableNames();
         }
 

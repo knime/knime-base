@@ -86,7 +86,7 @@ class ValueLookupNodeSettingsTest {
             new DataColumnSpecCreator("DictInt2", IntCell.TYPE).createSpec()
             ).createSpec();
 
-        final var ctx = DefaultNodeSettings.createSettingsCreationContext(
+        final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(
             new DataTableSpec[] { dataTableSpec, dictionaryTableSpec });
 
         // should pick all from data table (port 0)

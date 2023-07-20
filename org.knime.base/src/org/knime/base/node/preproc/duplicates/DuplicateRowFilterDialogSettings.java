@@ -192,7 +192,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     }
 
     /** Constructor for auto-configure */
-    DuplicateRowFilterDialogSettings(final SettingsCreationContext context) {
+    DuplicateRowFilterDialogSettings(final DefaultNodeSettingsContext context) {
         var spec = context.getDataTableSpecs()[0];
         if (spec != null) {
             // Choose the first column as the selected column for the row selection
@@ -277,7 +277,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     static final class AllColumns implements ColumnChoicesProvider {
 
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
                 .toArray(DataColumnSpec[]::new);

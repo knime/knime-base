@@ -73,7 +73,7 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
      *
      * @param context the creation context
      */
-    CellExtractorSettings(final SettingsCreationContext context) {
+    CellExtractorSettings(final DefaultNodeSettingsContext context) {
         var spec = context.getDataTableSpecs()[0];
         if (spec != null && spec.getNumColumns() > 0) {
             m_columnName = spec.getColumnSpec(0).getName();
@@ -119,7 +119,7 @@ public final class CellExtractorSettings implements DefaultNodeSettings {
     private static final class AllColumns implements ChoicesProvider {
 
         @Override
-        public String[] choices(final SettingsCreationContext context) {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             var specs = context.getDataTableSpecs();
             var spec = specs[0];
 

@@ -127,7 +127,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** Provides the column choices of the table at input port 0 */
     static final class DataTableChoices implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
@@ -138,7 +138,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     /** Provides the column choices of the table at input port 1 */
     static final class DictionaryTableChoices implements ColumnChoicesProvider {
         @Override
-        public DataColumnSpec[] columnChoices(final SettingsCreationContext context) {
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(1)//
                 .map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
@@ -244,7 +244,7 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
         // required by interface
     }
 
-    ValueLookupNodeSettings(final SettingsCreationContext ctx) {
+    ValueLookupNodeSettings(final DefaultNodeSettingsContext ctx) {
         m_dictValueCols = ColumnFilter.createDefault(DictionaryTableChoices.class, ctx);
     }
 
