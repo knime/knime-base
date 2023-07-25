@@ -49,6 +49,8 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 
 import org.knime.base.data.aggregation.ColumnAggregator;
 import org.knime.base.data.aggregation.GlobalSettings;
@@ -64,7 +66,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeLogger.LEVEL;
-import org.knime.core.util.MutableInteger;
 
 
 /**
@@ -218,7 +219,7 @@ public class BigGroupByTable extends GroupByTable {
             }
         }
         exec.setMessage("Creating groups");
-        final var groupCounter = new MutableInteger(0);
+        final var groupIDCounter = new AtomicLong();
 
         var firstRow = true;
         final long tableSize = sortedTable.size();
@@ -263,7 +264,7 @@ public class BigGroupByTable extends GroupByTable {
             //group column data cells
             if (!sameChunk(comparators, previousGroup, currentGroup)) {
                 groupLabel = createGroupLabelForProgress(currentGroup);
-                addAggregateRows(dc, createNewChunkKey(groupCounter), chunkMembers, appendRowCountColumn);
+                addAggregateRows(dc, groupIDCounter::getAndIncrement, chunkMembers, appendRowCountColumn);
                 //set the current group as previous group
                 System.arraycopy(currentGroup, 0, previousGroup, 0, currentGroup.length);
                 if (logUnusualCells && chunkMembers.size() > 1) {
@@ -305,18 +306,7 @@ public class BigGroupByTable extends GroupByTable {
             groupExec.setProgress(1d * processedRows / tableSize, groupLabel);
         }
         //create the final row for the last chunk after processing the last table row
-        addAggregateRows(dc, createNewChunkKey(groupCounter), chunkMembers, appendRowCountColumn);
-    }
-
-    /**
-     * Creates a new key based on the current group count and increments the counter.
-     * @param groupCounter counter to increment
-     * @return new row key based on the current group count
-     */
-    private static RowKey createNewChunkKey(final MutableInteger groupCounter) {
-        final var rowKey = RowKey.createRowKey((long)groupCounter.intValue());
-        groupCounter.inc();
-        return rowKey;
+        addAggregateRows(dc, groupIDCounter::getAndIncrement, chunkMembers, appendRowCountColumn);
     }
 
     /** Get a string describing the current group. Used in progress message.
@@ -348,18 +338,18 @@ public class BigGroupByTable extends GroupByTable {
      * translation is enabled. Appends the size of the group as a row count column to the data container if enabled.
      *
      * @param dc the {@link DataContainer} to put rows into
-     * @param chunkKey the {@link RowKey} for the current data chunk
+     * @param groupRowIDSupplier supplier for {@link RowKey RowIDs} for groups of the current data chunk
      * @param chunkMembers the members of the current data chunk
      * @param appendRowCountColumn the index
      */
-    private void addAggregateRows(final BufferedDataContainer dc,
-            final RowKey chunkKey, final Map<GroupKey, GroupAggregate> chunkMembers,
-            final boolean appendRowCountColumn) {
+    private void addAggregateRows(final BufferedDataContainer dc, final LongSupplier groupRowIDSupplier,
+            final Map<GroupKey, GroupAggregate> chunkMembers, final boolean appendRowCountColumn) {
         if (chunkMembers == null || chunkMembers.isEmpty()) {
             return;
         }
         chunkMembers.entrySet().stream()
-            .map(e -> createOutputRow(chunkKey, e.getKey(), e.getValue(), appendRowCountColumn))
+            .map(e -> createOutputRow(RowKey.createRowKey(groupRowIDSupplier.getAsLong()), e.getKey(), e.getValue(),
+                appendRowCountColumn))
             .forEach(dc::addRowToTable);
     }
 
