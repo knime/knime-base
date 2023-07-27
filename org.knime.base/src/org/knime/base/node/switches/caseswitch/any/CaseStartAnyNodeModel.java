@@ -97,7 +97,13 @@ final class CaseStartAnyNodeModel extends NodeModel {
         if (getNrInPorts() == 0) {
             throw new InvalidSettingsException("Please select an input type!");
         }
-        final int index = Integer.parseInt(m_selectedPort.getStringValue());
+        final int index;
+        try {
+            index = Integer.parseInt(m_selectedPort.getStringValue());
+        } catch (NumberFormatException nfe) {
+            throw new InvalidSettingsException(
+                "Invalid output port \"" + m_selectedPort.getStringValue() + "\" specified", nfe);
+        }
         CheckUtils.checkSetting(index >= 0 && index < getNrOutPorts(),
             "Invalid output port “%d” configured. Please reconfigure the node.", index);
         final var outspecs = new PortObjectSpec[getNrOutPorts()];
