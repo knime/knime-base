@@ -44,46 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 11, 2020 (Sascha Wolke, KNIME GmbH): created
+ *   2 Aug 2023 (manuelhotz): created
  */
-package org.knime.filehandling.core.fs.knime.local.workflowaware;
+package org.knime.filehandling.core.connections;
+
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Optional;
 
-import org.knime.filehandling.core.connections.base.UnixStylePath;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
- * Path implementation for {@link LocalWorkflowAwareFileSystem}.
+ * Tests for FSPath, currently only for the default implementation of {@link FSPath#resolveToLocal()}.
  *
- * @author Sascha Wolke, KNIME GmbH
- * @noreference non-public API
- * @noinstantiate non-public API
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public final class LocalWorkflowAwarePath extends UnixStylePath {
+public class FSPathTest {
 
     /**
-     * Creates a path using a given file system and path parts.
+     * Tests that the default method does not even try to resolve to a local path.
      *
-     * @param fileSystem the file system
-     * @param first first part of the path
-     * @param more subsequent parts of the path
+     * @throws IOException
      */
-    public LocalWorkflowAwarePath(final LocalWorkflowAwareFileSystem fileSystem, final String first,
-        final String... more) {
-        super(fileSystem, first, more);
-    }
-
-    @Override
-    public LocalWorkflowAwareFileSystem getFileSystem() {
-        return (LocalWorkflowAwareFileSystem)super.getFileSystem();
-    }
-
-    @Override
-    public Optional<Path> resolveToLocal() throws IOException {
-        try (final var fs = getFileSystem()) {
-            return Optional.of(fs.toLocalPath(this));
-        }
+    @Test
+    public void testFSPathResolveToLocal() throws IOException {
+        final var path = Mockito.mock(FSPath.class);
+        assertTrue("Unless overridden, FSPath should not be able to resolve to local path",
+            path.resolveToLocal().isEmpty());
     }
 }

@@ -584,4 +584,36 @@ public class LocalRelativeToFileSystemTest extends LocalRelativeToFileSystemTest
             throw e;
         }
     }
+
+    /**
+     * Tests resolving a local relative-to FS to a local path.
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testResolveToLocalWorkflowRelative() throws IOException {
+        try (final var fs = getWorkflowRelativeFS()) {
+            final var fsPath = fs.getPath("foo");
+            final var resolvedPath = fsPath.resolveToLocal();
+            assertTrue("local workflow-relative should resolve to local path", resolvedPath.isPresent());
+            assertEquals("local workflow-relative should already be local", fs.toLocalPath(fsPath),
+                resolvedPath.get());
+        }
+    }
+
+    /**
+     * Tests resolving a local relative-to FS to a local path.
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testResolveToLocalMountpointRelative() throws IOException {
+        try (final var fs = getMountpointRelativeFS()) {
+            final var fsPath = fs.getPath("foo");
+            final var resolvedPath = fsPath.resolveToLocal();
+            assertTrue("local mountpoint-relative should resolve to local path", resolvedPath.isPresent());
+            assertEquals("local mountpoint-relative should already be local", fs.toLocalPath(fsPath),
+                resolvedPath.get());
+        }
+    }
 }

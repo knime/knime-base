@@ -48,6 +48,7 @@
  */
 package org.knime.filehandling.core.fs.url;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -55,8 +56,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import org.knime.core.util.FileUtil;
+import org.knime.core.util.pathresolve.ResolverUtil;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
@@ -225,5 +228,10 @@ class URIPath extends UnixStylePath {
         return new FSLocation(fs.getFileSystemCategory(), //
             fs.getFileSystemSpecifier().orElseGet(() -> null),
             m_uri.toString());
+    }
+
+    @Override
+    public Optional<Path> resolveToLocal() throws IOException {
+        return Optional.ofNullable(ResolverUtil.resolveURItoLocalFile(m_uri)).map(File::toPath);
     }
 }
