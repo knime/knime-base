@@ -76,6 +76,8 @@ final class CaseStartAnyNodeModel extends NodeModel {
 
     private static final String ACTIVATE_OUTPUT_CFG = "activate_all_outputs_during_configure";
 
+    private static final String ERROR_MESSAGE_TEMPLATE = "Invalid output port \"%s\" specified.";
+
     private SettingsModelString m_selectedPort = createChoiceModel();
 
     private final SettingsModelBoolean m_activateAllOutputsDuringConfigureModel =
@@ -89,40 +91,33 @@ final class CaseStartAnyNodeModel extends NodeModel {
         super(inPorts, outPorts);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (getNrInPorts() == 0) {
             throw new InvalidSettingsException("Please select an input type!");
         }
-        final int index;
-        try {
-            index = Integer.parseInt(m_selectedPort.getStringValue());
-        } catch (NumberFormatException nfe) {
-            throw new InvalidSettingsException(
-                "Invalid output port \"" + m_selectedPort.getStringValue() + "\" specified", nfe);
-        }
-        CheckUtils.checkSetting(index >= 0 && index < getNrOutPorts(),
-            "Invalid output port “%d” configured. Please reconfigure the node.", index);
         final var outspecs = new PortObjectSpec[getNrOutPorts()];
         final var defSpec = m_activateAllOutputsDuringConfigureModel.getBooleanValue()//
             ? inSpecs[0]//
             : InactiveBranchPortObjectSpec.INSTANCE;
         Arrays.fill(outspecs, defSpec);
-        outspecs[index] = inSpecs[0];
+        try {
+            final int index = getSelectedOutputPort();
+            outspecs[index] = inSpecs[0];
+        } catch (InvalidSettingsException ise) {
+            if (m_activateAllOutputsDuringConfigureModel.getBooleanValue()) {
+                // Warn the user, but configure the node so downstream nodes can be configured
+                setWarningMessage(ise.getMessage());
+            } else {
+                throw ise;
+            }
+        }
         return outspecs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        final int index = Integer.parseInt(m_selectedPort.getStringValue());
-        CheckUtils.checkSetting(index >= 0 && index < getNrOutPorts(),
-            "Invalid output port “%d” configured. Please reconfigure the node.", index);
+        final int index = getSelectedOutputPort();
         final var outs = new PortObject[getNrOutPorts()];
         Arrays.fill(outs, InactiveBranchPortObject.INSTANCE);
         outs[index] = inData[0];
@@ -130,17 +125,30 @@ final class CaseStartAnyNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * Parse the index of the selected output port and verify that it's valid
+     *
+     * @return the output port index
+     * @throws InvalidSettingsException If the output port is either non-numeric or out of bounds
      */
+    private int getSelectedOutputPort() throws InvalidSettingsException {
+        final int index;
+        try {
+            index = Integer.parseInt(m_selectedPort.getStringValue());
+        } catch (NumberFormatException nfe) {
+            throw new InvalidSettingsException(String.format(ERROR_MESSAGE_TEMPLATE, m_selectedPort.getStringValue()),
+                nfe);
+        }
+        CheckUtils.checkSetting(index >= 0 && index < getNrOutPorts(), ERROR_MESSAGE_TEMPLATE,
+            m_selectedPort.getStringValue());
+        return index;
+    }
+
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_selectedPort.saveSettingsTo(settings);
         m_activateAllOutputsDuringConfigureModel.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_selectedPort.validateSettings(settings);
@@ -149,9 +157,6 @@ final class CaseStartAnyNodeModel extends NodeModel {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(ACTIVATE_OUTPUT_CFG)) {
@@ -162,25 +167,16 @@ final class CaseStartAnyNodeModel extends NodeModel {
         m_selectedPort.loadSettingsFrom(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         // empty
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // empty
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) {
         // empty
