@@ -60,7 +60,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.FalseCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -72,17 +77,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {
 
-    @Persist(settingsModel = SettingsModelBoolean.class)
-    @Widget(title = "Generate new column names",
-        description = "If selected, the column names of both output tables will be replaced "//
-            + "with automatically generated names by combining the prefix provided below with the corresponding "//
-            + "column number (e.g. \"Column 1\", \"Column 2\", and so on). "//
-            + "<br><br>Otherwise, the original column names will be used.")
-    boolean m_replaceColHeader;
-
-    @Persist(settingsModel = SettingsModelString.class)
-    @Widget(title = "Prefix", description = "Prefix to use when generating new column names.")
-    String m_unifyHeaderPrefix;
+    interface DontReplaceColHeader { }
 
     @Persist(customPersistor = OutputFormatPersistor.class)
     @Widget(title = "Output format for column names",
@@ -91,7 +86,22 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
             + "<li><b>Row</b>: The column names are output as a single row with a column per name.</li>"//
             + "<li><b>Column</b>: The column names are output as a single column with a row per name.</li>"//
             + "</ul>")
+    @ValueSwitchWidget
     OutputFormat m_transposeColHeader;
+
+    @Persist(settingsModel = SettingsModelBoolean.class)
+    @Widget(title = "Generate new column names",
+        description = "If selected, the column names of both output tables will be replaced "//
+            + "with automatically generated names by combining the prefix provided below with the corresponding "//
+            + "column number (e.g. \"Column 1\", \"Column 2\", and so on). "//
+            + "<br><br>Otherwise, the original column names will be used.")
+    @Signal(condition = FalseCondition.class, id = DontReplaceColHeader.class)
+    boolean m_replaceColHeader;
+
+    @Persist(settingsModel = SettingsModelString.class)
+    @Widget(title = "Prefix", description = "Prefix to use when generating new column names.")
+    @Effect(type = EffectType.HIDE, signals = DontReplaceColHeader.class)
+    String m_unifyHeaderPrefix;
 
     @Persist(customPersistor = ColTypePersistor.class)
     @Widget(title = "Restrain column types", description = "Select the type of the columns to extract the names from:"//
@@ -102,7 +112,9 @@ public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSetti
         + "<li><b>Integer</b>: Only integer-compatible columns are processed.</li>"//
         + "<li><b>Double</b>: Only double-compatible columns are processed. "//
         + "This includes integer and long columns.</li>"//
-        + "</ul>")
+        + "</ul>",
+        advanced = true)
+    @ValueSwitchWidget
     ColType m_colTypeFilter = ColType.ALL;
 
     enum OutputFormat {

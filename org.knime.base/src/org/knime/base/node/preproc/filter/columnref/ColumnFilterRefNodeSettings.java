@@ -55,6 +55,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -69,6 +70,7 @@ public final class ColumnFilterRefNodeSettings implements DefaultNodeSettings {
     @Persist(customPersistor = ColumnReferenceModePersistor.class)
     @Widget(title = "Include or exclude columns from the reference table",
         description = "Includes or excludes columns that appear in the reference table from the first table.")
+    @ValueSwitchWidget
     ColumnReferenceMode m_columnReferenceMode = ColumnReferenceMode.INCLUDE;
 
     @Persist(configKey = "type_compatibility")

@@ -54,7 +54,12 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -69,15 +74,20 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
 
-    @Persist(configKey = AppendedRowsNodeModel.CFG_HILITING)
-    @Widget(title = "Enable hiliting",
-            description = "Enable hiliting between both inputs and the concatenated output table.")
-    boolean m_enableHiliting = false; //NOSONAR being explicit is desired here
-
-    @Persist(configKey = AppendedRowsNodeModel.CFG_SUFFIX)
-    @Widget(title = "Suffix",
-            description = "The suffix to be appended to RowIDs.")
-    String m_suffix = "_dup";
+    @Persist(customPersistor = ColumnSetOperationPersistor.class)
+    @Widget(title = "How to combine input columns",
+            description = "Choose the output column selection process:"
+                    + "<ul>"
+                    // Intersection option description
+                    + "<li><b>Intersection</b>: Use only the columns that appear "
+                    + "in every input table. Any other column is ignored and won't appear "
+                    + "in the output table.</li>"
+                    // Union option description
+                    + "<li><b>Union</b>: Use all columns from all input "
+                    + "tables. Fill rows with missing values if they miss cells for some columns.</li>"
+                    + "</ul>")
+    @ValueSwitchWidget
+    ColumnSetOperation m_columnSetOperation = ColumnSetOperation.UNION;
 
     @Persist(customPersistor = RowIdResolutionPersistor.class)
     @Widget(title = "If there are duplicate RowIDs",
@@ -96,21 +106,28 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             + "<li><b>Fail</b>: The node will fail during execution if duplicate "
             + "RowIDs are encountered. This option is efficient while checking uniqueness.</li>"
             + "</ul>")
+    @Signal(condition = IsAppend.class)
+    @ValueSwitchWidget
     RowIdResolution m_rowIdResolution = RowIdResolution.APPEND;
 
-    @Persist(customPersistor = ColumnSetOperationPersistor.class)
-    @Widget(title = "How to combine input columns",
-            description = "Choose the output column selection process:"
-                    + "<ul>"
-                    // Intersection option description
-                    + "<li><b>Intersection</b>: Use only the columns that appear "
-                    + "in every input table. Any other column is ignored and won't appear "
-                    + "in the output table.</li>"
-                    // Union option description
-                    + "<li><b>Union</b>: Use all columns from all input "
-                    + "tables. Fill rows with missing values if they miss cells for some columns.</li>"
-                    + "</ul>")
-    ColumnSetOperation m_columnSetOperation = ColumnSetOperation.UNION;
+    @Persist(configKey = AppendedRowsNodeModel.CFG_SUFFIX)
+    @Widget(title = "Suffix",
+            description = "The suffix to be appended to RowIDs.")
+    @Effect(signals = IsAppend.class, type = EffectType.SHOW)
+    String m_suffix = "_dup";
+
+    @Persist(configKey = AppendedRowsNodeModel.CFG_HILITING)
+    @Widget(title = "Enable hiliting",
+            description = "Enable hiliting between both inputs and the concatenated output table.",
+            advanced = true)
+    boolean m_enableHiliting = false; //NOSONAR being explicit is desired here
+
+    private static final class IsAppend extends OneOfEnumCondition<RowIdResolution> {
+        @Override
+        public RowIdResolution[] oneOf() {
+            return new RowIdResolution[] { RowIdResolution.APPEND } ;
+        }
+    }
 
     enum RowIdResolution {
         @Label("Skip")

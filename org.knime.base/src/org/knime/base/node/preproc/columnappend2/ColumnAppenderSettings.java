@@ -58,8 +58,13 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -89,12 +94,15 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
         + "Tables with fewer rows will be filled with missing values accordingly. "//
         + "And tables with more rows will be truncated.</li>"//
         + "</ul>")
+    @Signal(condition = IsKeyTable.class)
+    @RadioButtonsWidget
     RowKeyMode m_rowIdMode = RowKeyMode.IDENTICAL;
 
     @Persist(customPersistor = RowIdTableSelectPersistor.class)
     @Widget(title = "RowID table number",
         description = "Select the table whose RowIDs should be used for the output table.")
     @NumberInputWidget(min = 1, maxProvider = NumTables.class)
+    @Effect(type = EffectType.SHOW, signals = IsKeyTable.class)
     int m_rowIdTableSelect = 1;
 
     private static final class NumTables implements DoubleProvider {
@@ -102,6 +110,14 @@ public final class ColumnAppenderSettings implements DefaultNodeSettings {
         @Override
         public double getValue(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpecs().length;
+        }
+
+    }
+
+    static class IsKeyTable extends OneOfEnumCondition<RowKeyMode> {
+        @Override
+        public RowKeyMode[] oneOf() {
+            return new RowKeyMode[]{ RowKeyMode.KEY_TABLE };
         }
 
     }

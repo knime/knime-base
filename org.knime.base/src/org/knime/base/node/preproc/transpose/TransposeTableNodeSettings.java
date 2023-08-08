@@ -54,7 +54,12 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -76,12 +81,15 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
             + "<li><b>Manual:</b> Manually specify the number of columns read "
             + "during one iteration over the table. Larger chunk sizes lead to more "
             + "memory consumption, but yield faster execution time.</li></ul>")
+    @Signal(condition = IsSpecifySize.class)
+    @ValueSwitchWidget
     ChunkingMode m_chunkingMode = ChunkingMode.GUESS_SIZE;
 
     @Persist(configKey = "chunk_size")
     @Widget(title = "Columns per chunk",
         description = "The number of columns read during one iteration over the table. "
             + "Increasing this value yields faster execution time, but also increases memory consumption.")
+    @Effect(type = EffectType.SHOW, signals = IsSpecifySize.class)
     int m_chunkSize;
 
     enum ChunkingMode {
@@ -90,6 +98,14 @@ public final class TransposeTableNodeSettings implements DefaultNodeSettings {
 
             @Label("Manual")
             SPECIFY_SIZE;
+    }
+
+    static class IsSpecifySize extends OneOfEnumCondition<ChunkingMode> {
+        @Override
+        public ChunkingMode[] oneOf() {
+            return new ChunkingMode[]{ ChunkingMode.SPECIFY_SIZE };
+        }
+
     }
 
     private static final class ChunkingModePersistor implements FieldNodeSettingsPersistor<ChunkingMode> {
