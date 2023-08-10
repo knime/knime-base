@@ -53,13 +53,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.Optional;
 
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.pathresolve.ResolverUtil;
+import org.knime.core.util.proxy.URLConnectionFactory;
 import org.knime.filehandling.core.connections.FSFileSystem;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.base.UnixStylePath;
@@ -131,8 +131,8 @@ class URIPath extends UnixStylePath {
      * @throws IOException
      */
     public URLConnection openURLConnection(final int timeoutMillis) throws IOException {
-        final URL url = FileUtil.toURL(m_uri.toString());
-        final URLConnection connection = url.openConnection();
+        final var url = FileUtil.toURL(m_uri.toString());
+        final var connection = URLConnectionFactory.getConnection(url);
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
         connection.connect();
@@ -148,8 +148,8 @@ class URIPath extends UnixStylePath {
      * @throws IOException
      */
     public URLConnection openURLConnection(final int timeoutMillis, final String httpMethod) throws IOException {
-        final URL url = FileUtil.toURL(m_uri.toString());
-        final URLConnection connection = url.openConnection();
+        final var url = FileUtil.toURL(m_uri.toString());
+        final var connection = URLConnectionFactory.getConnection(url);
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
         if (connection instanceof HttpURLConnection) {
