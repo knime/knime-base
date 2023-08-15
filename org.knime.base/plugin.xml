@@ -544,6 +544,10 @@
             factory-class="org.knime.base.node.viz.format.number.NumberFormatManagerNodeFactory">
       </node>
       <node
+            category-path="/view/property"
+            factory-class="org.knime.base.node.viz.format.string.StringFormatManagerNodeFactory">
+      </node>
+      <node
             after="org.knime.base.node.viz.property.color.ColorManager2NodeFactory"
             category-path="/view/property"
             factory-class="org.knime.base.node.viz.property.size.SizeManager2NodeFactory"/>
@@ -2687,5 +2691,12 @@
         <NodeFactoryClassMapper
               classMapper="org.knime.base.node.preproc.valcount.ValueCounterNodeFactoryClassMapper">
         </NodeFactoryClassMapper>
-     </extension>   
+     </extension>
+     <extension
+           point="org.knime.core.DataValueFormatter">
+        <formatter
+              factoryClass="org.knime.base.node.viz.format.string.StringFormatter$Factory"
+              formatterClass="org.knime.base.node.viz.format.string.StringFormatter">
+        </formatter>
+     </extension>
 </plugin>
