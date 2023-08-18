@@ -52,6 +52,7 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 
@@ -70,7 +71,7 @@ public class NumberToString2NodeFactory extends NodeFactory<NumberToString2NodeM
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return createNodeDialog().createLegacyFlowVariableNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
     /**
