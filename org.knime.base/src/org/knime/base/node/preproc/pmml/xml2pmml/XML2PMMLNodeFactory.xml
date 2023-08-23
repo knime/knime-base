@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./xml_to_pmml.png" type="Manipulator">
-    <name>XML To PMML</name>
+    <name>XML to PMML</name>
     
     <shortDescription>
         Transforms XML documents into PMML documents

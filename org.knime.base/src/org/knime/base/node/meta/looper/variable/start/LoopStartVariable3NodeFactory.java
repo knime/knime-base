@@ -62,7 +62,7 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
 public class LoopStartVariable3NodeFactory extends WebUINodeFactory<LoopStartVariable2NodeModel> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Table Row To Variable Loop Start")//
+        .name("Table Row to Variable Loop Start")//
         .icon("./loopstartvariable.png")//
         .shortDescription("Iterates over an input data table, whereby each row defines an iteration "
             + "with variable settings taken from the values in that row.")//

@@ -59,7 +59,7 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
 public final class TableToVariable3NodeFactory extends WebUINodeFactory<TableToVariable3NodeModel> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Table Row To Variable")//
+        .name("Table Row to Variable")//
         .icon("./table2variable.png")//
         .shortDescription("""
                 Defines new flow variables based on the first row of the input table and exposes

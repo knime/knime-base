@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
 <knimeNode icon="./categoryToNumber.png" type="Manipulator" deprecated="true">
-	<name>Category To Number</name>
+	<name>Category to Number</name>
 	
 	<shortDescription>
 		Maps each category of a column with nominal data to an integer.
