@@ -994,6 +994,9 @@
             factory-class="org.knime.base.node.preproc.rowsplit.NumericRowSplitterNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
+            factory-class="org.knime.base.node.preproc.stringcleaner.StringCleanerNodeFactory"/>
+      <node
+            category-path="/manipulation/column/column-convert+replace"
             factory-class="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"
