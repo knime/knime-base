@@ -1,7 +1,6 @@
 package org.knime.filehandling.core.fs.url;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +15,6 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.node.workflow.contextv2.AnalyticsPlatformExecutorInfo;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
@@ -284,35 +282,6 @@ public class URIPathProviderFactoryTest extends FSPathProviderFactoryTestBase {
             testReadFSLocation(Optional.empty(), loc, expectedBytes, "tempfile with spaces");
         } finally {
             WorkflowTestUtil.shutdownWorkflowManager(workflowManager);
-        }
-    }
-
-
-
-    /**
-     * Tests resolving a local workflow-relative path via KNIME URL to a local path.
-     *
-     * @throws IOException
-     */
-    @Test
-    public void testResolveToLocal() throws IOException {
-        final WorkflowManager wfm =
-                WorkflowTestUtil.createAndLoadDummyWorkflow(m_tempFolder.newFolder("mountpoint-root").toPath());
-        try {
-            final var loc = new FSLocation(FSCategory.CUSTOM_URL, "1000", "knime://knime.mountpoint/foo");
-
-            try (final var factory = FSPathProviderFactory.newFactory(Optional.empty(), loc);
-                    final var pathProvider = factory.create(loc);
-                    final var conn = pathProvider.getFSConnection()) {
-
-                    final var fsPath = ((AnalyticsPlatformExecutorInfo) wfm.getContextV2().getExecutorInfo())
-                            .getMountpoint().get().getSecond().resolve("foo");
-                    final var resolvedPath = pathProvider.getPath().resolveToLocal();
-                    assertTrue("Local mountpoint-relative path should resolve to local path", resolvedPath.isPresent());
-                    assertEquals("Local mountpoint-relative path should already be local", fsPath, resolvedPath.get());
-            }
-        } finally {
-            WorkflowTestUtil.shutdownWorkflowManager(wfm);
         }
     }
 }

@@ -48,12 +48,10 @@
  */
 package org.knime.filehandling.core.connections;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -170,16 +168,5 @@ public abstract class FSPath implements Path {
             p = (FSPath)p.resolve(other[i]);
         }
         return p;
-    }
-
-    /**
-     * Resolves the path to a local path if possible, i.e. it already is a path on the local file system.
-     *
-     * @return the path in the local file system or {@link Optional#empty()} if the path is not a local path
-     * @throws IOException I/O exception while resolving the path
-     * @since 5.2
-     */
-    public Optional<Path> resolveToLocal() throws IOException {
-        return Optional.empty();
     }
 }

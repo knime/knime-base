@@ -48,10 +48,6 @@
  */
 package org.knime.filehandling.core.fs.knime.local.workflowaware;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Optional;
-
 import org.knime.filehandling.core.connections.base.UnixStylePath;
 
 /**
@@ -78,12 +74,5 @@ public final class LocalWorkflowAwarePath extends UnixStylePath {
     @Override
     public LocalWorkflowAwareFileSystem getFileSystem() {
         return (LocalWorkflowAwareFileSystem)super.getFileSystem();
-    }
-
-    @Override
-    public Optional<Path> resolveToLocal() throws IOException {
-        try (final var fs = getFileSystem()) {
-            return Optional.of(fs.toLocalPath(this));
-        }
     }
 }

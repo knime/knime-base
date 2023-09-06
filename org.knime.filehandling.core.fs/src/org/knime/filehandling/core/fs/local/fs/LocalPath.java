@@ -58,7 +58,6 @@ import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Iterator;
-import java.util.Optional;
 
 import org.knime.filehandling.core.connections.FSPath;
 
@@ -315,10 +314,5 @@ class LocalPath extends FSPath {
     @Override
     public String getURICompatiblePath() {
         return ((LocalPath)toAbsolutePath().normalize()).m_wrappedPath.toUri().getPath();
-    }
-
-    @Override
-    public Optional<Path> resolveToLocal() {
-        return Optional.of(toAbsolutePath());
     }
 }
