@@ -241,7 +241,7 @@ final class DataValidatorColConfiguration {
                 return nameShouldBeChanged || isNotEqualType(referenceColSpec, inputColSpec)
                     || includesDomainCheck(referenceColSpec) || m_rejectOnMissingValue;
             default:
-                throw new IllegalArgumentException("Unkown type...");
+                throw new IllegalArgumentException("Unknown type...");
         }
     }
 

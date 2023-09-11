@@ -121,7 +121,7 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
 
     private Component m_applyDataTableSpecPanel;
 
-    private RadionButtonPanel<UnknownColumnHandling> m_unkownColumnsHandling;
+    private RadionButtonPanel<UnknownColumnHandling> m_unknownColumnsHandling;
 
     private RadionButtonPanel<RejectBehavior> m_failBehavior;
 
@@ -140,17 +140,17 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
         m_applyDataTableSpecPanel = createApplyDataTableSpecPanel();
 
         m_failBehavior = new RadionButtonPanel<>("Behavior on validation issue", RejectBehavior.values());
-        m_unkownColumnsHandling = new RadionButtonPanel<>("Handling of unkown columns", UnknownColumnHandling.values());
+        m_unknownColumnsHandling = new RadionButtonPanel<>("Handling of unknown columns", UnknownColumnHandling.values());
         m_validateAtBehavior = new RadionButtonPanel<>("When to validate", ValidateAtBehavior.values());
 
         Dimension failBehPrefSize = m_failBehavior.getPreferredSize();
-        Dimension unknownColPrefSize = m_unkownColumnsHandling.getPreferredSize();
+        Dimension unknownColPrefSize = m_unknownColumnsHandling.getPreferredSize();
         int width = Math.max(failBehPrefSize.width, unknownColPrefSize.width);
         int height = Math.max(failBehPrefSize.height, unknownColPrefSize.height);
 
         Dimension d = new Dimension(width, height);
         m_failBehavior.setPreferredSize(d);
-        m_unkownColumnsHandling.setPreferredSize(d);
+        m_unknownColumnsHandling.setPreferredSize(d);
 
 
         JPanel southernPanel = new JPanel(new BorderLayout());
@@ -165,7 +165,7 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
         c.weightx = 0.5;
         c.gridx = 1;
         c.gridy = 0;
-        generalConfigPanel.add(m_unkownColumnsHandling, c);
+        generalConfigPanel.add(m_unknownColumnsHandling, c);
         c.gridwidth = 2;
         c.weightx = 1;
         c.gridx = 0;
@@ -371,8 +371,8 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
                 final DataColumnSpec cspec = m_referenceDataTableSpec.getColumnSpec(names[j]);
                 if (cspec == null) {
                     LOGGER.debug("No such column in spec: " + names[j]);
-                    DataColumnSpec createUnkownSpec = DataColumnSpecListCellRenderer.createInvalidSpec(names[j]);
-                    colSpecs.add(createUnkownSpec);
+                    DataColumnSpec createUnknownSpec = DataColumnSpecListCellRenderer.createInvalidSpec(names[j]);
+                    colSpecs.add(createUnknownSpec);
                     invalidColumns.add(names[j]);
                 } else {
                     colSpecs.add(cspec);
@@ -397,7 +397,7 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
         m_individualsPanel.setPreferredSize(DUMMY_PANEL.getPreferredSize());
 
         m_failBehavior.setSelectedValue(dataValidatorConfiguration.getFailingBehavior());
-        m_unkownColumnsHandling.setSelectedValue(dataValidatorConfiguration.getUnkownColumnsHandling());
+        m_unknownColumnsHandling.setSelectedValue(dataValidatorConfiguration.getUnknownColumnsHandling());
         m_validateAtBehavior.setSelectedValue(dataValidatorConfiguration.getValidateAtBehavior());
 
         updateDataTableSpecComparison();
@@ -441,7 +441,7 @@ public class DataValidatorNodeDialogPane extends NodeDialogPane {
         }
         dataValidatorConfiguration.setIndividualConfigurations(individuals);
         dataValidatorConfiguration.setReferenceTableSpec(m_referenceDataTableSpec);
-        dataValidatorConfiguration.setRemoveUnkownColumns(m_unkownColumnsHandling.getSelectedValue());
+        dataValidatorConfiguration.setRemoveUnknownColumns(m_unknownColumnsHandling.getSelectedValue());
         dataValidatorConfiguration.setFailingBehavior(m_failBehavior.getSelectedValue());
         dataValidatorConfiguration.setValidateAtBehavior(m_validateAtBehavior.getSelectedValue());
 

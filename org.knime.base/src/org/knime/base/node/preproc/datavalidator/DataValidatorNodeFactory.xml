@@ -53,7 +53,7 @@
           </li>
         </ul>
       </option>
-      <option name="Handling of unkown colums">
+      <option name="Handling of unknown colums">
         Removes columns which are not included in the reference table spec.
         <ul>
           <li>
@@ -61,7 +61,7 @@
             - Unknown columns will force a validation issue.
           </li>
           <li>
-            <i>Remove unkown columns</i>
+            <i>Remove unknown columns</i>
             - Unknown columns will be removed.
           </li>
           <li>

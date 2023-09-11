@@ -75,7 +75,7 @@ import org.knime.core.node.util.RadionButtonPanel;
  */
 public class DataValidatorSpecNodeDialogPane extends NodeDialogPane {
 
-    private RadionButtonPanel<UnknownColumnHandling> m_unkownColumnsHandling;
+    private RadionButtonPanel<UnknownColumnHandling> m_unknownColumnsHandling;
 
     private RadionButtonPanel<RejectBehavior> m_failBehavior;
 
@@ -90,11 +90,11 @@ public class DataValidatorSpecNodeDialogPane extends NodeDialogPane {
         super();
 
         m_failBehavior = new RadionButtonPanel<>("Behavior on validation issue", RejectBehavior.values());
-        m_unkownColumnsHandling = new RadionButtonPanel<>("Handling of unkown columns", UnknownColumnHandling.values());
+        m_unknownColumnsHandling = new RadionButtonPanel<>("Handling of unknown columns", UnknownColumnHandling.values());
 
         JPanel generalConfigPanel = new JPanel(new GridLayout(0, 2));
         generalConfigPanel.add(m_failBehavior);
-        generalConfigPanel.add(m_unkownColumnsHandling);
+        generalConfigPanel.add(m_unknownColumnsHandling);
         generalConfigPanel.setBorder(BorderFactory.createTitledBorder("General settings"));
 
         //        m_southernPanel.add(generalConfigPanel, BorderLayout.SOUTH);
@@ -133,7 +133,7 @@ public class DataValidatorSpecNodeDialogPane extends NodeDialogPane {
         m_dataValidatorColPanel.setPreferredSize(new Dimension(0, 253));
         m_tabPanel.add(m_dataValidatorColPanel, BorderLayout.CENTER);
         m_failBehavior.setSelectedValue(dataValidatorConfiguration.getFailingBehavior());
-        m_unkownColumnsHandling.setSelectedValue(dataValidatorConfiguration.getUnkownColumnsHandling());
+        m_unknownColumnsHandling.setSelectedValue(dataValidatorConfiguration.getUnknownColumnsHandling());
     }
 
     /**
@@ -145,7 +145,7 @@ public class DataValidatorSpecNodeDialogPane extends NodeDialogPane {
 
         dataValidatorConfiguration.setIndividualConfigurations(Collections.singletonList(m_dataValidatorColPanel
             .getSettings()));
-        dataValidatorConfiguration.setRemoveUnkownColumns(m_unkownColumnsHandling.getSelectedValue());
+        dataValidatorConfiguration.setRemoveUnknownColumns(m_unknownColumnsHandling.getSelectedValue());
         dataValidatorConfiguration.setFailingBehavior(m_failBehavior.getSelectedValue());
 
         dataValidatorConfiguration.saveSettings(settings);

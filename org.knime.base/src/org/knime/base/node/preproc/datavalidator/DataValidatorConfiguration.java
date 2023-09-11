@@ -82,8 +82,8 @@ final class DataValidatorConfiguration {
 
     private static final String CFG_REJECTING_BEHAVIOR = "rejecting_behavior";
 
-    /** NodeSettings which determines to remove unkown columns or not. */
-    private static final String CFG_REMOVE_UNKOWN_COLUMNS = "unkown_columns_handling";
+    /** NodeSettings which determines to remove unknown columns or not. */
+    private static final String CFG_REMOVE_UNKNOWN_COLUMNS = "unkown_columns_handling";
 
     /** NodeSettings branch identifier for meta settings. */
     private static final String CFG_INDIVDUALS = "individual_settings";
@@ -97,7 +97,7 @@ final class DataValidatorConfiguration {
 
     private RejectBehavior m_failingBehavior;
 
-    private UnknownColumnHandling m_removeUnkownColumns;
+    private UnknownColumnHandling m_removeUnknownColumns;
 
     private List<DataValidatorColConfiguration> m_individualConfigurations;
 
@@ -164,17 +164,17 @@ final class DataValidatorConfiguration {
     }
 
     /**
-     * @return the removeUnkownColumns
+     * @return the removeUnknownColumns
      */
-    UnknownColumnHandling getUnkownColumnsHandling() {
-        return m_removeUnkownColumns;
+    UnknownColumnHandling getUnknownColumnsHandling() {
+        return m_removeUnknownColumns;
     }
 
     /**
-     * @param removeUnkownColumns the removeUnkownColumns to set
+     * @param removeUnknownColumns the removeUnknownColumns to set
      */
-    void setRemoveUnkownColumns(final UnknownColumnHandling removeUnkownColumns) {
-        m_removeUnkownColumns = removeUnkownColumns;
+    void setRemoveUnknownColumns(final UnknownColumnHandling removeUnknownColumns) {
+        m_removeUnknownColumns = removeUnknownColumns;
     }
 
     /**
@@ -219,7 +219,7 @@ final class DataValidatorConfiguration {
             // NOOP - no settings could be found
         }
 
-        m_removeUnkownColumns = getEnum(settings, CFG_REMOVE_UNKOWN_COLUMNS, UnknownColumnHandling.REJECT);
+        m_removeUnknownColumns = getEnum(settings, CFG_REMOVE_UNKNOWN_COLUMNS, UnknownColumnHandling.REJECT);
         m_failingBehavior = getEnum(settings, CFG_REJECTING_BEHAVIOR, RejectBehavior.FAIL_NODE);
         m_validateAtBehavior = getEnum(settings, CFG_VALIDATE_AT_BEHAVIOR, ValidateAtBehavior.VALIDATE_BOTH);
     }
@@ -242,7 +242,7 @@ final class DataValidatorConfiguration {
                 m_individualConfigurations.add(DataValidatorColConfiguration.load(nodeSettings.getNodeSettings(s)));
             }
         }
-        m_removeUnkownColumns = getEnum(settings, CFG_REMOVE_UNKOWN_COLUMNS, UnknownColumnHandling.class);
+        m_removeUnknownColumns = getEnum(settings, CFG_REMOVE_UNKNOWN_COLUMNS, UnknownColumnHandling.class);
         m_failingBehavior = getEnum(settings, CFG_REJECTING_BEHAVIOR, RejectBehavior.class);
         // added in 4.4
         m_validateAtBehavior = getEnum(settings, CFG_VALIDATE_AT_BEHAVIOR, ValidateAtBehavior.VALIDATE_BOTH);
@@ -260,7 +260,7 @@ final class DataValidatorConfiguration {
             NodeSettingsWO addNodeSettings = individuals.addNodeSettings("" + counter++);
             config.save(addNodeSettings);
         }
-        addEnum(settings, CFG_REMOVE_UNKOWN_COLUMNS, m_removeUnkownColumns);
+        addEnum(settings, CFG_REMOVE_UNKNOWN_COLUMNS, m_removeUnknownColumns);
         addEnum(settings, CFG_REJECTING_BEHAVIOR, m_failingBehavior);
         addEnum(settings, CFG_VALIDATE_AT_BEHAVIOR, m_validateAtBehavior);
         if (m_referenceSpecNeedet) {
@@ -465,7 +465,7 @@ final class DataValidatorConfiguration {
     }
 
     /**
-     * Handling of unkown columns.
+     * Handling of unknown columns.
      *
      * @author Marcel Hanser
      */
@@ -477,7 +477,7 @@ final class DataValidatorConfiguration {
         /**
          * Unknown columns are removed.
          */
-        REMOVE("Remove unkown columns"),
+        REMOVE("Remove unknown columns"),
         /**
          * Unknown columns are added to the end.
          */

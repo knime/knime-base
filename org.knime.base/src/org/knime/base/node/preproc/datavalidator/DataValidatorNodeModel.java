@@ -222,15 +222,15 @@ class DataValidatorNodeModel extends NodeModel {
 
         ColumnRearranger columnRearranger = new ColumnRearranger(in);
 
-        switch (m_config.getUnkownColumnsHandling()) {
+        switch (m_config.getUnknownColumnsHandling()) {
             case REJECT:
                 if (namesOfInputSpec.length < in.getNumColumns()) {
                     Set<String> configuredColumns = new HashSet<>(Arrays.asList(namesOfInputSpec));
                     Set<String> allColumnsOfInSpec = new HashSet<>(Arrays.asList(in.getColumnNames()));
                     allColumnsOfInSpec.removeAll(configuredColumns);
-                    // add the difference the unkown columns to the conflicts
+                    // add the difference the unknown columns to the conflicts
                     for (String col : allColumnsOfInSpec) {
-                        conflicts.addConflict(DataValidatorColConflicts.unkownColumn(col));
+                        conflicts.addConflict(DataValidatorColConflicts.unknownColumn(col));
                     }
                 }
                 break;

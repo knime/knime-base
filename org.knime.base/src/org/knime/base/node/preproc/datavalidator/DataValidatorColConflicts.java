@@ -154,7 +154,7 @@ final class DataValidatorColConflicts implements Iterable<DataValidatorColConfli
      * @param columnName the column name
      * @return a conflict containing the an appropriate validation issue description
      */
-    static DataValidatorColConflict unkownColumn(final String columnName) {
+    static DataValidatorColConflict unknownColumn(final String columnName) {
         return new DataValidatorColConflict(columnName, Conflict.UNKNOWN_COLUMN,
             Conflict.UNKNOWN_COLUMN.getDescription(columnName));
     }
