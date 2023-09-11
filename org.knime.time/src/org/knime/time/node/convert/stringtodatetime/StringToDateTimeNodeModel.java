@@ -110,6 +110,8 @@ final class StringToDateTimeNodeModel
 
     static final String FORMAT_HISTORY_KEY = "string_to_date_formats";
 
+    private static final int FORMAT_HISTORY_SIZE = 256;
+
     static final String OPTION_APPEND = "Append selected columns";
 
     static final String OPTION_REPLACE = "Replace selected columns";
@@ -245,7 +247,7 @@ final class StringToDateTimeNodeModel
         formats.add("yyyyMMddZ");
 
         // check also the StringHistory....
-        String[] userFormats = StringHistory.getInstance(StringToDateTimeNodeModel.FORMAT_HISTORY_KEY).getHistory();
+        String[] userFormats = StringHistory.getInstance(FORMAT_HISTORY_KEY, FORMAT_HISTORY_SIZE).getHistory();
         for (String userFormat : userFormats) {
             formats.add(userFormat);
         }
@@ -433,7 +435,7 @@ final class StringToDateTimeNodeModel
         final String dateformat = m_format.getStringValue();
         // if it is not a predefined one -> store it
         if (!createPredefinedFormats().contains(dateformat)) {
-            StringHistory.getInstance(FORMAT_HISTORY_KEY).add(dateformat);
+            StringHistory.getInstance(FORMAT_HISTORY_KEY, FORMAT_HISTORY_SIZE).add(dateformat);
         }
         m_hasValidatedConfiguration = true;
 
