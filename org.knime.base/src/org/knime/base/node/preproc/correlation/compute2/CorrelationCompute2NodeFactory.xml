@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <knimeNode type="Other" icon="correlation.png" xmlns="http://knime.org/node/v4.1" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Linear Correlation</name>
 	<shortDescription>
 		Computes correlation coefficients for pairs of numeric or
@@ -180,7 +180,7 @@
 		</view>
 	</views>
 	<keywords>
-		<keyword>Association analysis</keyword>
-		<keyword>Pearson correlation</keyword>
+		<keyword>association analysis</keyword>
+		<keyword>pearson correlation</keyword>
 	</keywords>
 </knimeNode>

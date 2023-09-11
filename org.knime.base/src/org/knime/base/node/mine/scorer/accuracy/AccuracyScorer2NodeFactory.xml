@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 2.0//EN" "http://www.knime.org/Node.dtd">
-<knimeNode type="Other" icon="./scorer.png">
+<knimeNode type="Other" icon="./scorer.png"
+xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Scorer</name>
     <shortDescription>Compares two columns by their attribute value pairs.</shortDescription>
     <fullDescription>
@@ -46,4 +47,8 @@
 			identify wrong predictions.
 		</view>
 	</views>
+	<keywords>
+		<keyword>model comparison</keyword>
+		<keyword>cohens kappa</keyword>
+	</keywords>
 </knimeNode>

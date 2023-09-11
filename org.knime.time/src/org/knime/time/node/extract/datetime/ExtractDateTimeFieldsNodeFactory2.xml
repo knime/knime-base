@@ -115,4 +115,15 @@
 			fields as appended columns.
 		</outPort>
 	</ports>
+    <keywords>
+    	<keyword>extract</keyword>
+    	<keyword>date</keyword>
+    	<keyword>time</keyword>
+    	<keyword>date-time</keyword>
+    	<keyword>fields</keyword>
+    	<keyword>day</keyword>
+    	<keyword>quarter</keyword>
+    	<keyword>week</keyword>
+    	<keyword>year</keyword>
+    </keywords>
 </knimeNode>

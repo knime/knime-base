@@ -31,5 +31,6 @@
     </ports>
     <keywords>
     	<keyword>Order by</keyword> <!-- SQL name -->
+    	<keyword>Row sorter</keyword>
     </keywords>
 </knimeNode>

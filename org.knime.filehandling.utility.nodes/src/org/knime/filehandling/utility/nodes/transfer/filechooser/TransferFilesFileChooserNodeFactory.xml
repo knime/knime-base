@@ -182,4 +182,8 @@
 			column, a copy status column and a deleted source column.
 		</outPort>
 	</ports>
+	<keywords>
+		<keyword>download</keyword>
+		<keyword>upload</keyword>
+	</keywords>
 </knimeNode>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<knimeNode type="Other" icon="correlation.png" deprecated="true" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+<knimeNode type="Other" icon="correlation.png" deprecated="true" xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<name>Linear Correlation</name>
 	<shortDescription>
 		Computes correlation coefficients for pairs of numeric or
@@ -94,7 +94,7 @@
         </tab>
 
 		<tab name="Wildcard/Regex Selection">
-			<option name="">
+			<option name="Pattern">
 				Type a search pattern which matches columns to move into the
 				Include or Exclude list. Which list is used can be specified.
 				You can use either Wildcards ('?' matching any
@@ -135,5 +135,8 @@
 			in the color view).
 		</view>
 	</views>
-
+	<keywords>
+		<keyword>association analysis</keyword>
+		<keyword>pearson correlation</keyword>
+	</keywords>
 </knimeNode>

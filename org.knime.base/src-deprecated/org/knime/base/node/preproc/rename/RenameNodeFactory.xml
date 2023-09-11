@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <knimeNode icon="./rename.png" type="Manipulator"
-	xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://knime.org/node/v2.8 http://knime.org/node/v2.8.xsd">
+xmlns="http://knime.org/node/v4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
     <name>Column Rename</name>
     <shortDescription>Enables you to rename column names or to change their types.</shortDescription>
     <fullDescription>
@@ -18,4 +18,8 @@
         <inPort index="0" name="Any input table">Table whose columns shall be renamed/retyped.</inPort>
         <outPort index="0" name="Renamed/Retyped table">Table from input but with customized column specifications.</outPort>
 	</ports>
+	<keywords>
+		<keyword>select</keyword>
+		<keyword>column renamer</keyword>
+	</keywords>
 </knimeNode>

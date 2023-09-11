@@ -121,4 +121,8 @@
 			rotated value columns and their corresponding column names.
 		</outPort>
 	</ports>
+	<keywords>
+		<keyword>melt</keyword>
+		<keyword>wide to long table</keyword>
+	</keywords>
 </knimeNode>

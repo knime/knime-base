@@ -96,6 +96,18 @@
 		</outPort>
     </ports>
     <keywords>
-    	<keyword>Combine cells</keyword>
+        <keyword>Combine cells</keyword>
+        <keyword>deviation</keyword>
+        <keyword>maximum</keyword>
+        <keyword>correlation</keyword>
+        <keyword>count</keyword>
+        <keyword>mean</keyword>
+        <keyword>minimum</keyword>
+        <keyword>mode</keyword>
+        <keyword>percentile</keyword>
+        <keyword>quantile</keyword>
+        <keyword>range</keyword>
+        <keyword>set</keyword>
+        <keyword>unique</keyword>
     </keywords>
 </knimeNode>

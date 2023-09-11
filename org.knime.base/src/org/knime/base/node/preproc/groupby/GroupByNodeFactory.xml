@@ -203,7 +203,20 @@
 		</outPort>
     </ports>
     <keywords>
-    	<keyword>Summarize</keyword>
-    	<keyword>Aggregate</keyword>
+        <keyword>Summarize</keyword>
+        <keyword>Aggregate</keyword>
+        <keyword>group by</keyword>
+        <keyword>maximum</keyword>
+        <keyword>correlation</keyword>
+        <keyword>count</keyword>
+        <keyword>deviation</keyword>
+        <keyword>mean</keyword>
+        <keyword>median</keyword>
+        <keyword>minimum</keyword>
+        <keyword>quantile</keyword>
+        <keyword>range</keyword>
+        <keyword>set</keyword>
+        <keyword>sum</keyword>
+        <keyword>variance</keyword>
     </keywords>
 </knimeNode>

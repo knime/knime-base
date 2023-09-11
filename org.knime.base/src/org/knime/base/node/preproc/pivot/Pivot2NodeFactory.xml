@@ -182,5 +182,6 @@
     </ports>
     <keywords>
     	<keyword>Cross tab</keyword>
+    	<keyword>long to wide table</keyword>
     </keywords>
 </knimeNode>

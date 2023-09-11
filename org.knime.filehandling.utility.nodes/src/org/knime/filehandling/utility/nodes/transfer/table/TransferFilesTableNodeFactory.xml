@@ -149,4 +149,8 @@
 			exist</i> is unchecked the output has a source exist(ed) column.
 		</outPort>
 	</ports>
+	<keywords>
+		<keyword>download</keyword>
+		<keyword>upload</keyword>
+	</keywords>
 </knimeNode>
