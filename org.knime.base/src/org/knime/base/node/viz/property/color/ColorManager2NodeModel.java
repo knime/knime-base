@@ -296,24 +296,24 @@ class ColorManager2NodeModel extends NodeModel {
      */
     static final OutputSpecification getOutputDataSpecification(final DataTableSpec spec,
             final String columnName, final ColorHandler colorHdl) {
+        final var tableSpecCreator = new DataTableSpecCreator(spec);
         final DataTableSpec outputTableSpec;
         final DataColumnSpec outputColumnSpec;
         if (COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER.equals(columnName)) {
-            outputTableSpec = spec;
+            tableSpecCreator.setColumnNamesColorHandler(colorHdl);
             final var colorColSpec = new DataColumnSpecCreator(COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER, StringCell.TYPE);
             colorColSpec.setDomain(new DataColumnDomainCreator(columnNamesToDataCellSet(spec)).createDomain());
             colorColSpec.setColorHandler(colorHdl);
             outputColumnSpec = colorColSpec.createSpec();
         } else {
-            final var tableSpecCreator = new DataTableSpecCreator(spec);
             final var colIndex = spec.findColumnIndex(columnName);
             final var columnSpec = spec.getColumnSpec(colIndex);
             final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
             columnSpecCreator.setColorHandler(colorHdl);
             outputColumnSpec = columnSpecCreator.createSpec();
             tableSpecCreator.replaceColumn(colIndex, outputColumnSpec);
-            outputTableSpec = tableSpecCreator.createSpec();
         }
+        outputTableSpec = tableSpecCreator.createSpec();
         return new OutputSpecification(outputTableSpec, new DataTableSpec(outputColumnSpec));
     }
 
