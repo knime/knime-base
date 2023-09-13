@@ -143,7 +143,7 @@ class StringFormatterTest {
     }
 
     @Test
-    void testReplaceCharacters() throws InvalidSettingsException {
+    void testReplaceCharactersHTML() throws InvalidSettingsException {
         var settings = new Settings(500, 5, false, false, false, true, Optional.empty(), false);
         var fmt = StringFormatter.fromSettings(settings);
         final var expectedCharMappings = new LinkedHashMap<String, String>();
@@ -158,14 +158,16 @@ class StringFormatterTest {
         expectedCharMappings.put("\u00a0", "\ufffd"); // non-break space
         expectedCharMappings.put("\u2028", "\ufffd"); // line-separator
         expectedCharMappings.put("\u2029", "\ufffd"); // paragraph-seperator
-        buildStringsAndAssertEquals(fmt, expectedCharMappings);
+        buildStringsAndAssertEquals(fmt, expectedCharMappings, true);
+        buildStringsAndAssertEquals(fmt, expectedCharMappings, false);
 
         // change to also replace \r \n
         settings = new Settings(500, 5, false, false, true, true, Optional.empty(), false);
         fmt = StringFormatter.fromSettings(settings);
         expectedCharMappings.put("\r", "\u240d");
         expectedCharMappings.put("\n", "\u2424");
-        buildStringsAndAssertEquals(fmt, expectedCharMappings);
+        buildStringsAndAssertEquals(fmt, expectedCharMappings, true);
+        buildStringsAndAssertEquals(fmt, expectedCharMappings, false);
 
         // change to only replace \r \n
         settings = new Settings(500, 5, false, false, true, false, Optional.empty(), false);
@@ -177,11 +179,12 @@ class StringFormatterTest {
             // "reset" all other weird characters to their original form
             entry.setValue(entry.getKey());
         }
-        buildStringsAndAssertEquals(fmt, expectedCharMappings);
+        buildStringsAndAssertEquals(fmt, expectedCharMappings, true);
+        buildStringsAndAssertEquals(fmt, expectedCharMappings, false);
     }
 
     private static void buildStringsAndAssertEquals(final StringFormatter fmt,
-        final Map<String, String> expectedCharMappings) {
+        final Map<String, String> expectedCharMappings, final boolean html) {
         final var ab = new StringBuilder();
         final var bb = new StringBuilder();
         for (final var entry : expectedCharMappings.entrySet()) {
@@ -190,15 +193,19 @@ class StringFormatterTest {
                 bb.append(entry.getValue());
             } else {
                 final var cp = entry.getKey().codePointAt(0);
-                bb.append("<span title=\"U+" + String.format("%04X", cp) + " " + Character.getName(cp) + "\">"
-                    + entry.getValue() + "</span>");
+                if (html) {
+                    bb.append("<span title=\"U+" + String.format("%04X", cp) + " " + Character.getName(cp) + "\">"
+                        + entry.getValue() + "</span>");
+                } else {
+                    bb.append(entry.getValue());
+                }
             }
         }
         final var prefix = "lalalala";
         final var suffix = "here are some very normal ascii chars that are HOPEFULLY preserved as they are";
         final var a = prefix + ab.toString() + suffix;
         final var b = prefix + bb.toString() + suffix;
-        assertEquals(b, fmt.replaceCharacters(a), "The right characters have been replaced by \ufffd");
+        assertEquals(b, fmt.replaceCharacters(a, html), "The right characters have been replaced by \ufffd");
     }
 
     @Test
@@ -211,27 +218,28 @@ class StringFormatterTest {
             "e.com", //
             "knime.de/path.end", //
             "https://knime.com", //
-            "knime://knime.online", //
+            "https://knime.online", //
             "https://knime.com/path", //
             "https://knime.com/path/path", //
-            "sftp://knime.com/path?query", //
+            "http://knime.com/path?query", //
             "http://knime.com/path/path/path", //
             "https://k.n.i.m.e.cc?query", //
             "https://k.n.i.m.e.cc?param=something%20with%20spaces&test=with+pluses&otherparam='quoted'", //
             "knime.com.with.port.coffee:1234", //
             "https://many.many.subdomains.knime.online:42/with/a/path?and=a+query", //
-            "ftp://domain.with.weird.tld.xn--30rr7y", //
+            "http://domain.with.weird.tld.xn--30rr7y", //
             "dOmaIIn92.0WITh.quESTIOnabLE.CAP-ITLisat10n.cool/aNd/A?qU3ry"//
         ).forEach(s -> simpleSubstitution(true, false, fmt, s));
 
         // test in-string substitution
         assertEquals(
-            "l1\n<a href=\"https://www.knime.com/call?query\">https://www.knime.com/call?query</a> is a url\nl3",
+            "l1\n<a href=\"https://www.knime.com/call?query\" title=\"https://www.knime.com/call?query\">"
+                + "https://www.knime.com/call?query</a> is a url\nl3",
             fmt.makeLinksClickable("l1\nhttps://www.knime.com/call?query is a url\nl3"), "URL should be replaced");
-        assertEquals("   aa  <a href=\"k.de\">k.de</a>\t\r\n bb", fmt.makeLinksClickable("   aa  k.de\t\r\n bb"),
-            "URL should be replaced");
-        assertEquals(" (<a href=\"www.google.com\">www.google.com</a>) ", fmt.makeLinksClickable(" (www.google.com) "),
-            "URL should be replaced");
+        assertEquals("   aa  <a href=\"http://k.de\" title=\"http://k.de\">k.de</a>\t\r\n bb",
+            fmt.makeLinksClickable("   aa  k.de\t\r\n bb"), "URL should be replaced");
+        assertEquals(" (<a href=\"http://www.google.com\" title=\"http://www.google.com\">www.google.com</a>) ",
+            fmt.makeLinksClickable(" (www.google.com) "), "URL should be replaced");
 
         Stream.of(// some emails
             "first.last@knime.com", //
@@ -247,7 +255,8 @@ class StringFormatterTest {
             "affe://elepha.nt", //
             "…nime.com", //
             "knime.co…", //
-            "ftp://illegal.chars=before+Path+Starts", //
+            "http://illegal.chars=before+Path+Starts", //
+            "weirdprotocol://illegal.chars=before+Path+Starts", //
             "just some normal text", //
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.de", //
             ".", //
@@ -267,11 +276,17 @@ class StringFormatterTest {
         ).forEach(s -> simpleSubstitution(false, true, fmt, s));
 
         // test in-string substitution
-        assertEquals("firstline\n<a href=\"mailto:user@knime.com\">user@knime.com</a> is cool\nthirdline",
+        assertEquals(
+            "firstline\n<a href=\"mailto:user@knime.com\" title=\"" + StringFormatter.DEFAULT_EMAIL_TOOLTIP_PREFIX
+                + "user@knime.com\">user@knime.com</a> is cool\nthirdline",
             fmt.makeLinksClickable("firstline\nuser@knime.com is cool\nthirdline"), "Mail address should be replaced");
-        assertEquals("<a href=\"mailto:a@knime.com\">a@knime.com</a>\tnextcolumn",
+        assertEquals(
+            "<a href=\"mailto:a@knime.com\" title=\"" + StringFormatter.DEFAULT_EMAIL_TOOLTIP_PREFIX
+                + "a@knime.com\">a@knime.com</a>\tnextcolumn",
             fmt.makeLinksClickable("a@knime.com\tnextcolumn"), "Mail address should be replaced");
-        assertEquals("some double@<a href=\"mailto:email@knime.com\">email@knime.com</a> in a text",
+        assertEquals(
+            "some double@<a href=\"mailto:email@knime.com\" title=\"" + StringFormatter.DEFAULT_EMAIL_TOOLTIP_PREFIX
+                + "email@knime.com\">email@knime.com</a> in a text",
             fmt.makeLinksClickable("some double@email@knime.com in a text"), "Mail address should be replaced");
     }
 
@@ -280,12 +295,15 @@ class StringFormatterTest {
         final var result = fmt.makeLinksClickable(string);
         if (shouldBeReplaced) {
             assertNotEquals(string, result, "The strings should not be equal");
-            assertEquals(2, StringUtils.countMatches(result, string), // also ensures that the whole string is matched
-                "the link address should appear exactly twice, once as the address and once as the text: " + result);
-            assertTrue(result.contains("<a href=\""), "A link should now be included");
+            assertEquals(3, StringUtils.countMatches(result, string), // also ensures that the whole string is matched
+                "the link address should appear exactly three times, "
+                    + "once as the href and twice as the text (in the title in the cell): " + result);
+            assertTrue(result.contains("<a href=\""), "A link should now be included in " + result);
             if (isEmail) {
                 assertTrue(result.contains("mailto:"), "A mailto-link should be included");
             } else {
+                assertTrue(result.contains("://"),
+                    "The link must have a protocol (otherwise it'll be interpreted as a path when clicking");
                 assertFalse(result.contains("mailto:"), "A \"normal\" link should've been created, not a mailto-link.");
             }
         } else {
@@ -296,30 +314,32 @@ class StringFormatterTest {
     @Test
     void testStyle() throws InvalidSettingsException {
         final var testString = "Taco Cabeza is just around the corner";
+        final var defaultStyles = "display:inline-block;overflow:hidden;text-overflow:ellipsis;width:100%;height:100%;";
         var fmt = getInstanceWithStyleSettings(false, false);
-        var formattedString = fmt.style(testString);
+        var formattedString = fmt.style(testString, testString);
         assertTrue(formattedString.startsWith("<span style="), "Start with a span definition");
         assertTrue(formattedString.endsWith("</span>"), "End with the closing of the span");
         assertEquals(0, StringUtils.countMatches(formattedString, '"') % 2, "There should be an even number of quotes");
+        assertTrue(formattedString.contains(defaultStyles));
 
-        assertTrue(formattedString.contains("white-space: pre;"), "don't wrap lines");
-        assertFalse(formattedString.contains("white-space: break-spaces;"), "don't wrap lines");
-        assertTrue(formattedString.contains("word-break: normal;"), "don't break words");
-        assertFalse(formattedString.contains("word-break: break-all;"), "don't break words");
+        assertTrue(formattedString.contains("white-space:pre;"), "don't wrap lines");
+        assertFalse(formattedString.contains("white-space:break-spaces;"), "don't wrap lines");
+        assertTrue(formattedString.contains("word-break:normal;"), "don't break words");
+        assertFalse(formattedString.contains("word-break:break-all;"), "don't break words");
 
         fmt = getInstanceWithStyleSettings(true, false);
-        formattedString = fmt.style(testString);
-        assertFalse(formattedString.contains("white-space: pre;"), "wrap lines");
-        assertTrue(formattedString.contains("white-space: break-spaces;"), "wrap lines");
-        assertTrue(formattedString.contains("word-break: normal;"), "don't break words");
-        assertFalse(formattedString.contains("word-break: break-all;"), "don't break words");
+        formattedString = fmt.style(testString, testString);
+        assertFalse(formattedString.contains("white-space:pre;"), "wrap lines");
+        assertTrue(formattedString.contains("white-space:break-spaces;"), "wrap lines");
+        assertTrue(formattedString.contains("word-break:normal;"), "don't break words");
+        assertFalse(formattedString.contains("word-break:break-all;"), "don't break words");
 
         fmt = getInstanceWithStyleSettings(true, true);
-        formattedString = fmt.style(testString);
-        assertFalse(formattedString.contains("white-space: pre;"), "wrap lines");
-        assertTrue(formattedString.contains("white-space: break-spaces;"), "wrap lines");
-        assertFalse(formattedString.contains("word-break: normal;"), "break words");
-        assertTrue(formattedString.contains("word-break: break-all;"), "break words");
+        formattedString = fmt.style(testString, testString);
+        assertFalse(formattedString.contains("white-space:pre;"), "wrap lines");
+        assertTrue(formattedString.contains("white-space:break-spaces;"), "wrap lines");
+        assertFalse(formattedString.contains("word-break:normal;"), "break words");
+        assertTrue(formattedString.contains("word-break:break-all;"), "break words");
 
         // remember:
         assertThrows(InvalidSettingsException.class, () -> getInstanceWithStyleSettings(false, true),
@@ -337,32 +357,35 @@ class StringFormatterTest {
         final var testString = "here's a.link and a way too long sentence\t";
         var settings = new Settings(25, 5, true, true, false, false, Optional.empty(), true);
         var fmt = StringFormatter.fromSettings(settings);
-        assertEquals(
-            "<span style=\"display: inline-block;white-space: break-spaces;word-break: break-all;\">"
-                + "here&#39;s <a href=\"a.link\">a.link</a> and a way t" + StringFormatter.ELLIPSIS + "ence\t</span>",
-            fmt.format(testString), "Expect the proper output");
+        assertEquals("""
+                <span style="\
+                display:inline-block;\
+                overflow:hidden;\
+                text-overflow:ellipsis;\
+                width:100%;\
+                height:100%;\
+                white-space:break-spaces;\
+                word-break:break-all;\
+                " title="here&#39;s a.link and a way t…ence\t">\
+                here&#39;s <a href="http://a.link" title="http://a.link">a.link</a> and a way t"""
+            + StringFormatter.ELLIPSIS + "ence\t</span>", fmt.format(testString), "Expect the proper output");
 
         settings = new Settings(11, 5, true, true, false, false, Optional.empty(), true);
         fmt = StringFormatter.fromSettings(settings);
-        assertEquals(
-            "<span style=\"display: inline-block;white-space: break-spaces;word-break: break-all;\">"
-                + "here&#39;s a.li" + StringFormatter.ELLIPSIS + "ence\t</span>",
-            fmt.format(testString), "The link must not be linked to a.li");
+        assertFalse(fmt.format(testString).contains("<a"), "The link must not be linked to a.li");
 
         settings = new Settings(100, 0, false, false, false, false, Optional.empty(), true);
         fmt = StringFormatter.fromSettings(settings);
-        assertEquals(
-            "<span style=\"display: inline-block;white-space: pre;word-break: normal;\">"
-                + "&lt;some xml=&quot;tag&quot;&gt;with te&#39;xt &amp; symbols&lt;/some&gt;</span>",
-            fmt.format("<some xml=\"tag\">with te'xt & symbols</some>"), "HTML is escaped properly");
+        assertEquals(2,
+            StringUtils.countMatches(fmt.format("<some xml=\"tag\">with te'xt & symbols</some>"),
+                "&lt;some xml=&quot;tag&quot;&gt;with te&#39;xt &amp; symbols&lt;/some&gt;"),
+            "HTML is escaped properly (two times, both in title and in the span itself)");
 
         settings = new Settings(100, 0, false, false, true, true, Optional.empty(), true);
         fmt = StringFormatter.fromSettings(settings);
-        assertEquals(
-            "<span style=\"display: inline-block;white-space: pre;word-break: normal;\">"
-                + "&lt;some xml=&quot;tag&quot;&gt;with te&#39;xt &amp; "
-                + "<span title=\"U+0009 CHARACTER TABULATION\">\ufffd</span>symbols&lt;/some&gt;</span>",
-            fmt.format("<some xml=\"tag\">with te'xt & \tsymbols</some>"),
+        assertTrue(
+            fmt.format("<some xml=\"tag\">with te'xt & \tsymbols</some>")
+                .contains("&amp; <span title=\"U+0009 CHARACTER TABULATION\">\ufffd</span>"),
             "HTML is escaped before characters are replaced");
     }
 

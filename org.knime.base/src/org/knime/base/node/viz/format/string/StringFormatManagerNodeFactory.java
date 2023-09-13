@@ -74,6 +74,7 @@ public final class StringFormatManagerNodeFactory extends WebUINodeFactory<Strin
         .nodeType(NodeType.Visualizer)//
         .addInputTable("Data table", "Table to attach formats to.")//
         .addOutputTable("Data table", "Table with formats attached to columns.")//
+        .keywords("formatter")//
         .sinceVersion(5, 2, 0)//
         .build();
 

@@ -50,6 +50,8 @@ package org.knime.base.node.viz.format.string;
 
 import java.util.Optional;
 
+import org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings.CustomStringReplacementOption;
+import org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings.WrapLinesOnDemandOption;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -148,11 +150,12 @@ public final class StringFormatManagerNodeModel extends WebUINodeModel<StringFor
         final var settings = new StringFormatter.Settings(//
             modelSettings.m_nFirstChars, //
             modelSettings.m_nLastChars, //
-            modelSettings.m_wrapLines, //
-            modelSettings.m_wrapLines && modelSettings.m_breakWords, // breakwords only enabled if wraplines is
+            modelSettings.m_wrapLinesOnDemand != WrapLinesOnDemandOption.NO, //
+            modelSettings.m_wrapLinesOnDemand == WrapLinesOnDemandOption.ANYWHERE, //
             modelSettings.m_replaceNewlineAndCarriageReturn, //
             modelSettings.m_replaceNonPrintableCharacters, //
-            modelSettings.m_replaceEmptyString ? Optional.of(modelSettings.m_emptyStringReplacement) : Optional.empty(),
+            modelSettings.m_replaceEmptyString == CustomStringReplacementOption.CUSTOM
+                ? Optional.of(modelSettings.m_emptyStringReplacement) : Optional.empty(),
             modelSettings.m_linkLinksAndEmails);
         return StringFormatter.fromSettings(settings);
     }

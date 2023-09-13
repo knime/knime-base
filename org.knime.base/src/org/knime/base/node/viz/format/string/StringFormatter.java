@@ -51,6 +51,7 @@ package org.knime.base.node.viz.format.string;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.property.ValueFormatModel;
@@ -75,6 +76,21 @@ public final class StringFormatter implements ValueFormatModel {
     /** If a string is too long, it will be abbreviated using this ellipsis. */
     static final String ELLIPSIS = "…";
 
+    /** If a URL has no protocol, this protocol will be prepended to the link */
+    static final String DEFAULT_PROTOCOL = "http://";
+
+    /** When creating a mailto: link, this text will appear in the tooltip when hovering over the email address */
+    static final String DEFAULT_EMAIL_TOOLTIP_PREFIX = "Send email to ";
+
+    /** When creating a mailto: link, this text will appear in the tooltip when hovering over the email address */
+    static final String EMPTY_STRING_TOOLTIP = "<empty string>";
+
+    private static final char DEFAULT_REPLACEMENT_CHAR = '\ufffd'; // REPLACEMENT CHARACTER � (U-FFFD)
+
+    private static final char LINE_FEED_REPLACEMENT_CHAR = '\u2424'; // SYMBOL FOR NEWLINE ␤ (U+2424)
+
+    private static final char CARRIAGE_RETURN_REPLACEMENT_CHAR = '\u240d'; // SYMBOL FOR CARRIAGE RETURN ␍ (U+240D)
+
     private final Settings m_settings;
 
     /** Only to be called by {@link #fromSettings(Settings)} */
@@ -87,21 +103,28 @@ public final class StringFormatter implements ValueFormatModel {
         if (dataValue instanceof StringValue sv) {
             var str = sv.getStringValue();
             if (str.isEmpty()) {
-                str = m_settings.emptyStringReplacement().orElse(str);
+                return formatEmptyString();
             }
             return format(str);
         }
         throw new IllegalArgumentException("Not a StringValue: " + dataValue.toString());
     }
 
+    /** Format the empty string */
+    String formatEmptyString() {
+        final var replacementString = HtmlEscapers.htmlEscaper().escape(m_settings.emptyStringReplacement().orElse(""));
+        final var tooltipString = HtmlEscapers.htmlEscaper().escape(EMPTY_STRING_TOOLTIP);
+        return style(replacementString, tooltipString);
+    }
+
     /** Applies the actual transformations / the formatting to the string by calling subroutines */
     String format(String s) {
         s = abbreviate(s);
         s = HtmlEscapers.htmlEscaper().escape(s);
-        s = replaceCharacters(s);
-        s = makeLinksClickable(s);
-        s = style(s);
-        return s;
+        final var plaintext = replaceCharacters(s, false);
+        var html = replaceCharacters(s, true);
+        html = makeLinksClickable(html);
+        return style(html, plaintext);
     }
 
     /** Truncate the string, if necessary */
@@ -120,23 +143,32 @@ public final class StringFormatter implements ValueFormatModel {
     }
 
     /** Depending on the settings, replace control characters with symbols */
-    String replaceCharacters(String string) {
+    String replaceCharacters(String string, final boolean html) {
         if (m_settings.replaceNonPrintableCharacters()) {
-            string = StringFormatterPatterns.NON_PRINTABLE_CHARS.matcher(string).replaceAll(mr -> mr.group()
-                .codePoints().mapToObj(StringFormatter::getCharacterReplacementSpan).collect(Collectors.joining()));
+            if (html) {
+                string = StringFormatterPatterns.NON_PRINTABLE_CHARS.matcher(string)//
+                    .replaceAll(mr -> mr.group()//
+                        .codePoints()//
+                        .mapToObj(cp -> getCharacterReplacementSpan(cp, DEFAULT_REPLACEMENT_CHAR))//
+                        .collect(Collectors.joining()));
+            } else {
+                string = StringFormatterPatterns.NON_PRINTABLE_CHARS.matcher(string)
+                    .replaceAll(String.valueOf(DEFAULT_REPLACEMENT_CHAR));
+            }
         }
         if (m_settings.replaceNewlinesAndCarriageReturn()) {
-            // U+2424 is SYMBOL FOR NEWLINE ␤
-            string = string.replace("\n", getCharacterReplacementSpan("\n".codePointAt(0), '\u2424'));
-            // U+240d is SYMBOL FOR CARRIAGE RETURN ␍
-            string = string.replace("\r", getCharacterReplacementSpan("\r".codePointAt(0), '\u240d'));
+            if (html) {
+                string =
+                    string.replace("\n", getCharacterReplacementSpan("\n".codePointAt(0), LINE_FEED_REPLACEMENT_CHAR));
+                string = string.replace("\r",
+                    getCharacterReplacementSpan("\r".codePointAt(0), CARRIAGE_RETURN_REPLACEMENT_CHAR));
+            } else {
+                string = string.replace("\n", String.valueOf(LINE_FEED_REPLACEMENT_CHAR));
+                string = string.replace("\r", String.valueOf(CARRIAGE_RETURN_REPLACEMENT_CHAR));
+
+            }
         }
         return string;
-    }
-
-    private static String getCharacterReplacementSpan(final int codepoint) {
-        // Use the  REPLACEMENT CHARACTER � (U-FFFD)
-        return getCharacterReplacementSpan(codepoint, '\ufffd');
     }
 
     private static String getCharacterReplacementSpan(final int codepoint, final char replacementChar) {
@@ -147,27 +179,35 @@ public final class StringFormatter implements ValueFormatModel {
     /** If the settings say so, replace URLs and emails by a link to themselves */
     String makeLinksClickable(String s) {
         if (m_settings.linkHrefsAndEmails) {
-            s = StringFormatterPatterns.URL.matcher(s).replaceAll("<a href=\"$1\">$1</a>");
-            s = StringFormatterPatterns.EMAIL.matcher(s).replaceAll("<a href=\"mailto:$1\">$1</a>");
+            s = StringFormatterPatterns.URL.matcher(s).replaceAll(mr -> {
+                var url = mr.group();
+                if (!StringUtils.startsWithIgnoreCase(url, "http://")
+                    && !StringUtils.startsWithIgnoreCase(url, "https://")) {
+                    url = "http://" + url; // otherwise, e.g. "knime.com" is interpreted as a file path when clicking it
+                }
+                return "<a href=\"" + url + "\" title=\"" + url + "\">$1</a>";
+            });
+            s = StringFormatterPatterns.EMAIL.matcher(s)
+                .replaceAll("<a href=\"mailto:$1\" title=\"Send email to $1\">$1</a>");
         }
         return s;
     }
 
     /** Add CSS styles */
-    String style(final String s) {
+    String style(final String html, final String plaintext) {
         final var sb = new StringBuilder("<span style=\"");
-        sb.append("display: inline-block;");
+        sb.append("display:inline-block;overflow:hidden;text-overflow:ellipsis;width:100%;height:100%;");
         if (m_settings.wrapLines()) {
-            sb.append("white-space: break-spaces;");
+            sb.append("white-space:break-spaces;");
         } else {
-            sb.append("white-space: pre;");
+            sb.append("white-space:pre;");
         }
         if (m_settings.breakWords()) {
-            sb.append("word-break: break-all;");
+            sb.append("word-break:break-all;");
         } else {
-            sb.append("word-break: normal;");
+            sb.append("word-break:normal;");
         }
-        sb.append("\">").append(s).append("</span>");
+        sb.append("\" title=\"").append(plaintext).append("\">").append(html).append("</span>");
         return sb.toString();
     }
 

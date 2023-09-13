@@ -85,7 +85,7 @@ final class StringFormatterPatterns {
         // List taken from: http://data.iana.org/TLD/tlds-alpha-by-domain.txt
         // This pattern is auto-generated with
         // android.googlesource.com/platform/frameworks/ex/+/refs/heads/main/common/tools/make-iana-tld-pattern.py
-        final var iana_tlds = "(?:"
+        final var iana_tlds = "(?i:"
             + "(?:aaa|aarp|abb|abbott|abbvie|abc|able|abogado|abudhabi|academy|accenture|accountant"
             + "|accountants|aco|actor|ads|adult|aeg|aero|aetna|afl|africa|agakhan|agency|aig|airbus"
             + "|airforce|airtel|akdn|alibaba|alipay|allfinanz|allstate|ally|alsace|alstom|amazon|americanexpress"
@@ -263,7 +263,7 @@ final class StringFormatterPatterns {
         // domain names -- up to 63 characters per subdomain; _ and - allowed everywhere but the start and end
         final var domain = "(?:(?:\\p{Alnum}|\\p{Alnum}[\\p{Alnum}_\\-]{0,61}\\p{Alnum})\\.)+" + iana_tlds;
         // a protocol that could start a URL (case-insensitive)
-        final var protocol = "(?i:https?|s?ftp|knime)://";
+        final var protocol = "(?i:https?)://";
         // any number between 0 to 255, with no trailing zeroes
         final var ipv4_num = "(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])";
         // any one-to-four-digit hex number, possibly with trailing zeroes

@@ -60,12 +60,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -83,29 +85,22 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
         interface Columns {
         }
 
-        @Section(title = "Truncation")
+        @Section(title = "Format")
         @After(Columns.class)
-        interface Truncation {
+        interface Format {
             @HorizontalLayout
-            interface StartEnd {
-            }
-        }
-
-        @Section(title = "Line breaks and invisible characters")
-        @After(Truncation.class)
-        interface LineBreaksAndInvisibleCharacters {
-            @HorizontalLayout
-            interface WrapLinesAndWords {
+            interface FirstLast {
             }
 
-            @After(WrapLinesAndWords.class)
-            interface ReplaceCharacters {
+            @After(FirstLast.class)
+            interface TheRest {
             }
         }
 
         @Section(title = "Special values")
-        @After(LineBreaksAndInvisibleCharacters.class)
+        @After(Format.class)
         interface SpecialValues {
+            @HorizontalLayout
             interface ReplaceEmptyString {
             }
         }
@@ -117,9 +112,6 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
     }
 
     interface Signals {
-        interface WrapLines {
-        }
-
         interface ReplaceEmptyStrings {
         }
     }
@@ -134,67 +126,94 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
     @Layout(DialogLayout.Columns.class)
     ColumnFilter m_columnsToFormat;
 
-    @Widget(title = "Keep first characters", description = """
+    @Widget(title = "Show first characters", description = """
             Select the number of characters that should be retained at the <b>start</b> of the string. \
             If a string's length is longer than the permitted length, it will be truncated. \
             This does not change the data, but only the way the strings are being displayed in views.
             """)
     @NumberInputWidget(min = 0)
-    @Layout(DialogLayout.Truncation.StartEnd.class)
+    @Layout(DialogLayout.Format.FirstLast.class)
     int m_nFirstChars = 500;
 
-    @Widget(title = "Keep last characters", description = """
+    @Widget(title = "Show last characters", description = """
             Select the number of characters that should be retained at the <b>end</b> of the string. \
             If a string's length is longer than the permitted length, it will be truncated. \
             This does not change the data, but only the way the strings are being displayed in views.
             """)
     @NumberInputWidget(min = 0)
-    @Layout(DialogLayout.Truncation.StartEnd.class)
+    @Layout(DialogLayout.Format.FirstLast.class)
     int m_nLastChars = 5;
 
+    enum WrapLinesOnDemandOption {
+            @Label("Anywhere")
+            ANYWHERE, @Label("Between words")
+            BETWEEN_WORDS, @Label("No")
+            NO
+    }
+
     @Widget(title = "Wrap lines on demand", description = """
-            If checked, a long string will be wrapped at white-space to fit the width of the view. \
-            Otherwise, the string overflow will be hidden.
+            Determine how to wrap a string when it is too long to fit the width of the view:
+            <ul>
+                <li><i>Anywhere</i>: The string is wrapped anywhere on demand, also in the middle of a word.</li>
+                <li><i>Between words</i>: The string is wrapped only between words, e.g. at white space.</li>
+                <li><i>No</i>: The string isn't wrapped and long strings will overflow the view width.</li>
+            </ul>
             """)
-    @Layout(DialogLayout.LineBreaksAndInvisibleCharacters.WrapLinesAndWords.class)
-    @Signal(id = Signals.WrapLines.class, condition = TrueCondition.class)
-    boolean m_wrapLines = false;
+    @ValueSwitchWidget
+    @Layout(DialogLayout.Format.TheRest.class)
+    WrapLinesOnDemandOption m_wrapLinesOnDemand = WrapLinesOnDemandOption.NO;
 
-    @Widget(title = "Break words", description = """
-            If checked, the string will not be wrapped only at white-space characters but anywhere, including the \
-            middle of a word.
-            """)
-    @Layout(DialogLayout.LineBreaksAndInvisibleCharacters.WrapLinesAndWords.class)
-    @Effect(signals = Signals.WrapLines.class, type = EffectType.SHOW)
-    boolean m_breakWords = true;
+    // TODO reword: change "replace .. with" to "display .. as" ?
 
-    @Widget(title = "Replace line break and carriage return with symbols", description = """
-            If checked, line break (\\n) and carriage return (\\r) are replaced with symbols. \
-            Enabling this will always show a single-line string unless <i>Wrap  lines on demand</i> is checked.
+    @Widget(title = "Show line break and carriage return as symbols", description = """
+            If checked, line break (\\n) and carriage return (\\r) are displayed as symbols. \
+            Enabling this will always show a single-line string unless <i>Wrap  lines on demand</i> is enabled.
             """)
-    @Layout(DialogLayout.LineBreaksAndInvisibleCharacters.ReplaceCharacters.class)
+    @Layout(DialogLayout.Format.TheRest.class)
     boolean m_replaceNewlineAndCarriageReturn = false;
 
-    @Widget(title = "Replace other non-printable characters with symbols", description = """
-            If checked, non-printable symbols like a tabulator or non-break space will be replaced with a placeholder. \
-            Enable this to see any non-standard control characters in your strings.
+    @Widget(title = "Show other non-printable characters as symbols", description = """
+            If checked, non-printable symbols like a tabulator or non-break space will be displayed with a placeholder \
+            symbol (\ufffd). Enable this to make any non-standard control characters in your strings visible.
             """)
-    @Layout(DialogLayout.LineBreaksAndInvisibleCharacters.ReplaceCharacters.class)
+    @Layout(DialogLayout.Format.TheRest.class)
     boolean m_replaceNonPrintableCharacters = true;
 
-    @Widget(title = "Replace empty string", description = """
-            If checked, the empty string is displayed as a custom string to better visualize it.
+    enum CustomStringReplacementOption {
+            @Label("Blank")
+            BLANK, //
+            @Label("Custom string")
+            CUSTOM
+    }
+
+    static class IsCustomCondition extends OneOfEnumCondition<CustomStringReplacementOption> {
+        @Override
+        public CustomStringReplacementOption[] oneOf() {
+            return new CustomStringReplacementOption[]{CustomStringReplacementOption.CUSTOM};
+        }
+    }
+
+    @Widget(title = "Show empty string as", description = """
+            Determine how to display empty strings. \
+            This does not change the underlying data, but just how an empty string is shown in views.
+            <ul>
+                <li><i>Blank</i>: The empty string will be shown as blank, this is the default.</li>
+                <li><i>Custom string</i>: A custom string can be defined that will be shown instead of a blank cell. \
+                This might be useful to show some placeholder text or default value.</li>
+            </ul>
             """)
     @Layout(DialogLayout.SpecialValues.ReplaceEmptyString.class)
-    @Signal(id = Signals.ReplaceEmptyStrings.class, condition = TrueCondition.class)
-    boolean m_replaceEmptyString = false;
+    @ValueSwitchWidget
+    @Signal(id = Signals.ReplaceEmptyStrings.class, condition = IsCustomCondition.class)
+    CustomStringReplacementOption m_replaceEmptyString = CustomStringReplacementOption.BLANK;
 
-    @Widget(title = "Replacement", description = """
-            This string will be shown instead of an empty string, if <i>Replace empty string</i> is enabled.
+    @Widget(title = "Substitute for empty string", description = """
+            This string will be shown instead of an empty string, \
+            if <i>Show empty string as custom string</i> is enabled.
             """)
     @Layout(DialogLayout.SpecialValues.ReplaceEmptyString.class)
     @Effect(signals = Signals.ReplaceEmptyStrings.class, type = EffectType.SHOW)
-    String m_emptyStringReplacement = "–";
+    String m_emptyStringReplacement = "<empty>";
 
     @Widget(title = "Link hyperlinks and e-mail addresses", description = """
             Enabling this will display URLs and e-mail addresses as links.
@@ -215,7 +234,6 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
     // Column choices
 
     static final class StringColumns implements ColumnChoicesProvider {
-
         @Override
         public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
@@ -223,7 +241,5 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
                 .filter(s -> s.getType().isCompatible(StringValue.class))//
                 .toArray(DataColumnSpec[]::new);
         }
-
     }
-
 }
