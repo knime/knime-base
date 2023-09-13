@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * backwards compatible loading if this class is ever used in the NodeModel.
  *
  * @author Jonas Klotz, KNIME GmbH, Berlin, Germany
+ * @noreference This class is not intended to be referenced by clients. Public here to allow unit-test.
  */
 @SuppressWarnings("restriction")
 public final class ColumnHeaderInsertSettings implements DefaultNodeSettings {

@@ -70,6 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Jonas Klotz, KNIME GbmH, Berlin, Germany
  * @author Ivan Prigarin, KNIME GbmH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GbmH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients. Public here to allow unit-test.
  */
 @SuppressWarnings("restriction")
 public final class AppendedRowsNodeSettings implements DefaultNodeSettings {

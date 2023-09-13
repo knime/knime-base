@@ -82,6 +82,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * is ever used in the NodeModel.
  *
  * @author Jonas Klotz, KNIME GmbH, Berlin
+ * @noreference This class is not intended to be referenced by clients. Public here to allow unit-test.
  */
 @SuppressWarnings("restriction")
 @Layout(ParsingOptionsSection.class)

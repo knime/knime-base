@@ -1,0 +1,2331 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component id="org.knime.base" version="2">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.node.port.PortSerializerContext">
+        <filter comment="private API added in 5.1, removed as part of AP-20916" id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.node.port.PortSerializerContext"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.ADocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.ADocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.AbstractView">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.AbstractView"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.BDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.BDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.BrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.BrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.DescriptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.DescriptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.FullDescriptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.FullDescriptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.H3Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.H3Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.H4Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.H4Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.HDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.HDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.IDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.IDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.InPortDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.InPortDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.IntroDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.IntroDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.KnimeNodeDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.KnimeNodeDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.LiDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.LiDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.NameDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.NameDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.OlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.OlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.OptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.OptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.OutPortDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.OutPortDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.PDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.PDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.PortsDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.PortsDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.PreDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.PreDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.ShortDescriptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.ShortDescriptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.SubDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.SubDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.SupDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.SupDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.TabDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.TabDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.TableDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.TableDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.TdDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.TdDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.ThDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.ThDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.TrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.TrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.TtDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.TtDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.UDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.UDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.UlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.UlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.ViewDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.ViewDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v210.ViewsDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v210.ViewsDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.ADocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.ADocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.AbstractView">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.AbstractView"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.BDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.BDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.BrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.BrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.Description">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.Description"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.ExtendedDescription">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.ExtendedDescription"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.FullDescription">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.FullDescription"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.H3Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.H3Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.H4Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.H4Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.HDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.HDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.IDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.IDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.InPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.InPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.Intro">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.Intro"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.KnimeNode">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.KnimeNode"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.KnimeNodeDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.KnimeNodeDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.LiDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.LiDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.MinimalTags">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.MinimalTags"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.NodeType">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.NodeType"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.OlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.OlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.Option">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.Option"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.OutPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.OutPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.PDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.PDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.Port">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.Port"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.Ports">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.Ports"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.PreDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.PreDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.SubDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.SubDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.SupDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.SupDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.Tab">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.Tab"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.TableDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.TableDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.TdDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.TdDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.TextTags">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.TextTags"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.ThDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.ThDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.TrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.TrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.TtDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.TtDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.UDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.UDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.UlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.UlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.View">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.View"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v212.Views">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v212.Views"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.ADocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.ADocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.AbstractView">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.AbstractView"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.BDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.BDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.BrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.BrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.FullDescriptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.FullDescriptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.H3Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.H3Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.H4Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.H4Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.HDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.HDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.IDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.IDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.InPortDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.InPortDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.IntroDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.IntroDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.KnimeNodeDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.KnimeNodeDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.LiDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.LiDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.NameDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.NameDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.OlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.OlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.OptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.OptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.OutPortDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.OutPortDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.PDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.PDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.PortsDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.PortsDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.PreDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.PreDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.ShortDescriptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.ShortDescriptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.SubDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.SubDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.SupDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.SupDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.TabDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.TabDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.TableDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.TableDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.TdDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.TdDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.ThDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.ThDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.TrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.TrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.TtDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.TtDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.UDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.UDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.UlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.UlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.ViewDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.ViewDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v28.ViewsDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v28.ViewsDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.ADocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.ADocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.AbstractView">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.AbstractView"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.BDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.BDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.BrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.BrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.Description">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.Description"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.ExtendedDescription">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.ExtendedDescription"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.FullDescription">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.FullDescription"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.H3Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.H3Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.H4Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.H4Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.HrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.HrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.IDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.IDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.InPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.InPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.Intro">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.Intro"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.KnimeNode">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.KnimeNode"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.KnimeNodeDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.KnimeNodeDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.LiDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.LiDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.MinimalTags">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.MinimalTags"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.NodeType">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.NodeType"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.OlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.OlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.Option">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.Option"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.OutPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.OutPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.PDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.PDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.Port">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.Port"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.Ports">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.Ports"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.PreDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.PreDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.SubDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.SubDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.SupDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.SupDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.Tab">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.Tab"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.TableDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.TableDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.TdDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.TdDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.TextTags">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.TextTags"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.ThDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.ThDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.TrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.TrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.TtDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.TtDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.UDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.UDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.UlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.UlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.View">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.View"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v31.Views">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v31.Views"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.ADocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.ADocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.AbstractView">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.AbstractView"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.BDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.BDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.BrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.BrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.Description">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.Description"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.ExtendedDescription">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.ExtendedDescription"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.FullDescription">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.FullDescription"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.H3Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.H3Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.H4Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.H4Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.HrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.HrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.IDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.IDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.InPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.InPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.Intro">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.Intro"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.KnimeNode">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.KnimeNode"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.KnimeNodeDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.KnimeNodeDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.LiDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.LiDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.Link">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.Link"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.MinimalTags">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.MinimalTags"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.NodeType">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.NodeType"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.OlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.OlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.Option">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.Option"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.OutPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.OutPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.PDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.PDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.Port">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.Port"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.Ports">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.Ports"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.PreDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.PreDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.SubDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.SubDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.SupDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.SupDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.Tab">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.Tab"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.TableDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.TableDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.TdDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.TdDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.TextTags">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.TextTags"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.ThDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.ThDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.TrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.TrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.TtDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.TtDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.UDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.UDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.UlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.UlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.View">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.View"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v36.Views">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v36.Views"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.ADocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.ADocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.AbstractView">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.AbstractView"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.BDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.BDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.BrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.BrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Description">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Description"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.DynInPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.DynInPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.DynOutPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.DynOutPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.DynPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.DynPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.ExtendedDescription">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.ExtendedDescription"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.FullDescription">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.FullDescription"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.H3Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.H3Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.H4Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.H4Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.HrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.HrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.IDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.IDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.InPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.InPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Intro">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Intro"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Keywords">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Keywords"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.KnimeNode">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.KnimeNode"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.KnimeNodeDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.KnimeNodeDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.LiDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.LiDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Link">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Link"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.MinimalTags">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.MinimalTags"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.NodeType">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.NodeType"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.NonEmptyString">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.NonEmptyString"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.OlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.OlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Option">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Option"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.OutPort">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.OutPort"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.PDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.PDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Port">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Port"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Ports">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Ports"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.PreDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.PreDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.SubDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.SubDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.SupDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.SupDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Tab">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Tab"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.TableDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.TableDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.TdDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.TdDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.TextTags">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.TextTags"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.ThDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.ThDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.TrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.TrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.TtDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.TtDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.UDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.UDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.UlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.UlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.View">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.View"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node.v41.Views">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node.v41.Views"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.ADocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.ADocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.BDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.BDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.BrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.BrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.FullDescriptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.FullDescriptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.H3Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.H3Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.H4Document">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.H4Document"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.HDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.HDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.IDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.IDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.InPortDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.InPortDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.IntroDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.IntroDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.KnimeNodeDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.KnimeNodeDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.LiDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.LiDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.NameDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.NameDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.OlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.OlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.OptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.OptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.OutPortDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.OutPortDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.PDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.PDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.PortsDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.PortsDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.PreDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.PreDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.ShortDescriptionDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.ShortDescriptionDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.SubDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.SubDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.SupDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.SupDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.TabDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.TabDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.TableDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.TableDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.TdDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.TdDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.ThDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.ThDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.TrDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.TrDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.TtDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.TtDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.UDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.UDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.UlDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.UlDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.ViewDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.ViewDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.ViewsDocument">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.ViewsDocument"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.ADocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.ADocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.BDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.BDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.BrDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.BrDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.FullDescriptionDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.FullDescriptionDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.H3DocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.H3DocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.H4DocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.H4DocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.HDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.HDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.IDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.IDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.InPortDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.InPortDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.IntroDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.IntroDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.KnimeNodeDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.KnimeNodeDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.LiDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.LiDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.NameDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.NameDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.OlDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.OlDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.OptionDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.OptionDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.OutPortDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.OutPortDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.PDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.PDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.PortsDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.PortsDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.PreDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.PreDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.ShortDescriptionDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.ShortDescriptionDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.SubDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.SubDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.SupDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.SupDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.TabDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.TabDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.TableDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.TableDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.TdDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.TdDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.ThDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.ThDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.TrDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.TrDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.TtDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.TtDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.UDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.UDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.UlDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.UlDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.ViewDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.ViewDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.node2012.impl.ViewsDocumentImpl">
+        <filter comment="(not really understanding _why_ these need to be added, no change since 5.1.0)" id="305426566">
+            <message_arguments>
+                <message_argument value="org.knime.node2012.impl.ViewsDocumentImpl"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+</component>

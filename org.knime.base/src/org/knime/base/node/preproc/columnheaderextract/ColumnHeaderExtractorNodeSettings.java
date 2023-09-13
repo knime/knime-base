@@ -73,6 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * backwards compatibility.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients. Public here to allow unit-test.
  */
 @SuppressWarnings("restriction")
 public final class ColumnHeaderExtractorNodeSettings implements DefaultNodeSettings {

@@ -67,6 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * used for the node model, backwards compatible loading will need to be implemented.
  *
  * @author Ivan Prigarin, KNIME GbmH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients. Public here to allow unit-test.
  */
 @SuppressWarnings("restriction")
 public final class TransposeTableNodeSettings implements DefaultNodeSettings {

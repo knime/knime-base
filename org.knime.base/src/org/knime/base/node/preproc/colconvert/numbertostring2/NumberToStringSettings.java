@@ -66,6 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * Settings for the Number to String Web UI dialog.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients. Public here to allow unit-test.
  */
 @SuppressWarnings("restriction")
 public final class NumberToStringSettings implements DefaultNodeSettings {
