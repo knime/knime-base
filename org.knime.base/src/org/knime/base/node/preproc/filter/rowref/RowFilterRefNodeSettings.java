@@ -68,6 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * that this class is only used for the dialog generation and not by the node model.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @since 5.1
  */
 @SuppressWarnings("restriction")
 public final class RowFilterRefNodeSettings implements DefaultNodeSettings {

@@ -70,6 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Jonas Klotz, KNIME GbmH, Berlin, Germany
  * @author Ivan Prigarin, KNIME GbmH, Konstanz, Germany
  * @author Adrian Nembach, KNIME GbmH, Konstanz, Germany
+ * @since 5.1
  */
 @SuppressWarnings("restriction")
 public final class AppendedRowsNodeSettings implements DefaultNodeSettings {

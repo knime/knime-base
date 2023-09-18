@@ -74,6 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * {@link StringReplacerSettings}.
  *
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
+ * @since 5.1
  */
 @SuppressWarnings("restriction")
 public final class StringReplacerNodeSettings implements DefaultNodeSettings {

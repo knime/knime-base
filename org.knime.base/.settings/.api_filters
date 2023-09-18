@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component id="org.knime.base" version="2">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.node.port.PortSerializerContext">
+        <filter comment="Missed API changes in 5.1" id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.node.port.PortSerializerContext"/>
+                <message_argument value="org.knime.base_5.1.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/append/row/AppendedRowsNodeSettings.java" type="org.knime.base.node.preproc.append.row.AppendedRowsNodeSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.append.row.AppendedRowsNodeSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/colconvert/numbertostring2/NumberToStringSettings.java" type="org.knime.base.node.preproc.colconvert.numbertostring2.NumberToStringSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.colconvert.numbertostring2.NumberToStringSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/colconvert/stringtonumber2/StringToNumber2NodeSettings.java" type="org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/columnheaderextract/ColumnHeaderExtractorNodeSettings.java" type="org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNodeSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.columnheaderextract.ColumnHeaderExtractorNodeSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/columnheaderinsert/ColumnHeaderInsertSettings.java" type="org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.columnheaderinsert.ColumnHeaderInsertSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/column/ColumnFilterNodeSettings.java" type="org.knime.base.node.preproc.filter.column.ColumnFilterNodeSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.filter.column.ColumnFilterNodeSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/columnref/ColumnFilterRefNodeSettings.java" type="org.knime.base.node.preproc.filter.columnref.ColumnFilterRefNodeSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.filter.columnref.ColumnFilterRefNodeSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/rowref/RowFilterRefNodeSettings.java" type="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/stringreplacer/StringReplacerNodeSettings.java" type="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/transpose/TransposeTableNodeSettings.java" type="org.knime.base.node.preproc.transpose.TransposeTableNodeSettings">
+        <filter comment="Missed API changes in 5.1" id="1108344834">
+            <message_arguments>
+                <message_argument value="5.1"/>
+                <message_argument value="5.2"/>
+                <message_argument value="org.knime.base.node.preproc.transpose.TransposeTableNodeSettings"/>
+            </message_arguments>
+        </filter>
+    </resource>
+</component>

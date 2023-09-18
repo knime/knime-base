@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * Settings for the Column Filter node.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 5.1
  */
 @SuppressWarnings("restriction")
 public final class ColumnFilterNodeSettings implements DefaultNodeSettings {
