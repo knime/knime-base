@@ -63,7 +63,6 @@ import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperator;
 import org.knime.base.data.aggregation.ColumnAggregator;
 import org.knime.base.data.aggregation.GlobalSettings;
-import org.knime.base.data.sort.SortedTable;
 import org.knime.base.node.preproc.sorter.SorterNodeDialogPanel2;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -76,6 +75,7 @@ import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
+import org.knime.core.data.sort.BufferedDataTableSorter;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -419,16 +419,18 @@ public abstract class GroupByTable {
      * @since 2.7
      */
     public static BufferedDataTable sortTable(final ExecutionContext exec, final BufferedDataTable table2sort,
-        final List<String> sortCols) throws CanceledExecutionException {
+            final List<String> sortCols) throws CanceledExecutionException {
         if (sortCols.isEmpty()) {
             return table2sort;
         }
-        final boolean[] sortOrder = new boolean[sortCols.size()];
+        final var sortOrder = new boolean[sortCols.size()];
         for (int i = 0, length = sortOrder.length; i < length; i++) {
             sortOrder[i] = true;
         }
-        final SortedTable sortedTabel = new SortedTable(table2sort, sortCols, sortOrder, exec);
-        return sortedTabel.getBufferedDataTable();
+        final var sorter = new BufferedDataTableSorter(table2sort, sortCols, sortOrder);
+        sorter.setMaxOpenContainers(40);
+        sorter.setSortInMemory(false);
+        return sorter.sort(exec);
 
     }
 
@@ -447,7 +449,7 @@ public abstract class GroupByTable {
         buf.append("[");
         for (int i = 0, length = groupVals.length; i < length; i++) {
             if (i != 0) {
-            buf.append(",");
+                buf.append(",");
             }
             buf.append(groupVals[i].toString());
         }
