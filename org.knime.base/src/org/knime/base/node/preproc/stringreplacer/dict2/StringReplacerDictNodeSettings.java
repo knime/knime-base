@@ -82,21 +82,23 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
 
     /** What to do when multiple patterns match **/
     enum MultipleMatchHandling {
-            @Label("Replace all")
-            REPLACEALL, //
-            @Label("Replace first")
-            REPLACEFIRST;
+            @Label("Apply first matching")
+            REPLACEFIRST, //
+            @Label("Apply all sequentially")
+            REPLACEALL;
 
         static final String OPTION_DESCRIPTION =
             """
             Select the strategy to use if multiple patterns match.
             <ul>
                 <li>
-                    <i>Replace all</i> applies all replacements with matching patterns from the dictionary table
-                    consecutively.
+                    <i>Apply first matching</i> only applies the first replacement that has a matching pattern.
                 </li>
                 <li>
-                    <i>Replace first</i> only applies the first replacement with a matching pattern.
+                    <i>Apply all sequentially</i> applies all replacements with matching patterns from the dictionary
+                    table sequentially. This means that later patterns can also match the output of another
+                    replacement: For example, when the input is "A" and there are the replacements A -> B and B -> C,
+                    the resulting string is "C".
                 </li>
             </ul>
             """;
@@ -190,8 +192,8 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
 
     @Layout(DialogSections.FindAndReplace.class)
     @Widget(title = "Pattern column", description = """
-            The column containing literal strings, wildcard patterns or regular expressions, depending on the matching
-            criterion selected above.
+            The column containing literal strings, wildcard patterns or regular expressions, depending on the pattern
+            type selected above.
             """)
     @ChoicesWidget(choices = PatternAndReplacementColumnChoices.class)
     String m_patternColumn;
@@ -214,7 +216,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     @Layout(DialogSections.FindAndReplace.class)
     @Widget(title = "If multiple patterns match", description = MultipleMatchHandling.OPTION_DESCRIPTION)
     @ValueSwitchWidget
-    MultipleMatchHandling m_multipleMatchHandling = MultipleMatchHandling.REPLACEALL;
+    MultipleMatchHandling m_multipleMatchHandling = MultipleMatchHandling.REPLACEFIRST;
 
     @Layout(DialogSections.Output.class)
     @Widget(title = "Append new columns", description = """
