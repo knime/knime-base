@@ -114,6 +114,11 @@ class StringCleanerTest {
         settings = getNoopSettingsInstance();
         settings.m_removeNonASCII = true;
         assertThatSpecificCharactersAreRemoved(settings, "\u00a0↓κνιμε𝔎𝔑ℑ𝔐𝔈Ä\u0308øⅤ");
+
+        // remove non-printable
+        settings = getNoopSettingsInstance();
+        settings.m_removeNonPrintableChars = true;
+        assertThatSpecificCharactersAreRemoved(settings, "\t\u00a0");
     }
 
     @Test

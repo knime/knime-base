@@ -192,6 +192,10 @@ final class StringCleaner {
         if (settings.m_removeNonASCII) {
             addReplacementOfPatternAsOperation(operations, "[^\\p{ASCII}]", "");
         }
+        if (settings.m_removeNonPrintableChars) {
+            // Remove Control, Format and Separator characters but not newlines or space.
+            addReplacementOfPatternAsOperation(operations, "(?![\n\r ])[\\p{Cf}\\p{Cc}\\p{Z}]", "");
+        }
     }
 
     private static void appendOperationsToChangeCasing(final List<UnaryOperator<String>> operations,
