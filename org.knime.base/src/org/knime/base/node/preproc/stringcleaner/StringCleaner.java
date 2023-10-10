@@ -108,7 +108,7 @@ final class StringCleaner {
         appendOperationToPad(operations, settings);
 
         // combine the operations to one big function
-        // shout-out to the UnaryOperator API for not providing UnaryOperator::andThen 🫡
+        // shout-out to the UnaryOperator API for not providing UnaryOperator::andThen
         return operations.stream().reduce(UnaryOperator.identity(), (a, b) -> s -> b.apply(a.apply(s)));
     }
 
@@ -122,18 +122,18 @@ final class StringCleaner {
             if (settings.m_removeLeadingWhitespace) {
                 addReplacementOfPatternAsOperation(operations, "^\\s+", "");
             }
-            // match \r\n together to only replace it by one space
-            addReplacementOfPatternAsOperation(operations, "\\r?\\n|\\r", settings.m_replaceLinebreakStrategy);
-            addReplacementOfPatternAsOperation(operations, "[\\s&&[^ \\r\\n]]",
-                settings.m_replaceSpecialWhitespaceStrategy);
+            if (settings.m_removeTrailingWhitespace) {
+                addReplacementOfPatternAsOperation(operations, "\\s+$", "");
+            }
             if (settings.m_removeDuplicateWhitespace) {
                 // replace multiple
                 addReplacementOfPatternAsOperation(operations, "\\s{2,}",
                     r -> getReplacementForDuplicateWhitespace(r.group()));
             }
-            if (settings.m_removeTrailingWhitespace) {
-                addReplacementOfPatternAsOperation(operations, "\\s+$", "");
-            }
+            // match \r\n together to only replace it by one space
+            addReplacementOfPatternAsOperation(operations, "\\r?\\n|\\r", settings.m_replaceLinebreakStrategy);
+            addReplacementOfPatternAsOperation(operations, "[\\s&&[^ \\r\\n]]",
+                settings.m_replaceSpecialWhitespaceStrategy);
         }
     }
 

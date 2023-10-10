@@ -231,7 +231,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Remove all whitespace", description = """
             If enabled, all whitespace is removed. \
-            This includes normal space ( ), line breaks (\r\n), tabulators (\t) and all other whitespace.
+            This includes normal space ( ), line breaks (\\r\\n), tabulators (\\t) and all other whitespace.
             """)
     @Layout(DialogLayout.Whitespace.class)
     @Signal(id = Signals.RemoveAllWhitespace.class, condition = TrueCondition.class)
@@ -244,6 +244,22 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Layout(DialogLayout.Whitespace.class)
     @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
     boolean m_removeLeadingWhitespace = true;
+
+    @Widget(title = "Remove trailing whitespace", description = """
+            If enabled, trailing whitespace is removed, that is, all whitespace from the last non-whitespace character \
+            to the end of the string.
+            """)
+    @Layout(DialogLayout.Whitespace.class)
+    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
+    boolean m_removeTrailingWhitespace = true;
+
+    @Widget(title = "Remove duplicate whitespace", description = """
+            If selected, all occurrences of two or more whitespace characters in a row are replaced by a single \
+            standard space.
+            """)
+    @Layout(DialogLayout.Whitespace.class)
+    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
+    boolean m_removeDuplicateWhitespace = true;
 
     enum ReplaceWithOption {
             @Label("Remove")
@@ -272,21 +288,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
     ReplaceWithOption m_replaceSpecialWhitespaceStrategy = ReplaceWithOption.REPLACE_WITH_STANDARDSPACE;
 
-    @Widget(title = "Remove duplicate whitespace", description = """
-            If selected, all occurrences of two or more whitespace characters in a row are replaced by a single \
-            standard space.
-            """)
-    @Layout(DialogLayout.Whitespace.class)
-    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
-    boolean m_removeDuplicateWhitespace = true;
 
-    @Widget(title = "Remove trailing whitespace", description = """
-            If enabled, trailing whitespace is removed, that is, all whitespace from the last non-whitespace character \
-            to the end of the string.
-            """)
-    @Layout(DialogLayout.Whitespace.class)
-    @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
-    boolean m_removeTrailingWhitespace = true;
 
     enum ChangeCasingOption {
             @Label("UPPERCASE")
