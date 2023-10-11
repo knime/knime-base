@@ -62,12 +62,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
  */
 @SuppressWarnings("restriction")
 public enum CaseMatching {
-        /** Disregard case when matching strings. */
-        @Label("Case insensitive")
-        CASEINSENSITIVE, //
         /** Respect case when matching strings. */
         @Label("Case sensitive")
-        CASESENSITIVE;
+        CASESENSITIVE, //
+        /** Disregard case when matching strings. */
+        @Label("Case insensitive")
+        CASEINSENSITIVE;
 
     /** Recommended default setting. */
     public static final CaseMatching DEFAULT = CASESENSITIVE;

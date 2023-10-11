@@ -85,7 +85,7 @@ public class StringReplacerSettings {
 
     static final String CFG_CASE_SENSITIVE = "caseSensitive";
 
-    private boolean m_caseSensitive;
+    private boolean m_caseSensitive = CaseMatching.DEFAULT == CaseMatching.CASESENSITIVE;
 
     private String m_colName;
 
