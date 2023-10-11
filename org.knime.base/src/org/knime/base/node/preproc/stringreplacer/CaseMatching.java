@@ -70,7 +70,7 @@ public enum CaseMatching {
         CASESENSITIVE;
 
     /** Recommended default setting. */
-    public static final CaseMatching DEFAULT = CASEINSENSITIVE;
+    public static final CaseMatching DEFAULT = CASESENSITIVE;
 
     /** Displayed in dialogs as title for controls. */
     public static final String OPTION_NAME = "Case sensitive";
