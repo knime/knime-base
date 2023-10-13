@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
+import java.util.function.UnaryOperator;
 
 import org.knime.base.data.aggregation.ColumnAggregator;
 import org.knime.base.data.aggregation.GlobalSettings;
@@ -66,8 +67,10 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeLogger.LEVEL;
+import org.knime.core.util.valueformat.NumberFormatter;
 
 
 /**
@@ -212,12 +215,13 @@ public class BigGroupByTable extends GroupByTable {
             }
         }
 
-        exec.setMessage("Creating groups");
-        final var groupIDCounter = new AtomicLong();
-
-        var firstRow = true;
+        final var processedRows = new AtomicLong();
         final long tableSize = table.size();
-        long processedRows = 0;
+        final var fractionBuilder = progressFractionBuilder(processedRows::get, tableSize);
+        exec.setMessage(() -> fractionBuilder.apply(new StringBuilder("Creating groups (row ")).append(")").toString());
+
+        final var groupIDCounter = new AtomicLong();
+        var firstRow = true;
         // In the rare case that the DataCell comparator return 0 for two data cells that are not equal we have to
         // maintain a map with all rows with equal cells in the group columns per chunk. This variable stores for each
         // chunk these members. A chunk consists of rows which return 0 for the pairwise group value comparison.
@@ -290,13 +294,14 @@ public class BigGroupByTable extends GroupByTable {
                 group.updateAggregates(row);
 
                 groupExec.checkCanceled();
-                processedRows++;
-                groupExec.setProgress(1d * processedRows / tableSize, groupLabel);
+                final var processed = processedRows.incrementAndGet();
+                groupExec.setProgress(1d * processed / tableSize, groupLabel);
             }
         }
 
         //create the final row for the last chunk after processing the last table row
         addAggregateRows(dc, groupIDCounter::getAndIncrement, chunkMembers, appendRowCountColumn);
+        groupExec.setProgress(1.0, (String)null);
     }
 
     /**
@@ -367,5 +372,36 @@ public class BigGroupByTable extends GroupByTable {
             }
         }
         return true;
+    }
+
+
+    // TODO The following code is copied from `AbstractTableSorter` and should be moved to a better place
+
+    /**
+     * Creates a function that adds a nicely formatted, padded fraction of the form {@code " 173/2065"} to a given
+     * {@link StringBuilder} that reflects the current value of the given supplier {@code currentValue}. The padding
+     * with space characters tries to minimize jumping in the UI.
+     *
+     * @param currentValue supplier for the current numerator
+     * @param total fixed denominator
+     * @return function that modified the given {@link StringBuilder} and returns it for convenience
+     */
+    private static UnaryOperator<StringBuilder> progressFractionBuilder(final LongSupplier currentValue,
+            final long total) {
+        try {
+            // only computed once
+            final var numFormat = NumberFormatter.builder().setGroupSeparator(",").build();
+            final var totalStr = numFormat.format(total);
+            final var paddingStr = totalStr.replaceAll("\\d", "\u2007").replace(',', ' '); // NOSONAR
+
+            return sb -> {
+                // computed every time a progress message is requested
+                final var currentStr = numFormat.format(currentValue.getAsLong());
+                final var padding = paddingStr.substring(0, Math.max(totalStr.length() - currentStr.length(), 0));
+                return sb.append(padding).append(currentStr).append("/").append(totalStr);
+            };
+        } catch (InvalidSettingsException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }
