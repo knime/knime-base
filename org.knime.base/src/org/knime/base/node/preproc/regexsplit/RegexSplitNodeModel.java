@@ -47,254 +47,358 @@
  */
 package org.knime.base.node.preproc.regexsplit;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
+import org.knime.base.node.preproc.regexsplit.CaptureGroupParser.CaptureGroup;
+import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.OutputGroupLabelMode;
+import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.OutputMode;
+import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.SingleOutputColumnMode;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataTableSpecCreator;
 import org.knime.core.data.DataType;
+import org.knime.core.data.RowKey;
 import org.knime.core.data.StringValue;
-import org.knime.core.data.container.AbstractCellFactory;
+import org.knime.core.data.collection.ListCell;
+import org.knime.core.data.collection.SetCell;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionWithInternalsNodeModel;
-import org.knime.core.node.streamable.simple.SimpleStreamableOperatorInternals;
+import org.knime.core.node.KNIMEException;
+import org.knime.core.node.KNIMEException.KNIMERuntimeException;
+import org.knime.core.node.message.Message;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.streamable.BufferedDataTableRowOutput;
+import org.knime.core.node.streamable.DataTableRowInput;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.OutputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.PortInput;
+import org.knime.core.node.streamable.PortOutput;
+import org.knime.core.node.streamable.RowInput;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
+ * Implementation of the String Splitter (Regex) (formerly known as Regex Split)
  *
  * @author wiswedel, University of Konstanz
+ * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-final class RegexSplitNodeModel extends SimpleStreamableFunctionWithInternalsNodeModel<SimpleStreamableOperatorInternals> {
+@SuppressWarnings("restriction")
+final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
 
-    private RegexSplitSettings m_settings;
+    /** TODO: Get rid of this once UIEXT-722 is merged This is currently only needed to support streaming execution. */
+    private RegexSplitNodeSettings m_settings;
 
-    private static final String CONFIG_KEY_ERRORCOUNT = "errorcount";
-
-    /**
-     * @param cl
-     */
-    public RegexSplitNodeModel() {
-        super(SimpleStreamableOperatorInternals.class);
-    }
-
-
-    /** {@inheritDoc} */
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-        ColumnRearranger rearranger =
-            createColumnRearranger(inSpecs[0]);
-        return new DataTableSpec[]{rearranger.createSpec()};
-    }
-    
-    /** {@inheritDoc} */
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
-        SimpleStreamableOperatorInternals internals = createStreamingOperatorInternals();
-        ColumnRearranger rearranger = createColumnRearranger(inData[0].getSpec(), internals);
-        BufferedDataTable t = exec.createColumnRearrangeTable(
-                inData[0], rearranger, exec);
-        warningMessage(internals);
-        return new BufferedDataTable[]{t};
-    }
-
-    private void warningMessage(final SimpleStreamableOperatorInternals internals) {
-        if (internals.getConfig().containsKey(CONFIG_KEY_ERRORCOUNT)) {
-            int errorCount = 0;
-            try {
-                errorCount = internals.getConfig().getInt(CONFIG_KEY_ERRORCOUNT);
-            } catch (InvalidSettingsException e) {
-                // no error count
-            }
-            if (errorCount > 0) {
-                setWarningMessage(errorCount + " input string(s) did not match the "
-                    + "pattern or contained more groups than expected");
-            }
-        }
+    RegexSplitNodeModel(final WebUINodeConfiguration cfg) {
+        super(cfg, RegexSplitNodeSettings.class);
     }
 
     @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec, final SimpleStreamableOperatorInternals internals)
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final RegexSplitNodeSettings settings)
         throws InvalidSettingsException {
-        AtomicInteger errorCounter = new AtomicInteger();
-        if (m_settings == null) {
-            throw new InvalidSettingsException("Not configuration available.");
+        m_settings = settings; // TODO remove once UIEXT-722 is merged
+        if (settings.m_column == null) {
+            throw new InvalidSettingsException("No input column selected.");
         }
-        final int colIndex = spec.findColumnIndex(m_settings.getColumn());
-        if (colIndex < 0) {
-            throw new InvalidSettingsException("No such column in input table: "
-                    + m_settings.getColumn());
-        }
-        DataColumnSpec colSpec = spec.getColumnSpec(colIndex);
-        if (!colSpec.getType().isCompatible(StringValue.class)) {
-            throw new InvalidSettingsException("Selected column does not " 
-                    + "contain strings");
-        }
-        final Pattern p = m_settings.compile();
-        int count = 0;
-        String patternS = p.pattern();
-        boolean isNextSpecial = false;
-        boolean isPreviousAParenthesis = false;
-        // count openening parentheses to get group count, ignore
-        // escaped parentheses "\(" or non-capturing groups "(?"
-        for (int i = 0; i < patternS.length(); i++) {
-            switch (patternS.charAt(i)) {
-            case '\\': 
-                isNextSpecial = !isNextSpecial;
-                isPreviousAParenthesis = false;
-                break;
-            case '(' :
-                count += isNextSpecial ? 0 : 1;
-                isPreviousAParenthesis = !isNextSpecial;
-                isNextSpecial = false;
-                break;
-            case '?':
-                if (isPreviousAParenthesis) {
-                    count -= 1;
-                }
-                // no break;
-            default : 
-                isNextSpecial = false;
-                isPreviousAParenthesis = false;
-            }
-        }
-        final int newColCount = count;
-        final DataColumnSpec[] newColSpecs = new DataColumnSpec[count];
-        for (int i = 0; i < newColCount; i++) {
-            String name = DataTableSpec.getUniqueColumnName(spec, "split_" + i);
-            newColSpecs[i] = new DataColumnSpecCreator(
-                    name, StringCell.TYPE).createSpec();
-        }
-        ColumnRearranger rearranger = new ColumnRearranger(spec);
-        rearranger.append(new AbstractCellFactory(newColSpecs) {
-            /** {@inheritDoc} */
-            @Override
-            public DataCell[] getCells(final DataRow row) {
-                DataCell[] result = new DataCell[newColCount];
-                Arrays.fill(result, DataType.getMissingCell());
-                DataCell c = row.getCell(colIndex);
-                if (c.isMissing()) {
-                    return result;
-                }
-                String s = ((StringValue)c).getStringValue();
-                Matcher m = p.matcher(s);
-                if (m.matches()) {
-                    int max = m.groupCount();
-                    if (m.groupCount() > newColCount) {
-                        errorCounter.incrementAndGet();
-                        max = newColCount;
-                    }
-                    for (int i = 0; i < max; i++) {
-                        // group(0) will return the entire string and is not
-                        // included in groupCount, see Matcher API for details
-                        String str = m.group(i + 1);
-                        if (str != null) { // null for optional groups "(...)?"
-                            result[i] = new StringCell(str); 
-                        }
-                    }
-                    return result;
-                } else {
-                    errorCounter.incrementAndGet();
-                    return result;
-                }
-            }
+        final var outputSpec = switch (settings.m_outputMode) {
+            case COLUMNS, LIST, SET -> createColumnRearranger(settings, inSpecs[0], this::setWarning).createSpec();
+            case ROWS -> createTableSpecForRowOutput(settings, inSpecs[0]);
+        };
+        return new DataTableSpec[]{outputSpec};
+    }
 
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void afterProcessing() {
-                //propagate error count
-                internals.getConfig().addInt(CONFIG_KEY_ERRORCOUNT, errorCounter.get());
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final RegexSplitNodeSettings settings) throws Exception {
+        final BufferedDataTable table = switch (settings.m_outputMode) {
+            case COLUMNS, LIST, SET -> exec.createColumnRearrangeTable(inData[0],
+                createColumnRearranger(settings, inData[0].getDataTableSpec(), this::setWarning), exec);
+            case ROWS -> createRowOutputTable(inData[0], exec, settings);
+        };
+        return new BufferedDataTable[]{table};
+    }
+
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        // TODO once UIEXT-722 is merged, change signature and refactor settings to use the settings that are passed as
+        // an argument
+        final var spec = (DataTableSpec)inSpecs[0]; // safe to assume, see javadoc
+        return switch (m_settings.m_outputMode) {
+            case COLUMNS, LIST, SET -> createColumnRearranger(m_settings, spec, this::setWarning)
+                .createStreamableFunction(0, 0);
+            case ROWS -> createStreamableOperatorForRowOutput(m_settings, spec, this::setWarning);
+        };
+    }
+
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
+    }
+
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+    }
+
+    @Override
+    protected void validateSettings(final RegexSplitNodeSettings settings) throws InvalidSettingsException {
+        RegexSplitter.fromSettings(settings); // might throw
+    }
+
+    // ##################################
+    // ### COLUMN / COLLECTION OUTPUT ###
+    // ##################################
+
+    private static ColumnRearranger createColumnRearranger(final RegexSplitNodeSettings settings,
+        final DataTableSpec inputTableSpec, final Consumer<Message> warningConsumer) throws InvalidSettingsException {
+        final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings.m_column);
+        final var rearranger = new ColumnRearranger(inputTableSpec);
+        final var splitter = RegexSplitter.fromSettings(settings);
+        if (settings.m_outputMode == OutputMode.COLUMNS) {
+            if (settings.m_removeInputColumn) {
+                rearranger.remove(inputColumnIndex);
             }
-        });
+            final var newColumns = createNewColumnSpecsForMultiColumnOutput(settings, rearranger, splitter);
+            final var factory =
+                new RegexSplitResultCellFactory(newColumns, inputColumnIndex, settings, splitter, warningConsumer);
+            rearranger.append(factory);
+        } else if (settings.m_outputMode == OutputMode.LIST || settings.m_outputMode == OutputMode.SET) {
+            final DataColumnSpec spec = createNewColumnSpecForSingleColumnOutput(settings, inputTableSpec);
+            final var factory = new RegexSplitResultCellFactory(new DataColumnSpec[]{spec}, inputColumnIndex, settings,
+                splitter, warningConsumer);
+            switch (settings.m_singleOutputColumnMode) {//NOSONAR: No, an if-statement is not more readable here
+                case APPEND -> rearranger.append(factory);
+                case REPLACE -> rearranger.replace(factory, inputColumnIndex);
+            }
+        }
         return rearranger;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected SimpleStreamableOperatorInternals
-        mergeStreamingOperatorInternals(final SimpleStreamableOperatorInternals[] operatorInternals) {
-        int errorCount = 0;
-        for (int i = 0; i < operatorInternals.length; i++) {
-            try {
-                errorCount+=operatorInternals[i].getConfig().getInt(CONFIG_KEY_ERRORCOUNT);
-            } catch (InvalidSettingsException e) {
-                //should not happen since the error count config should be set every time even though its 0
-                throw new RuntimeException(e);
+    // ##################
+    // ### ROW OUTPUT ###
+    // ##################
+
+    private static DataTableSpec createTableSpecForRowOutput(final RegexSplitNodeSettings settings,
+        final DataTableSpec inSpec) throws InvalidSettingsException {
+        final var cSpec = createNewColumnSpecForSingleColumnOutput(settings, inSpec);
+        final var creator = new DataTableSpecCreator(inSpec);
+        switch (settings.m_singleOutputColumnMode) { //NOSONAR: switch is more explicit than if
+            case APPEND -> creator.addColumns(cSpec);
+            case REPLACE -> {
+                creator.dropAllColumns();
+                creator.addColumns(inSpec.stream().map(c -> c.getName().equals(settings.m_column) ? cSpec : c)
+                    .toArray(DataColumnSpec[]::new));
             }
         }
-        SimpleStreamableOperatorInternals res = new SimpleStreamableOperatorInternals();
-        res.getConfig().addInt(CONFIG_KEY_ERRORCOUNT, errorCount);
-        return res;
+        return creator.createSpec();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void finishStreamableExecution(final SimpleStreamableOperatorInternals operatorInternals) {
-        warningMessage(operatorInternals);
+    private static StreamableOperator createStreamableOperatorForRowOutput(final RegexSplitNodeSettings settings,
+        final DataTableSpec inSpec, final Consumer<Message> warningConsumer) {
+        return new StreamableOperator() {
+            @Override
+            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                throws Exception {
+                RowInput input = (RowInput)inputs[0];
+                RowOutput output = (RowOutput)outputs[0];
+                produceRows(settings, input, output, exec, -1, inSpec, warningConsumer);
+                input.close();
+                output.close();
+            }
+        };
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected void reset() {
+    private BufferedDataTable createRowOutputTable(final BufferedDataTable inputTable, final ExecutionContext exec,
+        final RegexSplitNodeSettings settings)
+        throws InvalidSettingsException, CanceledExecutionException, InterruptedException {
+        final var dc = exec.createDataContainer(createTableSpecForRowOutput(settings, inputTable.getSpec()));
+        if (inputTable.size() == 0) {
+            dc.close();
+            return dc.getTable();
+        }
+        final var in = new DataTableRowInput(inputTable);
+        final var out = new BufferedDataTableRowOutput(dc);
+        try {
+            produceRows(settings, in, out, exec, inputTable.size(), inputTable.getDataTableSpec(), this::setWarning);
+        } finally {
+            in.close();
+            out.close();
+        }
+        return out.getDataTable();
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        RegexSplitSettings s = new RegexSplitSettings();
-        s.loadSettingsInModel(settings);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        m_settings = new RegexSplitSettings();
-        m_settings.loadSettingsInModel(settings);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        if (m_settings != null) {
-            m_settings.saveSettingsTo(settings);
+    private static void produceRows(final RegexSplitNodeSettings settings, final RowInput input, final RowOutput output,
+        final ExecutionContext exec, final long n, final DataTableSpec inSpec, final Consumer<Message> warningConsumer)
+        throws CanceledExecutionException, InterruptedException, InvalidSettingsException {
+        final var inputColumnIndex = getInputColumnIndex(inSpec, settings.m_column);
+        final var splitter = RegexSplitter.fromSettings(settings);
+        final var rowIDSuffixes = getOutputGroupLabels(settings, splitter);
+        CheckUtils.checkState(splitter.getCaptureGroups().size() == rowIDSuffixes.length,
+            "There were more or less capture groups than row id suffixes.");
+        final var newSpecs = new DataColumnSpec[splitter.getCaptureGroups().size()];
+        Arrays.fill(newSpecs, createNewColumnSpecForSingleColumnOutput(settings, inSpec));
+        final var factory =
+            new RegexSplitResultCellFactory(newSpecs, inputColumnIndex, settings, splitter, warningConsumer);
+        var counter = 0L;
+        DataRow row;
+        while ((row = input.poll()) != null) {
+            counter++;
+            exec.checkCanceled();
+            if (n > 0 && counter % (n / 100 + 1) == 0) { // occasionally update the progress
+                exec.setProgress(counter / (double)n, "Processing row " + counter + " of " + n);
+            }
+            final var matches = factory.getCells(row, counter);
+            var innerCounter = 0; // used to find row ID suffix
+            for (final var match : matches) {
+                final DataCell[] cells;
+                if (settings.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
+                    cells = Arrays.copyOf(row.stream().toArray(DataCell[]::new), row.getNumCells() + 1);
+                    cells[cells.length - 1] = match;
+                } else { // replace
+                    cells = Arrays.copyOf(row.stream().toArray(DataCell[]::new), row.getNumCells());
+                    cells[inputColumnIndex] = match;
+                }
+                final var newKey = new RowKey(row.getKey() + "_" + rowIDSuffixes[innerCounter]);
+                output.push(new DefaultRow(newKey, cells));
+                innerCounter++;
+            }
         }
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    // ####################
+    // ### CREATE SPECS ###
+    // ####################
+
+    private static DataColumnSpec[] createNewColumnSpecsForMultiColumnOutput(final RegexSplitNodeSettings settings,
+        final ColumnRearranger rearranger, final RegexSplitter splitter) throws KNIMERuntimeException {
+        final var newColumns = new DataColumnSpec[splitter.getCaptureGroups().size()];
+        final var newColPrefix = switch (settings.m_columnPrefixMode) {
+            case NONE -> "";
+            case INPUT_COL_NAME -> settings.m_column + " ";
+            case CUSTOM -> settings.m_columnPrefix;
+        };
+        final var suffixes = getOutputGroupLabels(settings, splitter);
+        final var outSpec = rearranger.createSpec();
+
+        for (var g : splitter.getCaptureGroups()) {
+            var name = newColPrefix + suffixes[g.index() - 1];
+            name = DataTableSpec.getUniqueColumnName(outSpec, name);
+            newColumns[g.index() - 1] = new DataColumnSpecCreator(name, StringCell.TYPE).createSpec();
+        }
+
+        return newColumns;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    private static DataColumnSpec createNewColumnSpecForSingleColumnOutput(final RegexSplitNodeSettings settings,
+        final DataTableSpec inputTableSpec) throws InvalidSettingsException {
+        final DataType outputColumnType = switch (settings.m_outputMode) {
+            case LIST -> ListCell.getCollectionType(StringCell.TYPE);
+            case SET -> SetCell.getCollectionType(StringCell.TYPE);
+            case ROWS -> StringCell.TYPE;
+            default -> throw new IllegalArgumentException(
+                "For output mode COLUMNS, please use #createNewColumnSpecsForColumnOutput");
+        };
+        final DataColumnSpecCreator sc;
+        if (settings.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
+            final var name = DataTableSpec.getUniqueColumnName(inputTableSpec, settings.m_outputColumnName);
+            sc = new DataColumnSpecCreator(name, outputColumnType);
+        } else {
+            final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings.m_column);
+            final var inputColumnSpec = inputTableSpec.getColumnSpec(inputColumnIndex);
+            sc = new DataColumnSpecCreator(inputColumnSpec);
+            sc.setType(outputColumnType);
+            sc.setDomain(null);
+        }
+        if (settings.m_outputMode.isCollection()) {
+            sc.setElementNames(getOutputGroupLabels(settings, RegexSplitter.fromSettings(settings)));
+        }
+        return sc.createSpec();
+    }
+
+    // ###############
+    // ### HELPERS ###
+    // ###############
+
+    private static String getGroupLabel(final RegexSplitNodeSettings settings, final CaptureGroup g) {
+        return g.name().orElse(String.valueOf(settings.m_decrementGroupIndexByOne ? (g.index() - 1) : g.index()));
+    }
+
+    /**
+     * Generate suffixes for column names / row IDs. The output does not contain duplicates nor blank strings nor null.
+     *
+     * @param settings The settings instance of the node
+     * @param splitter The already-initialised {@link RegexSplitter}.
+     * @return An array of suffixes that are unique, non-blank and not null.
+     */
+    private static String[] getOutputGroupLabels(final RegexSplitNodeSettings settings, final RegexSplitter splitter) {
+        if (settings.m_outputGroupLabels == OutputGroupLabelMode.CAPTURE_GROUP_NAMES) {
+            return splitter.getCaptureGroups().stream().map(g -> getGroupLabel(settings, g)).toArray(String[]::new);
+        } else {
+            return ensureUnique( // The output array should not contain duplicate strings
+                splitter.apply(settings.m_column)
+                    .orElseThrow(() -> KNIMEException
+                        .of(Message.fromSummary("The pattern does not match the input column name, "
+                            + "but the node is configured to split the input column name to get the suffixes."))
+                        .toUnchecked()) //
+                    .stream().map(r -> r // r might be empty (because the capture group was optional) or blank
+                        .filter(StringUtils::isNotBlank) // Filter out blank matches (e.g. "")
+                        .orElseThrow(() -> KNIMEException
+                            .of(Message.fromSummary("When matching the pattern to the input column name, "
+                                + "one or more (optional) capture groups were not present or blank."))
+                            .toUnchecked()))
+                    .toArray(String[]::new)) // The output of ensureUnique(T[]) is empty, if we have duplicates
+                        .orElseThrow(() -> KNIMEException
+                            .of(Message.fromSummary("When matching the pattern to the input column name, "
+                                + "two or more (optional) capture groups contained the same string. "
+                                + "Please ensure that splitting the input column name produces unique identifiers."))
+                            .toUnchecked());
+        }
+    }
+
+    private static int getInputColumnIndex(final DataTableSpec tableSpec, final String name)
+        throws InvalidSettingsException {
+        final var inputColumnIndex = tableSpec.findColumnIndex(name);
+        CheckUtils.checkSetting(inputColumnIndex >= 0, "No such column in input table: %s", name);
+        CheckUtils.checkSetting(tableSpec.getColumnSpec(inputColumnIndex).getType().isCompatible(StringValue.class),
+            "Selected column does not contain strings");
+        return inputColumnIndex;
+    }
+
+    /**
+     * Checks whether an array (without null entries) contains only distinct values (as per
+     * {@link Object#equals(Object)}.
+     *
+     * @param <T> The type of the array elements
+     * @param arr The array to check
+     * @return The input array wrapped in an {@link Optional}, if the array only has unique entries, or
+     *         {@link Optional#empty()} if a duplicate has been found.
+     */
+    private static <T> Optional<T[]> ensureUnique(final T[] arr) {
+        for (var i = 0; i < arr.length; ++i) {
+            for (var j = i + 1; j < arr.length; ++j) {
+                if (Objects.requireNonNull(arr[i]).equals(arr[j])) {
+                    return Optional.empty();
+                }
+            }
+        }
+        return Optional.of(arr);
     }
 
 }
