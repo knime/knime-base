@@ -243,7 +243,12 @@ public class GroupByNodeModel extends NodeModel {
     static final String CFG_PATTERN_AGGREGATORS = "patternAggregators";
 
     private final SettingsModelFilterString m_groupByCols =
-        new SettingsModelFilterString(CFG_GROUP_BY_COLUMNS);
+        createGroupByColsSettings();
+
+    static SettingsModelFilterString createGroupByColsSettings() {
+        return new SettingsModelFilterString(CFG_GROUP_BY_COLUMNS);
+    }
+
 
     private final SettingsModelIntegerBounded m_maxUniqueValues =
         new SettingsModelIntegerBounded(CFG_MAX_UNIQUE_VALUES, 10000, 1, Integer.MAX_VALUE);
@@ -390,7 +395,7 @@ public class GroupByNodeModel extends NodeModel {
             throws InvalidSettingsException {
         m_groupByCols.validateSettings(settings);
         // FIX bug 5040: potential problem with clone settings method when in-/exclude list contain same elements
-        final SettingsModelFilterString tmpSett = new SettingsModelFilterString(CFG_GROUP_BY_COLUMNS);
+        final SettingsModelFilterString tmpSett = createGroupByColsSettings();
         tmpSett.loadSettingsFrom(settings);
         final List<String> groupByCols = tmpSett.getIncludeList();
         m_maxUniqueValues.validateSettings(settings);

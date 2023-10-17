@@ -104,8 +104,7 @@ public class GroupByNodeDialog extends NodeDialogPane {
 
     private final JTabbedPane m_tabs;
 
-    private final SettingsModelFilterString m_groupByCols =
-        new SettingsModelFilterString(GroupByNodeModel.CFG_GROUP_BY_COLUMNS);
+    private final SettingsModelFilterString m_groupByCols = GroupByNodeModel.createGroupByColsSettings();
 
     private final SettingsModelIntegerBounded m_maxUniqueValues =
         new SettingsModelIntegerBounded(GroupByNodeModel.CFG_MAX_UNIQUE_VALUES, 10000, 1, Integer.MAX_VALUE);
