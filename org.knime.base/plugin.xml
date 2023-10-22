@@ -2703,4 +2703,16 @@
               formatterClass="org.knime.base.node.viz.format.string.StringFormatter">
         </formatter>
      </extension>
+     <extension
+           point="org.knime.core.NodeFunc">
+        <nodeFunc
+              impl="org.knime.base.node.preproc.groupby.GroupByNodeFunc">
+        </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.append.row.AppendRowsNodeFunc">
+        </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.joiner3.JoinerNodeFunc">
+        </nodeFunc>
+     </extension>
 </plugin>
