@@ -49,17 +49,22 @@ package org.knime.base.node.flowcontrol.sleep;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.nio.file.Files;
 import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.util.Calendar;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
+import java.util.function.LongConsumer;
+import java.util.function.Supplier;
 
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -74,12 +79,13 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.util.FileUtil;
+import org.knime.core.util.valueformat.NumberFormatter;
 
 /**
- * A simple breakpoint node which allows to halt execution when a certain condition on the input table is fulfilled
- * (such as is-empty, is-inactive, is-active, ...).
+ * A simple node which waits for an amount of time or a (file-based) condition.
  *
  * @author M. Berthold, University of Konstanz
+ * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
  */
 public class SleepNodeModel extends NodeModel {
 
@@ -140,13 +146,14 @@ public class SleepNodeModel extends NodeModel {
      */
     public static final String CFGKEY_FILESTATUS = "file_status_to_observe";
 
-    private int m_toHours = 0;
+    /** Number of milliseconds to sleep between progress updates. Trade-off between progress frequency and CPU load. */
+    private static final long PROGRESS_SLEEP_MS = 100;
 
-    private int m_toMin = 0;
+    private int m_toHours;
 
-    private int m_toSec = 0;
+    private int m_toMin;
 
-    private long m_waittime = 0;
+    private int m_toSec;
 
     private int m_selection = WAIT_FOR_TIME; // initialized with default value
 
@@ -167,131 +174,144 @@ public class SleepNodeModel extends NodeModel {
         super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{FlowVariablePortObject.TYPE});
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_waittime = m_forSec * 1000 // seconds to milliseconds
-            + m_forMin * 60 * 1000 // minutes to milliseconds
-            + m_forHours * 60 * 60 * 1000; // hours to milliseconds
         return inSpecs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-
-        if (m_selection == WAIT_FOR_TIME) {
-            // wait for
-            exec.setMessage("Waiting for " + (m_waittime / 1000) + " seconds");
-            waitFor(m_waittime);
-        } else if (m_selection == WAIT_UNTIL_TIME) {
-            // wait to
-            final Calendar c = Calendar.getInstance();
-            c.set(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE), m_toHours, m_toMin, m_toSec);
-            if ((c.getTimeInMillis() - System.currentTimeMillis()) <= 0) {
-                c.add(Calendar.DAY_OF_YEAR, 1);
+        KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(() -> {
+            if (m_selection == WAIT_FOR_TIME) {
+                waitForTime(exec);
+            } else if (m_selection == WAIT_UNTIL_TIME) {
+                waitUntilTime(exec);
+            } else if (m_selection == WAIT_FILE) {
+                waitFile(exec);
             }
-            exec.setMessage("Waiting until " + c.getTime());
-            final long sleepTime = c.getTimeInMillis() - System.currentTimeMillis();
-            waitFor(sleepTime);
-        } else if (m_selection == WAIT_FILE) {
-            final Path p = FileUtil.resolveToPath(FileUtil.toURL(m_filePath));
-            if (p == null) {
-                throw new IllegalArgumentException("File location '" + m_filePath + "' is not a local file.");
-            }
-
-            // if we check for creation and the file already exists, we can return right away,
-            // else we need to wait
-            if (!(m_fileStatus.equals(CREATION) && p.toFile().exists())) {
-                try (WatchService w = FileSystems.getDefault().newWatchService()) {
-                    exec.setMessage("Waiting for file '" + p + "'");
-                    final Path fileName = p.subpath(p.getNameCount() - 1, p.getNameCount());
-                    final Path parent = p.getParent();
-                    Kind<Path> e = null;
-                    if (m_fileStatus.equals(CREATION)) {
-                        e = StandardWatchEventKinds.ENTRY_CREATE;
-                    } else if (m_fileStatus.equals(MODIFICATION)) {
-                        e = StandardWatchEventKinds.ENTRY_MODIFY;
-                    } else if (m_fileStatus.equals(DELETION)) {
-                        e = StandardWatchEventKinds.ENTRY_DELETE;
-                    } else {
-                        throw new RuntimeException(
-                            "Selected watchservice event is not available. Selected watchservice : " + m_fileStatus);
-                    }
-                    parent.register(w, e);
-
-                    waitUntil(fileName, w);
-                }
-            }
-        }
-
-        if (inData[0] == null) {
-            return new PortObject[]{FlowVariablePortObject.INSTANCE};
-        } else {
-            return inData;
-        }
+            return null;
+        });
+        return inData[0] != null ? inData : new PortObject[]{ FlowVariablePortObject.INSTANCE };
     }
 
-    private static void waitFor(final long delay) throws ExecutionException {
-        KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(() -> {
-            Thread.sleep(delay);
-            return null;
+    /**
+     * Wait for a specified amount of time.
+     */
+    private void waitForTime(final ExecutionMonitor exec)
+            throws InvalidSettingsException, InterruptedException, CanceledExecutionException {
+        // wait for
+        final var numFormat = NumberFormatter.builder().setGroupSeparator(",") //
+                .setMinimumDecimals(1) //
+                .setMaximumDecimals(1) //
+                .setAlwaysShowDecimalSeparator(true) //
+                .build();
+
+        final var ticker = new AtomicLong();
+        final var waitMS = 1000 * (60 * (60L * m_forHours + m_forMin) + m_forSec);
+        final var padder = paddedSeconds(numFormat, waitMS / 1000.0);
+        final var total = numFormat.format(waitMS / 1000.0);
+        exec.setMessage(() -> padder.apply(ticker.get() / 1000.0, new StringBuilder("Waited ")) //
+            .append('/').append(total).append(" seconds").toString());
+
+        waitFor(waitMS, exec, waited -> {
+            ticker.set(waited);
+            exec.setProgress(Math.min(1.0 * waited / waitMS, 1.0));
         });
     }
 
-    private static void waitUntil(final Path fileName, final WatchService w) throws ExecutionException {
-        final var submitter = new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                var keepLooking = true;
+    /**
+     * Wait until a specified point in time is reached.
+     */
+    private void waitUntilTime(final ExecutionMonitor exec) throws InterruptedException, CanceledExecutionException {
+        // wait to
+        var now = OffsetDateTime.now();
+        var targetTime = now.withHour(m_toHours).withMinute(m_toMin).withSecond(m_toSec);
+        if (targetTime.compareTo(now) < 0) {
+            // assume that the next day is meant
+            targetTime = targetTime.plusDays(1);
+        }
 
-                while (keepLooking) {
-                    // watch file until the event appears
-                    WatchKey key;
-                    // wait for a key to be available
-                    key = w.take();
+        final var displayTime = targetTime.truncatedTo(ChronoUnit.SECONDS);
+        exec.setMessage(() -> "Waiting until " + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(displayTime));
 
-                    for (final WatchEvent<?> event : key.pollEvents()) {
-                        if (fileName.equals(event.context())) {
-                            keepLooking = false;
-                        }
-                    }
+        final long sleepTime = targetTime.toInstant().toEpochMilli() - System.currentTimeMillis();
+        waitFor(sleepTime, exec, waited -> exec.setProgress(Math.min(1.0 * waited / sleepTime, 1.0)));
+    }
 
-                    // reset key
-                    final boolean valid = key.reset();
-                    if (!valid) {
-                        break;
-                    }
-                }
-                return null;
-            }
-        };
-        KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(submitter);
+    private static void waitFor(final long delay, final ExecutionMonitor exec, final LongConsumer waitedCallback)
+            throws InterruptedException, CanceledExecutionException {
+        final var t0 = System.currentTimeMillis();
+        var waited = 0L;
+        while (waited < delay) {
+            Thread.sleep(Math.min(delay - waited, PROGRESS_SLEEP_MS));
+            exec.checkCanceled();
+            waited = System.currentTimeMillis() - t0;
+            waitedCallback.accept(waited);
+        }
     }
 
     /**
-     * {@inheritDoc}
+     * Wait until a specific event (created/deleted/modified) is registered for a given file.
      */
+    private void waitFile(final ExecutionMonitor exec) // NOSONAR complex, but still OK
+            throws IOException, URISyntaxException, InterruptedException, CanceledExecutionException {
+        final var path = FileUtil.resolveToPath(FileUtil.toURL(m_filePath));
+        if (path == null) {
+            throw new IllegalArgumentException("File location '" + m_filePath + "' is not a local file.");
+        }
+
+        // if we check for creation and the file already exists, we can return right away, else we need to wait
+        if (m_fileStatus.equals(CREATION) && Files.exists(path)) {
+            return;
+        }
+
+        // `FileSystems.getDefault()` throws `UnsupportedOperationException` when closed on Windows!
+        try (@SuppressWarnings("resource") final var ws = FileSystems.getDefault().newWatchService()) {
+
+            final var elapsed = new AtomicLong();
+            final Supplier<String> message = () -> "Waiting for " + m_fileStatus.toLowerCase(Locale.US) + " of file '"
+                    + path + "', for " + DurationFormatUtils.formatDurationHMS(elapsed.get());
+            exec.setMessage(message);
+
+            final var eventKind = switch (m_fileStatus) {
+                case CREATION -> StandardWatchEventKinds.ENTRY_CREATE;
+                case MODIFICATION -> StandardWatchEventKinds.ENTRY_MODIFY;
+                case DELETION -> StandardWatchEventKinds.ENTRY_DELETE;
+                default -> throw new RuntimeException( // NOSONAR
+                    "Selected watchservice event is not available. Selected watchservice : " + m_fileStatus);
+            };
+            path.getParent().register(ws, eventKind);
+
+            final var fileName = path.subpath(path.getNameCount() - 1, path.getNameCount());
+            final var t0 = System.currentTimeMillis();
+            while (true) {
+                exec.checkCanceled();
+                elapsed.set(System.currentTimeMillis() - t0);
+                exec.setMessage(message); // notify the progress monitor of changes
+
+                WatchKey key = ws.poll(PROGRESS_SLEEP_MS, TimeUnit.MILLISECONDS);
+                if (key != null
+                        && (key.pollEvents().stream().anyMatch(e -> e.context().equals(fileName)) || !key.reset())) {
+                    // the even we've been waiting for has fired for the file we were watching
+                    break;
+                }
+            }
+        }
+    }
+
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // ignore
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final int selection = settings.getInt(CFGKEY_WAITOPTION);
+        final var selection = settings.getInt(CFGKEY_WAITOPTION);
 
-        int h = 0;
-        int m = 0;
-        int s = 0;
+        var h = 0;
+        var m = 0;
+        var s = 0;
         if (selection == WAIT_FOR_TIME) {
             h = settings.getInt(CFGKEY_FORHOURS);
             m = settings.getInt(CFGKEY_FORMINUTES);
@@ -307,19 +327,16 @@ public class SleepNodeModel extends NodeModel {
         } else if (0 > m && m > 59) {
             throw new InvalidSettingsException("Number of minutes must be between 0 and 59. Minutes = " + m + ".");
         } else if (0 > s && s > 59) {
-            throw new InvalidSettingsException("Number of seconds must be between 0 and 59. Secondss = " + s + ".");
+            throw new InvalidSettingsException("Number of seconds must be between 0 and 59. Seconds = " + s + ".");
         }
 
         if (selection == WAIT_FILE) {
-            final SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
+            final var sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
             sms.loadSettingsFrom(settings);
         }
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_selection = settings.getInt(CFGKEY_WAITOPTION);
@@ -334,32 +351,23 @@ public class SleepNodeModel extends NodeModel {
             m_toSec = settings.getInt(CFGKEY_TOSECONDS);
         } else if (m_selection == WAIT_FILE) {
             m_filePath = settings.getString(CFGKEY_FILEPATH);
-            final SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
+            final var sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
             sms.loadSettingsFrom(settings);
             m_fileStatus = sms.getStringValue();
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         // nothing to do
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
         // ignore -> no view
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         settings.addInt(CFGKEY_WAITOPTION, m_selection);
@@ -373,9 +381,20 @@ public class SleepNodeModel extends NodeModel {
         settings.addInt(CFGKEY_TOSECONDS, m_toSec);
 
         settings.addString(CFGKEY_FILEPATH, m_filePath);
-        final SettingsModelString sms = new SettingsModelString(CFGKEY_FILESTATUS, MODIFICATION);
+        final var sms = new SettingsModelString(CFGKEY_FILESTATUS, MODIFICATION);
         sms.setStringValue(m_fileStatus);
         sms.saveSettingsTo(settings);
     }
 
+    private static BiFunction<Double, StringBuilder, StringBuilder> paddedSeconds(final NumberFormatter formatter,
+            final double total) {
+        final var totalStr = formatter.format(total);
+        final var paddingStr = totalStr.replaceAll("\\d", "\u2007").replace(',', ' ').replace('.', ' '); // NOSONAR
+        return (secs, sb) -> {
+            // computed every time a progress message is requested
+            final var currentStr = formatter.format(secs);
+            final var padding = paddingStr.substring(0, Math.max(totalStr.length() - currentStr.length(), 0));
+            return sb.append(padding).append(currentStr);
+        };
+    }
 }
