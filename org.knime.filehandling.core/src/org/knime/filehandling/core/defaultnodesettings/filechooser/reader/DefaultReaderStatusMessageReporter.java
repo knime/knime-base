@@ -63,7 +63,7 @@ import org.knime.filehandling.core.defaultnodesettings.status.StatusMessageUtils
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DefaultReaderStatusMessageReporter implements StatusMessageReporter {
+public final class DefaultReaderStatusMessageReporter implements StatusMessageReporter {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DefaultReaderStatusMessageReporter.class);
 
@@ -74,7 +74,7 @@ final class DefaultReaderStatusMessageReporter implements StatusMessageReporter 
      *
      * @param settings the reader file chooser settings
      */
-    DefaultReaderStatusMessageReporter(final SettingsModelReaderFileChooser settings) {
+    public DefaultReaderStatusMessageReporter(final SettingsModelReaderFileChooser settings) {
         m_settings = settings;
     }
 
