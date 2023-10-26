@@ -41,57 +41,50 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   Sept 30, 2010 (mb): created
  */
 package org.knime.base.node.flowcontrol.sleep;
 
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.core.node.NodeDialogPane;
 
 
 /**
  * @author M. Berthold, University of Konstanz
  */
-public class SleepNodeFactory 
-    extends NodeFactory<SleepNodeModel> {
-    
+public class SleepNodeFactory extends NodeFactory<SleepNodeModel> {
+
     /** Create factory, that instantiates nodes.
      */
     public SleepNodeFactory() {
+        // wow, such empty
     }
 
-    /** {@inheritDoc} */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
         return new SleepNodeDialog();
     }
 
-    /** {@inheritDoc} */
     @Override
     public SleepNodeModel createNodeModel() {
         return new SleepNodeModel();
     }
 
-    /** {@inheritDoc} */
     @Override
-    public NodeView<SleepNodeModel> createNodeView(
-            final int index, final SleepNodeModel model) {
+    public NodeView<SleepNodeModel> createNodeView(final int index, final SleepNodeModel model) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
     }
-
 }

@@ -57,6 +57,7 @@ import java.nio.file.WatchKey;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -81,6 +82,8 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.util.FileUtil;
 import org.knime.core.util.valueformat.NumberFormatter;
 
+import com.google.common.base.Objects;
+
 /**
  * A simple node which waits for an amount of time or a (file-based) condition.
  *
@@ -89,65 +92,64 @@ import org.knime.core.util.valueformat.NumberFormatter;
  */
 public class SleepNodeModel extends NodeModel {
 
-    static final String DELETION = "Deletion";
+    enum WaitMode {
+        WAIT_FOR_TIME,
+        WAIT_UNTIL_TIME,
+        WAIT_FILE
+    }
 
-    static final String MODIFICATION = "Modification";
+    enum FileEvent {
+        DELETION("Deletion"),
+        MODIFICATION("Modification"),
+        CREATION("Creation");
 
-    static final String CREATION = "Creation";
+        private String m_description;
 
-    static final int WAIT_FOR_TIME = 0;
+        FileEvent(final String description) {
+            m_description = description;
+        }
 
-    static final int WAIT_UNTIL_TIME = 1;
+        String description() {
+            return m_description;
+        }
+    }
 
-    static final int WAIT_FILE = 2;
-
-    /**
-     * Wait for, wait to or wait for file.
-     */
+    /** Wait for, wait to or wait for file. */
     public static final String CFGKEY_WAITOPTION = "wait_option";
 
-    /**
-     * Hours to wait for.
-     */
+    /** Hours to wait for. */
     static final String CFGKEY_FORHOURS = "for_hours";
 
-    /**
-     * Minutes to wait for.
-     */
+    /** Minutes to wait for. */
     static final String CFGKEY_FORMINUTES = "for_minutes";
 
-    /**
-     * Seconds to wait for.
-     */
+    /** Seconds to wait for. */
     static final String CFGKEY_FORSECONDS = "for_seconds";
 
-    /**
-     * Hours to wait to.
-     */
+    /** Hours to wait to. */
     public static final String CFGKEY_TOHOURS = "to_hours";
 
-    /**
-     * Minutes to wait to.
-     */
+    /** Minutes to wait to. */
     public static final String CFGKEY_TOMINUTES = "to_min";
 
-    /**
-     * Seconds to wait to.
-     */
+    /** Seconds to wait to. */
     public static final String CFGKEY_TOSECONDS = "to_seconds";
 
-    /**
-     * Path to file to wait for.
-     */
+    /** Path to file to wait for. */
     public static final String CFGKEY_FILEPATH = "path_to_file";
 
-    /**
-     * File event to observe.
-     */
+    /** File event to observe. */
     public static final String CFGKEY_FILESTATUS = "file_status_to_observe";
 
     /** Number of milliseconds to sleep between progress updates. Trade-off between progress frequency and CPU load. */
     private static final long PROGRESS_SLEEP_MS = 100;
+
+
+    private WaitMode m_selection = WaitMode.WAIT_FOR_TIME; // initialized with default value
+
+    private FileEvent m_fileEvent;
+
+    private String m_filePath;
 
     private int m_toHours;
 
@@ -155,23 +157,15 @@ public class SleepNodeModel extends NodeModel {
 
     private int m_toSec;
 
-    private int m_selection = WAIT_FOR_TIME; // initialized with default value
-
-    private String m_fileStatus;
-
-    private String m_filePath;
-
     private int m_forHours;
 
     private int m_forMin;
 
     private int m_forSec;
 
-    /**
-     * One input, one output.
-     */
+    /** One input, one output. */
     protected SleepNodeModel() {
-        super(new PortType[]{FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{FlowVariablePortObject.TYPE});
+        super(new PortType[]{ FlowVariablePortObject.TYPE_OPTIONAL}, new PortType[]{FlowVariablePortObject.TYPE });
     }
 
     @Override
@@ -182,12 +176,10 @@ public class SleepNodeModel extends NodeModel {
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
         KNIMEConstants.GLOBAL_THREAD_POOL.runInvisible(() -> {
-            if (m_selection == WAIT_FOR_TIME) {
-                waitForTime(exec);
-            } else if (m_selection == WAIT_UNTIL_TIME) {
-                waitUntilTime(exec);
-            } else if (m_selection == WAIT_FILE) {
-                waitFile(exec);
+            switch (m_selection) {
+                case WAIT_FOR_TIME   -> waitForTime(exec);
+                case WAIT_UNTIL_TIME -> waitUntilTime(exec);
+                case WAIT_FILE       -> waitFile(exec);
             }
             return null;
         });
@@ -261,7 +253,7 @@ public class SleepNodeModel extends NodeModel {
         }
 
         // if we check for creation and the file already exists, we can return right away, else we need to wait
-        if (m_fileStatus.equals(CREATION) && Files.exists(path)) {
+        if (m_fileEvent == FileEvent.CREATION && Files.exists(path)) {
             return;
         }
 
@@ -269,20 +261,18 @@ public class SleepNodeModel extends NodeModel {
         try (@SuppressWarnings("resource") final var ws = FileSystems.getDefault().newWatchService()) {
 
             final var elapsed = new AtomicLong();
-            final Supplier<String> message = () -> "Waiting for " + m_fileStatus.toLowerCase(Locale.US) + " of file '"
-                    + path + "', for " + DurationFormatUtils.formatDurationHMS(elapsed.get());
+            final Supplier<String> message = () -> "Waiting for " + m_fileEvent.name().toLowerCase(Locale.US)
+                    + " of file '" + path + "', for " + DurationFormatUtils.formatDurationHMS(elapsed.get());
             exec.setMessage(message);
 
-            final var eventKind = switch (m_fileStatus) {
+            final var eventKind = switch (m_fileEvent) {
                 case CREATION -> StandardWatchEventKinds.ENTRY_CREATE;
                 case MODIFICATION -> StandardWatchEventKinds.ENTRY_MODIFY;
                 case DELETION -> StandardWatchEventKinds.ENTRY_DELETE;
-                default -> throw new RuntimeException( // NOSONAR
-                    "Selected watchservice event is not available. Selected watchservice : " + m_fileStatus);
             };
             path.getParent().register(ws, eventKind);
 
-            final var fileName = path.subpath(path.getNameCount() - 1, path.getNameCount());
+            final var fileName = path.getFileName();
             final var t0 = System.currentTimeMillis();
             while (true) {
                 exec.checkCanceled();
@@ -290,8 +280,8 @@ public class SleepNodeModel extends NodeModel {
                 exec.setMessage(message); // notify the progress monitor of changes
 
                 WatchKey key = ws.poll(PROGRESS_SLEEP_MS, TimeUnit.MILLISECONDS);
-                if (key != null
-                        && (key.pollEvents().stream().anyMatch(e -> e.context().equals(fileName)) || !key.reset())) {
+                if (key != null && (key.pollEvents().stream().anyMatch(e -> Objects.equal(e.context(), fileName))
+                        || !key.reset())) {
                     // the even we've been waiting for has fired for the file we were watching
                     break;
                 }
@@ -307,16 +297,16 @@ public class SleepNodeModel extends NodeModel {
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var selection = settings.getInt(CFGKEY_WAITOPTION);
+        final var selection = getWaitMode(settings);
 
         var h = 0;
         var m = 0;
         var s = 0;
-        if (selection == WAIT_FOR_TIME) {
+        if (selection == WaitMode.WAIT_FOR_TIME) {
             h = settings.getInt(CFGKEY_FORHOURS);
             m = settings.getInt(CFGKEY_FORMINUTES);
             s = settings.getInt(CFGKEY_FORSECONDS);
-        } else if (selection == WAIT_UNTIL_TIME) {
+        } else if (selection == WaitMode.WAIT_UNTIL_TIME) {
             h = settings.getInt(CFGKEY_TOHOURS);
             m = settings.getInt(CFGKEY_TOMINUTES);
             s = settings.getInt(CFGKEY_TOSECONDS);
@@ -330,7 +320,7 @@ public class SleepNodeModel extends NodeModel {
             throw new InvalidSettingsException("Number of seconds must be between 0 and 59. Seconds = " + s + ".");
         }
 
-        if (selection == WAIT_FILE) {
+        if (selection == WaitMode.WAIT_FILE) {
             final var sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
             sms.loadSettingsFrom(settings);
         }
@@ -339,21 +329,25 @@ public class SleepNodeModel extends NodeModel {
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_selection = settings.getInt(CFGKEY_WAITOPTION);
+        m_selection = getWaitMode(settings);
 
-        if (m_selection == WAIT_FOR_TIME) {
+        if (m_selection == WaitMode.WAIT_FOR_TIME) {
             m_forHours = settings.getInt(CFGKEY_FORHOURS);
             m_forMin = settings.getInt(CFGKEY_FORMINUTES);
             m_forSec = settings.getInt(CFGKEY_FORSECONDS);
-        } else if (m_selection == WAIT_UNTIL_TIME) {
+        } else if (m_selection == WaitMode.WAIT_UNTIL_TIME) {
             m_toHours = settings.getInt(CFGKEY_TOHOURS);
             m_toMin = settings.getInt(CFGKEY_TOMINUTES);
             m_toSec = settings.getInt(CFGKEY_TOSECONDS);
-        } else if (m_selection == WAIT_FILE) {
+        } else if (m_selection == WaitMode.WAIT_FILE) {
             m_filePath = settings.getString(CFGKEY_FILEPATH);
             final var sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
             sms.loadSettingsFrom(settings);
-            m_fileStatus = sms.getStringValue();
+            final var fileEventDesc = sms.getStringValue();
+            m_fileEvent = Arrays.stream(FileEvent.values()) //
+                    .filter(evt -> evt.description().equals(fileEventDesc)) //
+                    .findAny() //
+                    .orElseThrow(() -> new InvalidSettingsException("Unknown file event: '" + fileEventDesc + "'"));
         }
     }
 
@@ -370,7 +364,7 @@ public class SleepNodeModel extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addInt(CFGKEY_WAITOPTION, m_selection);
+        settings.addInt(CFGKEY_WAITOPTION, m_selection.ordinal());
 
         settings.addInt(CFGKEY_FORHOURS, m_forHours);
         settings.addInt(CFGKEY_FORMINUTES, m_forMin);
@@ -381,9 +375,19 @@ public class SleepNodeModel extends NodeModel {
         settings.addInt(CFGKEY_TOSECONDS, m_toSec);
 
         settings.addString(CFGKEY_FILEPATH, m_filePath);
-        final var sms = new SettingsModelString(CFGKEY_FILESTATUS, MODIFICATION);
-        sms.setStringValue(m_fileStatus);
+        final var sms = new SettingsModelString(CFGKEY_FILESTATUS, FileEvent.MODIFICATION.description());
+        sms.setStringValue(m_fileEvent == null ? null : m_fileEvent.description());
         sms.saveSettingsTo(settings);
+    }
+
+    private static WaitMode getWaitMode(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var waitOption = settings.getInt(CFGKEY_WAITOPTION);
+        final var modes = WaitMode.values();
+        if (waitOption < 0 || waitOption >= modes.length) {
+            throw new InvalidSettingsException("Invalid wait mode " + waitOption
+                + ", must be between 0 and " + (modes.length - 1));
+        }
+        return modes[waitOption];
     }
 
     private static BiFunction<Double, StringBuilder, StringBuilder> paddedSeconds(final NumberFormatter formatter,
