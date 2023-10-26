@@ -2714,5 +2714,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.joiner3.JoinerNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
