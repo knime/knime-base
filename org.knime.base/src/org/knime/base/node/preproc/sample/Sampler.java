@@ -108,12 +108,7 @@ public final class Sampler {
             final double fraction, final ExecutionMonitor exec)
             throws CanceledExecutionException {
         long rowCount = countRows(table, exec);
-        long count = (int)(Math.round(fraction * rowCount));
-        if (count == 0) {
-            return new FalseRowFilter();
-        } else {
-            return new RowNoRowFilter(0, count - 1, true);
-        }
+        return createRangeFilter((int)(Math.round(fraction * rowCount)));
     }
 
     /**
@@ -123,11 +118,11 @@ public final class Sampler {
      * @return a filter that only filter the first <code>count</code> rows
      * @since 3.0
      */
-    public static final IRowFilter createRangeFilter(final long count) {
-        if (count <= 0) {
-            throw new IllegalArgumentException("Count must be > 0: " + count);
+    public static  IRowFilter createRangeFilter(final long count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Count must be >= 0: " + count);
         }
-        return new RowNoRowFilter(0, count - 1, true);
+        return count == 0 ? new FalseRowFilter() : new RowNoRowFilter(0, count - 1, true);
     }
 
     /**
