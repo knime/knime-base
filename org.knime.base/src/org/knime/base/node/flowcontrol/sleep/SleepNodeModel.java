@@ -215,9 +215,10 @@ public class SleepNodeModel extends NodeModel {
      * Wait until a specified point in time is reached.
      */
     private void waitUntilTime(final ExecutionMonitor exec) throws InterruptedException, CanceledExecutionException {
-        // wait to
-        var now = OffsetDateTime.now();
-        var targetTime = now.withHour(m_toHours).withMinute(m_toMin).withSecond(m_toSec);
+        // wait until time: H + M + S = H' : M' : S'
+        final var now = OffsetDateTime.now();
+        final var today = now.withHour(0).withMinute(0).withSecond(0);
+        var targetTime = today.plusHours(m_toHours).plusMinutes(m_toMin).plusSeconds(m_toSec);
         if (targetTime.compareTo(now) < 0) {
             // assume that the next day is meant
             targetTime = targetTime.plusDays(1);
@@ -299,32 +300,24 @@ public class SleepNodeModel extends NodeModel {
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var selection = getWaitMode(settings);
 
-        var h = 0;
-        var m = 0;
-        var s = 0;
+        /**
+         * Verify the presence of these settings values. Note: we do not - and never did - require the hours, minutes,
+         * and seconds to be in a canonical range, e.g. 0-59 for seconds.
+         */
         if (selection == WaitMode.WAIT_FOR_TIME) {
-            h = settings.getInt(CFGKEY_FORHOURS);
-            m = settings.getInt(CFGKEY_FORMINUTES);
-            s = settings.getInt(CFGKEY_FORSECONDS);
+            settings.getInt(CFGKEY_FORHOURS);
+            settings.getInt(CFGKEY_FORMINUTES);
+            settings.getInt(CFGKEY_FORSECONDS);
         } else if (selection == WaitMode.WAIT_UNTIL_TIME) {
-            h = settings.getInt(CFGKEY_TOHOURS);
-            m = settings.getInt(CFGKEY_TOMINUTES);
-            s = settings.getInt(CFGKEY_TOSECONDS);
-        }
-
-        if (0 > h && h > 23) {
-            throw new InvalidSettingsException("Number of hours must be between 0 and 23. Hours = " + h + ".");
-        } else if (0 > m && m > 59) {
-            throw new InvalidSettingsException("Number of minutes must be between 0 and 59. Minutes = " + m + ".");
-        } else if (0 > s && s > 59) {
-            throw new InvalidSettingsException("Number of seconds must be between 0 and 59. Seconds = " + s + ".");
+            settings.getInt(CFGKEY_TOHOURS);
+            settings.getInt(CFGKEY_TOMINUTES);
+            settings.getInt(CFGKEY_TOSECONDS);
         }
 
         if (selection == WaitMode.WAIT_FILE) {
             final var sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
             sms.loadSettingsFrom(settings);
         }
-
     }
 
     @Override
