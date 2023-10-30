@@ -4,9 +4,9 @@ Bundle-Name: Example Connector extension
 Bundle-SymbolicName: org.knime.filehandling.core.example.fs;singleton:=true
 Bundle-Version: 4.6.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
-Require-Bundle: org.knime.workbench.repository;bundle-version="[5.0.0,6.0.0)",
- org.knime.core;bundle-version="[5.0.0,6.0.0)",
- org.knime.filehandling.core;bundle-version="[5.0.0,6.0.0)",
+Require-Bundle: org.knime.workbench.repository;bundle-version="[5.2.0,6.0.0)",
+ org.knime.core;bundle-version="[5.2.0,6.0.0)",
+ org.knime.filehandling.core;bundle-version="[5.2.0,6.0.0)",
  org.eclipse.ui.workbench,
  org.apache.commons.lang3;bundle-version="[3.9.0,4.0.0)"
 Bundle-ActivationPolicy: lazy

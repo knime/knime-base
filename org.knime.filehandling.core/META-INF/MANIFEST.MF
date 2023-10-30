@@ -59,12 +59,12 @@ Export-Package: org.knime.filehandling.core.connections,
  org.knime.filehandling.core.util
 Require-Bundle: org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  org.apache.commons.httpclient;bundle-version="[3.1.0,4.0.0)",
- org.knime.core;bundle-version="[5.0.0,6.0.0)",
- org.knime.core.ui;bundle-version="[5.0.0,6.0.0)",
+ org.knime.core;bundle-version="[5.2.0,6.0.0)",
+ org.knime.core.ui;bundle-version="[5.2.0,6.0.0)",
  com.google.guava;bundle-version="[19.0.0,20.0.0)",
  org.apache.commons.httpclient;bundle-version="[3.1.0,4.0.0)",
  javax.activation;bundle-version="[1.2.2,2.0.0)",
- org.knime.core.table;bundle-version="[5.0.0,6.0.0)"
+ org.knime.core.table;bundle-version="[5.2.0,6.0.0)"
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.knime.filehandling.core.FSPluginActivator

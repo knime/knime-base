@@ -3,13 +3,13 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Unit-Tests for org.knime.filehandling.core
 Bundle-SymbolicName: org.knime.filehandling.core.tests;singleton:=true
 Bundle-Version: 5.2.0.qualifier
-Fragment-Host: org.knime.filehandling.core;bundle-version="[5.0.0,6.0.0)"
+Fragment-Host: org.knime.filehandling.core;bundle-version="[5.2.0,6.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.junit;bundle-version="[4.12.0,5.0.0)",
- org.knime.testing;bundle-version="[5.0.0,6.0.0)",
+ org.knime.testing;bundle-version="[5.2.0,6.0.0)",
  org.mockito.mockito-core;bundle-version="[2.18.3,3.0.0)",
  org.hamcrest.library;bundle-version="[1.3.0,2.0.0)",
- org.knime.filehandling.core.tests.common;bundle-version="[5.0.0,6.0.0)",
+ org.knime.filehandling.core.tests.common;bundle-version="[5.2.0,6.0.0)",
  org.apache.commons.compress;bundle-version="[1.22.0,2.0.0)",
  junit-jupiter-api;bundle-version="[5.9.2,6.0.0)"
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
