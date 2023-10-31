@@ -51,9 +51,10 @@ package org.knime.base.node.preproc.joiner3;
 import org.knime.core.data.join.JoinTableSettings;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.AbstractNodeFunc;
-import org.knime.core.node.func.ArgumentDefinition.ArgumentType;
+import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
 
@@ -68,7 +69,7 @@ public final class JoinerNodeFunc extends AbstractNodeFunc {
         .withInputTable("left", "The left table to be joined.")//
         .withInputTable("right", "The right table to be joined.")//
         .withArgument("join_column", "The name of the column to join on. Must exist in both tables.",
-            ArgumentType.STRING)//
+            PrimitiveArgumentType.STRING)//
         .withDescription("Joins the tables a and b on the column named join_column which must exist in both a and b.")
         .build();
 
@@ -80,10 +81,10 @@ public final class JoinerNodeFunc extends AbstractNodeFunc {
     }
 
     @Override
-    public void saveSettings(final String[] arguments, final PortObjectSpec[] inputSpecs, final NodeSettingsWO settings)
+    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs, final NodeSettingsWO settings)
         throws InvalidSettingsException {
         var joinSettings = new Joiner3Settings();
-        var joinColumns = new JoinColumn[]{new JoinTableSettings.JoinColumn(arguments[0])};
+        var joinColumns = new JoinColumn[]{new JoinTableSettings.JoinColumn(arguments.getString("join_column"))};
         joinSettings.setLeftJoinColumns(joinColumns);
         joinSettings.setRightJoinColumns(joinColumns);
         joinSettings.saveSettingsTo(settings);

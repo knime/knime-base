@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.append.row;
 
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.AbstractNodeFunc;
 import org.knime.core.node.func.ArgumentDefinition;
@@ -87,7 +88,7 @@ public final class AppendRowsNodeFunc extends AbstractNodeFunc {
         .build();
 
     @Override
-    public void saveSettings(final String[] arguments, final PortObjectSpec[] inputSpecs,
+    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
         final NodeSettingsWO settings) {
         settings.addBoolean(AppendedRowsNodeModel.CFG_FAIL_ON_DUPLICATES, false);
         settings.addBoolean(AppendedRowsNodeModel.CFG_APPEND_SUFFIX, true);

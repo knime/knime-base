@@ -50,9 +50,10 @@ package org.knime.base.node.preproc.column.renamer;
 
 import org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings.Renaming;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.AbstractNodeFunc;
-import org.knime.core.node.func.ArgumentDefinition.ArgumentType;
+import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -65,11 +66,14 @@ public final class ColumnRenamerNodeFunc extends AbstractNodeFunc {
 
     private static final NodeFuncApi API = NodeFuncApi.builder("rename_column")//
             .withInputTable("df", "The input table")//
-            .withArgument("old_name", "The name of the column in the input table", ArgumentType.STRING)//
-            .withArgument("new_name", "The new name of the column", ArgumentType.STRING)//
+            .withArgument("old_name", "The name of the column in the input table", PrimitiveArgumentType.STRING)//
+            .withArgument("new_name", "The new name of the column", PrimitiveArgumentType.STRING)//
             .withDescription("Returns a new table in which the column old_name in the input table is renamed to new_name.")
             .build();
 
+    /**
+     * Constructor used by the framework.
+     */
     public ColumnRenamerNodeFunc() {
         super(API, ColumnRenamerNodeFactory.class.getName());
     }
@@ -77,12 +81,12 @@ public final class ColumnRenamerNodeFunc extends AbstractNodeFunc {
 
     @SuppressWarnings("restriction")
     @Override
-    public void saveSettings(final String[] arguments, final PortObjectSpec[] inputSpecs, final NodeSettingsWO settings)
+    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs, final NodeSettingsWO settings)
         throws InvalidSettingsException {
         var renamerSettings = new ColumnRenamerSettings();
         var renaming = new Renaming();
-        renaming.m_oldName = arguments[0];
-        renaming.m_newName = arguments[1];
+        renaming.m_oldName = arguments.getString("old_name");
+        renaming.m_newName = arguments.getString("new_name");
         DefaultNodeSettings.saveSettings(ColumnRenamerSettings.class, renamerSettings, settings);
     }
 
