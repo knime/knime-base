@@ -689,8 +689,9 @@ final class SendMailConfiguration {
         // make sure to set class loader to javax.mail - this has caused problems in the past, see bug 5316
         Thread.currentThread().setContextClassLoader(Session.class.getClassLoader());
         try {
-            for (URL url : getAttachedURLs()) {
-                addAttachments(mp, tempDirs, url);
+            var attachedURLs = getAttachedURLs();
+            for (var i = 0; i < attachedURLs.length; i++) {
+                addAttachments(mp, tempDirs, attachedURLs[i], Integer.toString(i));
             }
             t = sendMail(credProvider, protocol, session, message, mp);
         } catch (MessagingException e) {
@@ -827,7 +828,7 @@ final class SendMailConfiguration {
         return mp;
     }
 
-    private static void addAttachments(final Multipart mp, final List<File> tempDirs, final URL url)
+    private static void addAttachments(final Multipart mp, final List<File> tempDirs, final URL url, final String cid)
         throws IOException, MessagingException {
         var filePart = new MimeBodyPart();
         File file;
@@ -857,6 +858,9 @@ final class SendMailConfiguration {
         // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7096063
         // find mime type in this bundle (META-INF folder contains mime.types) and set it
         filePart.setHeader("Content-Type", FileTypeMap.getDefaultFileTypeMap().getContentType(file));
+        // set content-id header, allows in-line embedding of attached images (AP-21415)
+        filePart.setHeader("X-Attachment-Id", cid);
+        filePart.setHeader("Content-ID", cid);
         mp.addBodyPart(filePart);
     }
 
