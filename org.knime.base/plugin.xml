@@ -951,10 +951,6 @@
             factory-class="org.knime.base.node.mine.bayes.naivebayes.learner2.NaiveBayesLearnerNodeFactory2"/>
       <node
             category-path="/analytics/statistics"
-            deprecated="true"
-            factory-class="org.knime.base.node.preproc.correlation.compute.CorrelationComputeNodeFactory"/>
-      <node
-            category-path="/analytics/statistics"
             factory-class="org.knime.base.node.preproc.correlation.compute2.CorrelationCompute2NodeFactory"/>
       <node
             category-path="/analytics/mining/featureselection"
@@ -1107,7 +1103,6 @@
             after="org.knime.base.node.viz.roc.ROCNodeFactory"
             category-path="/analytics/mining/modeleval"
             factory-class="org.knime.base.node.viz.enrichment.EnrichmentPlotterFactory"
-            
             deprecated="true" />
       <node
             after="org.knime.base.node.viz.roc.ROCNodeFactory"
@@ -1527,11 +1522,6 @@
             category-path="/flowcontrol/loopsupport"
             factory-class="org.knime.base.node.meta.looper.LoopEnd2NodeFactory"
             deprecated="true"
-            >
-      </node>
-      <node
-            category-path="/analytics/mining/subgroup"
-            factory-class="org.knime.base.node.preproc.matcher.SubsetMatcherNodeFactory"
             >
       </node>
       <node
@@ -2105,23 +2095,6 @@
             >
       </node>
       <node
-            category-path="/manipulation/row/row-filter"
-            deprecated="false"
-            factory-class="org.knime.base.node.preproc.filter.rowref.RowSplitRefNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/manipulation/column/column-filter"
-            factory-class="org.knime.base.node.preproc.filter.columnref.ColumnSplitRefNodeFactory"
-            >
-      </node>
-      <node
-            category-path="/manipulation/row/row-transform"
-            deprecated="false"
-            factory-class="org.knime.base.node.preproc.rank.RankNodeFactory"
-            >
-      </node>
-      <node
             after="org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeFactory"
             category-path="/manipulation/column/column-convert+replace"
             deprecated="false"
@@ -2418,7 +2391,6 @@
 		<node deprecated="true" factory-class="org.knime.base.node.viz.statistics2.Statistics3NodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.io.filereader.VariableFileReaderNodeFactory"></node>
 		<node deprecated="true" factory-class="org.knime.base.node.flowvariable.variabletotablerow.VariableToTableNodeFactory"></node> 
-		<node deprecated="true" factory-class="org.knime.base.node.viz.enrichment.EnrichmentPlotterFactory"></node> 
 		
         
    </extension>
