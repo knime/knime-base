@@ -54,6 +54,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchKey;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -199,15 +200,16 @@ public class SleepNodeModel extends NodeModel {
                 .build();
 
         final var ticker = new AtomicLong();
-        final var waitMS = 1000 * (60 * (60L * m_forHours + m_forMin) + m_forSec);
-        final var padder = paddedSeconds(numFormat, waitMS / 1000.0);
-        final var total = numFormat.format(waitMS / 1000.0);
+        final var targetTime = OffsetDateTime.now().plusHours(m_forHours).plusMinutes(m_forMin).plusSeconds(m_forSec);
+        final var sleepTime = targetTime.toInstant().toEpochMilli() - System.currentTimeMillis();
+        final var padder = paddedSeconds(numFormat, sleepTime / 1000.0);
+        final var total = numFormat.format(sleepTime / 1000.0);
         exec.setMessage(() -> padder.apply(ticker.get() / 1000.0, new StringBuilder("Waited ")) //
             .append('/').append(total).append(" seconds").toString());
 
-        waitFor(waitMS, exec, waited -> {
+        waitFor(sleepTime, exec, waited -> {
             ticker.set(waited);
-            exec.setProgress(Math.min(1.0 * waited / waitMS, 1.0));
+            exec.setProgress(Math.min(1.0 * waited / sleepTime, 1.0));
         });
     }
 
@@ -217,7 +219,7 @@ public class SleepNodeModel extends NodeModel {
     private void waitUntilTime(final ExecutionMonitor exec) throws InterruptedException, CanceledExecutionException {
         // wait until time: H + M + S = H' : M' : S'
         final var now = OffsetDateTime.now();
-        final var today = now.withHour(0).withMinute(0).withSecond(0);
+        final var today = OffsetDateTime.of(now.toLocalDate(), LocalTime.MIDNIGHT, now.getOffset());
         var targetTime = today.plusHours(m_toHours).plusMinutes(m_toMin).plusSeconds(m_toSec);
         if (targetTime.compareTo(now) < 0) {
             // assume that the next day is meant
@@ -300,7 +302,7 @@ public class SleepNodeModel extends NodeModel {
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var selection = getWaitMode(settings);
 
-        /**
+        /*
          * Verify the presence of these settings values. Note: we do not - and never did - require the hours, minutes,
          * and seconds to be in a canonical range, e.g. 0-59 for seconds.
          */
