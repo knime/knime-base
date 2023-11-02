@@ -61,7 +61,6 @@ import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.GlobalSettings.AggregationContext;
 import org.knime.base.data.aggregation.GlobalSettings.GlobalSettingsBuilder;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
-import org.knime.base.node.preproc.rowagg.aggregation.DataValueAggregate.DataValueAggregateOperator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -73,7 +72,7 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 
 /**
- * Tests for the {@link DataValueAggregate} and {@link DataValueAggregateOperator}.
+ * Tests for the {@link DataValueAggregate} and {@link DataValueAggregate}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -98,8 +97,7 @@ final class DataValueAggregateTest {
         final var outer = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(SumNumeric::new)
-                .withWeighting(dcs.getName(), MultiplyNumeric::new)
+                .withWeightedAggregate(dcs.getName(), MultiplyNumeric::new, SumNumeric::new)
                 .build(gs, ocs);
 
         // outer DataValueAggregate operator cannot aggregate data (it's just a "definition" of an aggregate operator)
@@ -131,17 +129,17 @@ final class DataValueAggregateTest {
         final var outer = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(SumNumeric::new)
-                .withWeighting(dcs.getName(), MultiplyNumeric::new)
+                .withWeightedAggregate(dcs.getName(), MultiplyNumeric::new, SumNumeric::new)
                 .build(gs, ocs);
 
         // let (weighted) combiner overflow
 
         var inner = outer.createInstance(gs, ocs);
         inner.compute(new DefaultRow(RowKey.createRowKey(1L), new IntCell(Integer.MAX_VALUE)), 0);
-        assertEquals("Numeric overflow computing weighted aggregate value for weight column \"Test\" of type "
-            + "\"Number (integer)\" and input column \"Test\" of type \"Number (integer)\".",
-            inner.getSkipMessage());
+        assertEquals("Numeric overflow multiplying values for column of type "
+            + "\"Number (integer)\" and column of type \"Number (integer)\"."
+            + " Consider converting the input column(s) to \"Number (long)\".",
+            inner.getSkipMessage(), "Skip message should inform user about numeric overflow");
         assertEquals(DataType.getMissingCell(), inner.getResult(), "Expected missing cell after numeric overflow");
 
 
@@ -154,9 +152,9 @@ final class DataValueAggregateTest {
         final var rowVal = (int) Math.sqrt(remaining);
         inner.compute(new DefaultRow(RowKey.createRowKey(2L), new IntCell(rowVal + 1)), 0);
         assertEquals(DataType.getMissingCell(), inner.getResult(), "Expected missing cell after numeric overflow");
-        assertEquals("Numeric overflow of aggregation result for input column \"Test\" of type \"Number (integer)\". "
-            + "Consider converting the input column to \"Number (long)\".",
-                inner.getSkipMessage());
+        assertEquals("Numeric overflow of aggregation result for input type \"Number (integer)\"."
+            + " Consider converting the input column to \"Number (long)\".",
+                inner.getSkipMessage(), "Skip message should inform user about numeric overflow");
 
 
         // checking for overflow of SUM accumulator
@@ -176,8 +174,8 @@ final class DataValueAggregateTest {
         final var longRowVal = (long)Math.sqrt(longRemaining);
         inner.compute(new DefaultRow(RowKey.createRowKey(2L), new LongCell(longRowVal + 1)), 0);
         assertEquals(DataType.getMissingCell(), inner.getResult(), "Expected missing cell after numeric overflow");
-        assertEquals("Numeric overflow of aggregation result for input column \"Test\" of type \"Number (long)\".",
-                inner.getSkipMessage());
+        assertEquals("Numeric overflow aggregating values for column of type \"Number (long)\".",
+                inner.getSkipMessage(), "Skip message should inform user about aggregation overflow");
     }
 
     @SuppressWarnings({"static-method", "deprecation"})
@@ -195,8 +193,7 @@ final class DataValueAggregateTest {
         final var outer = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(SumNumeric::new)
-                .withWeighting(dcs.getName(), MultiplyNumeric::new)
+                .withWeightedAggregate(dcs.getName(), MultiplyNumeric::new, SumNumeric::new)
                 .build(gs, ocs);
 
         assertEquals(PLACEHOLDER_ID, outer.getId(), "Incorrect operator ID");
@@ -238,6 +235,7 @@ final class DataValueAggregateTest {
     @Test
     void testLegacyCompute() {
         final var miss = DataType.getMissingCell();
+        final var datum = new IntCell(42);
         final var dcs = new DataColumnSpecCreator("i", IntCell.TYPE).createSpec();
         final var weightCol = new DataColumnSpecCreator("weight", LongCell.TYPE).createSpec();
         final var dts = new DataTableSpec(dcs, weightCol);
@@ -250,18 +248,21 @@ final class DataValueAggregateTest {
         final var weightedAgg = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
-                .withAggregate(SumNumeric::new)
-                .withWeighting(weightCol.getName(), MultiplyNumeric::new)
+                .withWeightedAggregate(weightCol.getName(), MultiplyNumeric::new, SumNumeric::new)
                 .build(gs, ocs).createInstance(gs, ocs);
-        assertThrows(IllegalStateException.class, () -> weightedAgg.compute(miss));
+        assertThrows(IllegalStateException.class, () -> weightedAgg.compute(datum),
+            "Should complain if configuring weighted aggregate but calling old function that does not consider "
+            + "weight value.");
 
         final var unweighted = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(IntValue.class)
                 .withAggregate(SumNumeric::new)
                 .build(gs, ocs).createInstance(gs, ocs);
-        assertDoesNotThrow(() -> unweighted.compute(miss));
-        assertDoesNotThrow(() -> unweighted.compute(new IntCell(2)));
+        assertDoesNotThrow(() -> unweighted.compute(miss),
+            "Should not throw when not configuring weighted aggregate");
+        assertDoesNotThrow(() -> unweighted.compute(datum),
+            "Should not throw when not configuring weighted aggregate");
     }
 
     // ==== Tests for Missing Cell Handling
@@ -390,13 +391,12 @@ final class DataValueAggregateTest {
             final DataColumnSpec aggCol, final DataColumnSpec weightCol, final Class<IntValue> supportedClass,
             final DataTableSpec dts, final List<DefaultRow> input) {
         final var ocs = new OperatorColumnSettings(false, aggCol);
+        final var weightColumnName = weightCol != null ? weightCol.getName() : null;
         var aggOpBuilder = DataValueAggregate.create()
                 .withOperatorInfo(PLACEHOLDER_ID, PLACEHOLDER_LABEL, PLACEHOLDER_DESC)
                 .withSupportedClass(supportedClass)
-                .withAggregate(SumNumeric::new);
-        if (weightCol != null) {
-            aggOpBuilder = aggOpBuilder.withWeighting(weightCol.getName(), MultiplyNumeric::new);
-        }
+                .withWeightedAggregate(weightColumnName, weightColumnName != null ? MultiplyNumeric::new : null,
+                    SumNumeric::new);
         final var aggOp = aggOpBuilder.build(gs, ocs).createInstance(gs, ocs);
         final var i = dts.findColumnIndex(aggCol.getName());
         for (final var r : input) {

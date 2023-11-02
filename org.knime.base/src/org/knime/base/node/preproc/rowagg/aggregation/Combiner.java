@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.rowagg.aggregation;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
@@ -65,11 +66,33 @@ import org.knime.core.data.DataValue;
  * @noreference This interface is not intended to be referenced by clients.
  */
 public interface Combiner<T extends DataValue, U extends DataValue, R extends DataValue>
-        extends BiFunction<T, U, Optional<R>> {
+    extends BiFunction<T, U, Optional<R>> {
 
     /**
      * Gets the result type of the combiner.
+     *
      * @return type of result
      */
     DataType getResultDataType();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws ArithmeticException if combining numeric values, can indicate if overflow occurred
+     */
+    @Override
+    default Optional<R> apply(final T t, final U u) throws ArithmeticException {
+        return Optional.empty();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws ArithmeticException if combining numeric values, can indicate if overflow occurred
+     */
+    @Override
+    default <V> BiFunction<T, U, V> andThen(final Function<? super Optional<R>, ? extends V> after)
+            throws ArithmeticException {
+        return BiFunction.super.andThen(after);
+    }
 }
