@@ -52,7 +52,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.knime.base.data.aggregation.AggregationOperator;
@@ -66,38 +68,31 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
-import org.knime.core.node.util.CheckUtils;
 
 /**
  * Aggregate of {@link DataValue data values} for use in the {@link GroupByTable} operator framework.
  *
  * @param <T> weight column (if any)
  * @param <U> data column
- * @param <R> result of multiplication {@code T x U}
- * @param <O> result of aggregate of {@code R}s
+ * @param <O> result of aggregate of {@code T x U}s
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public final class DataValueAggregate<T extends DataValue, U extends DataValue, R extends DataValue,
-        O extends DataValue> extends AggregationOperator {
+public final class DataValueAggregate // NOSONAR
+<T extends DataValue, U extends DataValue, O extends DataValue> extends AggregationOperator {
 
     private String m_weightColumnName;
-    private BiFunction<DataType, DataType, Combiner<T, U, R>> m_combineConstructor;
-    private Function<DataType, Accumulator<R, O>> m_aggregateConstructor;
 
     private String m_description;
 
-    private DataValueAggregate(
-        final BiFunction<DataType, DataType, Combiner<T, U, R>> combineConstructor,
-        final Function<DataType, Accumulator<R, O>> aggregateConstructor,
-        final String weightColumnName,
-        final String description, final OperatorData operatorData,
-        final GlobalSettings globalSettings,
-        final OperatorColumnSettings opColSettings) {
+    private BiFunction<DataType, DataType, BinaryAccumulator<U, T, O>> m_aggConstructor;
+
+    private DataValueAggregate(final BiFunction<DataType, DataType, BinaryAccumulator<U, T, O>> aggConstructor,
+        final String weightColumnName, final String description, final OperatorData operatorData,
+        final GlobalSettings globalSettings, final OperatorColumnSettings opColSettings) {
         super(operatorData, globalSettings, opColSettings);
-        m_combineConstructor = combineConstructor;
+        m_aggConstructor = aggConstructor;
         m_weightColumnName = weightColumnName;
-        m_aggregateConstructor = aggregateConstructor;
         m_description = description;
     }
 
@@ -109,28 +104,25 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
 
         // no weighting
         if (m_weightColumnName == null) {
-            return new DataValueAggregateOperator(-1, null,
-                m_aggregateConstructor.apply(inType),
-                getOperatorData(), globalSettings, opColSettings);
+            return new DataValueAggregateImpl(-1, msg -> m_aggConstructor.apply(null, inType), getOperatorData(),
+                globalSettings, opColSettings);
         }
 
         final var weightIndex = globalSettings.findColumnIndex(m_weightColumnName);
         final var weightType = globalSettings.getOriginalColumnSpec(m_weightColumnName).getType();
-        final var combiner = m_combineConstructor.apply(weightType, inType);
-        final var aggregator = m_aggregateConstructor.apply(combiner.getResultDataType());
-        return new DataValueAggregateOperator(weightIndex, combiner, aggregator, getOperatorData(), globalSettings,
-            opColSettings);
+
+        return new DataValueAggregateImpl(weightIndex, msg -> m_aggConstructor.apply(weightType, inType),
+            getOperatorData(), globalSettings, opColSettings);
     }
 
     @Override
-    protected DataType getDataType(final DataType origType) {
-        var type = origType;
-        final var gs = getGlobalSettings();
-        if (m_weightColumnName != null) {
-            final var weightType = gs.getOriginalColumnSpec(m_weightColumnName).getType();
-            type = m_combineConstructor.apply(weightType, type).getResultDataType();
+    protected DataType getDataType(final DataType inType) {
+        if (m_weightColumnName == null) {
+            return m_aggConstructor.apply(null, inType).getResultType();
         }
-        return m_aggregateConstructor.apply(type).getResultType();
+        final var gs = getGlobalSettings();
+        final var weightType = gs.getOriginalColumnSpec(m_weightColumnName).getType();
+        return m_aggConstructor.apply(weightType, inType).getResultType();
     }
 
     @Override
@@ -158,6 +150,60 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
         throw new UnsupportedOperationException("Outer class instance cannot be reset.");
     }
 
+    private static final class SimpleBinaryAccumulator
+        <U extends DataValue, T extends DataValue, R extends DataValue, O extends DataValue>
+        implements BinaryAccumulator<U, T, O> {
+
+        private final Combiner<T, U, R> m_combiner;
+
+        private final Accumulator<R, O> m_agg;
+
+        private SimpleBinaryAccumulator(final Combiner<T, U, R> combiner, final Accumulator<R, O> agg) {
+            m_combiner = combiner;
+            m_agg = agg;
+        }
+
+        @Override
+        public boolean apply(final U value, final T weight) throws ArithmeticException {
+            // as requested by documentation of `computeInternal(cell)`,
+            // do something sensible in case the old method without weight is still invoked:
+            // compute aggregate if unweighted, else fail
+            if (m_combiner == null) {
+                // U == R
+                @SuppressWarnings("unchecked")
+                final var res = m_agg.apply((R)value);
+
+                return res;
+            }
+            if (weight == null) {
+                throw new IllegalStateException("Cannot compute weighted aggregate without weight column.");
+            }
+
+            final var v = m_combiner.apply(weight, value);
+            if (v.isEmpty()) {
+                return true;
+            }
+            return m_agg.apply(v.get());
+        }
+
+        @Override
+        public DataType getResultType() {
+            return m_agg.getResultType();
+        }
+
+        @Override
+        public Optional<O> getResult() {
+            return m_agg.getResult();
+        }
+
+        @Override
+        public void reset() {
+            // no need to reset combiner
+            m_agg.reset();
+        }
+
+    }
+
     /**
      * Nested class that represents the operator doing the actual aggregation work. This operator ignores missing cells
      * and reports a missing cell only if the input was effectively empty (i.e. ignoring a row if either of the two
@@ -167,15 +213,17 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
      */
     // nested class so we can separate the behavior which is used when registering the operator in the group-by/pivot
     // framework (e.g. spec is null) from the behavior which is used to actually aggregate values
-    final class DataValueAggregateOperator extends AggregationOperator {
+    final class DataValueAggregateImpl extends AggregationOperator { // NOSONAR
 
-        /** This flag is set to true iff the operator has seen at least one non-missing input (i.e. where both
-         *  considered cells are non-missing cells).
-         *  This is used so that operators that (effectively) did not see any input report a missing cell. */
+        /**
+         * This flag is set to true iff the operator has seen at least one non-missing input (i.e. where both considered
+         * cells are non-missing cells). This is used so that operators that (effectively) did not see any input report
+         * a missing cell.
+         */
         private boolean m_init;
 
-        private Combiner<T, U, R> m_combiner;
-        private Accumulator<R, O> m_agg;
+        private BinaryAccumulator<U, T, O> m_binAgg;
+
         private int m_weightColumnIndex;
 
         /**
@@ -189,19 +237,12 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
          * @param globalSettings global settings
          * @param opColSettings operator column settings
          */
-        private DataValueAggregateOperator(
-                final int weightColumnIndex,
-                final Combiner<T, U, R> combiner,
-                final Accumulator<R, O> agg,
-                final OperatorData operatorData,
-                final GlobalSettings globalSettings,
-                final OperatorColumnSettings opColSettings) {
+        private DataValueAggregateImpl(final int weightColumnIndex,
+            final Function<Consumer<String>, BinaryAccumulator<U, T, O>> binAgg, final OperatorData operatorData,
+            final GlobalSettings globalSettings, final OperatorColumnSettings opColSettings) {
             super(operatorData, globalSettings, opColSettings);
             m_weightColumnIndex = weightColumnIndex;
-            m_combiner = combiner;
-            CheckUtils.checkArgument((m_weightColumnIndex < 0) == (combiner == null),
-                    "Inconsistent weightColumnIndex and combiner: %d, %s", m_weightColumnIndex, m_combiner);
-            m_agg = agg;
+            m_binAgg = binAgg.apply(this::setSkippedWithMessage);
         }
 
         @Override
@@ -211,90 +252,72 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
 
         @Override
         protected boolean computeInternal(final DataCell cell) {
-            if (m_combiner != null) {
-                throw new IllegalStateException("Cannot compute weighted aggregate without weight column.");
-            }
-            // as requested by documentation, do something sensible in case this old method is still invoked:
-            // compute aggregate if unweighted, else fail
-            if (cell.isMissing()) {
-                // skip missing cells and proceed with column
-                return false;
-            }
-            m_init = true;
-            @SuppressWarnings("unchecked")
-            final var res = m_agg.apply((R)cell);
-            return res;
-        }
-
-        @Override
-        protected boolean computeInternal(final DataRow row, final DataCell cell) {
-            if (cell.isMissing()) {
-                // skip missing cells and proceed with column
-                return false;
-            }
-            if (m_combiner == null) {
+            try {
+                if (cell.isMissing()) {
+                    // skip missing cells and proceed with column
+                    return false;
+                }
                 m_init = true;
                 @SuppressWarnings("unchecked")
-                final var res = applyAgg((R)cell);
+                final var res = m_binAgg.apply((U)cell, null);
                 return res;
+            } catch (ArithmeticException e) {
+                return handleOverflow(e);
             }
-
-            final var weight = row.getCell(m_weightColumnIndex);
-            if (weight.isMissing()) {
-                // skip missing cells and proceed with column
-                return false;
-            }
-            m_init = true;
-
-            @SuppressWarnings("unchecked")
-            final var value = m_combiner.apply((T)weight, (U)cell);
-            if (value.isEmpty()) {
-                // numeric overflow while combining cells
-                setSkippedComb();
-                return true;
-            }
-            return applyAgg(value.get());
         }
 
-        private boolean applyAgg(final R v) {
-            final var skipColumn = m_agg.apply(v);
-            if (skipColumn) {
-                // overflow
-                setSkippedAgg();
+        @SuppressWarnings("unchecked")
+        @Override
+        protected boolean computeInternal(final DataRow row, final DataCell cell) {
+            try {
+                if (cell.isMissing()) {
+                    // skip missing cells and proceed with column
+                    return false;
+                }
+                if (m_weightColumnIndex < 0) {
+                    m_init = true;
+                    return m_binAgg.apply((U)cell, null);
+                }
+
+                final var weight = row.getCell(m_weightColumnIndex);
+                if (weight.isMissing()) {
+                    // skip missing cells and proceed with column
+                    return false;
+                }
+                m_init = true;
+                return m_binAgg.apply((U)cell, (T)weight);
+            } catch (final ArithmeticException e) { // NOSONAR
+                return handleOverflow(e);
             }
-            return skipColumn;
         }
 
-        private void setSkippedComb() {
+        private boolean handleOverflow(final ArithmeticException e) {
+            final var msg = Optional.ofNullable(e.getMessage()).orElse(e.getCause().getMessage());
+            if (msg != null) {
+                setSkipMessage(msg);
+            } else {
+                setSkipMessage("Could not aggregate values due to arithmetic exception");
+            }
+            // true indicates that the computation is skipped
+            return true;
+        }
+
+        void setSkippedWithMessage(final String msg) {
             setSkipped(true);
-            final var weightColSpec = getGlobalSettings().getOriginalColumnSpec(m_weightColumnIndex);
-            final var weightColName = weightColSpec.getName();
-            final var weightColType = weightColSpec.getType();
-            final var colSpec = getOperatorColumnSettings().getOriginalColSpec();
-            final var colName = colSpec.getName();
-            final var colType = colSpec.getType();
-            var msg = String.format("Numeric overflow computing weighted aggregate value for weight column \"%s\" of "
-                + "type \"%s\" and input column \"%s\" of type \"%s\".", weightColName, weightColType, colName,
-                colType);
             setSkipMessage(msg);
         }
 
-        private void setSkippedAgg() {
-            setSkipped(true);
-            final var colSpec = getOperatorColumnSettings().getOriginalColSpec();
-            final var colName = colSpec.getName();
-            final var colType = colSpec.getType();
-            var msg = String.format("Numeric overflow of aggregation result for input column \"%s\" of "
-                + "type \"%s\".", colName, colType);
+        private static String getAggregateOverflowMessage(final DataType colType) {
+            var msg = String.format("Numeric overflow of aggregation result for input type \"%s\".", colType);
             if (colType.equals(IntCell.TYPE)) {
                 msg += String.format(" Consider converting the input column to \"%s\".", LongCell.TYPE);
             }
-            setSkipMessage(msg);
+            return msg;
         }
 
         @Override
         protected DataType getDataType(final DataType origType) {
-            return m_agg.getResultType();
+            return m_binAgg.getResultType();
         }
 
         @Override
@@ -307,9 +330,10 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
             // check if the aggregate did not overflow the accumulator type but _does_ overflow the result type
             // (if the accumulator type already overflowed, the individual call to #computeInternal already indicated
             // that the column can be skipped and this function would not get called)
-            final var res = m_agg.getResult();
+            final var res = m_binAgg.getResult();
             if (res.isEmpty()) {
-                setSkippedAgg();
+                setSkippedWithMessage(
+                    getAggregateOverflowMessage(getOperatorColumnSettings().getOriginalColSpec().getType()));
                 return DataType.getMissingCell();
             }
             return (DataCell)res.get();
@@ -318,7 +342,7 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
         @Override
         protected void resetInternal() {
             m_init = false;
-            m_agg.reset();
+            m_binAgg.reset();
         }
 
         @Override
@@ -329,8 +353,8 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
         @Override
         public AggregationOperator createInstance(final GlobalSettings globalSettings,
             final OperatorColumnSettings opColSettings) {
-            throw new UnsupportedOperationException("Internal operator does not support creation of an instance. Use"
-                + " the outer class instance.");
+            throw new UnsupportedOperationException(
+                "Internal operator does not support creation of an instance. Use" + " the outer class instance.");
         }
 
     }
@@ -343,19 +367,22 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
      * @param <R> result of multiplication {@code T x U}
      * @param <O> result of aggregate of {@code R}s
      */
-    public static final class Builder<
-        T extends DataValue, U extends DataValue, R extends DataValue, O extends DataValue>
+    public static final class Builder
+        <T extends DataValue, U extends DataValue, R extends DataValue, O extends DataValue>
         implements WithOperatorInfo<T, U, R, O>, WithSupportedClass<T, U, R, O>, WithAggregate<T, U, R, O> {
 
         private String m_id;
+
         private String m_label;
+
         private String m_description;
+
         /** Supported type, needed to register operator in the aggregation framework. */
         private Class<? extends DataValue> m_suppClass;
 
-        private Function<DataType, Accumulator<R, O>> m_aggCreator;
         private String m_weightColumnName;
-        private BiFunction<DataType, DataType, Combiner<T, U, R>> m_combineCreator;
+
+        private BiFunction<DataType, DataType, BinaryAccumulator<U, T, O>> m_binAggCreator;
 
         /** Should only be called from {@link #create()}. */
         private Builder() {
@@ -364,18 +391,19 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
 
         /**
          * Create the aggregate based on the configured options.
+         *
          * @param gs global operator settings
          * @param ocs operator column settings
          * @return configured aggregate
          */
-        public DataValueAggregate<T, U, R, O> build(final GlobalSettings gs, final OperatorColumnSettings ocs) {
-            return new DataValueAggregate<>(m_combineCreator, m_aggCreator, m_weightColumnName, m_description,
+        public DataValueAggregate<T, U, O> build(final GlobalSettings gs, final OperatorColumnSettings ocs) {
+            return new DataValueAggregate<>(m_binAggCreator, m_weightColumnName, m_description,
                 new OperatorData(m_id, m_label, m_label, false, false, m_suppClass, false), gs, ocs);
         }
 
         @Override
         public WithSupportedClass<T, U, R, O> withOperatorInfo(final String id, final String label,
-                final String description) {
+            final String description) {
             m_id = Objects.requireNonNull(id);
             m_label = Objects.requireNonNull(label);
             m_description = Objects.requireNonNull(description);
@@ -384,7 +412,30 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
 
         @Override
         public Builder<T, U, R, O> withAggregate(final Function<DataType, Accumulator<R, O>> aggCreator) {
-            m_aggCreator = Objects.requireNonNull(aggCreator);
+            return withWeightedAggregate(null, null, aggCreator);
+        }
+
+        @Override
+        public Builder<T, U, R, O> withWeightedAggregate(final String weightColumnName,
+            final BiFunction<DataType, DataType, Combiner<T, U, R>> combCreator,
+            final Function<DataType, Accumulator<R, O>> aggCreator) {
+            if (weightColumnName == null) {
+                return withWeightedAggregate(weightColumnName,
+                    (weightType, inType) -> new SimpleBinaryAccumulator<U, T, R, O>(null,
+                        Objects.requireNonNull(aggCreator).apply(inType)));
+            }
+            return withWeightedAggregate(weightColumnName, (weightType, inType) -> {
+                final var comb = combCreator.apply(weightType, inType);
+                return new SimpleBinaryAccumulator<>(comb,
+                    Objects.requireNonNull(aggCreator).apply(comb.getResultDataType()));
+            });
+        }
+
+        @Override
+        public Builder<T, U, R, O> withWeightedAggregate(final String weightColumnName,
+            final BiFunction<DataType, DataType, BinaryAccumulator<U, T, O>> aggCreator) {
+            m_weightColumnName = weightColumnName;
+            m_binAggCreator = Objects.requireNonNull(aggCreator);
             return this;
         }
 
@@ -393,31 +444,18 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
             m_suppClass = Objects.requireNonNull(clazz);
             return this;
         }
-
-        /**
-         * Optionally configure a weight function using values from the column identified by the given name.
-         * @param weightColumnName weight column name
-         * @param combineCreator function to apply
-         * @return builder instance
-         */
-        public Builder<T, U, R, O> withWeighting(final String weightColumnName,
-                final BiFunction<DataType, DataType, Combiner<T, U, R>> combineCreator) {
-            m_weightColumnName = Objects.requireNonNull(weightColumnName);
-            m_combineCreator = Objects.requireNonNull(combineCreator);
-            return this;
-        }
-
     }
 
-    /** Configuration options for operator data.
+    /**
+     * Configuration options for operator data.
      *
      * @param <T> weight column (if any)
      * @param <U> data column
      * @param <R> result of multiplication {@code T x U}
      * @param <O> result of aggregate of {@code R}s
-     *  */
-    public interface WithOperatorInfo<T extends DataValue, U extends DataValue, R extends DataValue,
-            O extends DataValue> {
+     */
+    public interface WithOperatorInfo
+        <T extends DataValue, U extends DataValue, R extends DataValue, O extends DataValue> {
         /**
          * Configure info of the operator.
          *
@@ -434,14 +472,15 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
      *
      * @param <T> weight column (if any)
      * @param <U> data column
-     * @param <R> result of multiplication {@code T x U}
+     * @param <R> result of intermediate {@code T x U}
      * @param <O> result of aggregate of {@code R}s
      */
-    public interface WithSupportedClass<T extends DataValue, U extends DataValue, R extends DataValue,
-            O extends DataValue> {
+    public interface WithSupportedClass
+        <T extends DataValue, U extends DataValue, R extends DataValue, O extends DataValue> {
         /**
          * Configure supported class. If your operator should support more than one data type, then configure it with a
          * supported class that all types are compatible with.
+         *
          * @param clazz class of supported data type
          * @return builder instance
          */
@@ -453,17 +492,40 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
      *
      * @param <T> weight column (if any)
      * @param <U> data column
-     * @param <R> result of multiplication {@code T x U}
+     * @param <R> result of intermediate {@code T x U}
      * @param <O> result of aggregate of {@code R}s
      */
     public interface WithAggregate<T extends DataValue, U extends DataValue, R extends DataValue, O extends DataValue> {
+
         /**
-         * Configure accumulator for the aggregate operator.
+         * Configure the aggregate operator using only an accumulator.
          *
-         * @param aggCreator creator for accumulator
+         * @param aggCreator creator for accumulator given the input data type
          * @return builder instance
          */
         Builder<T, U, R, O> withAggregate(final Function<DataType, Accumulator<R, O>> aggCreator);
+
+        /**
+         * Configure the aggregate operator using a combiner and accumulator.
+         *
+         * @param weightColumnName column name to get data input for combiner
+         * @param combCreator creator for combiner
+         * @param aggCreator creator for accumulator
+         * @return builder instance
+         */
+        Builder<T, U, R, O> withWeightedAggregate(final String weightColumnName,
+            final BiFunction<DataType, DataType, Combiner<T, U, R>> combCreator,
+            final Function<DataType, Accumulator<R, O>> aggCreator);
+
+        /**
+         * Configure binary accumulator for the aggregate operator.
+         *
+         * @param weightColumnName column name to get data input for
+         * @param aggCreator creator for binary accumulator
+         * @return builder instance
+         */
+        Builder<T, U, R, O> withWeightedAggregate(final String weightColumnName,
+            final BiFunction<DataType, DataType, BinaryAccumulator<U, T, O>> aggCreator);
     }
 
     /**
@@ -476,7 +538,7 @@ public final class DataValueAggregate<T extends DataValue, U extends DataValue, 
      * @return the new builder instance
      */
     public static <T extends DataValue, U extends DataValue, R extends DataValue, O extends DataValue>
-            WithOperatorInfo<T, U, R, O> create() {
+        WithOperatorInfo<T, U, R, O> create() {
         return new Builder<>();
     }
 }

@@ -71,9 +71,13 @@ import org.knime.core.data.def.LongCell;
  * @noreference This class is not intended to be referenced by clients.
  */
 public class MultiplyNumeric<T extends DataValue, U extends DataValue, R extends DataValue>
-        implements Combiner<T, U, R> {
+    implements Combiner<T, U, R> {
 
-    private Combiner<T, U, R> m_comb;
+    private final Combiner<T, U, R> m_comb;
+
+    private final DataType m_leftType;
+
+    private final DataType m_rightType;
 
     /**
      * Creates a type-specific multplying combiner for the given supported data types according to
@@ -82,15 +86,18 @@ public class MultiplyNumeric<T extends DataValue, U extends DataValue, R extends
      * @param left left operand type
      * @param right right operand type
      * @throws IllegalArgumentException if the given types are not supported according to
-     *   {@link #supportsDataTypes(DataType, DataType)}
+     *             {@link #supportsDataTypes(DataType, DataType)}
      */
     public MultiplyNumeric(final DataType left, final DataType right) {
+        m_leftType = left;
+        m_rightType = right;
         m_comb = getForTypes(left, right);
     }
 
     /**
-     * Checks whether the combiner supports the given data types, i.e. provides a type-specific combiner
-     * for both of them. The order of the arguments is of no significance.
+     * Checks whether the combiner supports the given data types, i.e. provides a type-specific combiner for both of
+     * them. The order of the arguments is of no significance.
+     *
      * @param left one operand type to test
      * @param right other operand type to test
      * @return {@code true} if a type-specific combiner exists, {@code false} otherwise
@@ -100,8 +107,8 @@ public class MultiplyNumeric<T extends DataValue, U extends DataValue, R extends
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends DataValue, U extends DataValue, R extends DataValue>
-            Combiner<T, U, R> getForTypes(final DataType left, final DataType right) {
+    private static <T extends DataValue, U extends DataValue, R extends DataValue> Combiner<T, U, R>
+        getForTypes(final DataType left, final DataType right) {
         if (isIntCompatible(left, right)) {
             return (Combiner<T, U, R>)new IntMul();
         }
@@ -129,7 +136,16 @@ public class MultiplyNumeric<T extends DataValue, U extends DataValue, R extends
 
     @Override
     public Optional<R> apply(final T left, final U right) {
-        return m_comb.apply(left,  right);
+        final var res = m_comb.apply(left, right);
+        if (res.isEmpty()) {
+            var msg = String.format("Numeric overflow multiplying values for column of "
+                    + "type \"%s\" and column of type \"%s\".", m_leftType, m_rightType);
+            if (m_leftType.equals(IntCell.TYPE) || m_rightType.equals(IntCell.TYPE)) {
+                msg += String.format(" Consider converting the input column(s) to \"%s\".", LongCell.TYPE);
+            }
+            throw new ArithmeticException(msg);
+        }
+        return res;
     }
 
     @Override
@@ -138,6 +154,7 @@ public class MultiplyNumeric<T extends DataValue, U extends DataValue, R extends
     }
 
     private static final int MAX_INT = Integer.MAX_VALUE;
+
     private static final int MIN_INT = Integer.MIN_VALUE;
 
     private static final class IntMul implements Combiner<IntValue, IntValue, IntValue> {
@@ -149,7 +166,7 @@ public class MultiplyNumeric<T extends DataValue, U extends DataValue, R extends
                 return Optional.empty();
             }
             // downcast is safe
-            return Optional.of(new IntCell((int) res));
+            return Optional.of(new IntCell((int)res));
         }
 
         @Override
@@ -178,9 +195,9 @@ public class MultiplyNumeric<T extends DataValue, U extends DataValue, R extends
     }
 
     /**
-     * Multiplication of two double values. Multiplication is subject to the floating-point arithmetic of
-     * {@code double} and as such does not return a {@link MissingCell} on overflow, since this is handled by the
-     * standard itself (rules of ±∞, NaN, etc.).
+     * Multiplication of two double values. Multiplication is subject to the floating-point arithmetic of {@code double}
+     * and as such does not return a {@link MissingCell} on overflow, since this is handled by the standard itself
+     * (rules of ±∞, NaN, etc.).
      */
     private static final class DoubleMul implements Combiner<DoubleValue, DoubleValue, DoubleValue> {
 

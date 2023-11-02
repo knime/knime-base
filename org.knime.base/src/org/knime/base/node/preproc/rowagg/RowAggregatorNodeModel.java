@@ -77,6 +77,7 @@ import org.knime.base.node.preproc.rowagg.aggregation.AverageNumeric;
 import org.knime.base.node.preproc.rowagg.aggregation.DataValueAggregate;
 import org.knime.base.node.preproc.rowagg.aggregation.MultiplyNumeric;
 import org.knime.base.node.preproc.rowagg.aggregation.SumNumeric;
+import org.knime.base.node.preproc.rowagg.aggregation.WeightedAverageNumeric;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -209,8 +210,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                     + "limits of the column's data type (numeric overflow) or any of the data or weight cells are "
                     + "missing.")
                 .withSupportedClass(DoubleValue.class)
-                .withAggregate(SumNumeric::new)
-                .withWeighting(weight, MultiplyNumeric::new)
+                .withWeightedAggregate(weight, MultiplyNumeric::new, SumNumeric::new)
                 .build(gs, os)
         ),
         @Label("Average")
@@ -223,13 +223,12 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                 .withAggregate(AverageNumeric::new)
                 .build(gs, os),
             // weighted aggregate
-            (weight, gs, os) -> DataValueAggregate.create()
+            (weight, gs, os) -> DataValueAggregate.<DoubleValue, DoubleValue, DoubleValue, DoubleValue>create()
                 .withOperatorInfo("WeightedAverageNumeric_1.0", "Weighted Average",
                     "Calculates the weighted average per group. If any of the data or weight cells are missing, "
                     + "the result is not added to the aggregate.")
                 .withSupportedClass(DoubleValue.class)
-                .withAggregate(AverageNumeric::new)
-                .withWeighting(weight, MultiplyNumeric::new)
+                .withWeightedAggregate(weight, WeightedAverageNumeric::new)
                 .build(gs, os)
         ),
         @Label("Minimum")
@@ -349,7 +348,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             return Arrays.stream(m_aggregatedColumns)
                     .map(colSpecs)
                     .map(cs -> new ColumnAggregator(cs, op))
-                    .collect(Collectors.toList()).toArray(ColumnAggregator[]::new);
+                    .toList().toArray(ColumnAggregator[]::new);
         }
     }
 
@@ -427,16 +426,16 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             checkSettingMissingAggregatedColumns(origSpec, aggregatedColumns.get());
         }
 
-        final var groupByColumn = checkSetting(getEffectiveGroupByColumn(settings), col -> origSpec.containsName(col),
+        final var groupByColumn = checkSetting(getEffectiveGroupByColumn(settings).orElse(null), origSpec::containsName,
             col -> String.format("Missing category column: \"%s\".", col));
 
-        final var weightColumn = checkSetting(getEffectiveWeightColumn(settings), col -> origSpec.containsName(col),
+        final var weightColumn = checkSetting(getEffectiveWeightColumn(settings).orElse(null), origSpec::containsName,
                     col -> String.format("Missing weight column: \"%s\".", col));
 
         final var rowAgg = new RowAggregator(agg, groupByColumn.orElse(null), aggregatedColumns.orElse(null),
             weightColumn.orElse(null));
 
-        final var groupByColAsList = rowAgg.getGroupByColumn().stream().collect(Collectors.toList());
+        final var groupByColAsList = rowAgg.getGroupByColumn().stream().toList();
         final var groupByGlobalSettings = createGlobalSettingsBuilder()
                 .setDataTableSpec(origSpec)
                 .setGroupColNames(groupByColAsList).build();
@@ -469,23 +468,20 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
      * @param errorMsg function to construct error message if the check fails
      * @throws InvalidSettingsException
      */
-    private static <T> Optional<T> checkSetting(final Optional<T> toCheck, final Predicate<T> checkFn,
+    private static <T> Optional<T> checkSetting(final T toCheck, final Predicate<T> checkFn,
             final Function<T, String> errorMsg) throws InvalidSettingsException {
-        if (Objects.requireNonNull(toCheck).isEmpty()) {
-            return toCheck;
+        if (toCheck == null) {
+            return Optional.empty();
         }
-        final var e = toCheck.get();
-        if (!checkFn.test(e)) {
-            throw new InvalidSettingsException(errorMsg.apply(e));
+        if (!checkFn.test(toCheck)) {
+            throw new InvalidSettingsException(errorMsg.apply(toCheck));
         }
-        return toCheck;
+        return Optional.of(toCheck);
     }
 
     private static void checkSettingMissingAggregatedColumns(final DataTableSpec dts, final String[] columns)
             throws InvalidSettingsException {
-        final var missing = Arrays.stream(columns)
-                .filter(Predicate.not(dts::containsName))
-                .collect(Collectors.toList());
+        final var missing = Arrays.stream(columns).filter(Predicate.not(dts::containsName)).toList();
         if (missing.isEmpty()) {
             return;
         }
@@ -500,7 +496,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     protected PortObject[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
         final RowAggregatorSettings settings) throws Exception {
         if (inPortObjects == null || inPortObjects[0] == null) {
-            throw new Exception("No input available!");
+            throw new IllegalArgumentException("Missing input table");
         }
 
         final var table = (BufferedDataTable) inPortObjects[0];
@@ -518,15 +514,18 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         final var rowAgg = new RowAggregator(agg, groupByColumn.orElse(null), aggregatedColumns.orElse(null),
             weightColumn.orElse(null));
 
-        final var groupByColAsList = rowAgg.getGroupByColumn().stream().collect(Collectors.toList());
+        final var groupByColAsList = rowAgg.getGroupByColumn().stream().toList();
         final var groupByGlobalSettings = gsb.setGroupColNames(groupByColAsList).build();
-        final var aggregators = rowAgg.getAggregators(groupByGlobalSettings, inSpec::getColumnSpec);
         final var countColumnName = agg == AggregationFunction.COUNT ? COUNT_COLUMN_NAME : null;
 
+        var inputTable = table;
+        final var currSpec = inputTable.getSpec();
+
+        final var aggregators = rowAgg.getAggregators(groupByGlobalSettings, currSpec::getColumnSpec);
         final BufferedDataTable groupedAggregates;
         if (!groupByColumn.isEmpty()) {
             exec.setMessage("Calculating group-by aggregate");
-            final var groupedResult = new BigGroupByTable(exec, table,
+            final var groupedResult = new BigGroupByTable(exec, inputTable,
                 groupByColAsList,
                 aggregators,
                 countColumnName,
@@ -596,7 +595,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             // empty input: fill agg columns with missing cells
             totalOut.addRowToTable(new DefaultRow(RowKey.createRowKey(0L),
                 Arrays.stream(resultSpec.getColumnNames())
-                        .map(c -> DataType.getMissingCell()).collect(Collectors.toList())));
+                        .map(c -> DataType.getMissingCell()).toList()));
             totalOut.close();
             return totalOut.getTable();
         } else {

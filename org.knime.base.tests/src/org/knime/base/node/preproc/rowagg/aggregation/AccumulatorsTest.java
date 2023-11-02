@@ -58,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.DoubleStream;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.junit.jupiter.api.Test;
@@ -77,45 +78,50 @@ import org.knime.core.data.def.StringCell;
  */
 final class AccumulatorsTest {
 
+    private static final double NAN = Double.NaN;
 
-    private static final Double NAN = Double.NaN;
-    private static final Double POS_INFINITY = Double.POSITIVE_INFINITY;
-    private static final Double NEG_INFINITY = Double.NEGATIVE_INFINITY;
+    private static final double POS_INFINITY = Double.POSITIVE_INFINITY;
+
+    private static final double NEG_INFINITY = Double.NEGATIVE_INFINITY;
+
+    private static final double EPS = 1.0e-14d;
 
     private static final String ERR_SHORT_CIRCUIT = "Erroneous short-circuit";
-    private static final String ERR_SUM = "Incorrect sum";
-    private static final String ERR_SKIP = "Erroneously skipping column";
 
+    private static final String ERR_SUM = "Incorrect sum";
+
+    private static final String ERR_SKIP = "Erroneously skipping column";
 
     @SuppressWarnings("static-method")
     @Test
     void testAverage() {
         // test "failure" conditions
-        assertThrows(IllegalArgumentException.class, () -> new AverageNumeric<>(StringCell.TYPE));
+        assertThrows(IllegalArgumentException.class, () -> new AverageNumeric<>(StringCell.TYPE),
+            "Incompatible input type");
         final var avg = new AverageNumeric<DoubleValue>(DoubleCell.TYPE);
         assertEquals(DoubleCell.TYPE, avg.getResultType(), "Average result type should be Double");
-        assertEquals(0, avg.getResult().get().getDoubleValue(), "Initial average should be 0");
+        assertTrue(Double.isNaN(avg.getResult().get().getDoubleValue()), "Initial average should be NaN");
         assertNotEquals(Optional.empty(), avg.getResult(), "Average result should never be empty");
 
         // AVG(+inf, +inf) -> NaN
         avg.reset();
-        assertAverage(avg, new boolean[] {false, true}, POS_INFINITY, POS_INFINITY);
+        assertAverage(avg, new boolean[]{false, true}, POS_INFINITY, POS_INFINITY);
 
         // test reset
         avg.reset();
-        assertEquals(0, avg.getResult().get().getDoubleValue(), "Average after reset should be 0");
+        assertTrue(Double.isNaN(avg.getResult().get().getDoubleValue()), "Average after reset should be NaN");
 
         // AVG(-inf, -inf) -> NaN
         avg.reset();
-        assertAverage(avg, new boolean[] {false, true}, NEG_INFINITY, NEG_INFINITY);
+        assertAverage(avg, new boolean[]{false, true}, NEG_INFINITY, NEG_INFINITY);
 
         // AVG(+inf, -inf) -> NaN
         avg.reset();
-        assertAverage(avg, new boolean[] {false, true}, POS_INFINITY, NEG_INFINITY);
+        assertAverage(avg, new boolean[]{false, true}, POS_INFINITY, NEG_INFINITY);
 
         // AVG(x, NaN) -> NaN
         avg.reset();
-        assertAverage(avg, new boolean[] {false, false, true, true}, 42, POS_INFINITY, NAN, 42);
+        assertAverage(avg, new boolean[]{false, false, true, true}, 42, POS_INFINITY, NAN, 42);
 
         // test normal operation
         avg.reset();
@@ -135,11 +141,7 @@ final class AccumulatorsTest {
         for (int i = 0; i < values.length; i++) {
             final var stop = expectedApplyResults[i];
             final var cell = new DoubleCell(values[i]);
-            if (stop) {
-                assertTrue(avg.apply(cell), ERR_SHORT_CIRCUIT);
-            } else {
-                assertFalse(avg.apply(cell), ERR_SHORT_CIRCUIT);
-            }
+            assertEquals(stop, avg.apply(cell), ERR_SHORT_CIRCUIT);
         }
         assertFalse(avg.getResult().isEmpty(), "Double result should never be empty");
         assertEquals(mean.getResult(), avg.getResult().get().getDoubleValue(), "Wrong average result");
@@ -149,7 +151,8 @@ final class AccumulatorsTest {
     @Test
     void testSum() {
         // test "failure" conditions and overflow behavior
-        assertThrows(IllegalArgumentException.class, () -> new SumNumeric<>(StringCell.TYPE));
+        assertThrows(IllegalArgumentException.class, () -> new SumNumeric<>(StringCell.TYPE),
+            "Incompatible input type");
 
         final var iSum = new SumNumeric<IntValue>(IntCell.TYPE);
         assertEquals(IntCell.TYPE, iSum.getResultType(), "Incorrect result type");
@@ -163,7 +166,6 @@ final class AccumulatorsTest {
         // ... but result still does not fit
         assertEquals(Optional.empty(), iSum.getResult(), "Incorrect result after result overflow");
 
-
         final var lSum = new SumNumeric<LongValue>(LongCell.TYPE);
         assertEquals(LongCell.TYPE, lSum.getResultType(), "Incorrect result type");
         assertEquals(0, lSum.getResult().get().getLongValue(), "Incorrect initial value");
@@ -171,9 +173,9 @@ final class AccumulatorsTest {
         assertEquals(0, lSum.getResult().get().getLongValue(), "Incorrect value after reset");
         assertFalse(lSum.apply(new LongCell(Long.MAX_VALUE)), ERR_SKIP);
         assertEquals(Long.MAX_VALUE, lSum.getResult().get().getLongValue(), "Incorrect result");
-        assertTrue(lSum.apply(new LongCell(1)), ERR_SKIP);
+        final var one = new LongCell(1);
+        assertThrows(ArithmeticException.class, () -> lSum.apply(one), "Missing overflow exception");
         assertEquals(Optional.empty(), lSum.getResult(), "Incorrect result after result overflow");
-
 
         final var dSum = new SumNumeric<DoubleValue>(DoubleCell.TYPE);
         assertEquals(DoubleCell.TYPE, dSum.getResultType(), "Incorrect result type");
@@ -184,7 +186,6 @@ final class AccumulatorsTest {
         assertEquals(POS_INFINITY, dSum.getResult().get().getDoubleValue(), "Incorrect result");
         assertFalse(dSum.apply(new DoubleCell(1)), ERR_SKIP);
         assertEquals(POS_INFINITY, dSum.getResult().get().getDoubleValue(), "Incorrect result after result overflow");
-
 
         // test normal operation
         iSum.reset();
@@ -209,6 +210,82 @@ final class AccumulatorsTest {
 
     @SuppressWarnings("static-method")
     @Test
+    void testWeightedAverage() {
+        // test "failure" conditions and overflow behavior
+        assertThrows(IllegalArgumentException.class,
+            () -> new WeightedAverageNumeric<>(StringCell.TYPE, StringCell.TYPE),
+            "Should not allow incompatible types");
+        assertThrows(IllegalArgumentException.class, () -> new WeightedAverageNumeric<>(IntCell.TYPE, StringCell.TYPE),
+            "Should not allow incompatible types");
+        assertThrows(IllegalArgumentException.class, () -> new WeightedAverageNumeric<>(StringCell.TYPE, IntCell.TYPE),
+            "Should not allow incompatible types");
+
+        final var avg = new WeightedAverageNumeric<DoubleValue, DoubleValue>(DoubleCell.TYPE, DoubleCell.TYPE);
+        assertEquals(DoubleCell.TYPE, avg.getResultType(), "Average result type should be Double");
+        assertTrue(Double.isNaN(avg.getResult().get().getDoubleValue()), "Initial average should be NaN");
+        assertNotEquals(Optional.empty(), avg.getResult(), "Average result should never be empty");
+
+        // AVG(+inf, +inf) -> NaN
+        avg.reset();
+        assertWeightedAverage(avg, new boolean[]{false, true}, new double[]{1, 1},
+            new double[]{POS_INFINITY, POS_INFINITY});
+
+        // test reset
+        avg.reset();
+        assertTrue(Double.isNaN(avg.getResult().get().getDoubleValue()), "Average after reset should be NaN");
+
+        // AVG(-inf, -inf) -> NaN
+        avg.reset();
+        assertWeightedAverage(avg, new boolean[]{false, true}, new double[]{1, 1},
+            new double[]{NEG_INFINITY, NEG_INFINITY});
+
+        // AVG(+inf, -inf) -> NaN
+        avg.reset();
+        assertWeightedAverage(avg, new boolean[]{false, true}, new double[]{1, 1},
+            new double[]{POS_INFINITY, NEG_INFINITY});
+
+        // AVG(x, NaN) -> NaN
+        avg.reset();
+        assertWeightedAverage(avg, new boolean[]{false, false, true, true}, new double[]{1, 1, 1, 1},
+            new double[]{42, POS_INFINITY, NAN, 42});
+
+        // test normal operation
+        final var rng = new Random(42);
+        final var num = 100;
+        final var ds = rng.doubles(num, -100, 100).toArray();
+
+        avg.reset();
+        final var r = assertWeightedAverage(avg, null, DoubleStream.generate(() -> 1).limit(num).toArray(), ds);
+        assertEquals(new Mean().evaluate(ds), r, EPS, "Unit weights should result in regular mean.");
+
+        avg.reset();
+        assertWeightedAverage(avg, null, rng.doubles(num, 1, 100).toArray(), ds);
+    }
+
+    private static double assertWeightedAverage(final WeightedAverageNumeric<DoubleValue, DoubleValue> avg,
+        final boolean[] expectedApplyResults, final double[] weights, final double[] values) {
+        // current implementation used in MeanOperator
+
+        final var mean = new Mean();
+        final var meanValue = mean.evaluate(values, weights);
+
+        for (int i = 0; i < values.length; i++) {
+            final var cell = new DoubleCell(values[i]);
+            final var weight = new DoubleCell(weights[i]);
+            final var res = avg.apply(cell, weight);
+            if (expectedApplyResults != null) {
+                final var stop = expectedApplyResults[i];
+                assertEquals(stop, res, ERR_SHORT_CIRCUIT);
+            }
+        }
+        final var res = avg.getResult();
+        assertFalse(res.isEmpty(), "Double result should never be empty");
+        assertEquals(meanValue, avg.getResult().get().getDoubleValue(), EPS, "Wrong average result");
+        return res.get().getDoubleValue();
+    }
+
+    @SuppressWarnings("static-method")
+    @Test
     void testMultiplyTypes() {
 
         assertThrows(IllegalArgumentException.class, () -> new MultiplyNumeric<>(StringCell.TYPE, IntCell.TYPE),
@@ -216,22 +293,21 @@ final class AccumulatorsTest {
         assertThrows(IllegalArgumentException.class, () -> new MultiplyNumeric<>(IntCell.TYPE, StringCell.TYPE),
             "Supports only numeric cells");
 
-        final var types = new DataType[][] {
-            new DataType[] { IntCell.TYPE, IntCell.TYPE, IntCell.TYPE },
-            new DataType[] { IntCell.TYPE, LongCell.TYPE, LongCell.TYPE },
-            new DataType[] { IntCell.TYPE, DoubleCell.TYPE, DoubleCell.TYPE },
+        final var types = new DataType[][]{new DataType[]{IntCell.TYPE, IntCell.TYPE, IntCell.TYPE},
+            new DataType[]{IntCell.TYPE, LongCell.TYPE, LongCell.TYPE},
+            new DataType[]{IntCell.TYPE, DoubleCell.TYPE, DoubleCell.TYPE},
 
-            new DataType[] { LongCell.TYPE, IntCell.TYPE, LongCell.TYPE },
-            new DataType[] { LongCell.TYPE, LongCell.TYPE, LongCell.TYPE },
-            new DataType[] { LongCell.TYPE, DoubleCell.TYPE, DoubleCell.TYPE },
+            new DataType[]{LongCell.TYPE, IntCell.TYPE, LongCell.TYPE},
+            new DataType[]{LongCell.TYPE, LongCell.TYPE, LongCell.TYPE},
+            new DataType[]{LongCell.TYPE, DoubleCell.TYPE, DoubleCell.TYPE},
 
-            new DataType[] { DoubleCell.TYPE, IntCell.TYPE, DoubleCell.TYPE },
-            new DataType[] { DoubleCell.TYPE, LongCell.TYPE, DoubleCell.TYPE },
-            new DataType[] { DoubleCell.TYPE, DoubleCell.TYPE, DoubleCell.TYPE },
-        };
+            new DataType[]{DoubleCell.TYPE, IntCell.TYPE, DoubleCell.TYPE},
+            new DataType[]{DoubleCell.TYPE, LongCell.TYPE, DoubleCell.TYPE},
+            new DataType[]{DoubleCell.TYPE, DoubleCell.TYPE, DoubleCell.TYPE},};
 
         for (final var pair : types) {
-            final var op = assertDoesNotThrow(() -> new MultiplyNumeric<>(pair[0], pair[1]));
+            final var op = assertDoesNotThrow(() -> new MultiplyNumeric<>(pair[0], pair[1]),
+                "Unexpected exception for supported data types");
             assertEquals(pair[2], op.getResultDataType(),
                 () -> String.format("Incorrect result type %s for input types %s and %s", pair[2], pair[0], pair[1]));
         }

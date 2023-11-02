@@ -629,7 +629,7 @@ final class RowAggregatorNodeModelTest {
 
         // aggregate grand total weighted sum for each of the types
         final var method = AggregationFunction.AVERAGE;
-        final var results = new DataCell[] {  new DoubleCell(7.5), new DoubleCell(7.5), new DoubleCell(7.5) };
+        final var results = new DataCell[] {  new DoubleCell(3), new DoubleCell(3), new DoubleCell(3) };
         final var gs = createGlobalSettingsBuilder()
                 .setDataTableSpec(dts)
                 .setGroupColNames(Collections.emptyList())

@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   10 Jan 2023 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   31 Oct 2023 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.rowagg.aggregation;
 
@@ -54,38 +54,43 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 
 /**
- * Stateful accumulator of {@link DataValue data values} whose result type is a function of the input type
- * (and not any input values).
+ * Stateful accumulator of {@link DataValue data values} whose result type is a function of the two input data types.
  *
- * @param <I> input type
+ * @param <V> first input type
+ * @param <W> second input type
  * @param <O> accumulation result type
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @noreference This interface is not intended to be referenced by clients.
  */
-public interface Accumulator<I extends DataValue, O extends DataValue> {
+public interface BinaryAccumulator<V extends DataValue, W extends DataValue, O extends DataValue> {
 
     /**
-     * Compute aggregate based on given values. The method can indicate if the aggregate reached a "fixed point", i.e.
-     * the computed aggregate will not change anymore based on any possible input.
+     * Compute current aggregate based on given values. The method can indicate if the aggregate reached a "fixed
+     * point", i.e. the computed aggregate will not change anymore based on any possible input (e.g. if overflows should
+     * short-circuit the aggregation or not).
      *
-     * @param v data value
-     * @return {@code true} if the aggregate reached a "fixed point" and the result will not change, {@code false}
-     * if it still <i>could</i> change
+     * If the data values involved are numeric, the method may also indicate that the domain over/underflowed by
+     * throwing an instance of {@link ArithmeticException} with an error message.
      *
-     * @throws ArithmeticException if accumulating numeric values, can indicate that overflow occurred
-     *
+     * @param v first data value
+     * @param w second data value
+     * @return {@code true} if the aggregate reached a "fixed point" and the result will not change, {@code false} if it
+     *         still <i>could</i> change
+     * @throws ArithmeticException when a numeric over/underflow occurs
      */
-    boolean apply(I v) throws ArithmeticException;
+    boolean apply(V v, W w) throws ArithmeticException;
 
     /**
      * Result type of aggregate.
+     *
      * @return result type
      */
     DataType getResultType();
 
     /**
      * Current result of the aggregate.
+     *
      * @return result of aggregate, empty if error value (e.g. overflow)
      */
     Optional<O> getResult();

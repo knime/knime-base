@@ -44,93 +44,97 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   10 Jan 2023 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   2 Nov 2023 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.rowagg.aggregation;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.def.DoubleCell;
 
 /**
- * Calculate average of double-compatible values using double arithmetic. The result is always of type
- * {@link DoubleValue}.
+ * Calculates the weighted mean in a single pass over given data stream.
  *
  * Returns {@link Double#NaN} if the data stream is empty. Note, that
  * {@link Double#NaN} may also be returned if the input includes {@code NaN} and/or infinite values.
  *
- * The implementation is based on updating with differential to avoid accumulating a large intermediate sum.
+ * All methods without weight arguments will use unit weight.
  *
- * @param <V> type of data values to average
+ * Note: implements proposed algorithm (WV2) published in "Updating Mean and Variance Estimates: An Improved Method"
+ * (D.H.D. West, 1979, ACM).
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- * @noreference This class is not intended to be referenced by clients.
  */
-public class AverageNumeric<V extends DataValue> implements Accumulator<V, DoubleValue> {
+public final class WeightedAverageNumeric
+    implements BinaryAccumulator<DoubleValue, DoubleValue, DoubleValue> {
 
-    private double m_mean = Double.NaN;
     private long m_count;
 
-    // In case of NaN
+    private double m_sumW;
+
+    private double m_m = Double.NaN;
+
     private boolean m_shortCircuit;
 
     /**
-     * Creates a new average accumulator for a given supported type according to {@link #supportsDataType(DataType)}.
+     * Creates a new accumulator which calculates the online weighted mean from double-compatible values and weights.
      *
-     * @param inputType type to create sum accumulator for
-     * @throws IllegalArgumentException if the given type is not supported according to
-     *   {@link #supportsDataType(DataType)}
+     * @param valueType type of the data value
+     * @param weightType type of the weight
      */
-    public AverageNumeric(final DataType inputType) {
-        if (!supportsDataType(inputType)) {
-            throw new IllegalArgumentException("Average cannot aggregate data not compatible with double values.");
+    public WeightedAverageNumeric(final DataType valueType, final DataType weightType) {
+        if (!Objects.requireNonNull(valueType).isCompatible(DoubleValue.class)) {
+            throw new IllegalArgumentException(
+                "Weighted average cannot aggregate data not compatible with double type; "
+                + "data column is of unsupported type \"%s\".".formatted(valueType));
+        }
+        if (weightType != null && !Objects.requireNonNull(weightType).isCompatible(DoubleValue.class)) {
+            throw new IllegalArgumentException(
+                "Weighted average cannot aggregate data not compatible with double type; "
+                + "weight column is of unsupported type \"%s\".".formatted(weightType));
         }
     }
 
-    /**
-     * Checks whether the accumulator supports a given data type, i.e. provides a type-specific accumulator.
-     * @param t type to test
-     * @return {@code true} if a type-specific accumulator exists, {@code false} otherwise
-     */
-    public static boolean supportsDataType(final DataType t) {
-        return t.isCompatible(DoubleValue.class);
-    }
-
-    @Override
-    public boolean apply(final V v) {
+    private boolean increment(final double xi, final double wi) {
+        if (wi < 0) {
+            throw new IllegalArgumentException("Negative weights not supported");
+        }
+        if (m_count == 0) {
+            m_m = 0;
+        }
+        m_count++;
         if (m_shortCircuit) {
             return true;
         }
-        if (m_count == 0) {
-            m_mean = 0;
-        }
-        final var dv = (DoubleValue)v;
-        final var val = dv.getDoubleValue();
-        m_count++;
-        // We use the differential update since the current MeanOperator uses Apache Math3's
-        // org.apache.commons.math3.stat.descriptive.moment.Mean class which uses this formula as well when values
-        // are added one-by-one.
-        m_mean = m_mean + (val - m_mean) / m_count;
-        // NB: This differential updating has a different Inf/NaN behavior compared to the formula `sum(x_i) / n` since
-        // addition of infinite values behaves different to subtraction:
-        // e.g. when m_mean:= +inf, then
-        //   sum(m_mean, +inf) / 2 => +inf
-        //   m_mean + (+inf - m_mean) / 2 => NaN (since +inf - m_mean = NaN)
 
-        final var isNaN = Double.isNaN(m_mean);
-        if (isNaN) {
+        final var q = xi - m_m;
+        final var temp = m_sumW + wi;
+        final var r = q * wi / temp;
+        m_m += r;
+        m_sumW = temp;
+
+        if (Double.isNaN(m_m)) {
             // once we get a NaN, we stay there (not true for +/-Inf!)
             m_shortCircuit = true;
         }
         return m_shortCircuit;
     }
 
+    /**
+     * Computes the current weighted average incrementally, given {@code value} and {@code weight} arguments.
+     *
+     * @param value value
+     * @param weight weight
+     *
+     * @return {@code true} if the computation reached a fixed-point, e.g. {@link Double#NaN} and will not change any
+     * more.
+     */
     @Override
-    public Optional<DoubleValue> getResult() {
-        return Optional.of(new DoubleCell(m_mean));
+    public boolean apply(final DoubleValue value, final DoubleValue weight) {
+        return increment(value.getDoubleValue(), weight.getDoubleValue());
     }
 
     @Override
@@ -140,8 +144,14 @@ public class AverageNumeric<V extends DataValue> implements Accumulator<V, Doubl
 
     @Override
     public void reset() {
-        m_shortCircuit = false;
-        m_mean = Double.NaN;
         m_count = 0;
+        m_m = Double.NaN;
+        m_sumW = 0;
+        m_shortCircuit = false;
+    }
+
+    @Override
+    public Optional<DoubleValue> getResult() {
+        return Optional.of(new DoubleCell(m_m));
     }
 }

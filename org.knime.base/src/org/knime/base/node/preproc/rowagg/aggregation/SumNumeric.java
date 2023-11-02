@@ -78,7 +78,8 @@ public class SumNumeric<V extends DataValue> implements Accumulator<V, V> {
      * double     – double           → double
      *
      * */
-    private Accumulator<V, V> m_sum;
+    private final Accumulator<V, V> m_sum;
+    private final DataType m_type;
 
     /**
      * Creates a new sum accumulator for a given supported type according to {@link #supportsDataType(DataType)}.
@@ -89,6 +90,7 @@ public class SumNumeric<V extends DataValue> implements Accumulator<V, V> {
      */
     public SumNumeric(final DataType inputType) {
         m_sum = getForType(inputType);
+        m_type = inputType;
     }
 
     /**
@@ -122,7 +124,16 @@ public class SumNumeric<V extends DataValue> implements Accumulator<V, V> {
 
     @Override
     public boolean apply(final V dv) {
-        return m_sum.apply(dv);
+        final var res = m_sum.apply(dv);
+        if (res && getResult().isEmpty()) {
+            var msg = String.format("Numeric overflow aggregating values for column of "
+                    + "type \"%s\".", m_type);
+            if (m_type.equals(IntCell.TYPE)) {
+                msg += String.format(" Consider converting the input column to \"%s\".", LongCell.TYPE);
+            }
+            throw new ArithmeticException(msg);
+        }
+        return res;
     }
 
     @Override
