@@ -51,10 +51,7 @@ package org.knime.base.node.preproc.append.row;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.AbstractNodeFunc;
-import org.knime.core.node.func.ArgumentDefinition;
-import org.knime.core.node.func.DefaultPortDefinition;
 import org.knime.core.node.func.NodeFuncApi;
-import org.knime.core.node.func.PortDefinition;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
@@ -71,10 +68,6 @@ public final class AppendRowsNodeFunc extends AbstractNodeFunc {
         super(API, AppendedRowsNodeFactory.class.getName());
     }
 
-    @Override
-    public String getName() {
-        return "append_rows";
-    }
 
     private static final NodeFuncApi API = NodeFuncApi.builder("append_rows")//
         .withDescription("""
@@ -97,26 +90,6 @@ public final class AppendRowsNodeFunc extends AbstractNodeFunc {
         settings.addBoolean(AppendedRowsNodeModel.CFG_HILITING, false);
     }
 
-    @Override
-    public String getDescription() {
-        return "Concatenates the tables a and b along the row dimension.";
-    }
-
-    @Override
-    public PortDefinition[] getInputs() {
-        return new PortDefinition[]{new DefaultPortDefinition("a", "The first table"),
-            new DefaultPortDefinition("b", "The second table")};
-    }
-
-    @Override
-    public ArgumentDefinition[] getArguments() {
-        return new ArgumentDefinition[0];
-    }
-
-    @Override
-    public PortDefinition[] getOutputs() {
-        return new PortDefinition[]{new DefaultPortDefinition("out", "The concatenated table")};
-    }
 
     @Override
     public String getNodeFactoryClassName() {

@@ -53,7 +53,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.AbstractNodeFunc;
-import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -66,8 +65,8 @@ public final class ColumnRenamerNodeFunc extends AbstractNodeFunc {
 
     private static final NodeFuncApi API = NodeFuncApi.builder("rename_column")//
             .withInputTable("df", "The input table")//
-            .withArgument("old_name", "The name of the column in the input table", PrimitiveArgumentType.STRING)//
-            .withArgument("new_name", "The new name of the column", PrimitiveArgumentType.STRING)//
+            .withStringArgument("old_name", "The name of the column in the input table")//
+            .withStringArgument("new_name", "The new name of the column")//
             .withDescription("Returns a new table in which the column old_name in the input table is renamed to new_name.")
             .build();
 

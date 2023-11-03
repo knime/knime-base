@@ -59,7 +59,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.AbstractNodeFunc;
-import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
 import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.port.PortObjectSpec;
 
@@ -86,11 +85,10 @@ public final class GroupByNodeFunc extends AbstractNodeFunc {
                 Valid values for aggregation are ['first', 'last', 'mean', 'median', 'list', 'count'].
                 """)//
         .withInputTable("df", "The table to aggregate")//
-        .withArgument("group_column", "The column to group by", PrimitiveArgumentType.STRING)//
-        .withArgument("aggregation_column", "The column to aggregate", PrimitiveArgumentType.STRING)//
-        .withArgument("aggregation",
-            "The aggregation method. Valid values are ['first', 'last', 'mean', 'median', 'list', 'count'].",
-            PrimitiveArgumentType.STRING)//
+        .withStringArgument("group_column", "The column to group by")//
+        .withStringArgument("aggregation_column", "The column to aggregate")//
+        .withStringArgument("aggregation",
+            "The aggregation method. Valid values are ['first', 'last', 'mean', 'median', 'list', 'count'].")//
         .withOutputTable("output", "The grouped and aggregated table")//
         .build();
 
