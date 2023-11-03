@@ -81,10 +81,13 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
     private static final String CREDENTIAL_ID_LABEL = "credentials identifier";
     private static final String USERNAME_LABEL = "username";
     private static final String PASSWORD_LABEL = "password";
+    private static final String SECOND_FACTOR_LABEL = "second factor";
     private final SettingsModelString m_credentialsNameModel = createCredentialsNameModel();
     private final SettingsModelString m_usernameModel = createUserModel();
     private final SettingsModelString m_passwordModel = createPwdModel();
+    private final SettingsModelString m_secondFactorModel = createSecondFactorModel();
     static final String EMPTY_ELEMENT = "<none available>";
+    static final String NONE_ELEMENT = "<none>";
 
     /**
      * @return the credentials name model
@@ -98,6 +101,13 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
      */
     static SettingsModelString createPwdModel() {
         return new SettingsModelString("passwordVarName", ""); // NOSONAR
+    }
+
+    /**
+     * @return the second factor model
+     */
+    static SettingsModelString createSecondFactorModel() {
+        return new SettingsModelString("secondFactorVarName", NONE_ELEMENT); // NOSONAR
     }
 
     /**
@@ -129,6 +139,7 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
         m_credentialsNameModel.saveSettingsTo(settings);
         m_usernameModel.saveSettingsTo(settings);
         m_passwordModel.saveSettingsTo(settings);
+        m_secondFactorModel.saveSettingsTo(settings);
     }
 
     @Override
@@ -136,6 +147,10 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
         checkNotEmpty(m_credentialsNameModel, settings, CREDENTIAL_ID_LABEL);
         checkNotEmpty(m_usernameModel, settings, USERNAME_LABEL);
         checkNotEmpty(m_passwordModel, settings, PASSWORD_LABEL);
+        if (settings.containsKey(m_secondFactorModel.getKey())) {
+            //introduced with 5.2
+            checkNotEmpty(m_secondFactorModel, settings, SECOND_FACTOR_LABEL);
+        }
     }
 
     private static void checkNotEmpty(final SettingsModelString model, final NodeSettingsRO settings,
@@ -151,28 +166,38 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
         m_credentialsNameModel.loadSettingsFrom(settings);
         m_usernameModel.loadSettingsFrom(settings);
         m_passwordModel.loadSettingsFrom(settings);
+        if (settings.containsKey(m_secondFactorModel.getKey())) {
+            m_secondFactorModel.loadSettingsFrom(settings);
+        } else {
+            //introduced with 5.2
+            m_secondFactorModel.setStringValue(NONE_ELEMENT);
+        }
     }
 
     private void pushCredentials() throws InvalidSettingsException {
         final Map<String, FlowVariable> variables = getAvailableFlowVariables(VariableType.StringType.INSTANCE);
         final String credentialsName = m_credentialsNameModel.getStringValue();
-        final FlowVariable userVar =
-                getVariableOrThrow(USERNAME_LABEL, m_usernameModel.getStringValue(), variables);
-        final FlowVariable passwordVar =
-                getVariableOrThrow(PASSWORD_LABEL, m_passwordModel.getStringValue(), variables);
-        pushCredentialsFlowVariable(credentialsName, userVar.getStringValue(), passwordVar.getStringValue());
+        final String userVar = getValueOrThrow(USERNAME_LABEL, m_usernameModel.getStringValue(), variables);
+        final String passwordVar = getValueOrThrow(PASSWORD_LABEL, m_passwordModel.getStringValue(), variables);
+        final String secondFactorVar = getValueOrThrow(SECOND_FACTOR_LABEL, m_secondFactorModel.getStringValue(),
+            variables);
+        pushCredentialsFlowVariable(credentialsName, userVar, passwordVar, secondFactorVar);
     }
 
-    private static FlowVariable getVariableOrThrow(final String name, final String val, final Map<String, FlowVariable> variables)
+    private static String getValueOrThrow(final String name, final String val,
+        final Map<String, FlowVariable> variables)
         throws InvalidSettingsException {
         if (StringUtils.isEmpty(val)) {
             throw new InvalidSettingsException("Please select the " + name + " variable");
+        }
+        if (NONE_ELEMENT.equals(val)) {
+            return null;
         }
         final FlowVariable variable = variables.get(val);
         if (variable == null) {
             throw new InvalidSettingsException("Selected " + name + " variable (" + val + ") no longer available");
         }
-        return variable;
+        return variable.getStringValue();
     }
 
     @Override

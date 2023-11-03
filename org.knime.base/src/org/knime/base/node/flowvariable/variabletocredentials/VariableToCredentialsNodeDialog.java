@@ -46,12 +46,15 @@
 package org.knime.base.node.flowvariable.variabletocredentials;
 
 import static org.knime.base.node.flowvariable.variabletocredentials.VariableToCredentialsNodeModel.EMPTY_ELEMENT;
+import static org.knime.base.node.flowvariable.variabletocredentials.VariableToCredentialsNodeModel.NONE_ELEMENT;
 import static org.knime.base.node.flowvariable.variabletocredentials.VariableToCredentialsNodeModel.createCredentialsNameModel;
 import static org.knime.base.node.flowvariable.variabletocredentials.VariableToCredentialsNodeModel.createPwdModel;
+import static org.knime.base.node.flowvariable.variabletocredentials.VariableToCredentialsNodeModel.createSecondFactorModel;
 import static org.knime.base.node.flowvariable.variabletocredentials.VariableToCredentialsNodeModel.createUserModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -83,6 +86,9 @@ final class VariableToCredentialsNodeDialog extends DefaultNodeSettingsPane {
     private final DialogComponentStringSelection m_passwordComponent =
             new DialogComponentStringSelection(createPwdModel(), "Password variable: ", DEFAULT_LIST);
 
+    private final DialogComponentStringSelection m_secondFactorComponent =
+            new DialogComponentStringSelection(createSecondFactorModel(), "Second factor variable: ", DEFAULT_LIST);
+
     private final DialogComponentString m_credentialsNameComponent;
 
     VariableToCredentialsNodeDialog() {
@@ -100,6 +106,7 @@ final class VariableToCredentialsNodeDialog extends DefaultNodeSettingsPane {
         });
         addDialogComponent(m_usernameComponent);
         addDialogComponent(m_passwordComponent);
+        addDialogComponent(m_secondFactorComponent);
     }
 
     @Override
@@ -114,8 +121,11 @@ final class VariableToCredentialsNodeDialog extends DefaultNodeSettingsPane {
         if (sortedNames.isEmpty()) {
             sortedNames.add(EMPTY_ELEMENT);
         }
+        final List<String> namesWithNone = new LinkedList<>(sortedNames);
+        namesWithNone.add(0, NONE_ELEMENT);
         replaceList(settings, sortedNames, m_usernameComponent);
         replaceList(settings, sortedNames, m_passwordComponent);
+        replaceList(settings, namesWithNone, m_secondFactorComponent);
     }
 
     private static void replaceList(final NodeSettingsRO settings, final List<String> sortedNames,
