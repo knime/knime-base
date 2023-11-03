@@ -57,6 +57,7 @@ import javax.swing.event.ChangeEvent;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.CloseableTable;
+import org.knime.core.data.filestore.internal.NotInWorkflowWriteFileStoreHandler;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -205,10 +206,17 @@ public abstract class PreviewDataTable implements CloseableTable {
 
         private final ExecutionContext m_exec;
 
+        private final NotInWorkflowWriteFileStoreHandler m_fileStoreHandler;
+
         BufferedPreviewDataTable(final DataTableSpec spec, final Supplier<PreviewRowIterator> iteratorSupplier,
             final ExecutionContext exec) throws CanceledExecutionException {
             m_exec = exec;
-            final BufferedDataContainer dataContainer = m_exec.createDataContainer(spec);
+            // Use a temporary file store handler because everything that we're creating for the preview is temporary.
+            // Also, the file store handler of the node could be closed, but the preview table generation might create
+            // new FileStores when {@link FileStoreAwareValueFactory}s are used in the columnar backend.
+            m_fileStoreHandler = NotInWorkflowWriteFileStoreHandler.create();
+            m_fileStoreHandler.open();
+            final BufferedDataContainer dataContainer = m_exec.createDataContainer(spec, m_fileStoreHandler);
             try (PreviewRowIterator iterator = iteratorSupplier.get()) {
                 while (iterator.hasNext()) {
                     m_exec.checkCanceled();
@@ -228,6 +236,7 @@ public abstract class PreviewDataTable implements CloseableTable {
         private void closeAndClear(final BufferedDataContainer container) {
             container.close();
             m_exec.clearTable(container.getTable());
+            m_fileStoreHandler.clearAndDispose();
         }
 
         @Override
@@ -244,6 +253,7 @@ public abstract class PreviewDataTable implements CloseableTable {
         public void close() {
             super.close();
             m_exec.clearTable(m_table);
+            m_fileStoreHandler.clearAndDispose();
         }
 
     }
