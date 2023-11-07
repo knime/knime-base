@@ -213,14 +213,14 @@ final class AccumulatorsTest {
     void testWeightedAverage() {
         // test "failure" conditions and overflow behavior
         assertThrows(IllegalArgumentException.class,
-            () -> new WeightedAverageNumeric<>(StringCell.TYPE, StringCell.TYPE),
+            () -> new WeightedAverageNumeric(StringCell.TYPE, StringCell.TYPE),
             "Should not allow incompatible types");
-        assertThrows(IllegalArgumentException.class, () -> new WeightedAverageNumeric<>(IntCell.TYPE, StringCell.TYPE),
+        assertThrows(IllegalArgumentException.class, () -> new WeightedAverageNumeric(IntCell.TYPE, StringCell.TYPE),
             "Should not allow incompatible types");
-        assertThrows(IllegalArgumentException.class, () -> new WeightedAverageNumeric<>(StringCell.TYPE, IntCell.TYPE),
+        assertThrows(IllegalArgumentException.class, () -> new WeightedAverageNumeric(StringCell.TYPE, IntCell.TYPE),
             "Should not allow incompatible types");
 
-        final var avg = new WeightedAverageNumeric<DoubleValue, DoubleValue>(DoubleCell.TYPE, DoubleCell.TYPE);
+        final var avg = new WeightedAverageNumeric(DoubleCell.TYPE, DoubleCell.TYPE);
         assertEquals(DoubleCell.TYPE, avg.getResultType(), "Average result type should be Double");
         assertTrue(Double.isNaN(avg.getResult().get().getDoubleValue()), "Initial average should be NaN");
         assertNotEquals(Optional.empty(), avg.getResult(), "Average result should never be empty");
@@ -262,7 +262,7 @@ final class AccumulatorsTest {
         assertWeightedAverage(avg, null, rng.doubles(num, 1, 100).toArray(), ds);
     }
 
-    private static double assertWeightedAverage(final WeightedAverageNumeric<DoubleValue, DoubleValue> avg,
+    private static double assertWeightedAverage(final WeightedAverageNumeric avg,
         final boolean[] expectedApplyResults, final double[] weights, final double[] values) {
         // current implementation used in MeanOperator
 

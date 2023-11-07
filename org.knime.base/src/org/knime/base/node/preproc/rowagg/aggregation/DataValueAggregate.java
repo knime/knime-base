@@ -292,7 +292,9 @@ public final class DataValueAggregate // NOSONAR
         }
 
         private boolean handleOverflow(final ArithmeticException e) {
-            final var msg = Optional.ofNullable(e.getMessage()).orElse(e.getCause().getMessage());
+            final var msg = Optional.ofNullable(e.getMessage())
+                    .or(() -> Optional.ofNullable(e.getCause()).map(Throwable::getMessage)).orElse(null);
+
             if (msg != null) {
                 setSkipMessage(msg);
             } else {
