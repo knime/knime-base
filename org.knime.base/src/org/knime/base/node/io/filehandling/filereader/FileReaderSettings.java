@@ -1106,12 +1106,12 @@ class FileReaderSettings extends TokenizerSettings {
         if (!m_fileHasRowHeaders) {
             // we tell them when we would use the default row header.
             if (m_rowHeaderPrefix == null) {
-                status.addInfo("The default row ID ('" + DEF_ROWPREFIX + "+RowIdx') will be used as no row ID prefix"
+                status.addInfo("The default RowID ('" + DEF_ROWPREFIX + "+RowIdx') will be used as no RowID prefix"
                     + " is specified and the file doesn't contain row" + " IDs.");
             }
         } else {
             if (m_rowHeaderPrefix != null) {
-                status.addInfo("The specified row ID will be used" + " overriding the ones in the data file.");
+                status.addInfo("The specified RowID will be used" + " overriding the ones in the data file.");
             }
         }
 

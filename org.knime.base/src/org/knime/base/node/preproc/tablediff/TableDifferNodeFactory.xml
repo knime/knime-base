@@ -26,7 +26,7 @@
 		each other. Otherwise, the tables will solely be compared respective the selected columns of the 
 		reference, i.e., the second input table. 
 		<br/>
-		<b>Note:</b> Row IDs are not being compared. 
+		<b>Note:</b> RowIDs are not being compared. 
 		</option>
 			<option name="Select columns from reference table">
 				The list contains the names of those columns in

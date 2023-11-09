@@ -164,7 +164,7 @@ final class FileReaderNodeModel extends NodeModel {
                 } catch (DuplicateKeyException dke) {
                     String msg = dke.getMessage();
                     if (msg == null) {
-                        msg = "Duplicate row IDs";
+                        msg = "Duplicate RowIDs";
                     }
                     msg += ". Consider making IDs unique in the advanced settings.";
                     DuplicateKeyException newDKE = new DuplicateKeyException(msg);

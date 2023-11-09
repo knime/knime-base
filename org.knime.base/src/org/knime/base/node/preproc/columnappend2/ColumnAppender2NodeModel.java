@@ -726,7 +726,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
             @Label("Identical RowIDs and table lengths")
             IDENTICAL("Identical row keys and table lengths"), //
 
-            @Label("Generate new row RowIDs")
+            @Label("Generate new RowIDs")
             GENERATE("Generate new row keys"), //
 
             @Label("Use RowIDs from the selected input table")
@@ -734,7 +734,7 @@ final class ColumnAppender2NodeModel extends NodeModel {
 
         private static final String TOOLTIP = "<html>Choose the way row keys of the output tables are decided.<br>"
             + "If \"Identical row keys and table lengths\" is chosen, all input tables<br> "
-            + "should have exactly the same row Ids in the exact same order.<html>";
+            + "should have exactly the same RowIDs in the exact same order.<html>";
 
         private final String m_text;
 

@@ -185,7 +185,7 @@ public class SubsetMatcherNodeModel extends NodeModel {
             final String colName = m_setIDCol.getColumnName();
             if (colName == null || colName.isEmpty()) {
                 m_setIDCol.useRowID();
-                setWarningMessage("Set id column preset to row id");
+                setWarningMessage("Set id column preset to RowID");
             } else {
                 if (!setTableSpec.containsName(colName)) {
                     throw new InvalidSettingsException(

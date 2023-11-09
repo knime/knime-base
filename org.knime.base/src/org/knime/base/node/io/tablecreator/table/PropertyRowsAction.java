@@ -95,6 +95,7 @@ class PropertyRowsAction extends AbstractAction {
         m_table = table;
 
         m_table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
             public void valueChanged(final ListSelectionEvent e) {
                 setEnabled(!m_table.getSelectionModel().isSelectionEmpty());
             }
@@ -104,6 +105,7 @@ class PropertyRowsAction extends AbstractAction {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void actionPerformed(final ActionEvent e) {
         MyPanel panel = new MyPanel(
                 m_table.getRowModel().getRowIdPrefix()
@@ -150,13 +152,13 @@ class PropertyRowsAction extends AbstractAction {
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 0;
             c.gridy = 0;
-            add(new JLabel("Prefix of row IDs: "), c);
+            add(new JLabel("Prefix of RowIDs: "), c);
             c.gridx++;
             c.weightx = 1.0;
             add(m_rowIdPrefix, c);
             c.gridx = 0;
             c.gridy++;
-            add(new JLabel("Suffix of row IDs: "), c);
+            add(new JLabel("Suffix of RowIDs: "), c);
             c.gridx++;
             c.weightx = 1.0;
             add(m_rowIdSuffix, c);
@@ -209,6 +211,7 @@ class PropertyRowsAction extends AbstractAction {
             buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
             JButton okButton = new JButton("Ok");
             okButton.addActionListener(new ActionListener() {
+                @Override
                 public void actionPerformed(final ActionEvent e) {
                     cancel(false);
                 }
@@ -216,6 +219,7 @@ class PropertyRowsAction extends AbstractAction {
             buttonPanel.add(okButton);
             JButton cancelButton = new JButton("Cancel");
             cancelButton.addActionListener(new ActionListener() {
+                @Override
                 public void actionPerformed(final ActionEvent e) {
                     cancel(true);
                 }
@@ -233,6 +237,7 @@ class PropertyRowsAction extends AbstractAction {
                             k, actionKey);
 
             Action cancelAction = new AbstractAction() {
+                    @Override
                     public void actionPerformed(final ActionEvent ev) {
                         cancel(true);
                     }

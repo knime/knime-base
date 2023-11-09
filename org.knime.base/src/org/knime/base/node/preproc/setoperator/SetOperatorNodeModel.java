@@ -228,7 +228,7 @@ public class SetOperatorNodeModel extends NodeModel {
             setWarningMessage("Different column types found. "
                     + "Result column will be of type String.");
         } else if (m_col1.useRowID() || m_col2.useRowID()) {
-            setWarningMessage("Using row id. "
+            setWarningMessage("Using RowID. "
                     + "Result column will be of type String.");
         }
         final DataTableSpec spec =

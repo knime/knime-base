@@ -249,12 +249,12 @@ public abstract class AbstractCSVTableReaderNodeDialog
         buttonGrp.add(m_useLineBreakRowDelimiter);
         buttonGrp.add(m_useCustomRowDelimiter);
 
-        m_hasRowIDChecker = new JCheckBox("Has row ID");
+        m_hasRowIDChecker = new JCheckBox("Has RowID");
         m_hasColHeaderChecker = new JCheckBox("Has column header");
         m_allowShortDataRowsChecker = new JCheckBox("Support short data rows");
 
         if (allowsReadingMultipleFiles) {
-            m_prependSourceIdxToRowId = new JCheckBox("Prepend file index to row ID");
+            m_prependSourceIdxToRowId = new JCheckBox("Prepend file index to RowID");
             m_hasRowIDChecker
                 .addActionListener(e -> m_prependSourceIdxToRowId.setEnabled(m_hasRowIDChecker.isSelected()));
         } else {

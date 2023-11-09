@@ -155,7 +155,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
 
     private final JCheckBox m_useRowID;
 
-    private final JCheckBox m_prependTableIdxToRowID = new JCheckBox("Prepend table index to row ID");
+    private final JCheckBox m_prependTableIdxToRowID = new JCheckBox("Prepend table index to RowID");
 
     TableManipulatorNodeDialog() {
         m_config = TableManipulatorNodeModel.createConfig();
@@ -172,7 +172,7 @@ public class TableManipulatorNodeDialog extends DataAwareNodeDialogPane {
             analysisComponentModel, previewModel, this::getConfig, this::getReadPathAccessor, false);
         m_specTransformer = new TableTransformationPanel(transformationModel, true, true);
         m_disableIOComponents = CheckNodeContextUtil.isRemoteWorkflowContext();
-        m_useRowID = new JCheckBox("Use existing row ID");
+        m_useRowID = new JCheckBox("Use existing RowID");
         m_useRowID.addActionListener(l -> configChanged());
         m_useRowID.addActionListener(l -> m_prependTableIdxToRowID.setEnabled(m_useRowID.isSelected()));
         m_prependTableIdxToRowID.addActionListener(l -> configChanged());

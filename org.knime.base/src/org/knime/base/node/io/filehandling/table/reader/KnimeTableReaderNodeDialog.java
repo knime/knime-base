@@ -113,7 +113,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
     private final JCheckBox m_useRowID;
 
-    private final JCheckBox m_prependTableIdxToRowID = new JCheckBox("Prepend table index to row ID");
+    private final JCheckBox m_prependTableIdxToRowID = new JCheckBox("Prepend table index to RowID");
 
     private final SourceIdentifierColumnPanel m_pathColumnPanel = new SourceIdentifierColumnPanel("Path");
 
@@ -166,7 +166,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         m_sourceFilePanel.getSettingsModel().getFilterModeModel()
             .addChangeListener(l -> toggleFailOnDifferingCheckBox());
 
-        m_useRowID = new JCheckBox("Use existing row ID");
+        m_useRowID = new JCheckBox("Use existing RowID");
         m_useRowID.addActionListener(l -> m_prependTableIdxToRowID.setEnabled(m_useRowID.isSelected()));
 
         registerPreviewChangeListeners();

@@ -3,11 +3,11 @@
 	<name>Table Column to Variable</name>
 
 	<shortDescription>
-		Converts the values from a table column to flow variables with the row IDs as their variable name.
+		Converts the values from a table column to flow variables with the RowIDs as their variable name.
 	</shortDescription>
 
 	<fullDescription>
-		<intro>Converts the values from a table column to flow variables with the row IDs as their variable name
+		<intro>Converts the values from a table column to flow variables with the RowIDs as their variable name
         and the values in the selected column as the variable values.
 		</intro>
 		<option name="Column name">Name of the column for the values.</option>
@@ -23,7 +23,7 @@
 	<ports>
 		<inPort index="0" name="table">A table</inPort>
 		<outPort index="0" name="flow variables">New flow variables with names from the
-			row IDs.
+			RowIDs.
 		</outPort>
 	</ports>
 </knimeNode>

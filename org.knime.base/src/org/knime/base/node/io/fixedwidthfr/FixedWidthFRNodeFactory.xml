@@ -47,9 +47,9 @@
 			can be changed and the current column will be replaced.
 			</option>
 		<option name="Click on remove">The selected columns will be removed. <br />
-			Note: You can't remove the first column if "Read row IDs" is selected.</option>
-		<option name="Read row IDs">If checked, the first column in the file
-			is used as row IDs. If not checked, a default row headers are
+			Note: You can't remove the first column if "Read RowIDs" is selected.</option>
+		<option name="Read RowIDs">If checked, the first column in the file
+			is used as RowIDs. If not checked, a default row headers are
 			created.</option>
 		<option name="Read column headers">If checked, the items in the first 
 			line of the file are used as column names. 

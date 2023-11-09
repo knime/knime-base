@@ -58,13 +58,13 @@ public class AbstractLoopEndNodeSettings {
     enum RowKeyPolicy {
 
         /** Generates entirely new row keys, Row0, Row1, ... */
-        GENERATE_NEW("Generate new row IDs"),
+        GENERATE_NEW("Generate new RowIDs"),
 
             /** Appends a suffix (#1, #2, ...) in order to unique the row keys */
-        APPEND_SUFFIX("Unique row IDs by appending a suffix"),
+        APPEND_SUFFIX("Unique RowIDs by appending a suffix"),
 
             /** Leaves the row keys unmodified. Node execution fails if duplicates are detected. */
-        UNMODIFIED("Leave row IDs unmodified");
+        UNMODIFIED("Leave RowIDs unmodified");
 
         private String m_label;
 

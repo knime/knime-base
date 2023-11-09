@@ -111,8 +111,8 @@
 		    is selected) and the file is read in again to pre-set new settings and the table
 		    structure.  
             </option>
-		<option name="Read row IDs">If checked, the first column in the file
-			is used as row IDs. If not checked, default row headers are
+		<option name="Read RowIDs">If checked, the first column in the file
+			is used as RowIDs. If not checked, default row headers are
 			created.</option>
 		<option name="Read column headers">If checked, the items in the first 
 			line of the file are used as column names. 
@@ -133,7 +133,7 @@
 	    	There is support for quotes, different decimal separators in 
 	    	floating point numbers, and character encoding. Also, for 
 	    	ignoring whitespaces, for allowing rows with too few data items, 
-	    	for making row IDs unique (not recommended for huge files), 
+	    	for making RowIDs unique (not recommended for huge files), 
 	    	for a global missing value pattern,
 	    	and for limiting the number	of rows read in.	    
 			</option>

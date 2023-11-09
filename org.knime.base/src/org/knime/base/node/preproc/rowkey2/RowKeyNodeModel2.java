@@ -295,7 +295,7 @@ public class RowKeyNodeModel2 extends NodeModel {
             //the user doesn't want to do anything at all so we simply return
             //the given data
             outData = data;
-            LOGGER.debug("The user hasn't selected a new row ID column"
+            LOGGER.debug("The user hasn't selected a new RowID column"
                     + " and hasn't entered a new column name.");
         }
         LOGGER.debug("Exiting execute(inData, exec) of class RowKeyNodeModel.");
@@ -370,7 +370,7 @@ public class RowKeyNodeModel2 extends NodeModel {
         final boolean handleMissing = m_handleMissingVals.isEnabled() && m_handleMissingVals.getBooleanValue();
         final boolean removeRowKeyCol = m_removeRowKeyCol.isEnabled() && m_removeRowKeyCol.getBooleanValue();
 
-        LOGGER.debug("The user wants to replace the row ID with the"
+        LOGGER.debug("The user wants to replace the RowID with the"
                 + " column " + m_newColumnName.getStringValue()
                 + " optional appended column name"
                 + m_appendRowKey.getBooleanValue());

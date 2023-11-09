@@ -90,7 +90,7 @@ final class UniquifyPanel extends JPanel {
 
     private Container getPanel() {
 
-        m_uniquifyRowIDs = new JCheckBox("generate unique row IDs");
+        m_uniquifyRowIDs = new JCheckBox("generate unique RowIDs");
 
         Box result = Box.createHorizontalBox();
         result.add(Box.createHorizontalGlue());
@@ -103,13 +103,13 @@ final class UniquifyPanel extends JPanel {
     private static Container getTextBox() {
         Box result = Box.createVerticalBox();
         result.add(Box.createVerticalGlue());
-        result.add(new JLabel("If you check this, the reader checks each row ID"));
+        result.add(new JLabel("If you check this, the reader checks each RowID"));
         result.add(new JLabel("that it reads from the file and appends a suffix"));
         result.add(new JLabel("if it has read the ID before. Huge files will cause"));
         result.add(new JLabel("it to fail with an out of memory error."));
         result.add(Box.createVerticalStrut(7));
         result.add(new JLabel("If this is not checked and the file reader reads"));
-        result.add(new JLabel("rows with identical row IDs, it will refuse to read the"));
+        result.add(new JLabel("rows with identical RowIDs, it will refuse to read the"));
         result.add(new JLabel("data and fail during execution."));
         result.add(Box.createVerticalStrut(10));
         result.add(new JLabel("This option is ignored if the file doesn't contain"));

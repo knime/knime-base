@@ -147,7 +147,7 @@ final class FileReaderAdvancedDialog extends JDialog {
             m_jTabbedPane.addTab("Ignore spaces", null, getIngoreWSatEORPanel(),
                 "Ignore extra whitespaces at end of rows.");
             m_jTabbedPane.addTab("Short Lines", null, getShortLinesPanel(), "Add support for incomplete rows");
-            m_jTabbedPane.addTab("unique RowIDs", null, getUniquifyPanel(), "Disable unique making of row IDs");
+            m_jTabbedPane.addTab("unique RowIDs", null, getUniquifyPanel(), "Disable unique making of RowIDs");
             m_jTabbedPane.addTab("Limit Rows", null, getLimitRowsPanel(), "Specify the max. number of rows read");
             m_jTabbedPane.addTab("Character decoding", null, getCharsetNamePanel(), "");
             m_jTabbedPane.addTab("Missing Value Pattern", null, getMissValPanel(),

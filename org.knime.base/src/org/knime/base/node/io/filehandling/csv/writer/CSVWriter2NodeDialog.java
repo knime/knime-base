@@ -132,7 +132,7 @@ final class CSVWriter2NodeDialog extends NodeDialogPane {
         m_writeColumnHeaderChecker = new JCheckBox("Write column header");
         m_writeColumnHeaderChecker.addItemListener(e -> checkCheckerState());
         m_skipColumnHeaderOnAppendChecker = new JCheckBox("Don't write column headers if file exists");
-        m_writeRowHeaderChecker = new JCheckBox("Write row ID");
+        m_writeRowHeaderChecker = new JCheckBox("Write RowID");
 
         final int textWidth = 3;
         m_colDelimiterField = new JTextField(",", textWidth);

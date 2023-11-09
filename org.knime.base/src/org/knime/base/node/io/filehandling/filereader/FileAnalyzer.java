@@ -543,7 +543,7 @@ final class FileAnalyzer {
             final double fileSize = reader.getFileSize();
             long linesRead = 0;
 
-            exec.setProgress("Guessing row IDs");
+            exec.setProgress("Guessing RowIDs");
 
             Tokenizer tokenizer = new Tokenizer(reader);
             tokenizer.setSettings(settings);
@@ -1667,7 +1667,7 @@ final class FileAnalyzer {
          */
         private HeaderHelper(final String prefix, final int indexStartIdx, final long firstRunningIndex) {
             if (prefix == null) {
-                throw new NullPointerException("The row ID prefix can't be null.");
+                throw new NullPointerException("The RowID prefix can't be null."); //NOSONAR
             }
             if (indexStartIdx < 0) {
                 throw new IllegalArgumentException("The start index can't be negative.");

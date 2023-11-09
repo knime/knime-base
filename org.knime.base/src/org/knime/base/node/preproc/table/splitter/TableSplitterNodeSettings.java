@@ -101,7 +101,7 @@ public final class TableSplitterNodeSettings implements DefaultNodeSettings {
             + "<li><b>Equals:</b> compares the value of the cell to a given search pattern.</li>"
             + "<li><b>Missing:</b> only matches rows that have a missing value at the selected column.</li>"
             + "<li><b>Empty:</b> matches rows that have an empty or missing value at the selected column. "
-            + "Strings and Row IDs containing only whitespace characters will also match.</li>" + "</ul>"//
+            + "Strings and RowIDs containing only whitespace characters will also match.</li>" + "</ul>"//
     )
     @Layout(FindSplittingRowSection.class)
     @Signal(condition = MatchingCriteria.IsEquals.class)

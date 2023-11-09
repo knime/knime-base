@@ -97,7 +97,7 @@ public final class AppendedRowsNodeSettings implements DefaultNodeSettings {
             // Skip option description
             + "<li><b>Skip</b>: Duplicate row identifiers (RowID) occurring in the "
             + "second table are not appended to the output table. This option is "
-            + "relatively memory intensive as it needs to cache the row IDs in "
+            + "relatively memory intensive as it needs to cache the RowIDs in "
             + "order to find duplicates. Furthermore a full data duplication is needed.</li>"
             // Append suffix option description
             + "<li><b>Append suffix</b>: The output table will contain all rows, but "

@@ -151,7 +151,7 @@
 				is unchecked (see
 				below).
 			</option>
-			<option name="Write row ID">If checked, the row IDs will be
+			<option name="Write RowID">If checked, the RowIDs will be
 				added to the
 				output, as first item in each line.
 			</option>

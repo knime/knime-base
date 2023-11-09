@@ -80,7 +80,7 @@
 			where the height of the connection shows the distance between them. 
 			Thus, the y coordinate displays the distance of the fusions and thereby 
 			also the hierarchy level. The x axis is nominal and displays the single data points
-			with their row ID.
+			with their RowID.
 			Each cluster can be selected and hilited. All contained subclusters will be hilited, too.
 			</li>
 			<li>Distance plot:

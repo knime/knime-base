@@ -24,12 +24,12 @@
         The column names of the first inport are always retained. If there are duplicates found in the second table
         the suffix is added once or multiple times to ensure uniqueness.
         </option>
-        <option name="Separator for new RowIds"> This string will separate the rowids in the new data table. E.g. RowID1 + sep + RowID2</option>
+        <option name="Separator for new RowIDs"> This string will separate the RowIDs in the new data table. E.g. RowID1 + sep + RowID2</option>
         <option name="Chunk size: ">Number of rows read at once, increasing this
               value yields faster execution time but also increases memory consumption.</option>
-        <option name="Append top data tables RowIds"> If selected a new column will be attached to the output, containing the rowids of the top data table. </option>
+        <option name="Append top data tables RowIDs"> If selected a new column will be attached to the output, containing the RowIDs of the top data table. </option>
         <option name="Column name(top): ">The name of the newly generated rowkey column.</option>
-        <option name="Append bottom data tables RowIds ">If selected a new column will be attached to the output, containing the rowids of the bottom data table.</option>
+        <option name="Append bottom data tables RowIDs ">If selected a new column will be attached to the output, containing the RowIDs of the bottom data table.</option>
         <option name="Column name(bottom): ">The name of the newly generated rowkey column.</option>
     </fullDescription>
 

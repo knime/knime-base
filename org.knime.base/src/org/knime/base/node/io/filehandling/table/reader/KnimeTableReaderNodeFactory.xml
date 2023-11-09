@@ -179,15 +179,15 @@
 					<i>path flow variable.</i>
 				</a>
 			</option>
-			<option name="Use existing row ID">
-				Check this box if the row IDs from the input tables should be used for
+			<option name="Use existing RowID">
+				Check this box if the RowIDs from the input tables should be used for
 				the
-				output tables. If unchecked, a new row ID is generated.
-				The generated row ID follows the schema "Row0", "Row1" and so on.
+				output tables. If unchecked, a new RowID is generated.
+				The generated RowID follows the schema "Row0", "Row1" and so on.
 			</option>
-			<option name="Prepend table index to row ID">
-				Only enabled if the existing row IDs are used. If checked, a prefix is
-				prepended to the row IDs that indicates which table the row came
+			<option name="Prepend table index to RowID">
+				Only enabled if the existing RowIDs are used. If checked, a prefix is
+				prepended to the RowIDs that indicates which table the row came
 				from.
 				The format of the prefix is "File_0_", "File_1_" and so on.
 			</option>

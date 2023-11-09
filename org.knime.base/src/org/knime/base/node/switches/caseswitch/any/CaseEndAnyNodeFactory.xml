@@ -46,7 +46,7 @@
             <option name="Skip Rows">
                 Duplicate row identifiers (RowID) occurring in additional active
                 tables are not appended to the output table. This option is
-                relatively memory intensive as it needs to cache the row IDs in
+                relatively memory intensive as it needs to cache the RowIDs in
                 order to find duplicates.
             </option>
             <option name="Append suffix">

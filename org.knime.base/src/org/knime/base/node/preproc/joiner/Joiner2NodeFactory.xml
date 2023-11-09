@@ -25,8 +25,8 @@
             <option name="Joining columns">
                 Select the columns from the top input ('left' table) and the bottom input 
                 ('right' table) that should be used for joining. You may selected a real
-                column or the table's row ID here. You must make sure, that the type 
-                of selected columns matches. The row IDs are interpreted as 
+                column or the table's RowID here. You must make sure, that the type 
+                of selected columns matches. The RowIDs are interpreted as 
                 StringCells.
                 <br/>
                 <b>Match all of the following:</b> 
@@ -43,9 +43,9 @@
                 <b>Enable hiliting:</b> Select, if hiliting is enabled between 
                 input and output data. Disable, for reducing memory consumption.
             </option>
-            <option name="Row ID separator in joined table">
-                The row IDs of the joined table are a concatenation of the row ID
-                of the top input table, this separator and the row ID of the bottom
+            <option name="RowID separator in joined table">
+                The RowIDs of the joined table are a concatenation of the RowID
+                of the top input table, this separator and the RowID of the bottom
                 input table.
             </option>        
         </tab>

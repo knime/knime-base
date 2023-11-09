@@ -192,7 +192,7 @@ public class EndifNodeModel extends NodeModel implements InactiveBranchConsumer 
             }
             if (it.getNrRowsSkipped() > 0) {
                 setWarningMessage("Filtered out " + it.getNrRowsSkipped()
-                        + " duplicate row id(s).");
+                        + " duplicate RowID(s).");
             }
             if (m_enableHiliting) {
                 // create hilite translation map

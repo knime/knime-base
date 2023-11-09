@@ -109,7 +109,7 @@ public class AppendedRowsNodeDialog extends NodeDialogPane {
         buttonGroup.add(m_skipRowButton);
         m_appendSuffixButton = new JRadioButton("Append Suffix: ");
         m_appendSuffixButton.setToolTipText("Will append a suffix to any "
-                + "duplicate row ID to make it unique.");
+                + "duplicate RowID to make it unique.");
         m_appendSuffixButton.addActionListener(actionListener);
         buttonGroup.add(m_appendSuffixButton);
         m_failOnDuplicateButton = new JRadioButton("Fail Execution");
@@ -130,7 +130,7 @@ public class AppendedRowsNodeDialog extends NodeDialogPane {
         JPanel panel = new JPanel(new GridLayout(0, 1));
         JPanel centerPanel = new JPanel(new GridLayout(0, 1));
         centerPanel.setBorder(BorderFactory
-                .createTitledBorder("Duplicate row ID handling"));
+                .createTitledBorder("Duplicate RowID handling"));
         JPanel skipButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         skipButtonPanel.add(m_skipRowButton);
         centerPanel.add(skipButtonPanel);

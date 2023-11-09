@@ -19,8 +19,8 @@
         you can choose to <b>skip this column</b> entirely, i.e. it will 
         not be included in the output table then.
         </option>
-        <option name = "Row ID Properties (context menu of the row header)">
-        Use this to change the naming of all row IDs. The row IDs are built of
+        <option name = "RowID Properties (context menu of the row header)">
+        Use this to change the naming of all RowIDs. The RowIDs are built of
         a consecutive number with a <b>prefix</b> and a <b>suffix</b>. Beside
         the prefix and suffix you can specify the index of the first row.
         </option>        

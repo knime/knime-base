@@ -102,7 +102,7 @@ public class RowIDRowFilterPanel extends RowFilterPanel {
         m_caseSensitive = new JCheckBox("case sensitive match");
         m_startsWith = new JCheckBox("row ID must only start with expression");
         m_startsWith
-                .setToolTipText("if not checked the entire row ID must match");
+                .setToolTipText("if not checked the entire RowID must match");
         m_regExpr.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(final DocumentEvent e) {

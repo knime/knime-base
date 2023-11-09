@@ -71,7 +71,7 @@ final class LoopEndJoinNodeDialogPane extends NodeDialogPane {
     /**
      *  */
     public LoopEndJoinNodeDialogPane() {
-        m_hasSameRowsInEachIterationChecker = new JCheckBox("Loop has same row IDs in each iteration");
+        m_hasSameRowsInEachIterationChecker = new JCheckBox("Loop has same RowIDs in each iteration");
         m_propagateLoopVariables = new JCheckBox("Propagate modified loop variables");
         JPanel p = new JPanel(new GridLayout(0, 1));
         p.add(m_hasSameRowsInEachIterationChecker);

@@ -16,18 +16,18 @@
         Allows to perform several column transformations on any number of input tables such
         as renaming, filtering, re-ordering and type changing of the input columns.
         <p>If more than one input table is available the node concatenates all input rows into a single result table. 
-        If the input tables contain the same row ID the node can either generate a new row ID
-        or prepend the input table index to the original row ID of the corresponding input table. 
+        If the input tables contain the same RowID the node can either generate a new RowID
+        or prepend the input table index to the original RowID of the corresponding input table. 
         </p>
 		</intro>
-		<option name="Use existing row ID">
-			Check this box if the row IDs from the input tables should be used for the
-			output tables. If unchecked, a new row ID is generated.
-			The generated row ID follows the schema "Row0", "Row1" and so on.
+		<option name="Use existing RowID">
+			Check this box if the RowIDs from the input tables should be used for the
+			output tables. If unchecked, a new RowID is generated.
+			The generated RowID follows the schema "Row0", "Row1" and so on.
 		</option>
-		<option name="Prepend table index to row ID">
-			Only enabled if the existing row IDs are used. If checked, a prefix is
-			prepended to the row IDs that indicates which table the row came
+		<option name="Prepend table index to RowID">
+			Only enabled if the existing RowIDs are used. If checked, a prefix is
+			prepended to the RowIDs that indicates which table the row came
 			from.
 			The format of the prefix is "Table_0_", "Table_1_" and so on.
 		</option>

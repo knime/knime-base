@@ -65,7 +65,7 @@ public final class TableUpdaterNodeSettings implements DefaultNodeSettings {
     UnmatchedHandling m_unmatchedColumnsHandling = UnmatchedHandling.IGNORE;
 
     @Widget(title = "Rows missing in input table",
-        description = "Controls how to deal with rows in the update table whose Row IDs don't occur "
+        description = "Controls how to deal with rows in the update table whose RowIDs don't occur "
             + "in the input table.")
     UnmatchedHandling m_unmatchedRowsHandling = UnmatchedHandling.IGNORE;
 

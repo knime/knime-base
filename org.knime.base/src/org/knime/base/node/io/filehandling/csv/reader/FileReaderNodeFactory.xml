@@ -148,14 +148,14 @@
 			<option name="Has column header">
 	          Select this box if the first row contains column name headers.  
 			</option>
-			<option name="Has row ID">
-	          Select this box if the first column contains row IDs
+			<option name="Has RowID">
+	          Select this box if the first column contains RowIDs
 	          (no duplicates allowed).  
 			</option>
-			<option name="Prepend file index to row ID">
-			  Select this box if you want to prepend a prefix that depends on the index of the source file to the row IDs.
+			<option name="Prepend file index to RowID">
+			  Select this box if you want to prepend a prefix that depends on the index of the source file to the RowIDs.
 			  The prefix for the first file is "File_0_", for the second "File_1_" and so on.
-			  This option is useful if the row IDs within a single file are unique but the same row IDs appear in multiple files.
+			  This option is useful if the RowIDs within a single file are unique but the same RowIDs appear in multiple files.
 			  Prepending the file index prevents parallel reading of individual files.
 			</option>
 			<option name="Support short data rows">

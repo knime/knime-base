@@ -352,8 +352,8 @@ public class FixedWidthFRNodeDialog extends NodeDialogPane {
 
     private JPanel createSettingsPanel() {
 
-        m_hasRowHeaders = new JCheckBox("Set first column as row IDs");
-        m_hasRowHeaders.setToolTipText("Check to set first column as row id.");
+        m_hasRowHeaders = new JCheckBox("Set first column as RowIDs");
+        m_hasRowHeaders.setToolTipText("Check to set first column as RowID.");
         m_hasColHeaders = new JCheckBox("read column headers");
         m_hasColHeaders.setToolTipText("Check if the file contains column headers in the first line");
 

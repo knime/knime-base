@@ -32,7 +32,7 @@
 		<h3>Tooltip</h3>
 		<p>
 		Move the mouse over the data points to get detailed information about 
-		the data point (Row ID, and the x and y value).
+		the data point (RowID, and the x and y value).
 		</p>
 		
 		<h3>Properties: </h3>

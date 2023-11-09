@@ -19,14 +19,14 @@
                 You can add more input and ouput tables using the &#8220;&#8230;&#8221; menu.
             </p>
         </intro>
-        <option name="Row ID policy">
-        	Specifies how to deal with the row IDs for each table.
+        <option name="RowID policy">
+        	Specifies how to deal with the RowIDs for each table.
         	<ul>
-        	<li>Generate new row IDs - row IDs are newly generated (Row0, Row1, ...)</li>
-        	<li>Unique row IDs by appending a suffix - the iteration number is added to each row ID from the incoming table, thus making
-            the row IDs unique over all iterations </li>
-            <li>Leave row IDs unmodified - the incoming row IDs are not altered. In this case you
-            have to make sure that there are not duplicate row IDs in different iterations. Otherwise an error occurs. </li>
+        	<li>Generate new RowIDs - RowIDs are newly generated (Row0, Row1, ...)</li>
+        	<li>Unique RowIDs by appending a suffix - the iteration number is added to each RowID from the incoming table, thus making
+            the RowIDs unique over all iterations </li>
+            <li>Leave RowIDs unmodified - the incoming RowIDs are not altered. In this case you
+            have to make sure that there are not duplicate RowIDs in different iterations. Otherwise an error occurs. </li>
         	</ul>
         </option>
         <option name="Add iteration column">Allows you to add a column containing the iteration number to the output tables.</option>

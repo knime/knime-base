@@ -276,7 +276,7 @@ final class CaseEndAnyNodeModel extends NodeModel implements InactiveBranchConsu
             c.close();
         }
         if (it.getNrRowsSkipped() > 0) {
-            setWarningMessage("Filtered out " + it.getNrRowsSkipped() + " duplicate row id(s).");
+            setWarningMessage("Filtered out " + it.getNrRowsSkipped() + " duplicate RowID(s).");
         }
     }
 
