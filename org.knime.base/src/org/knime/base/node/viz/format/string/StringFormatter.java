@@ -196,7 +196,7 @@ public final class StringFormatter implements ValueFormatModel {
     /** Add CSS styles */
     String style(final String html, final String plaintext) {
         final var sb = new StringBuilder("<span style=\"");
-        sb.append("display:inline-block;overflow:hidden;text-overflow:ellipsis;width:100%;height:100%;");
+        sb.append("display:inline-block;overflow:hidden;text-overflow:ellipsis;");
         if (m_settings.wrapLines()) {
             sb.append("white-space:break-spaces;");
         } else {
