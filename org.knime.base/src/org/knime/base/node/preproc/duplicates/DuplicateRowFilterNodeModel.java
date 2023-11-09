@@ -369,10 +369,12 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
         final UniqueNameGenerator uniqueNameGen = new UniqueNameGenerator(inSpec);
         final List<DataColumnSpec> addCols = new ArrayList<>();
         if (m_settings.addUniqueLabel()) {
-            addCols.add(uniqueNameGen.newColumn("duplicate-type-classifier", StringCell.TYPE));
+            // previously "duplicate-type-classifier"
+            addCols.add(uniqueNameGen.newColumn(m_settings.getUniqueStatusColumnName(), StringCell.TYPE));
         }
         if (m_settings.addRowLabel()) {
-            addCols.add(uniqueNameGen.newColumn("duplicate-row-identifier", StringCell.TYPE));
+            // previously "duplicate-row-identifier"
+            addCols.add(uniqueNameGen.newColumn(m_settings.getChosenRowIdsColumnName(), StringCell.TYPE));
         }
         return new DataTableSpec(addCols.stream().toArray(DataColumnSpec[]::new));
     }

@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.table.updater;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -62,11 +63,13 @@ public final class TableUpdaterNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Columns missing in input table",
         description = "Controls how to deal with columns in the update table that are not part of the input table.")
+    @ValueSwitchWidget
     UnmatchedHandling m_unmatchedColumnsHandling = UnmatchedHandling.IGNORE;
 
     @Widget(title = "Rows missing in input table",
         description = "Controls how to deal with rows in the update table whose RowIDs don't occur "
             + "in the input table.")
+    @ValueSwitchWidget
     UnmatchedHandling m_unmatchedRowsHandling = UnmatchedHandling.IGNORE;
 
     @Widget(title = "Perform update with missing values",

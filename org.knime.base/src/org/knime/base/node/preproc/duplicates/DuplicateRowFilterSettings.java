@@ -126,8 +126,14 @@ final class DuplicateRowFilterSettings {
     /** The add row duplicate flag config key. */
     static final String ADD_ROW_DUPLICATE_FLAG_KEY = "add_row_duplicate_flag";
 
+    /** The column name of row duplicates flag config key. */
+    static final String UNIQUE_FLAG_COLUMN_NAME_KEY = "unique_flag_column_name";
+
     /** The add row id flag config key/ */
     static final String ADD_ROW_ID_FLAG_KEY = "add_row_id_flag";
+
+    /** The column name of row id flag config key. */
+    static final String ROW_ID_FLAG_COLUMN_NAME_KEY = "row_id_flag_column_name";
 
     static final String REFERENCE_COL_KEY = "reference_col";
 
@@ -148,8 +154,16 @@ final class DuplicateRowFilterSettings {
     /** Settings model storing the add duplicate row identifier flag. */
     private final SettingsModelBoolean m_addUniqueLabel = new SettingsModelBoolean(ADD_ROW_DUPLICATE_FLAG_KEY, true);
 
+    /** Settings model storing the column name of the duplicate row status. */
+    private final SettingsModelString m_uniqueStatusColumnName =
+        new SettingsModelString(UNIQUE_FLAG_COLUMN_NAME_KEY, "Duplicate Status");
+
     /** Settings model storing the add row id flag. */
     private final SettingsModelBoolean m_addRowLabel = new SettingsModelBoolean(ADD_ROW_ID_FLAG_KEY, false);
+
+    /** Settings model storing the column name of the chosen row ids. */
+    private final SettingsModelString m_chosenRowIdsColumnName =
+            new SettingsModelString(ROW_ID_FLAG_COLUMN_NAME_KEY, "Duplicate Chosen");
 
     /** Settings model storing the reference column name. */
     private final SettingsModelString m_referenceCol = new SettingsModelString(REFERENCE_COL_KEY, null);
@@ -211,8 +225,16 @@ final class DuplicateRowFilterSettings {
         return m_addUniqueLabel.getBooleanValue();
     }
 
+    String getUniqueStatusColumnName() {
+        return m_uniqueStatusColumnName.getStringValue();
+    }
+
     boolean addRowLabel() {
         return m_addRowLabel.getBooleanValue();
+    }
+
+    String getChosenRowIdsColumnName() {
+        return m_chosenRowIdsColumnName.getStringValue();
     }
 
     String getReferenceCol() {
@@ -245,7 +267,9 @@ final class DuplicateRowFilterSettings {
         m_groupCols.saveSettingsTo(settings);
         m_retainOrder.saveSettingsTo(settings);
         m_addUniqueLabel.saveSettingsTo(settings);
+        m_uniqueStatusColumnName.saveSettingsTo(settings);
         m_addRowLabel.saveSettingsTo(settings);
+        m_chosenRowIdsColumnName.saveSettingsTo(settings);
         m_inMemory.saveSettingsTo(settings);
         saveSettingsForDialog(settings);
         m_updateDomains.saveSettingsTo(settings);
@@ -267,7 +291,19 @@ final class DuplicateRowFilterSettings {
         m_groupCols.loadSettingsFrom(settings);
         m_retainOrder.loadSettingsFrom(settings);
         m_addUniqueLabel.loadSettingsFrom(settings);
+        if (settings.containsKey(UNIQUE_FLAG_COLUMN_NAME_KEY)) {
+            // Added in 5.2, defaults to old column name
+            m_uniqueStatusColumnName.loadSettingsFrom(settings);
+        } else {
+            m_uniqueStatusColumnName.setStringValue("duplicate-type-classifier");
+        }
         m_addRowLabel.loadSettingsFrom(settings);
+        if (settings.containsKey(ROW_ID_FLAG_COLUMN_NAME_KEY)) {
+            // Added in 5.2, defaults to old column name
+            m_chosenRowIdsColumnName.loadSettingsFrom(settings);
+        } else {
+            m_chosenRowIdsColumnName.setStringValue("duplicate-row-identifier");
+        }
         m_inMemory.loadSettingsFrom(settings);
         loadSettingsForDialog(settings);
 
@@ -288,7 +324,15 @@ final class DuplicateRowFilterSettings {
         m_retainOrder.validateSettings(settings);
         m_removeDuplicates.validateSettings(settings);
         m_addUniqueLabel.validateSettings(settings);
+        if (settings.containsKey(UNIQUE_FLAG_COLUMN_NAME_KEY)) {
+            // Added in 5.2
+            m_uniqueStatusColumnName.validateSettings(settings);
+        }
         m_addRowLabel.validateSettings(settings);
+        if (settings.containsKey(ROW_ID_FLAG_COLUMN_NAME_KEY)) {
+            // Added in 5.2
+            m_chosenRowIdsColumnName.validateSettings(settings);
+        }
         m_referenceCol.validateSettings(settings);
         m_inMemory.validateSettings(settings);
         if (settings.containsKey(UPDATE_DOMAINS_KEY)) {

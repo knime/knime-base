@@ -67,6 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -122,16 +123,34 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "<li><i>duplicate:</i> This row is a duplicate and represented by another row.</li>" //
             + "</ul")
     @Effect(signals = DuplicateRowHandling.IsRemove.class, type = EffectType.HIDE)
+    @Signal(id = IsAddUniqueStatusColumn.class, condition = TrueCondition.class)
     @Layout(DuplicateHandlingSection.class)
     boolean m_addUniqueLabel = true;
+
+    @Persist(configKey = DuplicateRowFilterSettings.UNIQUE_FLAG_COLUMN_NAME_KEY)
+    @Widget(title = "Column name of row status",
+        description = "Choose the column name to which the row status "
+            + "('unique', 'chosen', 'duplicate') should be outputted.")
+    @Effect(signals = IsAddUniqueStatusColumn.class, type = EffectType.SHOW)
+    @Layout(DuplicateHandlingSection.class)
+    String m_uniqueStatusColumnName = "Duplicate Status";
 
     @Persist(configKey = DuplicateRowFilterSettings.ADD_ROW_ID_FLAG_KEY)
     @Widget(title = "Add column identifying the RowID of the chosen row for each duplicate row",
         description = "Appends a column with the RowID of the chosen row for duplicate rows. "
             + "Unique and chosen rows will not have a RowID assigned. ")
     @Effect(signals = DuplicateRowHandling.IsRemove.class, type = EffectType.HIDE)
+    @Signal(id = IsAddChosenRowIdsColumn.class, condition = TrueCondition.class)
     @Layout(DuplicateHandlingSection.class)
     boolean m_addRowIdLabel;
+
+    @Persist(configKey = DuplicateRowFilterSettings.ROW_ID_FLAG_COLUMN_NAME_KEY)
+    @Widget(title = "Column name of chosen RowIDs",
+        description = "Choose the column name to which the RowID "
+            + "of the chosen row for each duplicate row should be outputted.")
+    @Effect(signals = IsAddChosenRowIdsColumn.class, type = EffectType.SHOW)
+    @Layout(DuplicateHandlingSection.class)
+    String m_chosenRowIdsColumnName = "Duplicate Chosen";
 
     @Persist(configKey = DuplicateRowFilterSettings.RowSelectionType.ROW_SELECTION_KEY)
     @Widget(title = "Row chosen in case of duplicate",
@@ -219,6 +238,14 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             }
 
         }
+    }
+
+    /** Whether to add a column with duplicate status - then dislay column name selection */
+    interface IsAddUniqueStatusColumn {
+    }
+
+    /** Whether to add a column with chosen RowIDs - then dislay column name selection */
+    interface IsAddChosenRowIdsColumn {
     }
 
     /** Options for the row selection */
