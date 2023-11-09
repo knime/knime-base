@@ -2688,5 +2688,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.filter.column.ColumnFilterNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
