@@ -62,6 +62,7 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InternalTableAPI;
 import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.node.table.reader.PreviewIteratorException;
 import org.knime.filehandling.core.node.table.reader.PreviewRowIterator;
@@ -216,7 +217,8 @@ public abstract class PreviewDataTable implements CloseableTable {
             // new FileStores when {@link FileStoreAwareValueFactory}s are used in the columnar backend.
             m_fileStoreHandler = NotInWorkflowWriteFileStoreHandler.create();
             m_fileStoreHandler.open();
-            final BufferedDataContainer dataContainer = m_exec.createDataContainer(spec, m_fileStoreHandler);
+            final BufferedDataContainer dataContainer =
+                InternalTableAPI.createDataContainer(m_exec, spec, m_fileStoreHandler);
             try (PreviewRowIterator iterator = iteratorSupplier.get()) {
                 while (iterator.hasNext()) {
                     m_exec.checkCanceled();
