@@ -75,20 +75,20 @@ public final class GroupByNodeFunc extends AbstractNodeFunc {
         "first", "First", //
         "last", "Last", //
         "list", "List", //
-        "median", "Median_V3.4"//
+        "median", "Median_V3.4",
+        "sum", "Sum_V2.5.2"//
     );
 
     private static final NodeFuncApi API = NodeFuncApi.builder("group_by")//
         .withDescription("""
-                Groups df by the group_column and appends a new column with the aggregation function
+                Groups the input table by the group_column and appends a new column with the aggregation function
                 applied to the aggregation_column.
-                Valid values for aggregation are ['first', 'last', 'mean', 'median', 'list', 'count'].
                 """)//
-        .withInputTable("df", "The table to aggregate")//
+        .withInputTable("table", "The table to group and aggregate.")//
         .withStringArgument("group_column", "The column to group by")//
         .withStringArgument("aggregation_column", "The column to aggregate")//
         .withStringArgument("aggregation",
-            "The aggregation method. Valid values are ['first', 'last', 'mean', 'median', 'list', 'count'].")//
+            "The aggregation method. Valid values are ['first', 'last', 'mean', 'median', 'list', 'count', 'sum'].")//
         .withOutputTable("output", "The grouped and aggregated table")//
         .build();
 
