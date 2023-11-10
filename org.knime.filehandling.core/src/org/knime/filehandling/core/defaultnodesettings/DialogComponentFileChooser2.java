@@ -80,9 +80,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.ui.node.workflow.RemoteWorkflowContext;
-import org.knime.core.ui.node.workflow.WorkflowManagerUI;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
@@ -92,6 +91,7 @@ import org.knime.filehandling.core.filefilter.FileFilterPanel;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.MountPointFileSystemAccessService;
+import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 /**
  * Dialog component that allows selecting a file or multiple files in a folder. It provides the possibility to connect
@@ -859,12 +859,8 @@ public class DialogComponentFileChooser2 extends DialogComponent {
      * @return whether the dialog is opened on the server
      */
     protected boolean executedOnServer() {
-
-        return Optional.ofNullable(NodeContext.getContext())
-            .map(nodeCtx -> nodeCtx.getContextObjectForClass(WorkflowManagerUI.class).orElse(null))
-            .map(WorkflowManagerUI::getContext)
-            .map(ctx -> ((ctx instanceof RemoteWorkflowContext) ? (RemoteWorkflowContext)ctx : null)).isPresent();
-
+        return WorkflowContextUtil.getWorkflowContextV2Optional().map(WorkflowContextV2::getExecutorType)
+            .filter(ExecutorType.SERVER_EXECUTOR::equals).isPresent();
     }
 
 }

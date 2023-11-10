@@ -57,7 +57,6 @@ import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.node.workflow.contextv2.JobExecutorInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.LocationType;
-import org.knime.core.ui.node.workflow.WorkflowContextUI;
 
 /**
  * Utility class that allows to reason about the current {@link WorkflowContext}.
@@ -127,7 +126,8 @@ public final class WorkflowContextUtil {
      * @since 4.7
      */
     public static Optional<WorkflowContextV2> getWorkflowContextV2Optional() {
-        return WorkflowContextUI.getWorkflowContextFromNodeContext();
+        return Optional.ofNullable(NodeContext.getContext())
+            .flatMap(context -> context.getContextObjectForClass(WorkflowContextV2.class));
     }
 
     /**
