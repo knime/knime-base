@@ -53,7 +53,10 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.func.AbstractNodeFunc;
+import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
+import org.knime.core.node.func.ListArgumentType;
 import org.knime.core.node.func.NodeFuncApi;
+import org.knime.core.node.func.StructArgumentType;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 
@@ -61,14 +64,26 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 public final class ColumnRenamerNodeFunc extends AbstractNodeFunc {
 
-    private static final NodeFuncApi API = NodeFuncApi.builder("rename_column")//
-            .withInputTable("df", "The input table")//
-            .withStringArgument("old_name", "The name of the column in the input table")//
-            .withStringArgument("new_name", "The new name of the column")//
-            .withDescription("Returns a new table in which the column old_name in the input table is renamed to new_name.")
-            .build();
+    private static final String RENAMINGS = "renamings";
+
+    private static final String NEW_NAME = "new_name";
+
+    private static final String OLD_NAME = "old_name";
+
+    private static final NodeFuncApi API = NodeFuncApi.builder("rename_columns")//
+        .withInputTable("table", "The input table containing the column to rename from old_name to new_name")//
+        .withArgument(RENAMINGS,
+            "A list of renamings. Each renaming consists of the old_name and the new_name of the column.",
+            ListArgumentType.create(StructArgumentType.builder()//
+                .withProperty(OLD_NAME, "The name of the column in the input table.", PrimitiveArgumentType.STRING)
+                .withProperty(NEW_NAME, "The name the column should have in the output table.",
+                    PrimitiveArgumentType.STRING)
+                .build(), false))
+        .withOutputTable("table_with_renamed_column", "Output table in which the columns have been renamed")
+        .withDescription("Renames columns in a table.").build();
 
     /**
      * Constructor used by the framework.
@@ -77,15 +92,22 @@ public final class ColumnRenamerNodeFunc extends AbstractNodeFunc {
         super(API, ColumnRenamerNodeFactory.class.getName());
     }
 
-
-    @SuppressWarnings("restriction")
     @Override
-    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs, final NodeSettingsWO settings)
-        throws InvalidSettingsException {
+    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
+        final NodeSettingsWO settings) throws InvalidSettingsException {
         var renamerSettings = new ColumnRenamerSettings();
-        var renaming = new Renaming();
-        renaming.m_oldName = arguments.getString("old_name");
-        renaming.m_newName = arguments.getString("new_name");
+        var renamingsSettings = arguments.getNodeSettings(RENAMINGS);
+        var numRenamings = ListArgumentType.size(renamingsSettings);
+        var renamings = new Renaming[numRenamings];
+        for (int i = 0; i < numRenamings; i++) {
+            var renamingArg = renamingsSettings.getNodeSettings("" + i);
+            var renaming = new Renaming();
+            renaming.m_oldName = renamingArg.getString(OLD_NAME);
+            renaming.m_newName = renamingArg.getString(NEW_NAME);
+            renamings[i] = renaming;
+        }
+        renamerSettings.m_renamings = renamings;
+
         DefaultNodeSettings.saveSettings(ColumnRenamerSettings.class, renamerSettings, settings);
     }
 
