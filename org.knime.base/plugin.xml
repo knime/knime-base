@@ -2694,5 +2694,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.sorter.SorterNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.columnappend2.ColumnAppenderNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
