@@ -51,10 +51,11 @@ package org.knime.base.node.preproc.joiner3;
 import org.knime.core.data.join.JoinTableSettings;
 import org.knime.core.data.join.JoinTableSettings.JoinColumn;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.func.AbstractNodeFunc;
 import org.knime.core.node.func.NodeFuncApi;
+import org.knime.core.node.func.SimpleNodeFunc;
 import org.knime.core.node.port.PortObjectSpec;
 
 /**
@@ -62,30 +63,41 @@ import org.knime.core.node.port.PortObjectSpec;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 5.2
  */
-public final class JoinerNodeFunc extends AbstractNodeFunc {
+public final class JoinerNodeFunc implements SimpleNodeFunc {
 
-    private static final NodeFuncApi API = NodeFuncApi.builder("join")//
-        .withInputTable("left", "The left table to be joined.")//
-        .withInputTable("right", "The right table to be joined.")//
-        .withStringArgument("join_column", "The name of the column to join on. Must exist in both tables.")//
-        .withDescription("Joins the tables a and b on the column named join_column which must exist in both a and b.")
-        .build();
+    private static final String JOIN_COLUMN = "join_column";
 
-    /**
-     * Constructor used by the framework.
-     */
-    public JoinerNodeFunc() {
-        super(API, Joiner3NodeFactory.class.getName());
+    private static final String RIGHT = "right";
+
+    private static final String LEFT = "left";
+
+    @Override
+    public Class<? extends NodeFactory<?>> getNodeFactoryClass() {
+        return Joiner3NodeFactory.class;
     }
 
     @Override
     public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
         final NodeSettingsWO settings) throws InvalidSettingsException {
         var joinSettings = new Joiner3Settings();
-        var joinColumns = new JoinColumn[]{new JoinTableSettings.JoinColumn(arguments.getString("join_column"))};
+        var joinColumns = new JoinColumn[]{new JoinTableSettings.JoinColumn(arguments.getString(JOIN_COLUMN))};
         joinSettings.setLeftJoinColumns(joinColumns);
         joinSettings.setRightJoinColumns(joinColumns);
+        joinSettings.m_mergeJoinColumnsModel.setBooleanValue(true);
         joinSettings.saveSettingsTo(settings);
+    }
+
+    @Override
+    public NodeFuncApi getApi() {
+        return NodeFuncApi.builder("inner_join")//
+            .withInputTable(LEFT, "The left table to be joined.")//
+            .withInputTable(RIGHT, "The right table to be joined.")//
+            .withStringArgument(JOIN_COLUMN, "The name of the column to join on. Must exist in both tables.")//
+            .withOutputTable("joined_table",
+                "The joined table containing all columns from left and right (column names are uniquified).")//
+            .withDescription(
+                "Performs an inner join on the tables left and right on the column named join_column which must exist in both left and right.")
+            .build();
     }
 
 }
