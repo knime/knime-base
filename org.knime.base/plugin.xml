@@ -2700,5 +2700,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.filter.columnref.ColumnFilterRefNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
