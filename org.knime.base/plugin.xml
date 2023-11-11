@@ -2697,5 +2697,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.columnappend2.ColumnAppenderNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
