@@ -48,94 +48,176 @@
  */
 package org.knime.base.node.preproc.groupby;
 
-import java.util.List;
-import java.util.Map;
+import static java.util.stream.Collectors.joining;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.func.AbstractNodeFunc;
+import org.knime.core.node.func.ArgumentDefinition.PrimitiveArgumentType;
+import org.knime.core.node.func.EnumArgumentType;
+import org.knime.core.node.func.ListArgumentType;
 import org.knime.core.node.func.NodeFuncApi;
+import org.knime.core.node.func.SimpleNodeFunc;
+import org.knime.core.node.func.StructArgumentType;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @since 5.2
  */
-public final class GroupByNodeFunc extends AbstractNodeFunc {
+public final class GroupByNodeFunc implements SimpleNodeFunc {
 
-    private static final Map<String, String> METHOD_IDS = Map.of(//
-        "mean", "Mean_V4.6", //
-        "count", "Count", //
-        "first", "First", //
-        "last", "Last", //
-        "list", "List", //
-        "median", "Median_V3.4",
-        "sum", "Sum_V2.5.2"//
-    );
+    private static final String AGGREGATIONS = "aggregations";
 
-    private static final NodeFuncApi API = NodeFuncApi.builder("group_by")//
-        .withDescription("""
-                Groups the input table by the group_column and appends a new column with the aggregation function
-                applied to the aggregation_column.
-                """)//
-        .withInputTable("table", "The table to group and aggregate.")//
-        .withStringArgument("group_column", "The column to group by")//
-        .withStringArgument("aggregation_column", "The column to aggregate")//
-        .withStringArgument("aggregation",
-            "The aggregation method. Valid values are ['first', 'last', 'mean', 'median', 'list', 'count', 'sum'].")//
-        .withOutputTable("output", "The grouped and aggregated table")//
-        .build();
+    private static final String METHOD = "method";
+
+    private static final String COLUMN = "column";
+
+    private static final String GROUP_COLUMNS = "group_columns";
 
     /**
-     * Constructor used by the framework to instantiate the NodeFunc.
+     * The supported aggregation methods.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    public GroupByNodeFunc() {
-        super(API, GroupByNodeFactory.class.getName());
+    @SuppressWarnings("javadoc")
+    public enum Aggregation {
+            Mean("Mean_V4.6"), //
+            Count("Count"), //
+            First("First"), //
+            Last("Last"), //
+            List("List"), //
+            Median("Median_V3.4"), //
+            Sum("Sum_V2.5.2");
+
+        private final String m_methodId;
+
+        Aggregation(final String methodId) {
+            m_methodId = methodId;
+        }
+
+        public static String valuesString() {
+            return Stream.of(values())//
+                .map(Enum::name)//
+                .collect(joining(", ", "[", "]"));
+        }
+
+        public ColumnAggregator createOperator(final DataColumnSpec column) throws InvalidSettingsException {
+            return new ColumnAggregator(column, getMethod());
+        }
+
+        public AggregationMethod getMethod() {
+            return AggregationMethods.getMethod4Id(m_methodId);
+        }
+
+        public static Aggregation forName(final String name) throws InvalidSettingsException {
+            try {
+                return Aggregation.valueOf(name);
+            } catch (IllegalArgumentException ex) {
+                throw new InvalidSettingsException("The aggregation '%s' does not exist.".formatted(name));
+            }
+        }
+
     }
 
     @Override
-    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs, final NodeSettingsWO settings)
-        throws InvalidSettingsException {
+    public Class<? extends NodeFactory<?>> getNodeFactoryClass() {
+        return GroupByNodeFactory.class;
+    }
+
+    @Override
+    public NodeFuncApi getApi() {
+        return NodeFuncApi.builder("group_by")//
+            .withDescription("""
+                    Groups the input table by the %s and calculates the specified %s.
+                    The naming of the output columns follows the scheme Aggregation(column).
+                    Example: The mean of the column 'foo' would result in the column being named 'Mean(foo)'.
+                    """.formatted(GROUP_COLUMNS, AGGREGATIONS))//
+            .withInputTable("table", "The table to group and aggregate.")//
+            .withArgument(GROUP_COLUMNS, "The columns to group by.",
+                ListArgumentType.create(PrimitiveArgumentType.STRING, false))//
+            .withArgument(AGGREGATIONS, """
+                    A list of aggregations to perform.
+                    Each aggregation consists of a column being aggregated and a method of aggregation.
+                    Example: {"column": "foo", "method": "First"}
+                    Valid aggregation methods are %s.
+                            """.formatted(Aggregation.valuesString()), ListArgumentType.create(
+                                StructArgumentType.builder()//
+                .withProperty(COLUMN, "The column to aggregate.", PrimitiveArgumentType.STRING)//
+                .withProperty(METHOD, "The method of aggregation.", EnumArgumentType.create(Aggregation.class))//
+                .build(), false))
+            .withOutputTable("output", "The grouped and aggregated table")//
+            .build();
+    }
+
+    @Override
+    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
+        final NodeSettingsWO settings) throws InvalidSettingsException {
         var nodeModel = new GroupByNodeModel();
         nodeModel.saveSettingsTo(settings);
-        var groupColumn = arguments.getString("group_column");
-        var aggregationColumn = arguments.getString("aggregation_column");
-        var aggregationMethod = arguments.getString("aggregation");
 
         var tableSpec = (DataTableSpec)inputSpecs[0];
-        var groupColumnSettings = GroupByNodeModel.createGroupByColsSettings();
-        groupColumnSettings.setNewValues(//
-            List.of(groupColumn), //
-            tableSpec.stream()//
-                .map(DataColumnSpec::getName)//
-                .filter(n -> !n.equals(groupColumn))//
-                .toList(), //
-            false);
-        groupColumnSettings.saveSettingsTo(settings);
-
-        var aggregator = getColumnAggregator(tableSpec.getColumnSpec(aggregationColumn), aggregationMethod);
-        ColumnAggregator.saveColumnAggregators(settings, List.of(aggregator));
-    }
-
-    private static String methodToId(final String method) throws InvalidSettingsException {
-        var id = METHOD_IDS.get(method);
-        if (id == null) {
-            throw new InvalidSettingsException("The method %s is unknown.".formatted(method));
+        if (tableSpec == null) {
+            throw new InvalidSettingsException("Can't configure GroupBy without the input table spec.");
         }
-        return id;
+        saveGroupSettings(arguments, settings, tableSpec);
+
+        saveAggregationSettings(arguments, settings, tableSpec);
     }
 
-    private static ColumnAggregator getColumnAggregator(final DataColumnSpec aggregationColumn,
-        final String aggregationMethod) throws InvalidSettingsException {
-        var id = methodToId(aggregationMethod);
-        var aggregationOperator = AggregationMethods.getMethod4Id(id);
-        return new ColumnAggregator(aggregationColumn, aggregationOperator);
+    private static void saveAggregationSettings(final NodeSettingsRO arguments, final NodeSettingsWO settings,
+        final DataTableSpec tableSpec) throws InvalidSettingsException {
+        var aggregationsArg = arguments.getNodeSettings(AGGREGATIONS);
+        var numAggregations = ListArgumentType.size(aggregationsArg);
+        var aggregators = new ArrayList<ColumnAggregator>();
+
+        for (int i = 0; i < numAggregations; i++) {
+            var aggregationArg = aggregationsArg.getNodeSettings("" + i);
+            var column = aggregationArg.getString(COLUMN);
+            var columnSpec = tableSpec.getColumnSpec(column);
+            CheckUtils.checkSetting(columnSpec != null,
+                "The aggregation column '%s' does not exist in the input table.", column);
+            var method = Aggregation.forName(aggregationArg.getString(METHOD));
+            aggregators.add(method.createOperator(columnSpec));
+        }
+
+        ColumnAggregator.saveColumnAggregators(settings, aggregators);
+    }
+
+    private static void saveGroupSettings(final NodeSettingsRO arguments, final NodeSettingsWO settings,
+        final DataTableSpec tableSpec) throws InvalidSettingsException {
+        var groupColumnSettings = GroupByNodeModel.createGroupByColsSettings();
+        var groupColumnsArg = arguments.getStringArray(GROUP_COLUMNS);
+
+        Collection<String> includes = Stream.of(groupColumnsArg)//
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        for (var groupCol : groupColumnsArg) {
+            CheckUtils.checkSetting(tableSpec.containsName(groupCol),
+                "The group column '%s' does not exist in the input table.", groupCol);
+        }
+        var excludes = tableSpec.stream()//
+            .map(DataColumnSpec::getName)//
+            .filter(Predicate.not(includes::contains))//
+            .toList();
+
+        groupColumnSettings.setNewValues(includes, excludes, false);
+        groupColumnSettings.saveSettingsTo(settings);
     }
 
 }
