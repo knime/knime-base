@@ -2709,5 +2709,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.columnresorter.ColumnResorterNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
