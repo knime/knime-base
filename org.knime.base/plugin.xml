@@ -2706,5 +2706,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.duplicates.DuplicateRowFilterNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.columnresorter.ColumnResorterNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
