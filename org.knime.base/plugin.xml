@@ -2715,5 +2715,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.pivot.PivotNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.unpivot2.UnpivotNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
