@@ -2712,5 +2712,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.columnrenameregex.ColumnRenameRegexNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.pivot.PivotNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
