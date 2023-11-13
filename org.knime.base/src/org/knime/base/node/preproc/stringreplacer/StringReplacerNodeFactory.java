@@ -49,7 +49,6 @@ package org.knime.base.node.preproc.stringreplacer;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
@@ -65,7 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class StringReplacerNodeFactory extends NodeFactory implements NodeDialogFactory {
+public class StringReplacerNodeFactory extends NodeFactory<StringReplacerNodeModel> implements NodeDialogFactory {
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
@@ -73,13 +72,13 @@ public class StringReplacerNodeFactory extends NodeFactory implements NodeDialog
     }
 
     @Override
-    public NodeModel createNodeModel() {
+    public StringReplacerNodeModel createNodeModel() {
         return new StringReplacerNodeModel();
     }
 
     @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
+    public NodeView<StringReplacerNodeModel> createNodeView(final int viewIndex,
+            final StringReplacerNodeModel nodeModel) {
         return null;
     }
 
