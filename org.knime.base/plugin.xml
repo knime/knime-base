@@ -2721,5 +2721,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.valuelookup.ValueLookupNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
