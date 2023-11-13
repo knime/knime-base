@@ -45,6 +45,7 @@ try {
                         "knime-expressions",
                         "knime-exttool",
                         "knime-filehandling",
+                        "knime-filehandling-core",
                         "knime-gateway",
                         "knime-h2o",
                         "knime-jep",

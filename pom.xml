@@ -32,11 +32,6 @@
 				<module>org.knime.base</module>
 				<module>org.knime.deprecated</module>
 				<module>org.knime.features.base</module>
-				<module>org.knime.features.filehandling.core.testing</module>
-				<module>org.knime.filehandling.core.fs.tests.workflow</module>
-				<module>org.knime.filehandling.core</module>
-				<module>org.knime.filehandling.core.tests.common</module>
-				<module>org.knime.filehandling.core.fs</module>
 				<module>org.knime.filehandling.utility.nodes</module>
 				<module>org.knime.time</module>
 				<module>org.knime.time.tests</module>
@@ -51,60 +46,8 @@
 				<module>org.knime.base.tests</module>
 				<module>org.knime.deprecated</module>
 				<module>org.knime.features.base</module>
-				<module>org.knime.filehandling.core.fs</module>
-				<module>org.knime.filehandling.core.fs.tests</module>
-				<module>org.knime.filehandling.core</module>
-				<module>org.knime.filehandling.core.tests.common</module>
 				<module>org.knime.filehandling.utility.nodes</module>
 				<module>org.knime.filehandling.utility.nodes.tests</module>
-				<module>org.knime.time</module>
-				<!-- File handling examples are intentionally compiled, but not part of any feature.
-					 This ensures that we have to maintain the examples. Please don't remove them.
-				--> 
-				<module>org.knime.filehandling.core.example</module>
-				<module>org.knime.filehandling.core.example.fs</module>
-		   </modules>
-			<repositories>
-				<repository>
-					<id>p2-knime-workbench</id>
-					<layout>p2</layout>
-					<url>${knime.workbench.p2}</url>
-				</repository>
-				<repository>
-					<id>p2-knime-js-core</id>
-					<layout>p2</layout>
-					<url>${knime.js.core.p2}</url>
-				</repository>
-				<repository>
-					<id>p2-knime-svg</id>
-					<layout>p2</layout>
-					<url>${knime.svg.p2}</url>
-				</repository>
-				<repository>
-					<id>p2-knime-database</id>
-					<layout>p2</layout>
-					<url>${knime.database.p2}</url>
-				</repository>
-				<repository>
-					<id>p2-knime-kerberos</id>
-					<layout>p2</layout>
-					<url>${knime.kerberos.p2}</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>integration-tests</id>
-			<modules>
-				<module>org.knime.features.base.testing</module>
-				<module>org.knime.base.tests/lib/fetch_jars</module>
-				<module>org.knime.base.tests</module>
-				<module>org.knime.base</module>
-				<module>org.knime.deprecated</module>
-				<module>org.knime.filehandling.core</module>
-				<module>org.knime.filehandling.core.tests.common</module>
-				<module>org.knime.filehandling.core.fs</module>
-				<module>org.knime.filehandling.core.fs.tests.integration</module>
-				<module>org.knime.filehandling.utility.nodes</module>
 				<module>org.knime.time</module>
 			</modules>
 			<repositories>
@@ -149,6 +92,11 @@
 			<id>p2-knime-core-ui</id>
 			<layout>p2</layout>
 			<url>${knime.core.ui.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-filehandling-core</id>
+			<layout>p2</layout>
+			<url>${knime.filehandling.core.p2}</url>
 		</repository>
 		<repository>
 			<id>p2-knime-shared</id>

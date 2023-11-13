@@ -6,12 +6,6 @@
    <feature id="org.knime.features.base.source" version="0.0.0">
       <category name="knime-base"/>
    </feature>
-   <feature id="org.knime.features.filehandling.core.testing" version="0.0.0">
-      <category name="knime-base"/>
-   </feature>
-   <feature id="org.knime.features.filehandling.core.testing.source" version="0.0.0">
-      <category name="knime-base"/>
-   </feature>
    <category-def name="knime-base" label="Build artifacts from knime-base">
       <description>
          Build artifacts from knime-base

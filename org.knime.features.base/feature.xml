@@ -749,27 +749,6 @@ propagated with or for interoperation with KNIME.
          version="0.0.0"
          fragment="true"
          unpack="false"/>
-         
-   <plugin
-         id="org.knime.filehandling.core"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-         
-   <plugin
-         id="org.knime.filehandling.core.tests.common"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-         
-   <plugin
-         id="org.knime.filehandling.core.fs"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
 
    <plugin
          id="org.knime.filehandling.utility.nodes"
