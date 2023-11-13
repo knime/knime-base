@@ -314,7 +314,7 @@ class StringFormatterTest {
     @Test
     void testStyle() throws InvalidSettingsException {
         final var testString = "Taco Cabeza is just around the corner";
-        final var defaultStyles = "display:inline-block;overflow:hidden;text-overflow:ellipsis;width:100%;height:100%;";
+        final var defaultStyles = "display:inline-block;overflow:hidden;text-overflow:ellipsis;";
         var fmt = getInstanceWithStyleSettings(false, false);
         var formattedString = fmt.style(testString, testString);
         assertTrue(formattedString.startsWith("<span style="), "Start with a span definition");
@@ -362,8 +362,6 @@ class StringFormatterTest {
                 display:inline-block;\
                 overflow:hidden;\
                 text-overflow:ellipsis;\
-                width:100%;\
-                height:100%;\
                 white-space:break-spaces;\
                 word-break:break-all;\
                 " title="here&#39;s a.link and a way t…ence\t">\

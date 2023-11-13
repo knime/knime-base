@@ -80,6 +80,7 @@ import org.knime.base.node.preproc.transpose.TransposeTableNodeSettings;
 import org.knime.base.node.preproc.unpivot2.Unpivot2NodeSettings;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings;
 import org.knime.base.node.viz.format.number.NumberFormatManagerNodeSettings;
+import org.knime.base.node.viz.format.string.StringFormatManagerNodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
@@ -198,6 +199,14 @@ class NodeSettingsSnapshotTests { // NOSONAR
     static class RowToColumnHeaderSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected RowToColumnHeaderSettingsTest() {
             super(Map.of(SettingsType.MODEL, RowToColumnHeaderSettings.class), createDefaultTestTableSpec());
+        }
+    }
+
+
+    static class StringFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+        protected StringFormatManagerNodeSettingsTest() {
+            super(Map.of(SettingsType.MODEL, StringFormatManagerNodeSettings.class), createDefaultTestTableSpec(),
+                createDefaultTestTableSpec());
         }
     }
 

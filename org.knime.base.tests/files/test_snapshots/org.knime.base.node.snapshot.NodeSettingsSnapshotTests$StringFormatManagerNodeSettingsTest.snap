@@ -1,0 +1,332 @@
+{
+  "data" : {
+    "model" : {
+      "columnsToFormat" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test2" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "nFirstChars" : 500,
+      "nLastChars" : 5,
+      "wrapLinesOnDemand" : "NO",
+      "replaceNewlineAndCarriageReturn" : false,
+      "replaceNonPrintableCharacters" : true,
+      "replaceEmptyString" : "BLANK",
+      "emptyStringReplacement" : "<empty>",
+      "linkLinksAndEmails" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnsToFormat" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns to format",
+            "description" : "Select the columns to attach the selected format to.\nThis does not change the data, but only the way the strings are being displayed in views.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "emptyStringReplacement" : {
+            "type" : "string",
+            "title" : "Substitute for empty string",
+            "description" : "This string will be shown instead of an empty string, if <i>Show empty string as custom string</i> is enabled.\n",
+            "default" : "<empty>"
+          },
+          "linkLinksAndEmails" : {
+            "type" : "boolean",
+            "title" : "Link hyperlinks and e-mail addresses",
+            "description" : "Enabling this will display URLs and e-mail addresses as links.\n",
+            "default" : true
+          },
+          "nFirstChars" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Show first characters",
+            "description" : "Select the number of characters that should be retained at the <b>start</b> of the string. If a string's length is longer than the permitted length, it will be truncated. This does not change the data, but only the way the strings are being displayed in views.\n",
+            "default" : 500,
+            "minimum" : 0
+          },
+          "nLastChars" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Show last characters",
+            "description" : "Select the number of characters that should be retained at the <b>end</b> of the string. If a string's length is longer than the permitted length, it will be truncated. This does not change the data, but only the way the strings are being displayed in views.\n",
+            "default" : 5,
+            "minimum" : 0
+          },
+          "replaceEmptyString" : {
+            "oneOf" : [ {
+              "const" : "BLANK",
+              "title" : "Blank"
+            }, {
+              "const" : "CUSTOM",
+              "title" : "Custom string"
+            } ],
+            "title" : "Show empty string as",
+            "description" : "Determine how to display empty strings. This does not change the underlying data, but just how an empty string is shown in views.\n<ul>\n    <li><i>Blank</i>: The empty string will be shown as blank, this is the default.</li>\n    <li><i>Custom string</i>: A custom string can be defined that will be shown instead of a blank cell.     This might be useful to show some placeholder text or default value.</li>\n</ul>\n",
+            "default" : "BLANK"
+          },
+          "replaceNewlineAndCarriageReturn" : {
+            "type" : "boolean",
+            "title" : "Show line break and carriage return as symbols",
+            "description" : "If checked, line break (\\n) and carriage return (\\r) are displayed as symbols. Enabling this will always show a single-line string unless <i>Wrap  lines on demand</i> is enabled.\n",
+            "default" : false
+          },
+          "replaceNonPrintableCharacters" : {
+            "type" : "boolean",
+            "title" : "Show other non-printable characters as symbols",
+            "description" : "If checked, non-printable symbols like a tabulator or non-break space will be displayed with a placeholder symbol (�). Enable this to make any non-standard control characters in your strings visible.\n",
+            "default" : true
+          },
+          "wrapLinesOnDemand" : {
+            "oneOf" : [ {
+              "const" : "ANYWHERE",
+              "title" : "Anywhere"
+            }, {
+              "const" : "BETWEEN_WORDS",
+              "title" : "Between words"
+            }, {
+              "const" : "NO",
+              "title" : "No"
+            } ],
+            "title" : "Wrap lines on demand",
+            "description" : "Determine how to wrap a string when it is too long to fit the width of the view:\n<ul>\n    <li><i>Anywhere</i>: The string is wrapped anywhere on demand, also in the middle of a word.</li>\n    <li><i>Between words</i>: The string is wrapped only between words, e.g. at white space.</li>\n    <li><i>No</i>: The string isn't wrapped and long strings will overflow the view width.</li>\n</ul>\n",
+            "default" : "NO"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Column Selection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnsToFormat",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      } ]
+    }, {
+      "label" : "Format",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "HorizontalLayout",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/nFirstChars",
+          "options" : { }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/nLastChars",
+          "options" : { }
+        } ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/wrapLinesOnDemand",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/replaceNewlineAndCarriageReturn",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/replaceNonPrintableCharacters",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Special values",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "HorizontalLayout",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/replaceEmptyString",
+          "options" : {
+            "format" : "valueSwitch"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/emptyStringReplacement",
+          "options" : { },
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "scope" : "#/properties/model/properties/replaceEmptyString",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "CUSTOM"
+                } ]
+              }
+            }
+          }
+        } ]
+      } ]
+    }, {
+      "label" : "Interaction",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/linkLinksAndEmails",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  }
+}
