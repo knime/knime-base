@@ -2738,7 +2738,6 @@
         </nodeFunc>
         <nodeFunc
               impl="org.knime.base.node.preproc.filter.row.nodefunc.MissingValueRowFilterNodeFunc">
->>>>>>> e231b1726 (AP-21370: Register Row Filter NodeFuncs)
         </nodeFunc>
      </extension>
 </plugin>

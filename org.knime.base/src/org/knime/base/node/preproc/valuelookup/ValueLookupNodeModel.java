@@ -51,9 +51,13 @@ package org.knime.base.node.preproc.valuelookup;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.DictionaryTableChoices;
+import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.LookupColumnNoMatchReplacement;
+import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.LookupColumnOutput;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -114,13 +118,10 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         super(configuration, modelSettingsClass);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final ValueLookupNodeSettings modelSettings)
         throws InvalidSettingsException {
-        m_settings = modelSettings; // TODO remove once UIEXT-722 is merged
+        m_settings = modelSettings; // TODO remove once UIEXT-722 (streaming support) is merged
 
         CheckUtils.checkSettingNotNull(modelSettings.m_lookupCol, "Select a lookup column from the data table");
         CheckUtils.checkSettingNotNull(modelSettings.m_dictKeyCol, "Select a key column from the dictionary table");
@@ -130,9 +131,6 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         return new DataTableSpec[]{rearranger.createSpec()};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
         final ValueLookupNodeSettings modelSettings) throws Exception {
@@ -155,9 +153,6 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         return new BufferedDataTable[]{output};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
@@ -179,18 +174,12 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public InputPortRole[] getInputPortRoles() {
         // The node always need the complete dictionary (port 1), but can lookup and insert values (port 0) row-by-row.
         return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE, InputPortRole.NONDISTRIBUTED_NONSTREAMABLE};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
         return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
@@ -210,38 +199,134 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         final DataTableSpec targetSpec, final DataTableSpec dictSpec, final BufferedDataTable dictTable,
         final ExecutionMonitor dictInitMon) throws InvalidSettingsException {
         CheckUtils.checkArgumentNotNull(targetSpec, "No spec available for target table");
-        var targetColIndex = targetSpec.findColumnIndex(modelSettings.m_lookupCol);
+        CheckUtils.checkArgumentNotNull(dictSpec, "No spec available for dictionary table");
+
+        final var targetColIndex = targetSpec.findColumnIndex(modelSettings.m_lookupCol);
         CheckUtils.checkSetting(targetColIndex >= 0, "No such column \"%s\"", modelSettings.m_lookupCol);
 
-        CheckUtils.checkArgumentNotNull(dictSpec, "No spec available for dictionary table");
-        var dictInputColIndex = dictSpec.findColumnIndex(modelSettings.m_dictKeyCol);
+        final var dictInputColIndex = dictSpec.findColumnIndex(modelSettings.m_dictKeyCol);
         CheckUtils.checkSetting(dictInputColIndex >= 0, "No such column \"%s\"", modelSettings.m_dictKeyCol);
 
-        final var dictValueCols = modelSettings.m_dictValueCols.getSelected(
-            DictionaryTableChoices.choices(dictSpec), dictSpec);
-        final var dictOutputColIndices = dictSpec.columnsToIndices(dictValueCols);
-        final var insertedColumns = new ArrayList<DataColumnSpec>();
-        // Add the columns to the output spec, but check for existence and uniquify name w.r.t. the input table
-        for (var col : dictOutputColIndices) {
-            CheckUtils.checkSetting(col >= 0, "No such column \"%s\"", col);
-            var oldSpec = dictSpec.getColumnSpec(col);
-            var newSpec = new DataColumnSpecCreator(oldSpec);
-            if (!(modelSettings.m_deleteLookupCol
-                && targetSpec.getColumnNames()[targetColIndex].equals(oldSpec.getName()))) {
-                // The new column name might clash with the existing ones
-                newSpec.setName(DataTableSpec.getUniqueColumnName(targetSpec, oldSpec.getName()));
+        final var lookupReplacementColumnIndex = dictSpec.findColumnIndex(modelSettings.m_lookupReplacementCol);
+        CheckUtils.checkSetting(
+            modelSettings.m_lookupColumnOutput != LookupColumnOutput.REPLACE || lookupReplacementColumnIndex >= 0,
+            "Select a valid column to replace the lookup column. %s",
+            Optional.ofNullable(modelSettings.m_lookupReplacementCol).map(name -> "No such column \"" + name + "\"")
+                .orElse("None selected."));
+
+        // the columns to be created by the factory
+        class ColumnsToAppend {
+            // specs of the columns to be returned by the factory
+            final List<DataColumnSpec> m_specs = new ArrayList<>();
+
+            // the column indices in the dictionary table to be collected by the dictionary data structure
+            // in case of lookup column replacement, the lookup column might be contained twice (not perfect but simple)
+            final int[] m_dictOutputColIndices;
+
+            // offset (in the appended columns) of the column that replaces the lookup column
+            final int m_extraReplaceColIdx;
+
+            ColumnsToAppend() throws InvalidSettingsException {
+                // columns to pull in from the dictionary table
+                final var dictValueColNames =
+                    modelSettings.m_dictValueCols.getSelected(DictionaryTableChoices.choices(dictSpec), dictSpec);
+                final int[] selectedDictCols = dictSpec.columnsToIndices(dictValueColNames);
+                // Add the columns to the output spec, but check for existence and uniquify name w.r.t. the input table
+                for (var col : selectedDictCols) {
+                    CheckUtils.checkSetting(col >= 0, "No such column \"%s\"", col);
+                    var oldSpec = dictSpec.getColumnSpec(col);
+                    var newSpec = new DataColumnSpecCreator(oldSpec);
+                    if (!(modelSettings.m_lookupColumnOutput == LookupColumnOutput.REMOVE
+                        && modelSettings.m_lookupCol.equals(oldSpec.getName()))) {
+                        // The new column name might clash with the existing ones
+                        newSpec.setName(DataTableSpec.getUniqueColumnName(targetSpec, oldSpec.getName()));
+                    }
+                    m_specs.add(newSpec.createSpec());
+                }
+
+                if (modelSettings.m_lookupColumnOutput == LookupColumnOutput.REPLACE) {
+                    // make sure the column selected to replace the lookup column is part of the lookup data structure
+                    m_dictOutputColIndices = Arrays.copyOf(selectedDictCols, selectedDictCols.length + 1);
+                    m_dictOutputColIndices[m_dictOutputColIndices.length - 1] =
+                        dictSpec.findColumnIndex(modelSettings.m_lookupReplacementCol);
+
+                    // add column to replace the lookup column - with the common super type and the lookup column's name
+                    // not necessary to make column name unique - the original lookup column will be removed
+                    final var oldDictSpec = dictSpec.getColumnSpec(modelSettings.m_lookupReplacementCol);
+                    final var newDictSpec = new DataColumnSpecCreator(oldDictSpec);
+                    newDictSpec.setName(modelSettings.m_lookupCol);
+
+                    // if retain values on missing replacement is selected, we can get mixed type cells
+                    // if missing is selected, all values will have the type of the dictionary column
+                    if (modelSettings.m_columnNoMatchReplacement == LookupColumnNoMatchReplacement.RETAIN) {
+                        var commonSuperType = DataType.getCommonSuperType(newDictSpec.getType(),
+                            targetSpec.getColumnSpec(modelSettings.m_lookupCol).getType());
+                        newDictSpec.setType(commonSuperType);
+                    }
+
+                    m_specs.add(newDictSpec.createSpec());
+                } else {
+                    m_dictOutputColIndices = selectedDictCols;
+                }
+
+                // optional found column
+                if (modelSettings.m_createFoundCol) {
+                    var name = DataTableSpec.getUniqueColumnName(targetSpec, COLUMN_NAME_MATCHFOUND);
+                    var foundSpec = new DataColumnSpecCreator(name, BooleanCell.TYPE);
+                    m_specs.add(foundSpec.createSpec());
+                }
+                m_extraReplaceColIdx = modelSettings.m_createFoundCol ? (m_specs.size() - 2) : (m_specs.size() - 1);
             }
-            insertedColumns.add(newSpec.createSpec());
+
+            /**
+             * Which of the factory's produced output cells goes where in the input table. For example:
+             *
+             * <pre>
+             * input table column names A L B
+             *
+             * dictionary table column names  X Y Z
+             *
+             * model settings
+             * target/lookup column = L
+             * replacement column = Y
+             * include from dict = Y Z
+             *
+             * factory output Y Z L // L has same contents as Y
+             *
+             * The output table is formed by first appending the factory output.
+             * Ambiguous column names are ok in an intermediate state.
+             * A L B Y Z L
+             * Then we replace columns 3, 4, 1 with the output of the cell factory (Y, Z, L).
+             * Replacing Y and Z is a no op and replacing L updates the lookup column contents.
+             * A L B Y Z L
+             * Finally, we remove column 5.
+             * A L B Y Z
+             * </pre>
+             *
+             * This whole dance around the column rearranger is not the very readable but gives us streaming for free.
+             *
+             * @return new column indices for the cells output by the cell factory
+             */
+            int[] replacementMapping() {
+                // number of columns in the table to append to
+                final int n = targetSpec.getNumColumns()
+                    - (modelSettings.m_lookupColumnOutput == LookupColumnOutput.REMOVE ? 1 : 0);
+                // by default, all columns are appended to the end
+                var map = IntStream.range(n, n + m_specs.size()).toArray();
+                // in case of replace the extra column takes the place of the original lookup column
+                // (and is deleted afterwards)
+                if (modelSettings.m_lookupColumnOutput == LookupColumnOutput.REPLACE) {
+                    // replace the target column with the second last column
+                    map[m_extraReplaceColIdx] = targetColIndex;
+                }
+                return map;
+            }
         }
 
-        if (modelSettings.m_createFoundCol) {
-            var name = DataTableSpec.getUniqueColumnName(targetSpec, COLUMN_NAME_MATCHFOUND);
-            var foundSpec = new DataColumnSpecCreator(name, BooleanCell.TYPE);
-            insertedColumns.add(foundSpec.createSpec());
-        }
+        final var newColumns = new ColumnsToAppend();
 
         final var rearranger = new ColumnRearranger(targetSpec);
-        if (modelSettings.m_deleteLookupCol) {
+        if (modelSettings.m_lookupColumnOutput == LookupColumnOutput.REMOVE) {
             // The index is the same as in the input table since we only appended columns
             rearranger.remove(targetColIndex);
         }
@@ -254,15 +339,31 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         var comparator = DataType.getCommonSuperType(dictKeyColType, lookupColType).getComparator();
 
         // Create the actual cell factory using the values that were checked and extracted above
-        final var cellFactory = createCellFactory(modelSettings, insertedColumns.toArray(DataColumnSpec[]::new),
-            targetColIndex, dictTable, dictOutputColIndices, dictInitMon, comparator);
-        rearranger.append(cellFactory); // All the new columns are appended to the end of the row
+        final var cellFactory = createCellFactory(modelSettings, newColumns.m_specs.toArray(DataColumnSpec[]::new),
+            targetColIndex, dictTable, newColumns.m_dictOutputColIndices, dictInitMon, comparator);
+
+        // all the new columns are appended to the end of the row, including the column to replace the lookup column
+        rearranger.append(cellFactory);
+        if (modelSettings.m_lookupColumnOutput == LookupColumnOutput.REPLACE) {
+            // replace the original lookup column
+            rearranger.replace(cellFactory, newColumns.replacementMapping());
+            // remove the additional column appended to the end
+            rearranger.remove(targetSpec.getNumColumns() + newColumns.m_extraReplaceColIdx);
+        }
         return rearranger;
     }
 
     /**
      * Create a {@link CellFactory} that, given an input row, looks it up in the dictionary table and appends produces
-     * either the corresponding output columns or missing cells
+     * either the corresponding output columns or missing cells.
+     *
+     * The returned cells are
+     * <ul>
+     * <li>the cells from the dictionary table columns that have been selected for appending</li>
+     * <li>if REPLACE is selected for the lookup column: the cell from the dictionary table column that has been
+     * selected as replacement column (redundant if in the selected columns, too)</li>
+     * <li>if CREATE FOUND COLUMN is selected: a boolean cell indicating whether a match has been found</li>
+     * </ul>
      *
      * @param insertedColumns the specs of the new columns
      * @param targetColIndex the column index of the cell that shall be looked up in the dictionary
@@ -287,14 +388,25 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
              */
             private LookupDict m_dict;
 
+            /**
+             * Returns C1, ..., Cn, [X], [F] with
+             * <ul>
+             * <li>C1, ..., Cn the values of the dictionary table columns that were selected for appending</li>
+             * <li>X the column selected to replace the lookup column, if
+             * {@link ValueLookupNodeSettings#m_lookupColumnOutput} equals REPLACE</li>
+             * <li>F whether the value was found or not, if {@link ValueLookupNodeSettings#m_createFoundCol} is
+             * true</li>
+             * </ul>
+             */
             @Override
             public DataCell[] getCells(final DataRow row) {
                 if (m_dict == null) {
                     try {
-                        m_dict = new DictFactory(modelSettings, dictTable, dictOutputColIndices, comparator,
-                            dictInitMon).initialiseDict();
+                        m_dict =
+                            new DictFactory(modelSettings, dictTable, dictOutputColIndices, comparator, dictInitMon)
+                                .initialiseDict();
                         LOGGER.debug("Using dictionary implementation \"" + m_dict.getClass().getSimpleName() + "\"");
-                    } catch (CanceledExecutionException e) {//NOSONAR
+                    } catch (CanceledExecutionException e) {//NOSONAR (see below)
                         // The execution has been cancelled -- return the right amount of missing cells as dummies.
                         // The surrounding execution logic will disregard that result and display a warning
                         // Why this catch - clause? Because we want to override AbstractCellFactory#getCells and include
@@ -307,29 +419,29 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
                 }
 
                 // Try to match the target cell to a dictionary entry
-                var lookup = row.getCell(targetColIndex);
-                var result = m_dict.getCells(lookup);
-                DataCell[] replacements;
+                final var lookup = row.getCell(targetColIndex);
+                final var result = m_dict.getCells(lookup);
+                final var replacements = new DataCell[insertedColumns.length];
 
                 // Handle the presence / absence of a match
                 if (result.isPresent()) {
-                    replacements = result.get();
+                    // contains the values of columns C1, ..., Cn that were selected for appending
+                    // if replace lookup column with column X is selected, contains C1, ..., Cn, X
+                    final var dictContent = result.get();
+                    System.arraycopy(result.get(), 0, replacements, 0, dictContent.length);
                 } else {
-                    var numReplacementCols =
-                        modelSettings.m_createFoundCol ? (insertedColumns.length - 1) : insertedColumns.length;
-                    replacements = new DataCell[numReplacementCols];
                     Arrays.fill(replacements, DataType.getMissingCell());
+                    if (modelSettings.m_lookupColumnOutput == LookupColumnOutput.REPLACE
+                        && modelSettings.m_columnNoMatchReplacement == LookupColumnNoMatchReplacement.RETAIN) {
+                        final int replacementColIdx = replacements.length - (modelSettings.m_createFoundCol ? 2 : 1);
+                        replacements[replacementColIdx] = lookup;
+                    }
                 }
 
                 if (modelSettings.m_createFoundCol) {
-                    // Add the "found/not found" column and return both columns
-                    return Stream
-                        .concat(Arrays.stream(replacements), Stream.of(BooleanCellFactory.create(result.isPresent())))
-                        .toArray(DataCell[]::new);
-                } else {
-                    // Just return the replacement columns
-                    return replacements;
+                    replacements[replacements.length - 1] = BooleanCellFactory.create(result.isPresent());
                 }
+                return replacements;
             }
         };
     }

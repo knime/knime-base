@@ -52,10 +52,15 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
@@ -124,6 +129,71 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             BACKWARD;
     }
 
+    /**
+     * Supersedes the <code>delete lookup column</code> setting.
+     *
+     * @since 5.2 */
+    enum LookupColumnOutput {
+            /** Leave the lookup column unchanged. */
+            @Label("Retain")
+            RETAIN,
+            /**
+             * Replace the value in the cell in the lookup column with a value from a cell in a selected column from the
+             * dictionary table if there is a match. If there is no match, use {@link LookupColumnNoMatchReplacement} to
+             * determine the value.
+             */
+            @Label("Replace")
+            REPLACE,
+            /** Remove the lookup column. */
+            @Label("Remove")
+            REMOVE;
+
+        private static class ShowLookupColumnReplacement extends OneOfEnumCondition<LookupColumnOutput> {
+            @Override
+            public LookupColumnOutput[] oneOf() {
+                return new LookupColumnOutput[]{LookupColumnOutput.REPLACE};
+            }
+        }
+
+        private static final class LookupColumnOutputPersistor
+            implements FieldNodeSettingsPersistor<LookupColumnOutput> {
+
+            private static final String CFG_LOOKUP_COLUMN_OUTPUT = "lookupColumnOutput";
+            private static final String CFG_51_DELETE = "deleteLookupCol";
+
+            @Override
+            public LookupColumnOutput load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                // pre 5.2, there was only boolean m_deleteLookupCol
+                if(settings.containsKey(CFG_51_DELETE)) {
+                    final var deleteLookupCol = settings.getBoolean(CFG_51_DELETE);
+                    return deleteLookupCol ? REMOVE : RETAIN;
+                } else {
+                    final var name = settings.getString(CFG_LOOKUP_COLUMN_OUTPUT);
+                    return LookupColumnOutput.valueOf(name);
+                }
+            }
+
+            @Override
+            public void save(final LookupColumnOutput policy, final NodeSettingsWO settings) {
+                settings.addString(CFG_LOOKUP_COLUMN_OUTPUT, policy == null ? null : policy.name());
+            }
+
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{CFG_LOOKUP_COLUMN_OUTPUT};
+            }
+        }
+    }
+
+    enum LookupColumnNoMatchReplacement {
+            /** Use the lookup value - can create a mixed type column. */
+            @Label("Retain")
+            RETAIN,
+            /** Insert a missing value. */
+            @Label("Insert missing")
+            INSERT_MISSING
+    }
+
     /** Provides the column choices of the table at input port 0 */
     static final class DataTableChoices implements ColumnChoicesProvider {
         @Override
@@ -153,8 +223,6 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     @Section(title = "Matching")
     interface MatchingSection {
     }
-
-    // TODO: UIEXT-1007 migrate String to ColumnSelection
 
     // ---- Match options
 
@@ -215,7 +283,57 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
 
     @Section(title = "Output")
     @After(MatchingSection.class)
-    interface OutputSection {}
+    interface OutputSection {
+    }
+
+    /** Whether to keep, replace, or delete the lookup column in the output table */
+    @Widget(title = "Lookup column output", //
+        description = """
+                Defines the content of the column that is selected as lookup column (data table).
+                If "Retain" the content of the lookup column is left unchanged.
+                If "Replace" is selected, the cell contents are replaced with values from the dictionary table.
+                If a match is found, the selected column's value is inserted, otherwise the original value can be kept
+                or a missing value can be inserted. The name of the column does not change.
+                If "Delete" is selected, the lookup column is removed entirely from the output table.
+                """)
+    @ValueSwitchWidget
+    @Signal(condition = LookupColumnOutput.ShowLookupColumnReplacement.class)
+    @Persist(customPersistor = LookupColumnOutput.LookupColumnOutputPersistor.class)
+    @Layout(OutputSection.class)
+    LookupColumnOutput m_lookupColumnOutput = LookupColumnOutput.RETAIN;
+
+    /**
+     * The name of the dictionary column to replace the lookup column in the data table
+     *
+     * @since 5.2
+     */
+    @Widget(title = "Replacement column", //
+        description = """
+                The column from the dictionary table that provides
+                the new values for the lookup column in the data table.
+                """)
+    @ChoicesWidget(choices = DictionaryTableChoices.class)
+    @Effect(type = EffectType.SHOW, signals = LookupColumnOutput.ShowLookupColumnReplacement.class)
+    @Layout(OutputSection.class)
+    @Persist(optional = true)
+    String m_lookupReplacementCol;
+
+    /**
+     * What to do with non-matching rows in case the data table's lookup column is to be replaced with a dictionary
+     * column.
+     *
+     * @since 5.2
+     */
+    @Widget(title = "If no match found", description = """
+            Defines the content of the lookup column if no match is found in the dictionary table.
+                If "Retain" is selected, the cell is left as is.
+                If "Insert missing" is selected, a missing value is used as content for the cell in the lookup column.
+            """)
+    @ValueSwitchWidget
+    @Effect(type = EffectType.SHOW, signals = LookupColumnOutput.ShowLookupColumnReplacement.class)
+    @Layout(OutputSection.class)
+    @Persist(optional = true)
+    LookupColumnNoMatchReplacement m_columnNoMatchReplacement = LookupColumnNoMatchReplacement.RETAIN;
 
     /** The names of the columns from the dictionary table that shall be added to the output table */
     @Widget(title = "Append columns (from dictionary table)", //
@@ -230,12 +348,6 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
             + "\" is appended to the output that contains a boolean indicating whether a match was found.")
     @Layout(OutputSection.class)
     boolean m_createFoundCol = false; //NOSONAR: more verbosity
-
-    /** Whether to delete the lookup column in the output table */
-    @Widget(title = "Delete lookup column", //
-        description = "When selected, the lookup column will be deleted from the data table.") //
-    @Layout(OutputSection.class)
-    boolean m_deleteLookupCol = false; //NOSONAR: more verbosity
 
     /**
      * Constructor for de/serialization.

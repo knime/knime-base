@@ -5,6 +5,8 @@
       "matchBehaviour" : "EQUAL",
       "stringMatchBehaviour" : "FULLSTRING",
       "caseSensitive" : true,
+      "lookupColumnOutput" : "RETAIN",
+      "columnNoMatchReplacement" : "RETAIN",
       "dictValueCols" : {
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -22,8 +24,7 @@
           "typeDisplays" : [ ]
         }
       },
-      "createFoundCol" : false,
-      "deleteLookupCol" : false
+      "createFoundCol" : false
     }
   },
   "schema" : {
@@ -38,16 +39,23 @@
             "description" : "When enabled, the string matching will be case-sensitive, otherwise case-insensitive.",
             "default" : true
           },
+          "columnNoMatchReplacement" : {
+            "oneOf" : [ {
+              "const" : "RETAIN",
+              "title" : "Retain"
+            }, {
+              "const" : "INSERT_MISSING",
+              "title" : "Insert missing"
+            } ],
+            "title" : "If no match found",
+            "description" : "Defines the content of the lookup column if no match is found in the dictionary table.\n    If \"Retain\" is selected, the cell is left as is.\n    If \"Insert missing\" is selected, a missing value is used as content for the cell in the lookup column.\n",
+            "default" : "RETAIN",
+            "configKeys" : [ "columnNoMatchReplacement" ]
+          },
           "createFoundCol" : {
             "type" : "boolean",
             "title" : "Append a column indicating whether a match was found",
             "description" : "When checked, a new column \"Match Found\" is appended to the output that contains a boolean indicating whether a match was found.",
-            "default" : false
-          },
-          "deleteLookupCol" : {
-            "type" : "boolean",
-            "title" : "Delete lookup column",
-            "description" : "When selected, the lookup column will be deleted from the data table.",
             "default" : false
           },
           "dictKeyCol" : {
@@ -186,6 +194,28 @@
             "type" : "string",
             "title" : "Lookup column (data table)",
             "description" : "The column in the data table that will be used to look up cells in the dictionary."
+          },
+          "lookupColumnOutput" : {
+            "oneOf" : [ {
+              "const" : "RETAIN",
+              "title" : "Retain"
+            }, {
+              "const" : "REPLACE",
+              "title" : "Replace"
+            }, {
+              "const" : "REMOVE",
+              "title" : "Remove"
+            } ],
+            "title" : "Lookup column output",
+            "description" : "Defines the content of the column that is selected as lookup column (data table).\nIf \"Retain\" the content of the lookup column is left unchanged.\nIf \"Replace\" is selected, the cell contents are replaced with values from the dictionary table.\nIf a match is found, the selected column's value is inserted, otherwise the original value can be kept\nor a missing value can be inserted. The name of the column does not change.\nIf \"Delete\" is selected, the lookup column is removed entirely from the output table.\n",
+            "default" : "RETAIN",
+            "configKeys" : [ "lookupColumnOutput" ]
+          },
+          "lookupReplacementCol" : {
+            "type" : "string",
+            "title" : "Replacement column",
+            "description" : "The column from the dictionary table that provides\nthe new values for the lookup column in the data table.\n",
+            "configKeys" : [ "lookupReplacementCol" ]
           },
           "matchBehaviour" : {
             "oneOf" : [ {
@@ -353,6 +383,67 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
+        "scope" : "#/properties/model/properties/lookupColumnOutput",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/lookupReplacementCol",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1",
+            "type" : {
+              "id" : "org.knime.core.data.DoubleValue",
+              "text" : "Number (double)"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+          }, {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/lookupColumnOutput",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "REPLACE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnNoMatchReplacement",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/lookupColumnOutput",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "REPLACE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
         "scope" : "#/properties/model/properties/dictValueCols",
         "options" : {
           "format" : "columnFilter",
@@ -381,12 +472,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/createFoundCol",
-        "options" : {
-          "format" : "checkbox"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/deleteLookupCol",
         "options" : {
           "format" : "checkbox"
         }

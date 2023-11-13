@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.valuelookup;
 
+import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.LookupColumnNoMatchReplacement;
+import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.LookupColumnOutput;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.SearchDirection;
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.StringMatching;
@@ -73,7 +75,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Colum
 @SuppressWarnings("restriction")
 public class ValueLookupNodeFunc implements SimpleNodeFunc {
 
-    private static final String REMOVE_LOOKUP_COLUMN = "remove_lookup_column";
+    private static final String LOOKUP_COLUMN_OUTPUT = "lookup_column_output";
+
+    private static final String LOOKUP_COLUMN_REPLACEMENT_COLUMN = "lookup_column_replacement_column";
+
+    private static final String LOOKUP_COLUMN_NO_MATCH_REPLACEMENT = "lookup_column_no_match_replacement";
 
     private static final String DICTIONARY_TABLE = "dictionary_table";
 
@@ -107,7 +113,11 @@ public class ValueLookupNodeFunc implements SimpleNodeFunc {
         var valueLookupSettings = new ValueLookupNodeSettings();
         valueLookupSettings.m_lookupCol = lookupColumn;
         valueLookupSettings.m_dictKeyCol = keyColumn;
-        valueLookupSettings.m_deleteLookupCol = arguments.getBoolean(REMOVE_LOOKUP_COLUMN);
+        valueLookupSettings.m_lookupColumnOutput =
+                LookupColumnOutput.valueOf(arguments.getString(LOOKUP_COLUMN_OUTPUT));
+        valueLookupSettings.m_lookupReplacementCol = arguments.getString(LOOKUP_COLUMN_REPLACEMENT_COLUMN);
+        valueLookupSettings.m_columnNoMatchReplacement = LookupColumnNoMatchReplacement.valueOf(
+            arguments.getString(LOOKUP_COLUMN_NO_MATCH_REPLACEMENT));
         valueLookupSettings.m_createFoundCol = arguments.getBoolean(APPEND_FOUND_COLUMN);
         valueLookupSettings.m_matchBehaviour =
             EnumArgumentType.getConstant(MatchBehaviour.class, arguments.getString(NO_MATCH_BEHAVIOR));
@@ -176,8 +186,24 @@ public class ValueLookupNodeFunc implements SimpleNodeFunc {
                 "If true, a boolean column '%s' that indicates whether a match was found is appended to the table."
                     .formatted(ValueLookupNodeModel.COLUMN_NAME_MATCHFOUND),
                 PrimitiveArgumentType.BOOLEAN)
-            .withArgument(REMOVE_LOOKUP_COLUMN, "If true, the lookup column is removed from the output table.",
-                PrimitiveArgumentType.BOOLEAN)
+            .withArgument(LOOKUP_COLUMN_OUTPUT, """
+                    Controls the content of the lookup column in the output table.
+                    %s: The lookup column is kept unchanged in the output table.
+                    %s: The lookup column content is replaced by the content of the replacement column.
+                    %s: The lookup column is removed from the output table.
+                    """.formatted(LookupColumnOutput.RETAIN, LookupColumnOutput.REPLACE, LookupColumnOutput.REMOVE),
+                EnumArgumentType.create(LookupColumnOutput.class))
+            .withArgument(LOOKUP_COLUMN_REPLACEMENT_COLUMN, """
+                    The column in the dictionary table that contains the values for the lookup column.
+                    Only relevant if the lookup column output is set to %s.
+                    """.formatted(LookupColumnOutput.REPLACE), PrimitiveArgumentType.STRING)
+            .withArgument(LOOKUP_COLUMN_NO_MATCH_REPLACEMENT, """
+                    Controls the content of the lookup column in the output table if no match was found.
+                    %s: Use the original lookup value. This might result in a mixed type column.
+                    %s: Use a missing value.
+                    Only relevant if the lookup column output is set to %s.
+                    """.formatted(LookupColumnNoMatchReplacement.RETAIN, LookupColumnNoMatchReplacement.INSERT_MISSING),
+                EnumArgumentType.create(LookupColumnNoMatchReplacement.class))
             .build();
     }
 

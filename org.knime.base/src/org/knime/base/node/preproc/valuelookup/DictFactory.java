@@ -89,11 +89,11 @@ final class DictFactory {
 
     private final long m_updateProgressPeriod;
 
+    private final int[] m_dictOutputColIndices;
+
     private long m_processedDictRows;
 
     private DataRow m_currentRow;
-
-    private int[] m_dictOutputColIndices;
 
     DictFactory(final ValueLookupNodeSettings settings, final BufferedDataTable dictTable,
             final int[] dictOutputColIndices, final Comparator<DataCell> comparator,
