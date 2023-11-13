@@ -2718,5 +2718,8 @@
         <nodeFunc
               impl="org.knime.base.node.preproc.unpivot2.UnpivotNodeFunc">
         </nodeFunc>
+        <nodeFunc
+              impl="org.knime.base.node.preproc.stringreplacer.StringReplacerNodeFunc">
+        </nodeFunc>
      </extension>
 </plugin>
