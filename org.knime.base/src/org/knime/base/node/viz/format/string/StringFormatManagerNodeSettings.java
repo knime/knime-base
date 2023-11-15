@@ -145,10 +145,12 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
     int m_nLastChars = 5;
 
     enum WrapLinesOnDemandOption {
+            @Label("No")
+            NO, //
             @Label("Anywhere")
-            ANYWHERE, @Label("Between words")
-            BETWEEN_WORDS, @Label("No")
-            NO
+            ANYWHERE, //
+            @Label("Between words")
+            BETWEEN_WORDS;
     }
 
     @Widget(title = "Wrap lines on demand", description = """
