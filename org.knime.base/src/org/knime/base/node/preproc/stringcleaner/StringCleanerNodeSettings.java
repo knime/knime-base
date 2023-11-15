@@ -179,23 +179,23 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     boolean m_removeNonPrintableChars = false;
 
     enum RemoveLettersCategory {
+            @Label("None")
+            NONE, //
             @Label("All")
             ALL, //
             @Label("Uppercase")
             UPPERCASE, //
             @Label("Lowercase")
-            LOWERCASE, //
-            @Label("None")
-            NONE
+            LOWERCASE;
     }
 
-    @Widget(title = "Remove Letters", description = """
+    @Widget(title = "Remove letters", description = """
             Select whether and what category of letters should be removed from strings.
             <ul>
+                <li><b>None</b> removes no letters.</li>
                 <li><b>All</b> removes all letters from a string. This includes letters from any language / script.</li>
                 <li><b>Uppercase</b> removes all uppercase letters from a string.</li>
                 <li><b>Lowercase</b> removes all lowercase letters from a string.</li>
-                <li><b>None</b> removes no letters.</li>
             </ul>
             Note that this step happens before potentially changing the casing of the string.
             """)
@@ -261,44 +261,86 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
     boolean m_removeDuplicateWhitespace = true;
 
-    enum ReplaceWithOption {
-            @Label("Remove")
-            REMOVE, //
-            @Label("Replace with standard space")
-            REPLACE_WITH_STANDARDSPACE, //
-            @Label("Keep")
-            KEEP;
+    /**
+     * This generalises the following two options -- since we want to have a different order for them wen need to have
+     * separate enums.
+     */
+    enum InternalReplaceWithOption {
+            KEEP, REPLACE_WITH_SPACE, REPLACE_WITH_EMPTYSTRING;
     }
 
-    @Widget(title = "Replace line breaks", description = """
+    /**
+     * Enum used for the UI switch for the "Line Break" option
+     */
+    enum ReplaceLinebreakWithOption {
+            @Label("Keep")
+            KEEP(InternalReplaceWithOption.KEEP), //
+            @Label("Replace by space")
+            REPLACE_WITH_STANDARDSPACE(InternalReplaceWithOption.REPLACE_WITH_SPACE), //
+            @Label("Remove")
+            REMOVE(InternalReplaceWithOption.REPLACE_WITH_EMPTYSTRING);
+
+        private InternalReplaceWithOption m_internal;
+
+        private ReplaceLinebreakWithOption(final InternalReplaceWithOption i) {
+            this.m_internal = i;
+        }
+
+        InternalReplaceWithOption getInternal() {
+            return m_internal;
+        }
+    }
+
+    @Widget(title = "Line breaks", description = """
             Select whether to remove line breaks or replace them with a standard space. \
-            If <b>Replace with standard space</b> is selected, \\r\\n is replaced by only a single space, not two.
+            If <b>Replace by space</b> is selected, \\r\\n is replaced by only a single space, not two.
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Whitespace.class)
     @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
-    ReplaceWithOption m_replaceLinebreakStrategy = ReplaceWithOption.KEEP;
+    ReplaceLinebreakWithOption m_replaceLinebreakStrategy = ReplaceLinebreakWithOption.KEEP;
 
-    @Widget(title = "Replace special whitespace", description = """
+    /**
+     * Enum used for the UI switch for the "White space" option
+     */
+    enum ReplaceWhitespaceWithOption {
+            @Label("Replace by space")
+            REPLACE_WITH_STANDARDSPACE(InternalReplaceWithOption.REPLACE_WITH_SPACE), //
+            @Label("Keep")
+            KEEP(InternalReplaceWithOption.KEEP), //
+            @Label("Remove")
+            REMOVE(InternalReplaceWithOption.REPLACE_WITH_EMPTYSTRING);
+
+        private InternalReplaceWithOption m_internal;
+
+        private ReplaceWhitespaceWithOption(final InternalReplaceWithOption i) {
+            this.m_internal = i;
+        }
+
+        InternalReplaceWithOption getInternal() {
+            return m_internal;
+        }
+    }
+
+    @Widget(title = "Special whitespace", description = """
             Select whether to remove special whitespace or replace it with a standard space. \
             Special whitespace is all whitespace that is not a standard space, \\r or \\n.
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Whitespace.class)
     @Effect(signals = Signals.RemoveAllWhitespace.class, type = EffectType.HIDE)
-    ReplaceWithOption m_replaceSpecialWhitespaceStrategy = ReplaceWithOption.REPLACE_WITH_STANDARDSPACE;
+    ReplaceWhitespaceWithOption m_replaceSpecialWhitespaceStrategy =
+        ReplaceWhitespaceWithOption.REPLACE_WITH_STANDARDSPACE;
 
-
-
-    enum ChangeCasingOption {
-            @Label("UPPERCASE")
+    enum ChangeCasingOption { //
+            @Label("None")
+            NO, //
+            @Label("Uppercase")
             UPPERCASE, //
-            @Label("lowercase")
-            LOWERCASE, //
             @Label("Capitalize")
             CAPITALIZE, //
-            @Label("No")
-            NO
+            @Label("Lowercase")
+            LOWERCASE;
     }
 
     static class IsCapitalizeCondition extends OneOfEnumCondition<ChangeCasingOption> {
@@ -311,11 +353,11 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Change casing", description = """
             Define the casing of letters in the output string.
             <ul>
-                <li><b>UPPERCASE</b> converts all letters to uppercase.</li>
-                <li><b>lowercase</b> converts all letters to lowercase.</li>
+                <li><b>None</b> makes no changes to the string.</li>
+                <li><b>Uppercase</b> converts all letters to uppercase.</li>
                 <li><b>Capitalize</b> first converts all letters to lowercase, then capitalizes according to the \
                 defined settings.</li>
-                <li><b>No</b> makes no changes to the string.</li>
+                <li><b>Lowercase</b> converts all letters to lowercase.</li>
             </ul>
             """)
     @ValueSwitchWidget
@@ -371,13 +413,13 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Effect(signals = Signals.ChangeCasingIsCapitalize.class, type = EffectType.SHOW)
     boolean m_changeCasingCapitalizeFirstCharacter = true;
 
-    enum PadOption {
-            @Label("At start")
+    enum PadOption { //
+            @Label("None")
+            NO, //
+            @Label("Start")
             START, //
-            @Label("At end")
-            END, //
-            @Label("No")
-            NO
+            @Label("End")
+            END,
     }
 
     static class IsPadCondition extends OneOfEnumCondition<PadOption> {
@@ -390,9 +432,9 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Pad", description = """
             Define whether to pad a string if it doesn't have a certain minimum length.
             <ul>
-                <li><b>At start</b> adds a fill character to the start of the string.</li>
-                <li><b>At end</b> adds a fill character to the end of the string.</li>
-                <li><b>No</b> makes no change to the string.</li>
+                <li><b>None</b> makes no change to the string.</li>
+                <li><b>Start</b> adds a fill character to the start of the string.</li>
+                <li><b>End</b> adds a fill character to the end of the string.</li>
             </ul>
             """)
     @ValueSwitchWidget
@@ -420,7 +462,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     enum OutputOption {
             @Label("Replace")
             REPLACE, //
-            @Label("Append with Suffix")
+            @Label("Append with suffix")
             APPEND
     }
 
@@ -445,7 +487,7 @@ public final class StringCleanerNodeSettings implements DefaultNodeSettings {
     @TextInputWidget(minLength = 1)
     @Layout(DialogLayout.Output.class)
     @Effect(signals = Signals.AppendColumnsWithSuffix.class, type = EffectType.SHOW)
-    String m_outputSuffix = "_clean";
+    String m_outputSuffix = " (Cleaned)";
 
     // Constructor
 

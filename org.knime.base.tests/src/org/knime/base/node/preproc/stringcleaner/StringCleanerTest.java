@@ -62,7 +62,8 @@ import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.Capit
 import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.ChangeCasingOption;
 import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.PadOption;
 import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.RemoveLettersCategory;
-import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.ReplaceWithOption;
+import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.ReplaceLinebreakWithOption;
+import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.ReplaceWhitespaceWithOption;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
@@ -182,11 +183,11 @@ class StringCleanerTest {
 
         // remove line breaks
         settings = getNoopSettingsInstance();
-        settings.m_replaceLinebreakStrategy = ReplaceWithOption.REMOVE;
+        settings.m_replaceLinebreakStrategy = ReplaceLinebreakWithOption.REMOVE;
         assertEquals(TSTCARCC.replaceAll("\r|\n", ""), StringCleaner.fromSettings(settings).clean(TSTCARCC),
             "line breaks are removed");
         // replace line break with space
-        settings.m_replaceLinebreakStrategy = ReplaceWithOption.REPLACE_WITH_STANDARDSPACE;
+        settings.m_replaceLinebreakStrategy = ReplaceLinebreakWithOption.REPLACE_WITH_STANDARDSPACE;
         // ensure that \r\n are replaced by only a single space
         final var map = new LinkedHashMap<String, String>(); // because the order matters in this case
         map.put("\r\n", " ");
@@ -196,11 +197,11 @@ class StringCleanerTest {
 
         // remove special whitespace
         settings = getNoopSettingsInstance();
-        settings.m_replaceSpecialWhitespaceStrategy = ReplaceWithOption.REMOVE;
+        settings.m_replaceSpecialWhitespaceStrategy = ReplaceWhitespaceWithOption.REMOVE;
         assertEquals(TSTCARCC.replaceAll("[\\t\u00a0]", ""), StringCleaner.fromSettings(settings).clean(TSTCARCC),
             "special whitespace is removed");
         // replace weird whitespace with normal space
-        settings.m_replaceSpecialWhitespaceStrategy = ReplaceWithOption.REPLACE_WITH_STANDARDSPACE;
+        settings.m_replaceSpecialWhitespaceStrategy = ReplaceWhitespaceWithOption.REPLACE_WITH_STANDARDSPACE;
         assertThatSpecificCharactersAreHandled(settings, "", Map.of("\t", " ", "\u00a0", " "));
 
         // remove duplicate whitespace --> #testRemoveDuplicateWhitespace
@@ -366,8 +367,8 @@ class StringCleanerTest {
         settings.m_removeCustomCharactersString = "";
         settings.m_removeAllWhitespace = false;
         settings.m_removeLeadingWhitespace = false;
-        settings.m_replaceLinebreakStrategy = ReplaceWithOption.KEEP;
-        settings.m_replaceSpecialWhitespaceStrategy = ReplaceWithOption.KEEP;
+        settings.m_replaceLinebreakStrategy = ReplaceLinebreakWithOption.KEEP;
+        settings.m_replaceSpecialWhitespaceStrategy = ReplaceWhitespaceWithOption.KEEP;
         settings.m_removeDuplicateWhitespace = false;
         settings.m_removeTrailingWhitespace = false;
         settings.m_changeCasing = ChangeCasingOption.NO;

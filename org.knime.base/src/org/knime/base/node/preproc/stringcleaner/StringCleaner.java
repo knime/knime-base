@@ -61,8 +61,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.CapitalizeAfterOption;
 import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.ChangeCasingOption;
+import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.InternalReplaceWithOption;
 import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.PadOption;
-import org.knime.base.node.preproc.stringcleaner.StringCleanerNodeSettings.ReplaceWithOption;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 
@@ -131,9 +131,10 @@ final class StringCleaner {
                     r -> getReplacementForDuplicateWhitespace(r.group()));
             }
             // match \r\n together to only replace it by one space
-            addReplacementOfPatternAsOperation(operations, "\\r?\\n|\\r", settings.m_replaceLinebreakStrategy);
+            addReplacementOfPatternAsOperation(operations, "\\r?\\n|\\r",
+                settings.m_replaceLinebreakStrategy.getInternal());
             addReplacementOfPatternAsOperation(operations, "[\\s&&[^ \\r\\n]]",
-                settings.m_replaceSpecialWhitespaceStrategy);
+                settings.m_replaceSpecialWhitespaceStrategy.getInternal());
         }
     }
 
@@ -247,10 +248,10 @@ final class StringCleaner {
     }
 
     private static void addReplacementOfPatternAsOperation(final List<UnaryOperator<String>> ops, final String pattern,
-        final ReplaceWithOption replacement) {
+        final InternalReplaceWithOption replacement) {
         switch (replacement) {
-            case REMOVE -> addReplacementOfPatternAsOperation(ops, pattern, "");
-            case REPLACE_WITH_STANDARDSPACE -> addReplacementOfPatternAsOperation(ops, pattern, " ");
+            case REPLACE_WITH_EMPTYSTRING -> addReplacementOfPatternAsOperation(ops, pattern, "");
+            case REPLACE_WITH_SPACE -> addReplacementOfPatternAsOperation(ops, pattern, " ");
             default -> {
                 // no-op
             }
