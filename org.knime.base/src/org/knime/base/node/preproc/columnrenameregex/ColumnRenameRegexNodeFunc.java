@@ -60,6 +60,7 @@ import org.knime.core.node.port.PortObjectSpec;
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 5.2
  */
 public final class ColumnRenameRegexNodeFunc implements SimpleNodeFunc {
 

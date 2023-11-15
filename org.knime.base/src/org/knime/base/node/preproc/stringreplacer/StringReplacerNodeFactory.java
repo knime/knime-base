@@ -71,11 +71,17 @@ public class StringReplacerNodeFactory extends NodeFactory<StringReplacerNodeMod
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
+    /**
+     * @since 5.2
+     */
     @Override
     public StringReplacerNodeModel createNodeModel() {
         return new StringReplacerNodeModel();
     }
 
+    /**
+     * @since 5.2
+     */
     @Override
     public NodeView<StringReplacerNodeModel> createNodeView(final int viewIndex,
             final StringReplacerNodeModel nodeModel) {

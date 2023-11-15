@@ -67,6 +67,7 @@ import org.knime.core.node.util.CheckUtils;
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 5.2
  */
 public final class PivotNodeFunc implements SimpleNodeFunc {
 

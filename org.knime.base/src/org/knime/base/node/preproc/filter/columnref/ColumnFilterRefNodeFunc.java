@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * NodeFunc that makes the Reference Column Filter available to K-AI's build mode.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 5.2
  */
 @SuppressWarnings("restriction")
 public final class ColumnFilterRefNodeFunc implements NodeFunc {

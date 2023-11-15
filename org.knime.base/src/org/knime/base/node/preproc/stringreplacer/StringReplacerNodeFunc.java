@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @since 5.2
  */
 @SuppressWarnings("restriction")
 public final class StringReplacerNodeFunc implements SimpleNodeFunc {

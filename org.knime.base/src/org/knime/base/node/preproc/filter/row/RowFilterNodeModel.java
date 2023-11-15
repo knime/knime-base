@@ -94,7 +94,8 @@ public class RowFilterNodeModel extends NodeModel {
     // the row filter
     private IRowFilter m_rowFilter;
 
-    /** key for storing settings in config object. */
+    /** key for storing settings in config object.
+     * @since 5.2*/
     public static final String CFGFILTER = "rowFilter";
 
     /**
