@@ -203,6 +203,7 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
 
         final var targetColIndex = targetSpec.findColumnIndex(modelSettings.m_lookupCol);
         CheckUtils.checkSetting(targetColIndex >= 0, "No such column \"%s\"", modelSettings.m_lookupCol);
+        var lookupColType = targetSpec.getColumnSpec(targetColIndex).getType();
 
         final var dictInputColIndex = dictSpec.findColumnIndex(modelSettings.m_dictKeyCol);
         CheckUtils.checkSetting(dictInputColIndex >= 0, "No such column \"%s\"", modelSettings.m_dictKeyCol);
@@ -252,19 +253,14 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
 
                     // add column to replace the lookup column - with the common super type and the lookup column's name
                     // not necessary to make column name unique - the original lookup column will be removed
-                    final var oldDictSpec = dictSpec.getColumnSpec(modelSettings.m_lookupReplacementCol);
-                    final var newDictSpec = new DataColumnSpecCreator(oldDictSpec);
-                    newDictSpec.setName(modelSettings.m_lookupCol);
-
+                    final var replaceColType = dictSpec.getColumnSpec(modelSettings.m_lookupReplacementCol).getType();
                     // if retain values on missing replacement is selected, we can get mixed type cells
                     // if missing is selected, all values will have the type of the dictionary column
-                    if (modelSettings.m_columnNoMatchReplacement == LookupColumnNoMatchReplacement.RETAIN) {
-                        var commonSuperType = DataType.getCommonSuperType(newDictSpec.getType(),
-                            targetSpec.getColumnSpec(modelSettings.m_lookupCol).getType());
-                        newDictSpec.setType(commonSuperType);
-                    }
-
-                    m_specs.add(newDictSpec.createSpec());
+                    final var type = modelSettings.m_columnNoMatchReplacement == LookupColumnNoMatchReplacement.RETAIN
+                        ? DataType.getCommonSuperType(replaceColType, lookupColType) : replaceColType;
+                    // this drops the domain of the dictionary column, as opposed to passing the column to the
+                    // spec creator and setting the name afterwards
+                    m_specs.add(new DataColumnSpecCreator(modelSettings.m_lookupCol, type).createSpec());
                 } else {
                     m_dictOutputColIndices = selectedDictCols;
                 }
@@ -335,7 +331,6 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         if (dictKeyColType.isCollectionType()) {
             dictKeyColType = dictKeyColType.getCollectionElementType();
         }
-        var lookupColType = targetSpec.getColumnSpec(targetColIndex).getType();
         var comparator = DataType.getCommonSuperType(dictKeyColType, lookupColType).getComparator();
 
         // Create the actual cell factory using the values that were checked and extracted above
