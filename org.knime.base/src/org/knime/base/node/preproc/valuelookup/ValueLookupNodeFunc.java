@@ -114,10 +114,10 @@ public class ValueLookupNodeFunc implements SimpleNodeFunc {
         valueLookupSettings.m_lookupCol = lookupColumn;
         valueLookupSettings.m_dictKeyCol = keyColumn;
         valueLookupSettings.m_lookupColumnOutput =
-                LookupColumnOutput.valueOf(arguments.getString(LOOKUP_COLUMN_OUTPUT));
+            LookupColumnOutput.valueOf(arguments.getString(LOOKUP_COLUMN_OUTPUT));
         valueLookupSettings.m_lookupReplacementCol = arguments.getString(LOOKUP_COLUMN_REPLACEMENT_COLUMN);
-        valueLookupSettings.m_columnNoMatchReplacement = LookupColumnNoMatchReplacement.valueOf(
-            arguments.getString(LOOKUP_COLUMN_NO_MATCH_REPLACEMENT));
+        valueLookupSettings.m_columnNoMatchReplacement =
+            LookupColumnNoMatchReplacement.valueOf(arguments.getString(LOOKUP_COLUMN_NO_MATCH_REPLACEMENT));
         valueLookupSettings.m_createFoundCol = arguments.getBoolean(APPEND_FOUND_COLUMN);
         valueLookupSettings.m_matchBehaviour =
             EnumArgumentType.getConstant(MatchBehaviour.class, arguments.getString(NO_MATCH_BEHAVIOR));
@@ -197,12 +197,14 @@ public class ValueLookupNodeFunc implements SimpleNodeFunc {
                     The column in the dictionary table that contains the values for the lookup column.
                     Only relevant if the lookup column output is set to %s.
                     """.formatted(LookupColumnOutput.REPLACE), PrimitiveArgumentType.STRING)
-            .withArgument(LOOKUP_COLUMN_NO_MATCH_REPLACEMENT, """
-                    Controls the content of the lookup column in the output table if no match was found.
-                    %s: Use the original lookup value. This might result in a mixed type column.
-                    %s: Use a missing value.
-                    Only relevant if the lookup column output is set to %s.
-                    """.formatted(LookupColumnNoMatchReplacement.RETAIN, LookupColumnNoMatchReplacement.INSERT_MISSING),
+            .withArgument(LOOKUP_COLUMN_NO_MATCH_REPLACEMENT,
+                """
+                        Controls the content of the lookup column in the output table if no match was found.
+                        %s: Use the original lookup value. This might result in a mixed type column.
+                        %s: Use a missing value.
+                        Only relevant if the lookup column output is set to %s.
+                        """.formatted(LookupColumnNoMatchReplacement.RETAIN,
+                    LookupColumnNoMatchReplacement.INSERT_MISSING, LookupColumnOutput.REPLACE),
                 EnumArgumentType.create(LookupColumnNoMatchReplacement.class))
             .build();
     }
