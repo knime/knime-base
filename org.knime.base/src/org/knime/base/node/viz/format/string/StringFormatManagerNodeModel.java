@@ -56,7 +56,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.StringValue;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -114,7 +114,7 @@ public final class StringFormatManagerNodeModel extends WebUINodeModel<StringFor
         final var tableSpecCreator = new DataTableSpecCreator(in);
         for (var columnName : targetColumns) {
             final var columnSpec = in.getColumnSpec(columnName);
-            if (columnSpec == null) {
+            if (columnSpec == null || !isStringCell(columnSpec)) {
                 continue; // skip columns that do not exist anymore
             }
             final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
@@ -133,9 +133,13 @@ public final class StringFormatManagerNodeModel extends WebUINodeModel<StringFor
      */
     private static String[] stringColumns(final DataTableSpec inSpec) {
         return inSpec.stream()//
-            .filter(s -> s.getType().isCompatible(StringValue.class))//
+            .filter(StringFormatManagerNodeModel::isStringCell)// only support string cells
             .map(DataColumnSpec::getName)//
             .toArray(String[]::new);
+    }
+
+    static boolean isStringCell(final DataColumnSpec spec) {
+        return StringCell.TYPE.equals(spec.getType());
     }
 
     /**

@@ -52,7 +52,6 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
@@ -156,16 +155,14 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
     @Widget(title = "Wrap lines on demand", description = """
             Determine how to wrap a string when it is too long to fit the width of the view:
             <ul>
+                <li><i>No</i>: The string isn't wrapped and long strings will overflow the view width.</li>
                 <li><i>Anywhere</i>: The string is wrapped anywhere on demand, also in the middle of a word.</li>
                 <li><i>Between words</i>: The string is wrapped only between words, e.g. at white space.</li>
-                <li><i>No</i>: The string isn't wrapped and long strings will overflow the view width.</li>
             </ul>
             """)
     @ValueSwitchWidget
     @Layout(DialogLayout.Format.TheRest.class)
     WrapLinesOnDemandOption m_wrapLinesOnDemand = WrapLinesOnDemandOption.NO;
-
-    // TODO reword: change "replace .. with" to "display .. as" ?
 
     @Widget(title = "Show line break and carriage return as symbols", description = """
             If checked, line break (\\n) and carriage return (\\r) are displayed as symbols. \
@@ -240,7 +237,7 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
         public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0).map(DataTableSpec::stream)//
                 .orElseGet(Stream::empty)//
-                .filter(s -> s.getType().isCompatible(StringValue.class))//
+                .filter(StringFormatManagerNodeModel::isStringCell)//
                 .toArray(DataColumnSpec[]::new);
         }
     }
