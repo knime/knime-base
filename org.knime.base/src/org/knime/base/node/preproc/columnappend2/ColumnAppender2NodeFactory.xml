@@ -66,6 +66,6 @@
 	</ports>
 	<keywords>
 		<keyword>Join</keyword>
+		<keyword>cbind</keyword>
 	</keywords>
 </knimeNode>
-

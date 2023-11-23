@@ -50,5 +50,6 @@ xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<keywords>
 		<keyword>model comparison</keyword>
 		<keyword>cohens kappa</keyword>
+		<keyword>accuracy</keyword>
 	</keywords>
 </knimeNode>

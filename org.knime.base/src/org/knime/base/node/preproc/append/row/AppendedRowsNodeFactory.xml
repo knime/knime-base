@@ -60,5 +60,6 @@
 	<keywords>
 		<keyword>Row appender</keyword>
 		<keyword>Union</keyword>
+		<keyword>rbind</keyword>
 	</keywords>
 </knimeNode>

@@ -25,4 +25,8 @@
         	The output table containing the dimensions of the input table.
         </outPort>
 	</ports>
+
+	<keywords>
+		<keyword>table size extractor</keyword>
+	</keywords>
 </knimeNode>

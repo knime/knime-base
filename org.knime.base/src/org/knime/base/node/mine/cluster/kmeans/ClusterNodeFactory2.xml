@@ -79,8 +79,8 @@ xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 			cluster center.
 		</view>
 	</views>
-	
 	<keywords>
 		<keyword>k-centroids</keyword>
+		<keyword>cluster</keyword>
 	</keywords>
 </knimeNode>

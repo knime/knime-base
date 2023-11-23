@@ -182,5 +182,6 @@ xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
 	<keywords>
 		<keyword>association analysis</keyword>
 		<keyword>pearson correlation</keyword>
+		<keyword>cramer</keyword>
 	</keywords>
 </knimeNode>
