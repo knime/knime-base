@@ -229,12 +229,13 @@ public class SorterNodeModelTest {
 
     @Test
     public final void testValidateSettingsNoAlphanum() throws InvalidSettingsException {
-        m_settings.addBooleanArray(SorterNodeModel.ALPHANUMCOMP_KEY, null);
+        m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, false);
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, DEFAULT_TWO_COLS);
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, new boolean[] {true, true});
-        m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, false);
+        m_settings.addBooleanArray(SorterNodeModel.ALPHANUMCOMP_KEY, null);
 
-        assertThrows(InvalidSettingsException.class, () -> m_snm.validateSettings(m_settings));
+        // we don't validate for backwards compatibility with loading via flow variables
+        m_snm.validateSettings(m_settings);
     }
 
     @Test

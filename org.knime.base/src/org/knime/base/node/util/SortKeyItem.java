@@ -49,14 +49,17 @@
 package org.knime.base.node.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.sort.RowComparator;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.config.base.ConfigBaseRO;
 import org.knime.core.node.config.base.ConfigBaseWO;
 import org.knime.core.node.util.CheckUtils;
@@ -69,6 +72,8 @@ import org.knime.core.node.util.CheckUtils;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 public final class SortKeyItem {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(SortKeyItem.class);
 
     /**
      * Identifier.
@@ -166,8 +171,21 @@ public final class SortKeyItem {
 
         // added in 4.7, catch missing setting
         // alphanum comparisons are default behavior only for new instances of sort keys
-        // hence, we use false as the default here
-        final var alphaNum = settings.getBooleanArray(alphaNumCompKey, new boolean[identifiers.length]);
+        // we use an empty array to indicate missing setting to properly handle it
+        final var marker = new boolean[0];
+        boolean[] alphaNum = settings.getBooleanArray(alphaNumCompKey, marker);
+
+        // fill up with "false" as default if it is missing or mis-configured (old workflow)
+        if (alphaNum.length == 0 || identifiers.length != alphaNum.length) {
+            // We may be currently loading after flow variables were applied, which might not have set the "new"
+            // alphanum flags. This means the array lengths might differ: inclList/sortOrder from flow variables,
+            // alphaNum from model settings (so each sort key is only partially overwritten by flow variables)
+            LOGGER.debug(String.format("Setting for \"%s\" missing or mis-matched, using default values.%n" +
+                    "If you are setting flow variables, check that all relevant settings are overwritten by flow " +
+                    "variables.", alphaNumCompKey));
+            alphaNum = new boolean[identifiers.length];
+        }
+
         for (var i = 0; i < identifiers.length; i++) {
             items.add(new SortKeyItem(identifiers[i], ascending[i], alphaNum[i]));
         }
@@ -204,13 +222,24 @@ public final class SortKeyItem {
             "No sorting order was specified. Set it in the node configuration.");
         final var sortOrders = CheckUtils.checkSettingNotNull(settings.getBooleanArray(sortOrderKey),
             "Invalid sort orders.");
-        CheckUtils.checkSetting(inclList.length == sortOrders.length,
-            "The number of columns and sort orders don't match up. Change in the node configuration.");
-        // don't require presence for backwards compat (added in 4.7)
-        if (settings.containsKey(alphaNumCompKey)) {
-            final var alphaNumComp = settings.getBooleanArray(alphaNumCompKey);
-            CheckUtils.checkSetting(!(alphaNumComp == null || inclList.length != alphaNumComp.length),
-                "The number of columns and alphanumeric string comparisons don't match up. Change in the node configuration.");
+        CheckUtils.checkSetting(inclList.length == sortOrders.length, "Mismatch in number of columns and sort orders.");
+        /* Don't validate alphaNum setting for backwards compatibility (added in 4.7):
+         * If you overwrite `inclList` and `sortOrders` by flow variable, but not `alphaNumComp` (e.g. when loading
+         * a workflow created in 4.6), you get the dialog/model settings overwritten by flow variables passed here.
+         * However, the `alphaNumComp` missing from the flow variables is not overwritten and stays like before.
+         * E.g. ([-RowID-], [true], [false]) would come from the dialog by default for a 4.6 workflow, but overwriting
+         * it with this flow variable assignment (inclList=[col1, col2], sortOrders=[true, false]) would result
+         * in settings as ([col1, col2], [true, false], [false]), which would fail to validate since the lengths don't
+         * match.
+         */
+        if (LOGGER.isDebugEnabled() && settings.containsKey(alphaNumCompKey)) {
+            final var alpha = settings.getBooleanArray(alphaNumCompKey);
+            // check if the array present differs from a default array with all set to false
+            if (alpha.length != inclList.length && BooleanUtils.or(alpha)) {
+                LOGGER.debug(String.format("Inconsistent SortKey setting for \"%s\": %s=\"%s\" but %s=\"%s\"",
+                    alphaNumCompKey, includeIdentifiersKey, Arrays.toString(inclList), alphaNumCompKey,
+                        Arrays.toString(alpha)));
+            }
         }
     }
 
