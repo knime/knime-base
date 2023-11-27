@@ -268,15 +268,12 @@ public class RowNoRowFilter extends RowFilter {
      * {@inheritDoc}
      */
     @Override
-    public DataTableSpec configure(final DataTableSpec inSpec)
-            throws InvalidSettingsException {
+    public DataTableSpec configure(final DataTableSpec inSpec) throws InvalidSettingsException {
         if (m_start < 0) {
-            throw new IllegalArgumentException("RowNumberFilter: range "
-                    + "start is less than 0.");
+            throw new InvalidSettingsException("RowNumberFilter: range start is less than 0.");
         }
         if ((m_end != EOT) && (m_end < m_start)) {
-            throw new IllegalArgumentException("RowNumberFilter: range"
-                    + "start is larger than range end.");
+            throw new InvalidSettingsException("RowNumberFilter: range start is larger than range end.");
         }
         return inSpec;
     }
