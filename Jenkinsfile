@@ -86,11 +86,20 @@ try {
             workflowTests.runFilehandlingTests (
                 dependencies: [
                     repositories: [
-                        "knime-base", "knime-core", "knime-expressions",
-                        "knime-jep", "knime-datageneration", "knime-js-base",
-                        "knime-js-core", "knime-r", "knime-database",
-                        "knime-kerberos", "knime-timeseries",
-                        "knime-jfreechart", "knime-distance", "knime-streaming"
+                        "knime-base",
+                        "knime-core",
+                        "knime-database",
+                        "knime-datageneration",
+                        "knime-distance",
+                        "knime-expressions",
+                        "knime-jep",
+                        "knime-jfreechart",
+                        "knime-js-base",
+                        "knime-js-core",
+                        "knime-kerberos",
+                        "knime-r",
+                        "knime-streaming",
+                        "knime-timeseries",
                     ]
                 ],
             )
