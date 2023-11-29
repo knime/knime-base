@@ -68,6 +68,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.data.location.cell.MultiSimpleFSLocationCellFactory;
+import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferEntry;
 import org.knime.filehandling.utility.nodes.transfer.iterators.TransferPair;
 import org.knime.filehandling.utility.nodes.transfer.policy.TransferPolicy;
@@ -320,7 +321,7 @@ final class PathCopier2 {
             throw (e);
         } catch (IOException e) {
             LOGGER.debug(ERROR_MESSAGE, e);
-            throw e;
+            throw ExceptionUtil.wrapIOException(e);
         }
     }
 

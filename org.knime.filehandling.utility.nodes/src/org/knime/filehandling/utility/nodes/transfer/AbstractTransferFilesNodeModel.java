@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.data.DataCell;
@@ -70,6 +71,8 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
+import org.knime.core.node.KNIMEException.KNIMERuntimeException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -256,16 +259,33 @@ public abstract class AbstractTransferFilesNodeModel<T extends AbstractTransferF
     protected abstract TransferIterator getTransferIterator(final PortObject[] inObjects)
         throws IOException, InvalidSettingsException;
 
-    private static long transfer(final ExecutionContext exec, final DataContainer container, long rowIdx,
+    private long transfer(final ExecutionContext exec, final DataContainer container, long rowIdx,
         final PathCopier2 pathCopier, final TransferEntry entry)
-        throws IOException, CanceledExecutionException, InvalidSettingsException {
-        entry.validate();
-        final DataCell[][] rows = pathCopier.transfer(exec, entry);
-        for (final DataCell[] row : rows) {
-            container.addRowToTable(new DefaultRow(RowKey.createRowKey(rowIdx), row));
-            rowIdx++;
+        throws IOException, CanceledExecutionException, InvalidSettingsException, KNIMERuntimeException {
+        try {
+            entry.validate();
+            final DataCell[][] rows = pathCopier.transfer(exec, entry);
+            for (final DataCell[] row : rows) {
+                container.addRowToTable(new DefaultRow(RowKey.createRowKey(rowIdx), row));
+                rowIdx++;
+            }
+        } catch (final IOException ioe) {
+            throw wrapTransferException(ioe, rowIdx).orElseThrow(() -> ioe).toUnchecked();
         }
         return rowIdx;
+    }
+
+    /**
+     * By default, this method does not wrap he provided exception. The method can be overridden to add additional
+     * information (like row indices etc...) to the exception message. See AP-21591.
+     *
+     * @param ioe The raised IOException
+     * @param rowIdx The row index where the exception was thrown.
+     * @return {@link Optional#empty()} if no additional information is added to the exception,
+     *         {@link Optional#of(KNIMEException)} otherwise.
+     */
+    protected Optional<KNIMEException> wrapTransferException(final IOException ioe, final long rowIdx) {
+        return Optional.empty();
     }
 
     @Override

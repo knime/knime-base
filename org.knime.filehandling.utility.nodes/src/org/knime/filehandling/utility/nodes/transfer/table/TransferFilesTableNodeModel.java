@@ -57,8 +57,10 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.message.Message;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
@@ -85,6 +87,8 @@ final class TransferFilesTableNodeModel extends AbstractTransferFilesNodeModel<T
     private final int m_srcConnectionIdx;
 
     private final int m_destConnectionIdx;
+
+    private int m_srcColumnIdx;
 
     /**
      * Constructor.
@@ -124,7 +128,7 @@ final class TransferFilesTableNodeModel extends AbstractTransferFilesNodeModel<T
             setWarningMessage(String.format("Auto-guessed column containing input file/folder paths '%s'",
                 srcPathColModel.getStringValue()));
         }
-        validateSettings(inSpecs, srcPathColModel, m_srcConnectionIdx);
+        m_srcColumnIdx = validateSettings(inSpecs, srcPathColModel, m_srcConnectionIdx);
     }
 
     private void doConfigureOutput(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
@@ -148,7 +152,14 @@ final class TransferFilesTableNodeModel extends AbstractTransferFilesNodeModel<T
         );
     }
 
-    private void validateSettings(final PortObjectSpec[] inSpecs, final SettingsModelString pathColModel,
+    @Override
+    protected Optional<KNIMEException> wrapTransferException(final IOException ioe, final long rowIdx) {
+        final var msg =
+            Message.fromRowIssue("Can't transfer file:", m_inputTableIdx, rowIdx, m_srcColumnIdx, ioe.getMessage());
+        return Optional.of(KNIMEException.of(msg, ioe));
+    }
+
+    private int validateSettings(final PortObjectSpec[] inSpecs, final SettingsModelString pathColModel,
         final int connectionIdx) throws InvalidSettingsException {
         final DataTableSpec inSpec = (DataTableSpec)inSpecs[m_inputTableIdx];
         final String pathColName = pathColModel.getStringValue();
@@ -162,6 +173,7 @@ final class TransferFilesTableNodeModel extends AbstractTransferFilesNodeModel<T
         final Optional<String> warningMsg = FSLocationColumnUtils.validateFSLocationColumn(pathColSpec,
             connectionIdx >= 0 ? (FileSystemPortObjectSpec)inSpecs[connectionIdx] : null);
         warningMsg.ifPresent(this::setWarningMessage);
+        return colIndex;
     }
 
     @Override
