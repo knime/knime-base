@@ -59,6 +59,8 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
@@ -104,7 +106,11 @@ final class DynamicSorterItemContext
         DynamicSortItem item = null;
 
         if (!values.isEmpty()) {
-            item = new DynamicSortItem(m_items.size(), values, values.get(0), true, true);
+            final var firstColumn = values.get(0);
+            // This also works for RowID, since it's included in the list as StringCell.TYPE
+            // (see DynamicSorterPanel.ROWKEY).
+            final var alphanumericComparisonDefault = compareAlphanumericByDefault(firstColumn.getType());
+            item = new DynamicSortItem(m_items.size(), values, firstColumn, true, alphanumericComparisonDefault);
             item.addListener(this);
             m_items.add(item);
             updateComboBoxes();
@@ -120,10 +126,10 @@ final class DynamicSorterItemContext
     }
 
     private void createItem(final List<DataColumnSpec> values, final int selectedIndex, final boolean sortOrder,
-        final boolean alphaNum) {
+        final boolean compareAlphanumerically) {
         if (!values.isEmpty()) {
-            DynamicSortItem item = new DynamicSortItem(m_items.size(), values, values.get(selectedIndex), sortOrder,
-                alphaNum);
+            final var item = new DynamicSortItem(m_items.size(), values, values.get(selectedIndex), sortOrder,
+                compareAlphanumerically);
             item.addListener(this);
             m_items.add(item);
         }
@@ -285,5 +291,9 @@ final class DynamicSorterItemContext
             order[i] = m_items.get(i).getAlphaNumComp();
         }
         return order;
+    }
+
+    private static boolean compareAlphanumericByDefault(final DataType type) {
+        return StringCell.TYPE.equals(type);
     }
 }
