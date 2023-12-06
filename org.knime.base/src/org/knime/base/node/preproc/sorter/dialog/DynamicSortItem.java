@@ -187,7 +187,7 @@ final class DynamicSortItem implements DynamicPanelItem {
                 // new item may not be string-compatible anymore
                 m_alphaNumCompCB.setEnabled(canAlphanum);
                 // existing selected state may not be compatible with newly selected item anymore
-                m_alphaNumCompCB.setSelected(canAlphanum);
+                m_alphaNumCompCB.setSelected(canAlphanum && m_alphaNumCompCB.isSelected());
             }
         });
 
