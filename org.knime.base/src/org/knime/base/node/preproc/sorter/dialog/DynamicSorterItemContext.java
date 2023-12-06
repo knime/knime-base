@@ -197,17 +197,16 @@ final class DynamicSorterItemContext
             }
         }
 
-        IntPredicate alphaNumComp = i -> true;
+        // old node instances don't get the new default
+        IntPredicate compareSortKeyItemAtIndexAlphanumerically = sortKeyItemIndex -> false;
         if (settings.containsKey(m_alphaNumCompKey)) {
             try {
                 final var fromSettings = settings.getBooleanArray(m_alphaNumCompKey);
-                alphaNumComp = i -> fromSettings[i];
+                compareSortKeyItemAtIndexAlphanumerically = sortKeyItemIndex ->
+                    sortKeyItemIndex < fromSettings.length && fromSettings[sortKeyItemIndex];
             } catch (InvalidSettingsException ise) {
                 LOGGER.error("Could not load settings for alphanumeric comparison of strings", ise);
             }
-        } else {
-            // old node instances don't get the new default
-            alphaNumComp = i -> false;
         }
 
         if ((list != null && sortOrder != null)
@@ -218,7 +217,7 @@ final class DynamicSorterItemContext
             for (var i = 0; i < list.size(); i++) {
                 final int selectedIndex = getIndexOfSpec(values, list.get(i));
                 if (selectedIndex > -1) {
-                    createItem(values, selectedIndex, sortOrder[i], alphaNumComp.test(i));
+                    createItem(values, selectedIndex, sortOrder[i], compareSortKeyItemAtIndexAlphanumerically.test(i));
                 }
             }
             updateComboBoxes();
