@@ -140,7 +140,7 @@ final class PathCopier {
      * @return the {@link TransferFunction}
      */
     private static TransferFunction getCopyFunction(final FileOverwritePolicy fileOverWritePolicy) {
-        return (s, d) -> {//NOSONAR
+        return (s, d, m) -> {//NOSONAR
             final boolean exists = FSFiles.exists(d);
             if (fileOverWritePolicy == FileOverwritePolicy.OVERWRITE) {
                 return getOverwriteCopyFunction(s, d, exists);

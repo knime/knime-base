@@ -52,15 +52,36 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.util.CheckedExceptionBiFunction;
 import org.knime.filehandling.utility.nodes.utils.FileStatus;
 
 /**
- * Interface which extends {@link CheckedExceptionBiFunction} to be used with two {@link Path} as parameters and
- * {@link FileStatus} as a return type.
+ * Interface which describes transfer operation of one {@link Path} to another. {@link FileStatus} is returned as a
+ * result of that operaton.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
  */
-public interface TransferFunction extends CheckedExceptionBiFunction<FSPath, FSPath, FileStatus, IOException> {
+public interface TransferFunction {
 
+    /**
+     * Applies transfer function.
+     *
+     * @param src The source path.
+     * @param dst The destination path.
+     * @param move Whether operation is move of copy.
+     * @return The {@link FileStatus} result.
+     * @throws IOException
+     */
+    FileStatus apply(FSPath src, FSPath dst, boolean move) throws IOException;
+
+    /**
+     * Applies transfer function for copy operation.
+     *
+     * @param src The source path.
+     * @param dst The destination path.
+     * @return The {@link FileStatus} result.
+     * @throws IOException
+     */
+    default FileStatus apply(final FSPath src, final FSPath dst) throws IOException {
+        return apply(src, dst, false);
+    }
 }

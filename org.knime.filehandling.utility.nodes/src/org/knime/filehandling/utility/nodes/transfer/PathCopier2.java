@@ -50,12 +50,15 @@ package org.knime.filehandling.utility.nodes.transfer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.data.DataCell;
@@ -137,7 +140,7 @@ final class PathCopier2 {
         final boolean exists = FSFiles.exists(entry.getSource());
         final DataCell[][] rows;
         if (exists) {
-            rows = copyDelete(exec, entry);
+            rows = copyMove(exec, entry);
         } else {
             rows = handleMissingSrc(exec, entry);
         }
@@ -155,11 +158,93 @@ final class PathCopier2 {
         }
     }
 
-    private DataCell[][] copyDelete(final ExecutionContext exec, final TransferEntry entry)
+    private DataCell[][] copyMove(final ExecutionContext exec, final TransferEntry entry)
         throws IOException, CanceledExecutionException {
-        final DataCell[][] rows;
+        var result = attemptAtomicCopyMove(exec, entry.getSrcDestPair());
+        DataCell[][] rows = result.isPresent() ? result.get() : performRecursiveCopyDelete(exec, entry);
+
+        // add fail if src does not exists col
+        if (!m_failIfSrcDoesNotExist) {
+            addFailIfSrcDoesNotExistsCol(rows);
+        }
+        return rows;
+    }
+
+    private Optional<DataCell[][]> attemptAtomicCopyMove(final ExecutionContext exec, final TransferPair pair)
+        throws IOException {
+        var src = pair.getSource();
+        var dst = pair.getDestination();
+
+        //It is to make the atomic copy/move behavior consistent with the recursive one.
+        //Could be removed once "Create missing filders" option is fixed.
+        Files.createDirectories(dst.getParent());
+
+        var dstIsNotEmptyDir = false;
+        if (Files.isDirectory(dst)) {
+            try (var stream = Files.newDirectoryStream(dst)) {
+                dstIsNotEmptyDir = stream.iterator().hasNext();
+            }
+        }
+
+        if ((Files.isDirectory(src) && m_verbose)
+            || (dstIsNotEmptyDir && m_transferPolicy != TransferPolicy.OVERWRITE)) {
+            return Optional.empty();
+        }
+
+        validatePair(src, dst);
+
+        var rows = Files.isDirectory(src) ? transferDirAtomically(src, dst) : transferFileAtomically(src, dst);
+
+        exec.setProgress(1);
+        return Optional.ofNullable(rows);
+    }
+
+    private DataCell[][] transferDirAtomically(final FSPath src, final FSPath dst) throws IOException {
+        FileStatus status = Files.exists(dst) ? FileStatus.UNMODIFIED : FileStatus.CREATED;
+
+        try {
+            if (m_delete) {
+                FSFiles.move(src, dst, StandardCopyOption.ATOMIC_MOVE);
+            } else {
+                FSFiles.copyAtomically(src, dst);
+            }
+
+            var row = buildRow(src, dst, status);
+            if (m_delete) {
+                row = appendDeleteCol(row);
+            }
+
+            return new DataCell[][]{row};
+        } catch (UnsupportedOperationException | AtomicMoveNotSupportedException e) {//NOSONAR
+            return null;//NOSONAR
+        }
+    }
+
+    private DataCell[][] transferFileAtomically(final FSPath src, final FSPath dst) throws IOException {
+        if (!m_delete) {
+            //atomic copy is only for directories
+            return null;//NOSONAR
+        }
+
+        try {
+            var status = transferFile(src, dst, true);
+            var row = appendDeleteCol(buildRow(src, dst, status));
+
+            return (new DataCell[][]{row});
+        } catch (UnsupportedOperationException | AtomicMoveNotSupportedException e) {//NOSONAR
+            return null;//NOSONAR
+        }
+    }
+
+    private static DataCell[] appendDeleteCol(final DataCell[] row) {
+        final DataCell existsFlag = BooleanCellFactory.create(true);
+        return ArrayUtils.addAll(row, existsFlag);
+    }
+
+    private DataCell[][] performRecursiveCopyDelete(final ExecutionContext exec, final TransferEntry entry)
+        throws IOException, CanceledExecutionException {
         final List<TransferPair> paths = entry.getPathsToCopy();
-        rows = new DataCell[!m_verbose ? 1 : (1 + paths.size())][];
+        var rows = new DataCell[!m_verbose ? 1 : (1 + paths.size())][];
         final ListIterator<TransferPair> listIterator = paths.listIterator();
         ExecutionContext subExec = exec.createSubExecutionContext(m_delete ? 0.5 : 1);
         final int entriesToProcess = paths.size() + 1;
@@ -172,11 +257,6 @@ final class PathCopier2 {
             subExec = exec.createSubExecutionContext(0.5);
             delete(subExec, rows, listIterator, entriesToProcess);
             delete(subExec, rows, 0, entry.getSrcDestPair().getSource(), true, entriesToProcess);
-        }
-
-        // add fail if src does not exists col
-        if (!m_failIfSrcDoesNotExist) {
-            addFailIfSrcDoesNotExistsCol(rows);
         }
         return rows;
     }
@@ -247,20 +327,22 @@ final class PathCopier2 {
     private DataCell[] copyPath(final FSPath src, final FSPath dest) throws IOException {
         validatePair(src, dest);
 
-        final DataCell[] cells = new DataCell[NUMBER_OF_DEFAULT_COLS];
-        cells[SOURCE_COL_IDX] = m_sourceFSLocationCellFactory.createCell(src.toFSLocation());
-        cells[DESTINATION_COL_IDX] = m_destinationFSLocationCellFactory.createCell(dest.toFSLocation());
-        final boolean isDirectory = FSFiles.isDirectory(src);
-        cells[IS_DIR_COL_IDX] = BooleanCellFactory.create(isDirectory);
-
         final FileStatus status;
-        if (isDirectory) {
+        if (FSFiles.isDirectory(src)) {
             status = createDirectory(dest);
         } else {
-            status = copyFile(src, dest);
+            status = transferFile(src, dest, false);
         }
-        cells[STATUS_COL_IDX] = StringCellFactory.create(status.getText());
 
+        return buildRow(src, dest, status);
+    }
+
+    private DataCell[] buildRow(final FSPath src, final FSPath dst, final FileStatus status) {
+        var cells = new DataCell[NUMBER_OF_DEFAULT_COLS];
+        cells[SOURCE_COL_IDX] = m_sourceFSLocationCellFactory.createCell(src.toFSLocation());
+        cells[DESTINATION_COL_IDX] = m_destinationFSLocationCellFactory.createCell(dst.toFSLocation());
+        cells[IS_DIR_COL_IDX] = BooleanCellFactory.create(Files.isDirectory(dst));
+        cells[STATUS_COL_IDX] = StringCellFactory.create(status.getText());
         return cells;
     }
 
@@ -305,12 +387,12 @@ final class PathCopier2 {
      * @param rowIdx the current row index
      * @throws IOException
      */
-    private FileStatus copyFile(final FSPath src, final FSPath dest) throws IOException {
+    private FileStatus transferFile(final FSPath src, final FSPath dest, final boolean move) throws IOException {
         if (dest.getParent() != null) {
             createDirectories(dest.getParent());
         }
         try {
-            return m_transferPolicy.apply(src, dest);
+            return m_transferPolicy.apply(src, dest, move);
         } catch (FileAlreadyExistsException e) {
             if (m_transferPolicy == TransferPolicy.FAIL) {
                 throw new IOException(

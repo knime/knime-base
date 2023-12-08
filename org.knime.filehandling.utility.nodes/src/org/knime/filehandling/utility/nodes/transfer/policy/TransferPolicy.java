@@ -91,8 +91,8 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
     }
 
     @Override
-    public FileStatus apply(final FSPath t, final FSPath s) throws IOException {
-        return m_transferFunction.apply(t, s);
+    public FileStatus apply(final FSPath t, final FSPath s, final boolean move) throws IOException {
+        return m_transferFunction.apply(t, s, move);
     }
 
     @Override
@@ -124,12 +124,16 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
         return TransferPolicy.FAIL;
     }
 
-    private static FileStatus overwrite(final FSPath src, final FSPath dest) throws IOException {
+    private static FileStatus overwrite(final FSPath src, final FSPath dest, final boolean move) throws IOException {
         if (isSameFileOrFolder(src, dest)) {
             return FileStatus.UNMODIFIED;
         }
         final FileStatus fileStatus = FSFiles.exists(dest) ? FileStatus.OVERWRITTEN : FileStatus.CREATED;
-        FSFiles.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+        if (move) {
+            FSFiles.move(src, dest, StandardCopyOption.ATOMIC_MOVE);
+        } else {
+            FSFiles.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+        }
         return fileStatus;
     }
 
@@ -139,24 +143,33 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
         return srcLoc.equals(desttLoc);
     }
 
-    private static FileStatus fail(final FSPath src, final FSPath dest) throws IOException {
+    private static FileStatus fail(final FSPath src, final FSPath dest, final boolean move) throws IOException {
         if (FSFiles.exists(dest)) {
             throw new FileAlreadyExistsException(dest.toString());
         }
-        FSFiles.copy(src, dest);
+        if (move) {
+            FSFiles.move(src, dest, StandardCopyOption.ATOMIC_MOVE);
+        } else {
+            FSFiles.copy(src, dest);
+        }
         return FileStatus.CREATED;
     }
 
-    private static FileStatus ignore(final FSPath src, final FSPath dest) throws IOException {
+    private static FileStatus ignore(final FSPath src, final FSPath dest, final boolean move) throws IOException {
         if (FSFiles.exists(dest)) {
             return FileStatus.UNMODIFIED;
         } else {
-            FSFiles.copy(src, dest);
+            if (move) {
+                FSFiles.move(src, dest, StandardCopyOption.ATOMIC_MOVE);
+            } else {
+                FSFiles.copy(src, dest);
+            }
             return FileStatus.CREATED;
         }
     }
 
-    private static FileStatus overwriteIfNewer(final FSPath src, final FSPath dest) throws IOException {
+    private static FileStatus overwriteIfNewer(final FSPath src, final FSPath dest, final boolean move)
+        throws IOException {
         final boolean exists = FSFiles.exists(dest);
         final FileStatus fileStatus;
         if (!exists) {
@@ -169,7 +182,11 @@ public enum TransferPolicy implements ButtonGroupEnumInterface, TransferFunction
             }
         }
         if (fileStatus != FileStatus.UNMODIFIED) {
-            FSFiles.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+            if (move) {
+                FSFiles.move(src, dest, StandardCopyOption.ATOMIC_MOVE);
+            } else {
+                FSFiles.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+            }
         }
         return fileStatus;
     }
