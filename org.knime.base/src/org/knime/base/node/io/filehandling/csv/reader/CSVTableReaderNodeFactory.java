@@ -68,7 +68,7 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPath
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory { //NOSONAR
+public class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory { //NOSONAR
 
     private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
 

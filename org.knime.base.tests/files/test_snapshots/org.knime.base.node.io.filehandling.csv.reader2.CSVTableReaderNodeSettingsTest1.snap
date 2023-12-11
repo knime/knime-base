@@ -1,0 +1,390 @@
+{
+  "data" : {
+    "model" : {
+      "settings" : {
+        "path" : {
+          "path" : {
+            "fsCategory" : "RELATIVE",
+            "path" : "foo",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(RELATIVE, foo)"
+            }
+          }
+        },
+        "fileSelectionInternal" : {
+          "settingsModelID" : "SMID_ReaderFileChooser",
+          "enabledStatus" : true
+        },
+        "hasColumnHeader" : true,
+        "hasRowId" : false,
+        "supportShortDataRows" : false,
+        "skipEmptyDataRows" : false,
+        "prependFileIdxToRowId" : false,
+        "commentChar" : "#",
+        "columnDelimiter" : ",",
+        "quoteChar" : "\"",
+        "quoteEscapeChar" : "\"",
+        "useLineBreakRowDelimiter" : true,
+        "rowDelimiter" : "\n",
+        "autodetectBufferSize" : 1048576
+      },
+      "advancedSettings" : {
+        "specMergeMode" : "UNION",
+        "failOnDifferingSpecs" : true,
+        "appendPathColumn" : false,
+        "pathColumnName" : "Path",
+        "limitDataRowsScanned" : true,
+        "maxDataRowsScanned" : 10000,
+        "saveTableSpecConfig" : true,
+        "limitMemoryPerColumn" : true,
+        "maximumNumberOfColumns" : 8192,
+        "quoteOption" : "REMOVE_QUOTES_AND_TRIM",
+        "replaceEmptyQuotesWithMissing" : true,
+        "noRowDelimitersInQuotes" : false,
+        "minChunkSizeInBytes" : 67108864,
+        "maxNumChunksPerFile" : 8,
+        "thousandsSeparator" : " ",
+        "decimalSeparator" : "."
+      },
+      "limitRows" : {
+        "skipLines" : false,
+        "numberOfLinesToSkip" : 1,
+        "skipDataRows" : false,
+        "numberOfRowsToSkip" : 1,
+        "limitDataRows" : false,
+        "maxRows" : 50
+      },
+      "encoding" : {
+        "charset" : "UTF-8"
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "advancedSettings" : {
+            "type" : "object",
+            "properties" : {
+              "appendPathColumn" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "append_path_column_Internals" ]
+              },
+              "decimalSeparator" : {
+                "type" : "string",
+                "default" : ".",
+                "configKeys" : [ "decimal_separator" ]
+              },
+              "failOnDifferingSpecs" : {
+                "type" : "boolean",
+                "default" : true,
+                "configKeys" : [ "fail_on_differing_specs" ]
+              },
+              "limitDataRowsScanned" : {
+                "type" : "boolean",
+                "default" : true,
+                "configKeys" : [ "limit_data_rows_scanned" ]
+              },
+              "limitMemoryPerColumn" : {
+                "type" : "boolean",
+                "default" : true,
+                "configKeys" : [ "limit_memory_per_column" ]
+              },
+              "maxDataRowsScanned" : {
+                "type" : "integer",
+                "format" : "int64",
+                "default" : 10000,
+                "configKeys" : [ "max_data_rows_scanned" ]
+              },
+              "maxNumChunksPerFile" : {
+                "type" : "integer",
+                "format" : "int32",
+                "default" : 8,
+                "configKeys" : [ "max_num_chunks_per_file" ]
+              },
+              "maximumNumberOfColumns" : {
+                "type" : "integer",
+                "format" : "int32",
+                "default" : 8192,
+                "configKeys" : [ "maximum_number_of_columns" ]
+              },
+              "minChunkSizeInBytes" : {
+                "type" : "integer",
+                "format" : "int64",
+                "default" : 67108864,
+                "configKeys" : [ "min_chunk_size_in_bytes" ]
+              },
+              "noRowDelimitersInQuotes" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "no_row_delimiters_in_quotes" ]
+              },
+              "pathColumnName" : {
+                "type" : "string",
+                "default" : "Path",
+                "configKeys" : [ "path_column_name_Internals" ]
+              },
+              "quoteOption" : {
+                "type" : "string",
+                "default" : "REMOVE_QUOTES_AND_TRIM",
+                "configKeys" : [ "quote_option" ]
+              },
+              "replaceEmptyQuotesWithMissing" : {
+                "type" : "boolean",
+                "default" : true,
+                "configKeys" : [ "replace_empty_quotes_with_missing" ]
+              },
+              "saveTableSpecConfig" : {
+                "type" : "boolean",
+                "default" : true,
+                "configKeys" : [ "save_table_spec_config_Internals" ]
+              },
+              "specMergeMode" : {
+                "type" : "string",
+                "default" : "UNION",
+                "configKeys" : [ "spec_merge_mode_Internals" ]
+              },
+              "thousandsSeparator" : {
+                "type" : "string",
+                "default" : " ",
+                "configKeys" : [ "thousands_separator" ]
+              }
+            },
+            "default" : {
+              "specMergeMode" : "UNION",
+              "failOnDifferingSpecs" : true,
+              "appendPathColumn" : false,
+              "pathColumnName" : "Path",
+              "limitDataRowsScanned" : true,
+              "maxDataRowsScanned" : 10000,
+              "saveTableSpecConfig" : true,
+              "limitMemoryPerColumn" : true,
+              "maximumNumberOfColumns" : 8192,
+              "quoteOption" : "REMOVE_QUOTES_AND_TRIM",
+              "replaceEmptyQuotesWithMissing" : true,
+              "noRowDelimitersInQuotes" : false,
+              "minChunkSizeInBytes" : 67108864,
+              "maxNumChunksPerFile" : 8,
+              "thousandsSeparator" : " ",
+              "decimalSeparator" : "."
+            },
+            "configKeys" : [ "advanced_settings" ]
+          },
+          "encoding" : {
+            "type" : "object",
+            "properties" : {
+              "charset" : {
+                "type" : "string",
+                "default" : "UTF-8",
+                "configKeys" : [ "charset" ]
+              }
+            },
+            "default" : {
+              "charset" : "UTF-8"
+            },
+            "configKeys" : [ "encoding" ]
+          },
+          "limitRows" : {
+            "type" : "object",
+            "properties" : {
+              "limitDataRows" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "limit_data_rows" ]
+              },
+              "maxRows" : {
+                "type" : "integer",
+                "format" : "int64",
+                "default" : 50,
+                "configKeys" : [ "max_rows" ]
+              },
+              "numberOfLinesToSkip" : {
+                "type" : "integer",
+                "format" : "int64",
+                "default" : 1,
+                "configKeys" : [ "number_of_lines_to_skip" ]
+              },
+              "numberOfRowsToSkip" : {
+                "type" : "integer",
+                "format" : "int64",
+                "default" : 1,
+                "configKeys" : [ "number_of_rows_to_skip" ]
+              },
+              "skipDataRows" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "skip_data_rows" ]
+              },
+              "skipLines" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "skip_lines" ]
+              }
+            },
+            "default" : {
+              "skipLines" : false,
+              "numberOfLinesToSkip" : 1,
+              "skipDataRows" : false,
+              "numberOfRowsToSkip" : 1,
+              "limitDataRows" : false,
+              "maxRows" : 50
+            },
+            "configKeys" : [ "limit_rows" ]
+          },
+          "settings" : {
+            "type" : "object",
+            "properties" : {
+              "autodetectBufferSize" : {
+                "type" : "integer",
+                "format" : "int32",
+                "default" : 1048576,
+                "configKeys" : [ "autodetect_buffer_size" ]
+              },
+              "columnDelimiter" : {
+                "type" : "string",
+                "default" : ",",
+                "configKeys" : [ "column_delimiter" ]
+              },
+              "commentChar" : {
+                "type" : "string",
+                "default" : "#",
+                "configKeys" : [ "comment_char" ]
+              },
+              "fileSelectionInternal" : {
+                "type" : "object",
+                "properties" : {
+                  "enabledStatus" : {
+                    "type" : "boolean",
+                    "default" : true,
+                    "configKeys" : [ "EnabledStatus" ]
+                  },
+                  "settingsModelID" : {
+                    "type" : "string",
+                    "default" : "SMID_ReaderFileChooser",
+                    "configKeys" : [ "SettingsModelID" ]
+                  }
+                },
+                "default" : {
+                  "settingsModelID" : "SMID_ReaderFileChooser",
+                  "enabledStatus" : true
+                },
+                "configKeys" : [ "file_selection_Internals" ]
+              },
+              "hasColumnHeader" : {
+                "type" : "boolean",
+                "default" : true,
+                "configKeys" : [ "has_column_header" ]
+              },
+              "hasRowId" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "has_row_id" ]
+              },
+              "path" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000
+                    }
+                  }
+                },
+                "title" : "Read from",
+                "description" : "Select a file system which stores the data you want to read. There are\nthree default file system options to choose from:\n<br />\n<ul>\n    <li><i>Local File System:</i> Allows you to select a file from your local file system.\n    </li>\n    <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol).\n        Browsing is disabled for this option.\n    </li>\n    <li><i>Relative to current Hub space:</i> Allows to select a file relative to the Hub space on which\n        the workflow is run.\n    </li>\n</ul>\n",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000
+                  }
+                },
+                "configKeys" : [ "file_selection" ]
+              },
+              "prependFileIdxToRowId" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "prepend_file_idx_to_row_id" ]
+              },
+              "quoteChar" : {
+                "type" : "string",
+                "default" : "\"",
+                "configKeys" : [ "quote_char" ]
+              },
+              "quoteEscapeChar" : {
+                "type" : "string",
+                "default" : "\"",
+                "configKeys" : [ "quote_escape_char" ]
+              },
+              "rowDelimiter" : {
+                "type" : "string",
+                "default" : "\n",
+                "configKeys" : [ "row_delimiter" ]
+              },
+              "skipEmptyDataRows" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "skip_empty_data_rows" ]
+              },
+              "supportShortDataRows" : {
+                "type" : "boolean",
+                "default" : false,
+                "configKeys" : [ "support_short_data_rows" ]
+              },
+              "useLineBreakRowDelimiter" : {
+                "type" : "boolean",
+                "default" : true,
+                "configKeys" : [ "use_line_break_row_delimiter" ]
+              }
+            },
+            "default" : {
+              "path" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000
+                }
+              },
+              "fileSelectionInternal" : {
+                "settingsModelID" : "SMID_ReaderFileChooser",
+                "enabledStatus" : true
+              },
+              "hasColumnHeader" : true,
+              "hasRowId" : false,
+              "supportShortDataRows" : false,
+              "skipEmptyDataRows" : false,
+              "prependFileIdxToRowId" : false,
+              "commentChar" : "#",
+              "columnDelimiter" : ",",
+              "quoteChar" : "\"",
+              "quoteEscapeChar" : "\"",
+              "useLineBreakRowDelimiter" : true,
+              "rowDelimiter" : "\n",
+              "autodetectBufferSize" : 1048576
+            },
+            "configKeys" : [ "settings" ]
+          },
+          "tableSpecConfig" : {
+            "type" : "object",
+            "configKeys" : [ "table_spec_config_Internals" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/settings/properties/path",
+      "options" : {
+        "format" : "fileChooser"
+      }
+    } ]
+  }
+}
