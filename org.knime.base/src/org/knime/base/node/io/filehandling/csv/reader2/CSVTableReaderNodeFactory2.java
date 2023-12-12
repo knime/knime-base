@@ -56,7 +56,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
-import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.NodeView;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
@@ -67,9 +67,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileCh
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileChooserWidget;
 import org.knime.core.webui.node.impl.PortDescription;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
-import org.knime.core.webui.node.view.NodeView;
-import org.knime.core.webui.node.view.NodeViewFactory;
-import org.knime.core.webui.node.view.table.TableNodeView;
 import org.xml.sax.SAXException;
 
 /**
@@ -80,6 +77,7 @@ import org.xml.sax.SAXException;
  * <li>{@link FileChooser}</li>
  * <li>{@link WebUINodeFactory}</li>
  * <li>{@link OnApplyNodeModifier}</li>
+ * <li>{@link NodeContainerEditPart}</li>
  * </ul>
  * CEFNodeView NodeContainerEditPart::openNodeDialog maybe add hasPreview and createNodePreview to NodeDialogFactory
  *
@@ -89,7 +87,7 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 public final class CSVTableReaderNodeFactory2 extends NodeFactory<CSVTableReaderNodeModel2>
-    implements NodeViewFactory<CSVTableReaderNodeModel2>, NodeDialogFactory {
+    implements NodeDialogFactory {
 
     @Override
     public CSVTableReaderNodeModel2 createNodeModel() {
@@ -98,7 +96,7 @@ public final class CSVTableReaderNodeFactory2 extends NodeFactory<CSVTableReader
 
     @Override
     protected int getNrNodeViews() {
-        return 1;
+        return 0;
     }
 
     @Override
@@ -110,13 +108,7 @@ public final class CSVTableReaderNodeFactory2 extends NodeFactory<CSVTableReader
     }
 
     @Override
-    public NodeView createNodeView(final CSVTableReaderNodeModel2 nodeModel) {
-        // TODO use MultiTableReader here?
-        return new TableNodeView(() -> null, NodeContext.getContext().getNodeContainer(), 0);
-    }
-
-    @Override
-    public org.knime.core.node.NodeView<CSVTableReaderNodeModel2> createNodeView(final int viewIndex,
+    public NodeView<CSVTableReaderNodeModel2> createNodeView(final int viewIndex,
         final CSVTableReaderNodeModel2 nodeModel) {
         return null;
     }

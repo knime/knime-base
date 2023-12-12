@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.csv.reader2;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileChooserWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -56,7 +57,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  */
 public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Test", description = "Test.")
-    String m_test = "test";
+    @Widget(title = "File", description = "TODO")
+    @LocalFileChooserWidget
+    String m_csvFile = "";
 
 }
