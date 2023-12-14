@@ -247,10 +247,7 @@ final class StringToDateTimeNodeModel
         formats.add("yyyyMMddZ");
 
         // check also the StringHistory....
-        String[] userFormats = StringHistory.getInstance(FORMAT_HISTORY_KEY, FORMAT_HISTORY_SIZE).getHistory();
-        for (String userFormat : userFormats) {
-            formats.add(userFormat);
-        }
+        formats.addAll(Arrays.asList(StringHistory.getInstance(FORMAT_HISTORY_KEY, FORMAT_HISTORY_SIZE).getHistory()));
         return formats;
     }
 
@@ -383,9 +380,9 @@ final class StringToDateTimeNodeModel
         settings.addString("typeEnum", m_selectedType);
         try {
             // conversion necessary for backwards compatibility (AP-8915)
-            final Locale locale = LocaleUtils.toLocale(m_locale.getStringValue());
+            final var locale = LocaleUtils.toLocale(m_locale.getStringValue());
             m_locale.setStringValue(locale.toLanguageTag());
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) { // NOSONAR
             // do nothing, locale is already in correct format
         }
         m_locale.saveSettingsTo(settings);
@@ -526,11 +523,10 @@ final class StringToDateTimeNodeModel
                 }
             } catch (DateTimeParseException e) {
                 m_failCounter++;
-                var msg = String.format("Could not parse date in cell [%s, column \"%s\", row %d]: %s.", //
-                    StringUtils.abbreviate(row.getKey().getString(), 15), //
-                    m_spec.getName(), rowIndex + 1, //
-                    e.getMessage() //
-                );
+                var msg = String.format("Could not parse date in cell [%s, column \"%s\", row number %d]: "
+                        + "Pattern \"%s\" does not match \"%s\".", //
+                    StringUtils.abbreviate(row.getKey().getString(), 15), m_spec.getName(), rowIndex + 1, //
+                    StringUtils.abbreviate(m_format.getStringValue(), 32), StringUtils.abbreviate(input, 32));
                 if (m_messageBuilder.getIssueCount() == 0) {
                     m_messageBuilder.withSummary(msg);
                 }
