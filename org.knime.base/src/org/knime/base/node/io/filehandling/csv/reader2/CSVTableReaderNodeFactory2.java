@@ -49,14 +49,16 @@
 package org.knime.base.node.io.filehandling.csv.reader2;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.apache.xmlbeans.XmlException;
 import org.knime.base.node.preproc.append.row.AppendedRowsNodeFactory;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
@@ -67,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileCh
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileChooserWidget;
 import org.knime.core.webui.node.impl.PortDescription;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.xml.sax.SAXException;
 
 /**
@@ -86,17 +89,22 @@ import org.xml.sax.SAXException;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public final class CSVTableReaderNodeFactory2 extends NodeFactory<CSVTableReaderNodeModel2>
+public final class CSVTableReaderNodeFactory2 extends ConfigurableNodeFactory<CSVTableReaderNodeModel2>
     implements NodeDialogFactory {
 
+    static final String FS_CONNECT_GRP_ID = "File System Connection";
+
     @Override
-    public CSVTableReaderNodeModel2 createNodeModel() {
-        return new CSVTableReaderNodeModel2();
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        var builder = new PortsConfigurationBuilder();
+        builder.addOptionalInputPortGroup(FS_CONNECT_GRP_ID, FileSystemPortObject.TYPE);
+        builder.addFixedOutputPortGroup("Data Table", BufferedDataTable.TYPE);
+        return Optional.of(builder);
     }
 
     @Override
-    protected int getNrNodeViews() {
-        return 0;
+    protected CSVTableReaderNodeModel2 createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new CSVTableReaderNodeModel2(creationConfig);
     }
 
     @Override
@@ -105,6 +113,11 @@ public final class CSVTableReaderNodeFactory2 extends NodeFactory<CSVTableReader
             new PortDescription[]{new PortDescription("name", BufferedDataTable.TYPE, "description")}, "short", "full",
             CSVTableReaderNodeSettings.class, null, null, NodeType.Source, new String[]{"keywords"});
 
+    }
+
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
     }
 
     @Override
@@ -120,11 +133,11 @@ public final class CSVTableReaderNodeFactory2 extends NodeFactory<CSVTableReader
 
     @Override
     public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.VIEW, CSVTableReaderNodeSettings.class);
+        return new DefaultNodeDialog(SettingsType.MODEL, CSVTableReaderNodeSettings.class);
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 

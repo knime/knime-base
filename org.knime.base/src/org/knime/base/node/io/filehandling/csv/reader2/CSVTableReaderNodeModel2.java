@@ -50,7 +50,14 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
 
+import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -60,7 +67,24 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.filehandling.core.connections.FSLocationUtil;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.defaultnodesettings.status.NodeModelStatusConsumer;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage.MessageType;
+import org.knime.filehandling.core.node.table.reader.DefaultMultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.DefaultSourceGroup;
+import org.knime.filehandling.core.node.table.reader.MultiTableReader;
+import org.knime.filehandling.core.node.table.reader.SourceGroup;
 import org.knime.filehandling.core.node.table.reader.TableReaderNodeModel;
+import org.knime.filehandling.core.node.table.reader.preview.dialog.GenericItemAccessor;
+import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
 
 /**
  * This will probably have to extend {@link TableReaderNodeModel}
@@ -69,22 +93,86 @@ import org.knime.filehandling.core.node.table.reader.TableReaderNodeModel;
  */
 final class CSVTableReaderNodeModel2 extends NodeModel {
 
+    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
+
     private CSVTableReaderNodeSettings m_settings;
 
-    CSVTableReaderNodeModel2() {
-        super(0, 1);
+    private final NodeCreationConfiguration m_creationConfig;
+
+    private final NodeModelStatusConsumer m_statusConsumer =
+        new NodeModelStatusConsumer(EnumSet.of(MessageType.ERROR, MessageType.WARNING));
+
+    CSVTableReaderNodeModel2(final NodeCreationConfiguration creationConfig) {
+        super(creationConfig.getPortConfig().get().getInputPorts(),
+            creationConfig.getPortConfig().get().getOutputPorts());
+        m_creationConfig = creationConfig;
     }
 
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        // TODO Auto-generated method stub
-        return super.configure(inSpecs);
+        if (m_settings == null) {
+            m_settings = DefaultNodeSettings.createSettings(CSVTableReaderNodeSettings.class, inSpecs);
+        }
+        return null;
     }
 
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec) throws Exception {
-        // TODO Auto-generated method stub
-        return super.execute(inData, exec);
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
+
+        var config = new CSVMultiTableReadConfig();
+        final Optional<? extends URLConfiguration> urlConfig = m_creationConfig.getURLConfig();
+        if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) { //NOSONAR
+            config.getReaderSpecificConfig().setDelimiter("\t");
+        }
+
+        final var pathSettings = new SettingsModelReaderFileChooser("file_selection",
+            m_creationConfig.getPortConfig().orElseThrow(IllegalStateException::new),
+            CSVTableReaderNodeFactory2.FS_CONNECT_GRP_ID,
+            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
+        if (urlConfig.isPresent()) {
+            pathSettings.setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
+        }
+
+        pathSettings.setLocation(m_settings.m_csvFile.getFSLocation());
+
+        final var reader = new CSVTableReader();
+
+        final var readAdapterFactory = StringReadAdapterFactory.INSTANCE;
+
+        final var productionPathProvider = new DefaultProductionPathProvider<>(readAdapterFactory.getProducerRegistry(),
+            readAdapterFactory::getDefaultType);
+
+        final var rowKeyGenFactory =
+            new DefaultRowKeyGeneratorContextFactory<FSPath, String>(this::extractRowKey, "File");
+
+        final var multiTableReadFactory =
+            new DefaultMultiTableReadFactory<FSPath, CSVTableReaderConfig, Class<?>, String>(
+                StringReadAdapterFactory.TYPE_HIERARCHY, rowKeyGenFactory, reader, productionPathProvider,
+                readAdapterFactory::createReadAdapter);
+
+        final var multiTableReader = new MultiTableReader<>(multiTableReadFactory);
+
+        try (final GenericItemAccessor<FSPath> accessor = pathSettings.createItemAccessor()) {
+            final List<FSPath> paths = getPaths(accessor);
+            final SourceGroup<FSPath> sourceGroup = new DefaultSourceGroup<>(pathSettings.getSourceIdentifier(), paths);
+            return new BufferedDataTable[]{multiTableReader.readTable(sourceGroup, config, exec)};
+        }
+    }
+
+    private String extractRowKey(final String value) {
+        return value;
+    }
+
+    private List<FSPath> getPaths(final GenericItemAccessor<FSPath> accessor)
+        throws IOException, InvalidSettingsException {
+        final List<FSPath> items = accessor.getItems(m_statusConsumer);
+        m_statusConsumer.setWarningsIfRequired(this::setWarningMessage);
+
+        if (items.isEmpty()) {
+            throw new InvalidSettingsException("No files/folders matched the filters");
+        }
+        return items;
     }
 
     @Override
@@ -99,6 +187,9 @@ final class CSVTableReaderNodeModel2 extends NodeModel {
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
+        if (m_settings != null) {
+            DefaultNodeSettings.saveSettings(CSVTableReaderNodeSettings.class, m_settings, settings);
+        }
     }
 
     @Override
@@ -107,6 +198,7 @@ final class CSVTableReaderNodeModel2 extends NodeModel {
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_settings = DefaultNodeSettings.loadSettings(settings, CSVTableReaderNodeSettings.class);
     }
 
     @Override
