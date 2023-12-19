@@ -50,14 +50,42 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
+    static final class CsvFileDependency {
+        FileChooser m_csvFile;
+    }
+
+    static final class CsvFileTargets {
+        String m_columnDelimiter;
+    }
+
     @Widget(title = "File", description = "TODO")
     FileChooser m_csvFile = new FileChooser();
+
+    @Widget(title = "Column delimiter", description = "TODO")
+//    @ButtonWidget(updateHandler = AutoDetectUpdateHandler.class)
+    // TODO extract updateHandler annotation to non-button settings (i.e., place in widget)
+    String m_columnDelimiter;
+
+    static final class AutoDetectUpdateHandler implements UpdateHandler<CSVTableReaderNodeSettings, CsvFileDependency> {
+
+        @Override
+        public CSVTableReaderNodeSettings update(final CsvFileDependency settings, final DefaultNodeSettingsContext context)
+            throws WidgetHandlerException {
+            // TODO use settings.m_csvFile.getFSLocation() to trigger AutoDetection as in
+            // CSVFormatAutoDetectionSwingWorker and determine a reasonable m_columnDelimiter
+            // which is returned here
+            return new CSVTableReaderNodeSettings();
+        }
+
+    }
 
 }
