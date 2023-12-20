@@ -74,7 +74,16 @@ public final class CredentialsPropertyExtractorNodeFactory
         .nodeType(NodeType.Other)//
         .addInputPort("Flow variable input", FlowVariablePortObject.TYPE, "Credentials flow variables.")
         .addOutputTable("Credentials properties",
-            "Lists properties such as whether a password is set for each selected variable.")//
+            """
+                    Lists properties for the selected credentials.
+                    The output columns of the table have the following meaning.
+                    "%s" enumerates credential identifiers, "%s" provides an identifier for the user,
+                    "%s" indicates whether a non-empty password has been entered,
+                    and "%s" denotes whether a non-empty second factor has been input.
+                    """.formatted(CredentialsPropertyExtractorNodeModel.NAME_COLUMN.getName(),
+                CredentialsPropertyExtractorNodeModel.LOGIN_COLUMN.getName(),
+                CredentialsPropertyExtractorNodeModel.PASSWORD_COLUMN.getName(),
+                CredentialsPropertyExtractorNodeModel.FACTOR_COLUMN.getName()))//
         .sinceVersion(5, 3, 0) //
         .keywords("credentials", "password", "login", "flow variable") //
         .build();

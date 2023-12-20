@@ -76,19 +76,21 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 public class CredentialsPropertyExtractorNodeModel extends WebUINodeModel<CredentialsPropertyExtractorSettings> {
 
     /** Credentials identifier as per {@link CredentialsProperties#name()} */
-    private static final DataColumnSpec NAME_COLUMN =
-        new DataColumnSpecCreator("Credentials", StringCell.TYPE).createSpec();
+    static final DataColumnSpec NAME_COLUMN = new DataColumnSpecCreator("Credentials", StringCell.TYPE).createSpec();
 
     /** User identifier as per {@link CredentialsProperties#login()} */
-    private static final DataColumnSpec LOGIN_COLUMN =
-        new DataColumnSpecCreator("Username", StringCell.TYPE).createSpec();
+    static final DataColumnSpec LOGIN_COLUMN = new DataColumnSpecCreator("Username", StringCell.TYPE).createSpec();
 
     /** Whether the variable has a non-empty password set as per {@link CredentialsProperties#isPasswordSet()}. */
-    private static final DataColumnSpec PASSWORD_COLUMN =
+    static final DataColumnSpec PASSWORD_COLUMN =
         new DataColumnSpecCreator("Includes Password", BooleanCell.TYPE).createSpec();
 
+    /** Whether the variable has a non-empty factor set as per {@link CredentialsProperties#isSecondFactorSet()}. */
+    static final DataColumnSpec FACTOR_COLUMN =
+        new DataColumnSpecCreator("Includes Second Authentication Factor", BooleanCell.TYPE).createSpec();
+
     private static final DataTableSpec OUTPUT_SPEC =
-        new DataTableSpecCreator().addColumns(NAME_COLUMN, LOGIN_COLUMN, PASSWORD_COLUMN).createSpec();
+        new DataTableSpecCreator().addColumns(NAME_COLUMN, LOGIN_COLUMN, PASSWORD_COLUMN, FACTOR_COLUMN).createSpec();
 
     /**
      * @param configuration
@@ -127,8 +129,12 @@ public class CredentialsPropertyExtractorNodeModel extends WebUINodeModel<Creden
         final var container = exec.createDataContainer(OUTPUT_SPEC);
         for (var i = 0; i < outputData.length; i++) {
             final var key = RowKey.createRowKey((long)i);
-            container.addRowToTable(new DefaultRow(key, new StringCell(outputData[i].name()),
-                new StringCell(outputData[i].login()), BooleanCellFactory.create(outputData[i].isPasswordSet())));
+            container.addRowToTable(new DefaultRow(key, //
+                new StringCell(outputData[i].name()), //
+                new StringCell(outputData[i].login()), //
+                BooleanCellFactory.create(outputData[i].isPasswordSet()), //
+                BooleanCellFactory.create(outputData[i].isSecondAuthenticationFactorSet()) //
+            ));
         }
         container.close();
         return new PortObject[]{container.getTable()};
