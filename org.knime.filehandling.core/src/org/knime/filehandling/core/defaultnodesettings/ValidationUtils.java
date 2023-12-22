@@ -52,6 +52,7 @@ import java.net.URI;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.contextv2.HubJobExecutorInfo;
 import org.knime.filehandling.core.FSPluginConfig;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -153,8 +154,10 @@ public final class ValidationUtils {
      */
     public static void validateLocalFsAccess() throws InvalidSettingsException {
         if (WorkflowContextUtil.isServerContext() && !FSPluginConfig.load().allowLocalFsAccessOnServer()) {
-            throw new InvalidSettingsException(
-                "Direct access to the local file system is not allowed on KNIME Server.");
+            final var executorInfo = WorkflowContextUtil.getWorkflowContextV2().getExecutorInfo();
+            final var errorMessage = String.format("Direct access to the local file system is not allowed on KNIME %s.",
+                (executorInfo instanceof HubJobExecutorInfo) ? "Hub" : "Server");
+            throw new InvalidSettingsException(errorMessage);
         }
     }
 }
