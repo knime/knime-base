@@ -43,7 +43,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 28, 2008 (wiswedel): created
+ *   Dec 19, 2023 (carlwitt): created
  */
 package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 
@@ -73,7 +73,7 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public class CredentialsPropertyExtractorNodeModel extends WebUINodeModel<CredentialsPropertyExtractorSettings> {
+public class CredentialsPropertiesExtractorNodeModel extends WebUINodeModel<CredentialsPropertyExtractorSettings> {
 
     /** Credentials identifier as per {@link CredentialsProperties#name()} */
     static final DataColumnSpec NAME_COLUMN = new DataColumnSpecCreator("Credentials", StringCell.TYPE).createSpec();
@@ -96,7 +96,7 @@ public class CredentialsPropertyExtractorNodeModel extends WebUINodeModel<Creden
      * @param configuration
      * @param modelSettingsClass
      */
-    protected CredentialsPropertyExtractorNodeModel(final WebUINodeConfiguration configuration,
+    protected CredentialsPropertiesExtractorNodeModel(final WebUINodeConfiguration configuration,
         final Class<CredentialsPropertyExtractorSettings> modelSettingsClass) {
         super(configuration, modelSettingsClass);
     }

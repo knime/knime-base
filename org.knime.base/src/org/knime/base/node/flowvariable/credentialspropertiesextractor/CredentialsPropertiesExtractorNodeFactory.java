@@ -43,7 +43,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 28, 2008 (wiswedel): created
+ *   Dec 19, 2023 (carlwitt): created
  */
 package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 
@@ -57,14 +57,14 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public final class CredentialsPropertyExtractorNodeFactory
-    extends WebUINodeFactory<CredentialsPropertyExtractorNodeModel> {
+public final class CredentialsPropertiesExtractorNodeFactory
+    extends WebUINodeFactory<CredentialsPropertiesExtractorNodeModel> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Credentials Property Extractor")//
+        .name("Credentials Properties Extractor")//
         .icon(null)//
         .shortDescription("""
-                Extracts public information from credentials flow variables.
+                Extracts non-confidential information from credentials flow variables.
                 """)//
         .fullDescription("""
                 Extracts non-confidential information from credentials flow variables,
@@ -80,22 +80,22 @@ public final class CredentialsPropertyExtractorNodeFactory
                     "%s" enumerates credential identifiers, "%s" provides an identifier for the user,
                     "%s" indicates whether a non-empty password has been entered,
                     and "%s" denotes whether a non-empty second factor has been input.
-                    """.formatted(CredentialsPropertyExtractorNodeModel.NAME_COLUMN.getName(),
-                CredentialsPropertyExtractorNodeModel.LOGIN_COLUMN.getName(),
-                CredentialsPropertyExtractorNodeModel.PASSWORD_COLUMN.getName(),
-                CredentialsPropertyExtractorNodeModel.FACTOR_COLUMN.getName()))//
+                    """.formatted(CredentialsPropertiesExtractorNodeModel.NAME_COLUMN.getName(),
+                CredentialsPropertiesExtractorNodeModel.LOGIN_COLUMN.getName(),
+                CredentialsPropertiesExtractorNodeModel.PASSWORD_COLUMN.getName(),
+                CredentialsPropertiesExtractorNodeModel.FACTOR_COLUMN.getName()))//
         .sinceVersion(5, 3, 0) //
         .keywords("credentials", "password", "login", "flow variable") //
         .build();
 
     /** Set the node description */
-    public CredentialsPropertyExtractorNodeFactory() {
+    public CredentialsPropertiesExtractorNodeFactory() {
         super(CONFIG);
     }
 
     @Override
-    public CredentialsPropertyExtractorNodeModel createNodeModel() {
-        return new CredentialsPropertyExtractorNodeModel(CONFIG, CredentialsPropertyExtractorSettings.class);
+    public CredentialsPropertiesExtractorNodeModel createNodeModel() {
+        return new CredentialsPropertiesExtractorNodeModel(CONFIG, CredentialsPropertyExtractorSettings.class);
     }
 
 }

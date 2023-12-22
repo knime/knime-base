@@ -1314,7 +1314,7 @@
             factory-class="org.knime.base.node.flowvariable.variabletocredentials.VariableToCredentialsNodeFactory">
       </node>
       <node category-path="/flowcontrol/variables"
-            factory-class="org.knime.base.node.flowvariable.credentialspropertiesextractor.CredentialsPropertyExtractorNodeFactory">
+            factory-class="org.knime.base.node.flowvariable.credentialspropertiesextractor.CredentialsPropertiesExtractorNodeFactory">
       </node>
       <node
             after="org.knime.base.node.flowvariable.injectvariables.InjectVariablesDBNodeFactory"
