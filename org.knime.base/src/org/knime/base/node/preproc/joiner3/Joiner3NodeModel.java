@@ -56,10 +56,10 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguationButtonGroup;
 import org.knime.base.node.preproc.joiner3.Joiner3Settings.RowKeyFactoryButtonGroup;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.join.JoinSpecification;
@@ -88,6 +88,7 @@ import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
+import org.knime.core.util.UniqueNameGenerator;
 
 /**
  * This is the model of the joiner node. It delegates the dirty work to the Joiner class.
@@ -121,11 +122,12 @@ class Joiner3NodeModel extends NodeModel {
         }
 
         if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.DO_NOT_EXECUTE) {
-            Optional<String> duplicateColumn = checkForDuplicateColumn(joinSpecification);
+            Optional<String> duplicateColumn =
+                checkForDuplicateColumn(joinSpecification, (DataTableSpec)inSpecs[0], (DataTableSpec)inSpecs[1]);
             if (duplicateColumn.isPresent()) {
                 throw new InvalidSettingsException(
-                    String.format("Do not execute with ambiguous column names is selected: "
-                            + "Column %s appears both in left and right table.", duplicateColumn.get()));
+                    String.format("Column \"%s\" is included from both the left and the right input table " +
+                            "but \"Do not execute with duplicate column names\" is selected.", duplicateColumn.get()));
             }
         }
 
@@ -181,17 +183,28 @@ class Joiner3NodeModel extends NodeModel {
     }
 
     /**
-     * Throw an {@link InvalidSettingsException} if column names are ambiguous.
+     * AP-21776: The previous version was checking for occurrences of the disambiguation string to determine whether
+     * disambiguation was necessary. This returned false positives for inputs that already have the suffix.
      *
-     * @param joinSpecification
+     * @return the name of a column that appears in both input tables and is selected for inclusion (in the match table)
+     *         in both input tables.
      */
-    private static Optional<String> checkForDuplicateColumn(final JoinSpecification joinSpecification) {
-        DataTableSpec matchTableSpec = joinSpecification.specForMatchTable();
-        final String suffix = joinSpecification.getColumnNameDisambiguator().apply("");
-        return matchTableSpec.stream()
-            // find columns that end with the disambiguator suffix
-            .map(DataColumnSpec::getName).filter(s -> s.endsWith(suffix)).findAny()
-            .map(s -> s.substring(0, s.length() - suffix.length()));
+    private static Optional<String> checkForDuplicateColumn(final JoinSpecification joinSpecification,
+        final DataTableSpec leftSpec, final DataTableSpec rightSpec) {
+        final String[] leftNames = leftSpec.getColumnNames();
+        final var leftSelectedNames = Arrays.stream(joinSpecification.getMatchTableIncludeIndices(InputTable.LEFT)) //
+            .mapToObj(i -> leftNames[i]) //
+            .collect(Collectors.toSet());
+
+        final var unique = new UniqueNameGenerator(leftSelectedNames);
+        final String[] rightNames = rightSpec.getColumnNames();
+        for (var rightSelection : joinSpecification.getMatchTableIncludeIndices(InputTable.RIGHT)) {
+            final var columnName = rightNames[rightSelection];
+            if (!unique.newName(columnName).equals(columnName)) {
+                return Optional.of(columnName);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
