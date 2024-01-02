@@ -92,8 +92,8 @@
                 <br/>
             </option>        
             <option name="Duplicate column names">
-                The option configures how column names clashes are handled, in case
-				a column name appears both in the left input table and the right input table. 
+                This setting determines how to handle the case when column names collide in the join result (first output) table. 
+                This happens when both the left and right input table have a column with the same name and both columns are included in the column selection panel.
                 <br/>
                 <b>Do not execute:</b> The node will display a warning and won't execute if there are
                 duplicate column names in the left and right input tables.  
