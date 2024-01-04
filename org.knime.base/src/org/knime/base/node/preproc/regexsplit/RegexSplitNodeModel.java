@@ -53,10 +53,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.knime.base.node.preproc.regexsplit.CaptureGroupParser.CaptureGroup;
-import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.OutputGroupLabelMode;
-import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.OutputMode;
-import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.SingleOutputColumnMode;
+import org.knime.base.node.preproc.regexsplit.CaptureGroupExtractor.CaptureGroup;
+import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputGroupLabelMode;
+import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputMode;
+import org.knime.base.node.preproc.regexsplit.OutputSettings.SingleOutputColumnMode;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -116,7 +116,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
         if (settings.m_column == null) {
             throw new InvalidSettingsException("No input column selected.");
         }
-        final var outputSpec = switch (settings.m_outputMode) {
+        final var outputSpec = switch (settings.m_output.m_mode) {
             case COLUMNS, LIST, SET -> createColumnRearranger(settings, inSpecs[0], this::setWarning).createSpec();
             case ROWS -> createTableSpecForRowOutput(settings, inSpecs[0]);
         };
@@ -126,7 +126,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
         final RegexSplitNodeSettings settings) throws Exception {
-        final BufferedDataTable table = switch (settings.m_outputMode) {
+        final BufferedDataTable table = switch (settings.m_output.m_mode) {
             case COLUMNS, LIST, SET -> exec.createColumnRearrangeTable(inData[0],
                 createColumnRearranger(settings, inData[0].getDataTableSpec(), this::setWarning), exec);
             case ROWS -> createRowOutputTable(inData[0], exec, settings);
@@ -140,7 +140,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
         // TODO once UIEXT-722 is merged, change signature and refactor settings to use the settings that are passed as
         // an argument
         final var spec = (DataTableSpec)inSpecs[0]; // safe to assume, see javadoc
-        return switch (m_settings.m_outputMode) {
+        return switch (m_settings.m_output.m_mode) {
             case COLUMNS, LIST, SET -> createColumnRearranger(m_settings, spec, this::setWarning)
                 .createStreamableFunction(0, 0);
             case ROWS -> createStreamableOperatorForRowOutput(m_settings, spec, this::setWarning);
@@ -171,19 +171,19 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
         final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings.m_column);
         final var rearranger = new ColumnRearranger(inputTableSpec);
         final var splitter = RegexSplitter.fromSettings(settings);
-        if (settings.m_outputMode == OutputMode.COLUMNS) {
-            if (settings.m_removeInputColumn) {
+        if (settings.m_output.m_mode == OutputMode.COLUMNS) {
+            if (settings.m_output.m_removeInputColumn) {
                 rearranger.remove(inputColumnIndex);
             }
             final var newColumns = createNewColumnSpecsForMultiColumnOutput(settings, rearranger, splitter);
             final var factory =
                 new RegexSplitResultCellFactory(newColumns, inputColumnIndex, settings, splitter, warningConsumer);
             rearranger.append(factory);
-        } else if (settings.m_outputMode == OutputMode.LIST || settings.m_outputMode == OutputMode.SET) {
+        } else if (settings.m_output.m_mode == OutputMode.LIST || settings.m_output.m_mode == OutputMode.SET) {
             final DataColumnSpec spec = createNewColumnSpecForSingleColumnOutput(settings, inputTableSpec);
             final var factory = new RegexSplitResultCellFactory(new DataColumnSpec[]{spec}, inputColumnIndex, settings,
                 splitter, warningConsumer);
-            switch (settings.m_singleOutputColumnMode) {//NOSONAR: No, an if-statement is not more readable here
+            switch (settings.m_output.m_singleOutputColumnMode) {//NOSONAR: No, an if-statement is not more readable here
                 case APPEND -> rearranger.append(factory);
                 case REPLACE -> rearranger.replace(factory, inputColumnIndex);
             }
@@ -199,7 +199,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
         final DataTableSpec inSpec) throws InvalidSettingsException {
         final var cSpec = createNewColumnSpecForSingleColumnOutput(settings, inSpec);
         final var creator = new DataTableSpecCreator(inSpec);
-        switch (settings.m_singleOutputColumnMode) { //NOSONAR: switch is more explicit than if
+        switch (settings.m_output.m_singleOutputColumnMode) { //NOSONAR: switch is more explicit than if
             case APPEND -> creator.addColumns(cSpec);
             case REPLACE -> {
                 creator.dropAllColumns();
@@ -268,7 +268,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
             var innerCounter = 0; // used to find row ID suffix
             for (final var match : matches) {
                 final DataCell[] cells;
-                if (settings.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
+                if (settings.m_output.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
                     cells = Arrays.copyOf(row.stream().toArray(DataCell[]::new), row.getNumCells() + 1);
                     cells[cells.length - 1] = match;
                 } else { // replace
@@ -289,10 +289,10 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     private static DataColumnSpec[] createNewColumnSpecsForMultiColumnOutput(final RegexSplitNodeSettings settings,
         final ColumnRearranger rearranger, final RegexSplitter splitter) throws KNIMERuntimeException {
         final var newColumns = new DataColumnSpec[splitter.getCaptureGroups().size()];
-        final var newColPrefix = switch (settings.m_columnPrefixMode) {
+        final var newColPrefix = switch (settings.m_output.m_columnPrefixMode) {
             case NONE -> "";
             case INPUT_COL_NAME -> settings.m_column + " ";
-            case CUSTOM -> settings.m_columnPrefix;
+            case CUSTOM -> settings.m_output.m_columnPrefix;
         };
         final var suffixes = getOutputGroupLabels(settings, splitter);
         final var outSpec = rearranger.createSpec();
@@ -308,7 +308,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
 
     private static DataColumnSpec createNewColumnSpecForSingleColumnOutput(final RegexSplitNodeSettings settings,
         final DataTableSpec inputTableSpec) throws InvalidSettingsException {
-        final DataType outputColumnType = switch (settings.m_outputMode) {
+        final DataType outputColumnType = switch (settings.m_output.m_mode) {
             case LIST -> ListCell.getCollectionType(StringCell.TYPE);
             case SET -> SetCell.getCollectionType(StringCell.TYPE);
             case ROWS -> StringCell.TYPE;
@@ -316,8 +316,8 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
                 "For output mode COLUMNS, please use #createNewColumnSpecsForColumnOutput");
         };
         final DataColumnSpecCreator sc;
-        if (settings.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
-            final var name = DataTableSpec.getUniqueColumnName(inputTableSpec, settings.m_outputColumnName);
+        if (settings.m_output.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
+            final var name = DataTableSpec.getUniqueColumnName(inputTableSpec, settings.m_output.m_columnName);
             sc = new DataColumnSpecCreator(name, outputColumnType);
         } else {
             final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings.m_column);
@@ -326,7 +326,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
             sc.setType(outputColumnType);
             sc.setDomain(null);
         }
-        if (settings.m_outputMode.isCollection()) {
+        if (settings.m_output.m_mode.isCollection()) {
             sc.setElementNames(getOutputGroupLabels(settings, RegexSplitter.fromSettings(settings)));
         }
         return sc.createSpec();
@@ -337,7 +337,8 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     // ###############
 
     private static String getGroupLabel(final RegexSplitNodeSettings settings, final CaptureGroup g) {
-        return g.name().orElse(String.valueOf(settings.m_decrementGroupIndexByOne ? (g.index() - 1) : g.index()));
+        return g.name().orElse(
+            String.valueOf(settings.m_decrementGroupIndexByOne ? (g.index() - 1) : g.index()));
     }
 
     /**
@@ -348,7 +349,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
      * @return An array of suffixes that are unique, non-blank and not null.
      */
     private static String[] getOutputGroupLabels(final RegexSplitNodeSettings settings, final RegexSplitter splitter) {
-        if (settings.m_outputGroupLabels == OutputGroupLabelMode.CAPTURE_GROUP_NAMES) {
+        if (settings.m_output.m_groupLabels == OutputGroupLabelMode.CAPTURE_GROUP_NAMES) {
             return splitter.getCaptureGroups().stream().map(g -> getGroupLabel(settings, g)).toArray(String[]::new);
         } else {
             return ensureUnique( // The output array should not contain duplicate strings

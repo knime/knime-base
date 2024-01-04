@@ -48,9 +48,7 @@
  */
 package org.knime.base.node.preproc.regexsplit;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.StringValue;
+import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputGroupLabelMode;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -63,22 +61,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Not;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Or;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Xor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil;
 
 /**
  * Settings class for the String Splitter (Regex) (formerly known as Regex Split)
@@ -106,28 +99,32 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    // Options
-
-    static final class StringColumnChoices implements ColumnChoicesProvider {
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .map(RegexSplitNodeSettings::stringColumns)//
-                .orElse(new DataColumnSpec[]{});
-        }
-    }
-
-    static DataColumnSpec[] stringColumns(final DataTableSpec spec) {
-        return spec.stream()//
-            .filter(s -> s.getType().isCompatible(StringValue.class))//
-            .toArray(DataColumnSpec[]::new);
-    }
-
     @Layout(DialogSections.Splitting.class)
     @Widget(title = "Target Column", description = "Choose the column containing the strings to split")
-    @ChoicesWidget(choices = StringColumnChoices.class)
+    @ChoicesWidget(choices = ColumnChoicesProviderUtil.StringColumnChoicesProvider.class)
     @Persist(configKey = "column", settingsModel = SettingsModelString.class)
     String m_column;
+
+    @Layout(DialogSections.Splitting.class)
+    @Widget(title = "Pattern", description = """
+            Define a pattern according to which the input string will be split. The capture groups that are defined in
+            this pattern will correspond to the output values. A group can be defined in one of two ways:
+            <ul>
+                <li>For a named group, define <tt>(?&lt;groupName&gt;pattern)</tt>,
+                where <tt>groupName</tt> is the name of the group and <tt>pattern</tt> can be replaced by any regular
+                expression that should be matched. Note that group names need to start with a letter and may
+                contain only letters and digits, no spaces.</li>
+                <li>For an unnamed capture group, simply use parenthesis around your pattern:
+                <tt>(pattern)</tt>, where again <tt>pattern</tt> can be replaced by any
+                pattern. Unnamed capture groups are simply identified by their position in the pattern string, and they
+                are enumerated starting at 1.</li>
+            </ul>
+            If you want to use non-capturing groups, construct them with
+            <tt>(?:pattern)</tt>
+            """)
+    @TextInputWidget(minLength = 1)
+    @Persist(configKey = "pattern", settingsModel = SettingsModelString.class)
+    String m_pattern = "(.*)";
 
     enum CaseMatching {
             /** Respect case when matching strings. */
@@ -170,26 +167,6 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     CaseMatching m_caseMatching = CaseMatching.CASESENSITIVE;
 
     @Layout(DialogSections.Splitting.class)
-    @Widget(title = "Pattern", description = """
-            Define a pattern according to which the input string will be split. The capture groups that are defined in
-            this pattern will correspond to the output values. A group can be defined in one of two ways:
-            <ul>
-                <li>For a named group, define <tt>(?&lt;groupName&gt;pattern)</tt>,
-                where <tt>groupName</tt> is the name of the group and <tt>pattern</tt> can be replaced by any regular
-                expression that should be matched.</li>
-                <li>For an unnamed capture group, simply use parenthesis around your pattern:
-                <tt>(pattern)</tt>, where again <tt>pattern</tt> can be replaced by any
-                pattern. Unnamed capture groups are simply identified by their position in the pattern string, and they
-                are enumerated starting at 1.</li>
-            </ul>
-            If you want to use non-capturing groups, construct them with
-            <tt>(?:pattern)</tt>
-            """)
-    @TextInputWidget(minLength = 1)
-    @Persist(configKey = "pattern", settingsModel = SettingsModelString.class)
-    String m_pattern = "(.*)";
-
-    @Layout(DialogSections.Splitting.class)
     @Widget(title = "Require whole string to match", description = """
             If enabled, the provided pattern must match the whole string in order to return any results. Otherwise, the
             first match in the input string is used.
@@ -197,32 +174,9 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Persist(optional = true)
     boolean m_requireWholeMatch = true;
 
-    enum NoMatchBehaviour {
-            @Label("Insert missing value")
-            INSERT_MISSING, //
-            @Label("Insert empty string")
-            INSERT_EMPTY, //
-            @Label("Fail")
-            FAIL;
-    }
-
-    @Layout(DialogSections.Splitting.class)
-    @Widget(title = "If pattern does not match", description = """
-            Define what to do if a pattern can't be matched to the input string:
-            <ul>
-                <li><i>Insert missing value</i> puts missing cell(s) in place of the output column(s).
-                    The node will emit a warning when an input string doesn't match.</li>
-                <li><i>Insert empty string</i> puts empty string(s) in place of the output column(s).
-                    The node will emit a warning when an input string doesn't match.</li>
-                <li><i>Fail</i> causes the node to fail if one of the inputs can not be matched against the pattern.
-                </li>
-            </ul>
-            """)
-    @Persist(optional = true)
-    @ValueSwitchWidget
-    NoMatchBehaviour m_noMatchBehaviour = NoMatchBehaviour.INSERT_MISSING;
-
-    // Legacy Options
+    /**
+     * Legacy match settings
+     */
 
     @Layout(DialogSections.SplittingLegacy.class)
     @Widget(title = "Enable Unix lines mode", advanced = true,
@@ -264,7 +218,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     boolean m_isCanonEQ = false;
 
     @Layout(DialogSections.SplittingLegacy.class)
-    @Widget(title = "Enables Unicode character classes", advanced = true, description = """
+    @Widget(title = "Enable Unicode character classes", advanced = true, description = """
             When enabled, the (US-ASCII only) <i>Predefined character classes</i> and <i>POSIX character classes</i> are
             in conformance with the Unicode Standard. <br />
             Enabling this may impose a performance penalty.""")
@@ -286,154 +240,13 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Effect(signals = OutputGroupLabelMode.IsCaptureGroupNames.class, type = EffectType.SHOW)
     boolean m_decrementGroupIndexByOne = false;
 
-    // Output
+    /**
+     * Output settings
+     */
 
-    enum OutputMode {
-            @Label("Columns")
-            COLUMNS, //
-            @Label("Rows")
-            ROWS, //
-            @Label("List")
-            LIST, //
-            @Label("Set (remove duplicates)")
-            SET;
-
-        boolean isCollection() {
-            return this == LIST || this == SET;
-        }
-
-        interface IsColumns {
-            class Condition extends OneOfEnumCondition<OutputMode> {
-                @Override
-                public OutputMode[] oneOf() {
-                    return new OutputMode[]{OutputMode.COLUMNS};
-                }
-            }
-        }
-
-        interface IsRows {
-            class Condition extends OneOfEnumCondition<OutputMode> {
-                @Override
-                public OutputMode[] oneOf() {
-                    return new OutputMode[]{OutputMode.ROWS};
-                }
-            }
-        }
-    }
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Output mode", description = """
-            Define how to output the results:
-            <ul>
-                <li><i>Columns</i>: Each capture group in the defined pattern creates a new column in the output table.
-                The column names correspond to the names of the named capture groups.</li>
-                <li><i>Rows</i>: Each input row is duplicated by the number of capture groups, and every capture is
-                added to one of those copies.</li>
-                <li><i>List</i>: The captures are appended to the input as a list of strings.</li>
-                <li><i>Set (remove duplicates)</i>: The captures are appended to the input as a set of strings. Note
-                that duplicates are removed and the order of captures is not preserved.</li>
-            </ul>
-            """)
-    @ValueSwitchWidget
-    @Signal(id = OutputMode.IsColumns.class, condition = OutputMode.IsColumns.Condition.class)
-    @Signal(id = OutputMode.IsRows.class, condition = OutputMode.IsRows.Condition.class)
-    @Persist(optional = true)
-    OutputMode m_outputMode = OutputMode.COLUMNS;
-
-    enum ColumnPrefixMode {
-            @Label("Input column name")
-            INPUT_COL_NAME, //
-            @Label("Custom")
-            CUSTOM, //
-            @Label("None")
-            NONE;
-
-        interface IsCustom {
-            class Condition extends OneOfEnumCondition<ColumnPrefixMode> {
-                @Override
-                public ColumnPrefixMode[] oneOf() {
-                    return new ColumnPrefixMode[]{ColumnPrefixMode.CUSTOM};
-                }
-            }
-        }
-    }
-
-    static final class CustomColumnPrefiixModeProvider implements DefaultProvider<ColumnPrefixMode> {
-        @Override
-        public ColumnPrefixMode getDefault() {
-            return ColumnPrefixMode.CUSTOM; // This was the behaviour in earlier iterations of this node
-        }
-    }
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Output column prefix", description = """
-            Define what prefix should be used for the output column names:
-            <ul>
-                <li><i>Input column name</i>: The name of the column containing the string to split is used as a prefix.
-                    </li>
-                <li><i>Custom</i>: Define a custom string that shall be used as a prefix.</li>
-                <li><i>None</i>: No prefix is added.</li>
-            </ul>
-            """)
-    @ValueSwitchWidget
-    @Signal(id = ColumnPrefixMode.IsCustom.class, condition = ColumnPrefixMode.IsCustom.Condition.class)
-    @Effect(signals = OutputMode.IsColumns.class, type = EffectType.SHOW)
-    @Persist(defaultProvider = CustomColumnPrefiixModeProvider.class)
-    ColumnPrefixMode m_columnPrefixMode = ColumnPrefixMode.INPUT_COL_NAME;
-
-    static final class ColumnPrefixProvider implements DefaultProvider<String> {
-        @Override
-        public String getDefault() {
-            return "split_"; // This was the prefix in earlier iterations of this node
-        }
-    }
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Custom prefix", description = "Define a custom column prefix.")
-    @Persist(defaultProvider = ColumnPrefixProvider.class)
-    @Effect(signals = {OutputMode.IsColumns.class, ColumnPrefixMode.IsCustom.class}, operation = And.class,
-        type = EffectType.SHOW)
-    String m_columnPrefix = "Split ";
-
-    enum OutputGroupLabelMode {
-            @Label("Capture group names or indices")
-            CAPTURE_GROUP_NAMES, //
-            @Label("Split input column name")
-            SPLIT_INPUT_COL_NAME;
-
-        interface IsCaptureGroupNames {
-            class Condition extends OneOfEnumCondition<OutputGroupLabelMode> {
-                @Override
-                public OutputGroupLabelMode[] oneOf() {
-                    return new OutputGroupLabelMode[]{OutputGroupLabelMode.CAPTURE_GROUP_NAMES};
-                }
-            }
-        }
-    }
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Group labels in output", description = """
-            Define the naming of the output groups:
-            <ul>
-                <li><i>Capture group names or indices</i>: Use the names of the capture groups. For unnamed capture
-                    groups, their index is used as their label.</li>
-                <li><i>Split input column name</i>: Apply the provided pattern to the name of the input column and
-                    use the captures as labels.</li>
-            </ul>
-
-            The impact of this setting depends on the selected <i>Output mode</i>:
-            <ul>
-                <li><i>Columns</i>: The labels will be used as the suffix of the column names.</li>
-                <li><i>Rows</i>: The labels will be used as the suffix of the row IDs.</li>
-                <li><i>List</i> and <i>Set</i>: The labels will be used as element names in the collection cell
-                    specification.</li>
-            </ul>
-            """)
-    @RadioButtonsWidget
-    @Signal(id = OutputGroupLabelMode.IsCaptureGroupNames.class,
-        condition = OutputGroupLabelMode.IsCaptureGroupNames.Condition.class)
-    @Persist(optional = true)
-    OutputGroupLabelMode m_outputGroupLabels = OutputGroupLabelMode.CAPTURE_GROUP_NAMES;
+    @Widget
+    @Persist(defaultProvider = OutputSettings.LegacyProvider.class)
+    OutputSettings m_output = new OutputSettings();
 
     static class TrueProvider implements DefaultProvider<Boolean> {
         @Override
@@ -441,46 +254,6 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
             return true;
         }
     }
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Remove input column", description = "Remove the input column from the output table.")
-    @Effect(signals = OutputMode.IsColumns.class, type = EffectType.SHOW)
-    @Persist(optional = true)
-    boolean m_removeInputColumn = false;
-
-    enum SingleOutputColumnMode {
-            @Label("Append")
-            APPEND, //
-            @Label("Replace")
-            REPLACE;
-
-        interface IsReplace {
-            class Condition extends OneOfEnumCondition<SingleOutputColumnMode> {
-                @Override
-                public SingleOutputColumnMode[] oneOf() {
-                    return new SingleOutputColumnMode[]{SingleOutputColumnMode.REPLACE};
-                }
-
-            }
-        }
-    }
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Output column",
-        description = "Choose whether to append the output column or replace the input column.")
-    @ValueSwitchWidget
-    @Effect(signals = OutputMode.IsColumns.class, operation = Not.class, type = EffectType.SHOW)
-    @Signal(id = SingleOutputColumnMode.IsReplace.class, condition = SingleOutputColumnMode.IsReplace.Condition.class)
-    @Persist(optional = true)
-    SingleOutputColumnMode m_singleOutputColumnMode = SingleOutputColumnMode.APPEND;
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Output column name", description = "Choose a name for the output column")
-    @TextInputWidget(minLength = 1)
-    @Effect(signals = {SingleOutputColumnMode.IsReplace.class, OutputMode.IsColumns.class}, operation = Or.class,
-        type = EffectType.HIDE)
-    @Persist(optional = true)
-    String m_outputColumnName = "Split";
 
     // ===== Please don't look below this line
 
@@ -504,7 +277,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
 
     /**
      * The story is a similar one for this setting, except that here the implementation of the
-     * {@link CaptureGroupParser} is just not up to the task. Having this setting enabled is also a very unlikely edge
+     * {@link CaptureGroupExtractor} is just not up to the task. Having this setting enabled is also a very unlikely edge
      * case, and in prior iterations of this node it also lead to errors when a comment had parenthesis in it.
      *
      * @deprecated

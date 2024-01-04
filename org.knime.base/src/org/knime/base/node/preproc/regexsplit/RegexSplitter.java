@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import org.knime.base.node.preproc.regexsplit.CaptureGroupParser.CaptureGroup;
+import org.knime.base.node.preproc.regexsplit.CaptureGroupExtractor.CaptureGroup;
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.CaseMatching;
 import org.knime.core.node.InvalidSettingsException;
 
@@ -73,7 +73,7 @@ final class RegexSplitter {
 
     private RegexSplitter(final Pattern p, final boolean matchWholeString) {
         m_pattern = p;
-        m_groups = CaptureGroupParser.parse(p);
+        m_groups = CaptureGroupExtractor.parse(p);
         m_matchWholeString = matchWholeString;
     }
 
@@ -112,9 +112,11 @@ final class RegexSplitter {
             if (settings.m_isUnicodeCharacterClass) {
                 flags |= Pattern.UNICODE_CHARACTER_CLASS;
             }
-            return new RegexSplitter(Pattern.compile(settings.m_pattern, flags), settings.m_requireWholeMatch);
+            return new RegexSplitter(Pattern.compile(settings.m_pattern, flags),
+                settings.m_requireWholeMatch);
         } catch (IllegalArgumentException e) { // PatternSyntaxException is an IllegalArgumentException
-            throw new InvalidSettingsException("Invalid Pattern: " + settings.m_pattern + ": " + e.getMessage(), e);
+            throw new InvalidSettingsException("Invalid Pattern: " + settings.m_pattern + ": " + e.getMessage(),
+                e);
         }
     }
 

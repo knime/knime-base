@@ -57,7 +57,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.regexsplit.CaptureGroupParser.CaptureGroup;
+import org.knime.base.node.preproc.regexsplit.CaptureGroupExtractor.CaptureGroup;
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.CaseMatching;
 import org.knime.core.node.InvalidSettingsException;
 
@@ -65,6 +65,7 @@ import org.knime.core.node.InvalidSettingsException;
  * Tests the {@link RegexSplitter}.
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("javadoc")
 class RegexSplitterTest {
@@ -98,17 +99,31 @@ class RegexSplitterTest {
         assertTrue(splitter3.apply("abcd123").isEmpty(),
             "abcd123 should not match since we require the whole string to match");
 
+        final var splitter4 = RegexSplitter.fromSettings(getSettings("([A-Za-z]{3})(\\d+)?", false));
+        assertEquals(List.of(Optional.of("abc"), Optional.empty()), splitter4.apply("abcd123").orElseThrow(),
+            "abcd123 should partially match");
+    }
+
+    @Test
+    void testLookbehindMatching() throws InvalidSettingsException {
+        final var splitter = RegexSplitter.fromSettings(getSettings("(?<!black )(cat)", false));
+        assertTrue(splitter.apply("The black cat is not matched, no black cat is.").isEmpty(), "black cat should not match");
+        assertEquals(List.of(Optional.of("cat")), splitter.apply("The black cat is not matched, the red cat is.").orElseThrow(),
+            "There should be one capture group with cat");
     }
 
     @Test
     void testCaptureGroupCounting() throws InvalidSettingsException {
         assertGroups("");
         assertGroups("()", cg(1));
+        assertGroups("a()b()", cg(1), cg(2));
         assertGroups("(\\d{4})-(\\d{2})-(\\d{2})", cg(1), cg(2), cg(3));
         assertGroups("^(?<username>[a-zA-Z0-9._%+-]+)@(?<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})$", //
             cg(1, "username"), cg(2, "domain"));
         assertGroups("<(?<tag>\\w+)(\\s+(?<attribute>\\w+)\\s*=\\s*['\"](?<value>[^'\"]*)['\"])*\\s*/?>", //
             cg(1, "tag"), cg(2), cg(3, "attribute"), cg(4, "value"));
+        assertGroups("(?<a>(?<b>(?<c>(?<d>)(?<e>))(?<f>))(?<g>))", //
+            cg(1, "a"), cg(2, "b"), cg(3, "c"), cg(4, "d"), cg(5, "e"), cg(6, "f"), cg(7, "g"));
         assertGroups(
             "(?<octet1>\\b(?:\\d{1,2}|1\\d{2}|2[0-4]\\d|25[0-5])\\b)"
                 + "(?:\\.(?<octet2>\\b(?:\\d{1,2}|1\\d{2}|2[0-4]\\d|25[0-5])\\b)){3}", //
@@ -133,16 +148,48 @@ class RegexSplitterTest {
         assertGroups("^[a-z]{3}([^&]*$|\".*\"$)", cg(1));
     }
 
+    /**
+     * Tests the counting of non-capturing groups.
+     * @throws InvalidSettingsException
+     */
+    @Test
+    void testNonCapturingGroupCounting() throws InvalidSettingsException {
+        // (?idmsux-idmsux:X)      X, as a non-capturing group with the given flags i d m s u x on - off
+        assertGroups("(?idmsux-idmsux:X)");
+        // (?:X)   X, as a non-capturing group
+        assertGroups("(?:X)");
+        // (?>X)   X, as an independent, non-capturing group
+        assertGroups("(?>X)");
+    }
+
     @Test
     void testCaptureGroupCountingWithEscapedParentheses() throws InvalidSettingsException {
+        // The outer parentheses are literal parentheses \(escaped\)
         assertGroups("\\(escaped\\)");
-        assertGroups("\\(\\\\(escaped)\\)", cg(1));
+        // escape parenthesis via range quoting
+        // pattern \Q(\E no group \Q)\E
+        assertGroups("\\Q(\\E no group \\Q)\\E");
+
+        // pattern \(?<notAGroupBecause>escaped\)
+        assertGroups("\\(?<notAGroupBecause>escaped\\)");
+        // The outer parentheses are literal parentheses,
+        // the inner parentheses constitute a capture group since the backslashes are also escaped
+        // pattern \(\\(escaped\\)\)
+        assertGroups("\\(\\\\(escaped\\\\)\\)", cg(1));
+        // inner parentheses are escaped
+        // pattern (\(\d+\))-(\w+)
         assertGroups("(\\(\\d+\\))-(\\w+)", cg(1), cg(2));
+        // only one outer group
+        // pattern (a|\(b\))
         assertGroups("(a|\\(b\\))", cg(1));
+        // pattern (\(\w+\))+
         assertGroups("(\\(\\w+\\))+", cg(1));
+        // pattern (?<=\(a\))\d+(?=\(b\))
         assertGroups("(?<=\\(a\\))\\d+(?=\\(b\\))");
         assertGroups("(\\w+)\\s\\1", cg(1));
         assertGroups("(a)?(?:\\(?<esc>b\\)|c)", cg(1));
+        // one named group, one non-capturing group (?:X)
+        // pattern (?<one>a)?(?:\(?<esc>b\)|c)
         assertGroups("(?<one>a)?(?:\\(?<esc>b\\)|c)", cg(1, "one"));
         assertGroups("(?:\\(\\d+\\))-(\\w+)", cg(1));
         assertGroups("[\\(\\)](?<x>\\w+)[\\(\\)]", cg(1, "x"));

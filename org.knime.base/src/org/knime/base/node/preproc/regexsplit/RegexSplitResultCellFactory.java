@@ -106,7 +106,7 @@ final class RegexSplitResultCellFactory extends AbstractCellFactory {
     private DataCell[] createOutputCells(final List<Optional<String>> groups) {
         final Stream<DataCell> values = groups.stream()
             .map(optionalResult -> optionalResult.<DataCell> map(StringCell::new).orElseGet(DataType::getMissingCell));
-        return switch (m_settings.m_outputMode) {
+        return switch (m_settings.m_output.m_mode) {
             case COLUMNS, ROWS -> values.toArray(DataCell[]::new);
             case LIST -> new DataCell[]{CollectionCellFactory.createListCell(values.toList())};
             case SET -> new DataCell[]{CollectionCellFactory.createSetCell(values.toList())};
@@ -118,7 +118,7 @@ final class RegexSplitResultCellFactory extends AbstractCellFactory {
 
     private DataCell[] createReplacementCells(final long rowIndex) {
         m_warningConsumer.accept(LINE_DIDNT_MATCH_WARNING);
-        final var replacement = switch (m_settings.m_noMatchBehaviour) {
+        final var replacement = switch (m_settings.m_output.m_noMatchBehaviour) {
             case INSERT_EMPTY -> new StringCell("");
             case INSERT_MISSING -> DataType.getMissingCell();
             default -> throw KNIMEException
@@ -130,7 +130,7 @@ final class RegexSplitResultCellFactory extends AbstractCellFactory {
 
         final var cells = new DataCell[this.getColumnSpecs().length];
         Arrays.fill(cells, replacement);
-        return switch (m_settings.m_outputMode) {
+        return switch (m_settings.m_output.m_mode) {
             case ROWS, COLUMNS -> cells;
             case LIST -> new DataCell[]{CollectionCellFactory.createListCell(Arrays.stream(cells).toList())};
             case SET -> new DataCell[]{CollectionCellFactory.createSetCell(Arrays.stream(cells).toList())};

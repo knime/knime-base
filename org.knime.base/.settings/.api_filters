@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component id="org.knime.base" version="2">
+    <resource path="src/org/knime/base/node/preproc/regexsplit/RegexSplitNodeFactory.java" type="org.knime.base.node.preproc.regexsplit.RegexSplitNodeFactory">
+        <filter comment="web ui dialog makes create node view final" id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.regexsplit.RegexSplitNodeFactory"/>
+                <message_argument value="createNodeView(int, RegexSplitNodeModel)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+</component>
