@@ -57,8 +57,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * Settings of the Column Renamer node.
  *
@@ -108,12 +106,10 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
         @Layout(RenamingLayout.class)
         public String m_newName;
 
-        @JsonIgnore
         String getOldName() {
             return m_oldName;
         }
 
-        @JsonIgnore
         String getNewName() {
             return m_newName;
         }

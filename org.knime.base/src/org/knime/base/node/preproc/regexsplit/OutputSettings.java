@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.regexsplit;
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.DialogSections;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.LayoutGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
@@ -75,7 +75,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @since 5.3
  */
 @SuppressWarnings({"restriction", "squid:S3052"}) // Pending API, initialise with defaults
-final class OutputSettings implements DefaultNodeSettings, LayoutGroup {
+final class OutputSettings implements DefaultNodeSettings, WidgetGroup {
 
     static final class LegacyProvider implements DefaultProvider<OutputSettings> {
         @Override
