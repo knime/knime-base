@@ -116,6 +116,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
         if (settings.m_column == null) {
             throw new InvalidSettingsException("No input column selected.");
         }
+        getInputColumnIndex(inSpecs[0], settings.m_column); // throws if invalid
         final var outputSpec = switch (settings.m_output.m_mode) {
             case COLUMNS, LIST, SET -> createColumnRearranger(settings, inSpecs[0], this::setWarning).createSpec();
             case ROWS -> createTableSpecForRowOutput(settings, inSpecs[0]);

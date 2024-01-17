@@ -88,7 +88,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
         interface Splitting {
         }
 
-        @Section(title = "Splitting (Legacy)", advanced = true)
+        @Section(title = "Splitting (Advanced)", advanced = true)
         @After(DialogSections.Splitting.class)
         interface SplittingLegacy {
         }

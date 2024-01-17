@@ -176,6 +176,14 @@ final class OutputSettings implements DefaultNodeSettings, WidgetGroup {
     @Effect(signals = OutputMode.IsColumns.class, type = EffectType.SHOW)
     ColumnPrefixMode m_columnPrefixMode = ColumnPrefixMode.INPUT_COL_NAME;
 
+    //  -------------------  Custom column prefix: only for output as columns with custom prefix -------------------
+
+    @Layout(DialogSections.Output.class)
+    @Widget(title = "Custom prefix", description = "Define a custom column prefix.")
+    @Effect(signals = {OutputMode.IsColumns.class, ColumnPrefixMode.IsCustom.class}, operation = And.class,
+        type = EffectType.SHOW)
+    String m_columnPrefix = "Split ";
+
     // -------  Remove input column: only for output as columns, for the others we have the append|replace option  --
 
     @Layout(DialogSections.Output.class)
@@ -184,30 +192,6 @@ final class OutputSettings implements DefaultNodeSettings, WidgetGroup {
     @Persist(optional = true)
     boolean m_removeInputColumn = false;
 
-    //  -------------------  Custom column prefix: only for output as columns with custom prefix -------------------
-
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Custom prefix", description = "Define a custom column prefix.")
-    @Effect(signals = {OutputMode.IsColumns.class, ColumnPrefixMode.IsCustom.class}, operation = And.class,
-        type = EffectType.SHOW)
-    String m_columnPrefix = "Split ";
-
-    enum OutputGroupLabelMode {
-            @Label("Capture group names or indices")
-            CAPTURE_GROUP_NAMES, //
-            @Label("Split input column name")
-            SPLIT_INPUT_COL_NAME;
-
-        interface IsCaptureGroupNames {
-            class Condition extends OneOfEnumCondition<OutputGroupLabelMode> {
-                @Override
-                public OutputGroupLabelMode[] oneOf() {
-                    return new OutputGroupLabelMode[]{OutputGroupLabelMode.CAPTURE_GROUP_NAMES};
-                }
-            }
-        }
-    }
 
     //  -------------------  Append column/replace input column: only for output as rows or collection  ----------------
 
@@ -248,8 +232,24 @@ final class OutputSettings implements DefaultNodeSettings, WidgetGroup {
 
     //  -------------------  Group labels in output  -------------------
 
+    enum OutputGroupLabelMode {
+            @Label("Capture group names or indices")
+            CAPTURE_GROUP_NAMES, //
+            @Label("Split input column name")
+            SPLIT_INPUT_COL_NAME;
+
+        interface IsCaptureGroupNames {
+            class Condition extends OneOfEnumCondition<OutputGroupLabelMode> {
+                @Override
+                public OutputGroupLabelMode[] oneOf() {
+                    return new OutputGroupLabelMode[]{OutputGroupLabelMode.CAPTURE_GROUP_NAMES};
+                }
+            }
+        }
+    }
+
     @Layout(DialogSections.Output.class)
-    @Widget(title = "Group labels in output", description = """
+    @Widget(title = "Group labels in output", advanced = true, description = """
             Define the naming of the output groups:
             <ul>
                 <li><i>Capture group names or indices</i>: Use the names of the capture groups. For unnamed capture
