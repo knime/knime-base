@@ -52,7 +52,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.knime.base.node.preproc.stringreplacer.CaseMatching;
+import org.knime.base.node.preproc.common.settings.CaseMatching;
 import org.knime.base.node.preproc.stringreplacer.PatternType;
 import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;

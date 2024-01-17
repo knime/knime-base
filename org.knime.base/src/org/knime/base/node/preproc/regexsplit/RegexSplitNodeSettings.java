@@ -48,17 +48,14 @@
  */
 package org.knime.base.node.preproc.regexsplit;
 
+import org.knime.base.node.preproc.common.settings.CaseMatching;
 import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputGroupLabelMode;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
@@ -67,7 +64,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Xor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -125,34 +121,6 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @TextInputWidget(minLength = 1)
     @Persist(configKey = "pattern", settingsModel = SettingsModelString.class)
     String m_pattern = "(.*)";
-
-    enum CaseMatching {
-            /** Respect case when matching strings. */
-            @Label("Case sensitive")
-            CASESENSITIVE, //
-            /** Disregard case when matching strings. */
-            @Label("Case insensitive")
-            CASEINSENSITIVE;
-
-        /** persists the case sensitivity as a boolean indicating whether the matching is case-INsensitive */
-        public static final class CaseInsensitivityPersistor extends NodeSettingsPersistorWithConfigKey<CaseMatching> {
-            @Override
-            public CaseMatching load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return settings.getBoolean(getConfigKey()) ? CASEINSENSITIVE : CASESENSITIVE;
-            }
-
-            @Override
-            public void save(final CaseMatching cm, final NodeSettingsWO settings) {
-                settings.addBoolean(getConfigKey(), cm == CASEINSENSITIVE);
-            }
-
-            @Override
-            public String[] getConfigKeys() {
-                return new String[]{getConfigKey()};
-            }
-
-        }
-    }
 
     @Layout(DialogSections.Splitting.class)
     @Widget(title = "Case sensitive", description = """

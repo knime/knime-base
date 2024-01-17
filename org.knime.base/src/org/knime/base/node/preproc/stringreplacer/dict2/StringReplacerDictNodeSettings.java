@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.stringreplacer.dict2;
 
-import org.knime.base.node.preproc.stringreplacer.CaseMatching;
+import org.knime.base.node.preproc.common.settings.CaseMatching;
 import org.knime.base.node.preproc.stringreplacer.PatternType;
 import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
 import org.knime.core.data.DataColumnSpec;
@@ -185,7 +185,7 @@ public final class StringReplacerDictNodeSettings implements DefaultNodeSettings
     boolean m_enableEscaping;
 
     @Layout(DialogSections.FindAndReplace.class)
-    @Persist(customPersistor = CaseMatching.Persistor.class)
+    @Persist(customPersistor = CaseMatching.CaseSensitivityPersistor.class, configKey = "caseSensitive")
     @Widget(title = CaseMatching.OPTION_NAME, description = CaseMatching.OPTION_DESCRIPTION)
     @ValueSwitchWidget
     CaseMatching m_caseMatching = CaseMatching.DEFAULT;

@@ -53,10 +53,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.base.node.preproc.common.settings.SingleColumnOutputMode;
 import org.knime.base.node.preproc.regexsplit.CaptureGroupExtractor.CaptureGroup;
 import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputGroupLabelMode;
 import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputMode;
-import org.knime.base.node.preproc.regexsplit.OutputSettings.SingleOutputColumnMode;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -183,7 +183,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
             final DataColumnSpec spec = createNewColumnSpecForSingleColumnOutput(settings, inputTableSpec);
             final var factory = new RegexSplitResultCellFactory(new DataColumnSpec[]{spec}, inputColumnIndex, settings,
                 splitter, warningConsumer);
-            switch (settings.m_output.m_singleOutputColumnMode) {//NOSONAR: No, an if-statement is not more readable here
+            switch (settings.m_output.m_singleColOutputSettings.m_outputMode) {//NOSONAR: No, an if-statement is not more readable here
                 case APPEND -> rearranger.append(factory);
                 case REPLACE -> rearranger.replace(factory, inputColumnIndex);
             }
@@ -199,7 +199,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
         final DataTableSpec inSpec) throws InvalidSettingsException {
         final var cSpec = createNewColumnSpecForSingleColumnOutput(settings, inSpec);
         final var creator = new DataTableSpecCreator(inSpec);
-        switch (settings.m_output.m_singleOutputColumnMode) { //NOSONAR: switch is more explicit than if
+        switch (settings.m_output.m_singleColOutputSettings.m_outputMode) { //NOSONAR: switch is more explicit than if
             case APPEND -> creator.addColumns(cSpec);
             case REPLACE -> {
                 creator.dropAllColumns();
@@ -268,7 +268,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
             var innerCounter = 0; // used to find row ID suffix
             for (final var match : matches) {
                 final DataCell[] cells;
-                if (settings.m_output.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
+                if (settings.m_output.m_singleColOutputSettings.m_outputMode == SingleColumnOutputMode.APPEND) {
                     cells = Arrays.copyOf(row.stream().toArray(DataCell[]::new), row.getNumCells() + 1);
                     cells[cells.length - 1] = match;
                 } else { // replace
@@ -316,8 +316,9 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
                 "For output mode COLUMNS, please use #createNewColumnSpecsForColumnOutput");
         };
         final DataColumnSpecCreator sc;
-        if (settings.m_output.m_singleOutputColumnMode == SingleOutputColumnMode.APPEND) {
-            final var name = DataTableSpec.getUniqueColumnName(inputTableSpec, settings.m_output.m_columnName);
+        if (settings.m_output.m_singleColOutputSettings.m_outputMode == SingleColumnOutputMode.APPEND) {
+            final var name = DataTableSpec.getUniqueColumnName(inputTableSpec,
+                settings.m_output.m_singleColOutputSettings.m_newColumnName);
             sc = new DataColumnSpecCreator(name, outputColumnType);
         } else {
             final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings.m_column);
@@ -337,8 +338,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     // ###############
 
     private static String getGroupLabel(final RegexSplitNodeSettings settings, final CaptureGroup g) {
-        return g.name().orElse(
-            String.valueOf(settings.m_decrementGroupIndexByOne ? (g.index() - 1) : g.index()));
+        return g.name().orElse(String.valueOf(settings.m_decrementGroupIndexByOne ? (g.index() - 1) : g.index()));
     }
 
     /**

@@ -47,6 +47,7 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import org.knime.base.node.preproc.common.settings.CaseMatching;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;

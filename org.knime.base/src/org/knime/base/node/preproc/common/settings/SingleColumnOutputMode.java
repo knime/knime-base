@@ -44,65 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23 Jun 2023 (carlwitt): created
+ *   17 Jan 2024 (jasper): created
  */
-package org.knime.base.node.preproc.stringreplacer;
+package org.knime.base.node.preproc.common.settings;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 
 /**
- * Whether to distinguish between upper-case and lower-case letters during string replacement.
  *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
- * @since 5.1
+ * @author jasper
  */
 @SuppressWarnings("restriction")
-public enum CaseMatching {
-        /** Respect case when matching strings. */
-        @Label("Case sensitive")
-        CASESENSITIVE, //
-        /** Disregard case when matching strings. */
-        @Label("Case insensitive")
-        CASEINSENSITIVE;
+public enum SingleColumnOutputMode {
+        @Label("Append")
+        APPEND, //
+        @Label("Replace")
+        REPLACE;
 
-    /** Recommended default setting. */
-    public static final CaseMatching DEFAULT = CASESENSITIVE;
+    public static final SingleColumnOutputMode DEFAULT = APPEND;
 
-    /** Displayed in dialogs as title for controls. */
-    public static final String OPTION_NAME = "Case sensitive";
-
-    /** Displayed in dialogs as help text on controls. */
-    public static final String OPTION_DESCRIPTION =
-        "Specifies whether matching will distinguish between upper and lower case letters.";
-
-    /**
-     * Store the selected option as a boolean value under the key {@code caseSensitive}.
-     *
-     * This is for compatibility with legacy node settings. However, newer nodes, e.g., String Replacer (Dictionary) use
-     * this too for consistency.
-     */
-    public static final class Persistor implements FieldNodeSettingsPersistor<CaseMatching> {
-
-        static final String CFG_CASE_SENSITIVE = "caseSensitive";
-
-        @Override
-        public CaseMatching load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getBoolean(CFG_CASE_SENSITIVE) ? CaseMatching.CASESENSITIVE : CaseMatching.CASEINSENSITIVE;
+    public interface IsReplace {
+        class Condition extends OneOfEnumCondition<SingleColumnOutputMode> {
+            @Override
+            public SingleColumnOutputMode[] oneOf() {
+                return new SingleColumnOutputMode[]{SingleColumnOutputMode.REPLACE};
+            }
         }
-
-        @Override
-        public void save(final CaseMatching matchingStrategy, final NodeSettingsWO settings) {
-            settings.addBoolean(CFG_CASE_SENSITIVE, matchingStrategy == CaseMatching.CASESENSITIVE);
-        }
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{CFG_CASE_SENSITIVE};
-        }
-
     }
 }

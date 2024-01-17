@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.regexsplit;
 
+import org.knime.base.node.preproc.common.settings.SingleColumnOutputMode;
+import org.knime.base.node.preproc.common.settings.components.AppendReplaceSettings;
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.DialogSections;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -59,11 +61,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Not;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Or;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -186,7 +186,6 @@ final class OutputSettings implements DefaultNodeSettings, LayoutGroup {
 
     //  -------------------  Custom column prefix: only for output as columns with custom prefix -------------------
 
-
     @Layout(DialogSections.Output.class)
     @Widget(title = "Custom prefix", description = "Define a custom column prefix.")
     @Effect(signals = {OutputMode.IsColumns.class, ColumnPrefixMode.IsCustom.class}, operation = And.class,
@@ -211,40 +210,11 @@ final class OutputSettings implements DefaultNodeSettings, LayoutGroup {
 
     //  -------------------  Append column/replace input column: only for output as rows or collection  ----------------
 
-    enum SingleOutputColumnMode {
-            @Label("Append")
-            APPEND, //
-            @Label("Replace")
-            REPLACE;
-
-        interface IsReplace {
-            class Condition extends OneOfEnumCondition<SingleOutputColumnMode> {
-                @Override
-                public SingleOutputColumnMode[] oneOf() {
-                    return new SingleOutputColumnMode[]{SingleOutputColumnMode.REPLACE};
-                }
-            }
-        }
-    }
-
     @Layout(DialogSections.Output.class)
-    @Widget(title = "Output column",
-        description = "Choose whether to append the output column or replace the input column.")
-    @ValueSwitchWidget
     @Effect(signals = OutputMode.IsColumns.class, operation = Not.class, type = EffectType.SHOW)
-    @Signal(id = SingleOutputColumnMode.IsReplace.class, condition = SingleOutputColumnMode.IsReplace.Condition.class)
     @Persist(optional = true)
-    SingleOutputColumnMode m_singleOutputColumnMode = SingleOutputColumnMode.APPEND;
-
-    //  -------------------  Output column name: only for append column  -------------------
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Output column name", description = "Choose a name for the output column")
-    @TextInputWidget(minLength = 1)
-    @Effect(signals = {SingleOutputColumnMode.IsReplace.class, OutputMode.IsColumns.class}, operation = Or.class,
-        type = EffectType.HIDE)
-    @Persist(optional = true)
-    String m_columnName = "Split";
+    AppendReplaceSettings m_singleColOutputSettings =
+        AppendReplaceSettings.withDefaults(SingleColumnOutputMode.APPEND, "Split");
 
     //  -------------------  Group labels in output  -------------------
 

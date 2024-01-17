@@ -44,59 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   2 May 2023 (jasper): created
+ *   17 Jan 2024 (jasper): created
  */
-package org.knime.base.node.preproc.stringreplacer.dict2;
+package org.knime.base.node.preproc.common.settings.components;
 
-import java.util.Optional;
-
-import org.apache.commons.lang3.StringUtils;
-import org.knime.base.node.preproc.common.settings.CaseMatching;
-import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
+import org.knime.base.node.preproc.common.settings.PatternType;
+import org.knime.base.node.preproc.common.settings.PatternType.IsWildcardCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.LayoutGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * Replacer dictionary implementation that has plain strings as lookup keys
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-public final class StringReplacer extends DictReplacer<String> {
+@SuppressWarnings("restriction")
+public class PatternTypeSettings implements DefaultNodeSettings, LayoutGroup {
 
-    StringReplacer(final StringReplacerDictNodeSettings modelSettings) {
-        super(modelSettings);
+    interface IsWildcard {
     }
 
-    @Override
-    protected String compilePattern(final String pattern) {
-        return pattern;
-    }
+    @Widget(title = PatternType.OPTION_NAME, description = PatternType.OPTION_DESCRIPTION)
+    @ValueSwitchWidget
+    @Signal(id = IsWildcard.class, condition = IsWildcardCondition.class)
+    public PatternType m_patternType = PatternType.DEFAULT;
 
-    @Override
-    protected String prepareReplacementString(final String replacement) {
-        return replacement;
-    }
-
-    @Override
-    protected Optional<String> processSingleReplacement(final String pattern, final String input,
-        final String replacement) {
-        if (m_settings.m_caseMatching == CaseMatching.CASESENSITIVE) {
-            if (m_settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.contains(input, pattern)) {
-                // we check for contains so we can return Optional.empty() else
-                return Optional.of(StringUtils.replace(input, pattern, replacement));
-            } else if (m_settings.m_replacementStrategy == ReplacementStrategy.WHOLE_STRING
-                && StringUtils.equals(input, pattern)) { // replace whole string
-                return Optional.of(replacement);
-            }
-        } else if (m_settings.m_caseMatching == CaseMatching.CASEINSENSITIVE) {
-            if (m_settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.containsIgnoreCase(input, pattern)) {
-                // we check for contains so we can return Optional.empty() else
-                return Optional.of(StringUtils.replaceIgnoreCase(input, pattern, replacement));
-            } else if (m_settings.m_replacementStrategy == ReplacementStrategy.WHOLE_STRING
-                    && StringUtils.equalsIgnoreCase(input, pattern)) { // replace whole string
-                return Optional.of(replacement);
-            }
-        }
-        return Optional.empty();
-    }
+    @Widget(title = "Use backslash as escape character", description = """
+            If checked, the backslash character can be used to escape special characters. For instance, <tt>\\?</tt>
+            will match the literal character <tt>?</tt> instead of an arbitrary character. In order to match a
+            backslash you need to escape the backslash, too (<tt>\\</tt>).
+            """)
+    @Effect(signals = IsWildcard.class, type = EffectType.SHOW)
+    public boolean m_enableEscaping;
 }

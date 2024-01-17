@@ -44,59 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   2 May 2023 (jasper): created
+ *   17 Jan 2024 (jasper): created
  */
-package org.knime.base.node.preproc.stringreplacer.dict2;
+package org.knime.base.node.preproc.common.settings.components;
 
-import java.util.Optional;
+import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
-import org.knime.base.node.preproc.common.settings.CaseMatching;
-import org.knime.base.node.preproc.stringreplacer.ReplacementStrategy;
+import org.knime.base.node.preproc.common.settings.SingleColumnOutputMode;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.LayoutGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * Replacer dictionary implementation that has plain strings as lookup keys
  *
- * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author jasper
  */
-public final class StringReplacer extends DictReplacer<String> {
+public class AppendReplaceSettings implements DefaultNodeSettings, LayoutGroup {
 
-    StringReplacer(final StringReplacerDictNodeSettings modelSettings) {
-        super(modelSettings);
+    public AppendReplaceSettings() {
     }
 
-    @Override
-    protected String compilePattern(final String pattern) {
-        return pattern;
+    private AppendReplaceSettings(final SingleColumnOutputMode outputMode, final String defaultNewColName) {
+        m_outputMode = outputMode;
+        m_newColumnName = defaultNewColName;
     }
 
-    @Override
-    protected String prepareReplacementString(final String replacement) {
-        return replacement;
+    public static AppendReplaceSettings withDefaults(final SingleColumnOutputMode outputMode,
+        final String defaultNewColName) {
+        Objects.requireNonNull(outputMode);
+        return new AppendReplaceSettings(outputMode, defaultNewColName);
     }
 
-    @Override
-    protected Optional<String> processSingleReplacement(final String pattern, final String input,
-        final String replacement) {
-        if (m_settings.m_caseMatching == CaseMatching.CASESENSITIVE) {
-            if (m_settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.contains(input, pattern)) {
-                // we check for contains so we can return Optional.empty() else
-                return Optional.of(StringUtils.replace(input, pattern, replacement));
-            } else if (m_settings.m_replacementStrategy == ReplacementStrategy.WHOLE_STRING
-                && StringUtils.equals(input, pattern)) { // replace whole string
-                return Optional.of(replacement);
-            }
-        } else if (m_settings.m_caseMatching == CaseMatching.CASEINSENSITIVE) {
-            if (m_settings.m_replacementStrategy == ReplacementStrategy.ALL_OCCURRENCES
-                && StringUtils.containsIgnoreCase(input, pattern)) {
-                // we check for contains so we can return Optional.empty() else
-                return Optional.of(StringUtils.replaceIgnoreCase(input, pattern, replacement));
-            } else if (m_settings.m_replacementStrategy == ReplacementStrategy.WHOLE_STRING
-                    && StringUtils.equalsIgnoreCase(input, pattern)) { // replace whole string
-                return Optional.of(replacement);
-            }
-        }
-        return Optional.empty();
-    }
+    @Widget(title = "Output column",
+        description = "Choose whether to append the output column or replace the input column.")
+    @ValueSwitchWidget
+    @Signal(id = SingleColumnOutputMode.IsReplace.class, condition = SingleColumnOutputMode.IsReplace.Condition.class)
+    @Persist(optional = true)
+    public SingleColumnOutputMode m_outputMode = SingleColumnOutputMode.DEFAULT;
+
+    @Widget(title = "Output column name", description = "Choose a name for the output column")
+    @TextInputWidget(minLength = 1)
+    @Effect(signals = SingleColumnOutputMode.IsReplace.class, type = EffectType.HIDE)
+    @Persist(optional = true)
+    public String m_newColumnName = "Output";
+
 }

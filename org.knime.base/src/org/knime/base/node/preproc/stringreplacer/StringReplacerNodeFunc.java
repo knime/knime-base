@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.stringreplacer;
 
+import org.knime.base.node.preproc.common.settings.CaseMatching;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;

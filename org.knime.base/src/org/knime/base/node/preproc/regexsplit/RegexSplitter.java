@@ -53,8 +53,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import org.knime.base.node.preproc.common.settings.CaseMatching;
 import org.knime.base.node.preproc.regexsplit.CaptureGroupExtractor.CaptureGroup;
-import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.CaseMatching;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
