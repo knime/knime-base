@@ -53,6 +53,7 @@ import static org.knime.base.node.snapshot.TestTableSpecUtil.createDefaultTestTa
 import java.util.Map;
 
 import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeSettings;
+import org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeSettings;
 import org.knime.base.node.preproc.append.row.AppendedRowsNodeSettings;
 import org.knime.base.node.preproc.colconvert.numbertostring2.NumberToStringSettings;
 import org.knime.base.node.preproc.colconvert.stringtonumber2.StringToNumber2NodeSettings;
@@ -269,6 +270,12 @@ class NodeSettingsSnapshotTests { // NOSONAR
         protected ValueLookupNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, ValueLookupNodeSettings.class), createDefaultTestTableSpec(),
                 createDefaultTestTableSpec());
+        }
+    }
+
+    static class LoopStartChunkNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+        protected LoopStartChunkNodeSettingsTest() {
+            super(Map.of(SettingsType.MODEL, LoopStartChunkNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 

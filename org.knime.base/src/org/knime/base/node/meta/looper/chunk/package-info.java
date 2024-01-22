@@ -43,45 +43,12 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.09.2008 (thor): created
+ *   22.01.2024 (wiswedel): created
+ */
+/**
+ * Chunking loop start node. The node processes in each iteration a different part of the input table and sends it to
+ * the loop body.
+ *
+ * @author Bernd Wiswedel, KNIME
  */
 package org.knime.base.node.meta.looper.chunk;
-
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
-
-/**
- * Factory for the chunking loop start node.
- *
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
- */
-@SuppressWarnings("restriction")
-public final class LoopStartChunkNodeFactory extends WebUINodeFactory<LoopStartChunkNodeModel> {
-
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Chunk Loop Start") //
-        .icon("loop_start_chunk.png") //
-        .shortDescription("Chunking loop start, each iteration processes different chunk of rows.") //
-        .fullDescription("""
-                Chunking loop start, each iteration processes another
-                (consecutive) chunk of rows. The chunking can be set as either a
-                fixed number of chunks (which is equal to the number of iterations)
-                or a fixed number of rows per chunk/iteration.
-                """) //
-        .modelSettingsClass(LoopStartChunkNodeSettings.class) //
-        .addInputTable("Any table", "Any input table. Each iteration will process one part of this table.")
-        .addOutputTable("Chunked input", "The current part of the input table.").nodeType(NodeType.LoopStart) //
-        .keywords() //
-        .build();
-
-    public LoopStartChunkNodeFactory() {
-        super(CONFIG);
-    }
-
-    @Override
-    public LoopStartChunkNodeModel createNodeModel() {
-        return new LoopStartChunkNodeModel(CONFIG);
-    }
-
-
-}

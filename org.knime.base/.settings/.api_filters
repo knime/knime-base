@@ -1,5 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeDialogPane">
+        <filter comment="AP-21278 - webui on chunk loop start (node implementation is not api)" id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeDialogPane"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/meta/looper/chunk/LoopStartChunkNodeFactory.java" type="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeFactory">
+        <filter comment="AP-21278 - migration to new web ui nodes (concrete node factory not meant to be public api)" id="337768515">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeFactory"/>
+            </message_arguments>
+        </filter>
+        <filter comment="AP-21278 - migration to new web ui nodes (concrete node factory not meant to be public api)" id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeFactory"/>
+                <message_argument value="createNodeView(int, LoopStartChunkNodeModel)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/meta/looper/chunk/LoopStartChunkNodeModel.java" type="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeModel">
+        <filter comment="AP-21278 - migrate chunk loop start to new webui node extension (no public api)" id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeModel"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/preproc/regexsplit/RegexSplitNodeFactory.java" type="org.knime.base.node.preproc.regexsplit.RegexSplitNodeFactory">
         <filter comment="web ui dialog makes create node view final" id="338792546">
             <message_arguments>

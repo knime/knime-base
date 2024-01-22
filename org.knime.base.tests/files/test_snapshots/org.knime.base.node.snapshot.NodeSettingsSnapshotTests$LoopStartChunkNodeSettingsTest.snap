@@ -1,0 +1,82 @@
+{
+  "data" : {
+    "model" : {
+      "mode" : "RowsPerChunk",
+      "nrRowsPerChunk" : 100,
+      "nrOfChunks" : 1
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "mode" : {
+            "oneOf" : [ {
+              "const" : "RowsPerChunk",
+              "title" : "Rows per Chunk"
+            }, {
+              "const" : "NrOfChunks",
+              "title" : "Number of Chunks"
+            } ],
+            "default" : "RowsPerChunk"
+          },
+          "nrOfChunks" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of chunks",
+            "description" : "Set the number of iterations/chunks. The number of rows per chunk\n        is calculated as the the row count of the input table divided by\n        this value.d\n",
+            "default" : 1
+          },
+          "nrRowsPerChunk" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Rows per chunk",
+            "description" : "Set the number of rows per iteration/chunk. The number of iterations\n        is calculated as the row count of the input table divided by this value.\n        Set the value to 1 in order to implement a streaming approach, that is,\n        one row at a time.\n",
+            "default" : 100
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nrRowsPerChunk",
+      "options" : { },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/mode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "RowsPerChunk"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nrOfChunks",
+      "options" : { },
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/mode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "RowsPerChunk"
+            } ]
+          }
+        }
+      }
+    } ]
+  }
+}

@@ -47,21 +47,17 @@
  */
 package org.knime.base.node.meta.looper.chunk;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.KNIMEException;
+import org.knime.core.node.message.Message;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * Loop start node that outputs a set of rows at a time. Used to implement
@@ -70,71 +66,73 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
-public class LoopStartChunkNodeModel extends NodeModel implements
-        LoopStartNodeTerminator {
+@SuppressWarnings("restriction")
+final class LoopStartChunkNodeModel extends WebUINodeModel<LoopStartChunkNodeSettings>
+    implements LoopStartNodeTerminator {
 
-    private LoopStartChunkConfiguration m_config;
+    /**
+     * @param configuration
+     */
+    LoopStartChunkNodeModel(final WebUINodeConfiguration configuration) {
+        super(configuration, LoopStartChunkNodeSettings.class);
+    }
 
     // loop invariants
     private BufferedDataTable m_table;
     private CloseableRowIterator m_iterator;
 
     // loop variants
-    private int m_iteration;
+    private long m_iteration;
 
-    /**
-     * Creates a new model.
-     */
-    public LoopStartChunkNodeModel() {
-        super(1, 1);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-        if (m_config == null) {
-            m_config = new LoopStartChunkConfiguration();
-            setWarningMessage("Using default: " + m_config);
-        }
-        assert m_iteration == 0;
-        pushFlowVariableInt("currentIteration", m_iteration);
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final LoopStartChunkNodeSettings modelSettings)
+        throws InvalidSettingsException {
+        pushFlowVariableInt("currentIteration", 0);
         pushFlowVariableInt("maxIterations", 0);
         return inSpecs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
-        BufferedDataTable table = inData[0];
-        int rowCount = table.getRowCount();
+    private static void checkIntegerCasts(final long nrRowsPerChunk, final long nrChunks, final long nrRows)
+        throws InvalidSettingsException {
+        try {
+            Math.toIntExact(nrRowsPerChunk);
+            Math.toIntExact(nrChunks);
+        } catch (ArithmeticException e) {
+            throw Message.builder().withSummary("Input data too large (too many rows)") //
+                .addTextIssue(String.format( //
+                    "Input data has %d rows. Resulting chunk size (%d) or chunk count (%d) would exceed %d)", //
+                    nrRows, nrRowsPerChunk, nrChunks, Integer.MAX_VALUE)) //
+                .addResolutions("Use smaller data", "Increase chunk size") //
+                .build().orElseThrow().toInvalidSettingsException(e);
+        }
+    }
 
-        int totalChunkCount;
-        int nrRowsPerIteration;
-        switch (m_config.getMode()) {
-        case NrOfChunks:
-            totalChunkCount = Math.min(m_config.getNrOfChunks(), rowCount);
-            nrRowsPerIteration = (int)Math.ceil(
-                    rowCount / (double)totalChunkCount);
-            break;
-        case RowsPerChunk:
-            nrRowsPerIteration = m_config.getNrRowsPerChunk();
-            totalChunkCount = (int)Math.ceil(
-                    rowCount / (double)nrRowsPerIteration);
-            break;
-        default:
-            throw new Exception("Unsupported mode: " + m_config.getMode());
+    @Override
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final LoopStartChunkNodeSettings settings) throws Exception {
+        BufferedDataTable table = inData[0];
+        long rowCount = table.size();
+
+        final long totalChunkCount;
+        final long nrRowsPerIteration;
+        switch (settings.m_mode) {
+            case NrOfChunks:
+                totalChunkCount = Math.min(settings.m_nrOfChunks, rowCount);
+                nrRowsPerIteration = (rowCount + totalChunkCount - 1) / totalChunkCount; // == Math.ceil
+                break;
+            case RowsPerChunk:
+                nrRowsPerIteration = settings.m_nrRowsPerChunk;
+                totalChunkCount = (rowCount + nrRowsPerIteration - 1) / nrRowsPerIteration; // == Math.ceil
+                break;
+            default:
+                throw new KNIMEException("Unsupported mode: " + settings.m_mode);
         }
 
         if (m_iteration == 0) {
             assert getLoopEndNode() == null : "1st iteration but end node set";
             m_table = table;
             m_iterator = table.iterator();
+            checkIntegerCasts(nrRowsPerIteration, totalChunkCount, rowCount);
         } else {
             assert getLoopEndNode() != null : "No end node set";
             assert table == m_table : "Input tables differ between iterations";
@@ -145,17 +143,14 @@ public class LoopStartChunkNodeModel extends NodeModel implements
             cont.addRowToTable(m_iterator.next());
         }
         cont.close();
-        pushFlowVariableInt("currentIteration", m_iteration);
-        pushFlowVariableInt("maxIterations", totalChunkCount);
+        pushFlowVariableInt("currentIteration", (int)m_iteration);
+        pushFlowVariableInt("maxIterations", (int)totalChunkCount);
         m_iteration++;
         return new BufferedDataTable[] {cont.getTable()};
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void reset() {
+    protected void onReset() {
         m_iteration = 0;
         if (m_iterator != null) {
             m_iterator.close();
@@ -169,55 +164,5 @@ public class LoopStartChunkNodeModel extends NodeModel implements
     public boolean terminateLoop() {
         boolean continueLoop = m_iterator == null || m_iterator.hasNext();
         return !continueLoop;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        if (m_config != null) {
-            m_config.saveSettingsTo(settings);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        new LoopStartChunkConfiguration().loadSettingsInModel(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        LoopStartChunkConfiguration config = new LoopStartChunkConfiguration();
-        config.loadSettingsInModel(settings);
-        m_config = config;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-        // no internals to load
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-        // no internals to save
     }
 }

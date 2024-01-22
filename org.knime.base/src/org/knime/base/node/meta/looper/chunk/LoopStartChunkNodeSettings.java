@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -43,45 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   02.09.2008 (thor): created
+ *   Jan 22, 2024 (wiswedel): created
  */
 package org.knime.base.node.meta.looper.chunk;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * Factory for the chunking loop start node.
+ * Settings for node.
  *
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @noreference This class is not intended to be referenced by clients.
+ * @author wiswedel
+ * @since 5.3
  */
 @SuppressWarnings("restriction")
-public final class LoopStartChunkNodeFactory extends WebUINodeFactory<LoopStartChunkNodeModel> {
+public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Chunk Loop Start") //
-        .icon("loop_start_chunk.png") //
-        .shortDescription("Chunking loop start, each iteration processes different chunk of rows.") //
-        .fullDescription("""
-                Chunking loop start, each iteration processes another
-                (consecutive) chunk of rows. The chunking can be set as either a
-                fixed number of chunks (which is equal to the number of iterations)
-                or a fixed number of rows per chunk/iteration.
-                """) //
-        .modelSettingsClass(LoopStartChunkNodeSettings.class) //
-        .addInputTable("Any table", "Any input table. Each iteration will process one part of this table.")
-        .addOutputTable("Chunked input", "The current part of the input table.").nodeType(NodeType.LoopStart) //
-        .keywords() //
-        .build();
-
-    public LoopStartChunkNodeFactory() {
-        super(CONFIG);
+    /** Policy how to do the chunking. */
+    @SuppressWarnings("java:S115") // naming (backward compatible in settings.xml)
+    enum Mode {
+        /** Limit no of rows per chunk. */
+        @Label("Rows per Chunk")
+        RowsPerChunk,
+        /** Limit no of chunks. */
+        @Label("Number of Chunks")
+        NrOfChunks
     }
 
-    @Override
-    public LoopStartChunkNodeModel createNodeModel() {
-        return new LoopStartChunkNodeModel(CONFIG);
+    private interface ModeSignals {
+        class RowPerChunkCondition extends OneOfEnumCondition<Mode> {
+            @Override
+            public Mode[] oneOf() {
+                return new Mode[] {Mode.RowsPerChunk};
+            }
+        }
     }
 
+    @ValueSwitchWidget
+    @Signal(id = ModeSignals.class, condition = ModeSignals.RowPerChunkCondition.class)
+    Mode m_mode = Mode.RowsPerChunk;
 
+    @Widget(title = "Rows per chunk", description = """
+            Set the number of rows per iteration/chunk. The number of iterations
+                    is calculated as the row count of the input table divided by this value.
+                    Set the value to 1 in order to implement a streaming approach, that is,
+                    one row at a time.
+            """)
+    @Effect(type = EffectType.SHOW, signals = ModeSignals.class)
+    int m_nrRowsPerChunk = 100;
+
+
+    @Widget(title = "Number of chunks", description = """
+            Set the number of iterations/chunks. The number of rows per chunk
+                    is calculated as the the row count of the input table divided by
+                    this value.d
+            """)
+    @Effect(type = EffectType.HIDE, signals = ModeSignals.class)
+    int m_nrOfChunks = 1;
 }
