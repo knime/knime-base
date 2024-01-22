@@ -16,6 +16,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.rowkey2.RowKeyNodeDialog2">
+        <filter id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeDialog2"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.valcount.ValueCounterNodeDialog">
         <filter comment="Node settings and node model are not API." id="305324134">
             <message_arguments>
@@ -107,6 +115,30 @@
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.regexsplit.RegexSplitNodeFactory"/>
                 <message_argument value="createNodeView(int, RegexSplitNodeModel)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/rowkey2/RowKeyNodeFactory2.java" type="org.knime.base.node.preproc.rowkey2.RowKeyNodeFactory2">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeFactory2"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/rowkey2/RowKeyNodeModel2.java" type="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyNodeModel2"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/rowkey2/RowKeyUtil2.java" type="org.knime.base.node.preproc.rowkey2.RowKeyUtil2">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.rowkey2.RowKeyUtil2"/>
+                <message_argument value="org.knime.base_5.3.0"/>
             </message_arguments>
         </filter>
     </resource>
