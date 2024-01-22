@@ -1,0 +1,269 @@
+{
+  "data" : {
+    "model" : {
+      "dataColumnFilterConfig" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "mode" : "MINMAX",
+      "min" : 0.0,
+      "max" : 1.0
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "dataColumnFilterConfig" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns",
+            "description" : "Select the numerical columns to normalize.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "data-column-filter" ]
+          },
+          "max" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "New Maximum",
+            "description" : "Specifies the new maximum for the normalized columns. Only active for min-max normalization.",
+            "default" : 1.0,
+            "configKeys" : [ "new-max" ]
+          },
+          "min" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "New Minimum",
+            "description" : "Specifies the new minimum for the normalized columns. Only active for min-max normalization.",
+            "default" : 0.0,
+            "configKeys" : [ "new-min" ]
+          },
+          "mode" : {
+            "oneOf" : [ {
+              "const" : "MINMAX",
+              "title" : "Min-Max"
+            }, {
+              "const" : "Z_SCORE",
+              "title" : "Z-Score"
+            }, {
+              "const" : "DECIMALSCALING",
+              "title" : "Decimal Scaling"
+            } ],
+            "title" : "Normalization Mode",
+            "description" : "The mode of normalization to use.\n<ul>\n<li><b>Min-Max</b>: Linear transformation of all values such that the minimum and in each column are as given.</li>\n<li><b>Z-Score</b>: Linear transformation such that the values in each column are Gaussian-(0,1)-distributed, i.e. mean is 0.0 and standard deviation is 1.0.</li>\n<li><b>Decimal Scaling</b>: The maximum value in a column (both positive and negative) is divided j-times by 10 until its absolute value is smaller or equal to 1. All values in the column are then divided by 10 to the power of j.</li>\n</ul>",
+            "default" : "MINMAX",
+            "configKeys" : [ "mode" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Columns",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/dataColumnFilterConfig",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1",
+            "type" : {
+              "id" : "org.knime.core.data.IntValue",
+              "text" : "Number (integer)"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+          }, {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.DoubleValue",
+              "text" : "Number (double)"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
+        "label" : ""
+      } ]
+    }, {
+      "label" : "Settings",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/mode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/min",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/mode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MINMAX"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/max",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/mode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MINMAX"
+              } ]
+            }
+          }
+        }
+      } ]
+    } ]
+  }
+}
