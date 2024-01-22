@@ -45,9 +45,9 @@
  * History 05.11.2006 (Tobias Koetter): created
  */
 package org.knime.base.node.preproc.rowkey2;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * The node factory of the row key manipulation node. The node allows the user
@@ -57,47 +57,48 @@ import org.knime.core.node.NodeView;
  * @author Tobias Koetter
  * @since 2.6
  */
-public class RowKeyNodeFactory2 extends NodeFactory<RowKeyNodeModel2> {
+@SuppressWarnings("restriction")
+public class RowKeyNodeFactory2 extends WebUINodeFactory<RowKeyNodeModel2> {
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
+        .name("RowID") //
+        .icon("rowID.png") //
+        .shortDescription("Node to extract the RowID to a column and/or to replace the RowID.")
+        .fullDescription("""
+                This node can be used to extract the values of the current RowID of an input table to a new column.
+
+                The node can also be used to replace the current RowID of the input table with a generated RowID of the
+                format: Row0, Row1, Row2, ..., or by the values of a selected column (by converting the values to
+                string). In the latter case, the node provides options to ensure uniqueness and to handle missing values
+                in the selected column.
+
+                If both extraction of the RowID and replacement of the RowID are configured, the node appends a new
+                column with the values of the current RowID to the table and replaces the current RowID with the values
+                of the selected column or the generated RowID.
+
+                Note: Hiliting does not work across this node if the "Enable hiliting" option is disabled.
+                """) //
+        .modelSettingsClass(RowKeyNodeSettings.class) //
+        .nodeType(NodeType.Manipulator) //
+        .addInputTable("Input Table", "The data table whose RowID to extract and/or replace.") //
+        .addOutputTable("Output Table",
+            "The input table with a new column of extracted RowID values and/or with its RowID replaced.") //
+        .sinceVersion(2, 6, 0) //
+        .build();
+
+    /**
+     * Creates a new instance of this factory.
+     */
+    public RowKeyNodeFactory2() {
+        super(CONFIG);
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
     public RowKeyNodeModel2 createNodeModel() {
-        return new RowKeyNodeModel2();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<RowKeyNodeModel2> createNodeView(final int viewIndex,
-            final RowKeyNodeModel2 nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new RowKeyNodeDialog2();
+        return new RowKeyNodeModel2(CONFIG);
     }
 
 
