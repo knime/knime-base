@@ -47,9 +47,21 @@
  */
 package org.knime.base.node.preproc.normalize3;
 
+import java.io.IOException;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Factory class for the Normalize Node.
@@ -57,44 +69,57 @@ import org.knime.core.node.NodeView;
  * @author Nicolas Cebron, University of Konstanz
  * @since 3.2
  */
-public class Normalizer3NodeFactory extends NodeFactory<Normalizer3NodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+@SuppressWarnings("restriction")
+public class Normalizer3NodeFactory extends NodeFactory<Normalizer3NodeModel> implements NodeDialogFactory {
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new Normalizer3NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Normalizer3NodeModel createNodeModel() {
         return new Normalizer3NodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<Normalizer3NodeModel> createNodeView(final int viewIndex, final Normalizer3NodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * @since 5.3
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, NormalizerNodeSettings.class);
+    }
+
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription(
+            WebUINodeConfiguration.builder()//
+            .name("Normalizer")//
+            .icon("./normalize.png")//
+            .shortDescription("Normalizes the attributes of a table.")//
+            .fullDescription("This node normalizes the values of all (numeric) columns. In the "
+                + "dialog, you can choose the columns you want to work on.")//
+            .modelSettingsClass(NormalizerNodeSettings.class)//
+            .addInputTable("Table to normalize", "Table requiring normalization of some or all columns.")//
+            .addOutputTable("Normalized table", "Table with normalized columns.")//
+            .addOutputPort("Normalize Model", null, "Model containing normalization parameters, "
+                + "which can be used in a \"Normalizer (Apply)\" node to normalize test data the same way "
+                + "as the training data has been normalized.")//
+            .nodeType(NodeType.Manipulator)//
+            .build());
     }
 }
