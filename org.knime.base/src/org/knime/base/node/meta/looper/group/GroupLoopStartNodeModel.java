@@ -47,8 +47,6 @@
  */
 package org.knime.base.node.meta.looper.group;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,18 +61,14 @@ import org.knime.core.data.sort.BufferedDataTableSorter;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.BufferedDataTableHolder;
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 import org.knime.core.util.DuplicateChecker;
 import org.knime.core.util.DuplicateKeyException;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * The node model of the group loop start node. Optionally sorting data and
@@ -85,8 +79,9 @@ import org.knime.core.util.DuplicateKeyException;
  *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
-class GroupLoopStartNodeModel extends NodeModel implements
-        LoopStartNodeTerminator, BufferedDataTableHolder {
+@SuppressWarnings("restriction")
+class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
+    implements LoopStartNodeTerminator, BufferedDataTableHolder {
 
     /**
      * The default "sorted input table" setting.
@@ -98,49 +93,51 @@ class GroupLoopStartNodeModel extends NodeModel implements
      */
     public static final String GROUP_SEPARATOR = "%";
 
-    private final SettingsModelColumnFilter2 m_filterGroupColModel =
-        GroupLoopStartNodeDialog.getFilterDoubleColModel();
-
-    private final SettingsModelBoolean m_sortedInputTableModel =
-        GroupLoopStartNodeDialog.getSortedInputTableModel();
-
     // loop invariants
     private BufferedDataTable m_table;
+
     private BufferedDataTable m_sortedTable;
+
     private CloseableRowIterator m_iterator;
+
     private DataTableSpec m_spec;
+
     private int[] m_includedColIndices;
+
     private DuplicateChecker m_duplicateChecker;
 
     // loop variants
     private int m_iteration;
 
     private DataRow m_lastRow;
+
     private GroupingState m_currentGroupingState;
+
     private GroupingState m_lastGroupingState;
 
     private boolean m_isFinalRow = false;
+
     private boolean m_endLoop = false;
 
     /**
-     * Creates a new model.
+     * Creates a new model with given node configuration.
+     * @param config The {@link WebUINodeConfiguration}
      */
-    public GroupLoopStartNodeModel() {
-        super(1, 1);
+    public GroupLoopStartNodeModel(final WebUINodeConfiguration config) {
+        super(config, GroupLoopStartNodeSettings.class);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final GroupLoopStartNodeSettings settings)
+        throws InvalidSettingsException {
         m_spec = inSpecs[0];
 
         // check if all included columns are available in the spec
         List<String> includedColNames =
-                Arrays.asList(m_filterGroupColModel.applyTo(m_spec)
-                        .getIncludes());
+            Arrays.asList(settings.m_columnFilter.getSelected(m_spec.getColumnNames(), m_spec));
 
         // at least one column containing double values must be specified
         if (includedColNames.size() <= 0) {
@@ -157,7 +154,7 @@ class GroupLoopStartNodeModel extends NodeModel implements
 
         assert m_iteration == 0;
         pushFlowVariableInt("currentIteration", m_iteration);
-        initGroupColumnsAsFlowVariables();
+        initGroupColumnsAsFlowVariables(settings.m_columnFilter);
         pushFlowVariableString("groupIdentifier", "");
         return inSpecs;
     }
@@ -166,8 +163,8 @@ class GroupLoopStartNodeModel extends NodeModel implements
      * {@inheritDoc}
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final GroupLoopStartNodeSettings settings) throws Exception {
 
         ///////////////////////////
         //
@@ -175,14 +172,13 @@ class GroupLoopStartNodeModel extends NodeModel implements
         //
         ///////////////////////////
         BufferedDataTable table = inData[0];
-        DataTableSpec spec = table.getDataTableSpec();
         if (table.size() <= 0) {
             m_endLoop = true;
         }
 
         // parameters
-        m_includedColIndices = getIncludedColIndices(table.getDataTableSpec());
-        boolean checkDuplicates = m_sortedInputTableModel.getBooleanValue();
+        m_includedColIndices = getIncludedColIndices(table.getDataTableSpec(), settings.m_columnFilter);
+        boolean checkDuplicates = settings.m_alreadySorted;
 
         // remember table and sort table if necessary
         if (m_iteration == 0) {
@@ -191,9 +187,9 @@ class GroupLoopStartNodeModel extends NodeModel implements
             m_spec = m_table.getDataTableSpec();
 
             // sort if not already sorted
-            if (!m_sortedInputTableModel.getBooleanValue()) {
+            if (!settings.m_alreadySorted) {
                 // asc
-                final String[] includes = m_filterGroupColModel.applyTo(spec).getIncludes();
+                final String[] includes = settings.m_columnFilter.getSelected(m_spec.getColumnNames(), m_spec);
                 boolean[] sortAsc = new boolean[includes.length];
                 Arrays.fill(sortAsc, true);
                 BufferedDataTableSorter tableSorter =
@@ -340,7 +336,7 @@ class GroupLoopStartNodeModel extends NodeModel implements
      * {@inheritDoc}
      */
     @Override
-    protected void reset() {
+    protected void onReset() {
         if (m_iterator != null) {
             m_iterator.close();
             m_iterator = null;
@@ -401,10 +397,9 @@ class GroupLoopStartNodeModel extends NodeModel implements
     /**
      * Pushed initial values for each group column as flow variables.
      */
-    private void initGroupColumnsAsFlowVariables() {
-        if (m_spec != null && m_filterGroupColModel != null) {
-            List<String> inclCols = Arrays.asList(m_filterGroupColModel.applyTo(
-                    m_spec).getIncludes());
+    private void initGroupColumnsAsFlowVariables(final ColumnFilter columnFilter) {
+        if (m_spec != null && columnFilter != null) {
+            List<String> inclCols = Arrays.asList(columnFilter.getSelected(m_spec.getColumnNames(), m_spec));
             for (String colName : inclCols) {
                 DataType dt = m_spec.getColumnSpec(colName).getType();
                 pushVariable(dt, m_spec.getColumnSpec(colName).getName(), null);
@@ -519,9 +514,8 @@ class GroupLoopStartNodeModel extends NodeModel implements
      * @param dataSpec The input data table spec.
      * @return An array containing the indices of the included columns.
      */
-    private int[] getIncludedColIndices(final DataTableSpec dataSpec) {
-        List<String> includedColNames = Arrays.asList(
-                m_filterGroupColModel.applyTo(dataSpec).getIncludes());
+    private static int[] getIncludedColIndices(final DataTableSpec dataSpec, final ColumnFilter columnFilter) {
+        List<String> includedColNames = Arrays.asList(columnFilter.getSelected(dataSpec.getColumnNames(), dataSpec));
         int[] includedColIndices = new int[includedColNames.size()];
         int noCols = dataSpec.getNumColumns();
         int j = 0;
@@ -533,56 +527,6 @@ class GroupLoopStartNodeModel extends NodeModel implements
             }
         }
         return includedColIndices;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_filterGroupColModel.saveSettingsTo(settings);
-        m_sortedInputTableModel.saveSettingsTo(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        m_filterGroupColModel.validateSettings(settings);
-        m_sortedInputTableModel.validateSettings(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        m_filterGroupColModel.loadSettingsFrom(settings);
-        m_sortedInputTableModel.loadSettingsFrom(settings);
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-        // Nothing to do ...
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-        // Nothing to do ...
     }
 
     /**

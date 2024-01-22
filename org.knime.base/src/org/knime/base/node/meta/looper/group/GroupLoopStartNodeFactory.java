@@ -41,61 +41,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- * 
+ *
  * History
  *   10.05.2012 (kilian): created
  */
 package org.knime.base.node.meta.looper.group;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * 
+ *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
-public class GroupLoopStartNodeFactory extends
-        NodeFactory<GroupLoopStartNodeModel> {
+@SuppressWarnings("restriction")
+public class GroupLoopStartNodeFactory extends WebUINodeFactory<GroupLoopStartNodeModel> {
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Group Loop Start")//
+        .icon("./grouploopstart.png")//
+        .shortDescription("Group loop start, each iteration processes a different group of rows.")//
+        .fullDescription("""
+                Group loop start, each iteration processes another
+                group of rows. The column(s) to group on need to be specified.
+                The input data table is sorted based on the specified columns before
+                looping starts, by default. Sorting can be switched off if input
+                data table is already properly sorted based on the columns to group
+                on. If sorting is switched off, but input table is not properly
+                sorted execution will be canceled.
+                """) //
+        .modelSettingsClass(GroupLoopStartNodeSettings.class)//
+        .addInputTable("Any Table", "Any input table. Each iteration will process one group of this table.")//
+        .addOutputTable("Grouped Input", "The current group of the input table.")//
+        .addExternalResource("https://www.knime.com/knime-introductory-course/chapter7/section2",
+            "KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops")
+        .sinceVersion(5, 3, 0).build();
+
+    /**
+     * Create a new {@link GroupLoopStartNodeFactory}
+     */
+    public GroupLoopStartNodeFactory() {
+        super(CONFIG);
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
     public GroupLoopStartNodeModel createNodeModel() {
-        return new GroupLoopStartNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<GroupLoopStartNodeModel> createNodeView(final int viewIndex,
-            final GroupLoopStartNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new GroupLoopStartNodeDialog();
+        return new GroupLoopStartNodeModel(CONFIG);
     }
 }

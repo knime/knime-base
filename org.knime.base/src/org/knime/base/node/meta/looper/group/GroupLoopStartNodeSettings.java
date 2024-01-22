@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,62 +41,72 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   10.05.2012 (kilian): created
+ *   5 Jan 2023 (chaubold): created
  */
 package org.knime.base.node.meta.looper.group;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
+import java.util.stream.Stream;
+
+import org.knime.base.node.preproc.stringreplacer.StringReplacerSettings;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * Creates the dialog of the group loop start node and provides static methods
- * which create the necessary settings models.
+ * The GroupLoopStartNodeSettings define the WebUI dialog of the Group Loop Start Node. The serialization must go via
+ * the {@link StringReplacerSettings}.
  *
- * @author Kilian Thiel, KNIME.com, Berlin, Germany
+ * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
+ * @since 5.3
  */
-class GroupLoopStartNodeDialog extends DefaultNodeSettingsPane {
+@SuppressWarnings("restriction")
+public final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
 
     /**
-     * Creates and returns the settings model, storing the selected columns.
-     *
-     * @return The settings model with the selected columns.
+     * Constructor for persistence and conversion to JSON.
      */
-    @SuppressWarnings("unchecked")
-    static final SettingsModelColumnFilter2 getFilterDoubleColModel() {
-        return new SettingsModelColumnFilter2(GroupLoopStartConfigKeys.COLUMN_NAMES);
+    GroupLoopStartNodeSettings() {
     }
 
     /**
-     * Creates and returns the settings model, storing the "sorted input table"
-     * flag.
-     *
-     * @return The settings model with the "sorted input table" flag.
+     * Constructor for auto-configuration if no settings are available.
      */
-    static final SettingsModelBoolean getSortedInputTableModel() {
-        return new SettingsModelBoolean(
-                GroupLoopStartConfigKeys.SORTED_INPUT_TABLE,
-                GroupLoopStartNodeModel.DEF_SORTED_INPUT_TABLE);
+    GroupLoopStartNodeSettings(final DefaultNodeSettingsContext context) {
+        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
     }
 
-    /**
-     * Creates new instance of <code>GroupLoopStartNodeDialog</code>.
-     */
-    public GroupLoopStartNodeDialog() {
+    @Persist(configKey = GroupLoopStartConfigKeys.COLUMN_NAMES, settingsModel = SettingsModelColumnFilter2.class)
+    @Widget(title = "Column selection", description = "The columns used to identify the groups.")
+    @ChoicesWidget(choices = AllColumns.class)
+    ColumnFilter m_columnFilter = new ColumnFilter();
 
-        // column selection
-        addDialogComponent(new DialogComponentColumnFilter2(
-                getFilterDoubleColModel(), 0));
+    @Persist(configKey = GroupLoopStartConfigKeys.SORTED_INPUT_TABLE, settingsModel = SettingsModelBoolean.class)
+    @Widget(title = "Is the input already sorted by group column(s)?", description = """
+            If checked, the input data table will not be sorted before looping
+            starts. The table must already be sorted properly by the columns to
+            group on. If sorting is switched off, but input table is not properly
+            sorted, execution will be canceled.
+            """)
+    boolean m_alreadySorted;
 
-        // sorted input table
-        addDialogComponent(
-                new DialogComponentBoolean(getSortedInputTableModel(),
-                        "Input is already sorted by group column(s) "
-                        + "[execution fails if not correctly sorted]"));
+    static final class AllColumns implements ColumnChoicesProvider {
+
+        @Override
+        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
+                .orElseGet(Stream::empty)//
+                .toArray(DataColumnSpec[]::new);
+        }
+
     }
 }
