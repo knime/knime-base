@@ -44,55 +44,43 @@
  */
 package org.knime.base.node.preproc.valcount;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
  * This factory creates all necessary object for the value counter node.
- * 
+ *
  * @author Thorsten Meinl, University of Konstanz
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
-public class ValueCounterNodeFactory extends NodeFactory {
+@SuppressWarnings("restriction")
+public class ValueCounterNodeFactory extends WebUINodeFactory<ValueCounterNodeModel> {
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Value Counter") //
+        .icon("valueCounter.png") //
+        .shortDescription("Counts the occurrences of values in a column") //
+        .fullDescription("""
+                This node counts the number of occurrences of all values in a selected column.
+                """) //
+        .modelSettingsClass(ValueCounterNodeSettings.class) //
+        .addInputTable("Any datatable", "Any datatable")
+        .addOutputTable("Occurrences",
+            "One-column table with the different values as row keys and their occurrences as the only column.")
+        .nodeType(NodeType.Other) //
+        .build();
+
     /**
-     * {@inheritDoc}
+     *
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ValueCounterNodeDialog();
+    public ValueCounterNodeFactory() {
+        super(CONFIG);
     }
 
     /**
-     * {@inheritDoc}
+     * @since 5.3
      */
     @Override
-    public NodeModel createNodeModel() {
-        return new ValueCounterNodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
+    public ValueCounterNodeModel createNodeModel() {
+        return new ValueCounterNodeModel(CONFIG);
     }
 }

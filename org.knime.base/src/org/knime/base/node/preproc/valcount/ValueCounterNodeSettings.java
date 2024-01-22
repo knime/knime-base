@@ -44,81 +44,39 @@
  */
 package org.knime.base.node.preproc.valcount;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.Border;
-
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.util.ColumnSelectionComboxBox;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil;
 
 /**
- * This class is the dialog for the value counter dialog that lets the user
- * selected an arbitrary column.
- * 
+ * This class holds the settings for the value counter node.
+ *
  * @author Thorsten Meinl, University of Konstanz
  */
-public class ValueCounterNodeDialog extends NodeDialogPane {
-    private final ColumnSelectionComboxBox m_columnName =
-            new ColumnSelectionComboxBox((Border)null, DataValue.class);
-    private final JCheckBox m_hiliting = new JCheckBox();
-    
-    private final ValueCounterSettings m_settings = new ValueCounterSettings();
-    
-    /**
-     * Creates a new dialog for the value counter node.
-     */
-    public ValueCounterNodeDialog() {
-        JPanel p = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        
-        c.anchor = GridBagConstraints.NORTHWEST;
-        c.gridx = 0;
-        c.gridy = 0;
-        p.add(new JLabel("Column with values to count "), c);
-        c.gridx++;
-        p.add(m_columnName, c);
-        
-        c.gridx = 0;
-        c.gridy = 1;
-        p.add(new JLabel("Enable hiliting  "), c);
-        c.gridx++;
-        p.add(m_hiliting, c);
-        addTab("Standard settings", p);
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings,
-            final DataTableSpec[] specs) throws NotConfigurableException {
-        try {
-            m_settings.loadSettings(settings);
-        } catch (InvalidSettingsException ex) {
-            // ignore it and use defaults
-        }
-        m_columnName.update(specs[0], m_settings.columnName());
-        m_hiliting.setSelected(m_settings.hiliting());
+@SuppressWarnings("restriction")
+final class ValueCounterNodeSettings implements DefaultNodeSettings {
+
+    @Widget(title = "Column", description = "The column whose values should be counted.")
+    @ChoicesWidget(choices = ColumnChoicesProviderUtil.AllColumnChoicesProvider.class)
+    String m_columnName;
+
+    @Widget(title = "Enable hiliting", description = """
+            Enables hiliting between the distinct values in the output table and the corresponding rows in the
+            input table. Be aware that this may require a lot of memory if the table is large.
+            """)
+    boolean m_hiliting;
+
+    ValueCounterNodeSettings() {
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings)
-            throws InvalidSettingsException {
-        m_settings.columnName(m_columnName.getSelectedColumn());
-        m_settings.hiliting(m_hiliting.isSelected());
-        m_settings.saveSettings(settings);
+    ValueCounterNodeSettings(final DefaultNodeSettingsContext context) {
+        if (context.getDataTableSpecs().length > 0 && context.getDataTableSpec(0).isPresent()) {
+            final var spec = context.getDataTableSpec(0).get(); // NOSONAR it will be present
+            if (spec.getNumColumns() > 0) {
+                m_columnName = spec.getColumnNames()[0];
+            }
+        }
     }
+
 }

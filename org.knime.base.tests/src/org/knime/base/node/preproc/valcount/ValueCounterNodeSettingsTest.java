@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,77 +41,60 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   22 Jan 2024 (carlwitt): created
  */
 package org.knime.base.node.preproc.valcount;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
- * This class holds the settings for the value counter node.
+ * Make sure legacy node settings continue to be readable.
  *
- * @author Thorsten Meinl, University of Konstanz
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
-public class ValueCounterSettings {
-    private String m_colName;
-    private boolean m_hiliting;
+@SuppressWarnings("restriction")
+class ValueCounterNodeSettingsTest {
 
-
-    /**
-     * Sets the column name.
-     *
-     * @param columnName a column name
-     */
-    public void columnName(final String columnName) {
-        m_colName = columnName;
+    static class ValueCounterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
+        protected ValueCounterNodeSettingsSnapshotTest() {
+            super(Map.of(SettingsType.MODEL, ValueCounterNodeSettings.class),
+                new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE}));
+        }
     }
 
     /**
-     * Returns the column name.
-     *
-     * @return the column name
+     * @param defaultValue set all boolean fields to this value
+     * @return a node settings with regex split options in the legacy node settings format
      */
-    public String columnName() {
-        return m_colName;
+    private static NodeSettingsRO legacySettings(final boolean defaultValue) {
+        final var settings = new NodeSettings("test");
+        settings.addString("columnName", "testColumn");
+        settings.addBoolean("hiliting", defaultValue);
+        return settings;
     }
 
-
-    /**
-     * @param b enable or disable hiliting
-     */
-    public void hiliting(final boolean b) {
-        m_hiliting = b;
+    @Test
+    void test() throws InvalidSettingsException {
+        final var settings = DefaultNodeSettings.loadSettings(legacySettings(true), ValueCounterNodeSettings.class);
+        assertThat(settings.m_columnName).as("Loading column name from legacy settings.").isEqualTo("testColumn");
+        assertThat(settings.m_hiliting).as("Loading hilite setting from legacy settings.").isTrue();
     }
 
-
-    /**
-     * @return boolean for hiliting
-     */
-    public boolean hiliting() {
-        return m_hiliting;
-    }
-
-    /**
-     * Save the settings into the node settings object.
-     *
-     * @param settings node settings
-     */
-    public void saveSettings(final NodeSettingsWO settings) {
-        settings.addString("columnName", m_colName);
-        settings.addBoolean("hiliting", m_hiliting);
-    }
-
-    /**
-     * Loads the settings from the node settings object.
-     *
-     * @param settings node settings
-     * @throws InvalidSettingsException if settings are missing
-     */
-    public void loadSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        m_colName = settings.getString("columnName");
-        m_hiliting = settings.getBoolean("hiliting");
-    }
 }

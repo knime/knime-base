@@ -50,17 +50,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -79,25 +74,25 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.util.MutableInteger;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * This is the model for the value counter node that does all the work.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
-public class ValueCounterNodeModel extends NodeModel {
-    private final ValueCounterSettings m_settings = new ValueCounterSettings();
+@SuppressWarnings("restriction")
+final class ValueCounterNodeModel extends WebUINodeModel<ValueCounterNodeSettings> {
 
-    private static final DataColumnSpec COL_SPEC =
-            new DataColumnSpecCreator("count", IntCell.TYPE).createSpec();
+    private static final DataColumnSpec COL_SPEC = new DataColumnSpecCreator("count", IntCell.TYPE).createSpec();
 
     private static final DataTableSpec TABLE_SPEC = new DataTableSpec(COL_SPEC);
 
@@ -105,55 +100,52 @@ public class ValueCounterNodeModel extends NodeModel {
 
     /**
      * Creates a new value counter model.
+     *
+     * @param config
+     * @since 5.3
      */
-    public ValueCounterNodeModel() {
-        super(1, 1);
+    public ValueCounterNodeModel(final WebUINodeConfiguration config) {
+        super(config, ValueCounterNodeSettings.class);
     }
 
     /**
-     * {@inheritDoc}
+     * @since 5.3
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
-        String colName = m_settings.columnName();
-        if (colName == null) {
-            throw new InvalidSettingsException("No column selected");
+    protected void validateSettings(final ValueCounterNodeSettings settings) throws InvalidSettingsException {
+        if (settings.m_columnName == null) {
+            throw new InvalidSettingsException("No column selected.");
         }
-        int index = inSpecs[0].findColumnIndex(colName);
-        if (index == -1) {
-            if (inSpecs[0].getNumColumns() == 1) {
-                index = 0;
-                m_settings.columnName(inSpecs[0].getColumnSpec(0).getName());
-            } else {
-                throw new InvalidSettingsException("Column '" + colName
-                        + "' does not exist");
-            }
-        }
+    }
 
+    /**
+     * @throws InvalidSettingsException
+     * @since 5.3
+     */
+    @Override
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final ValueCounterNodeSettings settings)
+        throws InvalidSettingsException {
+        validateSettings(settings);
         return new DataTableSpec[]{TABLE_SPEC};
     }
 
     /**
-     * {@inheritDoc}
+     * @since 5.3
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
-        final int colIndex =
-                inData[0].getDataTableSpec().findColumnIndex(
-                        m_settings.columnName());
-        final double max = inData[0].getRowCount();
-        int rowCount = 0;
-        Map<DataCell, Set<RowKey>> hlMap =
-                new HashMap<DataCell, Set<RowKey>>();
-        Map<DataCell, MutableInteger> countMap =
-            new HashMap<DataCell, MutableInteger>();
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final ValueCounterNodeSettings settings) throws Exception {
+        validateSettings(settings);
+        final int colIndex = inData[0].getDataTableSpec().findColumnIndex(settings.m_columnName);
+        final double max = inData[0].size();
+        var rowCount = 0;
+        final var hlMap = new HashMap<DataCell, Set<RowKey>>();
+        final var countMap = new HashMap<DataCell, MutableInteger>();
 
         for (DataRow row : inData[0]) {
             exec.checkCanceled();
-            exec.setProgress(rowCount++ / max, countMap.size()
-                    + " different values found");
+            exec.setProgress(rowCount / max, countMap.size() + " different values found");
+            rowCount++;
             DataCell cell = row.getCell(colIndex);
 
             MutableInteger count = countMap.get(cell);
@@ -163,44 +155,32 @@ public class ValueCounterNodeModel extends NodeModel {
             }
             count.inc();
 
-            if (m_settings.hiliting()) {
+            if (settings.m_hiliting) {
                 Set<RowKey> s = hlMap.get(cell);
                 if (s == null) {
-                    s = new HashSet<RowKey>();
+                    s = new HashSet<>();
                     hlMap.put(cell, s);
                 }
                 s.add(row.getKey());
             }
         }
 
-        final DataValueComparator comp =
-                inData[0].getDataTableSpec().getColumnSpec(colIndex).getType()
-                        .getComparator();
+        final DataValueComparator comp = inData[0].getDataTableSpec().getColumnSpec(colIndex).getType().getComparator();
 
-        List<Map.Entry<DataCell, MutableInteger>> sorted =
-                new ArrayList<Map.Entry<DataCell, MutableInteger>>(countMap
-                        .entrySet());
-        Collections.sort(sorted,
-                new Comparator<Map.Entry<DataCell, MutableInteger>>() {
-                    public int compare(
-                            final Map.Entry<DataCell, MutableInteger> o1,
-                            final Entry<DataCell, MutableInteger> o2) {
-                        return comp.compare(o1.getKey(), o2.getKey());
-                    }
-                });
+        var sorted = new ArrayList<Map.Entry<DataCell, MutableInteger>>(countMap.entrySet());
+        Collections.sort(sorted, (o1, o2) -> comp.compare(o1.getKey(), o2.getKey()));
 
         BufferedDataContainer cont = exec.createDataContainer(TABLE_SPEC);
         for (Map.Entry<DataCell, MutableInteger> entry : sorted) {
-            RowKey newKey = new RowKey(entry.getKey().toString());
-            cont.addRowToTable(new DefaultRow(newKey,
-                    new int[]{entry.getValue().intValue()}));
+            final var newKey = new RowKey(entry.getKey().toString());
+            cont.addRowToTable(new DefaultRow(newKey, entry.getValue().intValue()));
         }
         cont.close();
 
-        if (m_settings.hiliting()) {
-            Map<RowKey, Set<RowKey>> temp = new HashMap<RowKey, Set<RowKey>>();
+        if (settings.m_hiliting) {
+            final var temp = new HashMap<RowKey, Set<RowKey>>();
             for (Map.Entry<DataCell, Set<RowKey>> entry : hlMap.entrySet()) {
-                RowKey newKey = new RowKey(entry.getKey().toString());
+                final var newKey = new RowKey(entry.getKey().toString());
                 temp.put(newKey, entry.getValue());
             }
             m_translator.setMapper(new DefaultHiLiteMapper(temp));
@@ -209,19 +189,15 @@ public class ValueCounterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @since 5.3
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-        File f = new File(nodeInternDir, "Hiliting.conf.gz");
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+        final var f = new File(nodeInternDir, "Hiliting.conf.gz");
         if (f.exists() && f.canRead()) {
-            InputStream in = new GZIPInputStream(new BufferedInputStream(
-                    new FileInputStream(f)));
-            NodeSettingsRO s = NodeSettings.loadFromXML(in);
-            in.close();
-            try {
+            try (final var in = new GZIPInputStream(new BufferedInputStream(new FileInputStream(f)))) {
+                NodeSettingsRO s = NodeSettings.loadFromXML(in);
                 m_translator.setMapper(DefaultHiLiteMapper.load(s));
             } catch (InvalidSettingsException ex) {
                 throw new IOException(ex);
@@ -230,16 +206,7 @@ public class ValueCounterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        m_settings.loadSettings(settings);
-    }
-
-    /**
-     * {@inheritDoc}
+     * @since 5.3
      */
     @Override
     protected void reset() {
@@ -247,54 +214,27 @@ public class ValueCounterNodeModel extends NodeModel {
     }
 
     /**
-     * {@inheritDoc}
+     * @since 5.3
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
-        if (m_settings.hiliting()) {
-            NodeSettings s = new NodeSettings("Hiliting");
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+        if (getSettings().map(s -> s.m_hiliting).orElse(false)) {
+            final var s = new NodeSettings("Hiliting");
             ((DefaultHiLiteMapper)m_translator.getMapper()).save(s);
-            File f = new File(nodeInternDir, "Hiliting.conf.gz");
-            OutputStream out = new GZIPOutputStream(new BufferedOutputStream(
-                    new FileOutputStream(f)));
-            s.saveToXML(out);
-            out.close();
+            final var f = new File(nodeInternDir, "Hiliting.conf.gz");
+            try (final var out = new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(f)))) {
+                s.saveToXML(out);
+            }
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettings(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        ValueCounterSettings s = new ValueCounterSettings();
-        s.loadSettings(settings);
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void setInHiLiteHandler(final int inIndex, 
-            final HiLiteHandler hiLiteHdl) {
+    protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
         m_translator.removeAllToHiliteHandlers();
         m_translator.addToHiLiteHandler(hiLiteHdl);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
         return m_translator.getFromHiLiteHandler();

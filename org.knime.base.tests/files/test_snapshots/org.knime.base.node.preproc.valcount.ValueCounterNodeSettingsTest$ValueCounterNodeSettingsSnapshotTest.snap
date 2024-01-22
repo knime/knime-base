@@ -1,0 +1,66 @@
+{
+  "data" : {
+    "model" : {
+      "columnName" : "test1",
+      "hiliting" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnName" : {
+            "type" : "string",
+            "title" : "Column",
+            "description" : "The column whose values should be counted.",
+            "default" : "test1"
+          },
+          "hiliting" : {
+            "type" : "boolean",
+            "title" : "Enable hiliting",
+            "description" : "Enables hiliting between the distinct values in the output table and the corresponding rows in the\ninput table. Be aware that this may require a lot of memory if the table is large.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnName",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (double)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }, {
+          "id" : "test2",
+          "text" : "test2",
+          "type" : {
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        } ],
+        "format" : "dropDown",
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/hiliting",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  }
+}
