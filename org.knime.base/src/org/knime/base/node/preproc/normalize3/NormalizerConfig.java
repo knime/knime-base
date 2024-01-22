@@ -59,7 +59,9 @@ import org.knime.core.node.util.filter.column.DataTypeColumnFilter;
  *
  * @author Marcel Hanser
  * @since 3.2
+ * @deprecated since 5.3. Replaced by NormalizerNodeSettings.
  */
+@Deprecated
 public final class NormalizerConfig {
     /** Key to store the new minimum value (in min/max mode). */
     private static final String NEWMIN_KEY = "new-min";
@@ -96,7 +98,7 @@ public final class NormalizerConfig {
 
     /**
      * Set the minimum.
-     * 
+     *
      * @param min the min to set
      */
     void setMin(final double min) {
@@ -105,7 +107,7 @@ public final class NormalizerConfig {
 
     /**
      * Get the maximum.
-     * 
+     *
      * @return the max
      */
     public double getMax() {
@@ -114,7 +116,7 @@ public final class NormalizerConfig {
 
     /**
      * Set the max.
-     * 
+     *
      * @param max the max to set
      */
     void setMax(final double max) {
@@ -123,7 +125,7 @@ public final class NormalizerConfig {
 
     /**
      * Get the mode.
-     * 
+     *
      * @return the mode
      */
     public NormalizerMode getMode() {
@@ -132,7 +134,7 @@ public final class NormalizerConfig {
 
     /**
      * Set the mode.
-     * 
+     *
      * @param mode the mode to set
      */
     void setMode(final NormalizerMode mode) {
@@ -182,7 +184,7 @@ public final class NormalizerConfig {
 
     /**
      * Sets the {@link DataColumnSpecFilterConfiguration} and the normalization mode to MINMAX.
-     * 
+     *
      * @param spec the table spec
      */
     public void guessDefaults(final DataTableSpec spec) {

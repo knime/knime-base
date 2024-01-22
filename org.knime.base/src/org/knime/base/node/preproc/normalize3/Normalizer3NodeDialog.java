@@ -81,7 +81,9 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
  *
  * @author Nicolas Cebron, University of Konstanz
  * @since 3.2 getTableSpec() added to allow for altering exaction of {@link DataTableSpec}s from the {@link PortObjectSpec}.
+ * @deprecated since 5.3 the Normalizer has a modern web UI dialog
  */
+@Deprecated
 public class Normalizer3NodeDialog extends NodeDialogPane {
 
     /*
@@ -259,7 +261,7 @@ public class Normalizer3NodeDialog extends NodeDialogPane {
 
     /**
      * Get the {@link DataTableSpec} from the {@link PortObjectSpec}s.
-     * 
+     *
      * @param specs the node's {@link PortObjectSpec}
      * @return the corresponding {@link DataTableSpec} for the {@link PortObjectSpec}
      * @throws NotConfigurableException if the specs are not valid
