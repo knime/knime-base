@@ -44,9 +44,8 @@
  */
 package org.knime.base.node.preproc.filter.missingvaluecolfilter;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -54,152 +53,114 @@ import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
-import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
-import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * The model for the missing value column filter which removes all columns with more missing values than a
  * certain percentage.
  *
  * @author Tim-Oliver Buchholz, KNIME AG, Zurich, Switzerland
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class MissingValueColumnFilterNodeModel extends NodeModel {
-    private final DataColumnSpecFilterConfiguration m_conf = createDCSFilterConfiguration();
+@SuppressWarnings("restriction") // webui
+public final class MissingValueColumnFilterNodeModel extends WebUINodeModel<MissingValueColumnFilterNodeSettings> {
 
-    private final SettingsModelDouble m_percentage = createSettingsModelNumber();
-
-    /** Creates a new filter model with one and in- and output. */
-    public MissingValueColumnFilterNodeModel() {
-        super(1, 1);
+    MissingValueColumnFilterNodeModel(final WebUINodeConfiguration config) {
+        super(config, MissingValueColumnFilterNodeSettings.class);
     }
 
-    /** Nothing to do. */
     @Override
-    protected void reset() {
-        // no op
-    }
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
+        final MissingValueColumnFilterNodeSettings modelSettings) throws CanceledExecutionException {
+        final var inputTable = inData[0];
+        final var dataTableSpec = inputTable.getDataTableSpec();
+        final var selected = modelSettings.m_columnFilter.getSelected(dataTableSpec.getColumnNames(), dataTableSpec);
+        final var selectedIndices = dataTableSpec.columnsToIndices(selected);
+        // count missing values for selected columns
+        final long rowCount = inputTable.size();
 
-    /** {@inheritDoc} */
-    @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-        throws Exception {
-        BufferedDataTable inputTable = inData[0];
-        DataTableSpec dataTableSpec = inputTable.getDataTableSpec();
-        double[] percentages = new double[dataTableSpec.getNumColumns()];
-        Arrays.fill(percentages, -1);
+        final var mode = modelSettings.m_removeColumnsBy;
+        final long limit = switch (mode) {
+            // we can stop when we have seen at least one
+            case ANY -> 1;
+            // can stop when we have seen one more than the configured number
+            case NUMBER -> modelSettings.m_number + 1;
+            // these two cases cannot stop early
+            case ONLY, PERCENTAGE -> rowCount;
+        };
 
-        String[] included = m_conf.applyTo(dataTableSpec).getIncludes();
-        for (String column : included) {
-            percentages[dataTableSpec.findColumnIndex(column)] = m_percentage.getDoubleValue();
-        }
+        // in case we stop early, this number will be the lower bound for the number of missing values
+        final var missingCount = new long[selectedIndices.length];
+        long processedRows = 0;
 
-        long[] missingCount = new long[dataTableSpec.getNumColumns()];
-        final double rowCount = inputTable.size();
-        double processedRows = 0;
-        for (DataRow row : inputTable) {
-            exec.setProgress(processedRows++ / rowCount);
-
-            for (int i = 0; i < row.getNumCells(); i++) {
-                    if (row.getCell(i).isMissing()) {
-                        missingCount[i]++;
-                    }
-            }
-        }
-
-        ColumnRearranger r = new ColumnRearranger(dataTableSpec);
-        int alreadyRemoved = 0;
-        for (int i = 0; i < percentages.length; i++) {
-            if (percentages[i] > -1) {
-                if ((missingCount[i] / rowCount) * 100 >= percentages[i]) {
-                    r.remove(i - alreadyRemoved++);
+        for (final DataRow row : inputTable) {
+            for (var i = 0; i < selectedIndices.length; i++) {
+                final var columnIdx = selectedIndices[i];
+                if (missingCount[i] <= limit && row.getCell(columnIdx).isMissing()) {
+                    missingCount[i]++;
                 }
             }
+            processedRows++;
+            exec.setProgress(1.0 * processedRows / rowCount);
+            if (Arrays.stream(missingCount).allMatch(count -> count >= limit)) {
+                exec.setProgress(1.0);
+                break;
+            }
         }
+
+        final var toRemove = switch (mode) {
+            case ANY, NUMBER, ONLY ->
+                IntStream.range(0, selectedIndices.length) //
+                    .filter(idx -> missingCount[idx] >= limit) //
+                    .map(idx -> selectedIndices[idx]).toArray();
+            case PERCENTAGE -> filterByPercentage(selectedIndices, missingCount, rowCount, modelSettings.m_percentage);
+        };
+
+        final var r = new ColumnRearranger(dataTableSpec);
+        r.remove(toRemove);
 
         return new BufferedDataTable[]{exec.createColumnRearrangeTable(inputTable, r, exec)};
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
-        // no op
+    /**
+     * Threshold filter the selected indices whether they exceed the given percentage or not.
+     * @param selectedIndices indices to filter
+     * @param missingCount number of missing values (lower bound) in each column
+     * @param rowCount total row count
+     * @param percentage threshold
+     * @return filtered array with columns exceeding or meeting the given threshold of missing values
+     */
+    private static int[] filterByPercentage(final int[] selectedIndices, final long[] missingCount, final long rowCount,
+        final double percentage) {
+        // map counts to percentage values
+        final var percentages =
+            Arrays.stream(missingCount).mapToDouble(count -> 1.0 * count / rowCount * 100).toArray();
+        // identify column indices from selected indices which meet threshold
+        final var threshold = percentage;
+        return IntStream.range(0, selectedIndices.length).filter(idx -> percentages[idx] >= threshold)
+            .map(idx -> selectedIndices[idx]).toArray();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec) throws IOException,
-        CanceledExecutionException {
-        // no op
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs,
+        final MissingValueColumnFilterNodeSettings modelSettings) throws InvalidSettingsException {
         if (inSpecs[0].getNumColumns() == 0) {
             throw new InvalidSettingsException("No input table available.");
         }
-        // we have to take a look at the whole table
+        // output spec can only be determined after we had a look at the data
         return null;
     }
 
-    /**
-     * Writes number of filtered columns, and the names as {@link org.knime.core.data.DataCell} to the given settings.
-     *
-     * @param settings the object to save the settings into
-     */
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_conf.saveConfiguration(settings);
-        m_percentage.saveSettingsTo(settings);
-    }
-
-    /**
-     * Reads the filtered columns.
-     *
-     * @param settings to read from
-     * @throws InvalidSettingsException if the settings does not contain the size or a particular column key
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_conf.loadConfigurationInModel(settings);
-        m_percentage.loadSettingsFrom(settings);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        DataColumnSpecFilterConfiguration conf = createDCSFilterConfiguration();
-        conf.loadConfigurationInModel(settings);
-
-        SettingsModelDouble percentage = createSettingsModelNumber();
-        percentage.validateSettings(settings);
-    }
-
-    /**
-     * A new configuration to store the settings. Also enables the type filter.
-     *
-     * @return ...
-     */
-    static final DataColumnSpecFilterConfiguration createDCSFilterConfiguration() {
-        return new DataColumnSpecFilterConfiguration("column-filter");
-    }
-
-    /**
-     * Configuration to save the percentage
-     * @return a settings model to store an integer
-     */
-    static final SettingsModelDouble createSettingsModelNumber() {
-        return new SettingsModelDoubleBounded("missing_value_percentage", 90, 0, 100);
+    protected void validateSettings(final MissingValueColumnFilterNodeSettings settings)
+            throws InvalidSettingsException {
+        if (settings.m_percentage < 0) {
+            throw new InvalidSettingsException("Percentage must not be negative.");
+        }
+        if (settings.m_percentage > 100) {
+            throw new InvalidSettingsException("Percentage must not exceed 100.");
+        }
     }
 }

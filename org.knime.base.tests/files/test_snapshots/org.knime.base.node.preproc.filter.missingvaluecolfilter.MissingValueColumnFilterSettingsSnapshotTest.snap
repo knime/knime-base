@@ -1,0 +1,269 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "removeColumnsBy" : "ANY",
+      "percentage" : 30.0,
+      "number" : 0
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Input columns",
+            "description" : "Select the columns to filter for missing values.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "column-filter" ]
+          },
+          "number" : {
+            "type" : "integer",
+            "format" : "int64",
+            "title" : "Threshold number (more than)",
+            "description" : "    Selected columns with more than this number of missing values are filtered out.\n",
+            "default" : 0,
+            "minimum" : 0,
+            "configKeys" : [ "number" ]
+          },
+          "percentage" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Threshold percentage (equal or more than %)",
+            "description" : "    Selected columns with at least this percentage of missing values are filtered out.\n",
+            "default" : 30.0,
+            "minimum" : 0,
+            "maximum" : 100.0,
+            "configKeys" : [ "missing_value_percentage" ]
+          },
+          "removeColumnsBy" : {
+            "oneOf" : [ {
+              "const" : "ANY",
+              "title" : "With any missing values"
+            }, {
+              "const" : "ONLY",
+              "title" : "With only missing values"
+            }, {
+              "const" : "PERCENTAGE",
+              "title" : "By percentage of missing values"
+            }, {
+              "const" : "NUMBER",
+              "title" : "By number of missing values"
+            } ],
+            "title" : "Remove columns",
+            "description" : "Specify the criterion for removal of selected columns. You can specify that columns are removed if they\ncontain <i>any</i> missing values, <i>only</i> missing values, based on a <i>percentage</i> of missing\nvalues, or based on an absolute <i>number</i> of missing values contained in the column.\n\n<ul>\n<li><b>With any missing values</b>: Remove the column if it contains at least one missing value.</li>\n<li><b>With only missing values</b>: Remove the column if it contains only missing values.</li>\n<li><b>By percentage of missing values</b>: Remove the column if it contains at least the configured percentage of missing values.</li>\n<li><b>By number of missing values</b>: Remove the column if it contains more than the configured number of missing values.</li>\n</ul>",
+            "default" : "ANY",
+            "configKeys" : [ "removeColumnsBy" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "columnFilter",
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (double)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }, {
+          "id" : "test2",
+          "text" : "test2",
+          "type" : {
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        } ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true,
+        "includedLabel" : "Tests for exclusion",
+        "excludedLabel" : "Includes"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/removeColumnsBy",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/percentage",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/removeColumnsBy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "PERCENTAGE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/number",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/removeColumnsBy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "NUMBER"
+            } ]
+          }
+        }
+      }
+    } ]
+  }
+}

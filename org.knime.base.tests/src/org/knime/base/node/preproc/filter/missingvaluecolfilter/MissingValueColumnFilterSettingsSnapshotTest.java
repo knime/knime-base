@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,54 +41,32 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   23 Jan 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.filter.missingvaluecolfilter;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.util.Map;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
- * The factory for the missing value column filter node.
+ * Snapshot test for {@code MissingValueColumnFilterNodeSettings}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- * @since 2.6
  */
-@SuppressWarnings("restriction")
-public class MissingValueColumnFilterNodeFactory
-        extends WebUINodeFactory<MissingValueColumnFilterNodeModel> {
+@SuppressWarnings("restriction") // webui
+class MissingValueColumnFilterSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
-        .name("Missing Value Column Filter") //
-        .icon("missingvalcolfilter.png") //
-        .shortDescription("""
-                The node removes selected columns from the input if they contain a certain amount of missing values.
-                """) //
-        .fullDescription("""
-                The node tests each selected column for missing values and removes it according to the chosen criterion.
-                The criteria are: presence or absence of any missing values, a fixed amount, or a percentage of
-                missing values.
-                    """) //
-        .modelSettingsClass(MissingValueColumnFilterNodeSettings.class) //
-        .nodeType(NodeType.Manipulator) //
-        .addInputTable("Table to be filtered", "Table from which columns are filtered.") //
-        .addOutputTable("Filtered table", """
-                Table without selected columns matching the criterion regarding missing values.
-                    """) //
-        // version based on the @since tag of the original implementation of this factory class
-        .sinceVersion(2, 6, 0) //
-        .build();
-
-    /**
-     * Creates a new instance with the configuration.
-     */
-    public MissingValueColumnFilterNodeFactory() {
-        super(CONFIG);
+    protected MissingValueColumnFilterSettingsSnapshotTest() {
+        super(Map.of(SettingsType.MODEL, MissingValueColumnFilterNodeSettings.class),
+            new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE}));
     }
-
-    @Override
-    public MissingValueColumnFilterNodeModel createNodeModel() {
-        return new MissingValueColumnFilterNodeModel(CONFIG);
-    }
-
 }
