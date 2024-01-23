@@ -1,0 +1,205 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1", "test2" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "alreadySorted" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "alreadySorted" : {
+            "type" : "boolean",
+            "title" : "Is the input already sorted by group column(s)?",
+            "description" : "If checked, the input data table will not be sorted before looping\nstarts. The table must already be sorted properly by the columns to\ngroup on. If sorting is switched off, but input table is not properly\nsorted, execution will be canceled.\n",
+            "default" : false,
+            "configKeys" : [ "SortedInput" ]
+          },
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Column selection",
+            "description" : "The columns used to identify the groups.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1", "test2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "GroupColNames" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "columnFilter",
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1",
+          "type" : {
+            "id" : "org.knime.core.data.IntValue",
+            "text" : "Number (integer)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }, {
+          "id" : "test2",
+          "text" : "test2",
+          "type" : {
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        } ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/alreadySorted",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  }
+}

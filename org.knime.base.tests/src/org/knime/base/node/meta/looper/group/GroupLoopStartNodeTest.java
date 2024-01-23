@@ -44,69 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   5 Jan 2023 (chaubold): created
+ *   23 Jan 2024 (chaubold): created
  */
 package org.knime.base.node.meta.looper.group;
 
-import java.util.stream.Stream;
+import java.util.Map;
 
-import org.knime.base.node.preproc.stringreplacer.StringReplacerSettings;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
- * The GroupLoopStartNodeSettings define the WebUI dialog of the Group Loop Start Node. The serialization must go via
- * the {@link StringReplacerSettings}.
+ * Snapshot test for the group loop start node
  *
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
- * @since 5.3
  */
 @SuppressWarnings("restriction")
-final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
-
-    /**
-     * Constructor for persistence and conversion to JSON.
-     */
-    GroupLoopStartNodeSettings() {
+public class GroupLoopStartNodeTest extends DefaultNodeSettingsSnapshotTest {
+    @SuppressWarnings("javadoc")
+    protected GroupLoopStartNodeTest() {
+        super(Map.of(SettingsType.MODEL, GroupLoopStartNodeSettings.class), createDefaultTestTableSpec());
     }
 
-    /**
-     * Constructor for auto-configuration if no settings are available.
-     */
-    GroupLoopStartNodeSettings(final DefaultNodeSettingsContext context) {
-        m_columnFilter = ColumnFilter.createDefault(AllColumns.class, context);
-    }
-
-    @Persist(configKey = GroupLoopStartConfigKeys.COLUMN_NAMES, settingsModel = SettingsModelColumnFilter2.class)
-    @Widget(title = "Column selection", description = "The columns used to identify the groups.")
-    @ChoicesWidget(choices = AllColumns.class)
-    ColumnFilter m_columnFilter = new ColumnFilter();
-
-    @Persist(configKey = GroupLoopStartConfigKeys.SORTED_INPUT_TABLE, settingsModel = SettingsModelBoolean.class)
-    @Widget(title = "Is the input already sorted by group column(s)?", description = """
-            If checked, the input data table will not be sorted before looping
-            starts. The table must already be sorted properly by the columns to
-            group on. If sorting is switched off, but input table is not properly
-            sorted, execution will be canceled.
-            """)
-    boolean m_alreadySorted;
-
-    static final class AllColumns implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).map(DataTableSpec::stream)//
-                .orElseGet(Stream::empty)//
-                .toArray(DataColumnSpec[]::new);
-        }
-
+    static DataTableSpec createDefaultTestTableSpec() {
+        return new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{IntCell.TYPE, StringCell.TYPE});
     }
 }
