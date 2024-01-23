@@ -45,8 +45,9 @@
  */
 package org.knime.base.node.meta.looper;
 
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  * Settings for the looper node.
@@ -54,42 +55,10 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Thorsten Meinl, University of Konstanz
  * @since 4.5
  */
-final class LoopStartCountDynamicSettings {
-    private int m_loops = 10;
+@SuppressWarnings("restriction")
+public final class LoopStartCountDynamicSettings implements DefaultNodeSettings {
 
-    /**
-     * Sets the number of times the inner workflow should be executed.
-     * @param loops the number loops, which must be &gt; 0
-     */
-    void loops(final int loops) {
-        m_loops = loops;
-    }
-
-    /**
-     * Returns the number of loops.
-     * @return the number of loops.
-     */
-    int loops() {
-        return m_loops;
-    }
-
-
-    /**
-     * Loads the settings from the node settings object.
-     *
-     * @param settings a node settings object
-     */
-    void loadSettingsFrom(final NodeSettingsRO settings) {
-        m_loops = settings.getInt("loops", 10);
-    }
-
-
-    /**
-     * Writes the settings into the node settings object.
-     *
-     * @param settings a node settings object
-     */
-    void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addInt("loops", m_loops);
-    }
+    @Widget(title = "Number of loops", description = "The number of times the inner workflow should be executed.")
+    @NumberInputWidget(min = 1, max = Integer.MAX_VALUE)
+    int m_loops = 10;
 }

@@ -45,12 +45,24 @@
  */
 package org.knime.base.node.meta.looper;
 
+import java.io.IOException;
 import java.util.Optional;
 
+import org.apache.xmlbeans.XmlException;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * This factory create all necessary classes for the for-loop head node.
@@ -58,27 +70,53 @@ import org.knime.core.node.context.NodeCreationConfiguration;
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  * @since 4.5
  */
+@SuppressWarnings("restriction")
 public final class LoopStartCountDynamicNodeFactory extends
-        ConfigurableNodeFactory<LoopStartCountDynamicNodeModel> {
+        ConfigurableNodeFactory<LoopStartCountDynamicNodeModel> implements NodeDialogFactory {
+
+    static final String PORT_GROUP = "Pass through";
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+            .name("Counting Loop Start") //
+            .icon("loop_start_count.png") //
+            .shortDescription("Node at the start of a loop") //
+            .fullDescription(
+                """
+                The Counting Loop Start is the node that starts a loop which is executed a predefined number
+                of times. At the end of the loop you need LoopEnd, which collects the results from
+                all loop iterations. All nodes in between are executed as many times as you specify in the dialog
+                of Counting Loop Start.
+                <p>
+                    The input ports are just passed through to the output ports. You can add an arbitrary number of
+                    port pairs by using the &#8220;&#8230;&#8221; menu.
+               </p>
+                """)
+            .modelSettingsClass(LoopStartCountDynamicSettings.class) //
+            .addExternalResource("https://www.knime.com/knime-introductory-course/chapter7/section2",
+                "KNIME E-Learning Course: Section 7.2. Re-executing Workflow Parts: Loops") //
+            .addInputPort(PORT_GROUP, PortObject.TYPE,
+                "The input data, which can be a data table or any other arbitrary port object.", true) //
+            .addOutputPort(PORT_GROUP, PortObject.TYPE, "The unaltered input object", true) //
+            .nodeType(NodeType.LoopStart) //
+            .sinceVersion(4, 2, 0) //
+            .build();
+
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription(CONFIG);
+    }
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final var b = new PortsConfigurationBuilder();
-
-        b.addExtendablePortGroup("Pass through", t -> true);
-
+        b.addExtendablePortGroup(PORT_GROUP, t -> true);
         return Optional.of(b);
     }
 
     @Override
     protected LoopStartCountDynamicNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
-        final var config = creationConfig.getPortConfig().orElseThrow();
-        return new LoopStartCountDynamicNodeModel(config.getInputPorts(), config.getOutputPorts());
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new LoopStartCountDynamicNodeDialog();
+        final var portsConfig = creationConfig.getPortConfig().orElseThrow();
+        return new LoopStartCountDynamicNodeModel(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
     }
 
     @Override
@@ -95,5 +133,18 @@ public final class LoopStartCountDynamicNodeFactory extends
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.3
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LoopStartCountDynamicSettings.class);
     }
 }

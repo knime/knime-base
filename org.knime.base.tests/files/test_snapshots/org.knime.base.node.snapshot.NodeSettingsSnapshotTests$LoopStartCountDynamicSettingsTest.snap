@@ -1,0 +1,33 @@
+{
+  "data" : {
+    "model" : {
+      "loops" : 10
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "loops" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of loops",
+            "description" : "The number of times the inner workflow should be executed.",
+            "default" : 10,
+            "minimum" : 1,
+            "maximum" : 2147483647
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/loops",
+      "options" : { }
+    } ]
+  }
+}

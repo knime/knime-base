@@ -47,20 +47,13 @@
  */
 package org.knime.base.node.meta.looper;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * This model is the head node of a for loop.
@@ -69,35 +62,34 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  * @author based on {@link LoopStartCountNodeModel} by Thorsten Meinl, University of Konstanz
  * @since 4.5
  */
-final class LoopStartCountDynamicNodeModel extends NodeModel implements LoopStartNodeTerminator {
+@SuppressWarnings("restriction")
+final class LoopStartCountDynamicNodeModel extends WebUINodeModel<LoopStartCountDynamicSettings>
+        implements LoopStartNodeTerminator {
 
     private int m_iteration;
 
-    private final LoopStartCountDynamicSettings m_settings = new LoopStartCountDynamicSettings();
+    private boolean m_lastIteration;
 
-    /**
-     * Creates a new model with one input and one output port.
-     *
-     * @param inPorts the input ports
-     * @param outPorts the output ports
-     */
-    LoopStartCountDynamicNodeModel(final PortType[] inPorts, final PortType[] outPorts) {
-        super(inPorts, outPorts);
+    LoopStartCountDynamicNodeModel(final PortType[] inputPorts, final PortType[] outputPorts) {
+        super(inputPorts, outputPorts, LoopStartCountDynamicSettings.class);
     }
 
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        if (m_settings.loops() < 1) {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs,
+        final LoopStartCountDynamicSettings modelSettings) throws InvalidSettingsException {
+        if (modelSettings.m_loops < 1) {
             throw new InvalidSettingsException("Cannot loop fewer than once");
         }
         assert m_iteration == 0;
         pushFlowVariableInt("currentIteration", m_iteration);
-        pushFlowVariableInt("maxIterations", m_settings.loops());
+        pushFlowVariableInt("maxIterations", modelSettings.m_loops);
+        m_lastIteration = m_iteration >= modelSettings.m_loops;
         return inSpecs;
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec,
+        final LoopStartCountDynamicSettings modelSettings) throws Exception {
         // let's see if we have access to the tail: if we do, it's not the
         // first time we are doing this...
         if (getLoopEndNode() == null) {
@@ -110,46 +102,21 @@ final class LoopStartCountDynamicNodeModel extends NodeModel implements LoopStar
         }
         // let's also put the counts on the stack for someone else:
         pushFlowVariableInt("currentIteration", m_iteration);
-        pushFlowVariableInt("maxIterations", m_settings.loops());
+        pushFlowVariableInt("maxIterations", modelSettings.m_loops);
         // increment counter for next iteration
         m_iteration++;
+        m_lastIteration = m_iteration >= modelSettings.m_loops;
         return inObjects;
     }
 
     @Override
     public boolean terminateLoop() {
-        return m_iteration >= m_settings.loops();
+        return m_lastIteration;
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // empty
-    }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings.loadSettingsFrom(settings);
-    }
-
-    @Override
-    protected void reset() {
+    protected void onReset() {
         m_iteration = 0;
-    }
-
-    @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
-        // empty
-    }
-
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        new LoopStartCountDynamicSettings().loadSettingsFrom(settings);
+        m_lastIteration = false;
     }
 }

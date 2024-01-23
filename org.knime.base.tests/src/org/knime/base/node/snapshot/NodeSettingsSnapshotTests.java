@@ -53,6 +53,7 @@ import static org.knime.base.node.snapshot.TestTableSpecUtil.createDefaultTestTa
 import java.util.Map;
 
 import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeSettings;
+import org.knime.base.node.meta.looper.LoopStartCountDynamicSettings;
 import org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeSettings;
 import org.knime.base.node.preproc.append.row.AppendedRowsNodeSettings;
 import org.knime.base.node.preproc.colconvert.numbertostring2.NumberToStringSettings;
@@ -276,6 +277,12 @@ class NodeSettingsSnapshotTests { // NOSONAR
     static class LoopStartChunkNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected LoopStartChunkNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, LoopStartChunkNodeSettings.class), createDefaultTestTableSpec());
+        }
+    }
+
+    static class LoopStartCountDynamicSettingsTest extends DefaultNodeSettingsSnapshotTest {
+        protected LoopStartCountDynamicSettingsTest() {
+            super(Map.of(SettingsType.MODEL, LoopStartCountDynamicSettings.class), createDefaultTestTableSpec());
         }
     }
 
