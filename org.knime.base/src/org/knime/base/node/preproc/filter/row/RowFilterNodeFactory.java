@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   29.06.2005 (ohl): created
  */
@@ -51,50 +51,85 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 
 /**
- * 
+ *
  * @author Peter Ohl, University of Konstanz
  */
-public class RowFilterNodeFactory extends NodeFactory {
-    /**
-     * {@inheritDoc}
-     */
+@SuppressWarnings("restriction")
+public class RowFilterNodeFactory extends NodeFactory implements NodeDialogFactory {
+
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
+        .name("Row Filter") //
+        .icon("rowfilter.png") //
+        .shortDescription("""
+            Allows filtering of data rows by certain criteria, such as RowID,
+            attribute value, and row number range.
+                """) //
+        .fullDescription("""
+            The node allows for row filtering according to certain criteria.
+            It can include
+            or exclude: certain ranges (by row number), rows with
+            a certain RowID, and rows with a certain value in a
+            selectable column (attribute). Below are the steps on how to configure the node
+            in its configuration dialog. Note: The node doesn't change the domain of the
+            data table. I. e. the upper and lower bounds or the possible values in the
+            table spec are not adapted, even if one of the bounds or one value is
+            fully filtered out.
+                        """) //
+        .modelSettingsClass(RowFilterNodeSettings.class)
+        .addInputTable("To be filtered", "Data table from which to filter rows.")
+        .addOutputTable("Filtered", "Data table with rows meeting the specified criteria.")
+        .keywords("where")
+        .nodeType(NodeType.Manipulator)
+        .addExternalResource("https://www.knime.com/knime-introductory-course/chapter3/section1/basic-row-filter",
+            "KNIME E-Learning Course: Basic Row Filter")
+        .build();
+
     @Override
     public NodeModel createNodeModel() {
         return new RowFilterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
     public NodeView createNodeView(final int viewIndex,
             final NodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new RowFilterNodeDialogPane();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.3
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, RowFilterNodeSettings.class);
     }
 }
