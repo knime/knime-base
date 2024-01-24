@@ -67,6 +67,7 @@ import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
  */
 final class ConstantValueColumnNodeModel extends SimpleStreamableFunctionNodeModel {
 
+    // TODO Need to get the m_config from the new settings instead.
     private ConstantValueColumnConfig m_config = new ConstantValueColumnConfig();
 
     /** {@inheritDoc} */
