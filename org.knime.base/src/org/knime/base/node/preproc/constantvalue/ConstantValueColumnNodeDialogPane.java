@@ -93,7 +93,9 @@ import org.knime.core.node.workflow.FlowVariable;
  * Dialog for the Constant Value Column.
  *
  * @author Marcel Hanser
+ * @deprecated Due to the new Web UI Dialog
  */
+@Deprecated
 final class ConstantValueColumnNodeDialogPane extends NodeDialogPane {
 
     private static final int DEFAULT_TEXT_SIZE = 20;
