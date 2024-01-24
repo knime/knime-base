@@ -48,9 +48,17 @@
  */
 package org.knime.base.node.preproc.constantvalue;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  *
@@ -59,12 +67,49 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 @SuppressWarnings("restriction")
 public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
 
-    @Section(title="Column Settings")
-    interface ColumnSettingsSection {
+    /**
+     * Constructor for persistence and conversion from JSON.
+     */
+    public ConstantValueColumnNodeSettings() {
     }
 
-    @Section(title="Value Settings")
-    @After(ColumnSettingsSection.class)
-    interface ValueSettingsSection {
+    enum ColumnOptions {
+        @Label("Replace")
+        REPLACE,
+
+        @Label("Append")
+        APPEND;
+
+        static class IsReplace extends OneOfEnumCondition<ColumnOptions> {
+
+            @Override
+            public ColumnOptions[] oneOf() {
+                return new ColumnOptions[] {REPLACE};
+            }
+
+        }
     }
+
+    static final class ReplacementColumns implements ChoicesProvider {
+        @Override
+        public String[] choices(final DefaultNodeSettingsContext context) {
+            return context.getDataTableSpec(0).map(DataTableSpec::getColumnNames).orElse(new String[0]);
+        }
+    }
+
+    @Widget(title = "Column Settings")
+    @ValueSwitchWidget()
+    @Signal(condition = ColumnOptions.IsReplace.class)
+    ColumnOptions m_colOptions = ColumnOptions.REPLACE;
+
+    @Widget(title = "Replace", description = "Select a column which is replaced with the new constant value column.")
+    @ChoicesWidget(choices = ReplacementColumns.class)
+    @Effect(signals = ColumnOptions.IsReplace.class, type = EffectType.SHOW)
+    String m_replacedColumn;
+
+    @Widget(title = "Append", description = "Add the constant value column as a new column with the given name.")
+    @Effect(signals = ColumnOptions.IsReplace.class, type = EffectType.HIDE)
+    String m_newColumnName;
+
+
 }
