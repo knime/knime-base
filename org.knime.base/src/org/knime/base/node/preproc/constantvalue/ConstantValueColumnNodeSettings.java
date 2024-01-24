@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,65 +41,20 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   24 Jan 2024 (Steffen Fissler, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.constantvalue;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 
 /**
- * Factory for Constant Value Column node.
  *
- * @author Marcel Hanser
+ * @author Steffen Fissler, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class ConstantValueColumnNodeFactory extends NodeFactory<ConstantValueColumnNodeModel> implements NodeDialogFactory{
-
-    /** {@inheritDoc} */
-    @Override
-    public ConstantValueColumnNodeModel createNodeModel() {
-        return new ConstantValueColumnNodeModel();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<ConstantValueColumnNodeModel> createNodeView(final int viewIndex,
-        final ConstantValueColumnNodeModel nodeModel) {
-        return null;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ConstantValueColumnNodeDialogPane();
-    }
-    /**
-     * {@inheritDoc}
-     *
-     * @since 5.3
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, ConstantValueColumnNodeSettings.class);
-    }
+public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
 
 }
