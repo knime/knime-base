@@ -45,7 +45,6 @@
 
 package org.knime.base.data.filter.row.dialog;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;

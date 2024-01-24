@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.regexsplit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,12 +59,15 @@ import org.knime.base.node.preproc.regexsplit.OutputSettings.ColumnPrefixMode;
 import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputMode;
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.CaseMatching;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsCompatibilityTest;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
  * Test loading legacy settings.
@@ -75,6 +79,26 @@ class RegexSplitNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     protected RegexSplitNodeSettingsTest() {
         super(Map.of(SettingsType.MODEL, RegexSplitNodeSettings.class), new DataTableSpec());
+    }
+
+    static final class TestLegacySettings extends DefaultNodeSettingsCompatibilityTest<RegexSplitNodeSettings> {
+        @Override
+        protected List<Assert> assertions() {
+            return List.of( //
+                Assert.of(legacySettings(true), settings(true)), //
+                Assert.of(legacySettings(false), settings(false)));
+        }
+    }
+
+    static final class RegexSplitNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
+        protected RegexSplitNodeSettingsSnapshotTest() {
+            super(SnapshotTestConfiguration.builder() //
+                .addInputTableSpec().withColumnNames("test").withTypes(StringCell.TYPE) //
+                .testJsonFormsForModel(RegexSplitNodeSettings.class) //
+                .testNodeSettingsStructure(settings(true)) //
+                .testNodeSettingsStructure(legacySettings(true), RegexSplitNodeSettings.class) //
+                .build());
+        }
     }
 
     /**
@@ -93,6 +117,32 @@ class RegexSplitNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         settings.addBoolean("isDotAll", defaultValue);
         settings.addBoolean("isUniCodeCase", defaultValue);
         settings.addBoolean("isCanonEQ", defaultValue);
+        return settings;
+    }
+
+    /** The {@link RegexSplitNodeSettings} that we expect when loading them from {@link #legacySettings(boolean)} */
+    private static RegexSplitNodeSettings settings(final boolean defaultValue) {
+        final var settings = new RegexSplitNodeSettings();
+        settings.m_column = "col";
+        settings.m_pattern = "pattern";
+
+        settings.m_isCanonEQ = defaultValue;
+        settings.m_caseMatching = defaultValue ? CaseMatching.CASEINSENSITIVE : CaseMatching.CASESENSITIVE;
+        settings.m_isComments = defaultValue;
+        settings.m_isDotAll = defaultValue;
+        settings.m_isLiteral = defaultValue;
+        settings.m_isMultiLine = defaultValue;
+        settings.m_isUnicodeCase = defaultValue;
+        settings.m_isUnixLines = defaultValue;
+
+        // when loading from legacy settings, this must be true
+        settings.m_decrementGroupIndexByOne = true;
+
+        // legacy node output columns are named split_0, split_1, ... by default
+        settings.m_output.m_mode = OutputMode.COLUMNS;
+        settings.m_output.m_columnPrefixMode = ColumnPrefixMode.CUSTOM;
+        settings.m_output.m_columnPrefix = "split_";
+
         return settings;
     }
 

@@ -53,7 +53,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * Settings for the looper node.
  *
  * @author Thorsten Meinl, University of Konstanz
- * @since 4.5
+ * @since 5.3
  */
 @SuppressWarnings("restriction")
 final class LoopStartCountDynamicSettings implements DefaultNodeSettings {
