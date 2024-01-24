@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,25 +41,31 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   24 Jan 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.meta.looper;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import java.util.Map;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
- * Settings for the looper node.
+ * Snapshot test for {@code LoopStartCountDynamicSettings}.
  *
- * @author Thorsten Meinl, University of Konstanz
- * @since 4.5
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class LoopStartCountDynamicSettings implements DefaultNodeSettings {
-
-    @Widget(title = "Number of loops", description = "The number of times the inner workflow should be executed.")
-    @NumberInputWidget(min = 1, max = Integer.MAX_VALUE)
-    int m_loops = 10;
+class LoopStartCountDynamicSettingsSnapshotTest  extends DefaultNodeSettingsSnapshotTest {
+    protected LoopStartCountDynamicSettingsSnapshotTest() {
+        super(Map.of(SettingsType.MODEL, LoopStartCountDynamicSettings.class),
+            new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE}));
+    }
 }

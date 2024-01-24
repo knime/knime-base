@@ -54,7 +54,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Nested;
 import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeSettings;
-import org.knime.base.node.meta.looper.LoopStartCountDynamicSettings;
 import org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeSettings;
 import org.knime.base.node.preproc.append.row.AppendedRowsNodeSettings;
 import org.knime.base.node.preproc.colconvert.numbertostring2.NumberToStringSettings;
@@ -310,12 +309,4 @@ class NodeSettingsSnapshotTests { // NOSONAR
             super(Map.of(SettingsType.MODEL, LoopStartChunkNodeSettings.class), createDefaultTestTableSpec());
         }
     }
-
-    @Nested
-    class LoopStartCountDynamicSettingsTest extends DefaultNodeSettingsSnapshotTest {
-        protected LoopStartCountDynamicSettingsTest() {
-            super(Map.of(SettingsType.MODEL, LoopStartCountDynamicSettings.class), createDefaultTestTableSpec());
-        }
-    }
-
 }
