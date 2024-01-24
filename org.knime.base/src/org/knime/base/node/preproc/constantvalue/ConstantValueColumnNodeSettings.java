@@ -49,6 +49,8 @@
 package org.knime.base.node.preproc.constantvalue;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 
 /**
  *
@@ -57,4 +59,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 @SuppressWarnings("restriction")
 public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
 
+    @Section(title="Column Settings")
+    interface ColumnSettingsSection {
+    }
+
+    @Section(title="Value Settings")
+    @After(ColumnSettingsSection.class)
+    interface ValueSettingsSection {
+    }
 }
