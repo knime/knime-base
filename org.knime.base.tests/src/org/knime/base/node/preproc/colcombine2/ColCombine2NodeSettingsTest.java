@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,47 +41,35 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   15 Feb 2024 (DBogenrieder): created
  */
 package org.knime.base.node.preproc.colcombine2;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.util.Map;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
- * NodeFactory of the ColumnCombiner node.
+ * Snapshot test for the Column combiner node
  *
  * @author Daniel Bogenrieder, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class ColCombine2NodeFactory extends WebUINodeFactory<ColCombine2NodeModel> {
-
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-            .name("Column Combiner")//
-            .icon("./col_combine.png")//
-            .shortDescription("Combines the content of a set of columns and appends the concatenated string "
-                + "as separate column to the input table.")//
-            .fullDescription("Combines the content of a set of columns and appends the concatenated string "
-                + "as separate column to the input table. The user needs to specify in the dialog "
-                + "the columns of interest and some other properties, such as delimiter to separate "
-                + "the different cell contents and quoting options.")//
-            .modelSettingsClass(ColCombine2NodeSettings.class)//
-            .addInputTable("Input Table", "Arbitrary input data.")//
-            .addOutputTable("Output Table", "Input data + additional column containing string combination.")//
-            .sinceVersion(5, 3, 0)
-            .build();
-
-    /**
-     * Constructor.
-     */
-    public ColCombine2NodeFactory() {
-        super(CONFIG);
+public class ColCombine2NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @SuppressWarnings("javadoc")
+    protected ColCombine2NodeSettingsTest() {
+        super(Map.of(SettingsType.MODEL, ColCombine2NodeSettings.class), createDefaultTestTableSpec());
     }
 
-
-    @Override
-    public ColCombine2NodeModel createNodeModel() {
-        return new ColCombine2NodeModel(CONFIG, ColCombine2NodeSettings.class);
+    static DataTableSpec createDefaultTestTableSpec() {
+        return new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{IntCell.TYPE, StringCell.TYPE});
     }
-
 }

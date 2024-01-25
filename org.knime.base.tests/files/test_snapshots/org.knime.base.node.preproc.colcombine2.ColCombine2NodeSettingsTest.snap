@@ -1,0 +1,350 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1", "test2" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "failIfMissingColumns" : false,
+      "delimiter" : ",",
+      "delimiterInputs" : "QUOTE",
+      "quoteCharacter" : "\"",
+      "quoteInputs" : "ONLY_NECESSARY",
+      "replacementDelimiter" : "",
+      "outputColumnName" : "Combined String",
+      "removeInputColumns" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Input columns",
+            "description" : "Select the columns to combine in the output table.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1", "test2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "column-filter" ]
+          },
+          "delimiter" : {
+            "type" : "string",
+            "title" : "Delimiter",
+            "description" : "Enter a delimiter string here. This string is used to separate the different cell contents in the new, appended column.",
+            "default" : ","
+          },
+          "delimiterInputs" : {
+            "oneOf" : [ {
+              "const" : "QUOTE",
+              "title" : "Quote inputs"
+            }, {
+              "const" : "REPLACE",
+              "title" : "Replace delimiters"
+            } ],
+            "title" : "Handle delimiter inputs",
+            "default" : "QUOTE",
+            "configKeys" : [ "delimiterInputs" ]
+          },
+          "failIfMissingColumns" : {
+            "type" : "boolean",
+            "title" : "Fail if there are missing columns",
+            "description" : "If true the node will fail when there are missing columns selected",
+            "default" : false,
+            "configKeys" : [ "failIfMissingColumns" ]
+          },
+          "outputColumnName" : {
+            "type" : "string",
+            "title" : "Output column name",
+            "description" : "The name of the new column.",
+            "default" : "Combined String",
+            "configKeys" : [ "new_column_name" ]
+          },
+          "quoteCharacter" : {
+            "type" : "string",
+            "title" : "Quote character",
+            "description" : "The character entered here will be used to quote the cell content in case that it contains the delimiter string (for instance if the cell content is <i>some;value</i>, the delimiter string is ';' (a single semicolon), and the quote character is '\"' (single quote char) the quoted string will be <i>\"some;value\"</i> (including quotes)). You can force quotation by checking \"Quote Always\". Alternatively, the user can also replace the delimiter  string in the cell content string (see below).",
+            "default" : "\"",
+            "configKeys" : [ "quote_char" ]
+          },
+          "quoteInputs" : {
+            "oneOf" : [ {
+              "const" : "ALL",
+              "title" : "All"
+            }, {
+              "const" : "ONLY_NECESSARY",
+              "title" : "Only Necessary"
+            } ],
+            "title" : "Quote inputs",
+            "default" : "ONLY_NECESSARY",
+            "configKeys" : [ "is_quoting_always" ]
+          },
+          "removeInputColumns" : {
+            "type" : "boolean",
+            "title" : "Remove input columns",
+            "description" : "If selected, removes the columns in the &quot;Include&quot; list from the output.",
+            "default" : false,
+            "configKeys" : [ "remove_included_columns" ]
+          },
+          "replacementDelimiter" : {
+            "type" : "string",
+            "title" : "Replacement",
+            "description" : "If the string representation of the cell content contains the delimiter string, it will be replaced by the string entered here (if you entered '-' here, the output of the above example would be <i>some-value</i>).",
+            "default" : "",
+            "configKeys" : [ "replace_delimiter" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Concatenation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnFilter",
+        "options" : {
+          "format" : "columnFilter",
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1",
+            "type" : {
+              "id" : "org.knime.core.data.IntValue",
+              "text" : "Number (integer)"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+          }, {
+            "id" : "test2",
+            "text" : "test2",
+            "type" : {
+              "id" : "org.knime.core.data.StringValue",
+              "text" : "String"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failIfMissingColumns",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/delimiter"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/delimiterInputs",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/quoteCharacter",
+        "options" : {
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/delimiterInputs",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "QUOTE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/quoteInputs",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/delimiterInputs",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "QUOTE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/replacementDelimiter",
+        "options" : {
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/delimiterInputs",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "QUOTE"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputColumnName"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/removeInputColumns",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  }
+}
