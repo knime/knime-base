@@ -47,6 +47,8 @@ package org.knime.base.node.preproc.colcombine2;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.knime.base.node.preproc.colcombine2.ColCombine2NodeSettings.DelimiterInputs;
+import org.knime.base.node.preproc.colcombine2.ColCombine2NodeSettings.QuoteInputs;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -57,117 +59,101 @@ import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
 /**
- * This is the model implementation of ColCombine. Takes the contents of a set
- * of columns and combines them into one string column.
+ * This is the model implementation of ColCombine. Takes the contents of a set of columns and combines them into one
+ * string column.
  *
- * @author Bernd Wiswedel, University of Konstanz
+ * @author Bernd Wiswedel, Daniel Bogenrieder, KNIME GmbH, Konstanz, Germany
  */
-public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
+@SuppressWarnings("restriction")
+public class ColCombine2NodeModel extends WebUISimpleStreamableFunctionNodeModel<ColCombine2NodeSettings> {
 
-    /** Config identifier: Name of new column. */
-    static final String CFG_NEW_COLUMN_NAME = "new_column_name";
-    /** Config identifier: delimiter string. */
-    static final String CFG_DELIMITER_STRING = "delimiter";
-    /** Config identifier: if to use quoting. */
-    static final String CFG_IS_QUOTING = "is_quoting";
-    /** Config identifier: if is to quote always. */
-    static final String CFG_IS_QUOTING_ALWAYS = "is_quoting_always";
-    /** Config identifier: quote character. */
-    static final String CFG_QUOTE_CHAR = "quote_char";
-    /** Config identifier: delimiter replacement string. */
-    static final String CFG_REPLACE_DELIMITER_STRING = "replace_delimiter";
-    /** Config identifier: remove included columns. */
-    static final String CFG_REMOVE_INCLUDED_COLUMNS = "remove_included_columns";
+    ColCombine2NodeSettings m_modelSettings;
 
-    private DataColumnSpecFilterConfiguration m_filterConf;
-    private String m_newColName;
-    private String m_delimString;
-    private char m_quoteChar;
-    private boolean m_isQuoting;
-    private boolean m_isQuotingAlways;
-    private String m_replaceDelimString;
-    /** The included columns */
-    private String[] m_included;
-    private boolean m_removeIncludedColumns;
+    /**
+     * @param configuration
+     * @param modelSettingsClass
+     */
+    protected ColCombine2NodeModel(final WebUINodeConfiguration configuration,
+        final Class<ColCombine2NodeSettings> modelSettingsClass) {
+        super(configuration, modelSettingsClass);
+    }
 
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         DataTableSpec spec = inSpecs[0];
-        if (m_filterConf == null) {
-            throw new InvalidSettingsException("No settings available.");
-        }
-
-        String[] rmFromIncl = m_filterConf.applyTo(spec).getRemovedFromIncludes();
-        if (m_filterConf.isEnforceInclusion() && rmFromIncl.length != 0) {
-            throw new InvalidSettingsException("Input table does not match "
-                    + "selected include columns, unable to find column(s): "
-                    + ConvenienceMethods.getShortStringFrom(new HashSet<String>(Arrays.asList(rmFromIncl)), 3));
-        }
-
-        if (spec.containsName(m_newColName)) {
-            throw new InvalidSettingsException(
-                    "Column already exits: " + m_newColName);
-        }
-
-        m_included = m_filterConf.applyTo(spec).getIncludes();
         ColumnRearranger arranger = createColumnRearranger(spec);
+
+        if (spec.containsName(m_modelSettings.m_outputColumnName)) {
+            throw new InvalidSettingsException("Column already exits: " + m_modelSettings.m_outputColumnName);
+        }
+
+        String[] selectedColumns = m_modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
+        String[] selectedColumnsWithMissing = m_modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec);
+        if (selectedColumnsWithMissing.length > selectedColumns.length && m_modelSettings.m_failIfMissingColumns) {
+            String[] missingColumns = Arrays.stream(selectedColumnsWithMissing).distinct()
+                .filter(x -> !Arrays.asList(selectedColumns).contains(x)).toArray(String[]::new);
+            throw new InvalidSettingsException(
+                "Input table does not match selected include columns, unable to find column(s): "
+                    + ConvenienceMethods.getShortStringFrom(new HashSet<String>(Arrays.asList(missingColumns)), 3));
+        }
+
         return new DataTableSpec[]{arranger.createSpec()};
     }
 
     @Override
-    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) {
+    protected ColumnRearranger createColumnRearranger(final DataTableSpec spec,
+        final ColCombine2NodeSettings modelSettings) {
+        m_modelSettings = modelSettings;
         ColumnRearranger result = new ColumnRearranger(spec);
-        DataColumnSpec append = new DataColumnSpecCreator(
-                m_newColName, StringCell.TYPE).createSpec();
-        final int[] indices = new int[m_included.length];
+        DataColumnSpec append =
+            new DataColumnSpecCreator(m_modelSettings.m_outputColumnName, StringCell.TYPE).createSpec();
+        String[] selectedColumns = m_modelSettings.m_columnFilter.getNonMissingSelected(spec.getColumnNames(), spec);
+        final int[] indices = new int[selectedColumns.length];
         int j = 0;
-        for (int k = 0; k < spec.getNumColumns() && j < m_included.length; k++) {
+        for (int k = 0; k < spec.getNumColumns() && j < selectedColumns.length; k++) {
             DataColumnSpec cs = spec.getColumnSpec(k);
-            if (m_included[j].equals(cs.getName())) {
-               indices[j] = k;
-               j++;
+            if (selectedColumns[j].equals(cs.getName())) {
+                indices[j] = k;
+                j++;
             }
         }
 
         // ", " -> ","
         // "  " -> "  " (do not let the resulting string be empty)
         // " bla bla " -> "bla bla"
-        final String delimTrim = trimDelimString(m_delimString);
+        final String delimTrim = trimDelimString(m_modelSettings.m_delimiter);
         result.append(new SingleCellFactory(append) {
-           @Override
+            @Override
             public DataCell getCell(final DataRow row) {
-               String[] cellContents = new String[indices.length];
-               for (int i = 0; i < indices.length; i++) {
-                   DataCell c = row.getCell(indices[i]);
-                   String s = c instanceof StringValue
-                       ? ((StringValue)c).getStringValue() : c.toString();
-                   cellContents[i] = s;
-               }
-               return new StringCell(handleContent(cellContents, delimTrim));
+                String[] cellContents = new String[indices.length];
+                for (int i = 0; i < indices.length; i++) {
+                    DataCell c = row.getCell(indices[i]);
+                    String s = c instanceof StringValue ? ((StringValue)c).getStringValue() : c.toString();
+                    cellContents[i] = s;
+                }
+                return new StringCell(handleContent(cellContents, delimTrim));
             }
         });
-        if(m_removeIncludedColumns) {
-            result.remove(m_included);
+        if (m_modelSettings.m_removeInputColumns) {
+            result.remove(m_modelSettings.m_columnFilter.getSelected(spec.getColumnNames(), spec));
         }
         return result;
     }
 
-    /** Concatenates the elements of the array, used from cell factory.
+    /**
+     * Concatenates the elements of the array, used from cell factory.
+     *
      * @param cellContents The cell contents
-     * @param delimTrim The trimmed delimiter (used as argument to not do the
-     * trimming over and over again.)
+     * @param delimTrim The trimmed delimiter (used as argument to not do the trimming over and over again.)
      * @return The concatenated string.
      */
-    private String handleContent(final String[] cellContents,
-            final String delimTrim) {
+    private String handleContent(final String[] cellContents, final String delimTrim) {
 
         StringBuilder b = new StringBuilder();
 
@@ -176,124 +162,73 @@ public class ColCombine2NodeModel extends SimpleStreamableFunctionNodeModel {
             b.append(i > 0 ? delimTrim : "");
             String s = cellContents[i];
 
-            if (m_isQuoting) {
-                if (m_isQuotingAlways
-                        || s.contains(delimTrim)
-                        || s.contains(Character.toString(m_quoteChar))) {
+            if (m_modelSettings.m_delimiterInputs == DelimiterInputs.QUOTE) {
+                if (m_modelSettings.m_quoteInputs == QuoteInputs.ALL || s.contains(delimTrim)
+                    || s.contains(Character.toString(m_modelSettings.m_quoteCharacter))) {
                     quoteCellContent(b, s);
                 } else {
                     b.append(s);
                 }
             } else {
                 // replace occurrences of the delimiter
-                b.append(s.replace(delimTrim, m_replaceDelimString));
+                b.append(s.replace(delimTrim, m_modelSettings.m_replacementDelimiter));
             }
         }
         return b.toString();
     }
 
     private void quoteCellContent(final StringBuilder b, final String s) {
-        b.append(m_quoteChar);
+        b.append(m_modelSettings.m_quoteCharacter);
 
         for (int j = 0; j < s.length(); j++) {
             char tempChar = s.charAt(j);
-            if (tempChar == m_quoteChar || tempChar == '\\') {
+            if (tempChar == m_modelSettings.m_quoteCharacter || tempChar == '\\') {
                 b.append('\\');
             }
             b.append(tempChar);
         }
 
-        b.append(m_quoteChar);
+        b.append(m_modelSettings.m_quoteCharacter);
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        if (m_filterConf != null) {
-            m_filterConf.saveConfiguration(settings);
-            settings.addString(CFG_DELIMITER_STRING, m_delimString);
-            settings.addBoolean(CFG_IS_QUOTING, m_isQuoting);
-            if (m_isQuoting) {
-                settings.addChar(CFG_QUOTE_CHAR, m_quoteChar);
-                settings.addBoolean(CFG_IS_QUOTING_ALWAYS, m_isQuotingAlways);
+    protected void validateSettings(final ColCombine2NodeSettings settings) throws InvalidSettingsException {
+        if (m_modelSettings != null) {
+            if (m_modelSettings.m_outputColumnName == null || m_modelSettings.m_outputColumnName.trim().length() == 0) {
+                throw new InvalidSettingsException("Name of new column must not be empty");
+            }
+
+            if (m_modelSettings.m_delimiter == null) {
+                throw new InvalidSettingsException("Delimiter must not be null");
+            }
+            m_modelSettings.m_delimiter = trimDelimString(m_modelSettings.m_delimiter);
+
+            if (m_modelSettings.m_delimiterInputs == DelimiterInputs.QUOTE) {
+                if (Character.isWhitespace(m_modelSettings.m_quoteCharacter)) {
+                    throw new InvalidSettingsException("Can't use white space as quote char");
+                }
+                if (m_modelSettings.m_delimiter.contains(Character.toString(m_modelSettings.m_quoteCharacter))) {
+                    throw new InvalidSettingsException("Delimiter String \"" + m_modelSettings.m_delimiter
+                        + "\" must not contain quote character ('" + m_modelSettings.m_quoteCharacter + "')");
+                }
             } else {
-                settings.addString(
-                        CFG_REPLACE_DELIMITER_STRING, m_replaceDelimString);
-            }
-            settings.addString(CFG_NEW_COLUMN_NAME, m_newColName);
-            settings.addBoolean(CFG_REMOVE_INCLUDED_COLUMNS, m_removeIncludedColumns);
-        }
-    }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        DataColumnSpecFilterConfiguration conf = createDCSFilterConfiguration();
-        conf.loadConfigurationInModel(settings);
-        m_filterConf = conf;
-        m_newColName = settings.getString(CFG_NEW_COLUMN_NAME);
-        m_delimString = settings.getString(CFG_DELIMITER_STRING);
-        m_isQuoting = settings.getBoolean(CFG_IS_QUOTING);
-        if (m_isQuoting) {
-            m_quoteChar = settings.getChar(CFG_QUOTE_CHAR);
-            m_isQuotingAlways = settings.getBoolean(CFG_IS_QUOTING_ALWAYS);
-        } else {
-            m_replaceDelimString = settings.getString(
-                    CFG_REPLACE_DELIMITER_STRING);
-        }
-        m_removeIncludedColumns = settings.getBoolean(CFG_REMOVE_INCLUDED_COLUMNS, false);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
-        DataColumnSpecFilterConfiguration conf = createDCSFilterConfiguration();
-        conf.loadConfigurationInModel(settings);
-
-        String newColName = settings.getString(CFG_NEW_COLUMN_NAME);
-        if (newColName == null || newColName.trim().length() == 0) {
-            throw new InvalidSettingsException(
-                    "Name of new column must not be empty");
-        }
-        String delim = settings.getString(CFG_DELIMITER_STRING);
-        if (delim == null) {
-            throw new InvalidSettingsException("Delimiter must not be null");
-        }
-        delim = trimDelimString(delim);
-
-        boolean isQuote = settings.getBoolean(CFG_IS_QUOTING);
-        if (isQuote) {
-            char quote = settings.getChar(CFG_QUOTE_CHAR);
-            if (Character.isWhitespace(quote)) {
-                throw new InvalidSettingsException(
-                        "Can't use white space as quote char");
-            }
-            if (delim.contains(Character.toString(quote))) {
-                throw new InvalidSettingsException("Delimiter String \""
-                        + delim + "\" must not contain quote character ('"
-                        + quote + "')");
-            }
-            settings.getBoolean(CFG_IS_QUOTING_ALWAYS);
-        } else {
-            String replace = settings.getString(CFG_REPLACE_DELIMITER_STRING);
-            if ((delim.length() > 0) && (replace.contains(delim))) {
-                throw new InvalidSettingsException("Replacement string \""
-                        + replace + "\" must not contain delimiter string \""
-                        + delim + "\"");
+                if ((m_modelSettings.m_delimiter.length() > 0)
+                    && (m_modelSettings.m_replacementDelimiter.contains(m_modelSettings.m_delimiter))) {
+                    throw new InvalidSettingsException("Replacement string \"" + m_modelSettings.m_replacementDelimiter
+                        + "\" must not contain delimiter string \"" + m_modelSettings.m_delimiter + "\"");
+                }
             }
         }
     }
 
     /**
-     * ', ' gets ','.
-     * ' ' gets ' ' (do not let the resulting string be empty)
-     * ' blah blah ' gets 'blah blah'
+     * ', ' gets ','. ' ' gets ' ' (do not let the resulting string be empty) ' blah blah ' gets 'blah blah'
      *
      * @param delimString string to trim
      * @return the trimmed string
      */
     static String trimDelimString(final String delimString) {
-        return delimString.trim().length() == 0 ? delimString : delimString
-                .trim();
+        return delimString.trim().length() == 0 ? delimString : delimString.trim();
 
     }
 
