@@ -52,20 +52,23 @@ import org.knime.core.data.DataCellFactory;
 import org.knime.core.data.DataCellFactory.FromSimpleString;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTypeRegistry;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.IsSpecificStringCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Or;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 /**
  *
  * @author Steffen Fissler, KNIME GmbH, Konstanz, Germany
@@ -73,67 +76,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @SuppressWarnings("restriction")
 public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
 
-    @JsonIgnore
-    final String VALUE_DESCRIPTION = "In the left combo box you choose the datacell\n"
-            + "            implementation\n"
-            + "            of the\n"
-            + "            column and in the text field the\n"
-            + "            actual column\n"
-            + "            value is entered. You can also choose a flow-variable to provide the value using the button on the right, \n"
-            + "            however the datacell implementation configuration is still necessary. \n"
-            + "            <br />\n"
-            + "            <br />\n"
-            + "\n"
-            + "            <b>Note on Double values</b>\n"
-            + "            <br />\n"
-            + "            Make sure that you use the '.' as the decimal\n"
-            + "            mark in a double value.\n"
-            + "            <br />\n"
-            + "            <br />\n"
-            + "            <b>Note on Date formats</b>\n"
-            + "            <br />\n"
-            + "            Note, the date parser uses localization settings so in order to\n"
-            + "            parse\n"
-            + "            foreign language date formats you will need to either convert\n"
-            + "            these\n"
-            + "            formats to the localized representation manually, or change\n"
-            + "            the\n"
-            + "            localization of your system to match that of your data source.\n"
-            + "            A\n"
-            + "            format string as required by the\n"
-            + "            <tt>java.text.SimpleDateFormat</tt>\n"
-            + "            .\n"
-            + "            <b>Examples:</b>\n"
-            + "            <ul>\n"
-            + "                <li>\"yyyy.MM.dd HH:mm:ss.SSS\" parses dates like \"2001.07.04\n"
-            + "                    12:08:56.000\"\n"
-            + "                </li>\n"
-            + "                <li>\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\" parses dates like\n"
-            + "                    \"2001-07-04T12:08:56.235-0700\"\n"
-            + "                </li>\n"
-            + "            </ul>\n"
-            + "            <b>Valid pattern elements are:</b>\n"
-            + "            <ul>\n"
-            + "                <li>G: era designator</li>\n"
-            + "                <li>y: year</li>\n"
-            + "                <li>M: month in year</li>\n"
-            + "                <li>w: Week in year</li>\n"
-            + "                <li>W: week in month</li>\n"
-            + "                <li>D: Day in year</li>\n"
-            + "                <li>d: day in month</li>\n"
-            + "                <li>F: Day of week in month</li>\n"
-            + "                <li>E: day in week</li>\n"
-            + "                <li>a: Am/pm marker</li>\n"
-            + "                <li>H: hour in day (0-23)</li>\n"
-            + "                <li>k: hour in day (1-24)</li>\n"
-            + "                <li>K: hour in am/pm (0-11)</li>\n"
-            + "                <li>h: hour in am/pm (1-12)</li>\n"
-            + "                <li>m: minute in hour</li>\n"
-            + "                <li>s: Second in minute</li>\n"
-            + "                <li>S: millisecond</li>\n"
-            + "                <li>z: Timezone (General time zone)</li>\n"
-            + "                <li>Z: RFC 822 time zone</li>\n"
-            + "            </ul>";
     /**
      * Constructor for persistence and conversion from JSON.
      */
@@ -181,27 +123,19 @@ public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
     @Effect(signals = ColumnOptions.IsReplace.class, type = EffectType.HIDE)
     String m_newColumnName;
 
-    @Widget(title = "Value settings", description = VALUE_DESCRIPTION)
-//    @DateTimeWidget(showTime = true, showSeconds = true)
-    String m_value = ""; // TODO Maybe have another "Time Value Settings", which just g
 
-
-
-
+    // TODO Maybe change to give DataType array and us their classes as identifiers instead of Strings?
     private static final class SimpleDataTypes implements ChoicesProvider {
         @Override
         public String[] choices(final DefaultNodeSettingsContext context) {
             return DataTypeRegistry.getInstance().availableDataTypes().stream()
                 .filter(d -> {
                     DataCellFactory f = d.getCellFactory(null).orElse(null);
-                    var name = d.getName();
-                    var isUnacceptedDateFormat = name.equals("Local Date") || name.equals("Local Time") || name.equals("Period") || name.equals("Zoned Date Time");
-
-                    System.out.println("Data type");
-                    System.out.println(d);
-                    System.out.println(isUnacceptedDateFormat);
+                    var n = d.getName();
+                    // Former dialog did only accept date&time and no other temporal format
+                    // It is rather complicated implementing them, so will continue to not allow them
+                    var isUnacceptedDateFormat = n.equals("Local Date") || n.equals("Local Time") || n.equals("Period") || n.equals("Zoned Date Time");
                     return (f instanceof FromSimpleString) && !(isUnacceptedDateFormat);
-//                    return (f instanceof FromSimpleString) && !(f instanceof );
             })
             .sorted((a, b) -> a.getName().compareTo(b.getName()))
             .map(type -> type.toString())
@@ -210,54 +144,50 @@ public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
     }
 
 
-    static final class IsLocalDateCondition extends IsSpecificStringCondition {
-        @Override
-        public String getValue() {
-            return "Local Date";
-        }
-    }
 
-    static final class IsLocalDateTimeCondition extends IsSpecificStringCondition {
+    static final class IsDateAndTimeCondition extends IsSpecificStringCondition {
+
         @Override
         public String getValue() {
             return "Local Date Time";
         }
-    }
 
-    static final class IsLocalTimeCondition extends IsSpecificStringCondition {
-        @Override
-        public String getValue() {
-            return "Local Time";
-        }
-    }
-
-    // TODO Is that even a time thing?
-    static final class IsPeriodCondition extends IsSpecificStringCondition {
-        @Override
-        public String getValue() {
-            return "Period";
-        }
-    }
-
-    static final class IsZonedDateTimeCondition extends IsSpecificStringCondition {
-        @Override
-        public String getValue() {
-            return "Zoned Date Time";
-        }
     }
 
 
-    // FIXME Simplify sometime, when API allows for it
+
     @Widget(title = "Data Type", description = "The data type of the new column.")
     @ChoicesWidget(choices = SimpleDataTypes.class)
-    @Signal(condition = IsLocalDateCondition.class)
-    @Signal(condition = IsLocalDateTimeCondition.class)
-    @Signal(condition = IsLocalTimeCondition.class)
-    @Signal(condition = IsPeriodCondition.class)
-    @Signal(condition = IsZonedDateTimeCondition.class)
+    @Signal(condition = IsDateAndTimeCondition.class)
     String m_cellFactory = "";
 
-    @Widget(title = "Date Format")
-    @Effect(operation = Or.class, signals = {IsLocalDateCondition.class, IsLocalDateTimeCondition.class, IsLocalTimeCondition.class, IsPeriodCondition.class, IsZonedDateTimeCondition.class}, type = EffectType.SHOW)
-    String m_dateFormat = "";
+    static class StringValuePersistor extends NodeSettingsPersistorWithConfigKey<String> {
+
+        @Override
+        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey("column-value")) {
+                return settings.getString("column-value");
+            }
+            return settings.getString(getConfigKey());
+        }
+
+        @Override
+        public void save(final String obj, final NodeSettingsWO settings) {
+            settings.addString(getConfigKey(), obj);
+        }
+
+    }
+
+    @Persist(customPersistor = StringValuePersistor.class)
+    @Widget(title = "Value settings", description = "The constant value to be used.<br /> Note that double values need the '.' as decimal mark.")
+    @Effect(signals = IsDateAndTimeCondition.class, type = EffectType.HIDE)
+    String m_stringValue = "";
+
+
+    @Persist(customPersistor = StringValuePersistor.class)
+    @Widget(title = "Value settings", description = "The date.")
+    @DateTimeWidget(showTime = true, showSeconds = true)
+    @Effect(signals = IsDateAndTimeCondition.class, type = EffectType.SHOW)
+    String m_dateAndTimeValue = "";
+
 }
