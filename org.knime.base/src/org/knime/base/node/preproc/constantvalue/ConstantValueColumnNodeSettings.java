@@ -57,6 +57,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
@@ -80,8 +81,6 @@ public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
      * Constructor for persistence and conversion from JSON.
      */
     public ConstantValueColumnNodeSettings() {
-        System.out.println("START");
-//        getAllDataTypes();
     }
 
     enum ColumnOptions {
@@ -109,16 +108,50 @@ public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
         }
     }
 
+
+    static class ColumnSettingsPersistor extends NodeSettingsPersistorWithConfigKey<ColumnOptions> {
+
+        private EnumFieldPersistor<ColumnOptions> persistor;
+
+
+        @Override
+        public void setConfigKey(final String configKey) {
+            super.setConfigKey(configKey);
+            persistor = new EnumFieldPersistor<>(configKey, ColumnOptions.class);
+        }
+
+        @Override
+        public ColumnOptions load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(getConfigKey())) {
+                return persistor.load(settings);
+            }
+            if (settings.containsKey("replaced-column")) {
+                return ColumnOptions.REPLACE;
+            }
+            return ColumnOptions.APPEND;
+        }
+
+
+        @Override
+        public void save(final ColumnOptions obj, final NodeSettingsWO settings) {
+            persistor.save(obj, settings);
+        }
+
+    }
+
+    @Persist(customPersistor = ColumnSettingsPersistor.class)
     @Widget(title = "Column Settings")
     @ValueSwitchWidget()
     @Signal(condition = ColumnOptions.IsReplace.class)
     ColumnOptions m_colOptions = ColumnOptions.REPLACE;
 
+    @Persist(configKey = "replaced-column")
     @Widget(title = "Replace", description = "Select a column which is replaced with the new constant value column.", hideTitle = true)
     @ChoicesWidget(choices = ReplacementColumns.class)
     @Effect(signals = ColumnOptions.IsReplace.class, type = EffectType.SHOW)
     String m_replacedColumn;
 
+    @Persist(configKey = "new-column-name")
     @Widget(title = "Append", description = "Add the constant value column as a new column with the given name.", hideTitle = true)
     @Effect(signals = ColumnOptions.IsReplace.class, type = EffectType.HIDE)
     String m_newColumnName;
@@ -155,11 +188,11 @@ public class ConstantValueColumnNodeSettings implements DefaultNodeSettings {
     }
 
 
-
+    @Persist(configKey = "column-type")
     @Widget(title = "Data Type", description = "The data type of the new column.")
     @ChoicesWidget(choices = SimpleDataTypes.class)
     @Signal(condition = IsDateAndTimeCondition.class)
-    String m_cellFactory = "";
+    String m_cellFactory = ""; // TODO Rename
 
     static class StringValuePersistor extends NodeSettingsPersistorWithConfigKey<String> {
 
