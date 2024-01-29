@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
@@ -110,7 +111,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
         + "<li><b>Keep duplicate rows:</b> Appends columns with additional information to the input table.</li>" //
         + "</ul")
     @RadioButtonsWidget
-    @Signal(condition = DuplicateRowHandling.IsRemove.class)
+    @Signal(condition = DuplicateRowHandling.IsKeep.class)
     @Layout(DuplicateHandlingSection.class)
     DuplicateRowHandling m_duplicateHandling = DuplicateRowHandling.REMOVE;
 
@@ -122,7 +123,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
             + "<li><i>chosen:</i> This row was chosen from a set of duplicate rows.</li>" //
             + "<li><i>duplicate:</i> This row is a duplicate and represented by another row.</li>" //
             + "</ul")
-    @Effect(signals = DuplicateRowHandling.IsRemove.class, type = EffectType.HIDE)
+    @Effect(signals = DuplicateRowHandling.IsKeep.class, type = EffectType.SHOW)
     @Signal(id = IsAddUniqueStatusColumn.class, condition = TrueCondition.class)
     @Layout(DuplicateHandlingSection.class)
     boolean m_addUniqueLabel = true;
@@ -131,7 +132,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Widget(title = "Column name of row status",
         description = "Choose the column name to which the row status "
             + "('unique', 'chosen', 'duplicate') should be outputted.")
-    @Effect(signals = IsAddUniqueStatusColumn.class, type = EffectType.SHOW)
+    @Effect(signals = { DuplicateRowHandling.IsKeep.class, IsAddUniqueStatusColumn.class}, operation = And.class,
+        type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
     String m_uniqueStatusColumnName = "Duplicate Status";
 
@@ -139,7 +141,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Widget(title = "Add column identifying the RowID of the chosen row for each duplicate row",
         description = "Appends a column with the RowID of the chosen row for duplicate rows. "
             + "Unique and chosen rows will not have a RowID assigned. ")
-    @Effect(signals = DuplicateRowHandling.IsRemove.class, type = EffectType.HIDE)
+    @Effect(signals = DuplicateRowHandling.IsKeep.class, type = EffectType.SHOW)
     @Signal(id = IsAddChosenRowIdsColumn.class, condition = TrueCondition.class)
     @Layout(DuplicateHandlingSection.class)
     boolean m_addRowIdLabel;
@@ -148,7 +150,8 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     @Widget(title = "Column name of chosen RowIDs",
         description = "Choose the column name to which the RowID "
             + "of the chosen row for each duplicate row should be outputted.")
-    @Effect(signals = IsAddChosenRowIdsColumn.class, type = EffectType.SHOW)
+    @Effect(signals = { DuplicateRowHandling.IsKeep.class, IsAddChosenRowIdsColumn.class }, operation = And.class,
+        type = EffectType.SHOW)
     @Layout(DuplicateHandlingSection.class)
     String m_chosenRowIdsColumnName = "Duplicate Chosen";
 
@@ -222,21 +225,15 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     /** Options for the duplicate row handling */
     enum DuplicateRowHandling {
             @Label("Remove duplicate rows")
-            REMOVE,
-
+            REMOVE, //
             @Label("Keep duplicate rows")
             KEEP;
 
-        static class IsRemove extends OneOfEnumCondition<DuplicateRowHandling> {
-
-            /**
-             * {@inheritDoc}
-             */
+        static class IsKeep extends OneOfEnumCondition<DuplicateRowHandling> {
             @Override
             public DuplicateRowHandling[] oneOf() {
-                return new DuplicateRowHandling[]{REMOVE};
+                return new DuplicateRowHandling[]{KEEP};
             }
-
         }
     }
 
