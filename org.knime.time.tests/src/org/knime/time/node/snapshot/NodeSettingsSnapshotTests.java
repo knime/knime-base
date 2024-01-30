@@ -44,46 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 19, 2017 (marcel): created
+ *   25 Jan 2024 (albrecht): created
  */
-package org.knime.time.node.extract.datetime;
+package org.knime.time.node.snapshot;
 
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
+import java.util.Map;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings;
 
 /**
- * @author Marcel Wiedenmann, KNIME GmbH, Konstanz, Germany
+ *
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class ExtractDateTimeFieldsNodeFactory2 extends WebUINodeFactory<ExtractDateTimeFieldsNodeModelWebUI> {
+public class NodeSettingsSnapshotTests { // NOSONAR
 
-    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-            .name("Extract Date&Time Fields")//
-            .icon("./extractdatetime.png")//
-            .shortDescription("Extracts date and/or time fields from date &amp; time cells.")//
-            .fullDescription("Extracts the selected fields from a Local Date, Local Time, " +
-                "Local Date Time or Zoned Date Time column and appends their values as " +
-                "corresponding integer or string columns.")
-            .modelSettingsClass(ExtractDateTimeFieldsSettings.class)//
-            .addInputTable("Input table", "The input table that contains columns with date or time information to extract.")//
-            .addOutputTable("Output table", "Output table containing the extracted fields as appended columns.")//
-            .keywords("extract", "date", "time", "date-time", "fields", "day", "quarter", "week", "year")//
-            .sinceVersion(5, 3, 0)//
-            .build();
-
-    /**
-     * Constructor.
-     */
-    public ExtractDateTimeFieldsNodeFactory2() {
-        super(CONFIG);
+    static class ExtractDateTimeFieldsSettingsTest extends DefaultNodeSettingsSnapshotTest {
+        protected ExtractDateTimeFieldsSettingsTest() {
+            super(Map.of(SettingsType.MODEL, ExtractDateTimeFieldsSettings.class), createDefaultTestTableSpec());
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ExtractDateTimeFieldsNodeModelWebUI createNodeModel() {
-        return new ExtractDateTimeFieldsNodeModelWebUI(CONFIG);
+    private static DataTableSpec createDefaultTestTableSpec() {
+        return new DataTableSpec(new String[]{"test"}, new DataType[]{DataType.getType(LocalDateTimeCell.class)});
     }
+
 }

@@ -1,0 +1,195 @@
+{
+  "data" : {
+    "model" : {
+      "selectedColumn" : { },
+      "extractFields" : [ ],
+      "locale" : "en_DE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "extractFields" : {
+            "title" : "Extracted fields",
+            "description" : "Define date or time fields to extract and set column names.",
+            "default" : [ ],
+            "configKeys" : [ "extractFields" ],
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "columnName" : {
+                  "type" : "string",
+                  "title" : "Column name",
+                  "description" : "The name of the column populated with the values of the selected field."
+                },
+                "field" : {
+                  "oneOf" : [ {
+                    "const" : "YEAR",
+                    "title" : "Year"
+                  }, {
+                    "const" : "YEAR_WEEK_BASED",
+                    "title" : "Year (week-based)"
+                  }, {
+                    "const" : "QUARTER",
+                    "title" : "Quarter"
+                  }, {
+                    "const" : "MONTH_NUMBER",
+                    "title" : "Month (number)"
+                  }, {
+                    "const" : "MONTH_NAME",
+                    "title" : "Month (name)"
+                  }, {
+                    "const" : "WEEK",
+                    "title" : "Week"
+                  }, {
+                    "const" : "DAY_OF_YEAR",
+                    "title" : "Day of year"
+                  }, {
+                    "const" : "DAY_OF_MONTH",
+                    "title" : "Day of month"
+                  }, {
+                    "const" : "DAY_OF_WEEK_NUMBER",
+                    "title" : "Day of week (number)"
+                  }, {
+                    "const" : "DAY_OF_WEEK_NAME",
+                    "title" : "Day of week (name)"
+                  }, {
+                    "const" : "HOUR",
+                    "title" : "Hour"
+                  }, {
+                    "const" : "MINUTE",
+                    "title" : "Minute"
+                  }, {
+                    "const" : "SECOND",
+                    "title" : "Second"
+                  }, {
+                    "const" : "MILLISECOND",
+                    "title" : "Millisecond"
+                  }, {
+                    "const" : "MICROSECOND",
+                    "title" : "Microsecond"
+                  }, {
+                    "const" : "NANOSECOND",
+                    "title" : "Nanosecond"
+                  }, {
+                    "const" : "TIME_ZONE_NAME",
+                    "title" : "Time zone name"
+                  }, {
+                    "const" : "TIME_ZONE_OFFSET",
+                    "title" : "Time zone offset"
+                  } ],
+                  "title" : "Field",
+                  "description" : "The type of field to extract.\n<ul>\n<li><b>Year</b>: The year number will be extracted and appended as an integer column.</li>\n<li><b>Year (week-based)</b>: The year based on the week will be extracted and appended as an integer column. Depending on the selected locale, week 1 of a  year may already start in the previous year, or week 52 of a year may last until the next  year (e.g., 30th Dec 2010 belongs to week 1 of year 2011 (locale en-US), so the extracted  <i>Year (week-based)</i> would be 2011 while the extracted <i>Year</i> would be 2010).</li>\n<li><b>Quarter</b>: If checked, the quarter of year will be extracted as a number in range [1-4] and appended as an integer column.</li>\n<li><b>Month (number)</b>: If checked, the month of year will be extracted as a number in range [1-12] and appended as an integer column.</li>\n<li><b>Month (name)</b>: If checked, the month of year will be extracted as a localized name and appended as a string column.</li>\n<li><b>Week</b>: If checked, the week of year will be extracted as a number in range [1-52] and appended as an integer column. A partial week at the beginning of a year is handled according to the chosen locale.</li>\n<li><b>Day of year</b>: If checked, the day of year will be extracted as a number in range [1-366] and appended as an integer column.</li>\n<li><b>Day of month</b>: If checked, the day of month will be extracted as a number in range [1-31] and appended as an integer column.</li>\n<li><b>Day of week (number)</b>: If checked, the day of week will be extracted as a number in range [1-7] and appended as an integer column. The numbering is based on the chosen locale.</li>\n<li><b>Day of week (name)</b>: If checked, the day of week will be extracted as a localized name and appended as a string column.</li>\n<li><b>Hour</b>: If checked, the hour of day will be extracted as a number in range [0-23] and appended as an integer column.</li>\n<li><b>Minute</b>: If checked, the minute of hour will be extracted as a number in range [0-59] and appended as an integer column.</li>\n<li><b>Second</b>: If checked, the second of minute will be extracted as a number in range [0-59] and appended as an integer column.</li>\n<li><b>Millisecond</b>: If checked, the millisecond fraction of second will be extracted as number in range [0-999] and appended as an integer column.</li>\n<li><b>Microsecond</b>: If checked, the microsecond fraction of second will be extracted as number in range [0-999,999] and appended as an integer column.</li>\n<li><b>Nanosecond</b>: If checked, the nanosecond fraction of second will be extracted as number in range [0-999,999,999] and appended as an integer column.</li>\n<li><b>Time zone name</b>: If checked, the unique time zone name will be extracted as a non-localized name and appended as a string column.</li>\n<li><b>Time zone offset</b>: If checked, the time zone offset will be extracted as a localized, formatted number and appended as a string column.</li>\n</ul>"
+                }
+              },
+              "configKeys" : [ "extractFields" ]
+            }
+          },
+          "locale" : {
+            "type" : "string",
+            "title" : "Locale",
+            "description" : "The locale that governs the localization of output strings (month, day of week, time zone offset) and takes care of local calendrical characteristics (week and day of week numbering).",
+            "default" : "en_DE"
+          },
+          "selectedColumn" : {
+            "type" : "object",
+            "properties" : {
+              "compatibleTypes" : {
+                "configKeys" : [ "compatibleTypes_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "compatibleTypes_Internals" ]
+                }
+              },
+              "selected" : {
+                "type" : "string"
+              }
+            },
+            "title" : "Date&Time column",
+            "description" : "A Local Date, Local Time, Local Date Time or Zoned Date Time column whose fields to extract.",
+            "default" : { },
+            "configKeys" : [ "col_select" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Column selection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/selectedColumn",
+        "options" : {
+          "format" : "columnSelection",
+          "possibleValues" : [ {
+            "id" : "test",
+            "text" : "test",
+            "type" : {
+              "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
+              "text" : "Local Date Time"
+            },
+            "compatibleTypes" : [ "org.knime.core.data.time.localdatetime.LocalDateTimeValue", "org.knime.core.data.DataValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.StringValue" ]
+          } ],
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      } ]
+    }, {
+      "label" : "Date and time fields",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/extractFields",
+        "options" : {
+          "detail" : [ {
+            "type" : "HorizontalLayout",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/field",
+              "options" : {
+                "possibleValues" : [ ],
+                "format" : "dropDown",
+                "showNoneColumn" : false,
+                "showRowKeys" : false,
+                "showSearch" : true,
+                "showMode" : true,
+                "choicesUpdateHandler" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$FilteredPossibleFieldsChoices",
+                "dependencies" : [ "#/properties/model/properties/selectedColumn" ]
+              }
+            }, {
+              "type" : "Control",
+              "scope" : "#/properties/columnName",
+              "options" : { }
+            } ]
+          } ],
+          "addButtonText" : "Add field",
+          "showSortButtons" : true
+        }
+      } ]
+    }, {
+      "label" : "Localization (month and day names, etc.)",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/locale",
+        "options" : {
+          "choicesProviderClass" : "org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings$LocaleChoices",
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      } ]
+    } ]
+  }
+}
