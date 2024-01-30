@@ -47,23 +47,16 @@
  */
 package org.knime.base.node.preproc.filter.row;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.NodeDialogManager;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
+ * Factory for the Row Filter node.
  *
- * @author Peter Ohl, University of Konstanz
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class RowFilterNodeFactory extends NodeFactory implements NodeDialogFactory {
+public class RowFilterNodeFactory extends WebUINodeFactory<RowFilterNodeModel> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
         .name("Row Filter") //
@@ -92,36 +85,9 @@ public class RowFilterNodeFactory extends NodeFactory implements NodeDialogFacto
             "KNIME E-Learning Course: Basic Row Filter")
         .build();
 
-    @Override
-    public NodeModel createNodeModel() {
-        return new RowFilterNodeModel();
+    public RowFilterNodeFactory() {
+        super(CONFIG);
     }
-
-
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-
-    @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
-        return null;
-    }
-
-
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
-    }
-
 
     /**
      * {@inheritDoc}
@@ -129,7 +95,7 @@ public class RowFilterNodeFactory extends NodeFactory implements NodeDialogFacto
      * @since 5.3
      */
     @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, RowFilterNodeSettings.class);
+    public RowFilterNodeModel createNodeModel() {
+        return new RowFilterNodeModel();
     }
 }

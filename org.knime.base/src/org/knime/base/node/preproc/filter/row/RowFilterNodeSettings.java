@@ -52,17 +52,26 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.knime.base.node.preproc.filter.row.RowFilterNodeSettings.DialogLayout.FilterSection;
+import org.knime.base.node.preproc.filter.row.RowFilterNodeSettings.DialogLayout.FilterSection.OperatorSelection;
+import org.knime.base.node.preproc.filter.row.RowFilterNodeSettings.DialogLayout.FilterSection.Values;
+import org.knime.base.node.preproc.filter.row.RowFilterNodeSettings.DialogLayout.OutputSection;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
-import org.knime.core.data.IntValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
@@ -84,13 +93,39 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandl
  */
 @SuppressWarnings("restriction") // webui
 @Persistor(value = LegacyRowFilterPersistor.class)
+@Layout(FilterSection.class)
 final class RowFilterNodeSettings implements DefaultNodeSettings {
 
+    interface DialogLayout {
+        @Section(title = "Filter")
+        interface FilterSection {
+
+            interface ColumnSelection {}
+
+            @After(FilterSection.ColumnSelection.class)
+            interface OperatorSelection {}
+
+            @After(OperatorSelection.class)
+            interface Values {
+
+                @HorizontalLayout
+                @Effect(signals = FilterOperator.IsBinary.class, type = EffectType.SHOW)
+                interface Bounds {}
+            }
+        }
+
+        @Section(title = "Output")
+        @After(FilterSection.class)
+        interface OutputSection {}
+    }
+
+
     @Widget(title = "Filter column")
+    @Layout(FilterSection.ColumnSelection.class)
     @ChoicesWidget(choices = AllColumns.class, showRowKeysColumn = true)
-    @Signal(id = StringColumnSelected.class, condition = StringColumnSelected.class)
-    //@Signal(id = IntegerColumnSelected.class, condition = IntegerColumnSelected.class)
-    // TODO use ColumnSelection once it (better) supports RowID and Row Number
+    @Signal(condition = StringColumnSelected.class)
+    @Signal(condition = BooleanColumnSelected.class)
+    @Signal(condition = NumberColumnSelected.class)
     ColumnSelection m_targetSelection = new ColumnSelection();
 
     private static final class AllColumns implements ColumnChoicesProvider {
@@ -104,8 +139,33 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    static final class StringColumnSelected extends IsColumnOfTypeCondition {
+        @Override
+        public Class<? extends DataValue> getDataValueClass() {
+            return StringValue.class;
+        }
+    }
+
+    static final class BooleanColumnSelected extends IsColumnOfTypeCondition {
+        @Override
+        public Class<? extends DataValue> getDataValueClass() {
+            return BooleanValue.class;
+        }
+    }
+
+    static final class NumberColumnSelected extends IsColumnOfTypeCondition {
+        @Override
+        public Class<? extends DataValue> getDataValueClass() {
+            return DoubleValue.class;
+        }
+    }
+
     @Widget(title = "Operator")
+    @Layout(OperatorSelection.class)
     @ChoicesWidget(choicesUpdateHandler = TypeBasedOperatorChoices.class)
+    @Signal(condition = FilterOperator.IsEquals.class)
+    @Signal(condition = FilterOperator.IsUnary.class)
+    @Signal(condition = FilterOperator.IsBinary.class)
     FilterOperator m_operator = FilterOperator.EQ;
 
     private static final class DataTypeFilterSettings {
@@ -127,136 +187,219 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
             if (types == null || types.length == 0) {
                 return new IdAndText[0];
             }
-
-            final var fullyQualifiedTypeNames = Arrays.stream(filterColumn.m_compatibleTypes)
+            // only look at preferred value class of type
+            final var fqPreferredValueClassName = Arrays.stream(filterColumn.m_compatibleTypes)
+                    // .findFirst().map(Set::of).orElse(Set.of());
                     .collect(Collectors.toSet());
-            return Arrays.stream(FilterOperator.values()).filter(op -> op.isEnabledFor(fullyQualifiedTypeNames))
+            return Arrays.stream(FilterOperator.values()).filter(op -> op.isEnabledFor(fqPreferredValueClassName))
                     .map(op -> new IdAndText(op.name(), op.label()))
                     .toArray(IdAndText[]::new);
         }
 
     }
 
-    sealed interface OperatorRequirement permits IsOrd, IsEq, IsMissing, IsTruthy {
-        boolean appliesTo(Set<String> fullyQualifiedValueClassesNames);
-    }
-
-    private static final class IsOrd implements OperatorRequirement {
-        // Row Index, Row Number, and numeric data types are orderable
-        @Override
-        public boolean appliesTo(final Set<String> fqValueClassesNames) {
-            return fqValueClassesNames.contains(ColumnSelection.getTypeClassIdentifier(DoubleValue.class));
-         }
-    }
-
-    private static final class IsEq implements OperatorRequirement {
-        // RowID, Row Index, Row Number, and all data types are equals comparable
-        // TODO old Row Filter would convert everything with toString
-        @Override
-        public boolean appliesTo(final Set<String> fqValueClassesNames) {
-            return true;
-        }
-    }
-
-    private static final class IsTruthy implements OperatorRequirement {
-
-        @Override
-        public boolean appliesTo(final Set<String> fqValueClassesNames) {
-            return fqValueClassesNames.contains(ColumnSelection.getTypeClassIdentifier(BooleanValue.class));
-        }
-
-    }
-
-    private static final class IsMissing implements OperatorRequirement {
-        // Normal columns are is "missing comparable"
-        @Override
-        public boolean appliesTo(final Set<String> fqValueClassesNames) {
-            // TODO marker missing to disable it for RowID/RowIndex/RowNumber
-            return true;
-        }
-    }
-
     // TODO old Row Filter would convert everything with toString
     enum FilterOperator {
         @Label("=") // RowID, RowIndex/Number, Int, Long, Double, String
-        EQ("=", Set.of(new IsEq())),
+        EQ("=", Set.of(new IsEq()), Arity.UNARY),
         @Label("≠") // RowID, RowIndex/Number, Int, Long, Double, String
-        NEQ("≠", Set.of()),
+        NEQ("≠", Set.of(new IsEq()), Arity.UNARY),
         @Label("<") // RowIndex/Number, Int, Long, Double
-        LT("<", Set.of(new IsOrd())),
+        LT("<", Set.of(new IsOrd()), Arity.UNARY),
         @Label(">") // RowIndex/Number, Int, Long, Double
-        GT(">", Set.of(new IsOrd())),
+        GT(">", Set.of(new IsOrd()), Arity.UNARY),
         @Label("≤") // RowIndex/Number, Int, Long, Double
-        LTE("≤", Set.of(new IsOrd())),
+        LTE("≤", Set.of(new IsOrd()), Arity.UNARY),
         @Label("≥") // RowIndex/Number, Int, Long, Double
-        GTE("≥", Set.of(new IsOrd())),
+        GTE("≥", Set.of(new IsOrd()), Arity.UNARY),
         @Label("is between") // RowIndex/Number, Int, Long, Double
-        BETWEEN("is between", Set.of(new IsOrd())),
+        BETWEEN("is between", Set.of(new IsOrd()), Arity.BINARY),
         @Label("is true") // Boolean
-        IS_TRUE("is true", Set.of(new IsTruthy())),
+        IS_TRUE("is true", Set.of(new IsTruthy()), Arity.NULLARY),
         @Label("is false") // Boolean
-        IS_FALSE("is false", Set.of(new IsTruthy())),
+        IS_FALSE("is false", Set.of(new IsTruthy()), Arity.NULLARY),
         @Label("is missing") // RowID, RowIndex/Number, Int, Long, Double, String
-        IS_MISSING("is missing", Set.of(new IsMissing()));
+        IS_MISSING("is missing", Set.of(new IsMissing()), Arity.NULLARY);
 
         private final String m_label;
-        private final Set<OperatorRequirement> m_filters;
+        private final Set<Capability> m_filters;
+        final Arity m_arity;
 
-        FilterOperator(final String label, final Set<OperatorRequirement> filters) {
+        FilterOperator(final String label, final Set<Capability> filters, final Arity arity) {
             m_label = label;
             m_filters = filters;
+            m_arity = arity;
         }
 
         boolean isEnabledFor(final Set<String> fullyQualifiedTypeNames) {
-            return m_filters.stream().anyMatch(f -> f.appliesTo(fullyQualifiedTypeNames));
+            return m_filters.stream().anyMatch(f -> f.satisfiedByAnyOf(fullyQualifiedTypeNames));
         }
 
         String label() {
             return m_label;
         }
-    }
 
-    static final class StringColumnSelected extends IsColumnOfTypeCondition {
-        @Override
-        public Class<? extends DataValue> getDataValueClass() {
-            return StringValue.class;
+        /**
+         * Arity of the operator to determine whether to show zero, one, or two input fields.
+         */
+        enum Arity {
+            NULLARY,
+            UNARY,
+            BINARY
+        }
+
+        // Classes for Conditions
+
+        private static final class IsEquals extends OneOfEnumCondition<FilterOperator> {
+            @Override
+            public FilterOperator[] oneOf() {
+                return new FilterOperator[] {EQ, NEQ};
+            }
+        }
+
+        private static final class IsUnary extends OneOfEnumCondition<FilterOperator> {
+            @Override
+            public FilterOperator[] oneOf() {
+                return Arrays.stream(FilterOperator.values()).filter(op -> op.m_arity == Arity.UNARY)
+                        .toArray(FilterOperator[]::new);
+            }
+        }
+
+        private static final class IsBinary extends OneOfEnumCondition<FilterOperator> {
+            @Override
+            public FilterOperator[] oneOf() {
+                return Arrays.stream(FilterOperator.values()).filter(op -> op.m_arity == Arity.BINARY)
+                        .toArray(FilterOperator[]::new);
+            }
+        }
+
+        // Classes for Choices update handler
+
+        sealed interface Capability permits IsOrd, IsEq, IsMissing, IsTruthy {
+            boolean satisfiedByAnyOf(Set<String> fullyQualifiedValueClassesNames);
+        }
+
+        private static final class IsOrd implements Capability {
+            // Row Index, Row Number, and numeric data types are orderable
+            @Override
+            public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
+                return !new IsTruthy().satisfiedByAnyOf(fqValueClassesNames)
+                        && fqValueClassesNames.contains(ColumnSelection.getTypeClassIdentifier(DoubleValue.class));
+             }
+        }
+
+        private static final class IsEq implements Capability {
+            // RowID, Row Index, Row Number, and all data types are equals comparable, except Boolean for which we
+            // want separate operators: "is true" and "is false"
+            // TODO old Row Filter would convert everything with toString
+            @Override
+            public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
+                return !new IsTruthy().satisfiedByAnyOf(fqValueClassesNames);
+            }
+        }
+
+        private static final class IsTruthy implements Capability {
+
+            @Override
+            public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
+                return fqValueClassesNames.contains(ColumnSelection.getTypeClassIdentifier(BooleanValue.class));
+            }
+
+        }
+
+        private static final class IsMissing implements Capability {
+            // Normal columns are is "missing comparable"
+            @Override
+            public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
+                // TODO marker missing to disable it for RowID/RowIndex/RowNumber
+                return true;
+            }
         }
     }
 
-    static final class IntegerColumnSelected extends IsColumnOfTypeCondition {
-        @Override
-        public Class<? extends DataValue> getDataValueClass() {
-            return IntValue.class;
-        }
-    }
-
-    @Widget(title = "String matching")
-    @Effect(signals = RowFilterNodeSettings.StringColumnSelected.class, type = EffectType.SHOW)
-    @ValueSwitchWidget
-    StringMatchingMode m_stringMatching = StringMatchingMode.LITERAL;
 
     enum StringMatchingMode {
         LITERAL,
         WILDCARDS,
-        REGEX
+        REGEX;
+
+        private static final class IsLiteral extends OneOfEnumCondition<StringMatchingMode> {
+            @Override
+            public StringMatchingMode[] oneOf() {
+                return new StringMatchingMode[] {LITERAL};
+            }
+        }
+
+        private static final class IsPattern extends OneOfEnumCondition<StringMatchingMode> {
+            @Override
+            public StringMatchingMode[] oneOf() {
+                return new StringMatchingMode[] {WILDCARDS, REGEX};
+            }
+        }
     }
 
-    @Widget(title = "String value")
-    @Effect(signals = RowFilterNodeSettings.StringColumnSelected.class, type = EffectType.SHOW)
+    @Layout(OperatorSelection.class)
+    @Widget(title = "String matching")
+    @ValueSwitchWidget
+    @Effect(signals = {StringColumnSelected.class, FilterOperator.IsEquals.class}, operation = And.class,
+        type = EffectType.SHOW)
+    @Signal(condition = StringMatchingMode.IsLiteral.class)
+    @Signal(condition = StringMatchingMode.IsPattern.class)
+    StringMatchingMode m_stringMatching = StringMatchingMode.LITERAL;
+
+    // if data type is number
+    @Layout(Values.class)
+    @Widget(title = "Value")
+    @Effect(signals = { NumberColumnSelected.class, FilterOperator.IsUnary.class }, operation = And.class,
+        type = EffectType.SHOW)
+    double m_numericValue;
+
+    // if data type is string (or as fallback for string-compatible types)
+    @Layout(Values.class)
+    @Widget(title = "Value")
+    @Effect(signals = { StringColumnSelected.class, FilterOperator.IsUnary.class, StringMatchingMode.IsLiteral.class},
+        operation = And.class, type = EffectType.SHOW)
     String m_stringValue;
 
-    @Widget(title = "Number value")
-    //@Effect(signals = RowFilterNodeSettings.IntegerColumnSelected.class, type = EffectType.SHOW)
-    Number m_numberValue;
+    @Layout(Values.class)
+    @Widget(title = "Pattern")
+    @Effect(signals = {StringColumnSelected.class, FilterOperator.IsUnary.class, StringMatchingMode.IsPattern.class},
+        operation = And.class, type = EffectType.SHOW)
+    String m_patternValue;
 
-    @Widget(title = "Include/exclude")
+    // TODO needs ColumnSelection support for RowNumber/RowIndex and associated condition
+    // @Layout(Values.class)
+    // @Widget(title = "Number of rows")
+    // int m_numberOfRows;
+
+    // Bounds (Value and Date)
+
+    @Layout(Values.Bounds.class)
+    @Widget(title = "Lower bound")
+    double m_lowerBound;
+    @Layout(Values.Bounds.class)
+    @Widget(title = "Upper bound")
+    double m_upperBound;
+
+    // TODO needs DataValues from org.knime.time (or Filter must be extensible via extension point)
+    // @Layout(Values.Bounds.class)
+    // @Widget(title = "Lower bound")
+    // LocalDate m_dateLowerBound;
+    //
+    // @Layout(Values.Bounds.class)
+    // @Widget(title = "Upper bound")
+    // LocalDate m_dateUpperBound;
+
+
+    @Widget(title = "Filter behavior")
     @ValueSwitchWidget
+    @Layout(OutputSection.class)
     OutputMode m_outputMode = OutputMode.INCLUDE;
 
     enum OutputMode {
-        @Label("Include")
+        @Label("Include matches")
         INCLUDE,
-        @Label("Exclude")
+        @Label("Exclude matches")
         EXCLUDE
     }
 
