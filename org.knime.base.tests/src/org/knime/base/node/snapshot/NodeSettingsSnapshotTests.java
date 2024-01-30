@@ -52,6 +52,7 @@ import static org.knime.base.node.snapshot.TestTableSpecUtil.createDefaultTestTa
 
 import java.util.Map;
 
+import org.junit.jupiter.api.Nested;
 import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeSettings;
 import org.knime.base.node.meta.looper.LoopStartCountDynamicSettings;
 import org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeSettings;
@@ -93,194 +94,225 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 @SuppressWarnings("restriction")
 class NodeSettingsSnapshotTests { // NOSONAR
 
-    static class AppendedRowsSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class AppendedRowsSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected AppendedRowsSettingsTest() {
             super(Map.of(SettingsType.MODEL, AppendedRowsNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
+    @Nested
     static class CellExtractorSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected CellExtractorSettingsTest() {
             super(Map.of(SettingsType.MODEL, CellExtractorSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class CellUpdaterSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class CellUpdaterSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected CellUpdaterSettingsTest() {
             super(Map.of(SettingsType.MODEL, CellUpdaterSettings.class), createDefaultTestTableSpec(),
                 createDefaultTestTableSpec());
         }
     }
 
-    static class ColumnAppenderSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ColumnAppenderSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected ColumnAppenderSettingsTest() {
             super(Map.of(SettingsType.MODEL, ColumnAppenderSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class ColumnFilterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ColumnFilterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected ColumnFilterNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, ColumnFilterNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class ColumnFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ColumnFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected ColumnFilterRefNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, ColumnFilterRefNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class ColumnHeaderExtractorNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ColumnHeaderExtractorNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected ColumnHeaderExtractorNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, ColumnHeaderExtractorNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class ColumnHeaderInsertSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ColumnHeaderInsertSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected ColumnHeaderInsertSettingsTest() {
             super(Map.of(SettingsType.MODEL, ColumnHeaderInsertSettings.class), createDefaultTestTableSpec(),
                 createDefaultTestTableSpec());
         }
     }
 
-    static class ColumnMergerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ColumnMergerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected ColumnMergerNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, ColumnMergerNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class ColumnRenamerSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ColumnRenamerSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected ColumnRenamerSettingsTest() {
             super(Map.of(SettingsType.MODEL, ColumnRenamerSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class DoubleToIntNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class DoubleToIntNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected DoubleToIntNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, DoubleToIntNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class DuplicateRowFilterDialogSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class DuplicateRowFilterDialogSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected DuplicateRowFilterDialogSettingsTest() {
             super(Map.of(SettingsType.MODEL, DuplicateRowFilterDialogSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class LagColumnNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class LagColumnNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected LagColumnNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, LagColumnNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class NumberFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class NumberFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected NumberFormatManagerNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, NumberFormatManagerNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class NumberToStringSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class NumberToStringSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected NumberToStringSettingsTest() {
             super(Map.of(SettingsType.MODEL, NumberToStringSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class RowAggregatorSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class RowAggregatorSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected RowAggregatorSettingsTest() {
             super(Map.of(SettingsType.MODEL, RowAggregatorSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class RowFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class RowFilterRefNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected RowFilterRefNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, RowFilterRefNodeSettings.class), createDefaultTestTableSpec(),
                 createDefaultTestTableSpec());
         }
     }
 
-    static class RowToColumnHeaderSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class RowToColumnHeaderSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected RowToColumnHeaderSettingsTest() {
             super(Map.of(SettingsType.MODEL, RowToColumnHeaderSettings.class), createDefaultTestTableSpec());
         }
     }
 
 
-    static class StringFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class StringFormatManagerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected StringFormatManagerNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, StringFormatManagerNodeSettings.class), createDefaultTestTableSpec(),
                 createDefaultTestTableSpec());
         }
     }
 
-    static class StringReplacerDictNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class StringReplacerDictNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected StringReplacerDictNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, StringReplacerDictNodeSettings.class), createDefaultTestTableSpec(),
                 createDefaultTestTableSpec());
         }
     }
 
-    static class StringReplacerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class StringReplacerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected StringReplacerNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, StringReplacerNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class StringToNumber2NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class StringToNumber2NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected StringToNumber2NodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, StringToNumber2NodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class TableCropperSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class TableCropperSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected TableCropperSettingsTest() {
             super(Map.of(SettingsType.MODEL, TableCropperSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class TableSplitterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class TableSplitterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected TableSplitterNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, TableSplitterNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class TableToVariable3NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class TableToVariable3NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected TableToVariable3NodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, TableToVariable3NodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class TableUpdaterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class TableUpdaterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected TableUpdaterNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, TableUpdaterNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class TransposeTableNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class TransposeTableNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected TransposeTableNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, TransposeTableNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class Unpivot2NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class Unpivot2NodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected Unpivot2NodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, Unpivot2NodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class ValueLookupNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class ValueLookupNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected ValueLookupNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, ValueLookupNodeSettings.class), createDefaultTestTableSpec(),
                 createDefaultTestTableSpec());
         }
     }
 
-    static class LoopStartChunkNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class LoopStartChunkNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected LoopStartChunkNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, LoopStartChunkNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 
-    static class LoopStartCountDynamicSettingsTest extends DefaultNodeSettingsSnapshotTest {
+    @Nested
+    class LoopStartCountDynamicSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected LoopStartCountDynamicSettingsTest() {
             super(Map.of(SettingsType.MODEL, LoopStartCountDynamicSettings.class), createDefaultTestTableSpec());
         }
