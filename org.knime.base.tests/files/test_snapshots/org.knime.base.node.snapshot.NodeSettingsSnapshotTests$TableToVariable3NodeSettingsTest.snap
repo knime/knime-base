@@ -268,7 +268,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/defaultValueString",
-        "options" : { },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -300,7 +299,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/defaultValueInteger",
-        "options" : { },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -315,7 +313,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/defaultValueLong",
-        "options" : { },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -330,7 +327,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/defaultValueDouble",
-        "options" : { },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {

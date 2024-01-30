@@ -3,7 +3,9 @@
     "model" : {
       "duplicateHandling" : "REMOVE",
       "addUniqueLabel" : true,
+      "uniqueStatusColumnName" : "Duplicate Status",
       "addRowIdLabel" : false,
+      "chosenRowIdsColumnName" : "Duplicate Chosen",
       "rowSelectionType" : "FIRST",
       "selectedColumn" : "test1",
       "inMemory" : false,
@@ -30,6 +32,13 @@
             "description" : "Appends a column with the row status:<ul><li><i>unique:</i> There is no other row with the same values in the selected columns.</li><li><i>chosen:</i> This row was chosen from a set of duplicate rows.</li><li><i>duplicate:</i> This row is a duplicate and represented by another row.</li></ul",
             "default" : true,
             "configKeys" : [ "add_row_duplicate_flag" ]
+          },
+          "chosenRowIdsColumnName" : {
+            "type" : "string",
+            "title" : "Column name of chosen RowIDs",
+            "description" : "Choose the column name to which the RowID of the chosen row for each duplicate row should be outputted.",
+            "default" : "Duplicate Chosen",
+            "configKeys" : [ "row_id_flag_column_name" ]
           },
           "consideredColumns" : {
             "type" : "object",
@@ -194,6 +203,13 @@
             "default" : "test1",
             "configKeys" : [ "reference_col" ]
           },
+          "uniqueStatusColumnName" : {
+            "type" : "string",
+            "title" : "Column name of row status",
+            "description" : "Choose the column name to which the row status ('unique', 'chosen', 'duplicate') should be outputted.",
+            "default" : "Duplicate Status",
+            "configKeys" : [ "unique_flag_column_name" ]
+          },
           "updateDomains" : {
             "type" : "boolean",
             "title" : "Update domains of all columns",
@@ -254,14 +270,36 @@
           "format" : "checkbox"
         },
         "rule" : {
-          "effect" : "HIDE",
+          "effect" : "SHOW",
           "condition" : {
             "scope" : "#/properties/model/properties/duplicateHandling",
             "schema" : {
               "oneOf" : [ {
-                "const" : "REMOVE"
+                "const" : "KEEP"
               } ]
             }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/uniqueStatusColumnName",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/duplicateHandling",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "KEEP"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/addUniqueLabel",
+              "schema" : {
+                "const" : true
+              }
+            } ]
           }
         }
       }, {
@@ -271,14 +309,36 @@
           "format" : "checkbox"
         },
         "rule" : {
-          "effect" : "HIDE",
+          "effect" : "SHOW",
           "condition" : {
             "scope" : "#/properties/model/properties/duplicateHandling",
             "schema" : {
               "oneOf" : [ {
-                "const" : "REMOVE"
+                "const" : "KEEP"
               } ]
             }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/chosenRowIdsColumnName",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/duplicateHandling",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "KEEP"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/addRowIdLabel",
+              "schema" : {
+                "const" : true
+              }
+            } ]
           }
         }
       }, {

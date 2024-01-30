@@ -20,9 +20,9 @@
       },
       "patternType" : "LITERAL",
       "enableEscaping" : false,
-      "caseMatching" : "CASEINSENSITIVE",
+      "caseMatching" : "CASESENSITIVE",
       "replacementStrategy" : "WHOLE_STRING",
-      "multipleMatchHandling" : "REPLACEALL",
+      "multipleMatchHandling" : "REPLACEFIRST",
       "appendColumns" : false,
       "columnSuffix" : "_replaced"
     }
@@ -41,15 +41,15 @@
           },
           "caseMatching" : {
             "oneOf" : [ {
-              "const" : "CASEINSENSITIVE",
-              "title" : "Case insensitive"
-            }, {
               "const" : "CASESENSITIVE",
               "title" : "Case sensitive"
+            }, {
+              "const" : "CASEINSENSITIVE",
+              "title" : "Case insensitive"
             } ],
             "title" : "Case sensitive",
             "description" : "Specifies whether matching will distinguish between upper and lower case letters.",
-            "default" : "CASEINSENSITIVE",
+            "default" : "CASESENSITIVE",
             "configKeys" : [ "caseSensitive" ]
           },
           "columnSuffix" : {
@@ -66,20 +66,20 @@
           },
           "multipleMatchHandling" : {
             "oneOf" : [ {
-              "const" : "REPLACEALL",
-              "title" : "Replace all"
-            }, {
               "const" : "REPLACEFIRST",
-              "title" : "Replace first"
+              "title" : "Apply first matching"
+            }, {
+              "const" : "REPLACEALL",
+              "title" : "Apply all sequentially"
             } ],
             "title" : "If multiple patterns match",
-            "description" : "Select the strategy to use if multiple patterns match.\n<ul>\n    <li>\n        <i>Replace all</i> applies all replacements with matching patterns from the dictionary table\n        consecutively.\n    </li>\n    <li>\n        <i>Replace first</i> only applies the first replacement with a matching pattern.\n    </li>\n</ul>\n",
-            "default" : "REPLACEALL"
+            "description" : "Select the strategy to use if multiple patterns match.\n<ul>\n    <li>\n        <i>Apply first matching</i> only applies the first replacement that has a matching pattern.\n    </li>\n    <li>\n        <i>Apply all sequentially</i> applies all replacements with matching patterns from the dictionary\n        table sequentially. This means that later patterns can also match the output of another\n        replacement: For example, when the input is \"A\" and there are the replacements A -> B and B -> C,\n        the resulting string is \"C\".\n    </li>\n</ul>\n",
+            "default" : "REPLACEFIRST"
           },
           "patternColumn" : {
             "type" : "string",
             "title" : "Pattern column",
-            "description" : "The column containing literal strings, wildcard patterns or regular expressions, depending on the matching\ncriterion selected above.\n"
+            "description" : "The column containing literal strings, wildcard patterns or regular expressions, depending on the pattern\ntype selected above.\n"
           },
           "patternType" : {
             "oneOf" : [ {
@@ -363,7 +363,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/columnSuffix",
-        "options" : { },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {

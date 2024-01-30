@@ -45,7 +45,7 @@
               "title" : "Fail"
             } ],
             "title" : "Rows missing in input table",
-            "description" : "Controls how to deal with rows in the update table whose Row IDs don't occur in the input table.",
+            "description" : "Controls how to deal with rows in the update table whose RowIDs don't occur in the input table.",
             "default" : "IGNORE"
           }
         }
@@ -56,11 +56,15 @@
     "elements" : [ {
       "type" : "Control",
       "scope" : "#/properties/model/properties/unmatchedColumnsHandling",
-      "options" : { }
+      "options" : {
+        "format" : "valueSwitch"
+      }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/unmatchedRowsHandling",
-      "options" : { }
+      "options" : {
+        "format" : "valueSwitch"
+      }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/performUpdateWithMissingValues",

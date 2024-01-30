@@ -46,9 +46,6 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/chunkSize",
-      "options" : {
-        "format" : "Integer"
-      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {

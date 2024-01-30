@@ -109,7 +109,6 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnNumber",
-      "options" : { },
       "rule" : {
         "effect" : "HIDE",
         "condition" : {
@@ -123,8 +122,7 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/rowNumber",
-      "options" : { }
+      "scope" : "#/properties/model/properties/rowNumber"
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/countFromEnd",

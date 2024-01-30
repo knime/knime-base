@@ -181,7 +181,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/startColumnNumber",
-        "options" : { },
         "rule" : {
           "effect" : "HIDE",
           "condition" : {
@@ -213,7 +212,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/endColumnNumber",
-        "options" : { },
         "rule" : {
           "effect" : "HIDE",
           "condition" : {
@@ -248,8 +246,7 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/startRowNumber",
-        "options" : { }
+        "scope" : "#/properties/model/properties/startRowNumber"
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/startRowCountFromEnd",
@@ -258,8 +255,7 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/endRowNumber",
-        "options" : { }
+        "scope" : "#/properties/model/properties/endRowNumber"
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/endRowCountFromEnd",

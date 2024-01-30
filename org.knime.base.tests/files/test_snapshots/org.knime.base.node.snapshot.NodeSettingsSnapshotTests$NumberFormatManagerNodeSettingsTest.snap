@@ -251,12 +251,10 @@
         "type" : "HorizontalLayout",
         "elements" : [ {
           "type" : "Control",
-          "scope" : "#/properties/model/properties/minimumDecimals",
-          "options" : { }
+          "scope" : "#/properties/model/properties/minimumDecimals"
         }, {
           "type" : "Control",
-          "scope" : "#/properties/model/properties/maximumDecimals",
-          "options" : { }
+          "scope" : "#/properties/model/properties/maximumDecimals"
         } ]
       } ]
     }, {
@@ -264,12 +262,10 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/groupSeparator",
-        "options" : { }
+        "scope" : "#/properties/model/properties/groupSeparator"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/decimalSeparator",
-        "options" : { }
+        "scope" : "#/properties/model/properties/decimalSeparator"
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/alwaysShowDecimalSeparator",

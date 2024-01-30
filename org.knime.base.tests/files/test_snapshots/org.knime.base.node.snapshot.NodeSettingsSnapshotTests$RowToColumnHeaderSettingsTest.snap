@@ -42,10 +42,7 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/headerRowIndex",
-      "options" : {
-        "format" : "integer"
-      }
+      "scope" : "#/properties/model/properties/headerRowIndex"
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/discardBefore",

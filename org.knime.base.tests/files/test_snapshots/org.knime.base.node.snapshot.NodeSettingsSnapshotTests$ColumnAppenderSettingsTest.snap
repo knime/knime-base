@@ -17,7 +17,7 @@
               "title" : "Identical RowIDs and table lengths"
             }, {
               "const" : "GENERATE",
-              "title" : "Generate new row RowIDs"
+              "title" : "Generate new RowIDs"
             }, {
               "const" : "KEY_TABLE",
               "title" : "Use RowIDs from the selected input table"
@@ -52,9 +52,6 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/rowIdTableSelect",
-      "options" : {
-        "format" : "Integer"
-      },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {

@@ -68,7 +68,10 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/replaceColHeader"
+      "scope" : "#/properties/model/properties/replaceColHeader",
+      "options" : {
+        "format" : "checkbox"
+      }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/unifyHeaderPrefix",

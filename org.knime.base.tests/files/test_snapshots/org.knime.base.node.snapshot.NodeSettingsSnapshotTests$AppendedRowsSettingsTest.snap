@@ -45,7 +45,7 @@
               "title" : "Fail"
             } ],
             "title" : "If there are duplicate RowIDs",
-            "description" : "Select how to resolve duplicate RowIDs:<ul><li><b>Skip</b>: Duplicate row identifiers (RowID) occurring in the second table are not appended to the output table. This option is relatively memory intensive as it needs to cache the row IDs in order to find duplicates. Furthermore a full data duplication is needed.</li><li><b>Append suffix</b>: The output table will contain all rows, but duplicate RowIDs are labeled with a suffix. Similar to the \"Skip Rows\" option this method is also memory intensive.</li><li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This option is efficient while checking uniqueness.</li></ul>",
+            "description" : "Select how to resolve duplicate RowIDs:<ul><li><b>Skip</b>: Duplicate row identifiers (RowID) occurring in the second table are not appended to the output table. This option is relatively memory intensive as it needs to cache the RowIDs in order to find duplicates. Furthermore a full data duplication is needed.</li><li><b>Append suffix</b>: The output table will contain all rows, but duplicate RowIDs are labeled with a suffix. Similar to the \"Skip Rows\" option this method is also memory intensive.</li><li><b>Fail</b>: The node will fail during execution if duplicate RowIDs are encountered. This option is efficient while checking uniqueness.</li></ul>",
             "default" : "APPEND",
             "configKeys" : [ "append_suffix", "fail_on_duplicates" ]
           },
@@ -91,6 +91,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/enableHiliting",
       "options" : {
+        "format" : "checkbox",
         "isAdvanced" : true
       }
     } ]

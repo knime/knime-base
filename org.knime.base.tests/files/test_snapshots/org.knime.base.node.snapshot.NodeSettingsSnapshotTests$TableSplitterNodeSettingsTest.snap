@@ -58,7 +58,7 @@
               "title" : "Empty"
             } ],
             "title" : "Matching criteria",
-            "description" : "Select criteria for matching the row:<ul><li><b>Equals:</b> compares the value of the cell to a given search pattern.</li><li><b>Missing:</b> only matches rows that have a missing value at the selected column.</li><li><b>Empty:</b> matches rows that have an empty or missing value at the selected column. Strings and Row IDs containing only whitespace characters will also match.</li></ul>",
+            "description" : "Select criteria for matching the row:<ul><li><b>Equals:</b> compares the value of the cell to a given search pattern.</li><li><b>Missing:</b> only matches rows that have a missing value at the selected column.</li><li><b>Empty:</b> matches rows that have an empty or missing value at the selected column. Strings and RowIDs containing only whitespace characters will also match.</li></ul>",
             "default" : "EQUALS"
           },
           "searchPattern" : {
@@ -104,12 +104,10 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/matchingCriteria",
-        "options" : { }
+        "scope" : "#/properties/model/properties/matchingCriteria"
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/searchPattern",
-        "options" : { },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {

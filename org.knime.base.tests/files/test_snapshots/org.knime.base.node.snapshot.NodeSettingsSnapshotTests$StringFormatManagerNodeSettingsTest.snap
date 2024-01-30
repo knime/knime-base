@@ -215,17 +215,17 @@
           },
           "wrapLinesOnDemand" : {
             "oneOf" : [ {
+              "const" : "NO",
+              "title" : "No"
+            }, {
               "const" : "ANYWHERE",
               "title" : "Anywhere"
             }, {
               "const" : "BETWEEN_WORDS",
               "title" : "Between words"
-            }, {
-              "const" : "NO",
-              "title" : "No"
             } ],
             "title" : "Wrap lines on demand",
-            "description" : "Determine how to wrap a string when it is too long to fit the width of the view:\n<ul>\n    <li><i>Anywhere</i>: The string is wrapped anywhere on demand, also in the middle of a word.</li>\n    <li><i>Between words</i>: The string is wrapped only between words, e.g. at white space.</li>\n    <li><i>No</i>: The string isn't wrapped and long strings will overflow the view width.</li>\n</ul>\n",
+            "description" : "Determine how to wrap a string when it is too long to fit the width of the view:\n<ul>\n    <li><i>No</i>: The string isn't wrapped and long strings will overflow the view width.</li>\n    <li><i>Anywhere</i>: The string is wrapped anywhere on demand, also in the middle of a word.</li>\n    <li><i>Between words</i>: The string is wrapped only between words, e.g. at white space.</li>\n</ul>\n",
             "default" : "NO"
           }
         }
@@ -263,12 +263,10 @@
         "type" : "HorizontalLayout",
         "elements" : [ {
           "type" : "Control",
-          "scope" : "#/properties/model/properties/nFirstChars",
-          "options" : { }
+          "scope" : "#/properties/model/properties/nFirstChars"
         }, {
           "type" : "Control",
-          "scope" : "#/properties/model/properties/nLastChars",
-          "options" : { }
+          "scope" : "#/properties/model/properties/nLastChars"
         } ]
       }, {
         "type" : "Control",
@@ -303,7 +301,6 @@
         }, {
           "type" : "Control",
           "scope" : "#/properties/model/properties/emptyStringReplacement",
-          "options" : { },
           "rule" : {
             "effect" : "SHOW",
             "condition" : {

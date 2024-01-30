@@ -26,8 +26,7 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/loops",
-      "options" : { }
+      "scope" : "#/properties/model/properties/loops"
     } ]
   }
 }

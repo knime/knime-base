@@ -69,7 +69,9 @@
           }, {
             "type" : "Control",
             "scope" : "#/properties/newName",
-            "options" : { }
+            "options" : {
+              "hideOnNull" : false
+            }
           } ]
         } ],
         "addButtonText" : "Add column"

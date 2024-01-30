@@ -3,7 +3,7 @@
     "model" : {
       "patternType" : "LITERAL",
       "enableEscaping" : false,
-      "caseMatching" : "CASEINSENSITIVE",
+      "caseMatching" : "CASESENSITIVE",
       "replacementStrategy" : "WHOLE_STRING",
       "createNewCol" : false,
       "newColName" : "ReplacedColumn"
@@ -17,15 +17,15 @@
         "properties" : {
           "caseMatching" : {
             "oneOf" : [ {
-              "const" : "CASEINSENSITIVE",
-              "title" : "Case insensitive"
-            }, {
               "const" : "CASESENSITIVE",
               "title" : "Case sensitive"
+            }, {
+              "const" : "CASEINSENSITIVE",
+              "title" : "Case insensitive"
             } ],
             "title" : "Case sensitive",
             "description" : "Specifies whether matching will distinguish between upper and lower case letters.",
-            "default" : "CASEINSENSITIVE",
+            "default" : "CASESENSITIVE",
             "configKeys" : [ "caseSensitive" ]
           },
           "colName" : {
@@ -153,12 +153,10 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/pattern",
-        "options" : { }
+        "scope" : "#/properties/model/properties/pattern"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/replacement",
-        "options" : { }
+        "scope" : "#/properties/model/properties/replacement"
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/replacementStrategy",
@@ -178,7 +176,6 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/newColName",
-        "options" : { },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {

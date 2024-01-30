@@ -98,7 +98,6 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/outputName",
-      "options" : { },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {

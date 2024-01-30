@@ -50,7 +50,6 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/nrRowsPerChunk",
-      "options" : { },
       "rule" : {
         "effect" : "SHOW",
         "condition" : {
@@ -65,7 +64,6 @@
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/nrOfChunks",
-      "options" : { },
       "rule" : {
         "effect" : "HIDE",
         "condition" : {

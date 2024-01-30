@@ -87,12 +87,10 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/lag",
-      "options" : { }
+      "scope" : "#/properties/model/properties/lag"
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/lagInterval",
-      "options" : { }
+      "scope" : "#/properties/model/properties/lagInterval"
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/skipInitialIncompleteRows",

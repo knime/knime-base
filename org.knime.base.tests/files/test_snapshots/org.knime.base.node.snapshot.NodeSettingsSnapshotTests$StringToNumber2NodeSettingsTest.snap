@@ -231,16 +231,13 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/decimalSep",
-        "options" : { }
+        "scope" : "#/properties/model/properties/decimalSep"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/thousandsSep",
-        "options" : { }
+        "scope" : "#/properties/model/properties/thousandsSep"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/parseType",
-        "options" : { }
+        "scope" : "#/properties/model/properties/parseType"
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/genericParse",

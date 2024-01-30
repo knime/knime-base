@@ -44,7 +44,10 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/typeCompatibility"
+      "scope" : "#/properties/model/properties/typeCompatibility",
+      "options" : {
+        "format" : "checkbox"
+      }
     } ]
   }
 }
