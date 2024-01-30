@@ -87,6 +87,7 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    @Widget
     @ValueSwitchWidget
     @Signal(id = ModeSignals.class, condition = ModeSignals.RowPerChunkCondition.class)
     Mode m_mode = Mode.RowsPerChunk;
