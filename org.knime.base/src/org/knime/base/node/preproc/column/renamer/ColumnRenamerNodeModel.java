@@ -113,10 +113,10 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
                 // This is reached in case the user clicks OK without selecting a column to be renamed.
                 CheckUtils.checkSetting(renaming.m_newName != null, "Select a column to be renamed.");
 
-                var oldName = renaming.getOldName();
+                var oldName = renaming.m_oldName;
                 CheckUtils.checkSetting(m_nameMap.put(oldName, renaming.m_newName) == null,
                     "The column '%s' is renamed more than once. There must be only one renaming per column.", oldName);
-                var newName = renaming.getNewName();
+                var newName = renaming.m_newName;
                 CheckUtils.checkSetting(StringUtils.isNotBlank(newName),
                     "The new name for '%s' is invalid because it is blank. Enter a non-empty new name.", oldName);
                 CheckUtils.checkSetting(newNames.add(newName),

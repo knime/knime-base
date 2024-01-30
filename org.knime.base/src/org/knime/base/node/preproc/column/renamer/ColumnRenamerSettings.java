@@ -105,14 +105,6 @@ public final class ColumnRenamerSettings implements DefaultNodeSettings {
         @TextInputWidget(pattern = "\\S+.*")
         @Layout(RenamingLayout.class)
         public String m_newName;
-
-        String getOldName() {
-            return m_oldName;
-        }
-
-        String getNewName() {
-            return m_newName;
-        }
     }
 
     private static final class AllColumns implements ChoicesProvider {
