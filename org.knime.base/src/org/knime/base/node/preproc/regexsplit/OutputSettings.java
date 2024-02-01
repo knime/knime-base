@@ -51,7 +51,6 @@ package org.knime.base.node.preproc.regexsplit;
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.DialogSections;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
@@ -75,7 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @since 5.3
  */
 @SuppressWarnings({"restriction", "squid:S3052"}) // Pending API, initialise with defaults
-final class OutputSettings implements DefaultNodeSettings, WidgetGroup {
+final class OutputSettings implements DefaultNodeSettings {
 
     static final class LegacyProvider implements DefaultProvider<OutputSettings> {
         @Override
@@ -184,14 +183,6 @@ final class OutputSettings implements DefaultNodeSettings, WidgetGroup {
         type = EffectType.SHOW)
     String m_columnPrefix = "Split ";
 
-    // -------  Remove input column: only for output as columns, for the others we have the append|replace option  --
-
-    @Layout(DialogSections.Output.class)
-    @Widget(title = "Remove input column", description = "Remove the input column from the output table.")
-    @Effect(signals = OutputMode.IsColumns.class, type = EffectType.SHOW)
-    @Persist(optional = true)
-    boolean m_removeInputColumn = false;
-
 
     //  -------------------  Append column/replace input column: only for output as rows or collection  ----------------
 
@@ -272,30 +263,12 @@ final class OutputSettings implements DefaultNodeSettings, WidgetGroup {
     @Persist(optional = true)
     OutputGroupLabelMode m_groupLabels = OutputGroupLabelMode.CAPTURE_GROUP_NAMES;
 
-    enum NoMatchBehaviour {
-            @Label("Insert missing value")
-            INSERT_MISSING, //
-            @Label("Insert empty string")
-            INSERT_EMPTY, //
-            @Label("Fail")
-            FAIL;
-    }
-
-    //  -------------------  No match behaviour  -------------------
+    // -------  Remove input column: only for output as columns, for the others we have the append|replace option  --
 
     @Layout(DialogSections.Output.class)
-    @Widget(title = "If pattern does not match", description = """
-            Define what to do if a pattern can't be matched to the input string:
-            <ul>
-                <li><i>Insert missing value</i> puts missing cell(s) in place of the output column(s).
-                    The node will emit a warning when an input string doesn't match.</li>
-                <li><i>Insert empty string</i> puts empty string(s) in place of the output column(s).
-                    The node will emit a warning when an input string doesn't match.</li>
-                <li><i>Fail</i> causes the node to fail if one of the inputs can not be matched against the pattern.
-                </li>
-            </ul>
-            """)
+    @Widget(title = "Remove input column", description = "Remove the input column from the output table.")
+    @Effect(signals = OutputMode.IsColumns.class, type = EffectType.SHOW)
     @Persist(optional = true)
-    @ValueSwitchWidget
-    NoMatchBehaviour m_noMatchBehaviour = NoMatchBehaviour.INSERT_MISSING;
+    boolean m_removeInputColumn = false;
+
 }

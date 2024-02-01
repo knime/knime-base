@@ -118,7 +118,7 @@ final class RegexSplitResultCellFactory extends AbstractCellFactory {
 
     private DataCell[] createReplacementCells(final long rowIndex) {
         m_warningConsumer.accept(LINE_DIDNT_MATCH_WARNING);
-        final var replacement = switch (m_settings.m_output.m_noMatchBehaviour) {
+        final var replacement = switch (m_settings.m_noMatchBehaviour) {
             case INSERT_EMPTY -> new StringCell("");
             case INSERT_MISSING -> DataType.getMissingCell();
             default -> throw KNIMEException

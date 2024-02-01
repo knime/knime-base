@@ -90,14 +90,16 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
 
         @Section(title = "Splitting (Advanced)", advanced = true)
         @After(DialogSections.Splitting.class)
-        interface SplittingLegacy {
+        interface SplittingAdvanced {
         }
 
         @Section(title = "Output")
-        @After(DialogSections.SplittingLegacy.class)
+        @After(DialogSections.SplittingAdvanced.class)
         interface Output {
         }
     }
+
+    // Splitting
 
     @Layout(DialogSections.Splitting.class)
     @Widget(title = "Target Column", description = "Choose the column containing the strings to split")
@@ -174,17 +176,40 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Persist(optional = true)
     boolean m_requireWholeMatch = true;
 
-    /**
-     * Legacy match settings
-     */
+    enum NoMatchBehaviour {
+            @Label("Insert missing value")
+            INSERT_MISSING, //
+            @Label("Insert empty string")
+            INSERT_EMPTY, //
+            @Label("Fail")
+            FAIL;
+    }
 
-    @Layout(DialogSections.SplittingLegacy.class)
+    @Layout(DialogSections.Splitting.class)
+    @Widget(title = "If pattern does not match", description = """
+            Define what to do if a pattern can't be matched to the input string:
+            <ul>
+                <li><i>Insert missing value</i> puts missing cell(s) in place of the output column(s).
+                    The node will emit a warning when an input string doesn't match.</li>
+                <li><i>Insert empty string</i> puts empty string(s) in place of the output column(s).
+                    The node will emit a warning when an input string doesn't match.</li>
+                <li><i>Fail</i> causes the node to fail if one of the inputs can not be matched against the pattern.
+                </li>
+            </ul>
+            """)
+    @Persist(optional = true)
+    @ValueSwitchWidget
+    NoMatchBehaviour m_noMatchBehaviour = NoMatchBehaviour.INSERT_MISSING;
+
+    // Legacy / Advanced Splitting settings
+
+    @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Enable Unix lines mode", advanced = true,
         description = "In this mode, only the '\\n' line terminator is recognized in the behavior of ., ^, and $.")
     @Persist(configKey = "isUnixLines", settingsModel = SettingsModelBoolean.class)
     boolean m_isUnixLines = false;
 
-    @Layout(DialogSections.SplittingLegacy.class)
+    @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Enable multiline mode (^ and $ match at the beginning / end of a line)", advanced = true,
         description = """
                 In multiline mode the expressions ^ and $ match just after or just before, respectively, a line
@@ -193,14 +218,14 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "isMultiLine", settingsModel = SettingsModelBoolean.class)
     boolean m_isMultiLine = false;
 
-    @Layout(DialogSections.SplittingLegacy.class)
+    @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Enable dotall mode (Dot . also matches newline characters)", advanced = true, description = """
             In dotall mode, the expression . matches any character, including a line terminator. By default this
             expression does not match line terminators.""")
     @Persist(configKey = "isDotAll", settingsModel = SettingsModelBoolean.class)
     boolean m_isDotAll = false;
 
-    @Layout(DialogSections.SplittingLegacy.class)
+    @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Enable Unicode-aware case folding", advanced = true, description = """
             When this is enabled then case-insensitive matching, when enabled, is done in a manner consistent with the
             Unicode Standard. By default, case-insensitive matching assumes that only characters in the US-ASCII charset
@@ -209,7 +234,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "isUniCodeCase", settingsModel = SettingsModelBoolean.class)
     boolean m_isUnicodeCase = false;
 
-    @Layout(DialogSections.SplittingLegacy.class)
+    @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Enable canonical equivalence", advanced = true, description = """
             When enabled, two characters will be considered to match if, and only if, their full canonical
             decompositions match. The expression "a\\u030A", for example, will match the string "\\u00E5" when this is
@@ -217,7 +242,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "isCanonEQ", settingsModel = SettingsModelBoolean.class)
     boolean m_isCanonEQ = false;
 
-    @Layout(DialogSections.SplittingLegacy.class)
+    @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Enable Unicode character classes", advanced = true, description = """
             When enabled, the (US-ASCII only) <i>Predefined character classes</i> and <i>POSIX character classes</i> are
             in conformance with the Unicode Standard. <br />
@@ -230,7 +255,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
      * forward. For regex-groups it is convention, that index 0 is reserved for the whole string, and indices 1 to n are
      * the actual capture groups. However, in earlier iterations of this node, the first capture group started at 0.
      */
-    @Layout(DialogSections.SplittingLegacy.class)
+    @Layout(DialogSections.SplittingAdvanced.class)
     @Widget(title = "Start group index counting from zero", advanced = true, description = """
             If enabled, the indices of non-named capturing groups start at zero instead of one.
             This setting is not meant to be manually enabled, but exists solely for the purpose of
@@ -240,13 +265,13 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     @Effect(signals = OutputGroupLabelMode.IsCaptureGroupNames.class, type = EffectType.SHOW)
     boolean m_decrementGroupIndexByOne = false;
 
-    /**
-     * Output settings
-     */
+    // Output Settings
 
     @Widget
     @Persist(defaultProvider = OutputSettings.LegacyProvider.class)
     OutputSettings m_output = new OutputSettings();
+
+    // Utility
 
     static class TrueProvider implements DefaultProvider<Boolean> {
         @Override
@@ -277,8 +302,8 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
 
     /**
      * The story is a similar one for this setting, except that here the implementation of the
-     * {@link CaptureGroupExtractor} is just not up to the task. Having this setting enabled is also a very unlikely edge
-     * case, and in prior iterations of this node it also lead to errors when a comment had parenthesis in it.
+     * {@link CaptureGroupExtractor} is just not up to the task. Having this setting enabled is also a very unlikely
+     * edge case, and in prior iterations of this node it also lead to errors when a comment had parenthesis in it.
      *
      * @deprecated
      */
