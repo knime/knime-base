@@ -47,7 +47,9 @@
  */
 package org.knime.base.node.flowvariable.credentialspropertiesextractor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataColumnSpec;
@@ -120,9 +122,18 @@ public class CredentialsPropertiesExtractorNodeModel extends WebUINodeModel<Cred
         final var selectedNames = Arrays
             .stream(modelSettings.m_selectedCredentials.getSelected(flowVars.keySet().toArray(String[]::new), null))
             .collect(Collectors.toSet());
-        final var outputData = credentialsProperties.stream()
-            .filter(props -> !modelSettings.m_filterEmptyPasswords || props.isPasswordSet())
-            .filter(props -> selectedNames.contains(props.name())) //
+
+        // fail on missing properties if necessary
+        final var exception = credentialsProperties.stream() //
+            .filter(cp -> selectedNames.contains(cp.name())) //
+            .flatMap(cp -> incompleteCredentialsException(modelSettings, cp).stream()) //
+            .findAny();
+        if (exception.isPresent()) {
+            throw exception.get();
+        }
+
+        final var outputData = credentialsProperties.stream() //
+            .filter(cp -> selectedNames.contains(cp.name())) //
             .toArray(CredentialsProperties[]::new);
 
         // create data table
@@ -138,6 +149,46 @@ public class CredentialsPropertiesExtractorNodeModel extends WebUINodeModel<Cred
         }
         container.close();
         return new PortObject[]{container.getTable()};
+    }
+
+    /**
+     * @param settings that define what is required
+     * @param credentialsProperties that are tested
+     * @return Empty if nothing is missing. Otherwise, an exception explaining that the credentials with name {name} are
+     *         incomplete and a request to provide the missing information.
+     */
+    private static Optional<IllegalArgumentException> incompleteCredentialsException(
+        final CredentialsPropertyExtractorSettings settings, final CredentialsProperties credentialsProperties) {
+
+        // determine what's missing
+        final var missing = new ArrayList<String>();
+        if (settings.m_failOnEmptyUser && credentialsProperties.login().isEmpty()) {
+            missing.add("a user name");
+        }
+        if (settings.m_failOnEmptyPassword && !credentialsProperties.isPasswordSet()) {
+            missing.add("a password");
+        }
+        if (settings.m_failOnEmptySecondAuthenticationFactor
+            && !credentialsProperties.isSecondAuthenticationFactorSet()) {
+            missing.add("a second authentication factor");
+        }
+
+        // all good
+        if (missing.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // construct message
+        if (missing.size() == 3) {
+            missing.add(1, ", ");
+            missing.add(missing.size() - 1, ", and ");
+        } else if (missing.size() == 2) {
+            missing.add(1, " and ");
+        }
+        final var message = "The credentials with name '%s' are incomplete. Please provide %s."
+            .formatted(credentialsProperties.name(), missing.stream().collect(Collectors.joining("")));
+
+        return Optional.of(new IllegalArgumentException(message));
     }
 
 }

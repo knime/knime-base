@@ -74,11 +74,25 @@ public final class CredentialsPropertyExtractorSettings implements DefaultNodeSe
     @ChoicesWidget(choices = CredentialsFlowVariables.class)
     ColumnFilter m_selectedCredentials;
 
-    @Widget(title = "Skip credentials without password", description = """
-            Whether to remove flow variables from the output if they have no or an empty password set.
+    @Widget(title = "Fail if selected credentials have no user name set", description = """
+            Select this to prevent execution of subsequent nodes in case the selected credentials have
+            no user name set. This is useful to avoid failures or unauthorized requests.
             """)
-    boolean m_filterEmptyPasswords;
+    boolean m_failOnEmptyUser;
 
+    @Widget(title = "Fail if selected credentials have no password set", description = """
+            Select this to prevent execution of subsequent nodes in case the selected credentials have
+            no password set. This is useful to avoid failures or unauthorized requests.
+            """)
+    boolean m_failOnEmptyPassword;
+
+    @Widget(title = "Fail if selected credentials have no second authentication factor set", description = """
+            Select this to prevent execution of subsequent nodes in case the selected credentials have
+            no second authentication factor set. This is useful to avoid failures or unauthorized requests.
+            """)
+    boolean m_failOnEmptySecondAuthenticationFactor;
+
+    /** Select all credentials variables by default. */
     private static final class CredentialsFlowVariables implements ChoicesProvider {
         @Override
         public String[] choices(final DefaultNodeSettingsContext context) {

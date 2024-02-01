@@ -1,0 +1,14 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="5.30847" cy="7.0844" r="1.43465" transform="rotate(68.3715 5.30847 7.0844)" stroke="#201E1E"/>
+<path d="M4.88636 5.45422L2.91357 0.858866" stroke="#201E1E"/>
+<line x1="3.59351" y1="1.6608" x2="0.953562" y2="2.73466" stroke="#201E1E" stroke-width="0.8"/>
+<path d="M3.63995 3.5L2.71366 3.87679L1.78736 4.25358" stroke="#201E1E" stroke-width="0.8"/>
+<path d="M11.5 9L14 6H12V4H7V5H11.0002V6H9L11.5 9Z" fill="#201E1E"/>
+<path d="M9 11.5H14" stroke="black"/>
+<path d="M9 13.5H14" stroke="black"/>
+<line x1="14" y1="15.5" x2="9" y2="15.5" stroke="black"/>
+<path d="M11.5 9L14 6H12V4H7V5H11.0002V6H9L11.5 9Z" fill="#201E1E"/>
+<path d="M9 11.5H14" stroke="black"/>
+<path d="M9 13.5H14" stroke="black"/>
+<line x1="14" y1="15.5" x2="9" y2="15.5" stroke="black"/>
+</svg>

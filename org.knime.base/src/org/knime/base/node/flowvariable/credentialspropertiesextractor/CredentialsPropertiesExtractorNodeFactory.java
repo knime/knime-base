@@ -62,7 +62,7 @@ public final class CredentialsPropertiesExtractorNodeFactory
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Credentials Properties Extractor")//
-        .icon(null)//
+        .icon("icon.png") //
         .shortDescription("""
                 Extracts non-confidential information from credentials flow variables.
                 """)//
