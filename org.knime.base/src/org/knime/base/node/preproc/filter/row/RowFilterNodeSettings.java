@@ -62,6 +62,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
+import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
@@ -71,8 +72,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Expression;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Not;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -103,7 +107,10 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
             interface ColumnSelection {}
 
             @After(FilterSection.ColumnSelection.class)
-            interface OperatorSelection {}
+            interface OperatorSelection {
+                @HorizontalLayout
+                interface StringMatching {}
+            }
 
             @After(OperatorSelection.class)
             interface Values {
@@ -126,6 +133,7 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
     @Signal(condition = StringColumnSelected.class)
     @Signal(condition = BooleanColumnSelected.class)
     @Signal(condition = NumberColumnSelected.class)
+    @Signal(condition = CollectionColumnSelected.class)
     ColumnSelection m_targetSelection = new ColumnSelection();
 
     private static final class AllColumns implements ColumnChoicesProvider {
@@ -160,6 +168,29 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    static final class CollectionColumnSelected extends IsColumnOfTypeCondition {
+        @Override
+        public Class<? extends DataValue> getDataValueClass() {
+            return CollectionDataValue.class;
+        }
+    }
+
+    // just used for the signal ID below
+    private interface FilterCollectionElements {}
+
+    @Widget(title = "Filter based on collection elements")
+    @Layout(FilterSection.ColumnSelection.class)
+    @Effect(signals = CollectionColumnSelected.class, type = EffectType.SHOW)
+    @Signal(id = FilterCollectionElements.class, condition = TrueCondition.class)
+    boolean m_deepFiltering = true;
+
+    private static final class DataTypeFilterSettings {
+        @DeclaringDefaultNodeSettings(RowFilterNodeSettings.class)
+        ColumnSelection m_targetSelection;
+        @DeclaringDefaultNodeSettings(RowFilterNodeSettings.class)
+        boolean m_deepFiltering;
+    }
+
     @Widget(title = "Operator")
     @Layout(OperatorSelection.class)
     @ChoicesWidget(choicesUpdateHandler = TypeBasedOperatorChoices.class)
@@ -167,11 +198,6 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
     @Signal(condition = FilterOperator.IsUnary.class)
     @Signal(condition = FilterOperator.IsBinary.class)
     FilterOperator m_operator = FilterOperator.EQ;
-
-    private static final class DataTypeFilterSettings {
-        @DeclaringDefaultNodeSettings(RowFilterNodeSettings.class)
-        ColumnSelection m_targetSelection;
-    }
 
     private static class TypeBasedOperatorChoices implements ChoicesUpdateHandler<DataTypeFilterSettings> {
 
@@ -187,11 +213,27 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
             if (types == null || types.length == 0) {
                 return new IdAndText[0];
             }
-            // only look at preferred value class of type
-            final var fqPreferredValueClassName = Arrays.stream(filterColumn.m_compatibleTypes)
+            final var compatibleClassNames = Arrays.stream(filterColumn.m_compatibleTypes)
+                    // // only look at preferred value class of type
                     // .findFirst().map(Set::of).orElse(Set.of());
                     .collect(Collectors.toSet());
-            return Arrays.stream(FilterOperator.values()).filter(op -> op.isEnabledFor(fqPreferredValueClassName))
+
+            final var elementComp = settings.m_deepFiltering;
+            if (elementComp &&
+                    compatibleClassNames.contains(ColumnSelection.getTypeClassIdentifier(CollectionDataValue.class))) {
+                // we need to filter based on element types
+                final var elementClassNames = Arrays.stream(context.getDataTableSpec(0)
+                        .map(dts -> dts.getColumnSpec(filterColumn.m_selected))
+                        .map(dcs -> dcs.getType().getCollectionElementType())
+                        .map(ColumnSelection::getCompatibleTypes).orElse(new String[0])).collect(Collectors.toSet());
+                return filterForCompatibility(elementClassNames);
+            }
+            // filter on top-level type
+            return filterForCompatibility(compatibleClassNames);
+        }
+
+        private static IdAndText[] filterForCompatibility(final Set<String> compatibleClassNames) {
+            return Arrays.stream(FilterOperator.values()).filter(op -> op.isEnabledFor(compatibleClassNames))
                     .map(op -> new IdAndText(op.name(), op.label()))
                     .toArray(IdAndText[]::new);
         }
@@ -294,6 +336,7 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
             // TODO old Row Filter would convert everything with toString
             @Override
             public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
+                // TODO also not for collection column atm (except for if comparison on collection elements...)
                 return !new IsTruthy().satisfiedByAnyOf(fqValueClassesNames);
             }
         }
@@ -329,30 +372,21 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
                 return new StringMatchingMode[] {LITERAL};
             }
         }
-
-        private static final class IsPattern extends OneOfEnumCondition<StringMatchingMode> {
-            @Override
-            public StringMatchingMode[] oneOf() {
-                return new StringMatchingMode[] {WILDCARDS, REGEX};
-            }
-        }
     }
 
-    @Layout(OperatorSelection.class)
+    @Layout(OperatorSelection.StringMatching.class)
     @Widget(title = "String matching")
     @ValueSwitchWidget
     @Effect(signals = {StringColumnSelected.class, FilterOperator.IsEquals.class}, operation = And.class,
         type = EffectType.SHOW)
     @Signal(condition = StringMatchingMode.IsLiteral.class)
-    @Signal(condition = StringMatchingMode.IsPattern.class)
     StringMatchingMode m_stringMatching = StringMatchingMode.LITERAL;
 
-    // if data type is number
-    @Layout(Values.class)
-    @Widget(title = "Value")
-    @Effect(signals = { NumberColumnSelected.class, FilterOperator.IsUnary.class }, operation = And.class,
+    @Layout(OperatorSelection.StringMatching.class)
+    @Widget(title = "Match strings case-sensitive")
+    @Effect(signals = {StringColumnSelected.class, FilterOperator.IsEquals.class}, operation = And.class,
         type = EffectType.SHOW)
-    double m_numericValue;
+    boolean m_caseSensitive;
 
     // if data type is string (or as fallback for string-compatible types)
     @Layout(Values.class)
@@ -361,11 +395,27 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         operation = And.class, type = EffectType.SHOW)
     String m_stringValue;
 
+    // implements: and( and( l, m ), not(r) )
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static final class PatternOp extends And {
+        PatternOp(final Expression left, final Expression middle, final Expression right) {
+            super(new And(left, middle), new Not(right));
+        }
+    }
+
     @Layout(Values.class)
     @Widget(title = "Pattern")
-    @Effect(signals = {StringColumnSelected.class, FilterOperator.IsUnary.class, StringMatchingMode.IsPattern.class},
-        operation = And.class, type = EffectType.SHOW)
+    @Effect(signals = {StringColumnSelected.class, FilterOperator.IsUnary.class, StringMatchingMode.IsLiteral.class},
+        operation = PatternOp.class, type = EffectType.SHOW)
     String m_patternValue;
+
+
+    // if data type is number
+    @Layout(Values.class)
+    @Widget(title = "Value")
+    @Effect(signals = { NumberColumnSelected.class, FilterOperator.IsUnary.class }, operation = And.class,
+        type = EffectType.SHOW)
+    double m_numericValue;
 
     // TODO needs ColumnSelection support for RowNumber/RowIndex and associated condition
     // @Layout(Values.class)

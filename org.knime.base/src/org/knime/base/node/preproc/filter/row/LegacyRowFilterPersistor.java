@@ -52,13 +52,12 @@ import org.knime.base.node.preproc.filter.row.RowFilterNodeSettings.FilterOperat
 import org.knime.base.node.preproc.filter.row.RowFilterNodeSettings.OutputMode;
 import org.knime.base.node.preproc.filter.row.RowFilterNodeSettings.StringMatchingMode;
 import org.knime.base.node.preproc.filter.row.rowfilter.AttrValueRowFilter;
-import org.knime.base.node.preproc.filter.row.rowfilter.FalseRowFilter;
 import org.knime.base.node.preproc.filter.row.rowfilter.IRowFilter;
-import org.knime.base.node.preproc.filter.row.rowfilter.MissingCellRowFilter;
 import org.knime.base.node.preproc.filter.row.rowfilter.MissingValueRowFilter;
 import org.knime.base.node.preproc.filter.row.rowfilter.RowFilterFactory;
+import org.knime.base.node.preproc.filter.row.rowfilter.RowIDRowFilter;
+import org.knime.base.node.preproc.filter.row.rowfilter.RowNoRowFilter;
 import org.knime.base.node.preproc.filter.row.rowfilter.StringCompareRowFilter;
-import org.knime.base.node.preproc.filter.row.rowfilter.TrueRowFilter;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -73,21 +72,24 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.Co
 @SuppressWarnings("restriction") // webui
 final class LegacyRowFilterPersistor extends NodeSettingsPersistorWithConfigKey<RowFilterNodeSettings> {
 
+    // TODO there seems to be some old thing we need to support: ColValFilterOldObsolete
+
     @Override
     public RowFilterNodeSettings load(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-        final var iRowFilter = RowFilterFactory.createRowFilter(nodeSettings.getNodeSettings(getConfigKey()));
+        final var filter = RowFilterFactory.createRowFilter(nodeSettings.getNodeSettings(getConfigKey()));
         // TODO translate to settings
         final var settings = new RowFilterNodeSettings();
-        if (iRowFilter instanceof AttrValueRowFilter attrValueRowFilter) {
-            final var colName = attrValueRowFilter.getColName();
+        if (filter instanceof AttrValueRowFilter avFilter) {
+            final var colName = avFilter.getColName();
             // TODO get data type...
             settings.m_targetSelection = new ColumnSelection(colName, StringCell.TYPE);
-            settings.m_outputMode = attrValueRowFilter.getInclude() ? OutputMode.INCLUDE : OutputMode.EXCLUDE;
+            settings.m_outputMode = avFilter.getInclude() ? OutputMode.INCLUDE : OutputMode.EXCLUDE;
+            settings.m_deepFiltering = avFilter.getDeepFiltering();
 
-            if (attrValueRowFilter instanceof StringCompareRowFilter scomp) {
-                // TODO regex/wildcard
-
+            if (avFilter instanceof StringCompareRowFilter scomp) {
                 settings.m_operator = FilterOperator.EQ;
+
+                settings.m_caseSensitive = scomp.getCaseSensitive();
                 if (scomp.getHasWildcards()) {
                     settings.m_stringMatching = StringMatchingMode.WILDCARDS;
                 } else if (scomp.getIsRegExpr()) {
@@ -95,15 +97,14 @@ final class LegacyRowFilterPersistor extends NodeSettingsPersistorWithConfigKey<
                 }
                 final var pat = scomp.getPattern();
                 settings.m_stringValue = pat;
-            } else if (attrValueRowFilter instanceof MissingValueRowFilter) {
+            } else if (avFilter instanceof MissingValueRowFilter) {
                 settings.m_operator = FilterOperator.IS_MISSING;
             }
-        } else if (iRowFilter instanceof MissingCellRowFilter) {
-            settings.m_operator = FilterOperator.IS_MISSING;
-        } else if (iRowFilter instanceof TrueRowFilter) {
-            settings.m_operator = FilterOperator.IS_TRUE;
-        } else if (iRowFilter instanceof FalseRowFilter) {
-            settings.m_operator = FilterOperator.IS_FALSE;
+        } else if (filter instanceof RowIDRowFilter) {
+        } else if (filter instanceof RowNoRowFilter) {
+        } else {
+            // TODO are there any other concrete implementations that the Row Filter node produces?
+            // NB: the RowFilterNodeDialogPane silently ignored unsupported filter implementations
         }
 
         return settings;
@@ -113,6 +114,11 @@ final class LegacyRowFilterPersistor extends NodeSettingsPersistorWithConfigKey<
     public void save(final RowFilterNodeSettings obj, final NodeSettingsWO settings) {
         final IRowFilter iRowFilter = null; // TODO translate
         // iRowFilter.saveSettingsTo(settings.addNodeSettings(getConfigKey()));
+
+        final var selectedColumn = obj.m_targetSelection;
+
+
+
     }
 
     @Override
