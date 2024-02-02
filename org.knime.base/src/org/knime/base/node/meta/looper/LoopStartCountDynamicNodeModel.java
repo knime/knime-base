@@ -115,7 +115,7 @@ final class LoopStartCountDynamicNodeModel extends WebUINodeModel<LoopStartCount
     }
 
     @Override
-    protected void onReset() {
+    protected void reset() {
         m_iteration = 0;
         m_lastIteration = false;
     }

@@ -150,7 +150,7 @@ final class LoopStartChunkNodeModel extends WebUINodeModel<LoopStartChunkNodeSet
     }
 
     @Override
-    protected void onReset() {
+    protected void reset() {
         m_iteration = 0;
         if (m_iterator != null) {
             m_iterator.close();
