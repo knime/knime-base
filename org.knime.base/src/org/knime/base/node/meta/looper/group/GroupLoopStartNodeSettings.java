@@ -50,7 +50,6 @@ package org.knime.base.node.meta.looper.group;
 
 import java.util.stream.Stream;
 
-import org.knime.base.node.preproc.stringreplacer.StringReplacerSettings;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
@@ -63,8 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * The GroupLoopStartNodeSettings define the WebUI dialog of the Group Loop Start Node. The serialization must go via
- * the {@link StringReplacerSettings}.
+ * The GroupLoopStartNodeSettings define the WebUI dialog of the Group Loop Start Node.
  *
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  * @since 5.3

@@ -63,9 +63,9 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class GroupLoopStartNodeTest extends DefaultNodeSettingsSnapshotTest {
+public class GroupLoopStartNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     @SuppressWarnings("javadoc")
-    protected GroupLoopStartNodeTest() {
+    protected GroupLoopStartNodeSettingsTest() {
         super(Map.of(SettingsType.MODEL, GroupLoopStartNodeSettings.class), createDefaultTestTableSpec());
     }
 

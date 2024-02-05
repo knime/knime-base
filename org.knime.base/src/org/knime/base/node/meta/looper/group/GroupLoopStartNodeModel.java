@@ -336,7 +336,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
      * {@inheritDoc}
      */
     @Override
-    protected void onReset() {
+    protected void reset() {
         if (m_iterator != null) {
             m_iterator.close();
             m_iterator = null;
