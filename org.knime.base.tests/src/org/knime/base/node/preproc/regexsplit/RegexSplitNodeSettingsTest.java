@@ -50,15 +50,20 @@ package org.knime.base.node.preproc.regexsplit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.knime.base.node.preproc.regexsplit.OutputSettings.ColumnPrefixMode;
 import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputMode;
 import org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettings.CaseMatching;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
  * Test loading legacy settings.
@@ -66,7 +71,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction") // Web UI is pending API
-class RegexSplitNodeSettingsTest {
+class RegexSplitNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+
+    protected RegexSplitNodeSettingsTest() {
+        super(Map.of(SettingsType.MODEL, RegexSplitNodeSettings.class), new DataTableSpec());
+    }
 
     /**
      * @param defaultValue set all boolean fields to this value
