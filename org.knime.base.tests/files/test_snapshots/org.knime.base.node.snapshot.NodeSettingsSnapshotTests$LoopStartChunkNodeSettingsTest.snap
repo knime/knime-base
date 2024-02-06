@@ -20,6 +20,8 @@
               "const" : "NrOfChunks",
               "title" : "Number of Chunks"
             } ],
+            "title" : "Mode",
+            "description" : "Determines how to do the chunking.",
             "default" : "RowsPerChunk"
           },
           "nrOfChunks" : {

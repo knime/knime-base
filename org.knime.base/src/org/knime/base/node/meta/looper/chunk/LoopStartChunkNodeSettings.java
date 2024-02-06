@@ -87,7 +87,7 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget
+    @Widget(title ="Mode", description = "Determines how to do the chunking.")
     @ValueSwitchWidget
     @Signal(id = ModeSignals.class, condition = ModeSignals.RowPerChunkCondition.class)
     Mode m_mode = Mode.RowsPerChunk;
