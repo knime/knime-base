@@ -18,7 +18,7 @@
           "typeDisplays" : [ ]
         }
       },
-      "alreadySorted" : false
+      "alreadySorted" : "NO"
     }
   },
   "schema" : {
@@ -28,10 +28,16 @@
         "type" : "object",
         "properties" : {
           "alreadySorted" : {
-            "type" : "boolean",
+            "oneOf" : [ {
+              "const" : "YES",
+              "title" : "Yes"
+            }, {
+              "const" : "NO",
+              "title" : "No"
+            } ],
             "title" : "Is the input already sorted by group column(s)?",
             "description" : "If checked, the input data table will not be sorted before looping\nstarts. The table must already be sorted properly by the columns to\ngroup on. If sorting is switched off, but input table is not properly\nsorted, execution will be canceled.\n",
-            "default" : false,
+            "default" : "NO",
             "configKeys" : [ "SortedInput" ]
           },
           "columnFilter" : {
@@ -198,7 +204,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/alreadySorted",
       "options" : {
-        "format" : "checkbox"
+        "format" : "valueSwitch"
       }
     } ]
   }

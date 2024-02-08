@@ -52,13 +52,18 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -88,14 +93,15 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Persist(configKey = GroupLoopStartConfigKeys.SORTED_INPUT_TABLE, settingsModel = SettingsModelBoolean.class)
     @Widget(title = "Is the input already sorted by group column(s)?", description = """
             If checked, the input data table will not be sorted before looping
             starts. The table must already be sorted properly by the columns to
             group on. If sorting is switched off, but input table is not properly
             sorted, execution will be canceled.
             """)
-    boolean m_alreadySorted;
+    @ValueSwitchWidget
+    @Persist(customPersistor = YesOrNoPersistor.class)
+    YesOrNo m_alreadySorted = YesOrNo.NO;
 
     static final class AllColumns implements ColumnChoicesProvider {
 
@@ -107,4 +113,29 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
         }
 
     }
+
+    enum YesOrNo {
+            @Label("Yes")
+            YES, //
+            @Label("No")
+            NO
+    }
+
+    private static final class YesOrNoPersistor implements FieldNodeSettingsPersistor<YesOrNo> {
+        @Override
+        public YesOrNo load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(GroupLoopStartConfigKeys.SORTED_INPUT_TABLE, false) ? YesOrNo.YES : YesOrNo.NO;
+        }
+
+        @Override
+        public void save(final YesOrNo yesOrNo, final NodeSettingsWO settings) {
+            settings.addBoolean(GroupLoopStartConfigKeys.SORTED_INPUT_TABLE, yesOrNo == YesOrNo.YES);
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{GroupLoopStartConfigKeys.SORTED_INPUT_TABLE};
+        }
+    }
+
 }

@@ -50,6 +50,7 @@ package org.knime.base.node.meta.looper.group;
 import java.util.Arrays;
 import java.util.List;
 
+import org.knime.base.node.meta.looper.group.GroupLoopStartNodeSettings.YesOrNo;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
@@ -178,7 +179,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
 
         // parameters
         m_includedColIndices = getIncludedColIndices(table.getDataTableSpec(), settings.m_columnFilter);
-        boolean checkDuplicates = settings.m_alreadySorted;
+        boolean checkDuplicates = settings.m_alreadySorted == YesOrNo.YES;
 
         // remember table and sort table if necessary
         if (m_iteration == 0) {
@@ -187,7 +188,7 @@ class GroupLoopStartNodeModel extends WebUINodeModel<GroupLoopStartNodeSettings>
             m_spec = m_table.getDataTableSpec();
 
             // sort if not already sorted
-            if (!settings.m_alreadySorted) {
+            if (settings.m_alreadySorted == YesOrNo.NO) {
                 // asc
                 final String[] includes = settings.m_columnFilter.getSelected(m_spec.getColumnNames(), m_spec);
                 boolean[] sortAsc = new boolean[includes.length];
