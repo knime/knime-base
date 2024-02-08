@@ -2,7 +2,7 @@
   "data" : {
     "model" : {
       "mode" : "RowsPerChunk",
-      "nrRowsPerChunk" : 100,
+      "nrRowsPerChunk" : 1,
       "nrOfChunks" : 1
     }
   },
@@ -36,7 +36,7 @@
             "format" : "int32",
             "title" : "Rows per chunk",
             "description" : "Set the number of rows per iteration/chunk. The number of iterations\n        is calculated as the row count of the input table divided by this value.\n        Set the value to 1 in order to implement a streaming approach, that is,\n        one row at a time.\n",
-            "default" : 100
+            "default" : 1
           }
         }
       }

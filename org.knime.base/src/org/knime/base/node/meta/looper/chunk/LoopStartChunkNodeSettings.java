@@ -99,7 +99,7 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
                     one row at a time.
             """)
     @Effect(type = EffectType.SHOW, signals = ModeSignals.class)
-    int m_nrRowsPerChunk = 100;
+    int m_nrRowsPerChunk = 1;
 
 
     @Widget(title = "Number of chunks", description = """
