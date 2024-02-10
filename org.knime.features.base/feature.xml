@@ -2,7 +2,7 @@
 <feature
       id="org.knime.features.base"
       label="KNIME Base nodes"
-      version="5.1.2.qualifier"
+      version="5.1.3.qualifier"
       provider-name="KNIME AG, Zurich, Switzerland"
       plugin="org.knime.product"
       image="icons/knime64.gif">
