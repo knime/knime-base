@@ -15,28 +15,30 @@
           "mode" : {
             "oneOf" : [ {
               "const" : "RowsPerChunk",
-              "title" : "Rows per Chunk"
+              "title" : "Rows per chunk"
             }, {
               "const" : "NrOfChunks",
-              "title" : "Number of Chunks"
+              "title" : "Number of chunks"
             } ],
             "title" : "Mode",
-            "description" : "Determines how to do the chunking.",
+            "description" : "Select if the chunking is based on a fixed number of rows per chunk or a fixed number of chunks.",
             "default" : "RowsPerChunk"
           },
           "nrOfChunks" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Number of chunks",
-            "description" : "Set the number of iterations/chunks. The number of rows per chunk\n        is calculated as the the row count of the input table divided by\n        this value.d\n",
-            "default" : 1
+            "description" : "Set the number of chunks. The number of rows per chunk is the row count of the input table divided by this value.\n",
+            "default" : 1,
+            "minimum" : 1
           },
           "nrRowsPerChunk" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Rows per chunk",
-            "description" : "Set the number of rows per iteration/chunk. The number of iterations\n        is calculated as the row count of the input table divided by this value.\n        Set the value to 1 in order to implement a streaming approach, that is,\n        one row at a time.\n",
-            "default" : 1
+            "description" : "Set the number of rows per chunk. The number of iterations is the row count of the input table divided by this value. To implement a streaming approach with one row at a time, set this value to 1.\n",
+            "default" : 1,
+            "minimum" : 1
           }
         }
       }

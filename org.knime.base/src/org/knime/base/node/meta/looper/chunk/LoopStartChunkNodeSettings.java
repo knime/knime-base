@@ -54,6 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -71,10 +72,10 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
     @SuppressWarnings("java:S115") // naming (backward compatible in settings.xml)
     enum Mode {
         /** Limit no of rows per chunk. */
-        @Label("Rows per Chunk")
+        @Label("Rows per chunk")
         RowsPerChunk,
         /** Limit no of chunks. */
-        @Label("Number of Chunks")
+        @Label("Number of chunks")
         NrOfChunks
     }
 
@@ -87,26 +88,23 @@ public final class LoopStartChunkNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title ="Mode", description = "Determines how to do the chunking.")
+    @Widget(title ="Mode", description = "Select if the chunking is based on a fixed number of rows per chunk or a fixed number of chunks.")
     @ValueSwitchWidget
     @Signal(id = ModeSignals.class, condition = ModeSignals.RowPerChunkCondition.class)
     Mode m_mode = Mode.RowsPerChunk;
 
     @Widget(title = "Rows per chunk", description = """
-            Set the number of rows per iteration/chunk. The number of iterations
-                    is calculated as the row count of the input table divided by this value.
-                    Set the value to 1 in order to implement a streaming approach, that is,
-                    one row at a time.
+            Set the number of rows per chunk. The number of iterations is the row count of the input table divided by this value. To implement a streaming approach with one row at a time, set this value to 1.
             """)
+    @NumberInputWidget(min = 1.0)
     @Effect(type = EffectType.SHOW, signals = ModeSignals.class)
     int m_nrRowsPerChunk = 1;
 
 
     @Widget(title = "Number of chunks", description = """
-            Set the number of iterations/chunks. The number of rows per chunk
-                    is calculated as the the row count of the input table divided by
-                    this value.d
+            Set the number of chunks. The number of rows per chunk is the row count of the input table divided by this value.
             """)
     @Effect(type = EffectType.HIDE, signals = ModeSignals.class)
+    @NumberInputWidget(min = 1.0)
     int m_nrOfChunks = 1;
 }
