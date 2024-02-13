@@ -75,11 +75,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "column-filter", customPersistor = LegacyColumnFilterPersistor.class)
-    @Widget(title = "Input columns", description = "Select the columns to filter for missing values.")
-    // yes, the "Includes/Excludes" order is backwards to what we usually have but makes sense for this node
-    @ChoicesWidget(choices = AllColumns.class, excludedLabel = "Includes",
-        includedLabel = "Tests for exclusion")
-    ColumnFilter m_columnFilter = new ColumnFilter();
+    @Widget(title = "Input columns", description = "Select the columns to test for missing values.")
+    @ChoicesWidget(choices = AllColumns.class, excludedLabel = "Retained columns", includedLabel = "Columns to test")
+    ColumnFilter m_columnFilter;
 
     private static final class AllColumns implements ColumnChoicesProvider {
         @Override
@@ -92,9 +90,9 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
     }
 
     enum RemovalCriterion {
-        @Label(value = "With any missing values",
+        @Label(value = "With at least one missing value",
             description = "Remove the column if it contains at least one missing value.")
-        ANY,
+        SOME,
         @Label(value = "With only missing values",
             description = "Remove the column if it contains only missing values.")
         ONLY,
@@ -102,7 +100,7 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
             description = "Remove the column if it contains at least the configured percentage of missing values.")
         PERCENTAGE,
         @Label(value = "By number of missing values",
-            description = "Remove the column if it contains more than the configured number of missing values.")
+            description = "Remove the column if it contains at least the configured number of missing values.")
         NUMBER
     }
 
@@ -134,32 +132,38 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
     }
 
     @RadioButtonsWidget
-    @Widget(title = "Remove columns", description = """
-            Specify the criterion for removal of selected columns. You can specify that columns are removed if they
-            contain <i>any</i> missing values, <i>only</i> missing values, based on a <i>percentage</i> of missing
-            values, or based on an absolute <i>number</i> of missing values contained in the column.
-                """)
+    @Widget(title = "Remove columns", description = "Specify the threshold for the removal of selected columns.")
     @Signal(id = ByPercentage.class, condition = ByPercentage.Condition.class)
     @Signal(id = ByNumber.class, condition = ByNumber.Condition.class)
-    @Persist(optional = true, defaultProvider = RemovalCriterionDefaultProvider.class) // added during webui transition
-    RemovalCriterion m_removeColumnsBy = RemovalCriterion.ANY;
+    @Persist(defaultProvider = RemovalCriterionDefaultProvider.class) // added during webui transition
+    RemovalCriterion m_removeColumnsBy = RemovalCriterion.ONLY;
 
     // "more-than-or-equal" is legacy behavior
     @Widget(title = "Threshold percentage (equal or more than %)", //
-        description = """
-                    Selected columns with at least this percentage of missing values are filtered out.
-                """)
+        description = "Selected columns with at least this percentage of missing values are filtered out.")
     @NumberInputWidget(max = 100, min = 0)
     @Persist(configKey = "missing_value_percentage")
     @Effect(type = EffectType.SHOW, signals = ByPercentage.class)
-    double m_percentage = 30.0;
+    double m_percentage = 100.0;
 
-    @Widget(title = "Threshold number (more than)", //
-        description = """
-                    Selected columns with more than this number of missing values are filtered out.
-                """)
+    @Widget(title = "Threshold number (equal or more than)", //
+        description = "Selected columns with at least this number of missing values are filtered out.")
     @NumberInputWidget(min = 0)
     @Effect(type = EffectType.SHOW, signals = ByNumber.class)
     @Persist(optional = true)
-    long m_number;
+    long m_number = 1;
+
+
+    MissingValueColumnFilterNodeSettings() {
+        this((DataTableSpec)null);
+    }
+
+    MissingValueColumnFilterNodeSettings(final DefaultNodeSettingsContext context) {
+        this(context.getDataTableSpec(0).orElse(null));
+    }
+
+    MissingValueColumnFilterNodeSettings(final DataTableSpec spec) {
+        m_columnFilter =
+            new ColumnFilter(spec == null ? new String[0] : spec.getColumnNames()).withExcludeUnknownColumns();
+    }
 }

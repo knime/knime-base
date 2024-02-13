@@ -61,12 +61,12 @@ public class MissingValueColumnFilterNodeFactory
         .name("Missing Value Column Filter") //
         .icon("missingvalcolfilter.png") //
         .shortDescription("""
-                The node removes selected columns from the input if they contain a certain amount of missing values.
+                The node removes selected columns from the input if they meet the specified threshold of missing values.
                 """) //
         .fullDescription("""
-                The node tests each selected column for missing values and removes it according to the chosen criterion.
-                The criteria are: presence or absence of any missing values, a fixed amount, or a percentage of
-                missing values.
+                The node tests each selected column for missing values and removes it if it meets the specified
+                threshold of absolute or relative number of missing values.
+                Each column that is not selected for the test is passed on to the output unconditionally.
                     """) //
         .modelSettingsClass(MissingValueColumnFilterNodeSettings.class) //
         .nodeType(NodeType.Manipulator) //
