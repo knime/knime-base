@@ -9,7 +9,7 @@
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ ],
+          "manuallySelected" : [ "test1", "test2" ],
           "manuallyDeselected" : [ ],
           "includeUnknownColumns" : false
         },
@@ -18,9 +18,9 @@
           "typeDisplays" : [ ]
         }
       },
-      "removeColumnsBy" : "ANY",
-      "percentage" : 30.0,
-      "number" : 0
+      "removeColumnsBy" : "ONLY",
+      "percentage" : 100.0,
+      "number" : 1
     }
   },
   "schema" : {
@@ -137,7 +137,7 @@
               }
             },
             "title" : "Input columns",
-            "description" : "Select the columns to filter for missing values.",
+            "description" : "Select the columns to test for missing values.",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -146,7 +146,7 @@
                 "isInverted" : false
               },
               "manualFilter" : {
-                "manuallySelected" : [ ],
+                "manuallySelected" : [ "test1", "test2" ],
                 "manuallyDeselected" : [ ],
                 "includeUnknownColumns" : false
               },
@@ -160,9 +160,9 @@
           "number" : {
             "type" : "integer",
             "format" : "int64",
-            "title" : "Threshold number (more than)",
-            "description" : "    Selected columns with more than this number of missing values are filtered out.\n",
-            "default" : 0,
+            "title" : "Threshold number (equal or more than)",
+            "description" : "Selected columns with at least this number of missing values are filtered out.",
+            "default" : 1,
             "minimum" : 0,
             "configKeys" : [ "number" ]
           },
@@ -170,16 +170,16 @@
             "type" : "number",
             "format" : "double",
             "title" : "Threshold percentage (equal or more than %)",
-            "description" : "    Selected columns with at least this percentage of missing values are filtered out.\n",
-            "default" : 30.0,
+            "description" : "Selected columns with at least this percentage of missing values are filtered out.",
+            "default" : 100.0,
             "minimum" : 0,
             "maximum" : 100.0,
             "configKeys" : [ "missing_value_percentage" ]
           },
           "removeColumnsBy" : {
             "oneOf" : [ {
-              "const" : "ANY",
-              "title" : "With any missing values"
+              "const" : "SOME",
+              "title" : "With at least one missing value"
             }, {
               "const" : "ONLY",
               "title" : "With only missing values"
@@ -191,8 +191,8 @@
               "title" : "By number of missing values"
             } ],
             "title" : "Remove columns",
-            "description" : "Specify the criterion for removal of selected columns. You can specify that columns are removed if they\ncontain <i>any</i> missing values, <i>only</i> missing values, based on a <i>percentage</i> of missing\nvalues, or based on an absolute <i>number</i> of missing values contained in the column.\n\n<ul>\n<li><b>With any missing values</b>: Remove the column if it contains at least one missing value.</li>\n<li><b>With only missing values</b>: Remove the column if it contains only missing values.</li>\n<li><b>By percentage of missing values</b>: Remove the column if it contains at least the configured percentage of missing values.</li>\n<li><b>By number of missing values</b>: Remove the column if it contains more than the configured number of missing values.</li>\n</ul>",
-            "default" : "ANY",
+            "description" : "Specify the threshold for the removal of selected columns.\n<ul>\n<li><b>With at least one missing value</b>: Remove the column if it contains at least one missing value.</li>\n<li><b>With only missing values</b>: Remove the column if it contains only missing values.</li>\n<li><b>By percentage of missing values</b>: Remove the column if it contains at least the configured percentage of missing values.</li>\n<li><b>By number of missing values</b>: Remove the column if it contains at least the configured number of missing values.</li>\n</ul>",
+            "default" : "ONLY",
             "configKeys" : [ "removeColumnsBy" ]
           }
         }
@@ -226,8 +226,8 @@
         "showRowKeys" : false,
         "showSearch" : true,
         "showMode" : true,
-        "includedLabel" : "Tests for exclusion",
-        "excludedLabel" : "Includes"
+        "includedLabel" : "Columns to test",
+        "excludedLabel" : "Retained columns"
       }
     }, {
       "type" : "Control",
