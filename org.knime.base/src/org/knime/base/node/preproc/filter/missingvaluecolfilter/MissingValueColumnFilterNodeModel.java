@@ -76,7 +76,13 @@ public final class MissingValueColumnFilterNodeModel extends WebUINodeModel<Miss
         final MissingValueColumnFilterNodeSettings modelSettings) throws CanceledExecutionException {
         final var inputTable = inData[0];
         final var dataTableSpec = inputTable.getDataTableSpec();
-        final var selected = modelSettings.m_columnFilter.getSelected(dataTableSpec.getColumnNames(), dataTableSpec);
+
+        // consider only columns currently present in the table spec (same as before, where
+        // "NameFilterConfiguration.FilterResult#getIncludes()" was used and "orphaned" column names were not retrieved)
+        final var selected =
+            Arrays.stream(modelSettings.m_columnFilter.getSelected(dataTableSpec.getColumnNames(), dataTableSpec))
+                .filter(dataTableSpec::containsName).toArray(String[]::new);
+
         if (selected.length == 0) {
             return new BufferedDataTable[]{inputTable};
         }
