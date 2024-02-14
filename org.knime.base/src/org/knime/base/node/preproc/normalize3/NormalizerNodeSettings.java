@@ -48,9 +48,6 @@
  */
 package org.knime.base.node.preproc.normalize3;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DoubleValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -62,10 +59,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.DoubleColumnChoicesProvider;
 
 /**
  *
@@ -76,7 +73,7 @@ final class NormalizerNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "data-column-filter", customPersistor = LegacyColumnFilterPersistor.class)
     @Widget(title = "Columns", description = "Select the numerical columns to normalize.", hideTitle = true)
-    @ChoicesWidget(choices = NumberColumnChoicesProvider.class)
+    @ChoicesWidget(choices = DoubleColumnChoicesProvider.class)
     @Layout(ColumnsSection.class)
     ColumnFilter m_dataColumnFilterConfig = new ColumnFilter();
 
@@ -97,8 +94,7 @@ final class NormalizerNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "new-max")
     @Effect(signals = {MinMaxCondition.class}, type = EffectType.SHOW)
     @Widget(title = "New Maximum",
-        description = "Specifies the new maximum for the normalized columns. "
-            + "Only active for min-max normalization.")
+        description = "Specifies the new maximum for the normalized columns. Only active for min-max normalization.")
     @Layout(SettingsSection.class)
     double m_max = 1;
 
@@ -108,18 +104,6 @@ final class NormalizerNodeSettings implements DefaultNodeSettings {
 
     @Section(title = "Settings")
     private interface SettingsSection {
-    }
-
-    private static final class NumberColumnChoicesProvider implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0).stream()//
-                .flatMap(DataTableSpec::stream)//
-                .filter(c -> c.getType().isCompatible(DoubleValue.class))//
-                .toArray(DataColumnSpec[]::new);
-        }
-
     }
 
     private static final class MinMaxCondition extends OneOfEnumCondition<NormalizerMode> {
@@ -144,7 +128,7 @@ final class NormalizerNodeSettings implements DefaultNodeSettings {
              * Min-Max normalization.
              */
             @Label(value = "Min-Max", description = "Linear transformation of all values such that the minimum "
-                + "and in each column are as given.")
+                + "and maximum in each column are as given.")
             MINMAX,
 
             /**
