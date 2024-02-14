@@ -48,8 +48,13 @@
  */
 package org.knime.base.node.preproc.normalize3;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.Map;
 
+import org.junit.jupiter.api.Test;
+import org.knime.base.node.preproc.normalize3.NormalizerNodeSettings.NormalizerMode;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
@@ -69,6 +74,20 @@ public class NormalizerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest 
     protected NormalizerNodeSettingsTest() {
         super(Map.of(SettingsType.MODEL, NormalizerNodeSettings.class),
             new DataTableSpec(new String[] {"test1", "test2"}, new DataType[] {IntCell.TYPE, DoubleCell.TYPE}));
+    }
+
+    @Test
+    void testMinMaxChoicesProvider() throws Exception {
+        var provider = new NormalizerNodeSettings.MinMaxCondition();
+        assertArrayEquals(new NormalizerMode[] {NormalizerMode.MINMAX}, provider.oneOf());
+    }
+
+    @Test
+    void testDefaults() throws Exception {
+        var settings = new NormalizerNodeSettings();
+        assertEquals(0, settings.m_min);
+        assertEquals(1, settings.m_max);
+        assertEquals(NormalizerMode.MINMAX, settings.m_mode);
     }
 
 }

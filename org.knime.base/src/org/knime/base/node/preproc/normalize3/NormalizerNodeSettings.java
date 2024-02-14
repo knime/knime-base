@@ -106,7 +106,7 @@ final class NormalizerNodeSettings implements DefaultNodeSettings {
     private interface SettingsSection {
     }
 
-    private static final class MinMaxCondition extends OneOfEnumCondition<NormalizerMode> {
+    static final class MinMaxCondition extends OneOfEnumCondition<NormalizerMode> {
 
         @Override
         public NormalizerMode[] oneOf() {
