@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.regexsplit;
 
 import org.knime.base.node.preproc.regexsplit.OutputSettings.OutputGroupLabelMode;
+import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -78,6 +79,21 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoic
 @SuppressWarnings({"restriction", "squid:S3052"}) // Pending API, initialise with defaults
 final class RegexSplitNodeSettings implements DefaultNodeSettings {
 
+    RegexSplitNodeSettings() {
+        //
+    }
+
+    RegexSplitNodeSettings(final DefaultNodeSettingsContext context) {
+        var tableSpec = context.getDataTableSpec(0).orElse(null);
+        if (tableSpec != null) {
+            for (var spec : tableSpec) {
+                if (spec.getType().isCompatible(StringValue.class)) {
+                    m_column = spec.getName();
+                }
+            }
+        }
+    }
+
     // Layout
 
     interface DialogSections {
@@ -99,7 +115,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     // Splitting
 
     @Layout(DialogSections.Splitting.class)
-    @Widget(title = "Target Column", description = "Choose the column containing the strings to split")
+    @Widget(title = "String column", description = "Choose the column containing the strings to split")
     @ChoicesWidget(choices = ColumnChoicesProviderUtil.StringColumnChoicesProvider.class)
     @Persist(configKey = "column", settingsModel = SettingsModelString.class)
     String m_column;

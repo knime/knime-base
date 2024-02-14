@@ -161,7 +161,7 @@ final class OutputSettings implements DefaultNodeSettings {
     }
 
     @Layout(DialogSections.Output.class)
-    @Widget(title = "Output columns prefix", description = """
+    @Widget(title = "Output column prefix", description = """
             Define what prefix should be used for the output column names:
             <ul>
                 <li><i>Input column name</i>: The name of the column containing the string to split is used as a prefix.
