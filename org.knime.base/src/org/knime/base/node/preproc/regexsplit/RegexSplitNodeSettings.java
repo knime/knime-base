@@ -99,7 +99,7 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
     // Splitting
 
     @Layout(DialogSections.Splitting.class)
-    @Widget(title = "Target Column", description = "Choose the column containing the strings to split")
+    @Widget(title = "String column", description = "Choose the column containing the strings to split")
     @ChoicesWidget(choices = ColumnChoicesProviderUtil.StringColumnChoicesProvider.class)
     @Persist(configKey = "column", settingsModel = SettingsModelString.class)
     String m_column;

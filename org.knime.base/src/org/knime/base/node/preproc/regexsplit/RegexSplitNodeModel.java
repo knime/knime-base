@@ -113,10 +113,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final RegexSplitNodeSettings settings)
         throws InvalidSettingsException {
         m_settings = settings; // TODO remove once UIEXT-722 is merged
-        if (settings.m_column == null) {
-            throw new InvalidSettingsException("No input column selected.");
-        }
-        getInputColumnIndex(inSpecs[0], settings.m_column); // throws if invalid
+        getInputColumnIndex(inSpecs[0], settings); // throws if invalid, sets the last string column as default if null
         final var outputSpec = switch (settings.m_output.m_mode) {
             case COLUMNS, LIST, SET -> createColumnRearranger(settings, inSpecs[0], this::setWarning).createSpec();
             case ROWS -> createTableSpecForRowOutput(settings, inSpecs[0]);
@@ -169,7 +166,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
 
     private static ColumnRearranger createColumnRearranger(final RegexSplitNodeSettings settings,
         final DataTableSpec inputTableSpec, final Consumer<Message> warningConsumer) throws InvalidSettingsException {
-        final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings.m_column);
+        final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings);
         final var rearranger = new ColumnRearranger(inputTableSpec);
         final var splitter = RegexSplitter.fromSettings(settings);
         if (settings.m_output.m_mode == OutputMode.COLUMNS) {
@@ -248,7 +245,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
     private static void produceRows(final RegexSplitNodeSettings settings, final RowInput input, final RowOutput output,
         final ExecutionContext exec, final long n, final DataTableSpec inSpec, final Consumer<Message> warningConsumer)
         throws CanceledExecutionException, InterruptedException, InvalidSettingsException {
-        final var inputColumnIndex = getInputColumnIndex(inSpec, settings.m_column);
+        final var inputColumnIndex = getInputColumnIndex(inSpec, settings);
         final var splitter = RegexSplitter.fromSettings(settings);
         final var rowIDSuffixes = getOutputGroupLabels(settings, splitter);
         CheckUtils.checkState(splitter.getCaptureGroups().size() == rowIDSuffixes.length,
@@ -321,7 +318,7 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
             final var name = DataTableSpec.getUniqueColumnName(inputTableSpec, settings.m_output.m_columnName);
             sc = new DataColumnSpecCreator(name, outputColumnType);
         } else {
-            final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings.m_column);
+            final var inputColumnIndex = getInputColumnIndex(inputTableSpec, settings);
             final var inputColumnSpec = inputTableSpec.getColumnSpec(inputColumnIndex);
             sc = new DataColumnSpecCreator(inputColumnSpec);
             sc.setType(outputColumnType);
@@ -374,10 +371,18 @@ final class RegexSplitNodeModel extends WebUINodeModel<RegexSplitNodeSettings> {
         }
     }
 
-    private static int getInputColumnIndex(final DataTableSpec tableSpec, final String name)
+    private static int getInputColumnIndex(final DataTableSpec tableSpec, final RegexSplitNodeSettings settings)
         throws InvalidSettingsException {
-        final var inputColumnIndex = tableSpec.findColumnIndex(name);
-        CheckUtils.checkSetting(inputColumnIndex >= 0, "No such column in input table: %s", name);
+        if (settings.m_column == null) {
+            for (var spec : tableSpec) {
+                if (spec.getType().isCompatible(StringValue.class)) {
+                    settings.m_column = spec.getName();
+                }
+            }
+        }
+        CheckUtils.checkSettingNotNull(settings.m_column, "No compatible string column found");
+        final var inputColumnIndex = tableSpec.findColumnIndex(settings.m_column);
+        CheckUtils.checkSetting(inputColumnIndex >= 0, "No such column in input table: %s", settings.m_column);
         CheckUtils.checkSetting(tableSpec.getColumnSpec(inputColumnIndex).getType().isCompatible(StringValue.class),
             "Selected column does not contain strings");
         return inputColumnIndex;
