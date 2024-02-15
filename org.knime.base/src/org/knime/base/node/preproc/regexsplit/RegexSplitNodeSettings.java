@@ -63,9 +63,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultP
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Xor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
@@ -282,22 +279,15 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
 
     // ===== Please don't look below this line
 
-    interface SignalThatsUsedToHideFlagSettings {
-    }
-
     /**
-     * This setting doesn't make sense, since in Literal mode, no capture groups are possible. Don't include this in the
-     * dialog (therefore the \@Effect hack). Setting is included only to avoid warnings when loading old nodes, since
-     * they have this setting saved with them. Also, the \@Widget annotation is missing to not include this setting in
-     * the node description.
+     * This setting doesn't make sense, since in Literal mode, no capture groups are possible. Setting is included only to avoid warnings when loading old nodes, since
+     * they have this setting saved with them. The \@Widget annotation is missing to not include this setting in
+     * the node description or the dialog.
      *
      * @deprecated
      */
     @Persist(configKey = "isLiteral", settingsModel = SettingsModelBoolean.class, optional = true)
     @Deprecated // NOSONAR: Deprecated since the beginning of this classes existence
-    @Signal(id = SignalThatsUsedToHideFlagSettings.class, condition = TrueCondition.class) // bind signal to avoid NPE
-    @Effect(signals = {SignalThatsUsedToHideFlagSettings.class, SignalThatsUsedToHideFlagSettings.class},
-        operation = Xor.class, type = EffectType.SHOW) // xor on the same signal ensures that this is never shown
     boolean m_isLiteral = false; // NOSONAR: kept for backwards-compatibility
 
     /**
@@ -309,8 +299,6 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
      */
     @Persist(configKey = "isComments", settingsModel = SettingsModelBoolean.class, optional = true)
     @Deprecated // NOSONAR: Deprecated since the beginning of this classes existence
-    @Effect(signals = {SignalThatsUsedToHideFlagSettings.class, SignalThatsUsedToHideFlagSettings.class},
-        operation = Xor.class, type = EffectType.SHOW) // xor on the same signal ensures that this is never shown
     boolean m_isComments = false; // NOSONAR: kept for backwards-compatibility
 
 }
