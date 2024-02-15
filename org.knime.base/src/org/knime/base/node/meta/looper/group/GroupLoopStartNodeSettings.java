@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Colum
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -89,17 +89,18 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
     }
 
     @Persist(configKey = GroupLoopStartConfigKeys.COLUMN_NAMES, settingsModel = SettingsModelColumnFilter2.class)
-    @Widget(title = "Column selection", description = "The columns used to identify the groups.")
+    @Widget(title = "Category columns", description = "The columns used to identify the groups.")
     @ChoicesWidget(choices = AllColumns.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
-    @Widget(title = "Is the input already sorted by group column(s)?", description = """
-            If checked, the input data table will not be sorted before looping
-            starts. The table must already be sorted properly by the columns to
-            group on. If sorting is switched off, but input table is not properly
-            sorted, execution will be canceled.
-            """)
-    @ValueSwitchWidget
+    @Widget(title = "Sorting option",
+        description = """
+                Enhance performance by selecting 'Input is already sorted by category columns' if your data is
+                already sorted by the group columns. Be cautious: if the input is not properly sorted, the node
+                will fail. If you want to make sure that this node executes, do not choose this option.
+                """,
+        advanced = true)
+    @RadioButtonsWidget
     @Persist(customPersistor = YesOrNoPersistor.class)
     YesOrNo m_alreadySorted = YesOrNo.NO;
 
@@ -115,10 +116,10 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
     }
 
     enum YesOrNo {
-            @Label("Yes")
-            YES, //
-            @Label("No")
-            NO
+            @Label("Automatically sort data")
+            NO, //
+            @Label("Input data already sorted by category columns")
+            YES
     }
 
     private static final class YesOrNoPersistor implements FieldNodeSettingsPersistor<YesOrNo> {

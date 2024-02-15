@@ -29,14 +29,14 @@
         "properties" : {
           "alreadySorted" : {
             "oneOf" : [ {
-              "const" : "YES",
-              "title" : "Yes"
-            }, {
               "const" : "NO",
-              "title" : "No"
+              "title" : "Automatically sort data"
+            }, {
+              "const" : "YES",
+              "title" : "Input data already sorted by category columns"
             } ],
-            "title" : "Is the input already sorted by group column(s)?",
-            "description" : "If checked, the input data table will not be sorted before looping\nstarts. The table must already be sorted properly by the columns to\ngroup on. If sorting is switched off, but input table is not properly\nsorted, execution will be canceled.\n",
+            "title" : "Sorting option",
+            "description" : "Enhance performance by selecting 'Input is already sorted by category columns' if your data is\nalready sorted by the group columns. Be cautious: if the input is not properly sorted, the node\nwill fail. If you want to make sure that this node executes, do not choose this option.\n",
             "default" : "NO",
             "configKeys" : [ "SortedInput" ]
           },
@@ -147,7 +147,7 @@
                 }
               }
             },
-            "title" : "Column selection",
+            "title" : "Category columns",
             "description" : "The columns used to identify the groups.",
             "default" : {
               "mode" : "MANUAL",
@@ -204,7 +204,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/alreadySorted",
       "options" : {
-        "format" : "valueSwitch"
+        "isAdvanced" : true,
+        "format" : "radio",
+        "radioLayout" : "vertical"
       }
     } ]
   }
