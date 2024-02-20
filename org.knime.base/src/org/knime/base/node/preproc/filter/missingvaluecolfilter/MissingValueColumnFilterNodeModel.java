@@ -58,8 +58,8 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
- * The model for the missing value column filter which removes all columns with more missing values than a
- * certain percentage or absolute number.
+ * The model for the missing value column filter which removes all columns with more missing values than a certain
+ * percentage or absolute number.
  *
  * @author Tim-Oliver Buchholz, KNIME AG, Zurich, Switzerland
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
@@ -80,8 +80,7 @@ public final class MissingValueColumnFilterNodeModel extends WebUINodeModel<Miss
         // consider only columns currently present in the table spec (same as before, where
         // "NameFilterConfiguration.FilterResult#getIncludes()" was used and "orphaned" column names were not retrieved)
         final var selected =
-            Arrays.stream(modelSettings.m_columnFilter.getSelected(dataTableSpec.getColumnNames(), dataTableSpec))
-                .filter(dataTableSpec::containsName).toArray(String[]::new);
+            modelSettings.m_columnFilter.getNonMissingSelected(dataTableSpec.getColumnNames(), dataTableSpec);
 
         if (selected.length == 0) {
             return new BufferedDataTable[]{inputTable};
@@ -131,6 +130,7 @@ public final class MissingValueColumnFilterNodeModel extends WebUINodeModel<Miss
 
     /**
      * Threshold filter the selected indices whether they exceed the given percentage or not.
+     *
      * @param selectedIndices indices to filter
      * @param missingCount number of missing values (lower bound) in each column
      * @param rowCount total row count
@@ -157,7 +157,7 @@ public final class MissingValueColumnFilterNodeModel extends WebUINodeModel<Miss
 
     @Override
     protected void validateSettings(final MissingValueColumnFilterNodeSettings settings)
-            throws InvalidSettingsException {
+        throws InvalidSettingsException {
         if (settings.m_percentage < 0) {
             throw new InvalidSettingsException("Percentage must not be negative.");
         }
