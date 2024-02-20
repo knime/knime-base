@@ -61,7 +61,7 @@ final class ValueCounterNodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choices = ColumnChoicesProviderUtil.AllColumnChoicesProvider.class)
     String m_columnName;
 
-    @Widget(title = "Enable hiliting", description = """
+    @Widget(title = "Enable hiliting", advanced = true, description = """
             Enables hiliting between the distinct values in the output table and the corresponding rows in the
             input table. Be aware that this may require a lot of memory if the table is large.
             """)
