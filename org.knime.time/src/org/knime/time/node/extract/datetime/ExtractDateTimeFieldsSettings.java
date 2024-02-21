@@ -294,6 +294,11 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             return filteredChoices.toArray(IdAndText[]::new);
         }
 
+        @Override
+        public boolean setFirstValueOnUpdate() {
+            return false;
+        }
+
     }
 
     static boolean isDateType(final DataColumnSpec colSpec) {
