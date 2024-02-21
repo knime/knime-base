@@ -56,7 +56,7 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class ExtractDateTimeFieldsNodeFactory2 extends WebUINodeFactory<ExtractDateTimeFieldsNodeModelWebUI> {
+public final class ExtractDateTimeFieldsNodeFactory2 extends WebUINodeFactory<ExtractDateTimeFieldsNodeModel2> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
             .name("Extract Date&Time Fields")//
@@ -83,7 +83,7 @@ public final class ExtractDateTimeFieldsNodeFactory2 extends WebUINodeFactory<Ex
      * {@inheritDoc}
      */
     @Override
-    public ExtractDateTimeFieldsNodeModelWebUI createNodeModel() {
-        return new ExtractDateTimeFieldsNodeModelWebUI(CONFIG);
+    public ExtractDateTimeFieldsNodeModel2 createNodeModel() {
+        return new ExtractDateTimeFieldsNodeModel2(CONFIG);
     }
 }
