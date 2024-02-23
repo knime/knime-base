@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.table.reader;
 
+import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
@@ -55,9 +56,12 @@ import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeListener;
@@ -103,7 +107,11 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
     private final JSpinner m_skipFirstRowsSpinner;
 
-    private final JCheckBox m_supportChangingFileSchemas = new JCheckBox("Support changing file schemas");
+    private final JRadioButton m_ignoreChangedSchema = new JRadioButton("Ignore");
+
+    private final JRadioButton m_failOnChangedSchema = new JRadioButton("Fail");
+
+    private final JRadioButton m_useNewSchema = new JRadioButton("Use new schema");
 
     private final KnimeTableMultiTableReadConfig m_config;
 
@@ -161,7 +169,15 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         m_limitRowsChecker.addActionListener(e -> controlSpinner(m_limitRowsChecker, m_limitRowsSpinner));
         m_limitRowsChecker.doClick();
 
-        m_supportChangingFileSchemas.addActionListener(e -> updateTransformationTabEnabledStatus());
+        final var schemaChangeButtonGroup = new ButtonGroup();
+        schemaChangeButtonGroup.add(m_ignoreChangedSchema);
+        schemaChangeButtonGroup.add(m_failOnChangedSchema);
+        schemaChangeButtonGroup.add(m_useNewSchema);
+
+        m_ignoreChangedSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
+        m_failOnChangedSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
+        m_useNewSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
+
         m_failOnDifferingSpecs = new JCheckBox("Fail if specs differ");
         m_sourceFilePanel.getSettingsModel().getFilterModeModel()
             .addChangeListener(l -> toggleFailOnDifferingCheckBox());
@@ -175,7 +191,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
     }
 
     private void updateTransformationTabEnabledStatus() {
-        setEnabled(!m_supportChangingFileSchemas.isSelected(), TRANSFORMATION_TAB);
+        setEnabled(!m_useNewSchema.isSelected(), TRANSFORMATION_TAB);
     }
 
     private void toggleFailOnDifferingCheckBox() {
@@ -195,7 +211,10 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         m_skipFirstRowsSpinner.getModel().addChangeListener(changeListener);
         m_limitRowsSpinner.getModel().addChangeListener(changeListener);
 
-        m_supportChangingFileSchemas.addActionListener(actionListener);
+        m_ignoreChangedSchema.addActionListener(actionListener);
+        m_failOnChangedSchema.addActionListener(actionListener);
+        m_useNewSchema.addActionListener(actionListener);
+
         m_failOnDifferingSpecs.addActionListener(actionListener);
 
         m_useRowID.addActionListener(actionListener);
@@ -267,13 +286,27 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
     }
 
     private JPanel createDataRowsSpecLimitPanel() {
-        final JPanel specLimitPanel = new JPanel(new GridBagLayout());
-        GBCBuilder gbc = createGBCBuilder().fillNone();
-        specLimitPanel
-            .setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Table specification"));
-        specLimitPanel.add(m_supportChangingFileSchemas, gbc.build());
-        verticalFillPanel(specLimitPanel, gbc);
-        return specLimitPanel;
+        final var panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),//
+                "Table specification"));
+        final var gbc = createGBCBuilder().fillNone();
+
+        panel.add(new JLabel("When schema in file has changed"),
+            gbc.insetLeft(5).insetTop(5).build());
+        panel.add(createAdvancedSchemaChangedPanel(), gbc.incY().insetLeft(20).insetTop(0).build());
+
+        verticalFillPanel(panel, gbc);
+        return panel;
+    }
+
+    private JPanel createAdvancedSchemaChangedPanel() {
+        final var specChangedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        specChangedPanel.add(m_failOnChangedSchema);
+        specChangedPanel.add(m_ignoreChangedSchema);
+        specChangedPanel.add(m_useNewSchema);
+
+        return specChangedPanel;
     }
 
     private JPanel createSpecMergePanel() {
@@ -336,7 +369,15 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         controlSpinner(m_limitRowsChecker, m_limitRowsSpinner);
         controlSpinner(m_skipFirstRowsChecker, m_skipFirstRowsSpinner);
 
-        m_supportChangingFileSchemas.setSelected(!m_config.saveTableSpecConfig());
+        // prior to 5.2.2 we had a single checkbox "support changing file schemas", which was replaced
+        // by a radio button group as part of AP-19239
+        if (m_config.saveTableSpecConfig() && m_config.checkSavedTableSpec()) {
+            m_failOnChangedSchema.setSelected(true);
+        } else if (m_config.saveTableSpecConfig()) {
+            m_ignoreChangedSchema.setSelected(true);
+        } else {
+            m_useNewSchema.setSelected(true);
+        }
         updateTransformationTabEnabledStatus();
 
         m_failOnDifferingSpecs.setSelected(m_config.failOnDifferingSpecs());
@@ -362,9 +403,13 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         config.setUseRowIDIdx(m_useRowID.isSelected());
         config.setPrependSourceIdxToRowId(m_prependTableIdxToRowID.isSelected());
 
-        final boolean saveTableSpecConfig = !m_supportChangingFileSchemas.isSelected();
-        m_config.setSaveTableSpecConfig(saveTableSpecConfig);
-        m_config.setTableSpecConfig(saveTableSpecConfig ? getTableSpecConfig() : null);
+        // prior to 5.2.2 we had a checkbox "support changing file schemas", which was replaced by a radio button
+        // group as part of AP-19239
+        boolean saveSpec = !m_useNewSchema.isSelected();
+        m_config.setSaveTableSpecConfig(saveSpec);
+        m_config.setTableSpecConfig(saveSpec ? getTableSpecConfig() : null);
+        m_config.setCheckSavedTableSpec(m_failOnChangedSchema.isSelected());
+
         m_config.setFailOnDifferingSpecs(m_failOnDifferingSpecs.isSelected());
         m_config.setAppendItemIdentifierColumn(m_pathColumnPanel.isAppendSourceIdentifierColumn());
         m_config.setItemIdentifierColumnName(m_pathColumnPanel.getSourceIdentifierColumnName());

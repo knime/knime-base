@@ -131,6 +131,8 @@ enum CSVMultiTableReadConfigSerializer
 
     private static final String CFG_SAVE_TABLE_SPEC_CONFIG = "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
+    private static final String CFG_CHECK_TABLE_SPEC = "check_table_spec";
+
     private static final String CFG_SPEC_MERGE_MODE_OLD = "spec_merge_mode";
 
     private static final String CFG_SPEC_MERGE_MODE_NEW = CFG_SPEC_MERGE_MODE_OLD + SettingsModel.CFGKEY_INTERNAL;
@@ -326,6 +328,9 @@ enum CSVMultiTableReadConfigSerializer
 
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true));
 
+        // added in 5.2.2 (AP-19239); we don't want existing workflows to make the check
+        config.setCheckSavedTableSpec(settings.getBoolean(CFG_CHECK_TABLE_SPEC, false));
+
         // added in 4.4.0
         config.setAppendItemIdentifierColumn(
             settings.getBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn()));
@@ -424,6 +429,9 @@ enum CSVMultiTableReadConfigSerializer
         if (settings.containsKey(CFG_SAVE_TABLE_SPEC_CONFIG)) {
             config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG));
         }
+
+        // added in 5.2.2 (AP-19239); we don't want existing workflows to make the check
+        config.setCheckSavedTableSpec(settings.getBoolean(CFG_CHECK_TABLE_SPEC, false));
 
         // added in 4.4.0
         if (settings.containsKey(CFG_APPEND_PATH_COLUMN)) {
@@ -530,6 +538,7 @@ enum CSVMultiTableReadConfigSerializer
         settings.addLong(CFG_MAX_DATA_ROWS_SCANNED, tc.getMaxRowsForSpec());
 
         settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, config.saveTableSpecConfig());
+        settings.addBoolean(CFG_CHECK_TABLE_SPEC, config.checkSavedTableSpec());
 
         final CSVTableReaderConfig cc = config.getReaderSpecificConfig();
         settings.addBoolean(CFG_LIMIT_MEMORY_PER_COLUMN, cc.isCharsPerColumnLimited());
@@ -606,6 +615,11 @@ enum CSVMultiTableReadConfigSerializer
         // added in 4.3.1
         if (settings.containsKey(CFG_SAVE_TABLE_SPEC_CONFIG)) {
             settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG);
+        }
+
+        // added in 5.2.2
+        if (settings.containsKey(CFG_CHECK_TABLE_SPEC)) {
+            settings.getBoolean(CFG_CHECK_TABLE_SPEC);
         }
 
         settings.getBoolean(CFG_REPLACE_EMPTY_QUOTES_WITH_MISSING);

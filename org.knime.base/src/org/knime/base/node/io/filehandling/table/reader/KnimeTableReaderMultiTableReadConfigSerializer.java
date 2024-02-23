@@ -110,6 +110,8 @@ enum KnimeTableMultiTableReadConfigSerializer
 
     private static final String CFG_SAVE_TABLE_SPEC_CONFIG = "save_table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
+    private static final String CFG_CHECK_TABLE_SPEC = "check_table_spec";
+
     private static final boolean DEFAULT_FAIL_ON_DIFFERING_SPECS = true;
 
     private static final String CFG_FAIL_ON_DIFFERING_SPECS = "fail_on_differing_specs";
@@ -154,8 +156,13 @@ enum KnimeTableMultiTableReadConfigSerializer
     private static void loadAdvancedSettingsTabInDialog(final KnimeTableMultiTableReadConfig config,
         final NodeSettingsRO settings) {
 
-        config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS, DEFAULT_FAIL_ON_DIFFERING_SPECS));
+        config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS,//
+            DEFAULT_FAIL_ON_DIFFERING_SPECS));
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true));
+
+        // added in 5.2.2 (AP-19239); we don't want older workflows to make the check automatically
+        config.setCheckSavedTableSpec(settings.getBoolean(CFG_CHECK_TABLE_SPEC, false));
+
         config.setAppendItemIdentifierColumn(settings.getBoolean(CFG_APPEND_PATH_COLUMN, false));
         config.setItemIdentifierColumnName(
             settings.getString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName()));
@@ -187,6 +194,10 @@ enum KnimeTableMultiTableReadConfigSerializer
         final NodeSettingsRO settings) throws InvalidSettingsException {
         config.setFailOnDifferingSpecs(settings.getBoolean(CFG_FAIL_ON_DIFFERING_SPECS));
         config.setSaveTableSpecConfig(settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG));
+
+        // added in 5.2.2 (AP-19239); we don't want existing workflows to make the check
+        config.setCheckSavedTableSpec(settings.getBoolean(CFG_CHECK_TABLE_SPEC, false));
+
         config.setAppendItemIdentifierColumn(settings.getBoolean(CFG_APPEND_PATH_COLUMN));
         config.setItemIdentifierColumnName(settings.getString(CFG_PATH_COLUMN_NAME));
 
@@ -217,6 +228,7 @@ enum KnimeTableMultiTableReadConfigSerializer
         settings.addLong(CFG_MAX_ROWS, tc.getMaxRows());
         settings.addBoolean(CFG_FAIL_ON_DIFFERING_SPECS, config.failOnDifferingSpecs());
         settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, config.saveTableSpecConfig());
+        settings.addBoolean(CFG_CHECK_TABLE_SPEC, config.checkSavedTableSpec());
         settings.addBoolean(CFG_APPEND_PATH_COLUMN, config.appendItemIdentifierColumn());
         settings.addString(CFG_PATH_COLUMN_NAME, config.getItemIdentifierColumnName());
     }
@@ -232,6 +244,12 @@ enum KnimeTableMultiTableReadConfigSerializer
         settings.getBoolean(CFG_SKIP_DATA_ROWS);
         settings.getLong(CFG_NUMBER_OF_ROWS_TO_SKIP);
         settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG);
+
+        // added in 5.2.2
+        if (settings.containsKey(CFG_CHECK_TABLE_SPEC)) {
+            settings.getBoolean(CFG_CHECK_TABLE_SPEC);
+        }
+
         settings.getBoolean(CFG_APPEND_PATH_COLUMN);
         settings.getString(CFG_PATH_COLUMN_NAME);
     }
