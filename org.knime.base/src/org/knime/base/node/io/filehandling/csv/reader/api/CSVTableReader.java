@@ -77,6 +77,7 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TableSpecGuesser;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
 import org.knime.filehandling.core.util.FileCompressionUtils;
@@ -225,6 +226,21 @@ public final class CSVTableReader implements TableReader<CSVTableReaderConfig, C
             decorated = ReadUtils.limit(decorated, hasColumnHeader && !skipRows ? (numRowsToKeep + 1) : numRowsToKeep);
         }
         return ReadUtils.decorateForReading(decorated, config);
+    }
+
+    @Override
+    public void checkSpecs(final TypedReaderTableSpec<Class<?>> spec, final FSPath path,
+        final TableReadConfig<CSVTableReaderConfig> config, final ExecutionMonitor exec) throws IOException {
+
+        // Only read the columns names without guessing the types to avoid reading the entire file
+        final TableSpecGuesser<FSPath, Class<?>, String> guesser =
+            new TableSpecGuesser<>(CSVGuessableType.stringOnlyHierarchy(), Function.identity());
+
+        try (final var read = new CsvRead(path, config)) {
+            var columnNamesSpec = MultiTableUtils.assignNamesIfMissing(guesser.guessSpec(read, config, exec, path));
+            MultiTableUtils.checkEquals(spec, columnNamesSpec, true);
+        }
+
     }
 
     private static final class ParallelCsvRead implements Read<String> {

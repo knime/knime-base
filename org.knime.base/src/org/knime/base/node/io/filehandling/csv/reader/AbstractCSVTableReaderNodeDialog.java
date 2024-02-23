@@ -52,6 +52,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -166,7 +167,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
     private final JSpinner m_limitAnalysisSpinner;
 
-    private final JCheckBox m_supportChangingFileSchemas = new JCheckBox("Support changing file schemas");
+    private final JRadioButton m_ignoreChangedSchema = new JRadioButton("Ignore");
+
+    private final JRadioButton m_failOnChangedSchema = new JRadioButton("Fail");
+
+    private final JRadioButton m_useNewSchema = new JRadioButton("Use new schema");
 
     private final JSpinner m_maxColsSpinner;
 
@@ -296,7 +301,14 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_limitAnalysisChecker.addActionListener(e -> controlSpinner(m_limitAnalysisChecker, m_limitAnalysisSpinner));
         m_limitAnalysisChecker.doClick();
 
-        m_supportChangingFileSchemas.addActionListener(e -> updateTransformationTabEnabledStatus());
+        final var schemaChangeButtonGroup = new ButtonGroup();
+        schemaChangeButtonGroup.add(m_ignoreChangedSchema);
+        schemaChangeButtonGroup.add(m_failOnChangedSchema);
+        schemaChangeButtonGroup.add(m_useNewSchema);
+
+        m_ignoreChangedSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
+        m_failOnChangedSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
+        m_useNewSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
 
         m_maxColsSpinner = new JSpinner(new SpinnerNumberModel(1024, 1, Integer.MAX_VALUE, 1024));
         m_maxCharsColumnChecker = new JCheckBox("Limit memory per column");
@@ -331,7 +343,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
     }
 
     private void updateTransformationTabEnabledStatus() {
-        setEnabled(!m_supportChangingFileSchemas.isSelected(), TRANSFORMATION_TAB);
+        setEnabled(!m_useNewSchema.isSelected(), TRANSFORMATION_TAB);
     }
 
     private JPanel createEncodingPanel() {
@@ -423,7 +435,9 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_skipFirstRowsChecker.addActionListener(actionListener);
         m_skipFirstLinesChecker.addActionListener(actionListener);
         m_limitAnalysisChecker.addActionListener(actionListener);
-        m_supportChangingFileSchemas.addActionListener(actionListener);
+        m_ignoreChangedSchema.addActionListener(actionListener);
+        m_failOnChangedSchema.addActionListener(actionListener);
+        m_useNewSchema.addActionListener(actionListener);
         m_maxCharsColumnChecker.addActionListener(actionListener);
         for (final AbstractButton b : Collections.list(m_quoteOptionsButtonGroup.getElements())) {
             b.addActionListener(actionListener);
@@ -542,26 +556,46 @@ public abstract class AbstractCSVTableReaderNodeDialog
     }
 
     private JPanel createDataRowsSpecLimitPanel() {
-        final JPanel specLimitPanel = new JPanel(new GridBagLayout());
-        specLimitPanel.setBorder(CSVReaderDialogUtils.createBorder("Table specification"));
+        final var panel = new JPanel(new GridBagLayout());
+        panel.setBorder(CSVReaderDialogUtils.createBorder("Table specification"));
         final GridBagConstraints gbc = createAndInitGBC();
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        gbc.weighty = 0;
+
         gbc.insets = new Insets(5, 0, 5, 5);
-        specLimitPanel.add(m_limitAnalysisChecker, gbc);
+        panel.add(m_limitAnalysisChecker, gbc);
+
         gbc.gridx += 1;
-        specLimitPanel.add(m_limitAnalysisSpinner, gbc);
+        m_limitAnalysisSpinner
+            .setPreferredSize(new Dimension(100, (int)m_limitAnalysisSpinner.getPreferredSize().getHeight()));
+        panel.add(m_limitAnalysisSpinner, gbc);
+
         gbc.gridx += 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
-        specLimitPanel.add(Box.createVerticalBox(), gbc);
+        panel.add(Box.createHorizontalGlue(), gbc);
+
         gbc.gridx = 0;
         gbc.gridy += 1;
-        gbc.gridwidth = 2;
-        specLimitPanel.add(m_supportChangingFileSchemas, gbc);
-        return specLimitPanel;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.gridwidth = 3;
+        gbc.insets = new Insets(5, 0, 0, 5);
+        panel.add(new JLabel("When schema in file has changed"), gbc);
+
+        gbc.gridy += 1;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        panel.add(createAdvancedSchemaChangedPanel(), gbc);
+        return panel;
+    }
+
+    private JPanel createAdvancedSchemaChangedPanel() {
+        final var specChangedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        specChangedPanel.add(m_failOnChangedSchema);
+        specChangedPanel.add(m_ignoreChangedSchema);
+        specChangedPanel.add(m_useNewSchema);
+        specChangedPanel.add(Box.createHorizontalGlue());
+
+        return specChangedPanel;
     }
 
     /** Creates the panel allowing to adjust the memory limits of the reader. */
@@ -881,7 +915,10 @@ public abstract class AbstractCSVTableReaderNodeDialog
         tableReadConfig.setLimitRowsForSpec(m_limitAnalysisChecker.isSelected());
         tableReadConfig.setMaxRowsForSpec((Long)m_limitAnalysisSpinner.getValue());
 
-        m_config.setSaveTableSpecConfig(!m_supportChangingFileSchemas.isSelected());
+        // prior to 5.2.2 we had a checkbox "support changing file schemas", which was replaced by a radio button
+        // group as part of AP-19239
+        m_config.setSaveTableSpecConfig(!m_useNewSchema.isSelected());
+        m_config.setCheckSavedTableSpec(m_failOnChangedSchema.isSelected());
 
         tableReadConfig.setAllowShortRows(m_allowShortDataRowsChecker.isSelected());
     }
@@ -1011,7 +1048,15 @@ public abstract class AbstractCSVTableReaderNodeDialog
         m_limitAnalysisChecker.setSelected(tableReadConfig.limitRowsForSpec());
         m_limitAnalysisSpinner.setValue(tableReadConfig.getMaxRowsForSpec());
 
-        m_supportChangingFileSchemas.setSelected(!m_config.saveTableSpecConfig());
+        // prior to 5.2.2 we had a single checkbox "support changing file schemas", which was replaced
+        // by a radio button group as part of AP-19239
+        if (m_config.saveTableSpecConfig() && m_config.checkSavedTableSpec()) {
+            m_failOnChangedSchema.setSelected(true);
+        } else if (m_config.saveTableSpecConfig()) {
+            m_ignoreChangedSchema.setSelected(true);
+        } else {
+            m_useNewSchema.setSelected(true);
+        }
         updateTransformationTabEnabledStatus();
     }
 

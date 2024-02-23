@@ -220,7 +220,7 @@
 			    Check this box if there are no quotes that contain row delimiters inside the files.
 			    The absence of row delimiters inside of quotes is necessary for parallel reading of individual files.
 			</option>
-			<option name="Table specification">
+			<option name="Limit data rows scanned">
 			  If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to determine
 	          the column types). This option is recommended for long files where the first <i>n</i> rows are 
 	          representative for the whole file. The "Skip first data rows"
@@ -228,12 +228,21 @@
 	          independent from each other, i.e., if the value in "Limit data rows" is smaller than the value specified
 	          here, we will still read as many rows as specified here.
 			</option>
-			<option name="Support changing file schemas">
-			  If selected, the reader will compute the table specification on execution.
-			  This behavior is required if the content of the configured file/folder changes between executions, 
-			  i.e., columns are added/removed to/from file(s) or their types change.
-			  NOTE: When checked, the node will not output a table specification during configure and won't apply transformations
-			  (therefore the transformation tab is disabled).
+			<option name="When schema in file has changed">
+				Specifies the node behavior if the content of the configured file/folder
+				changes between executions, i.e., columns are added/removed to/from the file(s)
+				or their types change. The following options are available:
+				<ul>
+				<li><b>Fail:</b> If set, the node fails if the column names in the file have changed. Changes in column types will not be detected.</li>
+				<li><b>Ignore:</b> If set, the node tries to ignore the changes and outputs a table with the old table specification.
+				This is not recommended, as it may lead to invalid data in the resulting table. The "Use new schema" option should be used
+				instead.
+				</li>
+				<li><b>Use new schema:</b> If set, the node will compute a new table specification for the current
+				schema of the file at the time when the node is executed. Note that the node will not output a table specification
+				before execution and that it will not apply transformations, therefore the transformation tab is disabled.
+				</li>
+				</ul>
 			</option>
 			<option name="Number format">
 			  Allows to specify the thousands and decimal separator character for parsing numbers.
@@ -241,7 +250,7 @@
 			  Note that the two must differ.
 			  While it is possible to leave the thousands separator unspecified, you must always provide a decimal separator.
 			</option>
-			<option name="Fail on differing specs">
+			<option name="Fail if specs differ">
 				If checked, the node will fail if multiple files are read via the Files in folder option and not all files have the same table structure i.e. the same columns.
 			</option>
 			<option name="Path column">

@@ -72,6 +72,7 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
 import org.knime.filehandling.core.node.table.reader.read.ReadUtils;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.CompressionAwareCountingInputStream;
 
 /**
@@ -106,6 +107,23 @@ final class KnimeTableReader implements TableReader<TableManipulatorConfig, Data
         }
         return new TypedReaderTableSpec<>(columnSpecs);
 
+    }
+
+    @Override
+    public void checkSpecs(final TypedReaderTableSpec<DataType> spec, final FSPath item,
+        final TableReadConfig<TableManipulatorConfig> config, final ExecutionMonitor exec) throws IOException {
+        var actualSpec = readSpec(item, config, exec);
+        MultiTableUtils.checkEquals(spec, actualSpec, true);
+
+        for (var i = 0; i < spec.size(); i++) {
+            var expectedType = spec.getColumnSpec(i).getType();
+            var actualType = actualSpec.getColumnSpec(i).getType();
+
+            if (expectedType != null && !expectedType.isASuperTypeOf(actualType)) {
+                throw new IllegalStateException(String.format("'%s' column expected to have the type '%s' but got '%s'",
+                    spec.getColumnSpec(i).getName().orElse(""), expectedType, actualType));
+            }
+        }
     }
 
     private static InputStream openInputStream(final Path path) throws IOException {
