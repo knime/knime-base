@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.filter.row;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.knime.base.node.preproc.filter.row.RowFilterNodeSettings.DialogLayout.FilterSection;
@@ -82,6 +83,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.Is
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
@@ -89,6 +91,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRef;
 
 
 /**
@@ -128,7 +132,7 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
     }
 
 
-    @Widget(title = "Filter column")
+    @Widget(title = "Filter column", valueRef = ColumnSelectionRef.class)
     @Layout(FilterSection.ColumnSelection.class)
     @ChoicesWidget(choices = AllColumns.class, showRowKeysColumn = true, showRowNumbersColumn = true)
     @Signal(condition = StringColumnSelected.class)
@@ -169,6 +173,30 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         }
     }
 
+    @LatentWidget
+    @Widget(valueProvider = OrdinaryColumnSelected.class)
+    @Signal(id = OrdinaryColumnSelected.class, condition = TrueCondition.class)
+    Boolean m_isOrdinaryColumnSelected = false;
+
+    private static final class ColumnSelectionRef implements ValueRef<ColumnSelection> {}
+
+    private static final class OrdinaryColumnSelected implements StateProvider<Boolean> {
+
+        private Supplier<ColumnSelection> m_selection;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_selection = initializer.computeFromValueSupplier(ColumnSelectionRef.class);
+        }
+
+        @Override
+        public Boolean computeState(final DefaultNodeSettingsContext context) {
+            final var selected = m_selection.get().m_selected;
+            return Arrays.stream(SpecialColumns.values()).map(SpecialColumns::getId).noneMatch(t -> t.equals(selected));
+        }
+
+    }
+
     static final class CollectionColumnSelected extends IsColumnOfTypeCondition {
         @Override
         public Class<? extends DataValue> getDataValueClass() {
@@ -181,7 +209,8 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Filter based on collection elements")
     @Layout(FilterSection.ColumnSelection.class)
-    @Effect(signals = CollectionColumnSelected.class, type = EffectType.SHOW)
+    @Effect(signals = { CollectionColumnSelected.class, OrdinaryColumnSelected.class }, operation = And.class,
+        type = EffectType.SHOW)
     @Signal(id = FilterCollectionElements.class, condition = TrueCondition.class)
     boolean m_deepFiltering = true;
 
@@ -190,6 +219,8 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         ColumnSelection m_targetSelection;
         @DeclaringDefaultNodeSettings(RowFilterNodeSettings.class)
         boolean m_deepFiltering;
+        @DeclaringDefaultNodeSettings(RowFilterNodeSettings.class)
+        Boolean m_isOrdinaryColumnSelected;
     }
 
     @Widget(title = "Operator")
@@ -229,6 +260,7 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
                     .collect(Collectors.toSet());
 
             final var elementComp = settings.m_deepFiltering;
+            final var isOrdinaryColumnSelected = settings.m_isOrdinaryColumnSelected;
             if (elementComp &&
                     compatibleClassNames.contains(ColumnSelection.getTypeClassIdentifier(CollectionDataValue.class))) {
                 // we need to filter based on element types
@@ -236,16 +268,18 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
                         .map(dts -> dts.getColumnSpec(filterColumn.m_selected))
                         .map(dcs -> dcs.getType().getCollectionElementType())
                         .map(ColumnSelection::getCompatibleTypes).orElse(new String[0])).collect(Collectors.toSet());
-                return filterForCompatibility(elementClassNames);
+                return filterForCompatibility(isOrdinaryColumnSelected, elementClassNames);
             }
             // filter on top-level type
-            return filterForCompatibility(compatibleClassNames);
+            return filterForCompatibility(isOrdinaryColumnSelected, compatibleClassNames);
         }
 
-        private static IdAndText[] filterForCompatibility(final Set<String> compatibleClassNames) {
-            return Arrays.stream(FilterOperator.values()).filter(op -> op.isEnabledFor(compatibleClassNames))
-                    .map(op -> new IdAndText(op.name(), op.label()))
-                    .toArray(IdAndText[]::new);
+        private static IdAndText[] filterForCompatibility(final boolean isOrdinaryColumnSelected,
+            final Set<String> compatibleClassNames) {
+            return Arrays.stream(FilterOperator.values()) //
+                .filter(op -> op.isEnabledFor(isOrdinaryColumnSelected, compatibleClassNames)) //
+                .map(op -> new IdAndText(op.name(), op.label())) //
+                .toArray(IdAndText[]::new);
         }
 
     }
@@ -270,7 +304,7 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         IS_TRUE("is true", Set.of(new IsTruthy()), Arity.NULLARY),
         @Label("is false") // Boolean
         IS_FALSE("is false", Set.of(new IsTruthy()), Arity.NULLARY),
-        @Label("is missing") // RowID, RowIndex/Number, Int, Long, Double, String
+        @Label("is missing") // Int, Long, Double, String // TODO (RowID & RowIndex/Number not!)
         IS_MISSING("is missing", Set.of(new IsMissing()), Arity.NULLARY);
 
         private final String m_label;
@@ -283,8 +317,8 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
             m_arity = arity;
         }
 
-        boolean isEnabledFor(final Set<String> fullyQualifiedTypeNames) {
-            return m_filters.stream().anyMatch(f -> f.satisfiedByAnyOf(fullyQualifiedTypeNames));
+        boolean isEnabledFor(final boolean isOrdinaryColumn, final Set<String> fullyQualifiedTypeNames) {
+            return m_filters.stream().anyMatch(f -> f.satisfiedByAnyOf(isOrdinaryColumn, fullyQualifiedTypeNames));
         }
 
         String label() {
@@ -328,14 +362,14 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         // Classes for Choices update handler
 
         sealed interface Capability permits IsOrd, IsEq, IsMissing, IsTruthy {
-            boolean satisfiedByAnyOf(Set<String> fullyQualifiedValueClassesNames);
+            boolean satisfiedByAnyOf(boolean isNonSpecial, Set<String> fullyQualifiedValueClassesNames);
         }
 
         private static final class IsOrd implements Capability {
             // Row Index, Row Number, and numeric data types are orderable
             @Override
-            public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
-                return !new IsTruthy().satisfiedByAnyOf(fqValueClassesNames)
+            public boolean satisfiedByAnyOf(final boolean isOrdinaryColumn, final Set<String> fqValueClassesNames) {
+                return !new IsTruthy().satisfiedByAnyOf(isOrdinaryColumn, fqValueClassesNames)
                         && fqValueClassesNames.contains(ColumnSelection.getTypeClassIdentifier(DoubleValue.class));
              }
         }
@@ -345,17 +379,18 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
             // want separate operators: "is true" and "is false"
             // TODO old Row Filter would convert everything with toString
             @Override
-            public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
+            public boolean satisfiedByAnyOf(final boolean isOrdinaryColumn, final Set<String> fqValueClassesNames) {
                 // TODO also not for collection column atm (except for if comparison on collection elements...)
-                return !new IsTruthy().satisfiedByAnyOf(fqValueClassesNames);
+                return !new IsTruthy().satisfiedByAnyOf(isOrdinaryColumn, fqValueClassesNames);
             }
         }
 
         private static final class IsTruthy implements Capability {
 
             @Override
-            public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
-                return fqValueClassesNames.contains(ColumnSelection.getTypeClassIdentifier(BooleanValue.class));
+            public boolean satisfiedByAnyOf(final boolean isOrdinaryColumn, final Set<String> fqValueClassesNames) {
+                return isOrdinaryColumn
+                        && fqValueClassesNames.contains(ColumnSelection.getTypeClassIdentifier(BooleanValue.class));
             }
 
         }
@@ -363,9 +398,9 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         private static final class IsMissing implements Capability {
             // Normal columns are is "missing comparable"
             @Override
-            public boolean satisfiedByAnyOf(final Set<String> fqValueClassesNames) {
-                // TODO marker missing to disable it for RowID/RowIndex/RowNumber
-                return true;
+            public boolean satisfiedByAnyOf(final boolean isOrdinaryColumn, final Set<String> fqValueClassesNames) {
+                // only ordinary columns can be missing (not RowID, Row Number, and Row Index)
+                return isOrdinaryColumn;
             }
         }
     }
