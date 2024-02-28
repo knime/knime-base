@@ -86,6 +86,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
@@ -129,12 +130,12 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Filter column")
     @Layout(FilterSection.ColumnSelection.class)
-    @ChoicesWidget(choices = AllColumns.class, showRowKeysColumn = true)
+    @ChoicesWidget(choices = AllColumns.class, showRowKeysColumn = true, showRowNumbersColumn = true)
     @Signal(condition = StringColumnSelected.class)
     @Signal(condition = BooleanColumnSelected.class)
     @Signal(condition = NumberColumnSelected.class)
     @Signal(condition = CollectionColumnSelected.class)
-    ColumnSelection m_targetSelection = new ColumnSelection();
+    ColumnSelection m_targetSelection = SpecialColumns.ROWID.toColumnSelection();
 
     private static final class AllColumns implements ColumnChoicesProvider {
 
@@ -204,9 +205,18 @@ final class RowFilterNodeSettings implements DefaultNodeSettings {
         @Override
         public IdAndText[] update(final DataTypeFilterSettings settings, final DefaultNodeSettingsContext context)
             throws WidgetHandlerException {
-            final var filterColumn = settings.m_targetSelection;
-            if (filterColumn == null) {
+            if (settings.m_targetSelection == null) {
                 return new IdAndText[0];
+            }
+
+            final ColumnSelection filterColumn;
+            // TODO fixup special handling not done by framework
+            if (SpecialColumns.ROWID.getId().equals(settings.m_targetSelection.m_selected)) {
+                filterColumn = SpecialColumns.ROWID.toColumnSelection();
+            } else if (SpecialColumns.ROW_NUMBERS.getId().equals(settings.m_targetSelection.m_selected)) {
+                filterColumn = SpecialColumns.ROW_NUMBERS.toColumnSelection();
+            } else {
+                filterColumn = settings.m_targetSelection;
             }
 
             final var types = filterColumn.m_compatibleTypes;
