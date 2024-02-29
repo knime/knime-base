@@ -47,9 +47,22 @@
  */
 package org.knime.base.node.io.extractcontextprop;
 
+import java.io.IOException;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * "Newer" version of {@link ReadContextPropertyNodeFactory}, which will use a empty string ("") instead of null for
@@ -58,38 +71,99 @@ import org.knime.core.node.NodeView;
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
-public class ReadContextProperty2NodeFactory extends
-        NodeFactory<ReadContextPropertyNodeModel> {
+@SuppressWarnings("restriction")
+public class ReadContextProperty2NodeFactory extends NodeFactory<ReadContextProperty2NodeModel>
+implements NodeDialogFactory {
 
-    /** {@inheritDoc} */
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
+            .name("Extract Context Properties") //
+            .icon("./extract_context_props.png") //
+            .shortDescription("Reads workflow context related properties, "
+                + "including workflow name and the logged in user.") //
+            .fullDescription("""
+            Reads workflow context related properties,
+            including workflow name and the logged in user. The fields are
+            extracted using the KNIME workflow context.<br />
+            The properties are:
+            <ul>
+                <li><i>context.workflow.name</i> The name of the workflow.</li>
+                <li><i>context.workflow.path</i> The mount-point-relative path to the workflow.</li>
+                <li><i>context.workflow.absolute-path</i> The absolute path in the filesystem to the workflow.</li>
+                <li><i>context.workflow.user</i>
+                    User ID of the authenticated user if executed on KNIME Hub/Server, the system user otherwise.</li>
+                <li><i>context.workflow.username</i>
+                    User name of the authenticated user if executed on KNIME Hub/Server, the system user otherwise.
+                    If executed on Hub/Server, <i>context.workflow.user</i> returns a technical permanent id.</li>
+                <li><i>context.workflow.executor.version</i> Version of the KNIME AP executing the workflow.</li>
+                <li><i>context.workflow.temp.location</i> The location for temporary files of the workflow job.</li>
+                <li><i>context.workflow.author.name</i> Name of the workflow author (creator).</li>
+                <li><i>context.workflow.last.editor.name</i>
+                    Name of the person who edited the workflow last (on last save).
+                    If not available, returns the author name.</li>
+                <li><i>context.workflow.creation.date</i> Date when the workflow was saved the first time.</li>
+                <li><i>context.workflow.last.time.modified</i> Date when workflow was saved last.
+                    If not available, returns the creation date.</li>
+                <li><i>context.job.id</i> The job's ID when run on KNIME Hub/Server, otherwise will be empty.</li>
+                <li><i>context.workflow.hub.item.id</i>
+                    Item ID of the workflow in the Hub's repository.
+                    If the workflow is not on a Hub, this will be empty.</li>
+                <li><i>context.workflow.hub.space.id</i>
+                    Item ID of the space containing the workflow in the Hub's repository.
+                    If the workflow is not on a Hub, this will be empty.</li>
+                <li><i>context.workflow.hub.space.path</i>
+                    The mount-point-relative path to the root of the space containing the workflow.
+                    If the workflow is not on a Hub, this will be empty.</li>
+                <li><i>context.workflow.hub.api.base-url</i>
+                    The base URL of the Hub's API when stored on Hub, otherwise will be empty.</li>
+                <li><i>context.job.account.id</i>
+                    ID of the account that owns the job when run on Hub, otherwise will be empty.</li>
+                <li><i>context.job.account.name</i>
+                    Name of the account that owns the job when run on Hub, otherwise will be empty.</li>
+            </ul>
+            More properties may be added in the future.
+                    """) //
+            .modelSettingsClass(ReadContextProperty2NodeSettings.class) //
+            .addOutputPort("Context Properties", FlowVariablePortObject.TYPE,
+                "Context properties as flow variables.") //
+            .nodeType(NodeType.Source) //
+            .build();
+
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ReadContextPropertyNodeDialogPane(false);
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription(CONFIG);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public ReadContextPropertyNodeModel createNodeModel() {
-        return new ReadContextPropertyNodeModel(false);
+    public ReadContextProperty2NodeModel createNodeModel() {
+        return new ReadContextProperty2NodeModel(CONFIG);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public NodeView<ReadContextPropertyNodeModel> createNodeView(
-            final int viewIndex, final ReadContextPropertyNodeModel nodeModel) {
+    public NodeView<ReadContextProperty2NodeModel> createNodeView(final int viewIndex,
+            final ReadContextProperty2NodeModel nodeModel) {
         throw new IllegalStateException("No view");
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.3
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ReadContextProperty2NodeSettings.class);
+    }
 }
