@@ -104,7 +104,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
     ReplacementMode m_replaceRowKeyMode = ReplacementMode.GENERATE_NEW;
 
     @Persist(configKey = NEW_ROW_KEY_COLUMN_CONFIG_KEY)
-    @Widget(title = "Column", description = "The column to replace the current RowID.")
+    @Widget(title = "ID column", description = "The column to replace the current RowID.")
     @ChoicesWidget(choices = AllColumns.class)
     @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
@@ -114,7 +114,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
      * Optional, as this setting is not available in older releases.
      */
     @Persist(configKey = "removeRowKeyCol", optional = true)
-    @Widget(title = "Remove selected column",
+    @Widget(title = "Remove selected ID column",
         description = "If selected, the column replacing the current RowID is removed from the table.")
     @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
@@ -122,7 +122,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
     @Persist(customPersistor = HandleMissingValuesModePersistor.class)
     @ValueSwitchWidget
-    @Widget(title = "If column contains missing values",
+    @Widget(title = "If ID column contains missing values",
         description = "Fail if encountering missing values, or replace them.")
     @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
@@ -130,7 +130,7 @@ public final class RowKeyNodeSettings implements DefaultNodeSettings {
 
     @Persist(customPersistor = HandleDuplicateValuesModePersistor.class)
     @ValueSwitchWidget
-    @Widget(title = "If column contains duplicates",
+    @Widget(title = "If ID column contains duplicates",
         description = "Fail if encountering duplicate values, or make them unique.")
     @Effect(signals = ReplacementModeIsColumn.class, type = EffectType.SHOW)
     @Layout(ReplaceRowIdsSection.class)
