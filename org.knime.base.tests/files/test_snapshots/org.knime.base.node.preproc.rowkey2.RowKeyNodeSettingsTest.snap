@@ -1,0 +1,231 @@
+{
+  "data" : {
+    "model" : {
+      "appendRowKey" : false,
+      "appendedColumnName" : "Old RowIDs",
+      "replaceRowKeyMode" : "GENERATE_NEW",
+      "removeRowKeyColumn" : false,
+      "handleMissingsMode" : "FAIL",
+      "handleDuplicatesMode" : "FAIL",
+      "enableHilite" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendRowKey" : {
+            "type" : "boolean",
+            "title" : "Append column with RowID values",
+            "description" : "If selected, a new column with the values of the current RowID is appended to the table.",
+            "default" : false,
+            "configKeys" : [ "appendRowKeyCol" ]
+          },
+          "appendedColumnName" : {
+            "type" : "string",
+            "title" : "Column Name",
+            "description" : "The name of the column to append to the table.",
+            "default" : "Old RowIDs",
+            "configKeys" : [ "newColumnName4RowKeyValues" ]
+          },
+          "enableHilite" : {
+            "type" : "boolean",
+            "title" : "Enable hiliting",
+            "description" : "If selected, a map is maintained joining the old with the new RowID. Depending on the number of rows,\nenabling this feature might consume a lot of memory.",
+            "default" : false,
+            "configKeys" : [ "enableHilite" ]
+          },
+          "handleDuplicatesMode" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "APPEND_COUNTER",
+              "title" : "Append counter"
+            } ],
+            "title" : "If ID column contains duplicates",
+            "description" : "Fail if encountering duplicate values, or make them unique.",
+            "default" : "FAIL",
+            "configKeys" : [ "ensureUniqueness" ]
+          },
+          "handleMissingsMode" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "REPLACE",
+              "title" : "Replace by \"?\""
+            } ],
+            "title" : "If ID column contains missing values",
+            "description" : "Fail if encountering missing values, or replace them.",
+            "default" : "FAIL",
+            "configKeys" : [ "replaceMissingValues" ]
+          },
+          "newRowKeyColumn" : {
+            "type" : "string",
+            "title" : "ID column",
+            "description" : "The column to replace the current RowID.",
+            "configKeys" : [ "newRowKeyColumnName" ]
+          },
+          "removeRowKeyColumn" : {
+            "type" : "boolean",
+            "title" : "Remove selected ID column",
+            "description" : "If selected, the column replacing the current RowID is removed from the table.",
+            "default" : false,
+            "configKeys" : [ "removeRowKeyCol" ]
+          },
+          "replaceRowKeyMode" : {
+            "oneOf" : [ {
+              "const" : "GENERATE_NEW",
+              "title" : "Generate new"
+            }, {
+              "const" : "COLUMN",
+              "title" : "Column"
+            }, {
+              "const" : "KEEP",
+              "title" : "Keep"
+            } ],
+            "title" : "RowIDs",
+            "description" : "Replace the RowID by a newly generated one or a column, or keep it as it is.",
+            "default" : "GENERATE_NEW",
+            "configKeys" : [ "replaceRowKeyMode", "replaceRowKey", "newRowKeyColumnName" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Extract RowIDs",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendRowKey",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendedColumnName",
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/appendRowKey",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Replace RowIDs",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/replaceRowKeyMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/newRowKeyColumn",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "test1",
+            "text" : "test1"
+          }, {
+            "id" : "test2",
+            "text" : "test2"
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/replaceRowKeyMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "COLUMN"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/removeRowKeyColumn",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/replaceRowKeyMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "COLUMN"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/handleMissingsMode",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/replaceRowKeyMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "COLUMN"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/handleDuplicatesMode",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/replaceRowKeyMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "COLUMN"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/enableHilite",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/replaceRowKeyMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "KEEP"
+              } ]
+            }
+          }
+        }
+      } ]
+    } ]
+  }
+}
