@@ -61,11 +61,10 @@ public final class LoopStartChunkNodeFactory extends WebUINodeFactory<LoopStartC
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Chunk Loop Start") //
         .icon("loop_start_chunk.png") //
-        .shortDescription("Chunking loop start, each iteration processes different chunk of rows.") //
+        .shortDescription("Each iteration processes a different chunk of rows.") //
         .fullDescription("""
-                Chunking loop start, each iteration processes another
-                (consecutive) chunk of rows. The chunking can be set as either a
-                fixed number of chunks or a fixed number of rows per chunk.
+                When starting a loop with this node, each iteration processes a (consecutive) chunk of rows.
+                The chunking can be set as either a fixed number of chunks or a fixed number of rows per chunk.
                 """) //
         .modelSettingsClass(LoopStartChunkNodeSettings.class) //
         .addInputTable("Any table", "Any input table. Each iteration will process one part of this table.")
