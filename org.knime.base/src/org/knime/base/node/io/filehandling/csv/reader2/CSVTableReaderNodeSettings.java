@@ -48,36 +48,68 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.IfSchemaChanges;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitMemoryPerColumn;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitScannedRows;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.MaximumNumberOfColumns;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.FirstColumnContainsRowIds;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.FirstRowContainsColumnNames;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.IfRowHasLessColumns;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.LimitNumberOfRows;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.MaximumNumberOfRows;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.SkipFirstDataRows;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.Source;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.ColumnDelimiter;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.CommentLineCharacter;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.CustomRowDelimiter;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.NumberOfCharactersForAutodetection;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.QuoteCharacters.QuoteCharacter;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.QuoteCharacters.QuoteEscapeCharacter;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.QuotedStringsContainNoRowDelimiters;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.RowDelimiter;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.SkipFirstLines;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.AppendFilePathColumn;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.FailIfSpecsDiffer;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.FilePathColumnName;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.PrependFileIndexToRowId;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.DecimalSeparator;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.QuotedStrings;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ReplaceEmptyQuotedStringsByMissingValues;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ThousandsSeparator;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption.IfRowHasLessColumnsOptionPersistor;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.IsCustomRowDelimiter;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.RowDelimiterPersistor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPreserverPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings({"restriction", "java:S3052"})
+@SuppressWarnings("restriction")
 public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
-
-    private static final String FILE_CHOOSER_DESCRIPTION = """
-            Select a file system which stores the data you want to read. There are
-            three default file system options to choose from:
-            <br />
-            <ul>
-                <li><i>Local File System:</i> Allows you to select a file from your local file system.
-                </li>
-                <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol).
-                    Browsing is disabled for this option.
-                </li>
-                <li><i>Relative to current Hub space:</i> Allows to select a file relative to the Hub space on which
-                    the workflow is run.
-                </li>
-            </ul>
-            """;
 
     @Persist(configKey = "settings")
     Settings m_settings = new Settings();
@@ -96,149 +128,136 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
     static class Settings implements WidgetGroup, PersistableSettings {
 
-        @Widget(title = "Read from", description = FILE_CHOOSER_DESCRIPTION)
+        @Widget(title = "Source", description = Source.DESCRIPTION)
+        @Layout(Source.class)
         @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
-        FileChooser m_path = new FileChooser();
+        FileChooser m_source = new FileChooser();
 
         @Persist(configKey = "file_selection", hidden = true)
         FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
 
+        @Widget(title = "First row contains column names", description = FirstRowContainsColumnNames.DESCRIPTION)
+        @Layout(FirstRowContainsColumnNames.class)
         @Persist(configKey = "has_column_header")
-        boolean m_hasColumnHeader = true;
+        boolean m_firstRowContainsColumnNames = true;
 
+        @Widget(title = "First column contains RowIDs", description = FirstColumnContainsRowIds.DESCRIPTION)
+        @Layout(FirstColumnContainsRowIds.class)
         @Persist(configKey = "has_row_id")
-        boolean m_hasRowId;
+        boolean m_firstColumnContainsRowIds;
 
-        @Persist(configKey = "support_short_data_rows")
-        boolean m_supportShortDataRows;
+        enum IfRowHasLessColumnsOption {
+                @Label(value = "Insert missing", description = IfRowHasLessColumns.DESCRIPTION_INSERT_MISSING) //
+                INSERT_MISSING, //
+                @Label(value = "Fail", description = IfRowHasLessColumns.DESCRIPTION_FAIL) //
+                FAIL; //
+
+            static final class IfRowHasLessColumnsOptionPersistor
+                extends NodeSettingsPersistorWithConfigKey<IfRowHasLessColumnsOption> {
+
+                @Override
+                public IfRowHasLessColumnsOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                    return settings.getBoolean(getConfigKey()) ? INSERT_MISSING : FAIL;
+                }
+
+                @Override
+                public void save(final IfRowHasLessColumnsOption ifRowHasLessColumnsOption,
+                    final NodeSettingsWO settings) {
+                    settings.addBoolean(getConfigKey(), ifRowHasLessColumnsOption == INSERT_MISSING);
+                }
+            }
+        }
+
+        @Widget(title = "If row has less columns", description = IfRowHasLessColumns.DESCRIPTION)
+        @ValueSwitchWidget
+        @Layout(IfRowHasLessColumns.class)
+        @Persist(configKey = "support_short_data_rows", customPersistor = IfRowHasLessColumnsOptionPersistor.class)
+        IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.INSERT_MISSING;
+        // TODO defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
 
         @Persist(configKey = "skip_empty_data_rows")
         boolean m_skipEmptyDataRows;
 
+        @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
+        @Layout(PrependFileIndexToRowId.class)
         @Persist(configKey = "prepend_file_idx_to_row_id")
-        boolean m_prependFileIdxToRowId;
+        boolean m_prependFileIndexToRowId;
+        // TODO this setting should only be shown when reading multiple files; currently blocked by UIEXT-1741
 
+        @Widget(title = "Comment line character", description = CommentLineCharacter.DESCRIPTION)
+        @TextInputWidget(maxLength = 1)
+        @Layout(CommentLineCharacter.class)
         @Persist(configKey = "comment_char")
-        String m_commentChar = "#";
+        String m_commentLineCharacter = "#";
 
-        @Persist(configKey = "column_delimiter")
+        @Widget(title = "Column delimiter", description = ColumnDelimiter.DESCRIPTION)
+        @TextInputWidget(minLength = 1)
+        @Layout(ColumnDelimiter.class)
+        @Persist(configKey = "column_delimiter", customPersistor = StringEscapePersistor.class)
         String m_columnDelimiter = ",";
 
+        @Widget(title = "Quote character", description = QuoteCharacter.DESCRIPTION)
+        @TextInputWidget(maxLength = 1)
+        @Layout(QuoteCharacter.class)
         @Persist(configKey = "quote_char")
-        String m_quoteChar = "\"";
+        String m_quoteCharacter = "\"";
+        // TODO  we get occasional hard crashes when trying to persist invalid settings like this, addressed in NXT-2480
 
+        @Widget(title = "Quote escape character", description = QuoteEscapeCharacter.DESCRIPTION)
+        @TextInputWidget(maxLength = 1)
+        @Layout(QuoteEscapeCharacter.class)
         @Persist(configKey = "quote_escape_char")
-        String m_quoteEscapeChar = "\"";
+        String m_quoteEscapeCharacter = "\"";
 
-        @Persist(configKey = "use_line_break_row_delimiter")
-        boolean m_useLineBreakRowDelimiter = true;
+        enum RowDelimiterOption {
+                @Label(value = "Line break", description = RowDelimiter.DESCRIPTION_LINE_BREAK) //
+                LINE_BREAK, //
+                @Label(value = "Custom", description = RowDelimiter.DESCRIPTION_CUSTOM) //
+                CUSTOM; //
 
-        @Persist(configKey = "row_delimiter")
-        String m_rowDelimiter = "\n";
+            static final class IsCustomRowDelimiter extends OneOfEnumCondition<RowDelimiterOption> {
 
-        @Persist(configKey = "autodetect_buffer_size")
-        int m_autodetectBufferSize = 1048576;
-
-        static class FileSelection implements WidgetGroup, PersistableSettings {
-
-            @Persist(configKey = "filter_mode")
-            FilterMode m_filterMode = new FilterMode();
-
-            @Persist(configKey = "file_system_chooser__Internals")
-            FileSystemChooserInternal m_fileSystemChooserInternals = new FileSystemChooserInternal();
-
-            static class FilterMode implements WidgetGroup, PersistableSettings {
-
-                @Persist(configKey = "filter_mode")
-                String m_filterMode = "FILE";
-
-                @Persist(configKey = "include_subfolders")
-                boolean m_includeSubfolders;
-
-                @Persist(configKey = "filter_options")
-                FilterOptions m_filterOptions = new FilterOptions();
-
-                static class FilterOptions implements WidgetGroup, PersistableSettings {
-
-                    @Persist(configKey = "filter_files_extension")
-                    boolean m_filterFilesExtension;
-
-                    @Persist(configKey = "files_extension_expression")
-                    String m_filesExtensionExpression = "";
-
-                    @Persist(configKey = "files_extension_case_sensitive")
-                    boolean m_filesExtensionCaseSensitive;
-
-                    @Persist(configKey = "filter_files_name")
-                    boolean m_filterFilesName;
-
-                    @Persist(configKey = "files_name_expression")
-                    String m_filesNameExpression = "*";
-
-                    @Persist(configKey = "files_name_case_sensitive")
-                    boolean m_filesNameCaseSensitive;
-
-                    @Persist(configKey = "files_name_filter_type")
-                    String m_filesNameFilterType = "WILDCARD";
-
-                    @Persist(configKey = "include_hidden_files")
-                    boolean m_includeHiddenFiles;
-
-                    @Persist(configKey = "include_special_files")
-                    boolean m_includeSpecialFiles = true;
-
-                    @Persist(configKey = "filter_folders_name")
-                    boolean m_filterFoldersName;
-
-                    @Persist(configKey = "folders_name_expression")
-                    String m_foldersNameExpression = "*";
-
-                    @Persist(configKey = "folders_name_case_sensitive")
-                    boolean m_foldersNameCaseSensitive;
-
-                    @Persist(configKey = "folders_name_filter_type")
-                    String m_foldersNameFilterType = "WILDCARD";
-
-                    @Persist(configKey = "include_hidden_folders")
-                    boolean m_includeHiddenFolders;
-
-                    @Persist(configKey = "follow_links")
-                    boolean m_followLinks = true;
-
+                @Override
+                public RowDelimiterOption[] oneOf() {
+                    return new RowDelimiterOption[]{RowDelimiterOption.CUSTOM};
                 }
             }
 
-            static class FileSystemChooserInternal implements WidgetGroup, PersistableSettings {
+            static final class RowDelimiterPersistor extends NodeSettingsPersistorWithConfigKey<RowDelimiterOption> {
 
-                @Persist(configKey = "has_fs_port")
-                boolean m_hasFsPort;
+                @Override
+                public RowDelimiterOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                    return settings.getBoolean(getConfigKey()) ? LINE_BREAK : CUSTOM;
+                }
 
-                @Persist(configKey = "overwritten_by_variable")
-                boolean m_overwrittenByVariable;
-
-                @Persist(configKey = "convenience_fs_category")
-                String m_convenienceFsCategory = "RELATIVE";
-
-                @Persist(configKey = "relative_to")
-                String m_relativeTo = "knime.workflow";
-
-                @Persist(configKey = "mountpoint")
-                String m_mountpoint = "LOCAL";
-
-                @Persist(configKey = "spaceId")
-                String m_spaceId = "";
-
-                @Persist(configKey = "spaceName")
-                String m_spaceName = "";
-
-                @Persist(configKey = "custom_url_timeout")
-                int m_customUrlTimeout = 1000;
-
-                @Persist(configKey = "connected_fs")
-                boolean m_connectedFs = true;
+                @Override
+                public void save(final RowDelimiterOption rowDelimiteroption, final NodeSettingsWO settings) {
+                    settings.addBoolean(getConfigKey(), rowDelimiteroption == LINE_BREAK);
+                }
             }
-
         }
+
+        @Widget(title = "Row delimiter", description = RowDelimiter.DESCRIPTION)
+        @ValueSwitchWidget
+        @Layout(RowDelimiter.class)
+        @Signal(condition = IsCustomRowDelimiter.class)
+        @Persist(configKey = "use_line_break_row_delimiter", customPersistor = RowDelimiterPersistor.class)
+        RowDelimiterOption m_rowDelimiterOption = RowDelimiterOption.LINE_BREAK;
+
+        @Widget(title = "Custom row delimiter", description = CustomRowDelimiter.DESCRIPTION)
+        @TextInputWidget(minLength = 1, pattern = ".|[\\t\\r\\n]|\\r\\n")
+        @Layout(CustomRowDelimiter.class)
+        @Effect(signals = IsCustomRowDelimiter.class, type = EffectType.SHOW)
+        @Persist(configKey = "row_delimiter", customPersistor = StringEscapePersistor.class)
+        String m_customRowDelimiter = "\n";
+
+        @Widget(title = "Number of characters for autodetection",
+            description = NumberOfCharactersForAutodetection.DESCRIPTION)
+        @NumberInputWidget(min = 1)
+        @Layout(NumberOfCharactersForAutodetection.class)
+        @Persist(configKey = "autodetect_buffer_size")
+        int m_numberOfCharactersForAutodetection = CSVTableReaderConfig.DEFAULT_AUTODETECTION_BUFFER_SIZE;
+        // TODO will be moved into a settings panel in UIEXT-1739
 
         static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
 
@@ -248,7 +267,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             @Persist(configKey = "EnabledStatus")
             boolean m_enabledStatus = true;
         }
-
     }
 
     static class AdvancedSettings implements WidgetGroup, PersistableSettings {
@@ -256,38 +274,73 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "spec_merge_mode", hidden = true)
         String m_specMergeMode = "UNION";
 
+        @Widget(title = "Fail if specs differ", description = FailIfSpecsDiffer.DESCRIPTION)
+        @Layout(FailIfSpecsDiffer.class)
         @Persist(configKey = "fail_on_differing_specs")
         boolean m_failOnDifferingSpecs = true;
 
+        @Widget(title = "Append file path column", description = AppendFilePathColumn.DESCRIPTION)
+        @Layout(AppendFilePathColumn.class)
+        @Signal(id = AppendFilePathColumn.class, condition = TrueCondition.class)
         @Persist(configKey = "append_path_column", hidden = true)
         boolean m_appendPathColumn;
 
+        @Widget(title = "File path column name", description = FilePathColumnName.DESCRIPTION)
+        @Layout(FilePathColumnName.class)
+        @Effect(signals = AppendFilePathColumn.class, type = EffectType.SHOW)
         @Persist(configKey = "path_column_name", hidden = true)
-        String m_pathColumnName = "Path";
+        String m_filePathColumnName = "File Path";
 
+        @Widget(title = "Limit scanned rows", description = LimitScannedRows.DESCRIPTION)
+        @Layout(LimitScannedRows.class)
+        @Signal(id = LimitScannedRows.class, condition = TrueCondition.class)
         @Persist(configKey = "limit_data_rows_scanned")
-        boolean m_limitDataRowsScanned = true;
+        boolean m_limitScannedRows = true;
+        // TODO merge into a single widget with UIEXT-1742
 
+        @Widget(hideTitle = true)
+        @NumberInputWidget(min = 0)
+        @Layout(LimitScannedRows.class)
+        @Effect(signals = LimitScannedRows.class, type = EffectType.SHOW)
         @Persist(configKey = "max_data_rows_scanned")
         long m_maxDataRowsScanned = 10000;
 
-        @Persist(configKey = "save_table_spec_config", hidden = true)
-        boolean m_saveTableSpecConfig = true;
-
+        @Widget(title = "Limit memory per column", description = LimitMemoryPerColumn.DESCRIPTION)
+        @Layout(LimitMemoryPerColumn.class)
         @Persist(configKey = "limit_memory_per_column")
         boolean m_limitMemoryPerColumn = true;
 
+        @Widget(title = "Maximum number of columns", description = MaximumNumberOfColumns.DESCRIPTION)
+        @NumberInputWidget(min = 0)
+        @Layout(MaximumNumberOfColumns.class)
         @Persist(configKey = "maximum_number_of_columns")
         int m_maximumNumberOfColumns = 8192;
 
+        enum QuotedStringsOption {
+                @Label(value = "Remove quotes and trim whitespace",
+                    description = QuotedStrings.DESCRIPTION_REMOVE_QUOTES_AND_TRIM) //
+                REMOVE_QUOTES_AND_TRIM, //
+                @Label(value = "Keep quotes", description = QuotedStrings.DESCRIPTION_KEEP_QUOTES) //
+                KEEP_QUOTES; //
+        }
+
+        @Widget(title = "Quoted strings", description = QuotedStrings.DESCRIPTION, advanced = true)
+        @RadioButtonsWidget
+        @Layout(QuotedStrings.class)
         @Persist(configKey = "quote_option")
-        String m_quoteOption = "REMOVE_QUOTES_AND_TRIM";
+        QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
 
+        @Widget(title = "Replace empty quoted string by missing values",
+            description = ReplaceEmptyQuotedStringsByMissingValues.DESCRIPTION)
+        @Layout(ReplaceEmptyQuotedStringsByMissingValues.class)
         @Persist(configKey = "replace_empty_quotes_with_missing")
-        boolean m_replaceEmptyQuotesWithMissing = true;
+        boolean m_replaceEmptyQuotedStringsByMissingValues = true;
 
+        @Widget(title = "Quoted strings contain no row delimiters",
+            description = QuotedStringsContainNoRowDelimiters.DESCRIPTION)
+        @Layout(QuotedStringsContainNoRowDelimiters.class)
         @Persist(configKey = "no_row_delimiters_in_quotes")
-        boolean m_noRowDelimitersInQuotes;
+        boolean m_quotedStringsContainNoRowDelimiters;
 
         @Persist(configKey = "min_chunk_size_in_bytes")
         long m_minChunkSizeInBytes = 67108864;
@@ -295,41 +348,145 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "max_num_chunks_per_file")
         int m_maxNumChunksPerFile = 8;
 
+        @Widget(title = "Thousands separator", description = ThousandsSeparator.DESCRIPTION)
+        @Layout(ThousandsSeparator.class)
         @Persist(configKey = "thousands_separator")
-        String m_thousandsSeparator = " ";
+        String m_thousandsSeparator = "";
 
+        @Widget(title = "Decimal separator", description = DecimalSeparator.DESCRIPTION)
+        @TextInputWidget(minLength = 1)
+        @Layout(DecimalSeparator.class)
         @Persist(configKey = "decimal_separator")
         String m_decimalSeparator = ".";
 
+        enum IfSchemaChangesOption {
+                @Label(value = "Fail", description = IfSchemaChanges.DESCRIPTION_FAIL) //
+                FAIL, //
+                @Label(value = "Use new schema", description = IfSchemaChanges.DESCRIPTION_USE_NEW_SCHEMA) //
+                USE_NEW_SCHEMA, //
+                @Label(value = "Ignore (deprecated)", description = IfSchemaChanges.DESCRIPTION_IGNORE) //
+                IGNORE; //
+            // TODO Disable Ignore option in https://knime-com.atlassian.net/browse/UIEXT-1730
+        }
+
+        static final class IfSchemaChangesPersistor implements FieldNodeSettingsPersistor<IfSchemaChangesOption> {
+
+            private static final String CFG_SAVE_TABLE_SPEC_CONFIG = "save_table_spec_config";
+
+            private static final String CFG_CHECK_TABLE_SPEC = "check_table_spec";
+
+            @Override
+            public IfSchemaChangesOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                final var saveTableSpecConfig = settings.getBoolean(CFG_SAVE_TABLE_SPEC_CONFIG, true);
+                if (saveTableSpecConfig) {
+                    if (settings.getBoolean(CFG_CHECK_TABLE_SPEC, false)) {
+                        return IfSchemaChangesOption.FAIL;
+                    } else {
+                        return IfSchemaChangesOption.IGNORE;
+                    }
+                }
+                return IfSchemaChangesOption.USE_NEW_SCHEMA;
+
+            }
+
+            @Override
+            public void save(final IfSchemaChangesOption ifSchemaChangesOption, final NodeSettingsWO settings) {
+                settings.addBoolean(CFG_SAVE_TABLE_SPEC_CONFIG,
+                    ifSchemaChangesOption != IfSchemaChangesOption.USE_NEW_SCHEMA);
+                settings.addBoolean(CFG_CHECK_TABLE_SPEC, ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
+            }
+
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{CFG_SAVE_TABLE_SPEC_CONFIG, CFG_CHECK_TABLE_SPEC};
+            }
+        }
+
+        @Widget(title = "If schema changes", description = IfSchemaChanges.DESCRIPTION)
+        @ValueSwitchWidget
+        @Layout(IfSchemaChanges.class)
+        @Persist(customPersistor = IfSchemaChangesPersistor.class)
+        IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
     }
 
     static class LimitRows implements WidgetGroup, PersistableSettings {
 
-        @Persist(configKey = "skip_lines")
-        boolean m_skipLines;
+        static final class SkipFirstLinesPersistor implements FieldNodeSettingsPersistor<Long> {
 
-        @Persist(configKey = "number_of_lines_to_skip")
-        long m_numberOfLinesToSkip = 1;
+            private static final String CFG_SKIP_LINES = "skip_lines";
 
-        @Persist(configKey = "skip_data_rows")
-        boolean m_skipDataRows;
+            private static final String CFG_NUMBER_OF_LINES_TO_SKIP = "number_of_lines_to_skip";
 
-        @Persist(configKey = "number_of_rows_to_skip")
-        long m_numberOfRowsToSkip = 1;
+            @Override
+            public Long load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                return settings.getBoolean(CFG_SKIP_LINES) ? settings.getLong(CFG_NUMBER_OF_LINES_TO_SKIP) : 0;
+            }
 
+            @Override
+            public void save(final Long skipFirstLines, final NodeSettingsWO settings) {
+                settings.addBoolean(CFG_SKIP_LINES, skipFirstLines > 0);
+                settings.addLong(CFG_NUMBER_OF_LINES_TO_SKIP, skipFirstLines);
+            }
+
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{CFG_SKIP_LINES, CFG_NUMBER_OF_LINES_TO_SKIP};
+            }
+        }
+
+        @Widget(title = "Skip first lines", description = SkipFirstLines.DESCRIPTION)
+        @NumberInputWidget(min = 0)
+        @Layout(SkipFirstLines.class)
+        @Persist(customPersistor = SkipFirstLinesPersistor.class)
+        long m_skipFirstLines;
+
+        static final class SkipFirstDataRowsPersistor implements FieldNodeSettingsPersistor<Long> {
+
+            private static final String CFG_SKIP_DATA_ROWS = "skip_data_rows";
+
+            private static final String CFG_NUMBER_OF_DATA_ROWS_TO_SKIP = "number_of_rows_to_skip";
+
+            @Override
+            public Long load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                return settings.getBoolean(CFG_SKIP_DATA_ROWS) ? settings.getLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP) : 0;
+            }
+
+            @Override
+            public void save(final Long skipFirstDataRows, final NodeSettingsWO settings) {
+                settings.addBoolean(CFG_SKIP_DATA_ROWS, skipFirstDataRows > 0);
+                settings.addLong(CFG_NUMBER_OF_DATA_ROWS_TO_SKIP, skipFirstDataRows);
+            }
+
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{CFG_SKIP_DATA_ROWS, CFG_NUMBER_OF_DATA_ROWS_TO_SKIP};
+            }
+        }
+
+        @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
+        @NumberInputWidget(min = 0)
+        @Layout(SkipFirstDataRows.class)
+        @Persist(customPersistor = SkipFirstDataRowsPersistor.class)
+        long m_skipFirstDataRows;
+
+        @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
+        @Layout(LimitNumberOfRows.class)
+        @Signal(id = LimitNumberOfRows.class, condition = TrueCondition.class)
         @Persist(configKey = "limit_data_rows")
-        boolean m_limitDataRows;
+        boolean m_limitNumberOfRows;
+        // TODO merge into a single widget with UIEXT-1742
 
+        @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
+        @NumberInputWidget(min = 0)
+        @Layout(MaximumNumberOfRows.class)
+        @Effect(signals = LimitNumberOfRows.class, type = EffectType.SHOW)
         @Persist(configKey = "max_rows")
-        long m_maxRows = 50;
-
+        long m_maximumNumberOfRows = 50;
     }
 
     static class Encoding implements WidgetGroup, PersistableSettings {
 
         @Persist(configKey = "charset")
         String m_charset = "UTF-8";
-
     }
-
 }

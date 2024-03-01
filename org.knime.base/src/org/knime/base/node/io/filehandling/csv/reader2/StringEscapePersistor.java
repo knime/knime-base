@@ -44,59 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 29, 2024 (hornm): created
+ *   Mar 12, 2024 (marcbux): created
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-
+import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
-import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 
-/**
- * {@link DefaultNodeSettingsSnapshotTest} for the {@link CSVTableReaderNodeSettings}.
- *
- * @author Martin Horn, KNIME GmbH, Konstanz, Germany
- */
-class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
-    protected CSVTableReaderNodeSettingsTest() {
-        super(getConfig());
+@SuppressWarnings("restriction")
+final class StringEscapePersistor extends NodeSettingsPersistorWithConfigKey<String> {
+
+    @Override
+    public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return EscapeUtils.escape(settings.getString(getConfigKey()));
     }
 
-    private static SnapshotTestConfiguration getConfig() {
-        return SnapshotTestConfiguration.builder() //
-            .testJsonFormsForModel(CSVTableReaderNodeSettings.class) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> createSettings()) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
-            .testNodeSettingsStructure(() -> createSettings()) //
-            .testNodeSettingsStructure(() -> readSettings()) //
-            .build();
-    }
-
-    private static CSVTableReaderNodeSettings createSettings() {
-        var res = new CSVTableReaderNodeSettings();
-        res.m_settings.m_source.m_path = new FSLocation(FSCategory.RELATIVE, "foo");
-        return res;
-    }
-
-    private static CSVTableReaderNodeSettings readSettings() {
-        try {
-            var path = getSnapshotPath(CSVTableReaderNodeSettingsTest.class).getParent().resolve("node_settings")
-                .resolve("CSVTableReaderNodeSettings.xml");
-            try (var fis = new FileInputStream(path.toFile())) {
-                var nodeSettings = NodeSettings.loadFromXML(fis);
-                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    CSVTableReaderNodeSettings.class);
-            }
-        } catch (IOException | InvalidSettingsException e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public void save(final String escapedString, final NodeSettingsWO settings) {
+        settings.addString(getConfigKey(), EscapeUtils.unescape(escapedString));
     }
 }

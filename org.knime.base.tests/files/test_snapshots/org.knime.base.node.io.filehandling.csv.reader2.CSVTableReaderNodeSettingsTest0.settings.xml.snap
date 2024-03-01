@@ -46,7 +46,7 @@
         </config>
         <entry key="has_column_header" type="xboolean" value="true"/>
         <entry key="has_row_id" type="xboolean" value="false"/>
-        <entry key="support_short_data_rows" type="xboolean" value="false"/>
+        <entry key="support_short_data_rows" type="xboolean" value="true"/>
         <entry key="skip_empty_data_rows" type="xboolean" value="false"/>
         <entry key="prepend_file_idx_to_row_id" type="xboolean" value="false"/>
         <entry key="comment_char" type="xstring" value="#"/>
@@ -61,10 +61,9 @@
         <entry key="spec_merge_mode_Internals" type="xstring" value="UNION"/>
         <entry key="fail_on_differing_specs" type="xboolean" value="true"/>
         <entry key="append_path_column_Internals" type="xboolean" value="false"/>
-        <entry key="path_column_name_Internals" type="xstring" value="Path"/>
+        <entry key="path_column_name_Internals" type="xstring" value="File Path"/>
         <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>
         <entry key="max_data_rows_scanned" type="xlong" value="10000"/>
-        <entry key="save_table_spec_config_Internals" type="xboolean" value="true"/>
         <entry key="limit_memory_per_column" type="xboolean" value="true"/>
         <entry key="maximum_number_of_columns" type="xint" value="8192"/>
         <entry key="quote_option" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
@@ -72,14 +71,16 @@
         <entry key="no_row_delimiters_in_quotes" type="xboolean" value="false"/>
         <entry key="min_chunk_size_in_bytes" type="xlong" value="67108864"/>
         <entry key="max_num_chunks_per_file" type="xint" value="8"/>
-        <entry key="thousands_separator" type="xstring" value=" "/>
+        <entry key="thousands_separator" type="xstring" value=""/>
         <entry key="decimal_separator" type="xstring" value="."/>
+        <entry key="save_table_spec_config" type="xboolean" value="true"/>
+        <entry key="check_table_spec" type="xboolean" value="true"/>
     </config>
     <config key="limit_rows">
         <entry key="skip_lines" type="xboolean" value="false"/>
-        <entry key="number_of_lines_to_skip" type="xlong" value="1"/>
+        <entry key="number_of_lines_to_skip" type="xlong" value="0"/>
         <entry key="skip_data_rows" type="xboolean" value="false"/>
-        <entry key="number_of_rows_to_skip" type="xlong" value="1"/>
+        <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
         <entry key="limit_data_rows" type="xboolean" value="false"/>
         <entry key="max_rows" type="xlong" value="50"/>
     </config>

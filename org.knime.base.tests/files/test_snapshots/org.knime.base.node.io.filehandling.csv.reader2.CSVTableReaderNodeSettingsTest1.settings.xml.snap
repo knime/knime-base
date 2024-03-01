@@ -65,7 +65,6 @@
         <entry key="path_column_name_Internals" type="xstring" value="Path"/>
         <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>
         <entry key="max_data_rows_scanned" type="xlong" value="10000"/>
-        <entry key="save_table_spec_config_Internals" type="xboolean" value="true"/>
         <entry key="limit_memory_per_column" type="xboolean" value="true"/>
         <entry key="maximum_number_of_columns" type="xint" value="8192"/>
         <entry key="quote_option" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
@@ -75,12 +74,14 @@
         <entry key="max_num_chunks_per_file" type="xint" value="8"/>
         <entry key="thousands_separator" type="xstring" value="%%00000"/>
         <entry key="decimal_separator" type="xstring" value="."/>
+        <entry key="save_table_spec_config" type="xboolean" value="true"/>
+        <entry key="check_table_spec" type="xboolean" value="false"/>
     </config>
     <config key="limit_rows">
         <entry key="skip_lines" type="xboolean" value="false"/>
-        <entry key="number_of_lines_to_skip" type="xlong" value="1"/>
+        <entry key="number_of_lines_to_skip" type="xlong" value="0"/>
         <entry key="skip_data_rows" type="xboolean" value="false"/>
-        <entry key="number_of_rows_to_skip" type="xlong" value="1"/>
+        <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
         <entry key="limit_data_rows" type="xboolean" value="false"/>
         <entry key="max_rows" type="xlong" value="50"/>
     </config>

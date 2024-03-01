@@ -145,7 +145,7 @@ class CSVTableReaderNodeModel2Test {
         final var file = createCsvFile();
 
         final var settings = new CSVTableReaderNodeSettings();
-        settings.m_settings.m_path = new FileChooser(new FSLocation(FSCategory.LOCAL, file.toString()));
+        settings.m_settings.m_source = new FileChooser(new FSLocation(FSCategory.LOCAL, file.toString()));
         setSettings(settings);
 
         m_wfm.executeAllAndWaitUntilDone();
@@ -174,7 +174,7 @@ class CSVTableReaderNodeModel2Test {
     void testReadMissingFile() throws InvalidSettingsException {
         final var settings = new CSVTableReaderNodeSettings();
         final var missingFile = "foo";
-        settings.m_settings.m_path = new FileChooser(new FSLocation(FSCategory.LOCAL, missingFile));
+        settings.m_settings.m_source = new FileChooser(new FSLocation(FSCategory.LOCAL, missingFile));
         setSettings(settings);
 
         assertTrue(m_csvReader.getNodeContainerState().isConfigured());

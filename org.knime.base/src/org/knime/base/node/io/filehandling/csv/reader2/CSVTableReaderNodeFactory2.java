@@ -77,30 +77,11 @@ import org.xml.sax.SAXException;
 public class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory // NOSONAR will eventually be merged into a single node
     implements NodeDialogFactory {
 
-    private static final String FULL_DESCRIPTION = """
-            <p>
-            Reads CSV files. Auto-guesses the structure / format of the selected file.
-            </p>
-
-            <p>
-            <i>This node can access a variety of different file systems.</i>
-            <i>More information about file handling in KNIME can be found in the official</i>
-            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html">
-            <i>File Handling Guide.</i></a>
-            </p>
-
-            <p>
-            <b>Parallel reading</b>: Individual files can be read in parallel if
-            </p>
-            <ul>
-                <li>They are located on the machine that is running this node.</li>
-                <li>They don't contain any quotes that contain row delimiters.</li>
-                <li>They are not gzip compressed.</li>
-                <li>No lines or rows are limited or skipped.</li>
-                <li>The file index is not prepended to the RowID.</li>
-                <li>They are not encoded with UTF-16 (UTF-16LE and UTF-16BE are fine).</li>
-            </ul>
-            """;
+    private static final String FULL_DESCRIPTION =
+        """
+        Use this node to read CSV files into your workflow. The node will produce a data table with numbers and types of
+        columns guessed automatically.
+        """;
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -116,7 +97,7 @@ public class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory // NOS
             new PortDescription[]{
                 new PortDescription(FS_CONNECT_GRP_ID, FileSystemPortObject.TYPE, "The file system connection.", true)},
             new PortDescription[]{new PortDescription("File Table", BufferedDataTable.TYPE,
-                "File being read with number and types of columns guessed automatically.")},
+                "Data table based on the file being read with number and types of columns guessed automatically.")},
             "Reads CSV files", FULL_DESCRIPTION, CSVTableReaderNodeSettings.class, null, null, NodeType.Source,
             new String[]{"Text", "Comma", "File", "Input", "Read"});
     }
