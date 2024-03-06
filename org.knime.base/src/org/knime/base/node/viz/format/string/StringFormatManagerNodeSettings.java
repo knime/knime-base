@@ -50,6 +50,7 @@ package org.knime.base.node.viz.format.string;
 
 import java.util.stream.Stream;
 
+import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -57,6 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
@@ -107,6 +109,11 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
         @Section(title = "Interaction")
         @After(SpecialValues.class)
         interface Interaction {
+        }
+
+        @Section(title = "Display")
+        @After(Interaction.class)
+        interface Display {
         }
     }
 
@@ -219,6 +226,12 @@ public final class StringFormatManagerNodeSettings implements DefaultNodeSetting
             """)
     @Layout(DialogLayout.Interaction.class)
     boolean m_linkLinksAndEmails = true;
+
+    @Widget(title = "Alignment suggestion", description = "Specify how to align the string.")
+    @ValueSwitchWidget
+    @Persist(optional = true)
+    @Layout(DialogLayout.Display.class)
+    AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.LEFT;
 
     // Constructors
 

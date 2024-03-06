@@ -50,17 +50,21 @@ package org.knime.base.node.viz.format.number;
 
 import java.util.stream.Stream;
 
+import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -73,11 +77,16 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
 
     enum GroupSeparator {
             @Label("Thin space")
-            THIN_SPACE("\u2009"), @Label("Dot")
-            DOT("."), @Label("Comma")
-            COMMA(","), @Label("Apostrophe")
-            APOSTROPHE("'"), @Label("Underscore")
-            UNDERSCORE("_"), @Label("None")
+            THIN_SPACE("\u2009"), //
+            @Label("Dot")
+            DOT("."), //
+            @Label("Comma")
+            COMMA(","), //
+            @Label("Apostrophe")
+            APOSTROPHE("'"), //
+            @Label("Underscore")
+            UNDERSCORE("_"), //
+            @Label("None")
             NONE("");
 
         private final String m_separator;
@@ -113,10 +122,10 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
 
         @Section(title = "Columns")
         interface ColumnSelection {
-
         }
 
         @Section(title = "Digits")
+        @After(DialogLayout.ColumnSelection.class)
         interface Digits {
             @HorizontalLayout
             interface MinMax {
@@ -124,10 +133,16 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
         }
 
         @Section(title = "Separators")
+        @After(DialogLayout.Digits.class)
         interface Separators {
             @HorizontalLayout
             interface MinMaxDigitsGroup {
             }
+        }
+
+        @Section(title = "Display")
+        @After(DialogLayout.Separators.class)
+        interface Display {
         }
 
     }
@@ -178,6 +193,12 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
             """)
     @Layout(DialogLayout.Separators.class)
     boolean m_alwaysShowDecimalSeparator;
+
+    @Widget(title = "Alignment suggestion", description = "Specify how to align the number.")
+    @ValueSwitchWidget
+    @Persist(optional = true)
+    @Layout(DialogLayout.Display.class)
+    AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.RIGHT;
 
     // Utility
 

@@ -156,6 +156,7 @@ public final class StringFormatManagerNodeModel extends WebUINodeModel<StringFor
             modelSettings.m_nLastChars, //
             modelSettings.m_wrapLinesOnDemand != WrapLinesOnDemandOption.NO, //
             modelSettings.m_wrapLinesOnDemand == WrapLinesOnDemandOption.ANYWHERE, //
+            modelSettings.m_alignmentSuggestion,
             modelSettings.m_replaceNewlineAndCarriageReturn, //
             modelSettings.m_replaceNonPrintableCharacters, //
             modelSettings.m_replaceEmptyString == CustomStringReplacementOption.CUSTOM

@@ -108,13 +108,14 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
      */
     private static String[] numberColumns(final DataTableSpec inSpec) {
         return inSpec.stream()//
-                .filter(NumberFormatManagerNodeModel::isTargetColumn)//
-                .map(DataColumnSpec::getName)//
-                .toArray(String[]::new);
+            .filter(NumberFormatManagerNodeModel::isTargetColumn)//
+            .map(DataColumnSpec::getName)//
+            .toArray(String[]::new);
     }
 
     /**
      * Translate from node settings to number formatter settings.
+     *
      * @param settings node settings
      * @return number formatter
      * @throws InvalidSettingsException
@@ -122,13 +123,13 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
     private static ValueFormatHandler handlerFor(final NumberFormatManagerNodeSettings settings)
         throws InvalidSettingsException {
         var formatter = NumberFormatter.builder()//
-                .setMinimumDecimals(settings.m_minimumDecimals)//
-                .setMaximumDecimals(settings.m_maximumDecimals)//
-                .setGroupSeparator(settings.m_groupSeparator.getSeparator())//
-                .setDecimalSeparator(settings.m_decimalSeparator.getSeparator())//
-                .setAlwaysShowDecimalSeparator(settings.m_alwaysShowDecimalSeparator)
-                .build();
-        return new ValueFormatHandler(new ValueFormatModelNumber(formatter));
+            .setMinimumDecimals(settings.m_minimumDecimals)//
+            .setMaximumDecimals(settings.m_maximumDecimals)//
+            .setGroupSeparator(settings.m_groupSeparator.getSeparator())//
+            .setDecimalSeparator(settings.m_decimalSeparator.getSeparator())//
+            .setAlwaysShowDecimalSeparator(settings.m_alwaysShowDecimalSeparator).build();
+        var styles = "display:inline-block;width:100%;" + settings.m_alignmentSuggestion.getCSSAttribute();
+        return new ValueFormatHandler(new ValueFormatModelNumber(formatter, styles));
     }
 
     /**
@@ -142,7 +143,7 @@ final class NumberFormatManagerNodeModel extends WebUINodeModel<NumberFormatMana
         final var tableSpecCreator = new DataTableSpecCreator(in);
         for (String columnName : targetColumns) {
             DataColumnSpec columnSpec = in.getColumnSpec(columnName);
-            if(columnSpec == null) {
+            if (columnSpec == null) {
                 continue; // skip columns that do not exist anymore
             }
             final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);

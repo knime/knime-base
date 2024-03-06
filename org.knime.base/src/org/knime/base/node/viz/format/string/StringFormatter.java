@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
+import org.knime.base.node.viz.format.AlignmentSuggestionOption;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.property.ValueFormatModel;
@@ -107,7 +108,19 @@ public final class StringFormatter implements ValueFormatModel {
             }
             return format(str);
         }
-        throw new IllegalArgumentException("Not a StringValue: " + dataValue.toString());
+        throw notAStringValue(dataValue);
+    }
+
+    @Override
+    public String getPlaintext(final DataValue dataValue) {
+        if (dataValue instanceof StringValue sv) {
+            return makePlaintext(sv.getStringValue());
+        }
+        throw notAStringValue(dataValue);
+    }
+
+    private static IllegalArgumentException notAStringValue(final DataValue dataValue) {
+        return new IllegalArgumentException("Not a StringValue: " + dataValue.toString());
     }
 
     /** Format the empty string */
@@ -125,6 +138,11 @@ public final class StringFormatter implements ValueFormatModel {
         var html = replaceCharacters(s, true);
         html = makeLinksClickable(html);
         return style(html, plaintext);
+    }
+
+    String makePlaintext(String s) {
+        s = abbreviate(s);
+        return replaceCharacters(s, false);
     }
 
     /** Truncate the string, if necessary */
@@ -196,7 +214,7 @@ public final class StringFormatter implements ValueFormatModel {
     /** Add CSS styles */
     String style(final String html, final String plaintext) {
         final var sb = new StringBuilder("<span style=\"");
-        sb.append("display:inline-block;overflow:hidden;text-overflow:ellipsis;");
+        sb.append("display:inline-block;overflow:hidden;text-overflow:ellipsis;width:100%;");
         if (m_settings.wrapLines()) {
             sb.append("white-space:break-spaces;");
         } else {
@@ -207,6 +225,7 @@ public final class StringFormatter implements ValueFormatModel {
         } else {
             sb.append("word-break:normal;");
         }
+        sb.append(m_settings.alignment().getCSSAttribute());
         sb.append("\" title=\"").append(plaintext).append("\">").append(html).append("</span>");
         return sb.toString();
     }
@@ -251,19 +270,24 @@ public final class StringFormatter implements ValueFormatModel {
      * @param nLastChars
      * @param wrapLines
      * @param breakWords
+     * @param alignment
      * @param replaceNewlinesAndCarriageReturn
      * @param replaceNonPrintableCharacters
+     * @param emptyStringReplacement
      * @param linkHrefsAndEmails
      */
     static record Settings(int nFirstChars, int nLastChars, boolean wrapLines, boolean breakWords,
-        boolean replaceNewlinesAndCarriageReturn, boolean replaceNonPrintableCharacters,
-        Optional<String> emptyStringReplacement, boolean linkHrefsAndEmails) {
+        AlignmentSuggestionOption alignment, boolean replaceNewlinesAndCarriageReturn,
+        boolean replaceNonPrintableCharacters, Optional<String> emptyStringReplacement, boolean linkHrefsAndEmails) {
         /**
          * Validate the settings that are saved in this record instance
          *
          * @throws InvalidSettingsException
          */
         void validate() throws InvalidSettingsException {
+            CheckUtils.checkSettingNotNull(alignment, "Alignment suggestion cannot be null");
+            CheckUtils.checkSettingNotNull(emptyStringReplacement,
+                "String replacement cannot be null (use empty optional instead)");
             CheckUtils.checkSetting(nFirstChars >= 0, "Cannot truncate to a negative number of characters.");
             CheckUtils.checkSetting(nLastChars >= 0, "Cannot keep a negative number of last characters.");
             CheckUtils.checkSetting(!breakWords || wrapLines, "Breaking words is only possible when wrapping lines.");
@@ -282,6 +306,8 @@ public final class StringFormatter implements ValueFormatModel {
 
         private static final String CONFIG_BREAK_WORDS = "breakWords";
 
+        private static final String CONFIG_ALIGNMENT_SUGGESTION = "alignmentSuggestion";
+
         private static final String CONFIG_DISPLAY_NONPRINTABLE_CHARS = "replaceNonPrintableCharacters";
 
         private static final String CONFIG_REPLACE_NEWLINE_WITH_SYMBOLS = "replaceNewlineAndCarriageReturn";
@@ -296,6 +322,7 @@ public final class StringFormatter implements ValueFormatModel {
             config.addInt(CONFIG_LAST_CHARS, s.nLastChars());
             config.addBoolean(CONFIG_WRAP_LINES, s.wrapLines());
             config.addBoolean(CONFIG_BREAK_WORDS, s.breakWords());
+            config.addString(CONFIG_ALIGNMENT_SUGGESTION, s.alignment().name());
             config.addBoolean(CONFIG_REPLACE_NEWLINE_WITH_SYMBOLS, s.replaceNewlinesAndCarriageReturn());
             config.addBoolean(CONFIG_DISPLAY_NONPRINTABLE_CHARS, s.replaceNonPrintableCharacters());
             config.addString(CONFIG_EMPTYSTRING_REPLACEMENT, s.emptyStringReplacement().orElse(null));
@@ -308,11 +335,23 @@ public final class StringFormatter implements ValueFormatModel {
                 config.getInt(CONFIG_LAST_CHARS), //
                 config.getBoolean(CONFIG_WRAP_LINES), //
                 config.getBoolean(CONFIG_BREAK_WORDS), //
+                getAlignmentSuggestion(config), //
                 config.getBoolean(CONFIG_REPLACE_NEWLINE_WITH_SYMBOLS), //
                 config.getBoolean(CONFIG_DISPLAY_NONPRINTABLE_CHARS), //
                 Optional.ofNullable(config.getString(CONFIG_EMPTYSTRING_REPLACEMENT)),
                 config.getBoolean(CONFIG_LINK_HREF_AND_EMAIL));
             return StringFormatter.fromSettings(s);
+        }
+
+        static AlignmentSuggestionOption getAlignmentSuggestion(final ConfigBaseRO config)
+            throws InvalidSettingsException {
+            var v = config.getString(CONFIG_ALIGNMENT_SUGGESTION, AlignmentSuggestionOption.LEFT.name());
+            try {
+                return AlignmentSuggestionOption.valueOf(v);
+            } catch (IllegalArgumentException iae) {
+                throw new InvalidSettingsException("Invalid alignment suggestion", iae);
+            }
+
         }
     }
 
