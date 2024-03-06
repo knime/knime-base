@@ -167,11 +167,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
 
     private final JSpinner m_limitAnalysisSpinner;
 
-    private final JRadioButton m_ignoreChangedSchema = new JRadioButton("Ignore");
-
     private final JRadioButton m_failOnChangedSchema = new JRadioButton("Fail");
 
     private final JRadioButton m_useNewSchema = new JRadioButton("Use new schema");
+
+    private final JRadioButton m_ignoreChangedSchema = new JRadioButton("Ignore (deprecated)");
 
     private final JSpinner m_maxColsSpinner;
 
@@ -306,6 +306,7 @@ public abstract class AbstractCSVTableReaderNodeDialog
         schemaChangeButtonGroup.add(m_failOnChangedSchema);
         schemaChangeButtonGroup.add(m_useNewSchema);
 
+        m_ignoreChangedSchema.setEnabled(false);
         m_ignoreChangedSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
         m_failOnChangedSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
         m_useNewSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
@@ -591,8 +592,8 @@ public abstract class AbstractCSVTableReaderNodeDialog
         final var specChangedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         specChangedPanel.add(m_failOnChangedSchema);
-        specChangedPanel.add(m_ignoreChangedSchema);
         specChangedPanel.add(m_useNewSchema);
+        specChangedPanel.add(m_ignoreChangedSchema);
         specChangedPanel.add(Box.createHorizontalGlue());
 
         return specChangedPanel;
@@ -624,18 +625,11 @@ public abstract class AbstractCSVTableReaderNodeDialog
     private JPanel createQuoteOptionsPanel() {
         final JPanel panel = new JPanel(new GridBagLayout());
         final GridBagConstraints gbc = createAndInitGBC();
-        gbc.insets = new Insets(5, 5, 0, 0);
-
         panel.setBorder(CSVReaderDialogUtils.createBorder("Quote options"));
 
-        for (final QuoteOption mode : QuoteOption.values()) {
-            final JRadioButton b = new JRadioButton(mode.toString());
-            b.setActionCommand(mode.name());
-            m_quoteOptionsButtonGroup.add(b);
-            panel.add(b, gbc);
-            ++gbc.gridy;
-            gbc.insets = new Insets(0, 5, 0, 0);
-        }
+        gbc.insets = new Insets(5, 0, 0, 0);
+        panel.add(createQuoteOptionRadioButtonPanel(), gbc);
+
         gbc.insets = new Insets(10, 0, 5, 0);
         gbc.gridx = 0;
         gbc.gridwidth = QuoteOption.values().length;
@@ -660,6 +654,21 @@ public abstract class AbstractCSVTableReaderNodeDialog
         panel.add(Box.createHorizontalBox(), gbc);
 
         return panel;
+    }
+
+    private JPanel createQuoteOptionRadioButtonPanel() {
+        final var quoteOptionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        for (final QuoteOption mode : QuoteOption.values()) {
+            final var radioButton = new JRadioButton(mode.toString());
+            radioButton.setActionCommand(mode.name());
+            m_quoteOptionsButtonGroup.add(radioButton);
+            quoteOptionsPanel.add(radioButton);
+        }
+        quoteOptionsPanel.add(Box.createHorizontalGlue());
+
+        return quoteOptionsPanel;
+
     }
 
     private JPanel createOptionsPanel() {

@@ -232,13 +232,13 @@
 				or their types change. The following options are available:
 				<ul>
 				<li><b>Fail:</b> If set, the node fails if the column names in the file have changed. Changes in column types will not be detected.</li>
-				<li><b>Ignore:</b> If set, the node tries to ignore the changes and outputs a table with the old table specification.
-				This is not recommended, as it may lead to invalid data in the resulting table. The "Use new schema" option should be used
-				instead.
-				</li>
 				<li><b>Use new schema:</b> If set, the node will compute a new table specification for the current
 				schema of the file at the time when the node is executed. Note that the node will not output a table specification
 				before execution and that it will not apply transformations, therefore the transformation tab is disabled.
+				</li>
+				<li><b>Ignore (deprecated):</b> If set, the node tries to ignore the changes and outputs a table with the old table specification.
+				This option is deprecated and should never be selected for new workflows, as it may lead to invalid data in the resulting table.
+				Use one of the other options instead.
 				</li>
 				</ul>
 			</option>
