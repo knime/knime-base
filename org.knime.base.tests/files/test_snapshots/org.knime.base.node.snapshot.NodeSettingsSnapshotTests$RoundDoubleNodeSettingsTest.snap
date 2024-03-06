@@ -1,0 +1,345 @@
+{
+  "data" : {
+    "model" : {
+      "columnsToFormat" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "numberMode" : "DECIMALS",
+      "precision" : 3,
+      "roundingMethod" : "HALF_AWAY_FROM_ZERO",
+      "outputColumn" : "APPEND",
+      "suffix" : " (Rounded)",
+      "outputMode" : "AUTO"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnsToFormat" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns to round",
+            "description" : "Select the numeric input columns to round.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "StringColNames" ]
+          },
+          "numberMode" : {
+            "oneOf" : [ {
+              "const" : "DECIMALS",
+              "title" : "Decimals"
+            }, {
+              "const" : "SIGNIFICANT_DIGITS",
+              "title" : "Significant digits"
+            }, {
+              "const" : "INTEGER",
+              "title" : "Integer"
+            } ],
+            "title" : "Rounding mode",
+            "description" : "Select the rounding mode to apply.\n<ul>\n<li><b>Decimals</b>: Rounds numeric values up to the specified number of decimal places.</li>\n<li><b>Significant digits</b>: Only keeps the specified number of significant digits.</li>\n<li><b>Integer</b>: Converts numeric values to integer.</li>\n</ul>",
+            "default" : "DECIMALS",
+            "configKeys" : [ "NumberMode" ]
+          },
+          "outputColumn" : {
+            "oneOf" : [ {
+              "const" : "REPLACE",
+              "title" : "Replace"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append with suffix"
+            } ],
+            "title" : "Output columns",
+            "description" : "Configure output column behavior.\n<ul>\n<li><b>Replace</b>: Replaces the input columns</li>\n<li><b>Append with suffix</b>: Appends additional output columns</li>\n</ul>",
+            "default" : "APPEND",
+            "configKeys" : [ "AppendColumns" ]
+          },
+          "outputMode" : {
+            "oneOf" : [ {
+              "const" : "AUTO",
+              "title" : "Auto"
+            }, {
+              "const" : "DOUBLE",
+              "title" : "Double"
+            }, {
+              "const" : "STANDARD_STRING",
+              "title" : "Standard string"
+            }, {
+              "const" : "PLAIN_STRING",
+              "title" : "Plain string"
+            }, {
+              "const" : "ENGINEERING_STRING",
+              "title" : "Engineering string"
+            } ],
+            "title" : "Output mode (legacy)",
+            "description" : "Determines the formatting of the output columns.\n<ul>\n<li><b>Auto</b>: Sets output column types automatically based on input column types.</li>\n<li><b>Double</b>: Sets all output column types to real numbers.</li>\n<li><b>Standard string</b>: Returns the string representation of a number using scientific notation if an exponent is needed.\n</li>\n<li><b>Plain string</b>: Returns a string representation of a number without an exponent field.\n</li>\n<li><b>Engineering string</b>: Returns a string representation of a number, using engineering notation if an exponent is needed.\n</li>\n</ul>",
+            "default" : "AUTO",
+            "configKeys" : [ "OutputType" ]
+          },
+          "precision" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Rounding to digits",
+            "description" : "When rounding to <b>Decimals</b>, this sets the number of decimal places to keep.<br/>\nWhen rounding to <b>Significant digits</b>, this sets the number of significant digits to keep.\n",
+            "default" : 3,
+            "minimum" : 0,
+            "maximum" : 350.0,
+            "configKeys" : [ "PrecisionNumer" ]
+          },
+          "roundingMethod" : {
+            "oneOf" : [ {
+              "const" : "HALF_TO_EVEN_DIGIT",
+              "title" : ".5 to even digit"
+            }, {
+              "const" : "HALF_TOWARDS_ZERO",
+              "title" : ".5 towards zero"
+            }, {
+              "const" : "HALF_AWAY_FROM_ZERO",
+              "title" : ".5 away from zero"
+            }, {
+              "const" : "TOWARDS_ZERO",
+              "title" : "towards zero"
+            }, {
+              "const" : "AWAY_FROM_ZERO",
+              "title" : "away from zero"
+            }, {
+              "const" : "TO_LARGER",
+              "title" : "to larger"
+            }, {
+              "const" : "TO_SMALLER",
+              "title" : "to smaller"
+            } ],
+            "title" : "Rounding method",
+            "description" : "Select the rounding method to apply.\n<ul>\n<li><b>.5 to even digit</b>: Rounds towards the 'nearest neighbor' unless both neighbors are equidistant,\nin which case, round towards the even neighbor.\n</li>\n<li><b>.5 towards zero</b>: Rounds towards 'nearest neighbor' unless both neighbors are equidistant,\nin which case round down.\n</li>\n<li><b>.5 away from zero</b>: Rounds towards 'nearest neighbor' unless both neighbors are equidistant,\nin which case round up.\n</li>\n<li><b>towards zero</b>: Rounds towards zero.\nNever increments the digit prior to a discarded fraction (i.e., truncates).\n</li>\n<li><b>away from zero</b>: Rounds away from zero.\nAlways increments the digit prior to a non-zero discarded fraction.\n</li>\n<li><b>to larger</b>: Rounds towards positive infinity.\nIf the result is positive, behaves as for 'away from zero';\nif negative, behaves as for 'towards zero'.\n</li>\n<li><b>to smaller</b>: Rounds towards negative infinity.\nIf the result is positive, behave as for 'towards zero';\nif negative, behave as for 'away from zero'.\n</li>\n</ul>",
+            "default" : "HALF_AWAY_FROM_ZERO",
+            "configKeys" : [ "RoundingMode" ]
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Output column suffix",
+            "description" : "Set the suffix to append to the new column names.",
+            "default" : " (Rounded)",
+            "configKeys" : [ "ColumnSuffix" ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnsToFormat",
+      "options" : {
+        "format" : "columnFilter",
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (double)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        } ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/numberMode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/precision",
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/numberMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "INTEGER"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/roundingMethod",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputColumn",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/suffix",
+      "options" : {
+        "hideOnNull" : false
+      },
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/outputColumn",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "REPLACE"
+            } ]
+          }
+        }
+      }
+    }, {
+      "label" : "Advanced settings",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputMode"
+      } ]
+    } ]
+  }
+}

@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,61 +41,40 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   03.05.2012 (kilian): created
+ *   Feb 8, 2024 (kai): created
  */
 package org.knime.base.node.preproc.rounddouble;
 
-import java.math.BigDecimal;
-
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataType;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
+ * Legacy configuration keys for backwards compatibility
  *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
+ * @author Kai Franze, KNIME GmbH, Germany
  */
-final class RoundDoubleConfigKeys {
+final class RoundDoubleLegacyConfigKeys {
+
+    private RoundDoubleLegacyConfigKeys() {
+        // Utility class
+    }
 
     enum RoundOutputType {
 
-        Double("Double") {
-            @Override
-            DataCell createCell(final BigDecimal bd) {
-                double roundedValue = bd.doubleValue();
-                if (java.lang.Double.isNaN(roundedValue)) {
-                    return DataType.getMissingCell();
-                }
-                return new DoubleCell(bd.doubleValue());
-            }
-        },
-        StringStandard("Standard String") {
-            @Override
-            DataCell createCell(final BigDecimal bd) {
-                return new StringCell(bd.toString());
-            }
-        },
-        StringPlain("Plain String (no exponent)") {
-            @Override
-            DataCell createCell(final BigDecimal bd) {
-                return new StringCell(bd.toPlainString());
-            }
-        },
-        StringEngineering("Engineering String") {
-            @Override
-            DataCell createCell(final BigDecimal bd) {
-                return new StringCell(bd.toEngineeringString());
-            }
-        };
+            Double("Double"), // NOSONAR: Backwards compatibility
+
+            StringStandard("Standard String"), // NOSONAR: Backwards compatibility
+
+            StringPlain("Plain String (no exponent)"), // NOSONAR: Backwards compatibility
+
+            StringEngineering("Engineering String"); // NOSONAR: Backwards compatibility
 
         private final String m_label;
 
-        private RoundOutputType(final String label) {
+        RoundOutputType(final String label) {
             m_label = label;
         }
 
@@ -102,7 +82,9 @@ final class RoundDoubleConfigKeys {
             return m_label;
         }
 
-        /** Get object for label.
+        /**
+         * Get object for label.
+         *
          * @param label ...
          * @return ...
          * @throws InvalidSettingsException If argument is invalid
@@ -116,27 +98,55 @@ final class RoundDoubleConfigKeys {
             throw new InvalidSettingsException("Round output type \"" + label + "\" is unknown.");
         }
 
-        static String[] getLabels() {
-            RoundOutputType[] values = values();
-            String[] result = new String[values.length];
-            for (int i = 0; i < result.length; i++) {
-                result[i] = values[i].getLabel();
-            }
-            return result;
-        }
-
-        abstract DataCell createCell(final BigDecimal bd);
-
-        DataType getDataCellType() {
-            switch (this) {
-                case Double: return DoubleCell.TYPE;
-                default: return StringCell.TYPE;
-            }
-        }
-
     }
 
-    private RoundDoubleConfigKeys() { /* empty constructor */ }
+    enum NumberMode {
+
+            /**
+             * rounding to decimal places.
+             */
+            DECIMAL_PLACES("Decimal places"),
+
+            /**
+             * rounding to significant figures.
+             */
+            SIGNIFICANT_FIGURES("Significant figures");
+
+        private String m_description;
+
+        /**
+         * Constructor.
+         *
+         * @param description The modes description.
+         */
+        NumberMode(final String description) {
+            m_description = description;
+        }
+
+        /**
+         * Returns the number mode value for the given description. If there exists no mode for description an
+         * <code>IllegalArgumentException</code> is thrown.
+         *
+         * @param description The description to get the number mode value for.
+         * @return Number mode value for given description
+         * @throws InvalidSettingsException If argument is invalid
+         */
+        public static NumberMode valueByDescription(final String description) throws InvalidSettingsException {
+            for (NumberMode mode : values()) {
+                if (mode.description().equals(description)) {
+                    return mode;
+                }
+            }
+            throw new InvalidSettingsException("Number mode \"" + description + "\" is not supported.");
+        }
+
+        /**
+         * @return The description of the mode.
+         */
+        public String description() {
+            return m_description;
+        }
+    }
 
     /**
      * The configuration key for the selected column names.
@@ -177,4 +187,5 @@ final class RoundDoubleConfigKeys {
      * The configuration key for the specified number mode.
      */
     static final String NUMBER_MODE = "NumberMode";
+
 }

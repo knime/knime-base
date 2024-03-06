@@ -69,6 +69,7 @@ import org.knime.base.node.preproc.duplicates.DuplicateRowFilterDialogSettings;
 import org.knime.base.node.preproc.filter.column.ColumnFilterNodeSettings;
 import org.knime.base.node.preproc.filter.columnref.ColumnFilterRefNodeSettings;
 import org.knime.base.node.preproc.filter.rowref.RowFilterRefNodeSettings;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings;
 import org.knime.base.node.preproc.rowagg.RowAggregatorSettings;
 import org.knime.base.node.preproc.rowtocolumnheader.RowToColumnHeaderSettings;
 import org.knime.base.node.preproc.stringreplacer.StringReplacerNodeSettings;
@@ -307,6 +308,13 @@ class NodeSettingsSnapshotTests { // NOSONAR
     class LoopStartChunkNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         protected LoopStartChunkNodeSettingsTest() {
             super(Map.of(SettingsType.MODEL, LoopStartChunkNodeSettings.class), createDefaultTestTableSpec());
+        }
+    }
+
+    @Nested
+    class RoundDoubleNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+        protected RoundDoubleNodeSettingsTest() {
+            super(Map.of(SettingsType.MODEL, RoundDoubleNodeSettings.class), createDefaultTestTableSpec());
         }
     }
 }
