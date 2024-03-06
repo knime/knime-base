@@ -107,11 +107,11 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
 
     private final JSpinner m_skipFirstRowsSpinner;
 
-    private final JRadioButton m_ignoreChangedSchema = new JRadioButton("Ignore");
-
     private final JRadioButton m_failOnChangedSchema = new JRadioButton("Fail");
 
     private final JRadioButton m_useNewSchema = new JRadioButton("Use new schema");
+
+    private final JRadioButton m_ignoreChangedSchema = new JRadioButton("Ignore (deprecated)");
 
     private final KnimeTableMultiTableReadConfig m_config;
 
@@ -174,6 +174,7 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         schemaChangeButtonGroup.add(m_failOnChangedSchema);
         schemaChangeButtonGroup.add(m_useNewSchema);
 
+        m_ignoreChangedSchema.setEnabled(false);
         m_ignoreChangedSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
         m_failOnChangedSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
         m_useNewSchema.addActionListener(e -> updateTransformationTabEnabledStatus());
@@ -303,8 +304,8 @@ final class KnimeTableReaderNodeDialog extends AbstractPathTableReaderNodeDialog
         final var specChangedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         specChangedPanel.add(m_failOnChangedSchema);
-        specChangedPanel.add(m_ignoreChangedSchema);
         specChangedPanel.add(m_useNewSchema);
+        specChangedPanel.add(m_ignoreChangedSchema);
 
         return specChangedPanel;
     }
