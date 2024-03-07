@@ -54,6 +54,7 @@ import org.knime.base.node.preproc.rowagg.RowAggregatorNodeModel.AggregationFunc
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.IsNoneColumnStringCondition;
@@ -153,6 +154,11 @@ public final class RowAggregatorSettings implements DefaultNodeSettings {
             + "The second output is inactive if no category " + "column is selected or this setting is not enabled.")
     @Effect(signals = IsNoneCategoryColumnSelected.class, type = EffectType.DISABLE)
     boolean m_grandTotals;
+
+    @Widget(title = "Enable Hiliting", advanced = true,
+        description = "Enable hiliting between the input port and the aggregated output table.")
+    @Persist(optional = true)
+    boolean m_enableHiliting;
 
     /**
      * Constructor for de/serialization.

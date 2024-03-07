@@ -48,6 +48,10 @@
  */
 package org.knime.base.node.preproc.rowagg;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -90,13 +94,19 @@ import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.filestore.FileStoreFactory;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
+import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
+import org.knime.core.node.property.hilite.HiLiteHandler;
+import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -132,8 +142,6 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
     /** Warning message that input table has no columns. */
     private static final String INPUT_NO_COLUMNS = "Input table should contain at least one column.";
 
-    /** Instructs *GroupByTables to enable or disable hiliting. */
-    private static final boolean ENABLE_HILITE = false;
     /** Instructs *GroupByTables to retain the original row order. */
     private static final boolean RETAIN_ORDER = false;
 
@@ -144,6 +152,10 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
 
     /** How operators other than {@code count} handle missing cells. */
     private static final OperatorColumnSettings OPERATOR_MISSING_HANDLING = OperatorColumnSettings.DEFAULT_EXCL_MISSING;
+
+    private HiLiteTranslator m_hiliteTranslator;
+
+    private final HiLiteHandler[] m_hiliteHandlers = {new HiLiteHandler(), new HiLiteHandler()};
 
     @FunctionalInterface
     private interface TriFunction<T, U, V, R> {
@@ -409,6 +421,8 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             setWarningMessage(INPUT_NO_COLUMNS);
         }
 
+        this.setInHiLiteHandler(0, getInHiLiteHandler(0));
+
         // check aggregated columns and aggregation function together
         final var agg = settings.m_aggregationMethod;
         final var aggregatedColumns = getEffectiveAggregatedColumns(origSpec, settings);
@@ -530,11 +544,12 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
                 aggregators,
                 countColumnName,
                 groupByGlobalSettings,
-                ENABLE_HILITE,
+                settings.m_enableHiliting,
                 COL_NAME_POLICY,
                 RETAIN_ORDER);
             warnSkippedGroups(groupedResult);
             groupedAggregates = groupedResult.getBufferedTable();
+            m_hiliteTranslator.setMapper(new DefaultHiLiteMapper(groupedResult.getHiliteMapping()));
             if (!settings.m_grandTotals) {
                 return new PortObject[] { groupedAggregates, InactiveBranchPortObject.INSTANCE };
             }
@@ -550,7 +565,7 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
             aggregators,
             countColumnName,
             totalsGlobalSettings,
-            ENABLE_HILITE,
+            settings.m_enableHiliting,
             COL_NAME_POLICY,
             RETAIN_ORDER);
         warnSkippedGroups(totalAggregates);
@@ -614,6 +629,64 @@ final class RowAggregatorNodeModel extends WebUINodeModel<RowAggregatorSettings>
         if (warningMsg != null) {
             setWarningMessage(warningMsg);
             LOGGER.info(resultTable.getSkippedGroupsMessage(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        }
+    }
+
+    @Override
+    protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
+        if (m_hiliteTranslator != null) {
+            m_hiliteTranslator.dispose();
+            m_hiliteTranslator = null;
+        }
+        // Translator will map from output rowIDs to a set of input RowIDs
+        m_hiliteTranslator = new HiLiteTranslator(m_hiliteHandlers[0]);
+        m_hiliteTranslator.addToHiLiteHandler(hiLiteHdl);
+    }
+
+    @Override
+    protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
+        if (outIndex == 0 || outIndex == 1) {
+            return m_hiliteHandlers[outIndex];
+        }
+        return super.getOutHiLiteHandler(outIndex);
+    }
+
+    private static final String INTERNALS_HILITE_MAPPING_FILE = "hilite_mapping.xml.gz";
+
+    @Override
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+        if (getSettings().map(s -> s.m_enableHiliting).orElse(false)) {
+            final var file = new File(nodeInternDir, INTERNALS_HILITE_MAPPING_FILE);
+            try (final var is = new FileInputStream(file)) {
+                final var config = NodeSettings.loadFromXML(is);
+                m_hiliteTranslator.setMapper(DefaultHiLiteMapper.load(config));
+            } catch (InvalidSettingsException e) {
+                throw new IOException("Couldn't load hilite mapping", e);
+            }
+        }
+    }
+
+    @Override
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+        if (getSettings().map(s -> s.m_enableHiliting).orElse(false)) {
+            final var file = new File(nodeInternDir, INTERNALS_HILITE_MAPPING_FILE);
+            final var settings = new NodeSettings("hilite_mapping");
+            final var mapper = m_hiliteTranslator.getMapper();
+            if (mapper instanceof DefaultHiLiteMapper dmapper) {
+                dmapper.save(settings);
+            }
+            try (final var os = new FileOutputStream(file)) {
+                settings.saveToXML(os);
+            }
+        }
+    }
+
+    @Override
+    protected void reset() {
+        if (m_hiliteTranslator != null) {
+            m_hiliteTranslator.setMapper(null);
         }
     }
 }

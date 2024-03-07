@@ -19,7 +19,8 @@
           "typeDisplays" : [ ]
         }
       },
-      "grandTotals" : false
+      "grandTotals" : false,
+      "enableHiliting" : false
     }
   },
   "schema" : {
@@ -53,6 +54,13 @@
             "type" : "string",
             "title" : "Category column",
             "description" : "Select the column that defines the category on which rows are grouped. If no category column is selected, \"grand total\" values in which all rows belong to the same group will be calculated."
+          },
+          "enableHiliting" : {
+            "type" : "boolean",
+            "title" : "Enable Hiliting",
+            "description" : "Enable hiliting between the input port and the aggregated output table.",
+            "default" : false,
+            "configKeys" : [ "enableHiliting" ]
           },
           "frequencyColumns" : {
             "type" : "object",
@@ -294,6 +302,13 @@
             "const" : "<none>"
           }
         }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/enableHiliting",
+      "options" : {
+        "format" : "checkbox",
+        "isAdvanced" : true
       }
     } ]
   }
