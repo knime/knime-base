@@ -59,7 +59,8 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/hiliting",
       "options" : {
-        "format" : "checkbox"
+        "format" : "checkbox",
+        "isAdvanced" : true
       }
     } ]
   }

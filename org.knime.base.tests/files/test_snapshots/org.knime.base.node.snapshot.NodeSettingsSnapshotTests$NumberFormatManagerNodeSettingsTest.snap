@@ -22,7 +22,8 @@
       "maximumDecimals" : 3,
       "groupSeparator" : "THIN_SPACE",
       "decimalSeparator" : "DOT",
-      "alwaysShowDecimalSeparator" : false
+      "alwaysShowDecimalSeparator" : false,
+      "alignmentSuggestion" : "RIGHT"
     }
   },
   "schema" : {
@@ -31,6 +32,22 @@
       "model" : {
         "type" : "object",
         "properties" : {
+          "alignmentSuggestion" : {
+            "oneOf" : [ {
+              "const" : "LEFT",
+              "title" : "Left"
+            }, {
+              "const" : "CENTER",
+              "title" : "Center"
+            }, {
+              "const" : "RIGHT",
+              "title" : "Right"
+            } ],
+            "title" : "Alignment suggestion",
+            "description" : "Specify how to align the number.",
+            "default" : "RIGHT",
+            "configKeys" : [ "alignmentSuggestion" ]
+          },
           "alwaysShowDecimalSeparator" : {
             "type" : "boolean",
             "title" : "Always show decimal separator",
@@ -271,6 +288,16 @@
         "scope" : "#/properties/model/properties/alwaysShowDecimalSeparator",
         "options" : {
           "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Display",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/alignmentSuggestion",
+        "options" : {
+          "format" : "valueSwitch"
         }
       } ]
     } ]

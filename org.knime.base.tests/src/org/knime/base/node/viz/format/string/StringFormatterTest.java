@@ -54,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.knime.base.node.viz.format.AlignmentSuggestionOption.LEFT;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -79,25 +80,25 @@ class StringFormatterTest {
     @Test
     void testInstantiation() throws InvalidSettingsException {
         instantiateAndPersistFormatterWithSettings(false,
-            new Settings(0, 0, false, false, false, false, Optional.empty(), false));
+            new Settings(0, 0, false, false, LEFT, false, false, Optional.empty(), false));
         instantiateAndPersistFormatterWithSettings(false,
-            new Settings(10, 10, false, false, false, false, Optional.of("hi"), false));
+            new Settings(10, 10, false, false, LEFT, false, false, Optional.of("hi"), false));
         instantiateAndPersistFormatterWithSettings(false,
-            new Settings(0, 0, true, true, true, true, Optional.empty(), true));
+            new Settings(0, 0, true, true, LEFT, true, true, Optional.empty(), true));
         instantiateAndPersistFormatterWithSettings(false,
-            new Settings(10, 0, true, true, true, true, Optional.of("test"), true));
+            new Settings(10, 0, true, true, LEFT, true, true, Optional.of("test"), true));
         instantiateAndPersistFormatterWithSettings(true,
-            new Settings(10, 10, false, true, true, true, Optional.empty(), true));
+            new Settings(10, 10, false, true, LEFT, true, true, Optional.empty(), true));
         instantiateAndPersistFormatterWithSettings(true,
-            new Settings(-10, 10, true, true, true, true, Optional.empty(), true));
+            new Settings(-10, 10, true, true, LEFT, true, true, Optional.empty(), true));
         instantiateAndPersistFormatterWithSettings(true,
-            new Settings(10, -10, true, true, true, true, Optional.empty(), true));
+            new Settings(10, -10, true, true, LEFT, true, true, Optional.empty(), true));
         instantiateAndPersistFormatterWithSettings(true,
-            new Settings(-10, -10, true, true, true, true, Optional.empty(), true));
+            new Settings(-10, -10, true, true, LEFT, true, true, Optional.empty(), true));
         instantiateAndPersistFormatterWithSettings(true,
-            new Settings(10, 10, true, true, true, true, Optional.of(""), true));
+            new Settings(10, 10, true, true, LEFT, true, true, Optional.of(""), true));
         instantiateAndPersistFormatterWithSettings(true,
-            new Settings(10, 10, true, true, true, true, Optional.of("  "), true));
+            new Settings(10, 10, true, true, LEFT, true, true, Optional.of("  "), true));
     }
 
     static void instantiateAndPersistFormatterWithSettings(final boolean expectedToFail, final Settings s)
@@ -120,7 +121,7 @@ class StringFormatterTest {
         for (var firstChars = 0; firstChars < 10; firstChars++) {
             for (var lastChars = 0; lastChars < 10; lastChars++) {
                 final var settings =
-                    new Settings(firstChars, lastChars, false, false, false, false, Optional.empty(), false);
+                    new Settings(firstChars, lastChars, false, false, LEFT, false, false, Optional.empty(), false);
                 final var fmt = StringFormatter.fromSettings(settings);
                 for (final var string : List.of("", "1", "12", "12345", "12345678", "123456789", "1234567890",
                     "1234567890abcdefghijklmnopqrstuvwxyz")) {
@@ -144,7 +145,7 @@ class StringFormatterTest {
 
     @Test
     void testReplaceCharactersHTML() throws InvalidSettingsException {
-        var settings = new Settings(500, 5, false, false, false, true, Optional.empty(), false);
+        var settings = new Settings(500, 5, false, false, LEFT, false, true, Optional.empty(), false);
         var fmt = StringFormatter.fromSettings(settings);
         final var expectedCharMappings = new LinkedHashMap<String, String>();
         expectedCharMappings.put("\u00ad", "\ufffd"); // soft hyphen
@@ -162,7 +163,7 @@ class StringFormatterTest {
         buildStringsAndAssertEquals(fmt, expectedCharMappings, false);
 
         // change to also replace \r \n
-        settings = new Settings(500, 5, false, false, true, true, Optional.empty(), false);
+        settings = new Settings(500, 5, false, false, LEFT, true, true, Optional.empty(), false);
         fmt = StringFormatter.fromSettings(settings);
         expectedCharMappings.put("\r", "\u240d");
         expectedCharMappings.put("\n", "\u2424");
@@ -170,7 +171,7 @@ class StringFormatterTest {
         buildStringsAndAssertEquals(fmt, expectedCharMappings, false);
 
         // change to only replace \r \n
-        settings = new Settings(500, 5, false, false, true, false, Optional.empty(), false);
+        settings = new Settings(500, 5, false, false, LEFT, true, false, Optional.empty(), false);
         fmt = StringFormatter.fromSettings(settings);
         for (final var entry : expectedCharMappings.entrySet()) {
             if (entry.getKey().equals("\r") || entry.getKey().equals("\n")) {
@@ -210,7 +211,7 @@ class StringFormatterTest {
 
     @Test
     void testMakeLinksClickable() throws InvalidSettingsException {
-        final var settings = new Settings(500, 0, false, false, false, false, Optional.empty(), true);
+        final var settings = new Settings(500, 0, false, false, LEFT, false, false, Optional.empty(), true);
         final var fmt = StringFormatter.fromSettings(settings);
         Stream.of(// some "normal" urls
             "www.knime.com", //
@@ -348,38 +349,40 @@ class StringFormatterTest {
 
     private static StringFormatter getInstanceWithStyleSettings(final boolean wrapLines, final boolean breakWords)
         throws InvalidSettingsException {
-        final var settings = new Settings(500, 5, wrapLines, breakWords, false, false, Optional.empty(), false);
+        final var settings = new Settings(500, 5, wrapLines, breakWords, LEFT, false, false, Optional.empty(), false);
         return StringFormatter.fromSettings(settings);
     }
 
     @Test
     void testFormat() throws InvalidSettingsException {
         final var testString = "here's a.link and a way too long sentence\t";
-        var settings = new Settings(25, 5, true, true, false, false, Optional.empty(), true);
+        var settings = new Settings(25, 5, true, true, LEFT, false, false, Optional.empty(), true);
         var fmt = StringFormatter.fromSettings(settings);
         assertEquals("""
                 <span style="\
                 display:inline-block;\
                 overflow:hidden;\
                 text-overflow:ellipsis;\
+                width:100%;\
                 white-space:break-spaces;\
                 word-break:break-all;\
+                text-align: left;\
                 " title="here&#39;s a.link and a way t…ence\t">\
                 here&#39;s <a href="http://a.link" title="http://a.link">a.link</a> and a way t"""
             + StringFormatter.ELLIPSIS + "ence\t</span>", fmt.format(testString), "Expect the proper output");
 
-        settings = new Settings(11, 5, true, true, false, false, Optional.empty(), true);
+        settings = new Settings(11, 5, true, true, LEFT, false, false, Optional.empty(), true);
         fmt = StringFormatter.fromSettings(settings);
         assertFalse(fmt.format(testString).contains("<a"), "The link must not be linked to a.li");
 
-        settings = new Settings(100, 0, false, false, false, false, Optional.empty(), true);
+        settings = new Settings(100, 0, false, false, LEFT, false, false, Optional.empty(), true);
         fmt = StringFormatter.fromSettings(settings);
         assertEquals(2,
             StringUtils.countMatches(fmt.format("<some xml=\"tag\">with te'xt & symbols</some>"),
                 "&lt;some xml=&quot;tag&quot;&gt;with te&#39;xt &amp; symbols&lt;/some&gt;"),
             "HTML is escaped properly (two times, both in title and in the span itself)");
 
-        settings = new Settings(100, 0, false, false, true, true, Optional.empty(), true);
+        settings = new Settings(100, 0, false, false, LEFT, true, true, Optional.empty(), true);
         fmt = StringFormatter.fromSettings(settings);
         assertTrue(
             fmt.format("<some xml=\"tag\">with te'xt & \tsymbols</some>")
@@ -389,7 +392,7 @@ class StringFormatterTest {
 
     @Test
     void testGetHTML() throws InvalidSettingsException {
-        final var settings = new Settings(25, 5, true, true, true, true, Optional.empty(), true);
+        final var settings = new Settings(25, 5, true, true, LEFT, true, true, Optional.empty(), true);
         final var fmt = StringFormatter.fromSettings(settings);
 
         final var testString = "Greatest taco place I ever knew is just around the corner";

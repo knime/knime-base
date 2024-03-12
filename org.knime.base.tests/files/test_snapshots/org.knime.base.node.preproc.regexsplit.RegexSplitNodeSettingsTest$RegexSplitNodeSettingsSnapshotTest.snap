@@ -4,6 +4,7 @@
       "pattern" : "(.*)",
       "caseMatching" : "CASESENSITIVE",
       "requireWholeMatch" : true,
+      "noMatchBehaviour" : "INSERT_MISSING",
       "isUnixLines" : false,
       "isMultiLine" : false,
       "isDotAll" : false,
@@ -14,12 +15,11 @@
       "output" : {
         "mode" : "COLUMNS",
         "columnPrefixMode" : "INPUT_COL_NAME",
-        "removeInputColumn" : false,
         "columnPrefix" : "Split ",
         "singleOutputColumnMode" : "APPEND",
         "columnName" : "Split",
         "groupLabels" : "CAPTURE_GROUP_NAMES",
-        "noMatchBehaviour" : "INSERT_MISSING"
+        "removeInputColumn" : false
       },
       "isLiteral" : false,
       "isComments" : false
@@ -109,6 +109,22 @@
             "default" : false,
             "configKeys" : [ "isUnixLines" ]
           },
+          "noMatchBehaviour" : {
+            "oneOf" : [ {
+              "const" : "INSERT_MISSING",
+              "title" : "Insert missing value"
+            }, {
+              "const" : "INSERT_EMPTY",
+              "title" : "Insert empty string"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "If pattern does not match",
+            "description" : "Define what to do if a pattern can't be matched to the input string:\n<ul>\n    <li><i>Insert missing value</i> puts missing cell(s) in place of the output column(s).\n        The node will emit a warning when an input string doesn't match.</li>\n    <li><i>Insert empty string</i> puts empty string(s) in place of the output column(s).\n        The node will emit a warning when an input string doesn't match.</li>\n    <li><i>Fail</i> causes the node to fail if one of the inputs can not be matched against the pattern.\n    </li>\n</ul>\n",
+            "default" : "INSERT_MISSING",
+            "configKeys" : [ "noMatchBehaviour" ]
+          },
           "output" : {
             "type" : "object",
             "properties" : {
@@ -173,22 +189,6 @@
                 "default" : "COLUMNS",
                 "configKeys" : [ "mode" ]
               },
-              "noMatchBehaviour" : {
-                "oneOf" : [ {
-                  "const" : "INSERT_MISSING",
-                  "title" : "Insert missing value"
-                }, {
-                  "const" : "INSERT_EMPTY",
-                  "title" : "Insert empty string"
-                }, {
-                  "const" : "FAIL",
-                  "title" : "Fail"
-                } ],
-                "title" : "If pattern does not match",
-                "description" : "Define what to do if a pattern can't be matched to the input string:\n<ul>\n    <li><i>Insert missing value</i> puts missing cell(s) in place of the output column(s).\n        The node will emit a warning when an input string doesn't match.</li>\n    <li><i>Insert empty string</i> puts empty string(s) in place of the output column(s).\n        The node will emit a warning when an input string doesn't match.</li>\n    <li><i>Fail</i> causes the node to fail if one of the inputs can not be matched against the pattern.\n    </li>\n</ul>\n",
-                "default" : "INSERT_MISSING",
-                "configKeys" : [ "noMatchBehaviour" ]
-              },
               "removeInputColumn" : {
                 "type" : "boolean",
                 "title" : "Remove input column",
@@ -213,12 +213,11 @@
             "default" : {
               "mode" : "COLUMNS",
               "columnPrefixMode" : "INPUT_COL_NAME",
-              "removeInputColumn" : false,
               "columnPrefix" : "Split ",
               "singleOutputColumnMode" : "APPEND",
               "columnName" : "Split",
               "groupLabels" : "CAPTURE_GROUP_NAMES",
-              "noMatchBehaviour" : "INSERT_MISSING"
+              "removeInputColumn" : false
             },
             "configKeys" : [ "output" ]
           },
@@ -282,9 +281,15 @@
         "options" : {
           "format" : "checkbox"
         }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/noMatchBehaviour",
+        "options" : {
+          "format" : "valueSwitch"
+        }
       } ]
     }, {
-      "label" : "Splitting (Legacy)",
+      "label" : "Splitting (Advanced)",
       "type" : "Section",
       "options" : {
         "isAdvanced" : true
@@ -378,23 +383,6 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/output/properties/removeInputColumn",
-        "options" : {
-          "format" : "checkbox"
-        },
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "scope" : "#/properties/model/properties/output/properties/mode",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "COLUMNS"
-              } ]
-            }
-          }
-        }
-      }, {
-        "type" : "Control",
         "scope" : "#/properties/model/properties/output/properties/columnPrefix",
         "rule" : {
           "effect" : "SHOW",
@@ -467,14 +455,26 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/output/properties/groupLabels",
         "options" : {
+          "isAdvanced" : true,
           "format" : "radio",
           "radioLayout" : "vertical"
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/output/properties/noMatchBehaviour",
+        "scope" : "#/properties/model/properties/output/properties/removeInputColumn",
         "options" : {
-          "format" : "valueSwitch"
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/output/properties/mode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "COLUMNS"
+              } ]
+            }
+          }
         }
       } ]
     } ]
