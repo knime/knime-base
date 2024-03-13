@@ -1,0 +1,194 @@
+{
+  "data" : {
+    "model" : {
+      "sortingCriterions" : [ {
+        "column" : {
+          "selected" : "column1",
+          "compatibleTypes" : [ ]
+        },
+        "sortingOrder" : "ASCENDING",
+        "stringComparison" : "LEXICOGRAPHIC"
+      } ],
+      "sortInMemory" : false,
+      "sortMissingCellsToEndOfList" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "sortInMemory" : {
+            "type" : "boolean",
+            "title" : "Sort in memory",
+            "description" : "If selected the table is sorted in memory which requires more memory, but is faster. In case the input table is large and memory is scarce it is recommended not to check this option.",
+            "default" : false,
+            "configKeys" : [ "sortinmemory" ]
+          },
+          "sortMissingCellsToEndOfList" : {
+            "type" : "boolean",
+            "title" : "Sort missing values to end of table",
+            "description" : "If selected missing values are always placed at the end of the sorted output. This is independent of the sort order, i.e. if sorted ascendingly they are considered to be larger than a non-missing value and if sorted descendingly they are smaller than any non-missing value.",
+            "default" : false,
+            "configKeys" : [ "missingToEnd" ]
+          },
+          "sortingCriterions" : {
+            "default" : [ {
+              "column" : {
+                "selected" : "test1",
+                "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+              },
+              "sortingOrder" : "ASCENDING",
+              "stringComparison" : "LEXICOGRAPHIC"
+            } ],
+            "configKeys" : [ "incllist", "sortOrder", "alphaNumStringComp" ],
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "configKeys" : [ "compatibleTypes_Internals" ],
+                      "type" : "array",
+                      "items" : {
+                        "type" : "string",
+                        "configKeys" : [ "compatibleTypes_Internals" ]
+                      }
+                    },
+                    "selected" : {
+                      "type" : "string"
+                    }
+                  },
+                  "title" : "Column",
+                  "description" : "Sort rows by the values in this column. If you set multiple sorting criteria, the table is sorted by the first criterion. The following criteria are only considered, if the comparison by all previous criteria results in a tie.",
+                  "default" : {
+                    "selected" : "test1",
+                    "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+                  }
+                },
+                "sortingOrder" : {
+                  "oneOf" : [ {
+                    "const" : "ASCENDING",
+                    "title" : "Ascending"
+                  }, {
+                    "const" : "DESCENDING",
+                    "title" : "Descending"
+                  } ],
+                  "title" : "Order",
+                  "description" : "Specifies the sorting order:\n<ul>\n<li><b>Ascending</b>: From smallest to largest.</li>\n<li><b>Descending</b>: From largest to smallest.</li>\n</ul>",
+                  "default" : "ASCENDING"
+                },
+                "stringComparison" : {
+                  "oneOf" : [ {
+                    "const" : "ALPHANUMERIC",
+                    "title" : "Alphanumeric"
+                  }, {
+                    "const" : "LEXICOGRAPHIC",
+                    "title" : "Lexicographic"
+                  } ],
+                  "title" : "String comparison",
+                  "description" : "Specifies which type of sorting to apply to the strings:\n<ul>\n<li><b>Alphanumeric</b>: Sorts strings by treating the numberic parts of a string as one character. For example, results in sort order “'Row1', 'Row2', 'Row10'”.</li>\n<li><b>Lexicographic</b>: Sorts strings so that each digit is treated as a separated character. For example, results in sort order “'Row1', 'Row10', 'Row2'”.</li>\n</ul>",
+                  "default" : "LEXICOGRAPHIC"
+                }
+              },
+              "configKeys" : [ "incllist", "sortOrder", "alphaNumStringComp" ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Sorting",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sortingCriterions",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/column",
+            "options" : {
+              "format" : "columnSelection",
+              "possibleValues" : [ {
+                "id" : "test1",
+                "text" : "test1",
+                "type" : {
+                  "id" : "org.knime.core.data.DoubleValue",
+                  "text" : "Number (double)"
+                },
+                "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+              }, {
+                "id" : "test2",
+                "text" : "test2",
+                "type" : {
+                  "id" : "org.knime.core.data.StringValue",
+                  "text" : "String"
+                },
+                "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+              } ],
+              "showNoneColumn" : false,
+              "showRowKeys" : true,
+              "showSearch" : true,
+              "showMode" : true
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/sortingOrder",
+            "options" : {
+              "format" : "valueSwitch"
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/stringComparison",
+            "options" : {
+              "isAdvanced" : true,
+              "format" : "valueSwitch"
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.StringValue"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add sorting criterion",
+          "arrayElementTitle" : "Criterion",
+          "showSortButtons" : true
+        }
+      } ]
+    }, {
+      "label" : "Special values and Performance",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sortInMemory",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sortMissingCellsToEndOfList",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  }
+}

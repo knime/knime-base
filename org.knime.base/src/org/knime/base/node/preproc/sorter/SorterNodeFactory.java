@@ -47,55 +47,80 @@
  */
 package org.knime.base.node.preproc.sorter;
 
+import java.io.IOException;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.impl.PortDescription;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Factory class for the Sorter Node. The Sorter Node does not have a view.
- * 
+ *
  * @author Nicolas Cebron, University of Konstanz
  */
 
-public class SorterNodeFactory extends NodeFactory {
-    /**
-     * {@inheritDoc}
-     */
+public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory {
+
     @Override
     public NodeModel createNodeModel() {
         return new SorterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView createNodeView(final int i, final NodeModel nodeModel) {
         throw new InternalError();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
+    private static final String FULL_DESCRIPTION = """
+            This node sorts the rows according to user-defined criteria. In the dialog, select
+            the columns according to which the data should be sorted. Also select
+            whether it should be sorted in ascending or descending order. Additionally, provides the option to
+            compare string-compatible columns in alphanumeric instead of lexicographic order,
+            for example "Row2" before "Row10" instead of "Row10" before "Row2".
+            """;
+
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription("Sorter", "sorter.png",
+            new PortDescription[]{
+                new PortDescription("Input Table", BufferedDataTable.TYPE, "Table to be sorted.", true)},
+            new PortDescription[]{new PortDescription("Sorted Table", BufferedDataTable.TYPE, "A sorted table.")},
+            "Sorts the rows according to user-defined criteria.", FULL_DESCRIPTION, SorterNodeSettings.class, null,
+            null, NodeType.Manipulator, new String[]{"Order by", "Row sorter", "Sorter"});
+    }
+
     /**
-     * {@inheritDoc}
+     * @since 5.3
      */
     @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SorterNodeSettings.class);
+    }
+
+    @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new SorterNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 }
