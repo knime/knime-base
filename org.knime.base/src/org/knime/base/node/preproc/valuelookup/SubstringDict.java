@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
 
 /**
  * Dictionary implementation that matches lookup strings if they contain a substring found in the dictionary table
@@ -86,9 +87,9 @@ class SubstringDict extends ListDict<String> {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
-        insertKVPair(m_stringNormaliser.apply(key), values);
+        insertKVPair(m_stringNormaliser.apply(key), dictRowID, values);
         return Optional.empty();
     }
 

@@ -54,6 +54,7 @@ import java.util.regex.PatternSyntaxException;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.StringMatching;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
@@ -88,7 +89,7 @@ class PatternDict extends ListDict<Pattern> {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
         var patternAsStr = key.toString();
         if (m_settings.m_stringMatchBehaviour == StringMatching.WILDCARD) {
@@ -96,7 +97,7 @@ class PatternDict extends ListDict<Pattern> {
         }
         try {
             var compiled = Pattern.compile(patternAsStr, m_flags);
-            insertKVPair(compiled, values);
+            insertKVPair(compiled, dictRowID, values);
             return Optional.empty();
         } catch (PatternSyntaxException e) {
             throw new IllegalLookupKeyException("Invalid RegEx pattern: " + System.lineSeparator() + e.getMessage(), e);

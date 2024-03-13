@@ -53,6 +53,8 @@ import java.util.Optional;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.SearchDirection;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
+import org.knime.core.util.Pair;
 
 /**
  * Sub-Umbrella-Class for dictionaries that perform a lookup via a map instance that provides faster-than-linear access
@@ -69,9 +71,8 @@ abstract class MapDict extends UnsortedInputDict {
      */
     protected MapDict(final ValueLookupNodeSettings settings) {
         super(settings);
-        switch (m_settings.m_searchDirection) {
-            case FORWARD:
-            case BACKWARD:
+        switch (m_settings.m_searchDirection) { //NOSONAR: switch is nicer to read here
+            case FORWARD, BACKWARD:
                 break;
             default:
                 throw new UnsupportedOperationException(
@@ -85,16 +86,17 @@ abstract class MapDict extends UnsortedInputDict {
      *
      * @param dict the dictionary in which to insert the key-value pair
      * @param key
+     * @param dictRowID
      * @param values
      * @param <K> the type of the key (e.g. DataCell, String, Pattern, etc...)
      * @param <M> the dictionary implementation
      * @return {@code true} if the key is already present in the dictionary, {@code false} otherwise
      */
-    protected <K, M extends Map<K, DataCell[]>> Optional<Boolean> insertKVPair(final M dict, final K key,
-        final DataCell[] values) {
+    protected <K, M extends Map<K, Pair<RowKey, DataCell[]>>> Optional<Boolean> insertKVPair(final M dict, final K key,
+        final RowKey dictRowID, final DataCell[] values) {
         // deduplicate input pairs based on search direction: FORWARD -> first key wins, BACKWARD -> last key wins
         var dup = (m_settings.m_searchDirection == SearchDirection.FORWARD) //
-            ? dict.putIfAbsent(key, values) : dict.put(key, values);
+            ? dict.putIfAbsent(key, Pair.create(dictRowID, values)) : dict.put(key, Pair.create(dictRowID, values));
         return Optional.of(dup != null);
     }
 

@@ -57,6 +57,8 @@ import java.util.function.Function;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
+import org.knime.core.util.Pair;
 
 /**
  * Dictionary implementation that support fast queries for e.g. the next-highest element in the key set. The Matching
@@ -67,12 +69,12 @@ import org.knime.core.data.DataCell;
  */
 class ApproxDict extends MapDict {
 
-    private final NavigableMap<DataCell, DataCell[]> m_dict;
+    private final NavigableMap<DataCell, Pair<RowKey, DataCell[]>> m_dict;
 
     /**
      * This function will be used to extract an entry from m_dict and is defined by the match behaviour
      */
-    private final Function<DataCell, Map.Entry<DataCell, DataCell[]>> m_lookupFunction;
+    private final Function<DataCell, Map.Entry<DataCell, Pair<RowKey, DataCell[]>>> m_lookupFunction;
 
     /**
      * Create a new instance by providing the settings of a node instance and a suitable comparator
@@ -96,13 +98,13 @@ class ApproxDict extends MapDict {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
-        return insertKVPair(m_dict, key, values);
+        return insertKVPair(m_dict, key, dictRowID, values);
     }
 
     @Override
-    public Optional<DataCell[]> getCells(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
         var entry = m_lookupFunction.apply(key);
         return Optional.ofNullable(entry).map(Map.Entry::getValue);
     }

@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.valuelookup;
 import java.util.Optional;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
 
 /**
  * Umbrella class for different dictionary implementations that show different behaviours used by the
@@ -90,12 +91,13 @@ abstract class UnsortedInputDict implements LookupDict {
      * Insert a new search pair to the dictionary
      *
      * @param key The DataCell that contains the key of the new search pair
+     * @param dictRowID The row ID of the corresponding row in the dictionary
      * @param values All the replacement cells that are associated with the new key
      * @return {@code true} if the key is already present in the dictionary, {@code false} if it is not or
      *         {@link Optional#empty()} if no knowledge on the already contained keys is available
      * @throws IllegalLookupKeyException If the search pair could not be inserted
      */
-    public abstract Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
-        throws IllegalLookupKeyException;
+    public abstract Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID,
+        final DataCell[] values) throws IllegalLookupKeyException;
 
 }

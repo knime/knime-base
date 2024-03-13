@@ -51,6 +51,8 @@ package org.knime.base.node.preproc.valuelookup;
 import java.util.Optional;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
+import org.knime.core.util.Pair;
 
 /**
  * Interface for a Dictionary from which {@link DataCell}s can be queried given a lookup cell. See
@@ -63,7 +65,7 @@ interface LookupDict {
      * Providing a lookup DataCell, get the associated data cells for it.
      *
      * @param key The cell to search for
-     * @return The value cells, or {@link Optional#empty()} if there is no replacement
+     * @return The value cells, their associated row ID, or {@link Optional#empty()} if there is no replacement
      */
-    Optional<DataCell[]> getCells(final DataCell key);
+    Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key);
 }

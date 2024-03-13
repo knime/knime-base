@@ -55,7 +55,9 @@ import java.util.Optional;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.MatchBehaviour;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.Pair;
 
 /**
  * Dictionary implementation that performs binary search in the dictionary table for every lookup. The Input must be a
@@ -75,7 +77,7 @@ class BinarySearchDict implements LookupDict {
     /**
      * The output cells from the dictionary table. m_values[i] corresponds to m_keys[i]
      */
-    private final ArrayList<DataCell[]> m_values;
+    private final ArrayList<Pair<RowKey, DataCell[]>> m_values;
 
     /**
      * A comparator that will be used to compare cells in m_keys.
@@ -112,7 +114,8 @@ class BinarySearchDict implements LookupDict {
      *            comparator
      */
     BinarySearchDict(final ValueLookupNodeSettings settings, final Comparator<DataCell> comp,
-        final ArrayList<DataCell> keys, final ArrayList<DataCell[]> values, final SortingOrder sortingOrder) {
+        final ArrayList<DataCell> keys, final ArrayList<Pair<RowKey, DataCell[]>> values,
+        final SortingOrder sortingOrder) {
         CheckUtils.checkArgument(keys.size() == values.size(), "The number of keys and values must be equal.");
         m_settings = settings;
         m_keys = keys;
@@ -122,11 +125,8 @@ class BinarySearchDict implements LookupDict {
         m_comparatorForBinsearch = m_sortingOrder == SortingOrder.ASC ? m_comparator : m_comparator.reversed();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public Optional<DataCell[]> getCells(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
         var index = Collections.binarySearch(m_keys, key, m_comparatorForBinsearch);
         // `index` is either the index of an exact match, or (-insertionpoint - 1)
 

@@ -24,7 +24,8 @@
           "typeDisplays" : [ ]
         }
       },
-      "createFoundCol" : false
+      "createFoundCol" : false,
+      "enableHiliting" : false
     }
   },
   "schema" : {
@@ -189,6 +190,13 @@
                 "typeDisplays" : [ ]
               }
             }
+          },
+          "enableHiliting" : {
+            "type" : "boolean",
+            "title" : "Enable hiliting",
+            "description" : "Enable hiliting between the dictionary table and the output table.",
+            "default" : false,
+            "configKeys" : [ "enableHiliting" ]
           },
           "lookupCol" : {
             "type" : "string",
@@ -474,6 +482,13 @@
         "scope" : "#/properties/model/properties/createFoundCol",
         "options" : {
           "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/enableHiliting",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
         }
       } ]
     } ]

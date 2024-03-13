@@ -53,6 +53,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
+import org.knime.core.util.Pair;
 
 /**
  * The simplest dictionary implementation that matches cells to their exact replica by using a {@link HashMap}
@@ -61,7 +63,7 @@ import org.knime.core.data.DataCell;
  */
 class ExactDict extends MapDict {
 
-    private final Map<DataCell, DataCell[]> m_dict;
+    private final Map<DataCell, Pair<RowKey, DataCell[]>> m_dict;
 
     /**
      * Create a new instance by providing the settings of a node instance
@@ -74,13 +76,13 @@ class ExactDict extends MapDict {
     }
 
     @Override
-    public Optional<Boolean> insertSearchPair(final DataCell key, final DataCell[] values)
+    public Optional<Boolean> insertSearchPair(final DataCell key, final RowKey dictRowID, final DataCell[] values)
         throws IllegalLookupKeyException {
-        return insertKVPair(m_dict, key, values);
+        return insertKVPair(m_dict, key, dictRowID, values);
     }
 
     @Override
-    public Optional<DataCell[]> getCells(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
         return Optional.ofNullable(m_dict.get(key));
     }
 

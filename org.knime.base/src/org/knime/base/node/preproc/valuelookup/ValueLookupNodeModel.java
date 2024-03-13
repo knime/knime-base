@@ -48,11 +48,19 @@
  */
 package org.knime.base.node.preproc.valuelookup;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.DictionaryTableChoices;
@@ -64,6 +72,7 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.RowKey;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.container.ColumnRearranger;
@@ -75,7 +84,11 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
+import org.knime.core.node.property.hilite.HiLiteHandler;
+import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.node.streamable.InputPortRole;
 import org.knime.core.node.streamable.OutputPortRole;
 import org.knime.core.node.streamable.PartitionInfo;
@@ -100,12 +113,12 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
      */
     static final String COLUMN_NAME_MATCHFOUND = "Match Found";
 
-    /**
-     * TODO: Get rid of this once UIEXT-722 is merged This is currently only needed to support streaming execution.
-     */
-    private ValueLookupNodeSettings m_settings;
-
     static final NodeLogger LOGGER = NodeLogger.getLogger(ValueLookupNodeModel.class);
+
+    /**
+     * Translator that maps output rowIDs to input rowIDs from the dictionary table
+     */
+    private HiLiteTranslator m_hiliteTranslatorForDictionary;
 
     /**
      * Instantiate a new Value Lookup Node
@@ -121,13 +134,21 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final ValueLookupNodeSettings modelSettings)
         throws InvalidSettingsException {
-        m_settings = modelSettings; // TODO remove once UIEXT-722 (streaming support) is merged
-
         CheckUtils.checkSettingNotNull(modelSettings.m_lookupCol, "Select a lookup column from the data table");
         CheckUtils.checkSettingNotNull(modelSettings.m_dictKeyCol, "Select a key column from the dictionary table");
 
+        CheckUtils.checkSetting(
+            !(modelSettings.m_enableHiliting
+                && inSpecs[1].getColumnSpec(modelSettings.m_dictKeyCol).getType().isCollectionType()),
+            "Cannot enable hiliting when key column in dictionary table is a collection.");
+
+        if (modelSettings.m_enableHiliting && m_hiliteTranslatorForDictionary == null) {
+            m_hiliteTranslatorForDictionary = new HiLiteTranslator(getInHiLiteHandler(1));
+            m_hiliteTranslatorForDictionary.addToHiLiteHandler(getOutHiLiteHandler(0));
+        }
+
         // Create a dummy rearranger to extract the result spec
-        var rearranger = createColumnRearranger(modelSettings, inSpecs[0], inSpecs[1], null, null);
+        var rearranger = createColumnRearranger(modelSettings, inSpecs[0], inSpecs[1], null, null, null);
         return new DataTableSpec[]{rearranger.createSpec()};
     }
 
@@ -144,20 +165,28 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         double dictCreateAmount = dictSize / (dictSize + tableSize);
         double outputCreateAmount = tableSize / (dictSize + tableSize);
 
+        Map<RowKey, Set<RowKey>> hiliteMap = null;
+        if (modelSettings.m_enableHiliting) {
+            hiliteMap = new HashMap<>();
+        }
+
         // Create the actual rearranger using the input table and dictionary table
         var rearranger = createColumnRearranger(modelSettings, targetTable.getDataTableSpec(),
-            dictTable.getDataTableSpec(), dictTable, exec.createSubProgress(dictCreateAmount));
+            dictTable.getDataTableSpec(), dictTable, exec.createSubProgress(dictCreateAmount), hiliteMap);
         // Use that rearranger to produce the output
         var output =
             exec.createColumnRearrangeTable(targetTable, rearranger, exec.createSubProgress(outputCreateAmount));
+
+        if (hiliteMap != null) {
+            m_hiliteTranslatorForDictionary.setMapper(new DefaultHiLiteMapper(hiliteMap));
+        }
+
         return new BufferedDataTable[]{output};
     }
 
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        // TODO once UIEXT-722 is merged, change signature and refactor settings to use the settings that are passed as
-        // an argument
         return new StreamableOperator() {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
@@ -165,8 +194,8 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
                 // Cast the dict table to a BufferedDataTable (since it cannot be streamed)
                 final var dictTable = (BufferedDataTable)((PortObjectInput)inputs[1]).getPortObject();
                 // Create the rearranger (once again)
-                var rearranger = createColumnRearranger(m_settings, (DataTableSpec)inSpecs[0],
-                    dictTable.getDataTableSpec(), dictTable, exec);
+                var rearranger = createColumnRearranger(getSettings().orElseThrow(), (DataTableSpec)inSpecs[0],
+                    dictTable.getDataTableSpec(), dictTable, exec, null);
                 // Use the rearranger logic to create the streamable function and execute the node
                 var func = rearranger.createStreamableFunction(0, 0);
                 func.runFinal(inputs, outputs, exec);
@@ -185,6 +214,65 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
         return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
     }
 
+    @Override
+    protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
+        if (inIndex == 0 && m_hiliteTranslatorForDictionary != null) {
+            m_hiliteTranslatorForDictionary.removeAllToHiliteHandlers();
+            m_hiliteTranslatorForDictionary.addToHiLiteHandler(hiLiteHdl);
+        } else if (inIndex == 1) {
+            if (m_hiliteTranslatorForDictionary != null) {
+                m_hiliteTranslatorForDictionary.dispose();
+            }
+            m_hiliteTranslatorForDictionary = new HiLiteTranslator(hiLiteHdl);
+            m_hiliteTranslatorForDictionary.addToHiLiteHandler(getOutHiLiteHandler(0));
+        }
+    }
+
+    @Override
+    protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
+        // first input port is piped through, since RowIDs are identical
+        return getInHiLiteHandler(0);
+    }
+
+    private static final String INTERNALS_HILITE_MAPPING_FILE = "hilite_mapping.xml.gz";
+
+    @Override
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+        if (getSettings().map(s -> s.m_enableHiliting).orElse(false)) {
+            final var file = new File(nodeInternDir, INTERNALS_HILITE_MAPPING_FILE);
+            try (final var is = new FileInputStream(file)) {
+                final var config = NodeSettings.loadFromXML(is);
+                m_hiliteTranslatorForDictionary.setMapper(DefaultHiLiteMapper.load(config));
+            } catch (InvalidSettingsException e) {
+                throw new IOException("Couldn't load hilite mapping", e);
+            }
+        }
+    }
+
+    @Override
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+        if (getSettings().map(s -> s.m_enableHiliting).orElse(false)) {
+            final var file = new File(nodeInternDir, INTERNALS_HILITE_MAPPING_FILE);
+            final var settings = new NodeSettings("hilite_mapping");
+            final var mapper = m_hiliteTranslatorForDictionary.getMapper();
+            if (mapper instanceof DefaultHiLiteMapper dmapper) {
+                dmapper.save(settings);
+            }
+            try (final var os = new FileOutputStream(file)) {
+                settings.saveToXML(os);
+            }
+        }
+    }
+
+    @Override
+    protected void reset() {
+        if (m_hiliteTranslatorForDictionary != null) {
+            m_hiliteTranslatorForDictionary.setMapper(null);
+        }
+    }
+
     /**
      * Create a {@link ColumnRearranger} that will handle all the lookup and insertion logic
      *
@@ -192,12 +280,13 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
      * @param dictSpec the spec of the dictionary table
      * @param dictTable the data in the dictionary table (can be null, as long as the rearranger is not executed)
      * @param dictInitMon
+     * @param hiliteMap translation map between dictionary table rowIDs and output rowIDs. Can be `null`.
      * @return
      * @throws InvalidSettingsException
      */
     private static ColumnRearranger createColumnRearranger(final ValueLookupNodeSettings modelSettings,
         final DataTableSpec targetSpec, final DataTableSpec dictSpec, final BufferedDataTable dictTable,
-        final ExecutionMonitor dictInitMon) throws InvalidSettingsException {
+        final ExecutionMonitor dictInitMon, final Map<RowKey, Set<RowKey>> hiliteMap) throws InvalidSettingsException {
         CheckUtils.checkArgumentNotNull(targetSpec, "No spec available for target table");
         CheckUtils.checkArgumentNotNull(dictSpec, "No spec available for dictionary table");
 
@@ -335,7 +424,7 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
 
         // Create the actual cell factory using the values that were checked and extracted above
         final var cellFactory = createCellFactory(modelSettings, newColumns.m_specs.toArray(DataColumnSpec[]::new),
-            targetColIndex, dictTable, newColumns.m_dictOutputColIndices, dictInitMon, comparator);
+            targetColIndex, dictTable, newColumns.m_dictOutputColIndices, dictInitMon, comparator, hiliteMap);
 
         // all the new columns are appended to the end of the row, including the column to replace the lookup column
         rearranger.append(cellFactory);
@@ -375,7 +464,8 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
      */
     private static CellFactory createCellFactory(final ValueLookupNodeSettings modelSettings,
         final DataColumnSpec[] insertedColumns, final int targetColIndex, final BufferedDataTable dictTable,
-        final int[] dictOutputColIndices, final ExecutionMonitor dictInitMon, final Comparator<DataCell> comparator) {
+        final int[] dictOutputColIndices, final ExecutionMonitor dictInitMon, final Comparator<DataCell> comparator,
+        final Map<RowKey, Set<RowKey>> hiliteMap) {
         return new AbstractCellFactory(insertedColumns) { // NOSONAR: this anonymous class is easy to read
             /**
              * This map holds the input/output pairs of the dictionary table, once initialised. Will only be
@@ -415,15 +505,23 @@ public class ValueLookupNodeModel extends WebUINodeModel<ValueLookupNodeSettings
 
                 // Try to match the target cell to a dictionary entry
                 final var lookup = row.getCell(targetColIndex);
-                final var result = m_dict.getCells(lookup);
+                final var result = m_dict.getDictEntry(lookup);
                 final var replacements = new DataCell[insertedColumns.length];
 
                 // Handle the presence / absence of a match
                 if (result.isPresent()) {
                     // contains the values of columns C1, ..., Cn that were selected for appending
                     // if replace lookup column with column X is selected, contains C1, ..., Cn, X
-                    final var dictContent = result.get();
-                    System.arraycopy(result.get(), 0, replacements, 0, dictContent.length);
+                    final var dictContent = result.get().getSecond();
+                    System.arraycopy(dictContent, 0, replacements, 0, dictContent.length);
+                    if (hiliteMap != null) {
+                        final var rowID = result.get().getFirst();
+                        hiliteMap.compute(rowID, (k, v) -> {
+                            var m = (v == null) ? new HashSet<RowKey>() : v;
+                            m.add(row.getKey());
+                            return m;
+                        });
+                    }
                 } else {
                     Arrays.fill(replacements, DataType.getMissingCell());
                     if (modelSettings.m_lookupColumnOutput == LookupColumnOutput.REPLACE

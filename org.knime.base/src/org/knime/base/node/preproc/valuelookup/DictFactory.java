@@ -62,6 +62,7 @@ import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.StringMat
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
+import org.knime.core.data.RowKey;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.collection.CellCollection;
 import org.knime.core.data.container.CloseableRowIterator;
@@ -70,6 +71,7 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.KNIMEException;
 import org.knime.core.node.message.Message;
+import org.knime.core.util.Pair;
 
 /**
  * Factory class that, provided with the dictionary table and {@link ValueLookupNodeSettings} populates a suitable
@@ -112,7 +114,7 @@ final class DictFactory {
         final var dictKeyColType = dictSpec.getColumnSpec(dictKeyColIndex).getType();
 
         ArrayList<DataCell> keyCache = new ArrayList<>();
-        ArrayList<DataCell[]> valueCache = new ArrayList<>();
+        ArrayList<Pair<RowKey, DataCell[]>> valueCache = new ArrayList<>();
         try (var dictionaryIterator = m_dictTable.iterator()) {
             if (m_settings.m_stringMatchBehaviour == StringMatching.FULLSTRING && m_settings.m_caseSensitive
                 && !dictKeyColType.isCollectionType()) {
@@ -133,7 +135,8 @@ final class DictFactory {
             try {
                 // Add the elements from the cache to our new dictionary (will be empty if key column is collection)
                 for (var i = 0; i < keyCache.size(); ++i) {
-                    resultDict.insertSearchPair(keyCache.get(i), valueCache.get(i));
+                    final var cached = valueCache.get(i);
+                    resultDict.insertSearchPair(keyCache.get(i), cached.getFirst(), cached.getSecond());
                 }
 
                 populateDictionary(resultDict, dictionaryIterator, dictKeyColIndex);
@@ -159,15 +162,15 @@ final class DictFactory {
                     .toArray(DataCell[]::new);
             if (input.isMissing()) {
                 // Missing value is a collection type (it's compatible with all types), so handle that first
-                resultDict.insertSearchPair(input, outputs);
+                resultDict.insertSearchPair(input, m_currentRow.getKey(), outputs);
             } else if (input.getType().isCollectionType()) {
                 // Add an individual key-value pair for each entry in the collection type -- order doesn't matter
                 var keys = (CellCollection)input;
                 for (var key : keys) {
-                    resultDict.insertSearchPair(key, outputs);
+                    resultDict.insertSearchPair(key, m_currentRow.getKey(), outputs);
                 }
             } else {
-                resultDict.insertSearchPair(input, outputs);
+                resultDict.insertSearchPair(input, m_currentRow.getKey(), outputs);
             }
             reportProcessedDictRow();
         }
@@ -176,18 +179,14 @@ final class DictFactory {
     private UnsortedInputDict getDictImplementation(final DataType dictKeyColType) {
         if (m_settings.m_matchBehaviour == MatchBehaviour.EQUAL) {
             if (dictKeyColType.isCompatible(StringValue.class)) {
-                switch (m_settings.m_stringMatchBehaviour) {
-                    case FULLSTRING:
-                        return new StringDict(m_settings);
-                    case SUBSTRING:
-                        return new SubstringDict(m_settings);
-                    case WILDCARD:
-                    case REGEX:
-                        return new PatternDict(m_settings);
-                    default:
+                return switch (m_settings.m_stringMatchBehaviour) {
+                    case FULLSTRING -> new StringDict(m_settings);
+                    case SUBSTRING -> new SubstringDict(m_settings);
+                    case WILDCARD, REGEX -> new PatternDict(m_settings);
+                    default ->
                         throw new IllegalArgumentException(
                             "Unknown String Matching behaviour: " + m_settings.m_stringMatchBehaviour.toString());
-                }
+                };
             } else {
                 return new ExactDict(m_settings);
             }
@@ -215,7 +214,7 @@ final class DictFactory {
      */
     private Optional<BinarySearchDict> tryToInitialiseBinarySearchDict(final Iterator<DataRow> dictionaryIterator,
         final int dictKeyColIndex, final ArrayList<DataCell> keyCache,
-        final ArrayList<DataCell[]> valueCache) throws CanceledExecutionException {
+        final ArrayList<Pair<RowKey, DataCell[]>> valueCache) throws CanceledExecutionException {
         var couldBeAscendinglySorted = true;
         var couldBeDescendinglySorted = true;
 
@@ -234,12 +233,12 @@ final class DictFactory {
                 // If search direction is forward, we don't want to add this item at all.
                 // If backward, the key is the same so we only have to replace the values
                 if (m_settings.m_searchDirection == SearchDirection.BACKWARD) {
-                    valueCache.set(valueCache.size() - 1, values);
+                    valueCache.set(valueCache.size() - 1, Pair.create(m_currentRow.getKey(), values));
                 }
             } else {
                 // If the previous item has a different key, we definitely want to add it to our cache.
                 keyCache.add(key);
-                valueCache.add(values);
+                valueCache.add(Pair.create(m_currentRow.getKey(), values));
             }
 
             // Check which orderings are still possible

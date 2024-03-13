@@ -349,6 +349,12 @@ public final class ValueLookupNodeSettings implements DefaultNodeSettings {
     @Layout(OutputSection.class)
     boolean m_createFoundCol = false; //NOSONAR: more verbosity
 
+    @Widget(title = "Enable hiliting", advanced = true,
+        description = "Enable hiliting between the dictionary table and the output table.")
+    @Layout(OutputSection.class)
+    @Persist(optional = true)
+    boolean m_enableHiliting = false; //NOSONAR: more verbosity
+
     /**
      * Constructor for de/serialization.
      */

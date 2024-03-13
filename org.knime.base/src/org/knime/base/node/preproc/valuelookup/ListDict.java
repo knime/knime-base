@@ -54,6 +54,8 @@ import java.util.Optional;
 
 import org.knime.base.node.preproc.valuelookup.ValueLookupNodeSettings.SearchDirection;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.RowKey;
+import org.knime.core.util.Pair;
 
 /**
  * Sub-Umbrella-Class for dictionaries that perform the lookup by iterating through the list of all key-value pairs and
@@ -67,7 +69,7 @@ abstract class ListDict<K> extends UnsortedInputDict {
     /**
      * Stores all Key-Value pairs from the dictionary table
      */
-    protected final LinkedList<Map.Entry<K, DataCell[]>> m_dict;
+    protected final LinkedList<Map.Entry<K, Pair<RowKey, DataCell[]>>> m_dict;
 
     /**
      * Create a new instance by providing the settings of a node instance
@@ -83,14 +85,15 @@ abstract class ListDict<K> extends UnsortedInputDict {
      * Method can be used by inheriting classes to add a search pair to the list of entries (after pre-processing)
      *
      * @param key
+     * @param dictRowID
      * @param values
      */
-    protected void insertKVPair(final K key, final DataCell[] values) {
-        m_dict.add(Map.entry(key, values));
+    protected void insertKVPair(final K key, final RowKey dictRowID, final DataCell[] values) {
+        m_dict.add(Map.entry(key, Pair.create(dictRowID, values)));
     }
 
     @Override
-    public Optional<DataCell[]> getCells(final DataCell key) {
+    public Optional<Pair<RowKey, DataCell[]>> getDictEntry(final DataCell key) {
         if (m_settings.m_searchDirection == SearchDirection.FORWARD) {
             for (var it = m_dict.listIterator(); it.hasNext();) {
                 var elem = it.next();
