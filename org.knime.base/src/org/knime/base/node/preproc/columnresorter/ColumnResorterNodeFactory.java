@@ -41,62 +41,91 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- * 
+ *
  * History
  *   28.05.2012 (kilian): created
  */
 package org.knime.base.node.preproc.columnresorter;
 
+import java.io.IOException;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.impl.PortDescription;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * The factory of the column resorter node.
- * 
+ *
  * @author Kilian Thiel, KNIME.com, Berlin, Germany
  */
-public class ColumnResorterNodeFactory extends
-        NodeFactory<ColumnResorterNodeModel> {
+public class ColumnResorterNodeFactory extends NodeFactory<ColumnResorterNodeModel> implements NodeDialogFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ColumnResorterNodeModel createNodeModel() {
         return new ColumnResorterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<ColumnResorterNodeModel> createNodeView(final int viewIndex,
-            final ColumnResorterNodeModel nodeModel) {
+        final ColumnResorterNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    static final String FULL_DESCRIPTION = """
+            This node changes the order of the input columns, based on
+            user defined settings.
+            Columns may be shifted in single steps left or right, or
+            completely to the beginning or end of the input table.
+            Furthermore columns may also be sorted based on their name.
+            The re-sorted table is provided at the out port.
+            <br /><br />
+            Once the node's dialog has been configured, it is possible to
+            connect a new input table with different structure to the
+            node and execute it without the need to configure the dialog
+            again. New and previously unknown columns will be inserted
+            at the position of the column place holder "Any unknown columns".
+            This place holder can be positioned anywhere like any column.
+            """;
+
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription("Column Resorter", "column_resorter.png",
+            new PortDescription[]{new PortDescription("Input data", BufferedDataTable.TYPE,
+                "Table containing columns to rearrange.", true)},
+            new PortDescription[]{
+                new PortDescription("Output data", BufferedDataTable.TYPE, "Table with rearranged columns.")},
+            "Resorts the order of the columns based on user defined settings", FULL_DESCRIPTION,
+            ColumnResorterNodeSettings.class, null, null, NodeType.Manipulator, new String[]{"Column reorder"});
+    }
+
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnResorterNodeSettings.class);
+    }
+
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnResorterNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 }

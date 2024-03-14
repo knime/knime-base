@@ -1,0 +1,58 @@
+{
+  "data" : {
+    "model" : {
+      "order" : [ "Column 1", "Column 2", "<any unknown new column>" ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "order" : {
+            "title" : "Columns",
+            "description" : "TODO",
+            "default" : [ "Column 1", "Column 2", "<any unknown new column>" ],
+            "configKeys" : [ "ColumnOrder" ],
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "configKeys" : [ "ColumnOrder" ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/order",
+      "options" : {
+        "format" : "sortList",
+        "possibleValues" : [ {
+          "id" : "Column 1",
+          "text" : "Column 1",
+          "type" : {
+            "id" : "org.knime.core.data.StringValue",
+            "text" : "String"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+        }, {
+          "id" : "Column 2",
+          "text" : "Column 2",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (double)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        } ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    } ]
+  }
+}
