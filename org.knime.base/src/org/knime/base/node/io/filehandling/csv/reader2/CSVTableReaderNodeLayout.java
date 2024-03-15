@@ -68,28 +68,47 @@ public class CSVTableReaderNodeLayout {
                 to choose from:
                 <br/>
                 <ul>
-                    <li><i>Local file system:</i> Allows you to select a file from your local file system.
-                    </li>
-                    <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol).
-                        Browsing is disabled for this option.
-                    </li>
-                    <li><i>Current Hub space:</i> Allows to select a file relative to the Hub space on which the
-                        workflow is run.
-                    </li>
+                    <li><b>Local file system</b>: Allows you to select a file from your local file system.</li>
+                    <li><b>Custom/KNIME URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).
+                        Browsing is disabled for this option.</li>
+                    <li><b>Current Hub space</b>: Allows to select a file relative to the Hub space on which the
+                        workflow is run.</li>
                 </ul>
                 """;
         }
 
         @After(Source.class)
         interface FileEncoding {
-            // TODO will be updated in UIEXT-1501
             String DESCRIPTION =
                 """
-                To read a CSV file that contains characters in a different encoding, you can select the character set in
-                this tab (UTF-8, UTF-16, etc.), or specify any other encoding supported by your Java VM. The default
-                value uses the default encoding of the Java VM, which may depend on the locale or the Java property
-                &quot;file.encoding&quot;
+                Defines the character set used to read a CSV file that contains characters in a different encoding. You
+                can choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding
+                supported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM,
+                which may depend on the locale or the Java property &quot;file.encoding&quot;.
                 """;
+
+            String DESCRIPTION_DEFAULT = "Uses the default decoding set by the operating system.";
+
+            String DESCRIPTION_ISO_8859_1 = "ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.";
+
+            String DESCRIPTION_US_ASCII = "Seven-bit ASCII, also referred to as US-ASCII.";
+
+            String DESCRIPTION_UTF_8 = "Eight-bit UCS Transformation Format.";
+
+            String DESCRIPTION_UTF_16 = """
+                Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file.
+                """;
+
+            String DESCRIPTION_UTF_16BE = "Sixteen-bit UCS Transformation Format, big-endian byte order.";
+
+            String DESCRIPTION_UTF_16LE = "Sixteen-bit UCS Transformation Format, little-endian byte order.";
+
+            String DESCRIPTION_OTHER = "Enter a valid charset name supported by the Java Virtual Machine.";
+        }
+
+        @After(FileEncoding.class)
+        interface CustomEncoding {
+            String DESCRIPTION = "A custom character set used to read a CSV file.";
         }
     }
 

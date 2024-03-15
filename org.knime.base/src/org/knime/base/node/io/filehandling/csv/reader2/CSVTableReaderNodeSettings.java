@@ -48,6 +48,9 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.IfSchemaChanges;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitMemoryPerColumn;
@@ -59,6 +62,8 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.LimitNumberOfRows;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.MaximumNumberOfRows;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.DataArea.SkipFirstDataRows;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.CustomEncoding;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.FileEncoding;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.Source;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.ColumnDelimiter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.CommentLineCharacter;
@@ -77,6 +82,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.QuotedStrings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ReplaceEmptyQuotedStringsByMissingValues;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ThousandsSeparator;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption.IfRowHasLessColumnsOptionPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.IsCustomRowDelimiter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.RowDelimiterPersistor;
@@ -97,12 +103,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 
 /**
@@ -486,7 +495,113 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
     static class Encoding implements WidgetGroup, PersistableSettings {
 
-        @Persist(configKey = "charset")
-        String m_charset = "UTF-8";
+        static class Charset implements WidgetGroup, PersistableSettings {
+
+            enum FileEncodingOption {
+                    @Label(value = "", description = FileEncoding.DESCRIPTION_DEFAULT) //
+                    DEFAULT(null, false, "OS default (" + java.nio.charset.Charset.defaultCharset().name() + ")"), //
+                    @Label(value = "", description = FileEncoding.DESCRIPTION_ISO_8859_1) //
+                    ISO_8859_1("ISO-8859-1", true), //
+                    @Label(value = "", description = FileEncoding.DESCRIPTION_US_ASCII) //
+                    US_ASCII("US-ASCII", true), //
+                    @Label(value = "", description = FileEncoding.DESCRIPTION_UTF_8) //
+                    UTF_8("UTF-8", true), //
+                    @Label(value = "", description = FileEncoding.DESCRIPTION_UTF_16) //
+                    UTF_16("UTF-16", true), //
+                    @Label(value = "", description = FileEncoding.DESCRIPTION_UTF_16BE) //
+                    UTF_16BE("UTF-16BE", true), //
+                    @Label(value = "", description = FileEncoding.DESCRIPTION_UTF_16LE) //
+                    UTF_16LE("UTF-16LE", true), //
+                    @Label(value = "", description = FileEncoding.DESCRIPTION_OTHER) //
+                    OTHER("", false, "Other"); //
+
+                final String m_persistId;
+
+                final boolean m_isUnambigous;
+
+                final String m_displayText;
+
+                FileEncodingOption(final String persistId, final boolean isUnambigous) {
+                    this(persistId, isUnambigous, persistId);
+                }
+
+                FileEncodingOption(final String persistId, final boolean isUnambigous, final String displayText) {
+                    m_persistId = persistId;
+                    m_isUnambigous = isUnambigous;
+                    m_displayText = displayText;
+                }
+
+                static FileEncodingOption fromPersistId(final String persistId) {
+                    return Arrays.stream(FileEncodingOption.values())
+                        .filter(fileEncoding -> Objects.equals(fileEncoding.m_persistId, persistId)).findFirst()
+                        .orElse(OTHER);
+                }
+            }
+
+            static final class EncodingChoicesProvider implements ChoicesProvider {
+                @Override
+                public IdAndText[] choicesWithIdAndText(final DefaultNodeSettingsContext context) {
+                    return Arrays.stream(FileEncodingOption.values())
+                        .map(fileEncoding -> new IdAndText(fileEncoding.name(), fileEncoding.m_displayText))
+                        .toArray(IdAndText[]::new);
+                }
+            }
+
+            static final class IsOtherEncoding extends OneOfEnumCondition<FileEncodingOption> {
+                @Override
+                public FileEncodingOption[] oneOf() {
+                    return new FileEncodingOption[]{FileEncodingOption.OTHER};
+                }
+            }
+
+            @Widget(title = "File encoding", description = FileEncoding.DESCRIPTION, advanced = true)
+            @ChoicesWidget(choices = EncodingChoicesProvider.class)
+            @Layout(FileEncoding.class)
+            @Signal(condition = IsOtherEncoding.class)
+            FileEncodingOption m_fileEncoding;
+
+            @Widget(title = "Custom encoding", description = CustomEncoding.DESCRIPTION, advanced = true)
+            @Layout(CustomEncoding.class)
+            @Effect(signals = IsOtherEncoding.class, type = EffectType.SHOW)
+            String m_customEncoding;
+
+            Charset() {
+                this(FileEncodingOption.UTF_8);
+            }
+
+            Charset(final FileEncodingOption fileEncoding) {
+                this(fileEncoding, "");
+            }
+
+            Charset(final FileEncodingOption fileEncoding, final String customEncoding) {
+                m_fileEncoding = fileEncoding;
+                m_customEncoding = customEncoding;
+            }
+        }
+
+        static final class CharsetPersistor extends NodeSettingsPersistorWithConfigKey<Charset> {
+
+            @Override
+            public Charset load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                final var persistId = settings.getString(getConfigKey(), null);
+                final var fileEncoding = FileEncodingOption.fromPersistId(persistId);
+                if (fileEncoding == FileEncodingOption.OTHER) {
+                    return new Charset(fileEncoding, persistId);
+                }
+                return new Charset(fileEncoding);
+            }
+
+            @Override
+            public void save(final Charset charset, final NodeSettingsWO settings) {
+                if (charset.m_fileEncoding == FileEncodingOption.OTHER) {
+                    settings.addString(getConfigKey(), charset.m_customEncoding);
+                } else {
+                    settings.addString(getConfigKey(), charset.m_fileEncoding.m_persistId);
+                }
+            }
+        }
+
+        @Persist(configKey = "charset", customPersistor = CharsetPersistor.class)
+        Charset m_charset = new Charset();
     }
 }

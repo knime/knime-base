@@ -48,13 +48,22 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
@@ -98,5 +107,21 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         } catch (IOException | InvalidSettingsException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void testCharsetPersistor(final Charset charset) throws InvalidSettingsException {
+        var persistor = FieldNodeSettingsPersistor.createInstance(CharsetPersistor.class, Charset.class, "key");
+        var nodeSettings = new NodeSettings("settings");
+        persistor.save(charset, nodeSettings);
+        final var copy = persistor.load(nodeSettings);
+        assertEquals(charset.m_fileEncoding, copy.m_fileEncoding);
+        assertEquals(charset.m_customEncoding, copy.m_customEncoding);
+    }
+
+    private static Stream<Charset> testCharsetPersistor() {
+        return Stream.of(new Charset(FileEncodingOption.DEFAULT), new Charset(FileEncodingOption.UTF_8),
+            new Charset(FileEncodingOption.OTHER, "foo"));
     }
 }

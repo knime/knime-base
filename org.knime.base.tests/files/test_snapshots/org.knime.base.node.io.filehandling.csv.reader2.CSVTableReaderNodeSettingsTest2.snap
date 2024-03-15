@@ -55,7 +55,10 @@
         "maximumNumberOfRows" : 50
       },
       "encoding" : {
-        "charset" : "UTF-8"
+        "charset" : {
+          "fileEncoding" : "UTF_8",
+          "customEncoding" : ""
+        }
       }
     }
   },
@@ -219,13 +222,57 @@
             "type" : "object",
             "properties" : {
               "charset" : {
-                "type" : "string",
-                "default" : "UTF-8",
+                "type" : "object",
+                "properties" : {
+                  "customEncoding" : {
+                    "type" : "string",
+                    "title" : "Custom encoding",
+                    "description" : "A custom character set used to read a CSV file.",
+                    "default" : ""
+                  },
+                  "fileEncoding" : {
+                    "oneOf" : [ {
+                      "const" : "DEFAULT",
+                      "title" : ""
+                    }, {
+                      "const" : "ISO_8859_1",
+                      "title" : ""
+                    }, {
+                      "const" : "US_ASCII",
+                      "title" : ""
+                    }, {
+                      "const" : "UTF_8",
+                      "title" : ""
+                    }, {
+                      "const" : "UTF_16",
+                      "title" : ""
+                    }, {
+                      "const" : "UTF_16BE",
+                      "title" : ""
+                    }, {
+                      "const" : "UTF_16LE",
+                      "title" : ""
+                    }, {
+                      "const" : "OTHER",
+                      "title" : ""
+                    } ],
+                    "title" : "File encoding",
+                    "description" : "Defines the character set used to read a CSV file that contains characters in a different encoding. You\ncan choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding\nsupported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM,\nwhich may depend on the locale or the Java property &quot;file.encoding&quot;.\n\n<ul>\n<li><b></b>: Uses the default decoding set by the operating system.</li>\n<li><b></b>: ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.</li>\n<li><b></b>: Seven-bit ASCII, also referred to as US-ASCII.</li>\n<li><b></b>: Eight-bit UCS Transformation Format.</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file.\n</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, big-endian byte order.</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, little-endian byte order.</li>\n<li><b></b>: Enter a valid charset name supported by the Java Virtual Machine.</li>\n</ul>",
+                    "default" : "UTF_8"
+                  }
+                },
+                "default" : {
+                  "fileEncoding" : "UTF_8",
+                  "customEncoding" : ""
+                },
                 "configKeys" : [ "charset" ]
               }
             },
             "default" : {
-              "charset" : "UTF-8"
+              "charset" : {
+                "fileEncoding" : "UTF_8",
+                "customEncoding" : ""
+              }
             },
             "configKeys" : [ "encoding" ]
           },
@@ -413,7 +460,7 @@
                   }
                 },
                 "title" : "Source",
-                "description" : "Select a file system which stores the data you want to read. There are three default file system options\nto choose from:\n<br/>\n<ul>\n    <li><i>Local file system:</i> Allows you to select a file from your local file system.\n    </li>\n    <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://, http:// or knime:// protocol).\n        Browsing is disabled for this option.\n    </li>\n    <li><i>Current Hub space:</i> Allows to select a file relative to the Hub space on which the\n        workflow is run.\n    </li>\n</ul>\n",
+                "description" : "Select a file system which stores the data you want to read. There are three default file system options\nto choose from:\n<br/>\n<ul>\n    <li><b>Local file system</b>: Allows you to select a file from your local file system.</li>\n    <li><b>Custom/KNIME URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).\n        Browsing is disabled for this option.</li>\n    <li><b>Current Hub space</b>: Allows to select a file relative to the Hub space on which the\n        workflow is run.</li>\n</ul>\n",
                 "default" : {
                   "path" : {
                     "fsCategory" : "LOCAL",
@@ -468,6 +515,59 @@
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
           "format" : "fileChooser"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding",
+        "options" : {
+          "isAdvanced" : true,
+          "possibleValues" : [ {
+            "id" : "DEFAULT",
+            "text" : "OS default (UTF-8)"
+          }, {
+            "id" : "ISO_8859_1",
+            "text" : "ISO-8859-1"
+          }, {
+            "id" : "US_ASCII",
+            "text" : "US-ASCII"
+          }, {
+            "id" : "UTF_8",
+            "text" : "UTF-8"
+          }, {
+            "id" : "UTF_16",
+            "text" : "UTF-16"
+          }, {
+            "id" : "UTF_16BE",
+            "text" : "UTF-16BE"
+          }, {
+            "id" : "UTF_16LE",
+            "text" : "UTF-16LE"
+          }, {
+            "id" : "OTHER",
+            "text" : "Other"
+          } ],
+          "format" : "dropDown",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/encoding/properties/charset/properties/customEncoding",
+        "options" : {
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/encoding/properties/charset/properties/fileEncoding",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "OTHER"
+              } ]
+            }
+          }
         }
       } ]
     }, {
