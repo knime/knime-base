@@ -226,7 +226,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     }
 
     @Layout(Criterions.class)
-    @Widget
+    @Widget(title = "", description = "")
     @Persist(customPersistor = LoadDeprecatedSortingCriterionArraySettings.class)
     @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add sorting criterion", showSortButtons = true)
     SortingCriterionSettings[] m_sortingCriterions = new SortingCriterionSettings[]{new SortingCriterionSettings()};

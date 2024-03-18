@@ -298,7 +298,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         boolean m_limitScannedRows = true;
         // TODO merge into a single widget with UIEXT-1742
 
-        @Widget(hideTitle = true)
+        @Widget(title = "", description = "", hideTitle = true)
         @NumberInputWidget(min = 0)
         @Layout(LimitScannedRows.class)
         @Effect(signals = LimitScannedRows.class, type = EffectType.SHOW)

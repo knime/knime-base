@@ -174,7 +174,7 @@ public final class DuplicateRowFilterDialogSettings implements DefaultNodeSettin
     RowSelection m_rowSelectionType = RowSelection.FIRST;
 
     @Persist(configKey = DuplicateRowFilterSettings.REFERENCE_COL_KEY)
-    @Widget(title = "Column")
+    @Widget(title = "Column", description = "")
     @ChoicesWidget(choices = AllColumns.class)
     @Effect(signals = RowSelection.IsFirstOrLast.class, type = EffectType.HIDE)
     @Layout(DuplicateHandlingSection.class)

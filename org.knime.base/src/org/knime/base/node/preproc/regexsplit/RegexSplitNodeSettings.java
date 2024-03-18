@@ -264,7 +264,6 @@ final class RegexSplitNodeSettings implements DefaultNodeSettings {
 
     // Output Settings
 
-    @Widget
     @Persist(defaultProvider = OutputSettings.LegacyProvider.class)
     OutputSettings m_output = new OutputSettings();
 
