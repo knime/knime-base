@@ -56,9 +56,17 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.IfSchemaChangesOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.IfSchemaChangesPersistor;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetPersistor;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsPersistor;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesPersistor;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.IfRowHasLessColumnsOption.IfRowHasLessColumnsOptionPersistor;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption.RowDelimiterPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -74,6 +82,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     protected CSVTableReaderNodeSettingsTest() {
         super(getConfig());
@@ -111,11 +120,67 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     @ParameterizedTest
     @MethodSource
+    void testIfRowHasLessColumnsOptionPersistor(final IfRowHasLessColumnsOption ifRowHasLessColumnsOption)
+        throws InvalidSettingsException {
+        final var copy = saveLoad(IfRowHasLessColumnsOptionPersistor.class, IfRowHasLessColumnsOption.class,
+            ifRowHasLessColumnsOption);
+        assertEquals(ifRowHasLessColumnsOption, copy);
+    }
+
+    private static Stream<IfRowHasLessColumnsOption> testIfRowHasLessColumnsOptionPersistor() {
+        return Stream.of(IfRowHasLessColumnsOption.INSERT_MISSING, IfRowHasLessColumnsOption.FAIL);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void testRowDelimiterPersistor(final RowDelimiterOption rowDelimiterOption) throws InvalidSettingsException {
+        final var copy = saveLoad(RowDelimiterPersistor.class, RowDelimiterOption.class, rowDelimiterOption);
+        assertEquals(rowDelimiterOption, copy);
+    }
+
+    private static Stream<RowDelimiterOption> testRowDelimiterPersistor() {
+        return Stream.of(RowDelimiterOption.LINE_BREAK, RowDelimiterOption.CUSTOM);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void testIfSchemaChangesPersistor(final IfSchemaChangesOption ifSchemaChangesOption)
+        throws InvalidSettingsException {
+        final var copy = saveLoad(IfSchemaChangesPersistor.class, IfSchemaChangesOption.class, ifSchemaChangesOption);
+        assertEquals(ifSchemaChangesOption, copy);
+    }
+
+    private static Stream<IfSchemaChangesOption> testIfSchemaChangesPersistor() {
+        return Stream.of(IfSchemaChangesOption.FAIL, IfSchemaChangesOption.USE_NEW_SCHEMA,
+            IfSchemaChangesOption.IGNORE);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void testSkipFirstLinesPersistor(final Long l) throws InvalidSettingsException {
+        final var copy = saveLoad(SkipFirstLinesPersistor.class, Long.class, l);
+        assertEquals(l, copy);
+    }
+
+    private static Stream<Long> testSkipFirstLinesPersistor() {
+        return Stream.of(0l, 1l);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void testSkipFirstDataRowsPersistor(final Long l) throws InvalidSettingsException {
+        final var copy = saveLoad(SkipFirstDataRowsPersistor.class, Long.class, l);
+        assertEquals(l, copy);
+    }
+
+    private static Stream<Long> testSkipFirstDataRowsPersistor() {
+        return Stream.of(0l, 1l);
+    }
+
+    @ParameterizedTest
+    @MethodSource
     void testCharsetPersistor(final Charset charset) throws InvalidSettingsException {
-        var persistor = FieldNodeSettingsPersistor.createInstance(CharsetPersistor.class, Charset.class, "key");
-        var nodeSettings = new NodeSettings("settings");
-        persistor.save(charset, nodeSettings);
-        final var copy = persistor.load(nodeSettings);
+        final var copy = saveLoad(CharsetPersistor.class, Charset.class, charset);
         assertEquals(charset.m_fileEncoding, copy.m_fileEncoding);
         assertEquals(charset.m_customEncoding, copy.m_customEncoding);
     }
@@ -124,4 +189,13 @@ class CSVTableReaderNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
         return Stream.of(new Charset(FileEncodingOption.DEFAULT), new Charset(FileEncodingOption.UTF_8),
             new Charset(FileEncodingOption.OTHER, "foo"));
     }
+
+    private static <S, P extends FieldNodeSettingsPersistor<S>> S saveLoad(final Class<P> persistorType,
+        final Class<S> settingsType, final S value) throws InvalidSettingsException {
+        var persistor = FieldNodeSettingsPersistor.createInstance(persistorType, settingsType, "key");
+        var nodeSettings = new NodeSettings("settings");
+        persistor.save(value, nodeSettings);
+        return persistor.load(nodeSettings);
+    }
+
 }
