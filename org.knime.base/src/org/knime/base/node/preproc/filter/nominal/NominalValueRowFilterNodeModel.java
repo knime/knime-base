@@ -342,6 +342,7 @@ public class NominalValueRowFilterNodeModel extends NodeModel {
     /**
      * {@inheritDoc}
      */
+    // Duplicate of loadValidatedSettingsFrom(final NodeSettingsRO settings)
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_selectedColumn = settings.getString(NominalValueRowFilterNodeDialog.CFG_SELECTED_COL);

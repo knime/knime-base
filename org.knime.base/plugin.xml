@@ -2336,9 +2336,9 @@
             hidden="false">
       </node>
       <node
-							category-path="/manipulation/table"
+							category-path="/manipulation/row/row-filter"
             deprecated="false"
-            factory-class="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeFactory2"
+            factory-class="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeFactoryNew"
             hidden="false">
       </node>
    </extension>

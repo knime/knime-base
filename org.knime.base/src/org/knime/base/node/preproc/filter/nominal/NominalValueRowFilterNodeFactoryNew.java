@@ -44,7 +44,6 @@
  */
 package org.knime.base.node.preproc.filter.nominal;
 
-import org.knime.base.node.preproc.column.renamer.ColumnRenamerSettings;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
@@ -55,30 +54,41 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author KNIME GmbH
  * @since 5.3
  */
-public class NominalValueRowFilterNodeFactory2 extends WebUINodeFactory<NominalValueRowFilterNodeModel> {
+public class NominalValueRowFilterNodeFactoryNew extends WebUINodeFactory<NominalValueRowFilterNodeModel> {
 
 
+    /**
+     * @since 5.3
+     */
+    @SuppressWarnings("restriction")
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-            .name("My new fancy node")//
+            .name("Nominal Value Row Filter WebUI")//
             .icon("./nominal_value_filter.png")//
-            .shortDescription("Renames columns.")//
-            .fullDescription("Renames columns according to the renaming scheme defined in the dialog. "
-                + "Column names must be unique, hence it is not possible to give two columns the same name.")//
-            .modelSettingsClass(ColumnRenamerSettings.class)//
-            .addInputTable("Input Table", "The input table that contains columns that should be renamed.")//
-            .addOutputTable("Output Table", "The input table with the renamed columns.")//
-            .keywords("Change column name", "Select")//
+            .shortDescription("Filters rows on nominal attribute value")//
+            .fullDescription(
+                "<p>Filters the rows based on the selected value of a nominal attribute. "
+                + "A nominal column can be selected and one or more nominal value of this "
+                + "attribute. Rows which have this nominal value in the selected column are "
+                + "included in the output data, all other rows are excluded.</p>"
+                + "<p>In order for a nominal column to appear in the node dialog, its domain (the set of values that appear in the "
+                + "column) must be calculated. For columns with few values (less than 60) this is done automatically. "
+                + "To ensure the domain is properly set, use the Domain Calculator node or the Edit Nominal Domain node.</p>")
+            .modelSettingsClass(NominalValueRowFilterSettingsNew.class)//
+            .addInputTable("Data to filter", "Data that should be filtered")//
+            .addOutputTable("Included", "Matching rows")//
+            .keywords("Filter Table")//
             .sinceVersion(5, 0, 0)
             .build();
 
     /**
      */
-    public NominalValueRowFilterNodeFactory2() {
+    public NominalValueRowFilterNodeFactoryNew() {
         super(CONFIG);
     }
 
     /**
      * {@inheritDoc}
+     * @since 5.3
      */
     @Override
     public NominalValueRowFilterNodeModel createNodeModel() {
