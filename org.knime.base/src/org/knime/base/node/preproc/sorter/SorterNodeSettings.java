@@ -130,8 +130,15 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         ColumnSelection m_column;
 
         enum SortingOrder {
-                @Label(value = "Ascending", description = "From smallest to largest.")
-                ASCENDING, @Label(value = "Descending", description = "From largest to smallest.")
+                @Label(value = "Ascending",
+                    description = "The smallest or earliest in the order will appear at the top of the list. "
+                        + "E.g., for numbers the sort is smallest to largest, "
+                        + "for dates the sort will be oldest dates to most recent.")
+                ASCENDING,
+                @Label(value = "Descending",
+                    description = "The largest or latest in the order will appear at the top of the list. "
+                        + "E.g., for numbers the sort is largest to smallest, "
+                        + "for dates the sort will be most recent dates to oldest.")
                 DESCENDING;
         }
 
@@ -185,6 +192,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
         @Override
         public SortingCriterionSettings[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            SortKeyItem.validate(LEGACY_INCLUDELIST_KEY, LEGACY_SORTORDER_KEY, LEGACY_ALPHANUMCOMP_KEY, settings);
             final var sortKeyItems =
                 SortKeyItem.loadFrom(LEGACY_INCLUDELIST_KEY, LEGACY_SORTORDER_KEY, LEGACY_ALPHANUMCOMP_KEY, settings);
             return sortKeyItems.stream().map(LoadDeprecatedSortingCriterionArraySettings::toCriterion)
@@ -226,24 +234,17 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     }
 
     @Layout(Criterions.class)
-    @Widget(title = "", description = "")
+    @Widget(title = "Sorting", description = "A list of sorting criterions.")
     @Persist(customPersistor = LoadDeprecatedSortingCriterionArraySettings.class)
     @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add sorting criterion", showSortButtons = true)
     SortingCriterionSettings[] m_sortingCriterions = new SortingCriterionSettings[]{new SortingCriterionSettings()};
 
-    @Section(title = "Special values and Performance", advanced = true)
+    @Section(title = "Special Values and Performance", advanced = true)
     @After(Criterions.class)
     interface Options {
     }
 
-    @Persist(configKey = "sortinmemory")
-    @Widget(title = "Sort in memory",
-        description = "If selected the table is sorted in memory which requires more memory, but is faster. "
-            + "In case the input table is large and memory is scarce it is recommended not to check this option.")
-    @Layout(Options.class)
-    boolean m_sortInMemory;
-
-    @Persist(configKey = "missingToEnd")
+    @Persist(configKey = "missingToEnd", optional = true)
     @Widget(title = "Sort missing values to end of table",
         description = "If selected missing values are always placed at the end of the sorted output. This is"
             + " independent of the sort order, i.e. if sorted ascendingly they are"
@@ -251,5 +252,12 @@ final class SorterNodeSettings implements DefaultNodeSettings {
             + " they are smaller than any non-missing value.")
     @Layout(Options.class)
     boolean m_sortMissingCellsToEndOfList;
+
+    @Persist(configKey = "sortinmemory", optional = true)
+    @Widget(title = "Sort in memory",
+        description = "If selected the table is sorted in memory which requires more memory, but is faster. "
+            + "In case the input table is large and memory is scarce it is recommended not to check this option.")
+    @Layout(Options.class)
+    boolean m_sortInMemory;
 
 }

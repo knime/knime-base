@@ -9,8 +9,8 @@
         "sortingOrder" : "ASCENDING",
         "stringComparison" : "LEXICOGRAPHIC"
       } ],
-      "sortInMemory" : false,
-      "sortMissingCellsToEndOfList" : false
+      "sortMissingCellsToEndOfList" : false,
+      "sortInMemory" : false
     }
   },
   "schema" : {
@@ -34,6 +34,8 @@
             "configKeys" : [ "missingToEnd" ]
           },
           "sortingCriterions" : {
+            "title" : "Sorting",
+            "description" : "A list of sorting criterions.",
             "default" : [ {
               "column" : {
                 "selected" : "test1",
@@ -78,7 +80,7 @@
                     "title" : "Descending"
                   } ],
                   "title" : "Order",
-                  "description" : "Specifies the sorting order:\n<ul>\n<li><b>Ascending</b>: From smallest to largest.</li>\n<li><b>Descending</b>: From largest to smallest.</li>\n</ul>",
+                  "description" : "Specifies the sorting order:\n<ul>\n<li><b>Ascending</b>: The smallest or earliest in the order will appear at the top of the list. E.g., for numbers the sort is smallest to largest, for dates the sort will be oldest dates to most recent.</li>\n<li><b>Descending</b>: The largest or latest in the order will appear at the top of the list. E.g., for numbers the sort is largest to smallest, for dates the sort will be most recent dates to oldest.</li>\n</ul>",
                   "default" : "ASCENDING"
                 },
                 "stringComparison" : {
@@ -171,20 +173,20 @@
         }
       } ]
     }, {
-      "label" : "Special values and Performance",
+      "label" : "Special Values and Performance",
       "type" : "Section",
       "options" : {
         "isAdvanced" : true
       },
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/sortInMemory",
+        "scope" : "#/properties/model/properties/sortMissingCellsToEndOfList",
         "options" : {
           "format" : "checkbox"
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/sortMissingCellsToEndOfList",
+        "scope" : "#/properties/model/properties/sortInMemory",
         "options" : {
           "format" : "checkbox"
         }

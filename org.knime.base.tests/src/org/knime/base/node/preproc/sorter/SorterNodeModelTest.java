@@ -119,7 +119,7 @@ public class SorterNodeModelTest {
      */
     @Before
     public void setUp() throws Exception {
-        m_snm = new SorterNodeModel();
+        m_snm = new SorterNodeFactory().createNodeModel();
         m_settings = new NodeSettings("Sorter");
     }
 
@@ -146,7 +146,7 @@ public class SorterNodeModelTest {
                 SorterNodeModel.SORTINMEMORY_KEY));
 
         // save empty
-        m_snm.saveSettingsTo(m_settings);
+        m_snm.performSaveSettingsTo(m_settings);
 
         // populate settings
         boolean[] sortOrder = {true, false, true};
@@ -156,9 +156,9 @@ public class SorterNodeModelTest {
         boolean sortInMemory = false;
         m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, sortInMemory);
 
-        m_snm.validateSettings(m_settings);
-        m_snm.loadValidatedSettingsFrom(m_settings);
-        m_snm.configure(new DataTableSpec[] { new DataTableSpec(new String[] {"TestCol1", "TestCol2"},
+        m_snm.performValidateSettings(m_settings);
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
+        m_snm.performConfigure(new DataTableSpec[] { new DataTableSpec(new String[] {"TestCol1", "TestCol2"},
             new DataType[] {StringCell.TYPE, DoubleCell.TYPE})
             });
 
@@ -167,7 +167,7 @@ public class SorterNodeModelTest {
 
 
         NodeSettings newsettings = new NodeSettings("Sorter");
-        m_snm.saveSettingsTo(newsettings);
+        m_snm.performSaveSettingsTo(newsettings);
 
         boolean[] sortOrderTest = newsettings
                     .getBooleanArray(SorterNodeModel.SORTORDER_KEY);
@@ -192,7 +192,7 @@ public class SorterNodeModelTest {
     @Test(expected = InvalidSettingsException.class)
     public final void testValidateSettingsEmpty() throws InvalidSettingsException{
         // try to validate an empty settings-object
-        m_snm.validateSettings(m_settings);
+        m_snm.performValidateSettings(m_settings);
     }
 
     @Test
@@ -201,7 +201,7 @@ public class SorterNodeModelTest {
         m_settings.addStringArray("Incorrect Key 1", (String[])null);
         m_settings.addBooleanArray("Incorrect Key 2", null);
         m_settings.addBoolean("Incorrect Key 3", false);
-        assertThrows(InvalidSettingsException.class, () -> m_snm.validateSettings(m_settings));
+        assertThrows(InvalidSettingsException.class, () -> m_snm.performValidateSettings(m_settings));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class SorterNodeModelTest {
         m_settings.addBooleanArray(SorterNodeModel.ALPHANUMCOMP_KEY, null);
         m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, false);
 
-        assertThrows(InvalidSettingsException.class, () -> m_snm.validateSettings(m_settings));
+        assertThrows(InvalidSettingsException.class, () -> m_snm.performValidateSettings(m_settings));
     }
 
     @Test
@@ -224,7 +224,7 @@ public class SorterNodeModelTest {
         boolean sortInMemory = false;
         m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, sortInMemory);
 
-        assertThrows(InvalidSettingsException.class, () -> m_snm.validateSettings(m_settings));
+        assertThrows(InvalidSettingsException.class, () -> m_snm.performValidateSettings(m_settings));
     }
 
     @Test
@@ -232,10 +232,9 @@ public class SorterNodeModelTest {
         m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, false);
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, DEFAULT_TWO_COLS);
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, new boolean[] {true, true});
-        m_settings.addBooleanArray(SorterNodeModel.ALPHANUMCOMP_KEY, null);
 
         // we don't validate for backwards compatibility with loading via flow variables
-        m_snm.validateSettings(m_settings);
+        m_snm.performValidateSettings(m_settings);
     }
 
     @Test
@@ -243,20 +242,20 @@ public class SorterNodeModelTest {
         final String[] inclCols = {"TestCol1Dup", "TestCol1Dup"};
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, inclCols);
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, new boolean[] {true, false});
-        assertThrows(InvalidSettingsException.class, () -> m_snm.validateSettings(m_settings));
+        assertThrows(InvalidSettingsException.class, () -> m_snm.performValidateSettings(m_settings));
     }
 
     @Test
     public final void testValidateSettingsNoSortOrderKey() throws InvalidSettingsException {
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, DEFAULT_TWO_COLS);
-        assertThrows(InvalidSettingsException.class, () -> m_snm.validateSettings(m_settings));
+        assertThrows(InvalidSettingsException.class, () -> m_snm.performValidateSettings(m_settings));
     }
 
     @Test
     public final void testValidateSettingsMismatchedColumnsAndSortOrders() throws InvalidSettingsException {
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, DEFAULT_TWO_COLS);
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, new boolean[] {true});
-        assertThrows(InvalidSettingsException.class, () -> m_snm.validateSettings(m_settings));
+        assertThrows(InvalidSettingsException.class, () -> m_snm.performValidateSettings(m_settings));
     }
 
     @Test
@@ -267,7 +266,7 @@ public class SorterNodeModelTest {
         boolean sortInMemory = false;
         m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, sortInMemory);
 
-        m_snm.validateSettings(m_settings);
+        m_snm.performValidateSettings(m_settings);
     }
 
     /**
@@ -281,8 +280,8 @@ public class SorterNodeModelTest {
         boolean sortInMemory = false;
         m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, sortInMemory);
 
-        m_snm.validateSettings(m_settings);
-        m_snm.loadValidatedSettingsFrom(m_settings);
+        m_snm.performValidateSettings(m_settings);
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
     }
 
     @Test
@@ -291,23 +290,17 @@ public class SorterNodeModelTest {
         final var dts = new DataTableSpec(new DataColumnSpecCreator("Col1", StringCell.TYPE).createSpec());
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, "Col1");
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, false);
-        m_snm.loadValidatedSettingsFrom(m_settings);
-        assertEquals(1, m_snm.configure(new DataTableSpec[] { dts }).length);
-    }
-
-    @Test
-    public final void testConfigureInvalid() throws InvalidSettingsException {
-        final var dts = new DataTableSpec(new DataColumnSpecCreator("Col1", StringCell.TYPE).createSpec());
-        assertThrows(InvalidSettingsException.class, () -> m_snm.configure(new DataTableSpec[] { dts }));
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
+        assertEquals(1, m_snm.performConfigure(new DataTableSpec[] { dts }).length);
     }
 
     @Test
     public final void testConfigureMissingColumns() throws InvalidSettingsException {
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, "-ROWKEY -", "Col1");
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, true, false);
-        m_snm.loadValidatedSettingsFrom(m_settings);
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
         final var dts = new DataTableSpec(new DataColumnSpecCreator("Missing", StringCell.TYPE).createSpec());
-        assertThrows(InvalidSettingsException.class, () -> m_snm.configure(new DataTableSpec[] { dts }));
+        assertThrows(InvalidSettingsException.class, () -> m_snm.performConfigure(new DataTableSpec[] { dts }));
     }
 
     @Test
@@ -315,11 +308,11 @@ public class SorterNodeModelTest {
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, "NoAlphanum");
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, false);
         m_settings.addBooleanArray(SorterNodeModel.ALPHANUMCOMP_KEY, true);
-        m_snm.loadValidatedSettingsFrom(m_settings);
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
         final var dts = new DataTableSpec(
             new DataColumnSpecCreator("NoAlphanum", DoubleCell.TYPE).createSpec()
             );
-        assertThrows(InvalidSettingsException.class, () -> m_snm.configure(new DataTableSpec[] { dts }));
+        assertThrows(InvalidSettingsException.class, () -> m_snm.performConfigure(new DataTableSpec[] { dts }));
     }
 
     // test execute
@@ -331,17 +324,17 @@ public class SorterNodeModelTest {
     @Test
     public final void testExecuteEmptySortKey() throws Exception {
         final var dts = new DataTableSpec(new DataColumnSpecCreator("Column1", StringCell.TYPE).createSpec());
-        // m_snm.configure(new DataTableSpec[] {dts});
+        // m_snm.performConfigure(new DataTableSpec[] {dts});
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, new String[] {});
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, new boolean[] {});
-        m_snm.loadValidatedSettingsFrom(m_settings);
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
         final var cont = EXEC_CONTEXT.createDataContainer(dts);
         cont.addRowToTable(new DefaultRow(RowKey.createRowKey(0L), new StringCell("10")));
         cont.addRowToTable(new DefaultRow(RowKey.createRowKey(1L), new StringCell("2")));
         cont.addRowToTable(new DefaultRow(RowKey.createRowKey(2L), new StringCell("1")));
         cont.close();
         final var input = cont.getTable();
-        final var sorted = m_snm.execute(
+        final var sorted = m_snm.performExecute(
             EXEC_CONTEXT.createBufferedDataTables(new DataTable[] { input }, EXEC_CONTEXT), EXEC_CONTEXT)[0];
         // since we have no sort columns specified, we should get the original table back
         assertEquals(input, sorted);
@@ -350,17 +343,17 @@ public class SorterNodeModelTest {
     @Test(expected = IllegalArgumentException.class)
     public final void testExecuteColumnNotFound() throws Exception {
         final var dts = new DataTableSpec(new DataColumnSpecCreator("Column1", StringCell.TYPE).createSpec());
-        // m_snm.configure(new DataTableSpec[] {dts});
+        // m_snm.performConfigure(new DataTableSpec[] {dts});
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, "NotFound");
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, true);
-        m_snm.loadValidatedSettingsFrom(m_settings);
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
         final var cont = EXEC_CONTEXT.createDataContainer(dts);
         cont.addRowToTable(new DefaultRow(RowKey.createRowKey(0L), new StringCell("10")));
         cont.addRowToTable(new DefaultRow(RowKey.createRowKey(1L), new StringCell("2")));
         cont.addRowToTable(new DefaultRow(RowKey.createRowKey(2L), new StringCell("1")));
         cont.close();
         final var input = cont.getTable();
-        m_snm.execute(EXEC_CONTEXT.createBufferedDataTables(new DataTable[] { input }, EXEC_CONTEXT), EXEC_CONTEXT);
+        m_snm.performExecute(EXEC_CONTEXT.createBufferedDataTables(new DataTable[] { input }, EXEC_CONTEXT), EXEC_CONTEXT);
     }
 
     /**
@@ -373,8 +366,8 @@ public class SorterNodeModelTest {
         m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, DynamicSorterPanel.ROWKEY.getName());
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, true);
         m_settings.addBooleanArray(SorterNodeModel.ALPHANUMCOMP_KEY, true);
-        m_snm.loadValidatedSettingsFrom(m_settings);
-        m_snm.configure(new DataTableSpec[] {dts});
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
+        m_snm.performConfigure(new DataTableSpec[] {dts});
 
         final var referenceKeys = Arrays.stream(new long[] {1, 2, 10}).iterator();
         final var cont = EXEC_CONTEXT.createDataContainer(dts);
@@ -383,7 +376,7 @@ public class SorterNodeModelTest {
         cont.addRowToTable(new DefaultRow(RowKey.createRowKey(1L), new StringCell("1")));
         cont.close();
         final var input = cont.getTable();
-        final var sorted = m_snm.execute(
+        final var sorted = m_snm.performExecute(
             EXEC_CONTEXT.createBufferedDataTables(new DataTable[] { input }, EXEC_CONTEXT), EXEC_CONTEXT)[0];
         try (final var it = sorted.iterator()) {
             while (it.hasNext()) {
@@ -424,9 +417,9 @@ public class SorterNodeModelTest {
         boolean[] sortorder = {true, true, true, true};
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, sortorder);
 
-        m_snm.loadValidatedSettingsFrom(m_settings);
-        m_snm.configure(new DataTableSpec[] {inputTable[0].getDataTableSpec()});
-        resultTable = m_snm.execute(EXEC_CONTEXT.createBufferedDataTables(
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
+        m_snm.performConfigure(new DataTableSpec[] {inputTable[0].getDataTableSpec()});
+        resultTable = m_snm.performExecute(EXEC_CONTEXT.createBufferedDataTables(
                     inputTable, EXEC_CONTEXT), EXEC_CONTEXT);
 
         // test output
@@ -435,7 +428,7 @@ public class SorterNodeModelTest {
         Assert.assertTrue(rowIt.hasNext());
         Assert.assertEquals(rows[0], rowIt.next());
         Assert.assertFalse(rowIt.hasNext());
-        m_snm.reset();
+        m_snm.performReset();
 
         // *********************************************//
         // try to sort a large array of DataRows
@@ -460,9 +453,9 @@ public class SorterNodeModelTest {
         DataTable[] inputTable2 = {generateUnitMatrixTable(dimension)};
 
 
-        m_snm.loadValidatedSettingsFrom(m_settings);
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
 
-        resultTable = m_snm.execute(EXEC_CONTEXT.createBufferedDataTables(
+        resultTable = m_snm.performExecute(EXEC_CONTEXT.createBufferedDataTables(
                     inputTable2, EXEC_CONTEXT), EXEC_CONTEXT);
 
 
@@ -477,7 +470,7 @@ public class SorterNodeModelTest {
             k--;
         }
         Assert.assertFalse(rowIt.hasNext());
-        m_snm.reset();
+        m_snm.performReset();
 
         // *********************************************//
         // try to sort a very large array of DataRows
@@ -502,9 +495,9 @@ public class SorterNodeModelTest {
         DataTable[] inputTable3 = {generateUnitMatrixTable(dimension)};
 
 
-        m_snm.loadValidatedSettingsFrom(m_settings);
+        m_snm.performLoadValidatedSettingsFrom(m_settings);
 
-        resultTable = m_snm.execute(EXEC_CONTEXT.createBufferedDataTables(
+        resultTable = m_snm.performExecute(EXEC_CONTEXT.createBufferedDataTables(
                     inputTable3, EXEC_CONTEXT), EXEC_CONTEXT);
 
         // test output (should have sorted all rows in reverse order)
@@ -518,7 +511,7 @@ public class SorterNodeModelTest {
             k--;
         }
         Assert.assertFalse(rowIt.hasNext());
-        m_snm.reset();
+        m_snm.performReset();
     }
 
     /**
