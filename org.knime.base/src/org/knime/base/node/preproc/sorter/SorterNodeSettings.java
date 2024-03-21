@@ -243,7 +243,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     @Layout(Options.class)
     boolean m_sortInMemory;
 
-    @Persist(configKey = "missingToEnd")
+    @Persist(configKey = "missingToEnd", optional = true)
     @Widget(title = "Sort missing values to end of table",
         description = "If selected missing values are always placed at the end of the sorted output. This is"
             + " independent of the sort order, i.e. if sorted ascendingly they are"

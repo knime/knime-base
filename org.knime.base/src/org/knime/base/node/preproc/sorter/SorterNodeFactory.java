@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   02.02.2005 (cebron): created
  */
@@ -61,7 +61,7 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.impl.PortDescription;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.xml.sax.SAXException;
 
@@ -73,9 +73,26 @@ import org.xml.sax.SAXException;
 
 public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory {
 
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Sorter") //
+        .icon("sorter.png") //
+        .shortDescription("Sorts the rows according to user-defined criteria.") //
+        .fullDescription("""
+                This node sorts the rows according to user-defined criteria. In the dialog, select
+                the columns according to which the data should be sorted. Also select
+                whether it should be sorted in ascending or descending order. Additionally, provides the option to
+                compare string-compatible columns in alphanumeric instead of lexicographic order,
+                for example "Row2" before "Row10" instead of "Row10" before "Row2".
+                """).modelSettingsClass(SorterNodeSettings.class) //
+        .addInputPort("Input Table", BufferedDataTable.TYPE, "Table to be sorted.") //
+        .addOutputPort("Sorted Table", BufferedDataTable.TYPE, "A sorted table.") //
+        .nodeType(NodeType.Manipulator) //
+        .keywords("Order by", "Row sorter", "Sorter")//
+        .build();
+
     @Override
     public NodeModel createNodeModel() {
-        return new SorterNodeModel();
+        return new SorterNodeModel(CONFIG, SorterNodeSettings.class);
     }
 
     @Override
@@ -93,22 +110,9 @@ public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory 
         return true;
     }
 
-    private static final String FULL_DESCRIPTION = """
-            This node sorts the rows according to user-defined criteria. In the dialog, select
-            the columns according to which the data should be sorted. Also select
-            whether it should be sorted in ascending or descending order. Additionally, provides the option to
-            compare string-compatible columns in alphanumeric instead of lexicographic order,
-            for example "Row2" before "Row10" instead of "Row10" before "Row2".
-            """;
-
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
-        return WebUINodeFactory.createNodeDescription("Sorter", "sorter.png",
-            new PortDescription[]{
-                new PortDescription("Input Table", BufferedDataTable.TYPE, "Table to be sorted.", true)},
-            new PortDescription[]{new PortDescription("Sorted Table", BufferedDataTable.TYPE, "A sorted table.")},
-            "Sorts the rows according to user-defined criteria.", FULL_DESCRIPTION, SorterNodeSettings.class, null,
-            null, NodeType.Manipulator, new String[]{"Order by", "Row sorter", "Sorter"});
+        return WebUINodeFactory.createNodeDescription(CONFIG);
     }
 
     /**
