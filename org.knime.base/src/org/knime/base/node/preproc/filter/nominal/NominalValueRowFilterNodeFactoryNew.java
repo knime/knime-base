@@ -48,10 +48,9 @@ import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * <code>NodeFactory</code> for the "PossibleValueRowFilter" Node.
+ * <code>NodeFactory</code> for the "Nominal Row Filter" Node.
  *
- *
- * @author KNIME GmbH
+ * @author Jakob Sanowski, KNIME GmbH, Konstanz
  * @since 5.3
  */
 public class NominalValueRowFilterNodeFactoryNew extends WebUINodeFactory<NominalValueRowFilterNodeModel> {
@@ -62,7 +61,7 @@ public class NominalValueRowFilterNodeFactoryNew extends WebUINodeFactory<Nomina
      */
     @SuppressWarnings("restriction")
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-            .name("Nominal Value Row Filter WebUI")//
+            .name("Nominal Value Row Filter (Labs)")//
             .icon("./nominal_value_filter.png")//
             .shortDescription("Filters rows on nominal attribute value")//
             .fullDescription(

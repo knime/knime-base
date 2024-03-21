@@ -58,23 +58,22 @@ import org.knime.core.data.NominalValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.filter.nominal.NominalValueFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldBasedNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyNameFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**
+ * WebUI settings class for the "Nomnal Value Row Filter" node.
  *
- * @author Jakob Sanowski
+ * @author Jakob Sanowski, KNIME GmbH, Konstanz
  * @since 5.3
  */
 @SuppressWarnings("restriction")
@@ -83,30 +82,15 @@ public class NominalValueRowFilterSettingsNew implements DefaultNodeSettings {
     /** Config key for the selected column. */
     static final String CFG_SELECTED_COL = "selected_column";
 
-    /** Config key for filter configuration. */
-    static final String CFG_CONFIGROOTNAME = "filter config";
-
-    /** Settings key for type of filter. */
-    private static final String KEY_FILTER_TYPE = "filter-type";
-
-    /** Settings key for the excluded columns. */
-    private static final String KEY_INCLUDED_NAMES = "included_names";
-
-    /** Settings key for the excluded columns. */
-    private static final String KEY_EXCLUDED_NAMES = "excluded_names";
-
-    /** Settings key for the enforce selection option. */
-    private static final String KEY_ENFORCE_OPTION = "enforce_option";
-
     @Widget(title = "Select column", description = "Select the (nominal) column which contains the nominal values to filter.")
     @ChoicesWidget(choices = NominalColumnChoicesProider.class)
     @Persist(configKey = CFG_SELECTED_COL, customPersistor = LegacyColumnSelectionPersistor.class)
     public ColumnSelection m_selectedColumn;
 
     /**
-     *  Probably should go into {@link ColumnChoicesProvideUtil}.
+     * Provides columns of type {@link NominalValue} as choices.
      *
-     * @author Jakob Sanowski, KNIME GmbH
+     * @author Jakob Sanowski, KNIME GmbH, Konstanz
      */
     private static final class NominalColumnChoicesProider extends CompatibleColumnChoicesProvider {
         /**
@@ -168,71 +152,25 @@ public class NominalValueRowFilterSettingsNew implements DefaultNodeSettings {
         }
     }
 
-    // Not functional
     @Widget(title = "Nominal value filter", description = "Select the nominal values to be in the output data, by moving them "
         + "from left (excluded) to right (included)")
-    @ChoicesWidget(choicesUpdateHandler = NominalValueChoicesProvider.class)
+    @ChoicesWidget(choices  = NominalValueChoicesProvider.class)
+    @Persist(configKey = NominalValueRowFilterNodeDialog.CFG_CONFIGROOTNAME, customPersistor = LegacyNameFilterPersistor.class)
     public NameFilter m_nominalValueSelection;
 
-    protected static final class NominalValueChoicesProvider implements ChoicesUpdateHandler<ColumnSelection> {
-//        /**
-//         * {@inheritDoc}
-//         */
-//        @Override
-//        public String[] choices(final DefaultNodeSettingsContext context) {
-//            // TODO Auto-generated method stub
-//            final DataTableSpec specs = context.getDataTableSpec(0).orElse(new DataTableSpec());
-//            return specs.getColumnSpec(0).getDomain().getValues().stream().map(c -> c.toString()).toArray(String[]::new);
-//        }
-
+    // Temporary. Will be replaced with the ChoicesStateProvider API.
+    protected static final class NominalValueChoicesProvider implements ChoicesProvider {
         /**
          * {@inheritDoc}
          */
         @Override
-        public IdAndText[] update(final ColumnSelection settings, final DefaultNodeSettingsContext context)
-            throws WidgetHandlerException {
+        public String[] choices(final DefaultNodeSettingsContext context) {
             // TODO Auto-generated method stub
             final DataTableSpec specs = context.getDataTableSpec(0).orElse(new DataTableSpec());
-            return specs.getColumnSpec(settings.getSelected()).getDomain().getValues().stream().map(c -> new IdAndText(c.toString(), c.toString())).toArray(IdAndText[]::new);
-        }
-    }
-
-    public final class LegacyNominalValueFilterPersistor extends NodeSettingsPersistorWithConfigKey<NameFilter> {
-
-        public LegacyNominalValueFilterPersistor(final Class<NameFilter> settingsClass) {
-
-        }
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public NameFilter load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            // TODO Auto-generated method stub
-            var config = new NominalValueFilterConfiguration(getConfigKey());
-            if (settings.containsKey(getConfigKey())) {
-            }
-            return new NameFilter();
+            final var values = specs.getColumnSpec(0).getDomain().getValues();
+            return values != null ? values.stream().map(c -> c.toString()).toArray(String[]::new) : new String[0];
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void save(final NameFilter obj, final NodeSettingsWO settings) {
-            // TODO Auto-generated method stub
-
-        }
-
-        private void save(NameFilter nameFilter, final NodeSettingsWO settings, final String configKey) {
-            if (nameFilter == null) {
-                // TODO: Log columnSelection = null error.
-                nameFilter = new NameFilter();
-            }
-
-            var columnSelectionSettings = settings.addNodeSettings(configKey);
-            columnSelectionSettings.addString(KEY_FILTER_TYPE, "STANDARD");
-            columnSelectionSettings.addStringArray(KEY_INCLUDED_NAMES, nameFilter.m_selected);
-        }
     }
 
     public NominalValueRowFilterSettingsNew() {
