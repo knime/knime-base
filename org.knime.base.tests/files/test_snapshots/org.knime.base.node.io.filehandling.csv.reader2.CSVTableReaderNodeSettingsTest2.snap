@@ -736,7 +736,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/ifSchemaChangesOption",
         "options" : {
-          "format" : "valueSwitch"
+          "format" : "valueSwitch",
+          "disabledOptions" : [ "IGNORE" ]
         }
       }, {
         "type" : "Control",

@@ -373,9 +373,8 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 FAIL, //
                 @Label(value = "Use new schema", description = IfSchemaChanges.DESCRIPTION_USE_NEW_SCHEMA) //
                 USE_NEW_SCHEMA, //
-                @Label(value = "Ignore (deprecated)", description = IfSchemaChanges.DESCRIPTION_IGNORE) //
+                @Label(value = "Ignore (deprecated)", description = IfSchemaChanges.DESCRIPTION_IGNORE, disabled = true)
                 IGNORE; //
-            // TODO Disable Ignore option in https://knime-com.atlassian.net/browse/UIEXT-1730
         }
 
         static final class IfSchemaChangesPersistor implements FieldNodeSettingsPersistor<IfSchemaChangesOption> {
