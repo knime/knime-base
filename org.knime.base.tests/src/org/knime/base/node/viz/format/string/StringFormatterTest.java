@@ -234,12 +234,13 @@ class StringFormatterTest {
 
         // test in-string substitution
         assertEquals(
-            "l1\n<a href=\"https://www.knime.com/call?query\" title=\"https://www.knime.com/call?query\">"
-                + "https://www.knime.com/call?query</a> is a url\nl3",
+            "l1\n<a href=\"https://www.knime.com/call?query\" title=\"https://www.knime.com/call?query\""
+            + " target=\"_blank\">https://www.knime.com/call?query</a> is a url\nl3",
             fmt.makeLinksClickable("l1\nhttps://www.knime.com/call?query is a url\nl3"), "URL should be replaced");
-        assertEquals("   aa  <a href=\"http://k.de\" title=\"http://k.de\">k.de</a>\t\r\n bb",
+        assertEquals("   aa  <a href=\"http://k.de\" title=\"http://k.de\" target=\"_blank\">k.de</a>\t\r\n bb",
             fmt.makeLinksClickable("   aa  k.de\t\r\n bb"), "URL should be replaced");
-        assertEquals(" (<a href=\"http://www.google.com\" title=\"http://www.google.com\">www.google.com</a>) ",
+        assertEquals(
+            " (<a href=\"http://www.google.com\" title=\"http://www.google.com\" target=\"_blank\">www.google.com</a>) ",
             fmt.makeLinksClickable(" (www.google.com) "), "URL should be replaced");
 
         Stream.of(// some emails
@@ -279,15 +280,15 @@ class StringFormatterTest {
         // test in-string substitution
         assertEquals(
             "firstline\n<a href=\"mailto:user@knime.com\" title=\"" + StringFormatter.DEFAULT_EMAIL_TOOLTIP_PREFIX
-                + "user@knime.com\">user@knime.com</a> is cool\nthirdline",
+                + "user@knime.com\" target=\"_blank\">user@knime.com</a> is cool\nthirdline",
             fmt.makeLinksClickable("firstline\nuser@knime.com is cool\nthirdline"), "Mail address should be replaced");
         assertEquals(
             "<a href=\"mailto:a@knime.com\" title=\"" + StringFormatter.DEFAULT_EMAIL_TOOLTIP_PREFIX
-                + "a@knime.com\">a@knime.com</a>\tnextcolumn",
+                + "a@knime.com\" target=\"_blank\">a@knime.com</a>\tnextcolumn",
             fmt.makeLinksClickable("a@knime.com\tnextcolumn"), "Mail address should be replaced");
         assertEquals(
             "some double@<a href=\"mailto:email@knime.com\" title=\"" + StringFormatter.DEFAULT_EMAIL_TOOLTIP_PREFIX
-                + "email@knime.com\">email@knime.com</a> in a text",
+                + "email@knime.com\" target=\"_blank\">email@knime.com</a> in a text",
             fmt.makeLinksClickable("some double@email@knime.com in a text"), "Mail address should be replaced");
     }
 
@@ -368,7 +369,7 @@ class StringFormatterTest {
                 word-break:break-all;\
                 text-align: left;\
                 " title="here&#39;s a.link and a way t…ence\t">\
-                here&#39;s <a href="http://a.link" title="http://a.link">a.link</a> and a way t"""
+                here&#39;s <a href="http://a.link" title="http://a.link" target=\"_blank\">a.link</a> and a way t"""
             + StringFormatter.ELLIPSIS + "ence\t</span>", fmt.format(testString), "Expect the proper output");
 
         settings = new Settings(11, 5, true, true, LEFT, false, false, Optional.empty(), true);

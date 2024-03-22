@@ -199,14 +199,15 @@ public final class StringFormatter implements ValueFormatModel {
         if (m_settings.linkHrefsAndEmails) {
             s = StringFormatterPatterns.URL.matcher(s).replaceAll(mr -> {
                 var url = mr.group();
-                if (!StringUtils.startsWithIgnoreCase(url, "http://")
+                if (!StringUtils.startsWithIgnoreCase(url, "http://") // NOSONAR keep string explicit here
                     && !StringUtils.startsWithIgnoreCase(url, "https://")) {
-                    url = "http://" + url; // otherwise, e.g. "knime.com" is interpreted as a file path when clicking it
+                    // otherwise, e.g. "knime.com" is interpreted as a file path when clicking it
+                    url = DEFAULT_PROTOCOL + url;
                 }
-                return "<a href=\"" + url + "\" title=\"" + url + "\">$1</a>";
+                return "<a href=\"" + url + "\" title=\"" + url + "\" target=\"_blank\">$1</a>";
             });
-            s = StringFormatterPatterns.EMAIL.matcher(s)
-                .replaceAll("<a href=\"mailto:$1\" title=\"Send email to $1\">$1</a>");
+            s = StringFormatterPatterns.EMAIL.matcher(s).replaceAll(
+                "<a href=\"mailto:$1\" title=\"" + DEFAULT_EMAIL_TOOLTIP_PREFIX + "$1\" target=\"_blank\">$1</a>");
         }
         return s;
     }
