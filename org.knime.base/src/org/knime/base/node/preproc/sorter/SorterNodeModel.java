@@ -191,6 +191,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
     private static boolean isRowKey(final String colName) {
         return DynamicSorterPanel.ROWKEY.getName().equals(colName);
     }
+
     /**
      * Check if the values of the include list also exist in the {@link DataTableSpec} at the inport. If everything is
      * ok, the v from the inport is translated without modification to the outport.
@@ -201,7 +202,8 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final SorterNodeSettings modelSettings)
         throws InvalidSettingsException {
         if (modelSettings.m_sortingCriterions.length == 0) {
-            throw new InvalidSettingsException("No selected columns to sort");
+            throw new InvalidSettingsException(
+                "No selected columns to sort by. Add a sorting criterion in the node’s settings");
         }
         // check if the values of the include List
         // exist in the DataTableSpec
@@ -216,13 +218,14 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
                 } else if (ic.m_stringComparison == StringComparison.ALPHANUMERIC
                     && !spec.getColumnSpec(idx).getType().isCompatible(StringValue.class)) {
                     throw new InvalidSettingsException("Alphanumeric sorting is not available for '" + id
-                        + "' since it does not have a " + "string-compatible type.");
+                        + "' since it does not have a "
+                        + "string-compatible type.");
                 }
             }
         }
 
         if (!notAvailableCols.isEmpty()) {
-            throw new InvalidSettingsException("The input table has " + "changed. Some columns are missing: "
+            throw new InvalidSettingsException("The input table has changed. Some columns are missing: "
                 + ConvenienceMethods.getShortStringFrom(notAvailableCols, 3));
         }
         return new DataTableSpec[]{inSpecs[INPORT]};

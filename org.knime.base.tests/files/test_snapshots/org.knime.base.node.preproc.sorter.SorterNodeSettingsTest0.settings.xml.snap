@@ -12,6 +12,6 @@
         <entry key="array-size" type="xint" value="1"/>
         <entry key="0" type="xboolean" value="false"/>
     </config>
-    <entry key="sortinmemory" type="xboolean" value="false"/>
     <entry key="missingToEnd" type="xboolean" value="false"/>
+    <entry key="sortinmemory" type="xboolean" value="false"/>
 </config>

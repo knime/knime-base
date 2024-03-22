@@ -83,7 +83,8 @@ public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory 
                 whether it should be sorted in ascending or descending order. Additionally, provides the option to
                 compare string-compatible columns in alphanumeric instead of lexicographic order,
                 for example "Row2" before "Row10" instead of "Row10" before "Row2".
-                """).modelSettingsClass(SorterNodeSettings.class) //
+                """)//
+        .modelSettingsClass(SorterNodeSettings.class) //
         .addInputPort("Input Table", BufferedDataTable.TYPE, "Table to be sorted.") //
         .addOutputPort("Sorted Table", BufferedDataTable.TYPE, "A sorted table.") //
         .nodeType(NodeType.Manipulator) //
