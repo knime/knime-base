@@ -48,10 +48,6 @@
  */
 package org.knime.base.node.preproc.columnresorter;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -66,24 +62,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoic
 final class ColumnResorterNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "ColumnOrder")
-    @Widget(title = "Columns", description = "TODO")
+    @Widget(title = "Columns",
+        description = "The names of the columns from the input file to be resorted.<br/><br/>"
+            + "You can either select the columns and move their position up or down, using the up and down arrows, "
+            + "or sort them alphabetically from first to last (A-Z) or from last to first (Z-A). "
+            + "You can also reset all to the order of the input table. ")
     @ChoicesWidget(choices = AllColumnChoicesProvider.class)
     @SortListWidget
-    String[] m_order;
-
-    ColumnResorterNodeSettings() {
-        this((DataTableSpec)null);
-    }
-
-    ColumnResorterNodeSettings(final DefaultNodeSettingsContext context) {
-        this(context.getDataTableSpec(0).orElse(null));
-    }
-
-    private ColumnResorterNodeSettings(final DataTableSpec spec) {
-        final var columns = spec == null ? new String[0] : spec.getColumnNames();
-        m_order = Stream
-            .concat(Arrays.stream(columns), Stream.of(DataColumnSpecListDummyCellRenderer.UNKNOWN_COL_DUMMY.getName()))
-            .toArray(String[]::new);
-    }
+    String[] m_order = new String[0];
 
 }

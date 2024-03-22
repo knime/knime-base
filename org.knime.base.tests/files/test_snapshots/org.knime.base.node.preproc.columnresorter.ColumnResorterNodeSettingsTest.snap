@@ -1,7 +1,7 @@
 {
   "data" : {
     "model" : {
-      "order" : [ "Column 1", "Column 2", "<any unknown new column>" ]
+      "order" : [ ]
     }
   },
   "schema" : {
@@ -12,8 +12,8 @@
         "properties" : {
           "order" : {
             "title" : "Columns",
-            "description" : "TODO",
-            "default" : [ "Column 1", "Column 2", "<any unknown new column>" ],
+            "description" : "The names of the columns from the input file to be resorted.<br/><br/>You can either select the columns and move their position up or down, using the up and down arrows, or sort them alphabetically from first to last (A-Z) or from last to first (Z-A). You can also reset all to the order of the input table. ",
+            "default" : [ ],
             "configKeys" : [ "ColumnOrder" ],
             "type" : "array",
             "items" : {

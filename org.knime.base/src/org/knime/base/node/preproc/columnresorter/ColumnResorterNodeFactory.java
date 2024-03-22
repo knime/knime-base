@@ -60,7 +60,7 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.impl.PortDescription;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.xml.sax.SAXException;
 
@@ -87,31 +87,36 @@ public class ColumnResorterNodeFactory extends NodeFactory<ColumnResorterNodeMod
         return null;
     }
 
-    static final String FULL_DESCRIPTION = """
-            This node changes the order of the input columns, based on
-            user defined settings.
-            Columns may be shifted in single steps left or right, or
-            completely to the beginning or end of the input table.
-            Furthermore columns may also be sorted based on their name.
-            The re-sorted table is provided at the out port.
-            <br /><br />
-            Once the node's dialog has been configured, it is possible to
-            connect a new input table with different structure to the
-            node and execute it without the need to configure the dialog
-            again. New and previously unknown columns will be inserted
-            at the position of the column place holder "Any unknown columns".
-            This place holder can be positioned anywhere like any column.
-            """;
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Column Resorter") //
+        .icon("column_resorter.png") //
+        .shortDescription("Resorts the order of the columns based on user defined settings.") //
+        .fullDescription("""
+                This node changes the order of the input columns, based on
+                user defined settings.
+                Columns may be shifted in single steps left or right, or
+                completely to the beginning or end of the input table.
+                Furthermore columns may also be sorted based on their name.
+                The re-sorted table is provided at the out port.
+                <br /><br />
+                Once the node's dialog has been configured, it is possible to
+                connect a new input table with different structure to the
+                node and execute it without the need to configure the dialog
+                again. New and previously unknown columns will be inserted
+                at the position of the column place holder "Any unknown columns".
+                This place holder can be positioned anywhere like any column.
+                """)//
+        .modelSettingsClass(ColumnResorterNodeSettings.class) //
+        .addInputPort("Input data", BufferedDataTable.TYPE, "Table containing columns to rearrange.") //
+        .addOutputPort("Output data", BufferedDataTable.TYPE,
+            "Resorts the order of the columns based on user defined settings") //
+        .nodeType(NodeType.Manipulator) //
+        .keywords("Column reorder")
+        .build();
 
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
-        return WebUINodeFactory.createNodeDescription("Column Resorter", "column_resorter.png",
-            new PortDescription[]{new PortDescription("Input data", BufferedDataTable.TYPE,
-                "Table containing columns to rearrange.", true)},
-            new PortDescription[]{
-                new PortDescription("Output data", BufferedDataTable.TYPE, "Table with rearranged columns.")},
-            "Resorts the order of the columns based on user defined settings", FULL_DESCRIPTION,
-            ColumnResorterNodeSettings.class, null, null, NodeType.Manipulator, new String[]{"Column reorder"});
+        return WebUINodeFactory.createNodeDescription(CONFIG);
     }
 
     @Override
