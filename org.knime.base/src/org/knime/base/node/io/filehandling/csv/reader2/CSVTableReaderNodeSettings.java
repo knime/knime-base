@@ -133,7 +133,9 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
     Encoding m_encoding = new Encoding();
 
     @Persist(configKey = "table_spec_config", hidden = true, customPersistor = NodeSettingsPreserverPersistor.class)
-    Void m_tableSpecConfig;
+    Void m_tableSpecConfig_old;
+
+    private TableSpecConfig m_tableSpecConfig;
 
     static class Settings implements WidgetGroup, PersistableSettings {
 
