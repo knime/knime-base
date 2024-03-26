@@ -319,6 +319,11 @@
           "settings" : {
             "type" : "object",
             "properties" : {
+              "autoDetectButton" : {
+                "type" : "object",
+                "title" : "Autodetect format",
+                "description" : "By pressing this button, the format of the file will be guessed automatically. It is not guaranteed that\nthe correct values are being detected.\n"
+              },
               "columnDelimiter" : {
                 "type" : "string",
                 "title" : "Column delimiter",
@@ -626,7 +631,18 @@
         } ]
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection"
+        "scope" : "#/properties/model/properties/settings/properties/autoDetectButton",
+        "options" : {
+          "format" : "simpleButton",
+          "triggerId" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$AutoDetectButtonRef",
+          "icon" : "reload"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection",
+        "options" : {
+          "isAdvanced" : true
+        }
       } ]
     }, {
       "label" : "Data Area",
@@ -766,6 +782,27 @@
             }
           }
         }
+      } ]
+    } ],
+    "globalUpdates" : [ {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$AutoDetectButtonRef"
+      },
+      "dependencies" : [ {
+        "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
+      }, {
+        "scope" : "#/properties/model/properties/encoding/properties/charset",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CharsetRef"
+      }, {
+        "scope" : "#/properties/model/properties/settings/properties/commentLineCharacter",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
+      }, {
+        "scope" : "#/properties/model/properties/settings/properties/source",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
+      }, {
+        "scope" : "#/properties/model/properties/limitRows/properties/skipFirstLines",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
       } ]
     } ]
   }

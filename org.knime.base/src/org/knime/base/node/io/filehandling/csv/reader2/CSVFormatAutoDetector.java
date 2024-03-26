@@ -44,25 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23 Apr 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 26, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader;
+package org.knime.base.node.io.filehandling.csv.reader2;
+
+import static org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionUtil.getCsvParserSettings;
+import static org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionUtil.skipLines;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 
 import org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionUtil.FullyBufferedReader;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.util.SharedIcons;
-import org.knime.core.util.SwingWorkerWithContext;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.node.table.reader.paths.PathSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
 import org.knime.filehandling.core.util.BomEncodingUtils;
 import org.knime.filehandling.core.util.FileCompressionUtils;
 
@@ -70,36 +68,25 @@ import com.univocity.parsers.csv.CsvFormat;
 import com.univocity.parsers.csv.CsvParser;
 
 /**
- * Swing worker to automatically detect column delimiter, row delimiter, quote char and quote escape char of a csv-file.
+ * Provides a {@link #detectFormat} method for auto-guessing the format from the implementation of its abstract methods.
  *
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * <p>
+ * Originally taken from
+ * {@link org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionSwingWorker#doInBackgroundWithContext
+ * CSVFormatAutoDetectionSwingWorker#doInBackgroundWithContext} /
+ * {@link org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionSwingWorker#detectFormat
+ * CSVFormatAutoDetectionSwingWorker#detectFormat}
+ * </p>
+ *
+ * @author Paul Bärnreuther
  */
-final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<CsvFormat, Double> {
+abstract class CSVFormatAutoDetector {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVFormatAutoDetectionSwingWorker.class);
+    protected CsvFormat detectFormat() throws IOException, InvalidSettingsException {
 
-    private final AbstractCSVTableReaderNodeDialog m_dialog;
-
-    private final PathSettings m_pathSettings;
-
-    private static final String IO_ERROR = "An I/O error occurred. Select a valid file or folder.";
-
-    private static final String STATUS_TOOLTIP_TEXT = "See log file for details";
-
-    private static final String AUTO_DETECTION_ERROR = "Error during autodetection! See log file for details.";
-
-    CSVFormatAutoDetectionSwingWorker(final AbstractCSVTableReaderNodeDialog dialog, final PathSettings pathSettings) {
-        m_dialog = dialog;
-        m_pathSettings = pathSettings;
-    }
-
-    @Override
-    protected CsvFormat doInBackgroundWithContext() throws IOException, InvalidSettingsException, InterruptedException {
-        try (final ReadPathAccessor accessor = m_pathSettings.createReadPathAccessor()) {
-            final List<Path> paths = accessor.getPaths(s -> {
-            });
-            final CsvParser csvParser = new CsvParser(
-                CSVFormatAutoDetectionUtil.getCsvParserSettings(m_dialog.getCommentStart(), m_dialog.getBufferSize()));
+        try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(getFileChooser())) {
+            final List<Path> paths = accessor.getPaths();
+            final CsvParser csvParser = new CsvParser(getCsvParserSettings(getCommentStart(), getBufferSize()));
 
             if (!paths.isEmpty()) {
                 return detectFormat(paths, csvParser);
@@ -112,10 +99,9 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
     private CsvFormat detectFormat(final List<Path> paths, final CsvParser csvParser) throws IOException {
         // use only first file for parsing
         try (final InputStream in = FileCompressionUtils.createInputStream(paths.get(0));
-                final BufferedReader reader =
-                    BomEncodingUtils.createBufferedReader(in, m_dialog.getSelectedCharset())) {
-            if (m_dialog.isSkipLines()) {
-                CSVFormatAutoDetectionUtil.skipLines(reader, m_dialog.getNumLinesToSkip());
+                final BufferedReader reader = BomEncodingUtils.createBufferedReader(in, getSelectedCharset())) {
+            if (isSkipLines()) {
+                skipLines(reader, getNumLinesToSkip());
             }
             // Fixes a bug where the univocity library does not fill the buffer used for auto-guessing correctly
             try (final FullyBufferedReader fullyBufferedReader = new FullyBufferedReader(reader)) {
@@ -126,33 +112,16 @@ final class CSVFormatAutoDetectionSwingWorker extends SwingWorkerWithContext<Csv
         return csvParser.getDetectedFormat();
     }
 
-    @Override
-    protected void doneWithContext() {
+    protected abstract long getNumLinesToSkip();
 
-        boolean refreshPreview = false;
-        try {
-            final CsvFormat detectedFormat = get();
-            m_dialog.updateAutodetectionFields(detectedFormat);
-            refreshPreview = true;
-            m_dialog.setStatus("Successfully autodetected!", null, SharedIcons.SUCCESS.get());
-        } catch (final ExecutionException e) {
-            final Throwable cause = e.getCause();
+    protected abstract boolean isSkipLines();
 
-            if (cause != null) {
-                if (cause instanceof IOException || cause.getCause() instanceof IOException) {
-                    m_dialog.setStatus(IO_ERROR, STATUS_TOOLTIP_TEXT, SharedIcons.ERROR.get());
-                    LOGGER.warn(e.getMessage(), e);
-                } else {
-                    m_dialog.setStatus(AUTO_DETECTION_ERROR, STATUS_TOOLTIP_TEXT, SharedIcons.ERROR.get());
-                    LOGGER.warn(e.getMessage(), e);
-                }
-            }
-        } catch (InterruptedException | CancellationException ex) {
-            // ignore
-        } finally {
-            m_dialog.resetUIafterAutodetection();
-            // always call m_dialog#refreshPreview, it enables the preview
-            m_dialog.refreshPreview(refreshPreview);
-        }
-    }
+    protected abstract Charset getSelectedCharset();
+
+    protected abstract int getBufferSize();
+
+    protected abstract String getCommentStart();
+
+    protected abstract FileChooser getFileChooser();
+
 }

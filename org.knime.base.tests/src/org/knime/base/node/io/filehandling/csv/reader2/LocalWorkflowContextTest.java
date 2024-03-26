@@ -44,79 +44,72 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 14, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   Mar 27, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
 import java.io.IOException;
-import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.node.workflow.contextv2.AnalyticsPlatformExecutorInfo;
+import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
+import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
- * A reader that replaces the line break characters from different file systems by a '\n'.
+ * Initializes a workflow context. Needed, e.g., when accessing file systems.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-public final class OSIndependentNewLineReader extends Reader {
+abstract class LocalWorkflowContextTest {
 
-    /** The line break used to substitute all other line breaks. */
-    public static final String LINE_BREAK = "\n";
+    final private static String SOURCE_OBJ = "workflowContextSourceObject";
 
-    /** The underlying reader. */
-    final Reader m_reader;
-
-    /** If the next character is a line feed, skip it */
-    private boolean m_skipLF = false;
+    private NodeContext.ContextObjectSupplier m_contextObjectSupplier;
 
     /**
-     * Constructor.
-     *
-     * @param reader the underlying {@link Reader}
+     * A workflow with local context named "workflow"
      */
-    public OSIndependentNewLineReader(final Reader reader) {
-        m_reader = reader;
-    }
+    protected WorkflowManager m_wfm;
 
-    public static boolean isLineBreak(final String rowDelimiter) {
-        return "\n".equals(rowDelimiter) || "\r\n".equals(rowDelimiter) || "\r".equals(rowDelimiter);
-    }
+    @BeforeEach
+    void createWorkflowManagerWithContext() throws IOException {
+        final var workflowContext = createLocalWorkflowContext(Files.createTempDirectory("workflow"));
 
-    @Override
-    public int read(final char[] cbuf, final int off, final int len) throws IOException {
-        int bytesRead = m_reader.read(cbuf, off, len);
-        bytesRead -= replaceLineBreaks(cbuf, off, off + bytesRead);
-        if (bytesRead == 0) {
-            return read(cbuf, off, 1);
-        }
-        return bytesRead;
-    }
-
-    private int replaceLineBreaks(final char[] cbuf, final int off, final int endIdx) {
-        int moveIdx = 0;
-        for (int i = off; i < endIdx - moveIdx; i++) {
-            if (moveIdx > 0) {
-                cbuf[i] = cbuf[i + moveIdx];
-            }
-            if (m_skipLF) {
-                m_skipLF = false;
-                if (cbuf[i] == '\n') {
-                    ++moveIdx;
-                    if ((i + moveIdx) == cbuf.length) { // NOSONAR rather increases the complexity than reducing it
-                        return moveIdx;
-                    }
-                    cbuf[i] = cbuf[i + moveIdx];
+        m_contextObjectSupplier = new NodeContext.ContextObjectSupplier() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public <C> Optional<C> getObjOfClass(final Class<C> contextObjClass, final Object srcObj) {
+                if ((WorkflowContextV2.class.isAssignableFrom(contextObjClass)) && SOURCE_OBJ.equals(srcObj)) {
+                    return Optional.of((C)workflowContext);
                 }
+                return Optional.empty();
             }
-            if (cbuf[i] == '\r') {
-                cbuf[i] = '\n';
-                m_skipLF = true;
-            }
-        }
-        return moveIdx;
+        };
+
+        NodeContext.addContextObjectSupplier(m_contextObjectSupplier);
+        NodeContext.pushContext(SOURCE_OBJ);
+        m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
     }
 
-    @Override
-    public void close() throws IOException {
-        m_reader.close();
+    private static WorkflowContextV2 createLocalWorkflowContext(final Path workflowPath) throws IOException {
+        var executorInfo =
+            AnalyticsPlatformExecutorInfo.builder().withUserId("knime").withLocalWorkflowPath(workflowPath).build();
+        var locationInfo = LocalLocationInfo.getInstance(null);
+        return WorkflowContextV2.builder().withExecutor(executorInfo).withLocation(locationInfo).build();
+    }
+
+    @AfterEach
+    void removeContextAndDisposeWorkflow() {
+        NodeContext.removeContextObjectSupplier(m_contextObjectSupplier);
+        NodeContext.removeLastContext();
+        WorkflowManagerUtil.disposeWorkflow(m_wfm);
     }
 
 }

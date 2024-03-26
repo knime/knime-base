@@ -62,7 +62,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import org.apache.xmlbeans.XmlException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
@@ -77,11 +76,6 @@ import org.knime.core.node.NodeView;
 import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.workflow.NativeNodeContainer;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.node.workflow.contextv2.AnalyticsPlatformExecutorInfo;
-import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
-import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -97,49 +91,13 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-class CSVTableReaderNodeModel2Test {
-
-    final private static String SOURCE_OBJ = "workflowContextSourceObject";
-
-    private NodeContext.ContextObjectSupplier m_contextObjectSupplier;
-
-    private WorkflowManager m_wfm;
+class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
     private NativeNodeContainer m_csvReader;
 
     @BeforeEach
-    void createWorkflowManagerWithCsvReader() throws IOException {
-        final var workflowContext = createLocalWorkflowContext(Files.createTempDirectory("workflow"));
-
-        m_contextObjectSupplier = new NodeContext.ContextObjectSupplier() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public <C> Optional<C> getObjOfClass(final Class<C> contextObjClass, final Object srcObj) {
-                if ((WorkflowContextV2.class.isAssignableFrom(contextObjClass)) && SOURCE_OBJ.equals(srcObj)) {
-                    return Optional.of((C)workflowContext);
-                }
-                return Optional.empty();
-            }
-        };
-
-        NodeContext.addContextObjectSupplier(m_contextObjectSupplier);
-        NodeContext.pushContext(SOURCE_OBJ);
-        m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
+    void addCSVReaderToWorkflow() throws IOException {
         m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new CSVTableReaderNodeFactory2());
-    }
-
-    private static WorkflowContextV2 createLocalWorkflowContext(final Path workflowPath) throws IOException {
-        var executorInfo =
-            AnalyticsPlatformExecutorInfo.builder().withUserId("knime").withLocalWorkflowPath(workflowPath).build();
-        var locationInfo = LocalLocationInfo.getInstance(null);
-        return WorkflowContextV2.builder().withExecutor(executorInfo).withLocation(locationInfo).build();
-    }
-
-    @AfterEach
-    void disposeWorkflowManager() {
-        NodeContext.removeContextObjectSupplier(m_contextObjectSupplier);
-        NodeContext.removeLastContext();
-        WorkflowManagerUtil.disposeWorkflow(m_wfm);
     }
 
     @Test
@@ -163,6 +121,7 @@ class CSVTableReaderNodeModel2Test {
         }
         return file;
     }
+
     private static Path createTsvFile() throws IOException {
         final var file = Files.createTempFile(null, ".tsv").toAbsolutePath();
         try (final var writer = new BufferedWriter(new FileWriter(file.toString()))) {

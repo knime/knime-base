@@ -51,7 +51,16 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import java.util.Arrays;
 import java.util.Objects;
 
+import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.BufferSizeRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.CharsetRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.FileChooserRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.ProviderFromCSVFormat;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.IfSchemaChanges;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitMemoryPerColumn;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.ColumnAndDataTypeDetection.LimitScannedRows;
@@ -65,6 +74,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.CustomEncoding;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.FileEncoding;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.File.Source;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.AutodetectFormat;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.ColumnDelimiter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.CommentLineCharacter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.CustomRowDelimiter;
@@ -109,7 +119,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 
 /**
@@ -136,6 +150,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
     static class Settings implements WidgetGroup, PersistableSettings {
 
         @Widget(title = "Source", description = Source.DESCRIPTION)
+        @ValueReference(FileChooserRef.class)
         @Layout(Source.class)
         @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
         FileChooser m_source = new FileChooser();
@@ -192,28 +207,59 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
         @Widget(title = "Comment line character", description = CommentLineCharacter.DESCRIPTION)
+        @ValueReference(CommentStartRef.class)
         @TextInputWidget(maxLength = 1)
         @Layout(CommentLineCharacter.class)
         @Persist(configKey = "comment_char")
         String m_commentLineCharacter = "#";
 
+        static final class ColumnDelimiterProvider extends ProviderFromCSVFormat<String> {
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return EscapeUtils.escape(getCsvFormat().getDelimiterString());
+            }
+
+        }
+
         @Widget(title = "Column delimiter", description = ColumnDelimiter.DESCRIPTION)
         @TextInputWidget(minLength = 1)
         @Layout(ColumnDelimiter.class)
         @Persist(configKey = "column_delimiter", customPersistor = StringEscapePersistor.class)
+        @ValueProvider(ColumnDelimiterProvider.class)
         String m_columnDelimiter = ",";
+
+        static final class QuoteCharacterProvider extends ProviderFromCSVFormat<String> {
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return Character.toString(getCsvFormat().getQuote());
+            }
+
+        }
 
         @Widget(title = "Quote character", description = QuoteCharacter.DESCRIPTION)
         @TextInputWidget(maxLength = 1)
         @Layout(QuoteCharacter.class)
         @Persist(configKey = "quote_char")
+        @ValueProvider(QuoteCharacterProvider.class)
         String m_quoteCharacter = "\"";
         // TODO  we get occasional hard crashes when trying to persist invalid settings like this, addressed in NXT-2480
+
+        static final class QuoteEscapeCharacterProvider extends ProviderFromCSVFormat<String> {
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return Character.toString(getCsvFormat().getQuoteEscape());
+            }
+
+        }
 
         @Widget(title = "Quote escape character", description = QuoteEscapeCharacter.DESCRIPTION)
         @TextInputWidget(maxLength = 1)
         @Layout(QuoteEscapeCharacter.class)
         @Persist(configKey = "quote_escape_char")
+        @ValueProvider(QuoteEscapeCharacterProvider.class)
         String m_quoteEscapeCharacter = "\"";
 
         enum RowDelimiterOption {
@@ -244,27 +290,56 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        static final class RowDelimiterOptionProvider extends ProviderFromCSVFormat<RowDelimiterOption> {
+
+            @Override
+            public RowDelimiterOption computeState(final DefaultNodeSettingsContext context) {
+                if (OSIndependentNewLineReader.isLineBreak(getCsvFormat().getLineSeparatorString())) {
+                    return RowDelimiterOption.LINE_BREAK;
+                }
+                return RowDelimiterOption.CUSTOM;
+            }
+
+        }
+
         @Widget(title = "Row delimiter", description = RowDelimiter.DESCRIPTION)
         @ValueSwitchWidget
         @Layout(RowDelimiter.class)
         @Signal(condition = IsCustomRowDelimiter.class)
         @Persist(configKey = "use_line_break_row_delimiter", customPersistor = RowDelimiterPersistor.class)
+        @ValueProvider(RowDelimiterOptionProvider.class)
         RowDelimiterOption m_rowDelimiterOption = RowDelimiterOption.LINE_BREAK;
+
+        static final class CustomRowDelimiterProvider extends ProviderFromCSVFormat<String> {
+
+            @Override
+            public String computeState(final DefaultNodeSettingsContext context) {
+                return EscapeUtils.escape(getCsvFormat().getLineSeparatorString());
+            }
+
+        }
 
         @Widget(title = "Custom row delimiter", description = CustomRowDelimiter.DESCRIPTION)
         @TextInputWidget(minLength = 1, pattern = ".|[\\t\\r\\n]|\\r\\n")
         @Layout(CustomRowDelimiter.class)
         @Effect(signals = IsCustomRowDelimiter.class, type = EffectType.SHOW)
         @Persist(configKey = "row_delimiter", customPersistor = StringEscapePersistor.class)
+        @ValueProvider(CustomRowDelimiterProvider.class)
         String m_customRowDelimiter = "\n";
 
         @Widget(title = "Number of characters for autodetection",
-            description = NumberOfCharactersForAutodetection.DESCRIPTION)
+            description = NumberOfCharactersForAutodetection.DESCRIPTION, advanced = true)
+        @ValueReference(BufferSizeRef.class)
         @NumberInputWidget(min = 1)
         @Layout(NumberOfCharactersForAutodetection.class)
         @Persist(configKey = "autodetect_buffer_size")
         int m_numberOfCharactersForAutodetection = CSVTableReaderConfig.DEFAULT_AUTODETECTION_BUFFER_SIZE;
         // TODO will be moved into a settings panel in UIEXT-1739
+
+        @Widget(title = "Autodetect format", description = AutodetectFormat.DESCRIPTION)
+        @Layout(AutodetectFormat.class)
+        @SimpleButtonWidget(ref = AutoDetectButtonRef.class, icon = Icon.RELOAD)
+        Void m_autoDetectButton;
 
         static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
 
@@ -443,6 +518,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "Skip first lines of file", description = SkipFirstLines.DESCRIPTION)
+        @ValueReference(SkipFirstLinesRef.class)
         @NumberInputWidget(min = 0)
         @Layout(SkipFirstLines.class)
         @Persist(customPersistor = SkipFirstLinesPersistor.class)
@@ -592,15 +668,19 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
             @Override
             public void save(final Charset charset, final NodeSettingsWO settings) {
+                settings.addString(getConfigKey(), toString(charset));
+            }
+
+            static String toString(final Charset charset) {
                 if (charset.m_fileEncoding == FileEncodingOption.OTHER) {
-                    settings.addString(getConfigKey(), charset.m_customEncoding);
-                } else {
-                    settings.addString(getConfigKey(), charset.m_fileEncoding.m_persistId);
+                    return charset.m_customEncoding;
                 }
+                return charset.m_fileEncoding.m_persistId;
             }
         }
 
         @Persist(configKey = "charset", customPersistor = CharsetPersistor.class)
+        @ValueReference(CharsetRef.class)
         Charset m_charset = new Charset();
     }
 }

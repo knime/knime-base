@@ -1,0 +1,180 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Mar 26, 2024 (Paul Bärnreuther): created
+ */
+package org.knime.base.node.io.filehandling.csv.reader2;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.function.Supplier;
+
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetPersistor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+
+import com.univocity.parsers.csv.CsvFormat;
+
+/**
+ *
+ * @author Paul Bärnreuther
+ */
+public final class CSVFormatProvider extends CSVFormatAutoDetector implements StateProvider<CsvFormat> {
+
+    // References on which the CSVFormat auto detection depends
+
+    static final class SkipFirstLinesRef implements Reference<Long> {
+    }
+
+    static final class CharsetRef implements Reference<CSVTableReaderNodeSettings.Encoding.Charset> {
+    }
+
+    static final class BufferSizeRef implements Reference<Integer> {
+    }
+
+    static final class CommentStartRef implements Reference<String> {
+    }
+
+    static final class FileChooserRef implements Reference<FileChooser> {
+    }
+
+    static final class AutoDetectButtonRef implements ButtonReference {
+    }
+
+    /**
+     * Used in {@link CSVTableReaderNodeSettings} to set settings values depending on a newly auto-guesses CSV format
+     */
+    abstract static class ProviderFromCSVFormat<T> implements StateProvider<T> {
+
+        /**
+         * Package scoped for tests
+         */
+        Supplier<CsvFormat> m_csvFormatSupplier;
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_csvFormatSupplier = initializer.computeFromProvidedState(CSVFormatProvider.class);
+        }
+
+        protected final CsvFormat getCsvFormat() {
+            return m_csvFormatSupplier.get();
+        }
+
+    }
+
+    // Supplier of values of settings on which the auto detection depends
+
+    Supplier<Long> m_skipFirstLinesSupplier;
+
+    Supplier<CSVTableReaderNodeSettings.Encoding.Charset> m_charsetSupplier;
+
+    Supplier<Integer> m_bufferSizeSupplier;
+
+    Supplier<String> m_commentStartSupplier;
+
+    Supplier<FileChooser> m_fileChooserSupplier;
+
+    @Override
+    protected long getNumLinesToSkip() {
+        return m_skipFirstLinesSupplier.get();
+    }
+
+    @Override
+    protected boolean isSkipLines() {
+        return m_skipFirstLinesSupplier.get() > 0;
+    }
+
+    @Override
+    protected Charset getSelectedCharset() {
+        return Charset.forName(CharsetPersistor.toString(m_charsetSupplier.get()));
+    }
+
+    @Override
+    protected int getBufferSize() {
+        return m_bufferSizeSupplier.get();
+    }
+
+    @Override
+    protected String getCommentStart() {
+        return m_commentStartSupplier.get();
+    }
+
+    @Override
+    protected FileChooser getFileChooser() {
+        return m_fileChooserSupplier.get();
+    }
+
+    @Override
+    public void init(final StateProviderInitializer initializer) {
+        // Trigger
+        initializer.computeOnButtonClick(AutoDetectButtonRef.class);
+
+        // Dependencies
+        m_fileChooserSupplier = initializer.getValueSupplier(FileChooserRef.class);
+        m_skipFirstLinesSupplier = initializer.getValueSupplier(SkipFirstLinesRef.class);
+        m_charsetSupplier = initializer.getValueSupplier(CharsetRef.class);
+        m_bufferSizeSupplier = initializer.getValueSupplier(BufferSizeRef.class);
+        m_commentStartSupplier = initializer.getValueSupplier(CommentStartRef.class);
+    }
+
+    @Override
+    public CsvFormat computeState(final DefaultNodeSettingsContext context) {
+        try {
+            return detectFormat();
+        } catch (IOException | InvalidSettingsException e) { // NOSONAR
+            throw new WidgetHandlerException(e.getMessage());
+        }
+    }
+
+}
