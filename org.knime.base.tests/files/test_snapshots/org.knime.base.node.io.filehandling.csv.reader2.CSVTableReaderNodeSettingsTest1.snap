@@ -324,6 +324,11 @@
           "settings" : {
             "type" : "object",
             "properties" : {
+              "autoDetectButton" : {
+                "type" : "object",
+                "title" : "Autodetect format",
+                "description" : "By pressing this button, the \"Column delimiter\", \"Row delimiter\",\n\"Quote char\" and \"Quote escape char\" get automatically detected, though it is not guaranteed that\nthe correct values are being detected.\nOnly a single file is considered for auto-detection, i.e., if \"Files in folder\" is selected only the\nfirst file is being used. The auto-detection by default is based on the first 1024 * 1024 characters\nof the selected file, but can be adjusted by clicking the settings button next to this option.\nThe format can only be detected if the read number of characters comprises one full data row and the\nauto-detection will take at most 20 data rows into account.\nIt is assumed that data rows are separated by line breaks.\nNote that the \"Skip first lines\" option as well as the specified \"Comment char\" will be used\nwhen guessing the file's format.\n"
+              },
               "columnDelimiter" : {
                 "type" : "string",
                 "title" : "Column delimiter",
@@ -633,7 +638,18 @@
         } ]
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection"
+        "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection",
+        "options" : {
+          "isAdvanced" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/settings/properties/autoDetectButton",
+        "options" : {
+          "format" : "simpleButton",
+          "triggerId" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$AutoDetectButtonRef",
+          "icon" : "reload"
+        }
       } ]
     }, {
       "label" : "Data Area",
@@ -784,6 +800,27 @@
             }
           }
         }
+      } ]
+    } ],
+    "globalUpdates" : [ {
+      "trigger" : {
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$AutoDetectButtonRef"
+      },
+      "dependencies" : [ {
+        "scope" : "#/properties/model/properties/settings/properties/numberOfCharactersForAutodetection",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$BufferSizeRef"
+      }, {
+        "scope" : "#/properties/model/properties/encoding/properties/charset",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CharsetRef"
+      }, {
+        "scope" : "#/properties/model/properties/settings/properties/commentLineCharacter",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$CommentStartRef"
+      }, {
+        "scope" : "#/properties/model/properties/settings/properties/source",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$FileChooserRef"
+      }, {
+        "scope" : "#/properties/model/properties/limitRows/properties/skipFirstLines",
+        "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider$SkipFirstLinesRef"
       } ]
     } ]
   }
