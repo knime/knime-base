@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedWriter;
@@ -65,6 +66,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -182,6 +184,14 @@ class CSVTableReaderNodeModel2Test {
         assertTrue(m_csvReader.getNodeContainerState().isConfigured());
         assertEquals(String.format("ERROR: Execute failed: The specified file %s does not exist.", missingFile),
             m_csvReader.getNodeMessage().toString());
+    }
+
+    @Test
+    void testThrowInvalidSettingsExceptionOnBlankCustomEncoding() throws IOException, InvalidSettingsException {
+        final var settings = new CSVTableReaderNodeSettings();
+        settings.m_encoding.m_charset.m_fileEncoding = FileEncodingOption.OTHER;
+        settings.m_encoding.m_charset.m_customEncoding = " ";
+        assertThrows(InvalidSettingsException.class, () -> setSettings(settings));
     }
 
     @Test

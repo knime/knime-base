@@ -651,7 +651,10 @@ enum CSVMultiTableReadConfigSerializer
     }
 
     private static void validateEncodingTab(final NodeSettingsRO settings) throws InvalidSettingsException {
-        settings.getString(CFG_CHARSET);
+        final var charset = settings.getString(CFG_CHARSET);
+        if (charset != null && charset.isBlank()) {
+            throw new InvalidSettingsException("Custom encoding must not be blank.");
+        }
     }
 
     @Override

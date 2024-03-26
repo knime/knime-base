@@ -85,7 +85,7 @@
         <entry key="max_rows" type="xlong" value="50"/>
     </config>
     <config key="encoding">
-        <entry key="charset" type="xstring" value="UTF-8"/>
+        <entry key="charset" type="xstring" isnull="true" value=""/>
     </config>
     <entry key="version" type="xstring" value="V4_4"/>
     <config key="individual_specs">

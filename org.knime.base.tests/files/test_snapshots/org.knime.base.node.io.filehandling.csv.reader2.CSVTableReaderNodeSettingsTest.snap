@@ -52,7 +52,7 @@
       },
       "encoding" : {
         "charset" : {
-          "fileEncoding" : "UTF_8",
+          "fileEncoding" : "DEFAULT",
           "customEncoding" : ""
         }
       }
@@ -254,11 +254,11 @@
                     } ],
                     "title" : "File encoding",
                     "description" : "Defines the character set used to read a CSV file that contains characters in a different encoding. You\ncan choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding\nsupported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM,\nwhich may depend on the locale or the Java property &quot;file.encoding&quot;.\n\n<ul>\n<li><b></b>: Uses the default decoding set by the operating system.</li>\n<li><b></b>: ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.</li>\n<li><b></b>: Seven-bit ASCII, also referred to as US-ASCII.</li>\n<li><b></b>: Eight-bit UCS Transformation Format.</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file.\n</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, big-endian byte order.</li>\n<li><b></b>: Sixteen-bit UCS Transformation Format, little-endian byte order.</li>\n<li><b></b>: Enter a valid charset name supported by the Java Virtual Machine.</li>\n</ul>",
-                    "default" : "UTF_8"
+                    "default" : "DEFAULT"
                   }
                 },
                 "default" : {
-                  "fileEncoding" : "UTF_8",
+                  "fileEncoding" : "DEFAULT",
                   "customEncoding" : ""
                 },
                 "configKeys" : [ "charset" ]
@@ -266,7 +266,7 @@
             },
             "default" : {
               "charset" : {
-                "fileEncoding" : "UTF_8",
+                "fileEncoding" : "DEFAULT",
                 "customEncoding" : ""
               }
             },

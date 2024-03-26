@@ -565,7 +565,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             String m_customEncoding;
 
             Charset() {
-                this(FileEncodingOption.UTF_8);
+                this(FileEncodingOption.DEFAULT);
             }
 
             Charset(final FileEncodingOption fileEncoding) {
