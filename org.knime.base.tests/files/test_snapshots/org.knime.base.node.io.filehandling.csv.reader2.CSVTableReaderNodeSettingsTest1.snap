@@ -87,8 +87,6 @@
               },
               "failOnDifferingSpecs" : {
                 "type" : "boolean",
-                "title" : "Fail if specs differ",
-                "description" : "If checked, the node will fail if multiple files are read via the Files in folder option and not all\nfiles have the same table structure i.e. the same columns.\n",
                 "default" : true,
                 "configKeys" : [ "fail_on_differing_specs" ]
               },
@@ -306,7 +304,7 @@
               "skipFirstLines" : {
                 "type" : "integer",
                 "format" : "int64",
-                "title" : "Skip first lines",
+                "title" : "Skip first lines of file",
                 "description" : "Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).\n<br/>\nThe specified number of lines are skipped in the input file before the parsing starts. Skipping lines\nprevents parallel reading of individual files.\n",
                 "default" : 0,
                 "minimum" : 0,
@@ -407,8 +405,6 @@
               },
               "prependFileIndexToRowId" : {
                 "type" : "boolean",
-                "title" : "Prepend file index to RowID",
-                "description" : "Select this box if you want to prepend a prefix that depends on the index of the source file to the\nRowIDs. The prefix for the first file is \"File_0_\", for the second \"File_1_\" and so on. This option is\nuseful if the RowIDs within a single file are unique but the same RowIDs appear in multiple files.\nPrepending the file index prevents parallel reading of individual files.\n",
                 "default" : false,
                 "configKeys" : [ "prepend_file_idx_to_row_id" ]
               },
@@ -570,7 +566,7 @@
         }
       } ]
     }, {
-      "label" : "File format",
+      "label" : "File Format",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
@@ -735,7 +731,8 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/ifSchemaChangesOption",
         "options" : {
-          "format" : "valueSwitch",
+          "format" : "radio",
+          "radioLayout" : "vertical",
           "disabledOptions" : [ "IGNORE" ]
         }
       }, {
@@ -755,18 +752,6 @@
         "isAdvanced" : true
       },
       "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/advancedSettings/properties/failOnDifferingSpecs",
-        "options" : {
-          "format" : "checkbox"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/settings/properties/prependFileIndexToRowId",
-        "options" : {
-          "format" : "checkbox"
-        }
-      }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/advancedSettings/properties/appendPathColumn",
         "options" : {

@@ -75,9 +75,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.RowDelimiter;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.SkipFirstLines;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.AppendFilePathColumn;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.FailIfSpecsDiffer;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.FilePathColumnName;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.PrependFileIndexToRowId;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.DecimalSeparator;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.QuotedStrings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ReplaceEmptyQuotedStringsByMissingValues;
@@ -187,11 +185,11 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "skip_empty_data_rows")
         boolean m_skipEmptyDataRows;
 
-        @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
-        @Layout(PrependFileIndexToRowId.class)
+        // @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
+        // @Layout(PrependFileIndexToRowId.class)
         @Persist(configKey = "prepend_file_idx_to_row_id")
         boolean m_prependFileIndexToRowId;
-        // TODO this setting should only be shown when reading multiple files; currently blocked by UIEXT-1741
+        // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
         @Widget(title = "Comment line character", description = CommentLineCharacter.DESCRIPTION)
         @TextInputWidget(maxLength = 1)
@@ -283,10 +281,12 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "spec_merge_mode", hidden = true)
         String m_specMergeMode = "UNION";
 
-        @Widget(title = "Fail if specs differ", description = FailIfSpecsDiffer.DESCRIPTION)
-        @Layout(FailIfSpecsDiffer.class)
+        // @Widget(title = "Fail if specs differ", description = FailIfSpecsDiffer.DESCRIPTION)
+        // @Layout(FailIfSpecsDiffer.class)
         @Persist(configKey = "fail_on_differing_specs")
         boolean m_failOnDifferingSpecs = true;
+        // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
+        // TODO this setting will be replaced by a value seitch Fail if different / Union / Intersection in UIEXT-1800
 
         @Widget(title = "Append file path column", description = AppendFilePathColumn.DESCRIPTION)
         @Layout(AppendFilePathColumn.class)
@@ -411,7 +411,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         }
 
         @Widget(title = "If schema changes", description = IfSchemaChanges.DESCRIPTION)
-        @ValueSwitchWidget
+        @RadioButtonsWidget
         @Layout(IfSchemaChanges.class)
         @Persist(customPersistor = IfSchemaChangesPersistor.class)
         IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
@@ -442,7 +442,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
-        @Widget(title = "Skip first lines", description = SkipFirstLines.DESCRIPTION)
+        @Widget(title = "Skip first lines of file", description = SkipFirstLines.DESCRIPTION)
         @NumberInputWidget(min = 0)
         @Layout(SkipFirstLines.class)
         @Persist(customPersistor = SkipFirstLinesPersistor.class)
