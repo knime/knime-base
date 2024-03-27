@@ -175,33 +175,26 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
 
     enum OutputMode {
             @Label(value = "Auto", description = """
-                    (a) 1.24, (b) 0.000000352, (c) -3120000000<br/>
                     Sets output column types automatically based on input column types.
                     """)
             AUTO,
 
             @Label(value = "Double", description = """
-                    (a) 1.24, (b) 0.000000352, (c) -3120000000<br/>
-                    Sets all output column types to real numbers. Note that the "Double" output option may yield
-                    unexpected results due to numerical precision issue when representing floating point numbers.
-                    For example a number such as 0.1 can sometimes be represented as 0.09999999999999999.
+                    Sets all output column types to real numbers.
                     """)
             DOUBLE,
 
             @Label(value = "Standard string", description = """
-                    (a) "1.24", (b) "3.52E-7", (c) "-3.12E+9"<br/>
                     Returns the string representation of a number using scientific notation if an exponent is needed.
                     """)
             STANDARD_STRING,
 
             @Label(value = "Plain string", description = """
-                    (a) "1.24", (b) "0.000000352", (c) "-3120000000"<br/>
                     Returns a string representation of a number without an exponent field.
                     """)
             PLAIN_STRING,
 
             @Label(value = "Engineering string", description = """
-                    (a) "1.24", (b) "352E-9", (c) "-3.12E+9"<br/>
                     Returns a string representation of a number, using engineering notation if an exponent is needed.
                     """)
             ENGINEERING_STRING
@@ -246,10 +239,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     String m_suffix = " (Rounded)";
 
     @Widget(title = "Output mode (legacy)", advanced = true, description = """
-            The output formatting can be of different types. By default, the "Auto" option will set the output
-            column type based on the input column type. The other options are described in the example below.
-            Rounding the numbers (a) 1.23501, (b) 0.00000035239 and (c) -3.123103E9 to 3 significant digits
-            (.5 away from zero) will produce...
+            Determines the formatting of the output columns.
             """)
     @Persist(configKey = RoundDoubleLegacyConfigKeys.OUTPUT_TYPE, customPersistor = OutputModePersistor.class)
     OutputMode m_outputMode = OutputMode.AUTO;

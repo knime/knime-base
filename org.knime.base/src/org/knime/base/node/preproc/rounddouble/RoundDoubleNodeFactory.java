@@ -66,9 +66,9 @@ public class RoundDoubleNodeFactory extends WebUINodeFactory<RoundDoubleNodeMode
         "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html";
 
     private static final String DESC_FULL = """
-            Rounds numeric values to the specified decimal place, significant figures or converts them to integers,
-            applying the specified rounding method. The columns containing the numeric values can be specified.
-            To round the values seven different rounding methods are available:
+            Rounds numeric values to the specified decimal place or significant figures, applying a rounding method to
+            selected columns containing numeric values. The rounded values can be appended as additional columns, or
+            replace the values in the original column. You can choose one of the following rounding methods:
             <ul>
                 <li>.5 to even digit (HALF_EVEN)</li>
                 <li>.5 away from zero (HALF_UP)</li>
@@ -79,10 +79,7 @@ public class RoundDoubleNodeFactory extends WebUINodeFactory<RoundDoubleNodeMode
                 <li>To smaller (FLOOR)</li>
             </ul>
             For the detailed description of each rounding method please see the settings description in the node
-            dialog or the <a href="%s">Java documentation</a>.<br/>
-            The rounded values can be appended as additional columns, or the old values are replaced by the rounded
-            values. If rounded values are appended as additional columns, a column suffix for the columns to append
-            needs to be specified.
+            dialog or the <a href="%s">Java documentation</a>.
             """.formatted(JAVA_DOC_ROUNDING_MODE);
 
     private static final String DESC_INPUT_TABLE = "The input table containing numeric values to round.";
