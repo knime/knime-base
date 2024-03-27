@@ -66,75 +66,23 @@ public class RoundDoubleNodeFactory extends WebUINodeFactory<RoundDoubleNodeMode
         "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html";
 
     private static final String DESC_FULL = """
-            <p>
-                Rounds numeric values to the specified decimal place or significant
-                figures, applying the specified rounding method. The columns
-                containing the numeric values can be specified. The rounded values
-                can be appended as additional columns, or the old values are
-                replaced by the rounded values. If rounded values are appended as
-                additional columns, a column suffix for the columns to append needs
-                to be specified.<br />
-                To round the values seven different rounding modes are available:
-                <ul>
-                    <li>away from zero (UP)</li>
-                    <li>towards zero (DOWN)</li>
-                    <li>to larger (CEILING)</li>
-                    <li>to smaller (FLOOR)</li>
-                    <li>.5 away from zero (HALF_UP)</li>
-                    <li>.5 towards zero (HALF_DOWN)</li>
-                    <li>.5 to even digit (HALF_EVEN)</li>
-                </ul>
-                For the detailed description of each rounding mode please see the <a href="%s">Java documentation</a>.
-            </p>
-            <p>
-                The output formatting can be of different types. By default, the "Auto" option will set the output
-                column type based on the input column type. The other options are described in the example below.
-                Rounding the numbers 1.23501, 0.00000035239 and -3.123103E9 to 3 significant digits (.5 away from zero)
-                will produce:
-            </p>
-            <table>
-              <tr>
-                <th>Input</th>
-                <th>Auto</th>
-                <th>Double</th>
-                <th>Standard String</th>
-                <th>Plain String</th>
-                <th>Engineering String</th>
-              </tr>
-              <tr>
-                <td>1.23501</td>
-                <td>1.24</td>
-                <td>1.24</td>
-                <td>"1.24"</td>
-                <td>"1.24"</td>
-                <td>"1.24"</td>
-              </tr>
-              <tr>
-                <td>0.00000035239</td>
-                <td>0.000000352</td>
-                <td>0.000000352</td>
-                <td>"3.52E-7"</td>
-                <td>"0.000000352"</td>
-                <td>"352E-9"</td>
-              </tr>
-              <tr>
-                <td>-3123103001</td>
-                <td>-3120000000</td>
-                <td>-3120000000</td>
-                <td>"-3.12E+9"</td>
-                <td>"-3120000000"</td>
-                <td>"-3.12E+9"</td>
-              </tr>
-            </table>
-            <p>
-                Note that the "Double" output option may yield unexpected results due to numerical precision
-                issue when representing floating point numbers. For example a number such as 0.1 can sometimes
-                be represented as 0.09999999999999999.
-            </p>
-            <p>
-                Also note that automatically converting "Number (long)" input columns to "Number (integer)"
-                output columns might lead to inaccurate results due to potential integer overflows.
-            </p>
+            Rounds numeric values to the specified decimal place, significant figures or converts them to integers,
+            applying the specified rounding method. The columns containing the numeric values can be specified.
+            To round the values seven different rounding methods are available:
+            <ul>
+                <li>.5 to even digit (HALF_EVEN)</li>
+                <li>.5 away from zero (HALF_UP)</li>
+                <li>.5 towards zero (HALF_DOWN)</li>
+                <li>Away from zero (UP)</li>
+                <li>Towards zero (DOWN)</li>
+                <li>To larger (CEILING)</li>
+                <li>To smaller (FLOOR)</li>
+            </ul>
+            For the detailed description of each rounding method please see the settings description in the node
+            dialog or the <a href="%s">Java documentation</a>.<br/>
+            The rounded values can be appended as additional columns, or the old values are replaced by the rounded
+            values. If rounded values are appended as additional columns, a column suffix for the columns to append
+            needs to be specified.
             """.formatted(JAVA_DOC_ROUNDING_MODE);
 
     private static final String DESC_INPUT_TABLE = "The input table containing numeric values to round.";

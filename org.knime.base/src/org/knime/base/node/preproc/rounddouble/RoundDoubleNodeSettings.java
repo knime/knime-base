@@ -58,9 +58,6 @@ import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.RoundingMet
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
@@ -86,50 +83,21 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 @SuppressWarnings("restriction")
 public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
 
-    // Layout
-    interface InputSelection {
-
-    }
-
-    @After(InputSelection.class)
-    interface Rounding {
-
-        interface Format {
-
-        }
-
-        @After(Format.class)
-        interface Mode {
-
-        }
-
-    }
-
-    @After(Rounding.class)
-    interface Output {
-
-        interface Columns {
-
-        }
-
-        @After(Columns.class)
-        @Section(title = "Advanced settings", advanced = true)
-        interface Advanced {
-
-        }
-
-    }
-
     // Types
     enum NumberMode {
-            @Label(value = "Decimals",
-                description = "Rounds numeric values up to the specified number of decimal places.")
+            @Label(value = "Decimals", description = """
+                    Rounds numeric values up to the specified number of decimal places.
+                    """)
             DECIMALS,
 
             @Label(value = "Significant digits", description = "Only keeps the specified number of significant digits.")
             SIGNIFICANT_DIGITS,
 
-            @Label(value = "Integer", description = "Converts numeric values to integer.")
+            @Label(value = "Integer", description = """
+                    Converts numeric values to integer. Note that automatically converting <em>Number (double)</em> or
+                    <em>Number (long)</em> input columns to <em>Number (integer)</em> output columns might yield
+                    missing values due to integer overflows.
+                    """)
             INTEGER;
 
         static class IsInteger extends OneOfEnumCondition<NumberMode> {
@@ -149,38 +117,38 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
                     """)
             HALF_TO_EVEN_DIGIT,
 
-            @Label(value = ".5 towards zero", description = """
-                    Rounds towards 'nearest neighbor' unless both neighbors are equidistant,
-                    in which case round down.
-                    """)
-            HALF_TOWARDS_ZERO,
-
             @Label(value = ".5 away from zero", description = """
                     Rounds towards 'nearest neighbor' unless both neighbors are equidistant,
                     in which case round up.
                     """)
             HALF_AWAY_FROM_ZERO,
 
-            @Label(value = "towards zero", description = """
-                    Rounds towards zero.
-                    Never increments the digit prior to a discarded fraction (i.e., truncates).
+            @Label(value = ".5 towards zero", description = """
+                    Rounds towards 'nearest neighbor' unless both neighbors are equidistant,
+                    in which case round down.
                     """)
-            TOWARDS_ZERO,
+            HALF_TOWARDS_ZERO,
 
-            @Label(value = "away from zero", description = """
+            @Label(value = "Away from zero", description = """
                     Rounds away from zero.
                     Always increments the digit prior to a non-zero discarded fraction.
                     """)
             AWAY_FROM_ZERO,
 
-            @Label(value = "to larger", description = """
+            @Label(value = "Towards zero", description = """
+                    Rounds towards zero.
+                    Never increments the digit prior to a discarded fraction (i.e., truncates).
+                    """)
+            TOWARDS_ZERO,
+
+            @Label(value = "To larger", description = """
                     Rounds towards positive infinity.
                     If the result is positive, behaves as for 'away from zero';
                     if negative, behaves as for 'towards zero'.
                     """)
             TO_LARGER,
 
-            @Label(value = "to smaller", description = """
+            @Label(value = "To smaller", description = """
                     Rounds towards negative infinity.
                     If the result is positive, behave as for 'towards zero';
                     if negative, behave as for 'away from zero'.
@@ -206,23 +174,34 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     }
 
     enum OutputMode {
-            @Label(value = "Auto", description = "Sets output column types automatically based on input column types.")
+            @Label(value = "Auto", description = """
+                    (a) 1.24, (b) 0.000000352, (c) -3120000000<br/>
+                    Sets output column types automatically based on input column types.
+                    """)
             AUTO,
 
-            @Label(value = "Double", description = "Sets all output column types to real numbers.")
+            @Label(value = "Double", description = """
+                    (a) 1.24, (b) 0.000000352, (c) -3120000000<br/>
+                    Sets all output column types to real numbers. Note that the "Double" output option may yield
+                    unexpected results due to numerical precision issue when representing floating point numbers.
+                    For example a number such as 0.1 can sometimes be represented as 0.09999999999999999.
+                    """)
             DOUBLE,
 
             @Label(value = "Standard string", description = """
+                    (a) "1.24", (b) "3.52E-7", (c) "-3.12E+9"<br/>
                     Returns the string representation of a number using scientific notation if an exponent is needed.
                     """)
             STANDARD_STRING,
 
             @Label(value = "Plain string", description = """
+                    (a) "1.24", (b) "0.000000352", (c) "-3120000000"<br/>
                     Returns a string representation of a number without an exponent field.
                     """)
             PLAIN_STRING,
 
             @Label(value = "Engineering string", description = """
+                    (a) "1.24", (b) "352E-9", (c) "-3.12E+9"<br/>
                     Returns a string representation of a number, using engineering notation if an exponent is needed.
                     """)
             ENGINEERING_STRING
@@ -231,13 +210,11 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     // Settings
     @Widget(title = "Columns to round", description = "Select the numeric input columns to round.")
     @ChoicesWidget(choices = NumberColumns.class)
-    @Layout(InputSelection.class)
     @Persist(configKey = "StringColNames", customPersistor = LegacyColumnFilterPersistor.class)
     ColumnFilter m_columnsToFormat;
 
     @Widget(title = "Rounding mode", description = "Select the rounding mode to apply.")
     @ValueSwitchWidget
-    @Layout(Rounding.Format.class)
     @Signal(condition = NumberMode.IsInteger.class)
     @Persist(configKey = RoundDoubleLegacyConfigKeys.NUMBER_MODE, customPersistor = NumberModePersistor.class)
     NumberMode m_numberMode = NumberMode.DECIMALS;
@@ -247,33 +224,33 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             When rounding to <b>Significant digits</b>, this sets the number of significant digits to keep.
             """)
     @NumberInputWidget(min = 0, max = 350)
-    @Layout(Rounding.Format.class)
     @Effect(signals = NumberMode.IsInteger.class, type = EffectType.HIDE)
     @Persist(configKey = RoundDoubleLegacyConfigKeys.PRECISION_NUMBER)
     int m_precision = 3;
 
     @Widget(title = "Rounding method", description = "Select the rounding method to apply.")
     @RadioButtonsWidget
-    @Layout(Rounding.Mode.class)
     @Persist(configKey = RoundDoubleLegacyConfigKeys.ROUNDING_MODE, customPersistor = RoundingMethodPersistor.class)
     RoundingMethod m_roundingMethod = RoundingMethod.HALF_AWAY_FROM_ZERO;
 
     @Widget(title = "Output columns", description = "Configure output column behavior.")
     @ValueSwitchWidget
-    @Layout(Output.Columns.class)
     @Signal(condition = OutputColumn.IsReplace.class)
     @Persist(configKey = RoundDoubleLegacyConfigKeys.APPEND_COLUMNS, customPersistor = OutputColumnPersistor.class)
     OutputColumn m_outputColumn = OutputColumn.APPEND;
 
     @Widget(title = "Output column suffix", description = "Set the suffix to append to the new column names.")
     @TextInputWidget
-    @Layout(Output.Columns.class)
     @Effect(signals = OutputColumn.IsReplace.class, type = EffectType.HIDE)
     @Persist(configKey = RoundDoubleLegacyConfigKeys.COLUMN_SUFFIX)
     String m_suffix = " (Rounded)";
 
-    @Widget(title = "Output mode (legacy)", description = "Determines the formatting of the output columns.")
-    @Layout(Output.Advanced.class)
+    @Widget(title = "Output mode (legacy)", advanced = true, description = """
+            The output formatting can be of different types. By default, the "Auto" option will set the output
+            column type based on the input column type. The other options are described in the example below.
+            Rounding the numbers (a) 1.23501, (b) 0.00000035239 and (c) -3.123103E9 to 3 significant digits
+            (.5 away from zero) will produce...
+            """)
     @Persist(configKey = RoundDoubleLegacyConfigKeys.OUTPUT_TYPE, customPersistor = OutputModePersistor.class)
     OutputMode m_outputMode = OutputMode.AUTO;
 

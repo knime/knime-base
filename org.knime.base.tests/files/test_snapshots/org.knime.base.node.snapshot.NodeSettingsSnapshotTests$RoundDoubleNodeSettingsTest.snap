@@ -172,7 +172,7 @@
               "title" : "Integer"
             } ],
             "title" : "Rounding mode",
-            "description" : "Select the rounding mode to apply.\n<ul>\n<li><b>Decimals</b>: Rounds numeric values up to the specified number of decimal places.</li>\n<li><b>Significant digits</b>: Only keeps the specified number of significant digits.</li>\n<li><b>Integer</b>: Converts numeric values to integer.</li>\n</ul>",
+            "description" : "Select the rounding mode to apply.\n<ul>\n<li><b>Decimals</b>: Rounds numeric values up to the specified number of decimal places.\n</li>\n<li><b>Significant digits</b>: Only keeps the specified number of significant digits.</li>\n<li><b>Integer</b>: Converts numeric values to integer. Note that automatically converting <em>Number (double)</em> or\n<em>Number (long)</em> input columns to <em>Number (integer)</em> output columns might yield\nmissing values due to integer overflows.\n</li>\n</ul>",
             "default" : "DECIMALS",
             "configKeys" : [ "NumberMode" ]
           },
@@ -207,7 +207,7 @@
               "title" : "Engineering string"
             } ],
             "title" : "Output mode (legacy)",
-            "description" : "Determines the formatting of the output columns.\n<ul>\n<li><b>Auto</b>: Sets output column types automatically based on input column types.</li>\n<li><b>Double</b>: Sets all output column types to real numbers.</li>\n<li><b>Standard string</b>: Returns the string representation of a number using scientific notation if an exponent is needed.\n</li>\n<li><b>Plain string</b>: Returns a string representation of a number without an exponent field.\n</li>\n<li><b>Engineering string</b>: Returns a string representation of a number, using engineering notation if an exponent is needed.\n</li>\n</ul>",
+            "description" : "The output formatting can be of different types. By default, the \"Auto\" option will set the output\ncolumn type based on the input column type. The other options are described in the example below.\nRounding the numbers (a) 1.23501, (b) 0.00000035239 and (c) -3.123103E9 to 3 significant digits\n(.5 away from zero) will produce...\n\n<ul>\n<li><b>Auto</b>: (a) 1.24, (b) 0.000000352, (c) -3120000000<br/>\nSets output column types automatically based on input column types.\n</li>\n<li><b>Double</b>: (a) 1.24, (b) 0.000000352, (c) -3120000000<br/>\nSets all output column types to real numbers. Note that the \"Double\" output option may yield\nunexpected results due to numerical precision issue when representing floating point numbers.\nFor example a number such as 0.1 can sometimes be represented as 0.09999999999999999.\n</li>\n<li><b>Standard string</b>: (a) \"1.24\", (b) \"3.52E-7\", (c) \"-3.12E+9\"<br/>\nReturns the string representation of a number using scientific notation if an exponent is needed.\n</li>\n<li><b>Plain string</b>: (a) \"1.24\", (b) \"0.000000352\", (c) \"-3120000000\"<br/>\nReturns a string representation of a number without an exponent field.\n</li>\n<li><b>Engineering string</b>: (a) \"1.24\", (b) \"352E-9\", (c) \"-3.12E+9\"<br/>\nReturns a string representation of a number, using engineering notation if an exponent is needed.\n</li>\n</ul>",
             "default" : "AUTO",
             "configKeys" : [ "OutputType" ]
           },
@@ -226,26 +226,26 @@
               "const" : "HALF_TO_EVEN_DIGIT",
               "title" : ".5 to even digit"
             }, {
-              "const" : "HALF_TOWARDS_ZERO",
-              "title" : ".5 towards zero"
-            }, {
               "const" : "HALF_AWAY_FROM_ZERO",
               "title" : ".5 away from zero"
             }, {
-              "const" : "TOWARDS_ZERO",
-              "title" : "towards zero"
+              "const" : "HALF_TOWARDS_ZERO",
+              "title" : ".5 towards zero"
             }, {
               "const" : "AWAY_FROM_ZERO",
-              "title" : "away from zero"
+              "title" : "Away from zero"
+            }, {
+              "const" : "TOWARDS_ZERO",
+              "title" : "Towards zero"
             }, {
               "const" : "TO_LARGER",
-              "title" : "to larger"
+              "title" : "To larger"
             }, {
               "const" : "TO_SMALLER",
-              "title" : "to smaller"
+              "title" : "To smaller"
             } ],
             "title" : "Rounding method",
-            "description" : "Select the rounding method to apply.\n<ul>\n<li><b>.5 to even digit</b>: Rounds towards the 'nearest neighbor' unless both neighbors are equidistant,\nin which case, round towards the even neighbor.\n</li>\n<li><b>.5 towards zero</b>: Rounds towards 'nearest neighbor' unless both neighbors are equidistant,\nin which case round down.\n</li>\n<li><b>.5 away from zero</b>: Rounds towards 'nearest neighbor' unless both neighbors are equidistant,\nin which case round up.\n</li>\n<li><b>towards zero</b>: Rounds towards zero.\nNever increments the digit prior to a discarded fraction (i.e., truncates).\n</li>\n<li><b>away from zero</b>: Rounds away from zero.\nAlways increments the digit prior to a non-zero discarded fraction.\n</li>\n<li><b>to larger</b>: Rounds towards positive infinity.\nIf the result is positive, behaves as for 'away from zero';\nif negative, behaves as for 'towards zero'.\n</li>\n<li><b>to smaller</b>: Rounds towards negative infinity.\nIf the result is positive, behave as for 'towards zero';\nif negative, behave as for 'away from zero'.\n</li>\n</ul>",
+            "description" : "Select the rounding method to apply.\n<ul>\n<li><b>.5 to even digit</b>: Rounds towards the 'nearest neighbor' unless both neighbors are equidistant,\nin which case, round towards the even neighbor.\n</li>\n<li><b>.5 away from zero</b>: Rounds towards 'nearest neighbor' unless both neighbors are equidistant,\nin which case round up.\n</li>\n<li><b>.5 towards zero</b>: Rounds towards 'nearest neighbor' unless both neighbors are equidistant,\nin which case round down.\n</li>\n<li><b>Away from zero</b>: Rounds away from zero.\nAlways increments the digit prior to a non-zero discarded fraction.\n</li>\n<li><b>Towards zero</b>: Rounds towards zero.\nNever increments the digit prior to a discarded fraction (i.e., truncates).\n</li>\n<li><b>To larger</b>: Rounds towards positive infinity.\nIf the result is positive, behaves as for 'away from zero';\nif negative, behaves as for 'towards zero'.\n</li>\n<li><b>To smaller</b>: Rounds towards negative infinity.\nIf the result is positive, behave as for 'towards zero';\nif negative, behave as for 'away from zero'.\n</li>\n</ul>",
             "default" : "HALF_AWAY_FROM_ZERO",
             "configKeys" : [ "RoundingMode" ]
           },
@@ -331,15 +331,11 @@
         }
       }
     }, {
-      "label" : "Advanced settings",
-      "type" : "Section",
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputMode",
       "options" : {
         "isAdvanced" : true
-      },
-      "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/outputMode"
-      } ]
+      }
     } ]
   }
 }
