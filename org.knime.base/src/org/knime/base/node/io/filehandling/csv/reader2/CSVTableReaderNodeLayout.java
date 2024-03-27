@@ -112,7 +112,7 @@ public class CSVTableReaderNodeLayout {
         }
     }
 
-    @Section(title = "File format")
+    @Section(title = "File Format")
     @After(File.class)
     interface FileFormat {
         interface SkipFirstLines {
