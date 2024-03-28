@@ -45,10 +45,15 @@
 
 package org.knime.base.node.preproc.groupby;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 import java.util.function.UnaryOperator;
@@ -58,16 +63,20 @@ import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValueComparator;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.data.sort.BufferedDataTableSorter;
+import org.knime.core.data.sort.RowReadComparator;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InternalTableAPI;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeLogger.LEVEL;
 import org.knime.core.util.valueformat.NumberFormatter;
@@ -178,6 +187,32 @@ public class BigGroupByTable extends GroupByTable {
                 sortInMemory, enableHilite, colNamePolicy, retainOrder);
     }
 
+    private static RowReadComparator toComparator(final DataTableSpec inputSpec, final Collection<String> inclList) {
+        if (inclList.contains(null)) {
+            throw new IllegalArgumentException("Argument array must not contain null: " + inclList);
+        }
+        if (!(inclList instanceof Set)) {
+            Set<String> noDuplicatesSet = new HashSet<>(inclList);
+            if (noDuplicatesSet.size() != inclList.size()) {
+                throw new IllegalArgumentException("Argument collection must " + "not contain duplicates: " + inclList);
+            }
+        }
+
+        final var rc = RowReadComparator.on(inputSpec);
+        for (final String name : inclList) {
+            final int index = inputSpec.findColumnIndex(name);
+            if (index < 0) {
+                if (!BufferedDataTableSorter.ROWKEY_SORT_SPEC.getName().equals(name)) {
+                    throw new IllegalArgumentException("Could not find column name:" + name);
+                }
+                rc.thenComparingRowKey(Comparator.naturalOrder());
+            } else {
+                rc.thenComparingColumn(index, UnaryOperator.identity());
+            }
+        }
+        return rc.build();
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -200,11 +235,13 @@ public class BigGroupByTable extends GroupByTable {
             comparators = new DataValueComparator[0];
         } else {
             exec.setMessage("Sorting input table");
-            final var sortCols = getGroupCols();
-            final var sortOrder = new boolean[sortCols.size()];
-            Arrays.fill(sortOrder, true);
             final var sortExec = exec.createSubExecutionContext(2 / 3.0);
-            sortedTableIter = new BufferedDataTableSorter(table, sortCols, sortOrder).sortedIterator(sortExec);
+            final var comparator = toComparator(origSpec, getGroupCols());
+            try {
+                sortedTableIter = CloseableRowIterator.from(InternalTableAPI.sortedCursor(sortExec, table, comparator));
+            } catch (final IOException e) {
+                throw new KNIMEException("Error while sorting input table: " + e.getMessage(), e).toUnchecked();
+            }
             sortExec.setProgress(1.0);
 
             groupExec = exec.createSubExecutionContext(1 / 3.0);

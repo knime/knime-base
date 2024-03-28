@@ -57,12 +57,14 @@ import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSet
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.StringComparison;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
-import org.knime.core.data.sort.BufferedDataTableSorter;
+import org.knime.core.data.sort.InMemorySorter;
 import org.knime.core.data.sort.RowComparator;
 import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.InternalTableAPI;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -84,6 +86,8 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  * @author Nicolas Cebron, University of Konstanz
  */
 public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(SorterNodeModel.class);
     /**
      * The input port used here.
      */
@@ -152,17 +156,28 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
         final SorterNodeSettings modelSettings) throws Exception {
         CheckUtils.checkNotNull(modelSettings.m_sortingCriteria, "Sort key columns should not be null.");
+
         final var dataTable = inData[INPORT];
+
         // If no columns are set, we do not start the sorting process
         if (modelSettings.m_sortingCriteria.length == 0) {
             setWarningMessage("No columns were selected - returning original table");
-            return new BufferedDataTable[]{dataTable};
+            return new BufferedDataTable[] { dataTable };
         }
-        final var dts = dataTable.getDataTableSpec();
-        final var sorter = new BufferedDataTableSorter(dataTable, toRowComparator(dts, modelSettings));
-        sorter.setSortInMemory(modelSettings.m_sortInMemory);
-        final var sortedTable = sorter.sort(exec);
-        return new BufferedDataTable[]{sortedTable};
+
+        final var rowComparator = toRowComparator(dataTable.getDataTableSpec(), modelSettings);
+
+        final BufferedDataTable sortedTable;
+        if (modelSettings.m_sortInMemory && dataTable.size() <= Integer.MAX_VALUE) {
+            sortedTable = InMemorySorter.sortedTable(exec, dataTable, rowComparator);
+        } else {
+            if (modelSettings.m_sortInMemory) {
+                LOGGER.info("Not sorting table in memory, because it has more than " + Integer.MAX_VALUE + " rows.");
+            }
+            // use backend-specific External Sorting
+            sortedTable = InternalTableAPI.sortedTable(exec, dataTable, rowComparator.toRowReadComparator());
+        }
+        return new BufferedDataTable[] { sortedTable };
     }
 
     private static RowComparator toRowComparator(final DataTableSpec spec, final SorterNodeSettings modelSettings) {

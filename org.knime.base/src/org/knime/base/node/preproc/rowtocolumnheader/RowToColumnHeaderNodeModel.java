@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.Functions.FailableBiFunction;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVGuessableType;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
@@ -113,24 +114,6 @@ import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
  * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
  */
 public final class RowToColumnHeaderNodeModel extends NodeModel {
-
-    /**
-     * Internal interface for functions that extract information from rows and may throw exceptions.
-     *
-     * @param <T> type of the value extracted from the row
-     * @param <E> type of the exceptions to throw
-     */
-    interface RowConverter<T, E extends Exception> {
-        /**
-         * Converts the given row into some object.
-         *
-         * @param key row key
-         * @param row randomly accessible row object
-         * @return converted value
-         * @throws Exception any exception throws during the conversion
-         */
-        T convert(final String key, final RandomAccessible<String> row) throws E;
-    }
 
     /** Number of processed rows after which progress should be updated. */
     private static final int PROGRESS_UPDATE_INTERVAL = 1000;
@@ -320,7 +303,7 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
                     final DataRow outRow;
                     if (converter != null) {
                         rowRef.set(row);
-                        outRow = converter.convert(row.getKey().getString(), rowRA);
+                        outRow = converter.apply(row.getKey().getString(), rowRA);
                     } else {
                         outRow = row;
                     }
@@ -450,12 +433,9 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
             throws Exception {
         final BufferedDataTable inTable = inData[0];
-        final var inSpec = inTable.getSpec();
         final long rows = inTable.size();
         final long numInRows = rows;
 
-        final var skipRows = m_discardBefore.getBooleanValue();
-        final var detectTypes = m_detectTypes.getBooleanValue();
         final var headerRowIndex = m_headerRowIndex.getIntValue();
         if (headerRowIndex < 0 || headerRowIndex >= numInRows) {
             final String rowsPlural = rows > 1 ? "s" : "";
@@ -463,11 +443,14 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
                 "%d rows expected before header row, but table has only %d row%s.", headerRowIndex, rows, rowsPlural));
         }
 
+        final var skipRows = m_discardBefore.getBooleanValue();
+        final var detectTypes = m_detectTypes.getBooleanValue();
         final long startOfData = skipRows ? (headerRowIndex + 1) : 0;
         final long safeSkip = Math.min(startOfData, headerRowIndex);
         final long numOutRows = numInRows - 1 - (skipRows ? headerRowIndex : 0);
         final var cfg = tableReadConfig(headerRowIndex - safeSkip, 0);
 
+        final var inSpec = inTable.getSpec();
         final Pair<DataTableSpec, Class<?>[]> result;
         try (final var cursor = inTable.cursor(TableFilter.filterRowsFromIndex(safeSkip));
                 final var tblRead = new ConvertingCursorRead<>(cursor, rows - safeSkip,
@@ -579,7 +562,7 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
                     RowToColumnHeaderNodeModel::valueToString)) {
 
                 for (ConvertingCursorRead<String>.WrappedRow row; (row = read.next()) != null;) {
-                    builder.addRowToTable(converter.convert(row.getRowKey().getString(), row));
+                    builder.addRowToTable(converter.apply(row.getRowKey().getString(), row));
                     processed++;
                     progressTick(exec, processed, numRows);
                 }
@@ -671,11 +654,12 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
      * @param cfg table read configuration
      * @return row converter
      */
-    private static RowConverter<DataRow, Exception> createConverter(final ExecutionContext exec,
-            final Class<?>[] outTypes, final CSVTableReaderConfig config) {
+    private static FailableBiFunction<String, RandomAccessible<String>, DataRow, Exception> createConverter(
+            final ExecutionContext exec, final Class<?>[] outTypes, final CSVTableReaderConfig config) {
 
         final var provider = new DefaultProductionPathProvider<>(StringReadAdapterFactory.INSTANCE);
-        final List<RowConverter<DataCell, Exception>> converters = new ArrayList<>();
+        final var converters =
+                new ArrayList<FailableBiFunction<String, RandomAccessible<String>, DataCell, Exception>>();
         for (var i = 0; i < outTypes.length; i++) {
             final var outType = outTypes[i];
             final ReadAdapterParams<ReadAdapter<Class<?>, String>, CSVTableReaderConfig> idx =
@@ -698,7 +682,7 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
         final var cellBuffer = new DataCell[outTypes.length];
         return (key, row) -> {
             for (var i = 0; i < cellBuffer.length; i++) {
-                cellBuffer[i] = converters.get(i).convert(key, row);
+                cellBuffer[i] = converters.get(i).apply(key, row);
             }
             return new DefaultRow(key, cellBuffer.clone());
         };
@@ -779,14 +763,11 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
 
     @Override
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
-        switch (outIndex) {
-        case 0:
-            return super.getOutHiLiteHandler(0);
-        case 1:
-            return m_hiliteHandler;
-        default:
-            throw new IndexOutOfBoundsException("Invalid port: " + outIndex);
-        }
+        return switch (outIndex) {
+            case 0  -> super.getOutHiLiteHandler(0);
+            case 1  -> m_hiliteHandler;
+            default -> throw new IndexOutOfBoundsException("Invalid port: " + outIndex);
+        };
     }
 
     /** @return settings model for the header row index */
@@ -812,8 +793,8 @@ public final class RowToColumnHeaderNodeModel extends NodeModel {
 
     private static String valueToString(final DataValue value) {
         String str;
-        if (value instanceof ReadValue) {
-            str = ((ReadValue)value).getDataCell().toString();
+        if (value instanceof ReadValue readValue) {
+            str = readValue.getDataCell().toString();
         } else {
             str = value.toString();
         }
