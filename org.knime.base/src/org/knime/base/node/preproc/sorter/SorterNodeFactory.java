@@ -92,6 +92,8 @@ public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory 
         .build();
 
     /**
+     * {@inheritDoc}
+     *
      * @since 5.3
      */
     @Override
@@ -120,6 +122,8 @@ public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory 
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @since 5.3
      */
     @Override
