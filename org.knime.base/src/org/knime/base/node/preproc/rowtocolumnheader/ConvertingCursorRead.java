@@ -185,29 +185,7 @@ public class ConvertingCursorRead<T> implements Read<T> {
          * Single instance of {@link RowRead} that is reused for all rows.
          * This is safe here because we never store a reference to it between iterations.
          */
-        private final RowRead m_rowRead = new RowRead() {
-
-            @Override
-            public boolean isMissing(final int index) {
-                return m_current.getCell(index).isMissing();
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public <D extends DataValue> D getValue(final int index) {
-                return (D) m_current.getCell(index);
-            }
-
-            @Override
-            public int getNumColumns() {
-                return m_current.getNumCells();
-            }
-
-            @Override
-            public RowKeyValue getRowKey() {
-                return m_current.getKey();
-            }
-        };
+        private final RowRead m_rowRead;
 
         /**
          * Creates an adapter from the given row input to the {@link RowCursor} interface.
@@ -216,6 +194,7 @@ public class ConvertingCursorRead<T> implements Read<T> {
          */
         private RowInputAdapter(final RowInput input) {
             m_input = input;
+            m_rowRead = RowRead.suppliedBy(() -> m_current, input.getDataTableSpec().getNumColumns());
         }
 
         @Override
