@@ -126,7 +126,7 @@ public class FileChooserPathAccessorTest extends LocalWorkflowContextTest {
         throws IOException, InvalidSettingsException {
 
         try (FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser)) {
-            final List<Path> paths = accessor.getPaths();
+            final List<Path> paths = accessor.getPaths(s -> {});
             String[] expectedStrings = Arrays.stream(expectedPaths).map(Path::toString).toArray(String[]::new);
             String[] actualStrings = paths.stream().map(Object::toString).toArray(String[]::new);
             assertArrayEquals(expectedStrings, actualStrings);
@@ -137,7 +137,7 @@ public class FileChooserPathAccessorTest extends LocalWorkflowContextTest {
         throws IOException, InvalidSettingsException {
 
         try (FileChooserPathAccessor accessor = new FileChooserPathAccessor(fileChooser)) {
-            assertThat(assertThrows(InvalidSettingsException.class, () -> accessor.getPaths())).message()
+            assertThat(assertThrows(InvalidSettingsException.class, () -> accessor.getPaths(s -> {}))).message()
                 .isEqualTo(expectedErrorMessage);
         }
     }
