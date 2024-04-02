@@ -48,57 +48,20 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSFileSystem;
-import org.knime.filehandling.core.connections.FSFiles;
-import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.ExceptionUtil;
-import org.knime.filehandling.core.defaultnodesettings.FileSystemHelper;
-import org.knime.filehandling.core.defaultnodesettings.ValidationUtils;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractSettingsModelFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 
 /**
  * Allows access to the {@link FSPath FSPaths} referred to by a {@link FileChooser} provided in the constructor. The
  * paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
  *
- * <p>
- * It is largely taken from the respective accessor for {@link AbstractSettingsModelFileChooser legacy file choosers}
- * ({@link org.knime.filehandling.core.defaultnodesettings.filechooser.FileChooserPathAccessor legacy
- * FileChooserPathAccessor})
- * </p>
- *
  * @author Paul Bärnreuther
  */
-final class FileChooserPathAccessor implements Closeable {
-
-    /**
-     * The root location i.e. the location to start scanning the file tree from
-     */
-    private final FSLocation m_location;
-
-    /**
-     * The connection used to create the {@link FSFileSystem} used to create the {@link FSPath paths}.</br>
-     * If m_rootLocation isn't empty, this will be initialized with m_rootLocation.get().
-     */
-    private FSConnection m_connection;
-
-    private FSFileSystem<?> m_fileSystem;
-
-    private final FilterMode m_filterMode;
+final class FileChooserPathAccessor extends AbstractFileChooserPathAccessor {
 
     /**
      * Creates a new FileChooserAccessor for the provided location.</br>
@@ -107,86 +70,10 @@ final class FileChooserPathAccessor implements Closeable {
      * @param fileChooser provided by the user
      */
     public FileChooserPathAccessor(final FileChooser fileChooser) { //NOSONAR
-        m_location = fileChooser.getFSLocation();
-        m_filterMode = FilterMode.FILE;
+        super(new FileChooserPathAccessorSettings(fileChooser.getFSLocation(),
+            new FilterSettings(FilterMode.FILE, false,
+                // FilterOptionsSettings not used at the moment with filter mode FILE.
+                null, false)),
+            Optional.empty());
     }
-
-    private FSPath getPathFromConvenienceFs() throws InvalidSettingsException {
-        switch (m_location.getFSCategory()) {
-            case CONNECTED:
-                throw new IllegalStateException("The file system is not connected.");
-            case CUSTOM_URL:
-                ValidationUtils.validateCustomURLLocation(m_location);
-                return m_fileSystem.getPath(m_location);
-            case RELATIVE:
-                final FSPath path = m_fileSystem.getPath(m_location);
-                ValidationUtils.validateKnimeFSPath(path);
-                return path;
-            case MOUNTPOINT:
-                return m_fileSystem.getPath(m_location);
-            case LOCAL:
-                ValidationUtils.validateLocalFsAccess();
-                return m_fileSystem.getPath(m_location);
-            case HUB_SPACE:
-                return m_fileSystem.getPath(m_location);
-            default:
-                throw new IllegalStateException("Unsupported file system category: " + m_location.getFSCategory());
-        }
-    }
-
-    List<Path> getPaths() throws IOException, InvalidSettingsException {
-        return getFSPaths().stream().map(Path.class::cast).toList();
-    }
-
-    private List<FSPath> getFSPaths() throws IOException, InvalidSettingsException {
-        return handleSinglePath(getRootPath());
-    }
-
-    private List<FSPath> handleSinglePath(final FSPath rootPath) throws IOException, InvalidSettingsException {
-        final BasicFileAttributes attr = Files.readAttributes(rootPath, BasicFileAttributes.class);
-        String workflowOrFile = m_filterMode.getTextLabel();
-        CheckUtils.checkSetting(!attr.isDirectory(), "%s is a folder. Please specify a " + workflowOrFile + ".",
-            rootPath);
-
-        return Collections.singletonList(rootPath);
-    }
-
-    public FSPath getRootPath() throws IOException, InvalidSettingsException {
-        final String errorSuffix = m_filterMode.getTextLabel();
-        CheckUtils.checkSetting(!m_location.getPath().trim().isEmpty(),
-            String.format("Please specify a %s", errorSuffix));
-        final FSPath rootPath = getPath();
-
-        CheckUtils.checkSetting(FSFiles.exists(rootPath), "The specified %s %s does not exist.", errorSuffix, rootPath);
-        if (!Files.isReadable(rootPath)) {
-            throw ExceptionUtil.createAccessDeniedException(rootPath);
-        }
-        return rootPath;
-    }
-
-    private FSPath getPath() throws InvalidSettingsException {
-        initializeFileSystem();
-        return getPathFromConvenienceFs();
-    }
-
-    private void initializeFileSystem() {
-        if (m_connection == null) {
-            m_connection = getConnection();
-            m_fileSystem = m_connection.getFileSystem();
-        }
-    }
-
-    private FSConnection getConnection() {
-        return FileSystemHelper.retrieveFSConnection(Optional.empty(), m_location).orElseThrow(
-            () -> new IllegalStateException("No file system connection available. Execute connector node."));
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (m_fileSystem != null) {
-            m_fileSystem.close();
-            m_connection.close();
-        }
-    }
-
 }

@@ -50,6 +50,8 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -138,7 +140,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     protected Charset getSelectedCharset() throws InvalidSettingsException {
         try {
             return m_charsetSupplier.get().toNioCharset();
-        } catch (Exception e) {
+        } catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
             throw new InvalidSettingsException(e);
         }
     }

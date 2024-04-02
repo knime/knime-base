@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -660,10 +662,10 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 return this.m_fileEncoding.m_persistId;
             }
 
-            java.nio.charset.Charset toNioCharset() {
+            java.nio.charset.Charset toNioCharset() throws IllegalCharsetNameException, UnsupportedCharsetException {
                 final var persistString = this.toPersistString();
                 return persistString == null //
-                    ? java.nio.charset.Charset.defaultCharset()
+                    ? java.nio.charset.Charset.defaultCharset() //
                     : java.nio.charset.Charset.forName(persistString);
             }
 
@@ -683,7 +685,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
             @Override
             public void save(final Charset charset, final NodeSettingsWO settings) {
-                settings.addString(getConfigKey(), Charset.toPersistString(charset));
+                settings.addString(getConfigKey(), charset.toPersistString());
             }
         }
 

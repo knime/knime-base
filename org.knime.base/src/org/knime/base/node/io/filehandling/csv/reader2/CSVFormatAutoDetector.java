@@ -85,7 +85,7 @@ abstract class CSVFormatAutoDetector {
     protected CsvFormat detectFormat() throws IOException, InvalidSettingsException {
 
         try (final FileChooserPathAccessor accessor = new FileChooserPathAccessor(getFileChooser())) {
-            final List<Path> paths = accessor.getPaths();
+            final List<Path> paths = accessor.getPaths(s -> {});
             final CsvParser csvParser = new CsvParser(getCsvParserSettings(getCommentStart(), getBufferSize()));
 
             if (!paths.isEmpty()) {
