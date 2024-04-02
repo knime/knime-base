@@ -1,0 +1,40 @@
+{
+  "data" : {
+    "model" : {
+      "selectedVariables" : [ ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "selectedVariables" : {
+            "title" : "Flow Variable Filter",
+            "description" : "The names of the flow variables that pass this filter node. See the general node description for details regarding which variables can be filtered.",
+            "default" : [ ],
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedVariables",
+      "options" : {
+        "format" : "twinList",
+        "possibleValues" : [ ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      }
+    } ]
+  }
+}

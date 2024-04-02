@@ -1381,6 +1381,12 @@
              >
        </node>
        <node
+             after="org.knime.base.node.flowvariable.tablecoltovariable4.TableColumnToVariable4NodeFactory"
+             category-path="/flowcontrol/variables"
+             factory-class="org.knime.base.node.flowvariable.filter.VariableFilterNodeFactory"
+             >
+       </node>
+       <node
              after="org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeFactory"
              category-path="/flowcontrol/variables"
              deprecated="true"
