@@ -652,6 +652,21 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 m_fileEncoding = fileEncoding;
                 m_customEncoding = customEncoding;
             }
+
+            String toPersistString() {
+                if (this.m_fileEncoding == FileEncodingOption.OTHER) {
+                    return this.m_customEncoding;
+                }
+                return this.m_fileEncoding.m_persistId;
+            }
+
+            java.nio.charset.Charset toNioCharset() {
+                final var persistString = this.toPersistString();
+                return persistString == null //
+                    ? java.nio.charset.Charset.defaultCharset()
+                    : java.nio.charset.Charset.forName(persistString);
+            }
+
         }
 
         static final class CharsetPersistor extends NodeSettingsPersistorWithConfigKey<Charset> {
@@ -668,14 +683,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
             @Override
             public void save(final Charset charset, final NodeSettingsWO settings) {
-                settings.addString(getConfigKey(), toString(charset));
-            }
-
-            static String toString(final Charset charset) {
-                if (charset.m_fileEncoding == FileEncodingOption.OTHER) {
-                    return charset.m_customEncoding;
-                }
-                return charset.m_fileEncoding.m_persistId;
+                settings.addString(getConfigKey(), Charset.toPersistString(charset));
             }
         }
 

@@ -96,7 +96,8 @@ abstract class CSVFormatAutoDetector {
         }
     }
 
-    private CsvFormat detectFormat(final List<Path> paths, final CsvParser csvParser) throws IOException {
+    private CsvFormat detectFormat(final List<Path> paths, final CsvParser csvParser)
+        throws IOException, InvalidSettingsException {
         // use only first file for parsing
         try (final InputStream in = FileCompressionUtils.createInputStream(paths.get(0));
                 final BufferedReader reader = BomEncodingUtils.createBufferedReader(in, getSelectedCharset())) {
@@ -116,7 +117,7 @@ abstract class CSVFormatAutoDetector {
 
     protected abstract boolean isSkipLines();
 
-    protected abstract Charset getSelectedCharset();
+    protected abstract Charset getSelectedCharset() throws InvalidSettingsException;
 
     protected abstract int getBufferSize();
 

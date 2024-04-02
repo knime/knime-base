@@ -52,7 +52,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
@@ -136,8 +135,12 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     }
 
     @Override
-    protected Charset getSelectedCharset() {
-        return Charset.forName(CharsetPersistor.toString(m_charsetSupplier.get()));
+    protected Charset getSelectedCharset() throws InvalidSettingsException {
+        try {
+            return m_charsetSupplier.get().toNioCharset();
+        } catch (Exception e) {
+            throw new InvalidSettingsException(e);
+        }
     }
 
     @Override

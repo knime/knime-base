@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.csv.reader2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -58,10 +59,13 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 
@@ -69,6 +73,7 @@ import com.univocity.parsers.csv.CsvFormat;
 
 /**
  * Tests the behavior on autodetect button click.
+ *
  * @author Paul Bärnreuther
  */
 class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
@@ -125,6 +130,19 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         assertFormat(testFormat, detectedFormat);
     }
 
+    @Test
+    void testThrowsWidgetHandlerExceptionOnInvalidCharset() throws IOException {
+        final var file = m_tempFolder.resolve("file2.csv").toAbsolutePath().toString();
+        final var testFormat = new TestFormat();
+        final var testFormatDependencies = new TestFormatDependencies(file);
+        writerCsvFile(testFormat, testFormatDependencies);
+        final var settings = new CSVTableReaderNodeSettings();
+        settings.m_encoding.m_charset = new Charset(FileEncodingOption.OTHER, "Invalid custom encoding");
+
+        assertThrows(WidgetHandlerException.class, () -> guessCSVFormat(settings));
+
+    }
+
     private static void setFormatDependencies(final CSVTableReaderNodeSettings settings,
         final TestFormatDependencies testFormatDependencies) {
         settings.m_settings.m_source.m_path = new FSLocation(FSCategory.LOCAL, testFormatDependencies.m_filePath);
@@ -138,7 +156,8 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
             for (int i = 0; i < formatDependencies.m_skipFirstLines; i++) {
                 writer.write("Ignored line\n");
             }
-            writer.write(String.format("%sThis,is,a,comment%s", formatDependencies.m_commentLineCharacter, format.m_customRowDelimiter));
+            writer.write(String.format("%sThis,is,a,comment%s", formatDependencies.m_commentLineCharacter,
+                format.m_customRowDelimiter));
             writer.write(String.format("colName%scolName2%s", format.m_columnDelimiter, format.m_customRowDelimiter));
             writer.write(String.format("1%s2%s", format.m_columnDelimiter, format.m_customRowDelimiter));
             writer.write(String.format("%sWith space%s%s%s%sWithQuotes%s%s%s", //
