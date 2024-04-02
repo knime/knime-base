@@ -55,7 +55,6 @@ import java.util.function.Predicate;
 
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.SortingOrder;
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.StringComparison;
-import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.BufferedDataTableSorter;
@@ -68,6 +67,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ConvenienceMethods;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -191,7 +191,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
     }
 
     private static boolean isRowKey(final String colName) {
-        return DynamicSorterPanel.ROWKEY.getName().equals(colName);
+        return SpecialColumns.ROWID.getId().equals(colName);
     }
 
     /**

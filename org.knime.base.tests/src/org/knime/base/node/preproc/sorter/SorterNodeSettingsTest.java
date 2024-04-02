@@ -84,8 +84,10 @@ public class SorterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
             .testJsonFormsForModel(SorterNodeSettings.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> createSettings()) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> createEmptySettings()) //
             .testNodeSettingsStructure(() -> createSettings()) //
             .testNodeSettingsStructure(() -> readSettings()) //
+            .testNodeSettingsStructure(() -> createEmptySettings()) //
 
             .build();
     }
@@ -93,6 +95,12 @@ public class SorterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
     private static SorterNodeSettings createSettings() {
         var res = new SorterNodeSettings();
         res.m_sortingCriterions = new SortingCriterionSettings[]{createCriterion()};
+        return res;
+    }
+
+    private static SorterNodeSettings createEmptySettings() {
+        var res = new SorterNodeSettings();
+        res.m_sortingCriterions = new SortingCriterionSettings[]{new SortingCriterionSettings()};
         return res;
     }
 

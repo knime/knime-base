@@ -53,7 +53,9 @@ import java.util.Optional;
 
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.SortingOrder;
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.StringComparison;
+import org.knime.base.node.preproc.sorter.dialog.DynamicSorterPanel;
 import org.knime.base.node.util.SortKeyItem;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -76,6 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 
 /**
  *
@@ -102,13 +105,17 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         }
 
         SortingCriterionSettings() {
-            m_column = new ColumnSelection();
+            this((DataColumnSpec)null);
         }
 
         SortingCriterionSettings(final DefaultNodeSettingsContext context) {
-            final var firstColumn = context.getDataTableSpec(0).flatMap(Optional::ofNullable)
-                .map(spec -> spec.getNumColumns() == 0 ? null : spec.getColumnSpec(0)).flatMap(Optional::ofNullable);
-            m_column = firstColumn.map(ColumnSelection::new).orElse(new ColumnSelection());
+            this(context.getDataTableSpec(0).flatMap(Optional::ofNullable)
+                .map(spec -> spec.getNumColumns() == 0 ? null : spec.getColumnSpec(0)).flatMap(Optional::ofNullable)
+                .orElse(null));
+        }
+
+        SortingCriterionSettings(final DataColumnSpec colSpec) {
+            m_column = colSpec == null ? SpecialColumns.ROWID.toColumnSelection() : new ColumnSelection(colSpec);
         }
 
         static final class IsStringColumnCondition extends IsColumnOfTypeCondition {
@@ -190,6 +197,8 @@ final class SorterNodeSettings implements DefaultNodeSettings {
          */
         static final String LEGACY_ALPHANUMCOMP_KEY = "alphaNumStringComp";
 
+        static final String LEGACY_ROW_ID = DynamicSorterPanel.ROWKEY.getName();
+
         @Override
         public SortingCriterionSettings[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
             SortKeyItem.validate(LEGACY_INCLUDELIST_KEY, LEGACY_SORTORDER_KEY, LEGACY_ALPHANUMCOMP_KEY, settings);
@@ -200,18 +209,34 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         }
 
         static SortKeyItem toSortKeyItem(final SortingCriterionSettings criterion) {
-            return new SortKeyItem(criterion.m_column.getSelected(), criterion.m_sortingOrder == SortingOrder.ASCENDING,
+            return new SortKeyItem(getSortKeyId(criterion), criterion.m_sortingOrder == SortingOrder.ASCENDING,
                 criterion.m_stringComparison == StringComparison.ALPHANUMERIC);
 
         }
 
+        static String getSortKeyId(final SortingCriterionSettings criterion) {
+            final var criterionColumn = criterion.m_column.getSelected();
+            if (SpecialColumns.ROWID.getId().equals(criterionColumn)) {
+                return LEGACY_ROW_ID;
+            }
+            return criterionColumn;
+        }
+
         static SortingCriterionSettings toCriterion(final SortKeyItem item) {
-            final var column = new ColumnSelection(item.getIdentifier(), null);
+            final var column = getColumnSelection(item);
             final var sortingOrder = item.isAscendingOrder() ? SortingOrder.ASCENDING : SortingOrder.DESCENDING;
             final var stringComparison =
                 item.isAlphaNumComp() ? StringComparison.ALPHANUMERIC : StringComparison.LEXICOGRAPHIC;
             return new SortingCriterionSettings(column, sortingOrder, stringComparison);
 
+        }
+
+        private static ColumnSelection getColumnSelection(final SortKeyItem item) {
+            final var identifier = item.getIdentifier();
+            if (LEGACY_ROW_ID.equals(identifier)) {
+                return SpecialColumns.ROWID.toColumnSelection();
+            }
+            return new ColumnSelection(item.getIdentifier(), null);
         }
 
         @Override
