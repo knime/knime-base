@@ -60,15 +60,18 @@ public class GroupLoopStartNodeFactory extends WebUINodeFactory<GroupLoopStartNo
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
         .name("Group Loop Start")//
         .icon("./grouploopstart.png")//
-        .shortDescription("Group loop start, each iteration processes a different group of rows.")//
+        .shortDescription("""
+                When starting a loop with this node, each iteration processes another
+                group of rows.
+                """) //
         .fullDescription("""
-                Group loop start, each iteration processes another
-                group of rows. The column(s) to group on need to be specified.
-                The input data table is sorted based on the specified columns before
-                looping starts, by default. Sorting can be switched off if input
+                When starting a loop with this node, each iteration processes another
+                group of rows. Specify the column(s) to group on and the input data table
+                is sorted based on the specified columns before looping starts, by default.
+                Sorting can be switched off if input
                 data table is already properly sorted based on the columns to group
                 on. If sorting is switched off, but input table is not properly
-                sorted execution will be canceled.
+                sorted execution will fail.
                 """) //
         .modelSettingsClass(GroupLoopStartNodeSettings.class)//
         .addInputTable("Any Table", "Any input table. Each iteration will process one group of this table.")//

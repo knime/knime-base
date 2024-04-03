@@ -95,7 +95,7 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Sorting option",
         description = """
-                Enhance performance by selecting 'Input is already sorted by category columns' if your data is
+                Enhance performance by selecting 'Keep input data order' if your data is
                 already sorted by the group columns. Be cautious: if the input is not properly sorted, the node
                 will fail. If you want to make sure that this node executes, do not choose this option.
                 """,
@@ -118,7 +118,7 @@ final class GroupLoopStartNodeSettings implements DefaultNodeSettings {
     enum YesOrNo {
             @Label("Automatically sort data")
             NO, //
-            @Label("Input data already sorted by category columns")
+            @Label("Keep input data order")
             YES
     }
 

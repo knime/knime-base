@@ -33,10 +33,10 @@
               "title" : "Automatically sort data"
             }, {
               "const" : "YES",
-              "title" : "Input data already sorted by category columns"
+              "title" : "Keep input data order"
             } ],
             "title" : "Sorting option",
-            "description" : "Enhance performance by selecting 'Input is already sorted by category columns' if your data is\nalready sorted by the group columns. Be cautious: if the input is not properly sorted, the node\nwill fail. If you want to make sure that this node executes, do not choose this option.\n",
+            "description" : "Enhance performance by selecting 'Keep input data order' if your data is\nalready sorted by the group columns. Be cautious: if the input is not properly sorted, the node\nwill fail. If you want to make sure that this node executes, do not choose this option.\n",
             "default" : "NO",
             "configKeys" : [ "SortedInput" ]
           },
