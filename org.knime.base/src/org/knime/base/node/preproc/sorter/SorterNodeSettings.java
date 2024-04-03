@@ -177,27 +177,27 @@ final class SorterNodeSettings implements DefaultNodeSettings {
      *
      * @author Paul Bärnreuther
      */
-    static final class LoadDeprecatedSortingCriterionArraySettings
+     static final class LoadDeprecatedSortingCriterionArraySettings
         extends NodeSettingsPersistorWithConfigKey<SortingCriterionSettings[]> {
 
         /**
          * The key for the IncludeList in the NodeSettings.
          */
-        static final String LEGACY_INCLUDELIST_KEY = "incllist";
+        private static final String LEGACY_INCLUDELIST_KEY = "incllist";
 
         /**
          * The key for the Sort Order Array in the NodeSettings.
          */
-        static final String LEGACY_SORTORDER_KEY = "sortOrder";
+        private static final String LEGACY_SORTORDER_KEY = "sortOrder";
 
         /**
          * The key for the Alphanumeric Comparison in the node settings.
          *
          * @since 4.7
          */
-        static final String LEGACY_ALPHANUMCOMP_KEY = "alphaNumStringComp";
+        private static final String LEGACY_ALPHANUMCOMP_KEY = "alphaNumStringComp";
 
-        static final String LEGACY_ROW_ID = DynamicSorterPanel.ROWKEY.getName();
+        private static final String LEGACY_ROW_ID = DynamicSorterPanel.ROWKEY.getName();
 
         @Override
         public SortingCriterionSettings[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -208,13 +208,13 @@ final class SorterNodeSettings implements DefaultNodeSettings {
                 .toArray(SortingCriterionSettings[]::new);
         }
 
-        static SortKeyItem toSortKeyItem(final SortingCriterionSettings criterion) {
+        private static SortKeyItem toSortKeyItem(final SortingCriterionSettings criterion) {
             return new SortKeyItem(getSortKeyId(criterion), criterion.m_sortingOrder == SortingOrder.ASCENDING,
                 criterion.m_stringComparison == StringComparison.ALPHANUMERIC);
 
         }
 
-        static String getSortKeyId(final SortingCriterionSettings criterion) {
+        private static String getSortKeyId(final SortingCriterionSettings criterion) {
             final var criterionColumn = criterion.m_column.getSelected();
             if (SpecialColumns.ROWID.getId().equals(criterionColumn)) {
                 return LEGACY_ROW_ID;
@@ -222,7 +222,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
             return criterionColumn;
         }
 
-        static SortingCriterionSettings toCriterion(final SortKeyItem item) {
+        private static SortingCriterionSettings toCriterion(final SortKeyItem item) {
             final var column = getColumnSelection(item);
             final var sortingOrder = item.isAscendingOrder() ? SortingOrder.ASCENDING : SortingOrder.DESCENDING;
             final var stringComparison =
