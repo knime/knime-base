@@ -1,7 +1,7 @@
 {
   "data" : {
     "model" : {
-      "sortingCriterions" : [ {
+      "sortingCriteria" : [ {
         "column" : {
           "selected" : "column1",
           "compatibleTypes" : [ ]
@@ -33,9 +33,9 @@
             "default" : false,
             "configKeys" : [ "missingToEnd" ]
           },
-          "sortingCriterions" : {
+          "sortingCriteria" : {
             "title" : "Sorting",
-            "description" : "A list of sorting criterions.",
+            "description" : "A list of sorting critera.",
             "default" : [ {
               "column" : {
                 "selected" : "test1",
@@ -109,7 +109,7 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/sortingCriterions",
+        "scope" : "#/properties/model/properties/sortingCriteria",
         "options" : {
           "detail" : [ {
             "type" : "Control",

@@ -94,13 +94,13 @@ public class SorterNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
     private static SorterNodeSettings createSettings() {
         var res = new SorterNodeSettings();
-        res.m_sortingCriterions = new SortingCriterionSettings[]{createCriterion()};
+        res.m_sortingCriteria = new SortingCriterionSettings[]{createCriterion()};
         return res;
     }
 
     private static SorterNodeSettings createEmptySettings() {
         var res = new SorterNodeSettings();
-        res.m_sortingCriterions = new SortingCriterionSettings[]{new SortingCriterionSettings()};
+        res.m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings()};
         return res;
     }
 

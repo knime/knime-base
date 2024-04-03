@@ -148,10 +148,10 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
         final SorterNodeSettings modelSettings) throws Exception {
-        CheckUtils.checkNotNull(modelSettings.m_sortingCriterions, "Sort key columns should not be null.");
+        CheckUtils.checkNotNull(modelSettings.m_sortingCriteria, "Sort key columns should not be null.");
         final var dataTable = inData[INPORT];
         // If no columns are set, we do not start the sorting process
-        if (modelSettings.m_sortingCriterions.length == 0) {
+        if (modelSettings.m_sortingCriteria.length == 0) {
             setWarningMessage("No columns were selected - returning original table");
             return new BufferedDataTable[]{dataTable};
         }
@@ -164,7 +164,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
 
     private static RowComparator toRowComparator(final DataTableSpec spec, final SorterNodeSettings modelSettings) {
         final var rc = RowComparator.on(spec);
-        Arrays.stream(modelSettings.m_sortingCriterions).forEach(criterion -> {
+        Arrays.stream(modelSettings.m_sortingCriteria).forEach(criterion -> {
             final var ascending = criterion.m_sortingOrder == SortingOrder.ASCENDING;
             final var alphaNum = criterion.m_stringComparison == StringComparison.ALPHANUMERIC;
             resolveColumnName(spec, criterion.m_column.getSelected(), SorterNodeModel::isRowKey).ifPresentOrElse(
@@ -203,7 +203,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final SorterNodeSettings modelSettings)
         throws InvalidSettingsException {
-        if (modelSettings.m_sortingCriterions.length == 0) {
+        if (modelSettings.m_sortingCriteria.length == 0) {
             throw new InvalidSettingsException(
                 "No selected columns to sort by. Add a sorting criterion in the node’s settings");
         }
@@ -211,7 +211,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
         // exist in the DataTableSpec
         final List<String> notAvailableCols = new ArrayList<>();
         final var spec = inSpecs[INPORT];
-        for (var ic : modelSettings.m_sortingCriterions) {
+        for (var ic : modelSettings.m_sortingCriteria) {
             final var id = ic.m_column.getSelected();
             if (!isRowKey(id)) {
                 final var idx = spec.findColumnIndex(id);

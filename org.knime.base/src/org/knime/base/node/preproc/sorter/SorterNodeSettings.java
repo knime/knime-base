@@ -91,7 +91,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     }
 
     SorterNodeSettings(final DefaultNodeSettingsContext context) {
-        m_sortingCriterions = new SortingCriterionSettings[]{new SortingCriterionSettings(context)};
+        m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings(context)};
     }
 
     static final class SortingCriterionSettings implements DefaultNodeSettings {
@@ -240,9 +240,9 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public void save(final SortingCriterionSettings[] criterions, final NodeSettingsWO settings) {
+        public void save(final SortingCriterionSettings[] criteria, final NodeSettingsWO settings) {
             final var sortKeyItems =
-                Arrays.stream(criterions).map(LoadDeprecatedSortingCriterionArraySettings::toSortKeyItem).toList();
+                Arrays.stream(criteria).map(LoadDeprecatedSortingCriterionArraySettings::toSortKeyItem).toList();
             SortKeyItem.saveTo(sortKeyItems, LEGACY_INCLUDELIST_KEY, LEGACY_SORTORDER_KEY, LEGACY_ALPHANUMCOMP_KEY,
                 settings);
         }
@@ -255,17 +255,17 @@ final class SorterNodeSettings implements DefaultNodeSettings {
     }
 
     @Section(title = "Sorting")
-    interface Criterions {
+    interface Criteria {
     }
 
-    @Layout(Criterions.class)
-    @Widget(title = "Sorting", description = "A list of sorting criterions.")
+    @Layout(Criteria.class)
+    @Widget(title = "Sorting", description = "A list of sorting critera.")
     @Persist(customPersistor = LoadDeprecatedSortingCriterionArraySettings.class)
     @ArrayWidget(elementTitle = "Criterion", addButtonText = "Add sorting criterion", showSortButtons = true)
-    SortingCriterionSettings[] m_sortingCriterions = new SortingCriterionSettings[]{new SortingCriterionSettings()};
+    SortingCriterionSettings[] m_sortingCriteria = new SortingCriterionSettings[]{new SortingCriterionSettings()};
 
     @Section(title = "Special Values and Performance", advanced = true)
-    @After(Criterions.class)
+    @After(Criteria.class)
     interface Options {
     }
 
