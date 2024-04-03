@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.preproc.sorter;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import org.knime.base.node.preproc.sorter.SorterNodeSettings.SortingCriterionSettings.SortingOrder;
@@ -65,7 +64,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
@@ -172,12 +174,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
     }
 
-    /**
-     * TODO-1768: Deprecate the old config keys in favor of enabling flow variables in array layout elements
-     *
-     * @author Paul Bärnreuther
-     */
-     static final class LoadDeprecatedSortingCriterionArraySettings
+    static final class LoadDeprecatedSortingCriterionArraySettings
         extends NodeSettingsPersistorWithConfigKey<SortingCriterionSettings[]> {
 
         /**
@@ -199,27 +196,32 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
         private static final String LEGACY_ROW_ID = DynamicSorterPanel.ROWKEY.getName();
 
+        private NodeSettingsPersistor<SortingCriterionSettings[]> m_defaultPersistor;
+
+        @Override
+        public void setConfigKey(final String configKey) {
+            super.setConfigKey(configKey);
+            m_defaultPersistor = DefaultFieldNodeSettingsPersistorFactory
+                .createDefaultPersistor(SortingCriterionSettings[].class, configKey);
+
+        }
+
         @Override
         public SortingCriterionSettings[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            if (settings.containsKey(LEGACY_INCLUDELIST_KEY)) {
+                return loadFromLegacySettings(settings);
+            }
+            return m_defaultPersistor.load(settings);
+
+        }
+
+        private static SortingCriterionSettings[] loadFromLegacySettings(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
             SortKeyItem.validate(LEGACY_INCLUDELIST_KEY, LEGACY_SORTORDER_KEY, LEGACY_ALPHANUMCOMP_KEY, settings);
             final var sortKeyItems =
                 SortKeyItem.loadFrom(LEGACY_INCLUDELIST_KEY, LEGACY_SORTORDER_KEY, LEGACY_ALPHANUMCOMP_KEY, settings);
             return sortKeyItems.stream().map(LoadDeprecatedSortingCriterionArraySettings::toCriterion)
                 .toArray(SortingCriterionSettings[]::new);
-        }
-
-        private static SortKeyItem toSortKeyItem(final SortingCriterionSettings criterion) {
-            return new SortKeyItem(getSortKeyId(criterion), criterion.m_sortingOrder == SortingOrder.ASCENDING,
-                criterion.m_stringComparison == StringComparison.ALPHANUMERIC);
-
-        }
-
-        private static String getSortKeyId(final SortingCriterionSettings criterion) {
-            final var criterionColumn = criterion.m_column.getSelected();
-            if (SpecialColumns.ROWID.getId().equals(criterionColumn)) {
-                return LEGACY_ROW_ID;
-            }
-            return criterionColumn;
         }
 
         private static SortingCriterionSettings toCriterion(final SortKeyItem item) {
@@ -241,15 +243,16 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
         @Override
         public void save(final SortingCriterionSettings[] criteria, final NodeSettingsWO settings) {
-            final var sortKeyItems =
-                Arrays.stream(criteria).map(LoadDeprecatedSortingCriterionArraySettings::toSortKeyItem).toList();
-            SortKeyItem.saveTo(sortKeyItems, LEGACY_INCLUDELIST_KEY, LEGACY_SORTORDER_KEY, LEGACY_ALPHANUMCOMP_KEY,
-                settings);
+            m_defaultPersistor.save(criteria, settings);
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{LEGACY_INCLUDELIST_KEY, LEGACY_SORTORDER_KEY, LEGACY_ALPHANUMCOMP_KEY};
+        public DeprecatedConfigs[] getDeprecatedConfigs() {
+            return new DeprecatedConfigs[]{new DeprecatedConfigs.DeprecatedConfigsBuilder() //
+                .forDeprecatedConfigPath(LEGACY_INCLUDELIST_KEY)//
+                .forDeprecatedConfigPath(LEGACY_ALPHANUMCOMP_KEY) //
+                .forDeprecatedConfigPath(LEGACY_SORTORDER_KEY) //
+                .forNewConfigPath(getConfigKey()).build()};
         }
 
     }

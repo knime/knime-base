@@ -44,7 +44,11 @@
               "sortingOrder" : "ASCENDING",
               "stringComparison" : "LEXICOGRAPHIC"
             } ],
-            "configKeys" : [ "incllist", "sortOrder", "alphaNumStringComp" ],
+            "configKeys" : [ "sortingCriteria" ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "sortingCriteria" ] ],
+              "deprecated" : [ [ "incllist" ], [ "alphaNumStringComp" ], [ "sortOrder" ] ]
+            } ],
             "type" : "array",
             "items" : {
               "type" : "object",
@@ -96,7 +100,11 @@
                   "default" : "LEXICOGRAPHIC"
                 }
               },
-              "configKeys" : [ "incllist", "sortOrder", "alphaNumStringComp" ]
+              "configKeys" : [ "sortingCriteria" ],
+              "deprecatedConfigKeys" : [ {
+                "new" : [ [ "sortingCriteria" ] ],
+                "deprecated" : [ [ "incllist" ], [ "alphaNumStringComp" ], [ "sortOrder" ] ]
+              } ]
             }
           }
         }
