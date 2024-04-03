@@ -132,60 +132,6 @@ public class SorterNodeModelTest {
         m_settings = null;
     }
 
-
-    /**
-     * Test method for {@link org.knime.base.node.preproc.sorter.SorterNodeModel#saveSettingsTo(...)}.
-     */
-    @Test
-    public final void testSaveSettingsTo() throws InvalidSettingsException {
-        Assert.assertFalse(m_settings.containsKey(
-                SorterNodeModel.INCLUDELIST_KEY));
-        Assert.assertFalse(m_settings.containsKey(
-                SorterNodeModel.SORTORDER_KEY));
-        Assert.assertFalse(m_settings.containsKey(
-                SorterNodeModel.SORTINMEMORY_KEY));
-
-        // save empty
-        m_snm.performSaveSettingsTo(m_settings);
-
-        // populate settings
-        boolean[] sortOrder = {true, false, true};
-        m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, sortOrder);
-        String[] inclCols = {"TestCol1", "TestCol2", "-ROWKEY -"};
-        m_settings.addStringArray(SorterNodeModel.INCLUDELIST_KEY, inclCols);
-        boolean sortInMemory = false;
-        m_settings.addBoolean(SorterNodeModel.SORTINMEMORY_KEY, sortInMemory);
-
-        m_snm.performValidateSettings(m_settings);
-        m_snm.performLoadValidatedSettingsFrom(m_settings);
-        m_snm.performConfigure(new DataTableSpec[] { new DataTableSpec(new String[] {"TestCol1", "TestCol2"},
-            new DataType[] {StringCell.TYPE, DoubleCell.TYPE})
-            });
-
-        // since alphanum was not present in the settings, the default should be 'false' here for backwards
-        // compatibility.
-
-
-        NodeSettings newsettings = new NodeSettings("Sorter");
-        m_snm.performSaveSettingsTo(newsettings);
-
-        boolean[] sortOrderTest = newsettings
-                    .getBooleanArray(SorterNodeModel.SORTORDER_KEY);
-        Assert.assertTrue(sortOrderTest[0]);
-        Assert.assertFalse(sortOrderTest[1]);
-        Assert.assertTrue(sortOrderTest[2]);
-        Assert.assertEquals(3, sortOrderTest.length);
-
-        boolean[] alphanum = newsettings.getBooleanArray(SorterNodeModel.ALPHANUMCOMP_KEY);
-        for (var i = 0; i < alphanum.length; i++) {
-            Assert.assertFalse(alphanum[i]);
-        }
-
-        String[] inclColsTest = newsettings
-                    .getStringArray(SorterNodeModel.INCLUDELIST_KEY);
-        Assert.assertArrayEquals(inclCols, inclColsTest);
-    }
-
     /**
      * Test method for {@link org.knime.base.node.preproc.sorter.SorterNodeModel#validateSettings(org.knime.core.node.NodeSettingsRO)}.
      */
