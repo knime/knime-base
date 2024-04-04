@@ -23,7 +23,7 @@
       "groupSeparator" : "THIN_SPACE",
       "decimalSeparator" : "DOT",
       "alwaysShowDecimalSeparator" : false,
-      "alignmentSuggestion" : "RIGHT"
+      "alignmentSuggestion" : "LEFT"
     }
   },
   "schema" : {
@@ -45,7 +45,7 @@
             } ],
             "title" : "Alignment suggestion",
             "description" : "Specify how to align the number.",
-            "default" : "RIGHT",
+            "default" : "LEFT",
             "configKeys" : [ "alignmentSuggestion" ]
           },
           "alwaysShowDecimalSeparator" : {

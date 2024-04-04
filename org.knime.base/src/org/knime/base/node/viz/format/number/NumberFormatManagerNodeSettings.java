@@ -198,7 +198,7 @@ public final class NumberFormatManagerNodeSettings implements DefaultNodeSetting
     @ValueSwitchWidget
     @Persist(optional = true)
     @Layout(DialogLayout.Display.class)
-    AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.RIGHT;
+    AlignmentSuggestionOption m_alignmentSuggestion = AlignmentSuggestionOption.LEFT;
 
     // Utility
 
