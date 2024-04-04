@@ -12,7 +12,7 @@
                 </config>
             </config>
             <entry key="sortingOrder" type="xstring" value="ASCENDING"/>
-            <entry key="stringComparison" type="xstring" value="LEXICOGRAPHIC"/>
+            <entry key="stringComparison" type="xstring" value="ALPHANUMERIC"/>
         </config>
     </config>
     <entry key="missingToEnd" type="xboolean" value="false"/>

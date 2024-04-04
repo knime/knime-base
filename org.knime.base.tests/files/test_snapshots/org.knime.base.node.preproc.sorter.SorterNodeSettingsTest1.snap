@@ -7,7 +7,7 @@
           "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
         },
         "sortingOrder" : "ASCENDING",
-        "stringComparison" : "LEXICOGRAPHIC"
+        "stringComparison" : "ALPHANUMERIC"
       } ],
       "sortMissingCellsToEndOfList" : false,
       "sortInMemory" : false
@@ -42,7 +42,7 @@
                 "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
               },
               "sortingOrder" : "ASCENDING",
-              "stringComparison" : "LEXICOGRAPHIC"
+              "stringComparison" : "ALPHANUMERIC"
             } ],
             "configKeys" : [ "sortingCriteria" ],
             "deprecatedConfigKeys" : [ {
@@ -97,7 +97,7 @@
                   } ],
                   "title" : "String comparison",
                   "description" : "Specifies which type of sorting to apply to the strings:\n<ul>\n<li><b>Alphanumeric</b>: Sorts strings by treating the numberic parts of a string as one character. For example, results in sort order “'Row1', 'Row2', 'Row10'”.</li>\n<li><b>Lexicographic</b>: Sorts strings so that each digit is treated as a separated character. For example, results in sort order “'Row1', 'Row10', 'Row2'”.</li>\n</ul>",
-                  "default" : "LEXICOGRAPHIC"
+                  "default" : "ALPHANUMERIC"
                 }
               },
               "configKeys" : [ "sortingCriteria" ],

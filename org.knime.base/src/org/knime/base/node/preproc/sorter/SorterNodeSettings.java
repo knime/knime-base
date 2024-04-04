@@ -170,7 +170,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
             advanced = true)
         @Effect(signals = IsStringColumnCondition.class, type = EffectType.SHOW)
         @ValueSwitchWidget
-        StringComparison m_stringComparison = StringComparison.LEXICOGRAPHIC;
+        StringComparison m_stringComparison = StringComparison.ALPHANUMERIC;
 
     }
 
