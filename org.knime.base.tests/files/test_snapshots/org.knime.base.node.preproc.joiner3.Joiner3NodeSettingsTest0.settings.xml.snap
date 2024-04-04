@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="compositionMode" type="xstring" value="MATCH_ALL"/>
+    <config key="matchingCriteria">
+        <config key="0">
+            <entry key="leftTableColumn" type="xstring" value="&lt;row-keys&gt;"/>
+            <entry key="rightTableColumn" type="xstring" value="&lt;row-keys&gt;"/>
+        </config>
+    </config>
+    <entry key="dataCellComparisonMode" type="xstring" value="STRICT"/>
+    <entry key="includeMatchesInOutput" type="xboolean" value="true"/>
+    <entry key="includeLeftUnmatchedInOutput" type="xboolean" value="false"/>
+    <entry key="includeRightUnmatchedInOutput" type="xboolean" value="false"/>
+    <config key="rightColumnSelectionConfig">
+        <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <config key="included_names">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <config key="excluded_names">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <entry key="enforce_option" type="xstring" value="EnforceInclusion"/>
+        <config key="name_pattern">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="type" type="xstring" value="Wildcard"/>
+            <entry key="caseSensitive" type="xboolean" value="false"/>
+            <entry key="excludeMatching" type="xboolean" value="false"/>
+        </config>
+        <config key="datatype">
+            <config key="typelist"/>
+        </config>
+    </config>
+    <config key="leftColumnSelectionConfig">
+        <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <config key="included_names">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <config key="excluded_names">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <entry key="enforce_option" type="xstring" value="EnforceInclusion"/>
+        <config key="name_pattern">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="type" type="xstring" value="Wildcard"/>
+            <entry key="caseSensitive" type="xboolean" value="false"/>
+            <entry key="excludeMatching" type="xboolean" value="false"/>
+        </config>
+        <config key="datatype">
+            <config key="typelist"/>
+        </config>
+    </config>
+    <entry key="mergeJoinColumns" type="xboolean" value="false"/>
+    <entry key="duplicateHandling" type="xstring" value="APPEND_SUFFIX"/>
+    <entry key="suffix" type="xstring" value=" (Right)"/>
+    <entry key="outputUnmatchedRowsToSeparatePorts" type="xboolean" value="false"/>
+    <entry key="rowKeyFactory" type="xstring" value="CONCATENATE"/>
+    <entry key="rowKeySeparator" type="xstring" value="_"/>
+    <entry key="outputRowOrder" type="xstring" value="ARBITRARY"/>
+    <entry key="maxOpenFiles" type="xint" value="200"/>
+    <entry key="enableHiliting" type="xboolean" value="false"/>
+</config>

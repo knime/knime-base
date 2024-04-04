@@ -58,8 +58,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.ColumnNameDisambiguationButtonGroup;
-import org.knime.base.node.preproc.joiner3.Joiner3Settings.RowKeyFactoryButtonGroup;
+import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.DuplicateHandling;
+import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.RowKeyFactory;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.join.JoinSpecification;
@@ -77,7 +77,6 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -89,52 +88,56 @@ import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.util.UniqueNameGenerator;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  * This is the model of the joiner node. It delegates the dirty work to the Joiner class.
  *
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
-class Joiner3NodeModel extends NodeModel {
+class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(Joiner3NodeModel.class);
 
-    private final Joiner3Settings m_settings = new Joiner3Settings();
-
     private final Hiliter m_hiliter = new Hiliter();
 
-    Joiner3NodeModel() {
-        super(2, 3);
+    Joiner3NodeModel(final WebUINodeConfiguration config) {
+        super(config, Joiner3NodeSettings.class);
     }
 
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final Joiner3NodeSettings settings)
+        throws InvalidSettingsException {
+        final var modelSettings = new Joiner3Settings(settings);
 
-        var joinSpecification = m_settings.joinSpecificationForSpecs(inSpecs);
+        var joinSpecification = modelSettings.joinSpecificationForSpecs(inSpecs);
 
         // RowIDs can only be kept if they are guaranteed to be equal for each pair of matching rows
-        if (m_settings.getRowKeyFactory() == RowKeyFactoryButtonGroup.KEEP_ROWID) {
+        if (modelSettings.getRowKeyFactoryType() == RowKeyFactory.KEEP_ROWID) {
             Optional<String> problem = KeepRowKeysFactory.applicable(//
-                joinSpecification, m_settings.isOutputUnmatchedRowsToSeparateOutputPort());
+                joinSpecification, modelSettings.isOutputUnmatchedRowsToSeparateOutputPort());
             if (problem.isPresent()) {
                 throw new InvalidSettingsException("Cannot reuse input row keys for output. " + problem.get()); // NOSONAR
             }
         }
 
-        if (m_settings.getColumnNameDisambiguation() == ColumnNameDisambiguationButtonGroup.DO_NOT_EXECUTE) {
+        if (modelSettings.getColumnNameDisambiguation() == DuplicateHandling.DO_NOT_EXECUTE) {
             Optional<String> duplicateColumn =
                 checkForDuplicateColumn(joinSpecification, (DataTableSpec)inSpecs[0], (DataTableSpec)inSpecs[1]);
             if (duplicateColumn.isPresent()) {
                 throw new InvalidSettingsException(
-                    String.format("Column \"%s\" is included from both the left and the right input table " +
-                            "but \"Do not execute with duplicate column names\" is selected.", duplicateColumn.get()));
+                    String.format(
+                        "Column \"%s\" is included from both the left and the right input table "
+                            + "but \"Do not execute with duplicate column names\" is selected.",
+                        duplicateColumn.get()));
             }
         }
 
         DataTableSpec matchSpec = joinSpecification.specForMatchTable();
 
         var portObjectSpecs = new PortObjectSpec[3];
-        if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
+        if (modelSettings.isOutputUnmatchedRowsToSeparateOutputPort()) {
             // split output
             portObjectSpecs[portIndex(ResultType.MATCHES)] = matchSpec;
             portObjectSpecs[portIndex(ResultType.LEFT_OUTER)] = joinSpecification.specForUnmatched(InputTable.LEFT);
@@ -150,19 +153,21 @@ class Joiner3NodeModel extends NodeModel {
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] inPortObjects, final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
+        final Joiner3NodeSettings settings) throws Exception {
 
+        final var modelSettings = new Joiner3Settings(settings);
         BufferedDataTable left = (BufferedDataTable)inPortObjects[0];
         BufferedDataTable right = (BufferedDataTable)inPortObjects[1];
 
-        var joinSpecification = joinSpecificationForTables(left, right);
+        var joinSpecification = joinSpecificationForTables(modelSettings, left, right);
 
         JoinImplementation implementation = JoinAlgorithm.AUTO.getFactory().create(joinSpecification, exec);
-        implementation.setMaxOpenFiles(m_settings.getMaxOpenFiles());
-        implementation.setEnableHiliting(m_settings.isHilitingEnabled());
+        implementation.setMaxOpenFiles(modelSettings.getMaxOpenFiles());
+        implementation.setEnableHiliting(modelSettings.isHilitingEnabled());
 
         final var outPortObjects = new PortObject[3];
-        if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
+        if (modelSettings.isOutputUnmatchedRowsToSeparateOutputPort()) {
             // split output
             // do the join
             JoinResult<OutputSplit> joinedTable = implementation.joinOutputSplit();
@@ -213,10 +218,10 @@ class Joiner3NodeModel extends NodeModel {
      *
      * @param portObjects {@link BufferedDataTable}s in disguise
      */
-    private JoinSpecification joinSpecificationForTables(final BufferedDataTable left, final BufferedDataTable right)
-        throws InvalidSettingsException {
+    private JoinSpecification joinSpecificationForTables(final Joiner3Settings modelSettings,
+        final BufferedDataTable left, final BufferedDataTable right) throws InvalidSettingsException {
 
-        var joinSpecification = m_settings.joinSpecificationForSpecs(left.getSpec(), right.getSpec());
+        var joinSpecification = modelSettings.joinSpecificationForSpecs(left.getSpec(), right.getSpec());
         joinSpecification.getSettings(InputTable.LEFT).setTable(left);
         joinSpecification.getSettings(InputTable.RIGHT).setTable(right);
 
@@ -243,23 +248,8 @@ class Joiner3NodeModel extends NodeModel {
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        var validationSettings = new Joiner3Settings();
-        validationSettings.loadSettingsInModel(settings);
-        validationSettings.validateSettings();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings.loadSettingsInModel(settings);
+    protected void validateSettings(final Joiner3NodeSettings settings) throws InvalidSettingsException {
+        new Joiner3Settings(settings).validateSettings();
     }
 
     @Override
@@ -282,7 +272,7 @@ class Joiner3NodeModel extends NodeModel {
      * @return joiner result type delivered at the given port
      */
     private Optional<ResultType> resultType(final int outIndex) {
-        if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
+        if (getSettings().map(settings -> settings.m_outputUnmatchedRowsToSeparatePorts).orElse(false)) {
             switch (outIndex) {
                 case 0:
                     return Optional.of(ResultType.MATCHES);
@@ -365,13 +355,14 @@ class Joiner3NodeModel extends NodeModel {
          * @param results provides {@link JoinResult#getHiliteMapping(InputTable, ResultType)} to obtain mappings.
          */
         public <T> void setResults(final JoinResult<T> results) {
+            final var joinerNodeSettings = getJoiner3NodeSettings();
 
-            if (!m_settings.isHilitingEnabled()) {
+            if (!joinerNodeSettings.m_enableHiliting) {
                 return;
             }
 
             // create hiliting functionality for each output port
-            if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
+            if (joinerNodeSettings.m_outputUnmatchedRowsToSeparatePorts) {
                 // create a translator for each (input handler, output handler) pair
                 setTranslatorMapping(results, InputTable.LEFT, ResultType.MATCHES);
                 setTranslatorMapping(results, InputTable.LEFT, ResultType.LEFT_OUTER);
@@ -411,14 +402,16 @@ class Joiner3NodeModel extends NodeModel {
          */
         public void loadInternals(final File nodeInternDir) {
 
-            if (!m_settings.isHilitingEnabled()) {
+            final var joinerNodeSettings = getJoiner3NodeSettings();
+
+            if (!joinerNodeSettings.m_enableHiliting) {
                 return;
             }
 
             try (var in = new FileInputStream(new File(nodeInternDir, INTERNALS_FILE_NAME))) {
                 NodeSettingsRO settings = NodeSettings.loadFromXML(in);
 
-                if (m_settings.isOutputUnmatchedRowsToSeparateOutputPort()) {
+                if (joinerNodeSettings.m_outputUnmatchedRowsToSeparatePorts) {
                     setTranslatorMapping(settings, InputTable.LEFT, ResultType.MATCHES);
                     setTranslatorMapping(settings, InputTable.LEFT, ResultType.LEFT_OUTER);
 
@@ -455,7 +448,7 @@ class Joiner3NodeModel extends NodeModel {
          * @param nodeInternDir passed through from {@link Joiner3NodeModel#saveInternals(File, ExecutionMonitor)}
          */
         public void saveInternals(final File nodeInternDir) {
-            if (!m_settings.isHilitingEnabled()) {
+            if (!getJoiner3NodeSettings().m_enableHiliting) {
                 return;
             }
 
@@ -482,6 +475,11 @@ class Joiner3NodeModel extends NodeModel {
                 LOGGER.warn(e);
             }
 
+        }
+
+        private Joiner3NodeSettings getJoiner3NodeSettings() {
+            final var joinerNodeSettings = getSettings().orElseThrow(IllegalStateException::new);
+            return joinerNodeSettings;
         }
 
         /**

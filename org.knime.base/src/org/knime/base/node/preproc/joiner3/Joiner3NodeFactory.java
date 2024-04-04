@@ -44,9 +44,21 @@
  */
 package org.knime.base.node.preproc.joiner3;
 
+import java.io.IOException;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * This factory create all necessary classes for the joiner node.
@@ -56,21 +68,48 @@ import org.knime.core.node.NodeView;
  * @since 4.2
  *
  */
-public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> {
+public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements NodeDialogFactory {
+
+    static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Joiner") //
+        .icon("joiner.png") //
+        .shortDescription("Combine matching rows from two tables")//
+        .fullDescription(
+            """
+                    This node combines two tables similar to a join in a database. It combines each row from the top input port
+                    with each row from the bottom input port that has identical values in selected columns.
+                    Rows that remain unmatched can also be output.
+                    """)//
+        .modelSettingsClass(Joiner3NodeSettings.class) //
+        .addInputPort("Left table", BufferedDataTable.TYPE, "Left input table") //
+        .addInputPort("Right table", BufferedDataTable.TYPE, "Right input table") //
+        .addOutputPort("Join result", BufferedDataTable.TYPE,
+            "Either all results or the result of the inner join (if the unmatched rows are output in separate ports)") //
+        .addOutputPort("Left unmatched rows", BufferedDataTable.TYPE,
+            "Unmatched rows from the left input table (top input port). "
+                + "Inactive if \"Output unmatched rows to separate ports\" is deactivated.") //
+        .addOutputPort("Right unmatched rows", BufferedDataTable.TYPE,
+            "Unmatched rows from the right input table (bottom input port). "
+                + "Inactive if \"Output unmatched rows to separate ports\" is deactivated.") //
+        .nodeType(NodeType.Manipulator) //
+        .sinceVersion(4, 2, 0) //
+        .addExternalResource("https://www.knime.com/knime-introductory-course/chapter3/section3/joins",
+            "KNIME E-Learning Course: Join: inner join, right outer join, left outer join, full outer join")
+        .keywords("Combine tables").build();
 
     @Override
     public Joiner3NodeModel createNodeModel() {
-       return new Joiner3NodeModel();
+        return new Joiner3NodeModel(CONFIG);
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new Joiner3NodeDialog();
+        return null;
     }
 
     @Override
     public boolean hasDialog() {
-        return true;
+        return false;
     }
 
     @Override
@@ -79,8 +118,21 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> {
     }
 
     @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription(CONFIG);
+    }
+
+    @Override
     public NodeView<Joiner3NodeModel> createNodeView(final int viewIndex, final Joiner3NodeModel nodeModel) {
         throw new IndexOutOfBoundsException();
+    }
+
+    /**
+     * @since 5.3
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, Joiner3NodeSettings.class);
     }
 
 }

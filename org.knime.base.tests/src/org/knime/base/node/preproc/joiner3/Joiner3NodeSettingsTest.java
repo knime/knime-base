@@ -44,61 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 22, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 5, 2024 (Paul Bärnreuther): created
  */
 package org.knime.base.node.preproc.joiner3;
 
-import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.MatchingCriterion;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.func.NodeFuncApi;
-import org.knime.core.node.func.SimpleNodeFunc;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @since 5.2
+ * Snapshot tests for  {@link Joiner3NodeSettings}
+ * @author Paul Bärnreuther
  */
-public final class JoinerNodeFunc implements SimpleNodeFunc {
+final class Joiner3NodeSettingsTest  extends DefaultNodeSettingsSnapshotTest {
 
-    private static final String JOIN_COLUMN = "join_column";
+    static final DataTableSpec SPEC =
+        new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE});
 
-    private static final String RIGHT = "right";
-
-    private static final String LEFT = "left";
-
-    @Override
-    public Class<? extends NodeFactory<?>> getNodeFactoryClass() {
-        return Joiner3NodeFactory.class;
+    protected Joiner3NodeSettingsTest() {
+        super(getConfig());
     }
 
-    @Override
-    public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
-        final NodeSettingsWO settings) throws InvalidSettingsException {
-        final var joinerNodeSettings = new Joiner3NodeSettings();
-        final var joinColumn = arguments.getString(JOIN_COLUMN);
-        final var matchingCriteria = new MatchingCriterion[]{new MatchingCriterion(joinColumn, joinColumn)};
-
-        joinerNodeSettings.m_matchingCriteria = matchingCriteria;
-        joinerNodeSettings.m_mergeJoinColumns = true;
-        DefaultNodeSettings.saveSettings(Joiner3NodeSettings.class, null, settings);
-    }
-
-    @Override
-    public NodeFuncApi getApi() {
-        return NodeFuncApi.builder("inner_join")//
-            .withInputTable(LEFT, "The left table to be joined.")//
-            .withInputTable(RIGHT, "The right table to be joined.")//
-            .withStringArgument(JOIN_COLUMN, "The name of the column to join on. Must exist in both tables.")//
-            .withOutputTable("joined_table",
-                "The joined table containing all columns from left and right (column names are uniquified).")//
-            .withDescription(
-                "Performs an inner join on the tables left and right on the column named join_column which must exist in both left and right.")
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(new PortObjectSpec[]{SPEC, SPEC}) //
+            .testJsonFormsForModel(Joiner3NodeSettings.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> createSettings()) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> createSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
             .build();
+    }
+    private static Joiner3NodeSettings createSettings() {
+        return new Joiner3NodeSettings();
+    }
+
+    private static Joiner3NodeSettings readSettings() {
+        try {
+            var path = getSnapshotPath(Joiner3NodeSettings.class).getParent().resolve("node_settings")
+                .resolve("Joiner3NodeSettings.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return DefaultNodeSettings.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    Joiner3NodeSettings.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

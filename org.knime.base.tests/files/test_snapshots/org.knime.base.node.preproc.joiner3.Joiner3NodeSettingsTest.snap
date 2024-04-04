@@ -1,0 +1,674 @@
+{
+  "data" : {
+    "model" : {
+      "compositionMode" : "MATCH_ALL",
+      "matchingCriteria" : [ {
+        "leftTableColumn" : "<row-keys>",
+        "rightTableColumn" : "<row-keys>"
+      } ],
+      "dataCellComparisonMode" : "STRICT",
+      "includeMatchesInOutput" : true,
+      "includeLeftUnmatchedInOutput" : false,
+      "includeRightUnmatchedInOutput" : false,
+      "rightColumnSelectionConfig" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1", "test2" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "leftColumnSelectionConfig" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "test1", "test2" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "mergeJoinColumns" : false,
+      "duplicateHandling" : "APPEND_SUFFIX",
+      "suffix" : " (Right)",
+      "outputUnmatchedRowsToSeparatePorts" : false,
+      "rowKeyFactory" : "CONCATENATE",
+      "rowKeySeparator" : "_",
+      "outputRowOrder" : "ARBITRARY",
+      "maxOpenFiles" : 200,
+      "enableHiliting" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "compositionMode" : {
+            "oneOf" : [ {
+              "const" : "MATCH_ALL",
+              "title" : "All of the following"
+            }, {
+              "const" : "MATCH_ANY",
+              "title" : "Any of the following"
+            } ],
+            "title" : "Match",
+            "default" : "MATCH_ALL"
+          },
+          "dataCellComparisonMode" : {
+            "oneOf" : [ {
+              "const" : "STRICT",
+              "title" : "Value and Type"
+            }, {
+              "const" : "STRING",
+              "title" : "String representation"
+            }, {
+              "const" : "NUMERIC",
+              "title" : "making integer types compatible"
+            } ],
+            "title" : "Compare values in join columns by",
+            "description" : "TODO\n<ul>\n<li><b>Value and Type</b>: Two cells need to have the exact same value and type. For instance, a long and an integer cell will never match.</li>\n<li><b>String representation</b>: Convert values in join columns to string before comparing them.</li>\n<li><b>making integer types compatible</b>: Ignore type differences for numerical types. For instance, an integer cell with value 1 will match a long cell with value 1.</li>\n</ul>",
+            "default" : "STRICT",
+            "configKeys" : [ "dataCellComparisonMode" ]
+          },
+          "duplicateHandling" : {
+            "oneOf" : [ {
+              "const" : "APPEND_SUFFIX",
+              "title" : "Append custom suffix"
+            }, {
+              "const" : "DO_NOT_EXECUTE",
+              "title" : "Do not execute"
+            } ],
+            "title" : "If there are mulitple column names",
+            "description" : "TODO\n<ul>\n<li><b>Append custom suffix</b>: Appends the given suffix.</li>\n<li><b>Do not execute</b>: Prevents the node from being executed if column names clash.</li>\n</ul>",
+            "default" : "APPEND_SUFFIX"
+          },
+          "enableHiliting" : {
+            "type" : "boolean",
+            "title" : "Hiliting enabled",
+            "description" : "Track which output rows have been produced by which input rows.",
+            "default" : false
+          },
+          "includeLeftUnmatchedInOutput" : {
+            "type" : "boolean",
+            "title" : "Left unmatched rows",
+            "description" : "Include rows from the left input table for which no matching row in the right input table is found.",
+            "default" : false
+          },
+          "includeMatchesInOutput" : {
+            "type" : "boolean",
+            "title" : "Matching rows",
+            "description" : "Include rows that aggree on the selected column pairs.",
+            "default" : true
+          },
+          "includeRightUnmatchedInOutput" : {
+            "type" : "boolean",
+            "title" : "Right unmatched rows",
+            "description" : "Include rows from the right input table for which no matching row in the left input table is found.",
+            "default" : false
+          },
+          "leftColumnSelectionConfig" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Left table",
+            "description" : "TODO",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1", "test2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "leftColumnSelectionConfig" ]
+          },
+          "matchingCriteria" : {
+            "title" : "Join columns",
+            "description" : "Select the columns from the top input ('left' table) and the bottom input\n('right' table) that should be used for joining. Each pair of columns defines an equality constraint\nof the form A = B. For two rows to be joined, the row from the left input table\nmust have the same value in column A as the row from the right input table in column B.\nRow keys can be compared to row keys or regular columns, in which case the row key will be interpreted\nas a string value.\n",
+            "default" : [ {
+              "leftTableColumn" : "<row-keys>",
+              "rightTableColumn" : "<row-keys>"
+            } ],
+            "configKeys" : [ "matchingCriteria" ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "matchingCriteria" ] ],
+              "deprecated" : [ [ "leftTableJoinPredicate" ], [ "rightTableJoinPredicate" ] ]
+            } ],
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "leftTableColumn" : {
+                  "type" : "string",
+                  "title" : "Top input ('left' table)",
+                  "description" : "TODO",
+                  "default" : "<row-keys>"
+                },
+                "rightTableColumn" : {
+                  "type" : "string",
+                  "title" : "Bottom input ('right' table)",
+                  "description" : "TODO",
+                  "default" : "<row-keys>"
+                }
+              },
+              "configKeys" : [ "matchingCriteria" ],
+              "deprecatedConfigKeys" : [ {
+                "new" : [ [ "matchingCriteria" ] ],
+                "deprecated" : [ [ "leftTableJoinPredicate" ], [ "rightTableJoinPredicate" ] ]
+              } ]
+            }
+          },
+          "maxOpenFiles" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum number of temporary files",
+            "description" : " Controls the number of temporary files that can be created during\n     the join operation and possibly subsequent sorting operations. More temporary files may increase\n     performance, but the operating system might impose a limit on the maximum number of open files.\n",
+            "default" : 200,
+            "minimum" : 3
+          },
+          "mergeJoinColumns" : {
+            "type" : "boolean",
+            "title" : "Merge join columns",
+            "description" : "If active, the join columns of the right input table are merged into their join partners of the left\ninput table. The merged column is named like the left join column if one of its join partners in the\nright table has the same name. If the join partners have different names, the merged column is named\nin the form <i>left column=right column</i>.<br/>\nFor instance, when joining a table with columns A, B, and C as left input table with a table\nthat has columns X, A, and Z using the join predicates A=A, A=X, and C=Z, the resulting output table\nwould have columns A, B, C=Z. Note how the column A in the output table contains the value of the column\nA in the left table, which is also the value of the column X in the right table, as required by the join conditions  A=X.<br/>\nThe value of a merged join column for an unmatched row is taken from whichever row has values.\nFor instance, when outputting an unmatched row from the right table in the above example with values x, a, and z,\nthe resulting row in format A, B, C=Z has values x, ?, z. <br/> When merge join columns is off, the row is\ninstead output as ?, ?, ?, x, a, z.\n",
+            "default" : false
+          },
+          "outputRowOrder" : {
+            "oneOf" : [ {
+              "const" : "ARBITRARY",
+              "title" : "Arbitrary"
+            }, {
+              "const" : "LEFT_RIGHT",
+              "title" : "Input order"
+            } ],
+            "title" : "Row order",
+            "description" : "TODO\n<ul>\n<li><b>Arbitrary</b>: The output can vary depending on the currently available amount of main memory. This means that identical input can produce different output orders on consecutive executions.</li>\n<li><b>Input order</b>: Rows are output in three blocks:<ol>                                    <li>matched rows</li>                   <li>unmatched rows from left table</li> <li>unmatched rows from right table</li></ol>                                   Each block is sorted by row offset in the left table, breaking ties using the row offset in the right table.</li>\n</ul>",
+            "default" : "ARBITRARY"
+          },
+          "outputUnmatchedRowsToSeparatePorts" : {
+            "type" : "boolean",
+            "title" : "Split join result into multiple tables (top = matching rows, middle = left unmatched rows, bottom = right unmatched rows)",
+            "description" : "Output unmatched rows (if selected under \"Include in output\") at the second and third output port.",
+            "default" : false
+          },
+          "rightColumnSelectionConfig" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "typeDisplays" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "object",
+                      "properties" : {
+                        "id" : {
+                          "type" : "string"
+                        },
+                        "text" : {
+                          "type" : "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Right table",
+            "description" : "TODO",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "test1", "test2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            },
+            "configKeys" : [ "rightColumnSelectionConfig" ]
+          },
+          "rowKeyFactory" : {
+            "oneOf" : [ {
+              "const" : "CONCATENATE",
+              "title" : "Concatenate with separator"
+            }, {
+              "const" : "SEQUENTIAL",
+              "title" : "Create new"
+            }, {
+              "const" : "KEEP_ROWID",
+              "title" : "Retain"
+            } ],
+            "title" : "RowIDs",
+            "description" : "Row keys of the output rows\n<ul>\n<li><b>Concatenate with separator</b>: For instance, when selecting separator \"_\", a row joining rows with keys Row0 and Row1 is assigned key Row0_Row1.</li>\n<li><b>Create new</b>: Output rows are assigned sequential row keys, e.g., Row0, Row1, etc. </li>\n<li><b>Retain</b>: Only available when join criteria ensure that matching rows have the same row keys.</li>\n</ul>",
+            "default" : "CONCATENATE"
+          },
+          "rowKeySeparator" : {
+            "type" : "string",
+            "title" : "Separator",
+            "default" : "_"
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Custom suffix",
+            "default" : " (Right)"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Matching Criteria",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/compositionMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/matchingCriteria",
+        "options" : {
+          "detail" : [ {
+            "type" : "HorizontalLayout",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/leftTableColumn",
+              "options" : {
+                "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
+                "format" : "dropDown",
+                "showNoneColumn" : false,
+                "showRowKeys" : true,
+                "showSearch" : true,
+                "showMode" : true
+              }
+            }, {
+              "type" : "Control",
+              "scope" : "#/properties/rightTableColumn",
+              "options" : {
+                "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
+                "format" : "dropDown",
+                "showNoneColumn" : false,
+                "showRowKeys" : true,
+                "showSearch" : true,
+                "showMode" : true
+              }
+            } ]
+          } ],
+          "addButtonText" : "Add matching criterion"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/dataCellComparisonMode"
+      } ]
+    }, {
+      "label" : "Include in Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/includeMatchesInOutput",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/includeLeftUnmatchedInOutput",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/includeRightUnmatchedInOutput",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Output Columns",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rightColumnSelectionConfig",
+        "options" : {
+          "format" : "columnFilter",
+          "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/leftColumnSelectionConfig",
+        "options" : {
+          "format" : "columnFilter",
+          "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
+          "showNoneColumn" : false,
+          "showRowKeys" : false,
+          "showSearch" : true,
+          "showMode" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/mergeJoinColumns",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/duplicateHandling",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/suffix",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/duplicateHandling",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "APPEND_SUFFIX"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output Rows",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputUnmatchedRowsToSeparatePorts",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowKeyFactory",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowKeySeparator",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/rowKeyFactory",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CONCATENATE"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Performance",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputRowOrder",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/maxOpenFiles"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/enableHiliting",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ],
+    "initialUpdates" : [ {
+      "path" : null,
+      "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1"
+      }, {
+        "id" : "test2",
+        "text" : "test2"
+      } ]
+    }, {
+      "path" : null,
+      "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1"
+      }, {
+        "id" : "test2",
+        "text" : "test2"
+      } ]
+    } ]
+  }
+}
