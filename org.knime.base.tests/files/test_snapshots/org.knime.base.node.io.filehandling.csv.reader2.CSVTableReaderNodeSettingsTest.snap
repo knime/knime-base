@@ -511,7 +511,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
-          "format" : "fileChooser"
+          "format" : "fileChooser",
+          "isLabs" : true,
+          "fileExtensions" : [ "csv", "tsv", "txt" ]
         }
       }, {
         "type" : "Control",

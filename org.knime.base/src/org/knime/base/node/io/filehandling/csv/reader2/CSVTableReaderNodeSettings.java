@@ -115,6 +115,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.rule.TrueCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -155,6 +156,7 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @ValueReference(FileChooserRef.class)
         @Layout(Source.class)
         @Persist(configKey = "file_selection", settingsModel = SettingsModelReaderFileChooser.class)
+        @FileReaderWidget(isLabs = true, fileExtensions = {"csv", "tsv", "txt"})
         FileChooser m_source = new FileChooser();
 
         @Persist(configKey = "file_selection", hidden = true)
