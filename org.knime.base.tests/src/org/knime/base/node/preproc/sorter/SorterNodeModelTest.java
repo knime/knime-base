@@ -255,10 +255,9 @@ public class SorterNodeModelTest {
         m_settings.addBooleanArray(SorterNodeModel.SORTORDER_KEY, false);
         m_settings.addBooleanArray(SorterNodeModel.ALPHANUMCOMP_KEY, true);
         m_snm.performLoadValidatedSettingsFrom(m_settings);
-        final var dts = new DataTableSpec(
-            new DataColumnSpecCreator("NoAlphanum", DoubleCell.TYPE).createSpec()
-            );
-        assertThrows(InvalidSettingsException.class, () -> m_snm.performConfigure(new DataTableSpec[] { dts }));
+        final var dts = new DataTableSpec(new DataColumnSpecCreator("NoAlphanum", DoubleCell.TYPE).createSpec());
+
+        assertEquals(1, m_snm.performConfigure(new DataTableSpec[]{dts}).length);
     }
 
     // test execute

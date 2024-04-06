@@ -91,6 +91,9 @@ public class SorterNodeFactory extends NodeFactory implements NodeDialogFactory 
         .keywords("Order by", "Row sorter", "Sorter")//
         .build();
 
+    /**
+     * @since 5.3
+     */
     @Override
     public SorterNodeModel createNodeModel() {
         return new SorterNodeModel(CONFIG, SorterNodeSettings.class);

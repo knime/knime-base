@@ -59,6 +59,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.BufferedDataTableSorter;
 import org.knime.core.data.sort.RowComparator;
+import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
@@ -144,6 +145,8 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
      *
      * @see java.util.Arrays sort(java.lang.Object[], int, int, java.util.Comparator)
      * @see org.knime.core.node.NodeModel#execute(BufferedDataTable[], ExecutionContext)
+     *
+     * @since 5.3
      */
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
@@ -169,12 +172,21 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
             final var alphaNum = criterion.m_stringComparison == StringComparison.ALPHANUMERIC;
             resolveColumnName(spec, criterion.m_column.getSelected(), SorterNodeModel::isRowKey).ifPresentOrElse(
                 col -> rc.thenComparingColumn(col,
-                    c -> c.withDescendingSortOrder(!ascending).withAlphanumericComparison(alphaNum)
-                        .withMissingsLast(modelSettings.m_sortMissingCellsToEndOfList)),
+                    c -> configureColumnComparatorBuilder(spec, modelSettings, ascending, alphaNum, col, c)),
                 () -> rc.thenComparingRowKey(
                     k -> k.withDescendingSortOrder(!ascending).withAlphanumericComparison(alphaNum)));
         });
         return rc.build();
+    }
+
+    private static ColumnComparatorBuilder configureColumnComparatorBuilder(final DataTableSpec spec,
+        final SorterNodeSettings modelSettings, final boolean ascending, final boolean alphaNum, final int col,
+        final ColumnComparatorBuilder c) {
+        var compBuilder = c.withDescendingSortOrder(!ascending);
+        if (spec.getColumnSpec(col).getType().isCompatible(StringValue.class)) {
+            compBuilder.withAlphanumericComparison(alphaNum);
+        }
+        return compBuilder.withMissingsLast(modelSettings.m_sortMissingCellsToEndOfList);
     }
 
     private static OptionalInt resolveColumnName(final DataTableSpec dts, final String colName,
@@ -199,6 +211,8 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
      * ok, the v from the inport is translated without modification to the outport.
      *
      * {@inheritDoc}
+     *
+     * @since 5.3
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final SorterNodeSettings modelSettings)
@@ -217,10 +231,6 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
                 final var idx = spec.findColumnIndex(id);
                 if (idx == -1) {
                     notAvailableCols.add(id);
-                } else if (ic.m_stringComparison == StringComparison.ALPHANUMERIC
-                    && !spec.getColumnSpec(idx).getType().isCompatible(StringValue.class)) {
-                    throw new InvalidSettingsException("Alphanumeric sorting is not available for '" + id
-                        + "' since it does not have a string-compatible type.");
                 }
             }
         }
