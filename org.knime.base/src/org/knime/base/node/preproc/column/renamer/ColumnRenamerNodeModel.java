@@ -75,6 +75,10 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 @SuppressWarnings("restriction")
 final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings> {
 
+    /** Added as part of UIEXT-1766 - settings are "sometimes" not applied and the below sys property will
+     * add additional debug out. */
+    private static final boolean SYSPROP_DEBUG_PRINT = Boolean.getBoolean("knime.renamer.debug");
+
     protected ColumnRenamerNodeModel(final WebUINodeConfiguration configuration) {
         super(configuration, ColumnRenamerSettings.class);
     }
@@ -99,7 +103,18 @@ final class ColumnRenamerNodeModel extends WebUINodeModel<ColumnRenamerSettings>
     @SuppressWarnings("unused") // the Renamer constructor validates the settings
     @Override
     protected void validateSettings(final ColumnRenamerSettings settings) throws InvalidSettingsException {
-        new Renamer(settings);
+        final Renamer renamer = new Renamer(settings);
+        if (SYSPROP_DEBUG_PRINT && getLogger().isDebugEnabled()) {
+            final String debug;
+            final Map<String, String> map = renamer.m_nameMap;
+            getLogger().debugWithFormat("Validating column rename settings (UIEXT-1766) - %d mapping(s)", map.size());
+            if (!map.isEmpty()) {
+                map.entrySet().stream() //
+                    .map(e -> String.format("  old name: '%s'; new name: '%s'", e.getKey(), e.getValue())) //
+                    .forEach(getLogger()::debug);
+            }
+
+        }
     }
 
     private final class Renamer {
