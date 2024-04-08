@@ -8,6 +8,22 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.valcount.ValueCounterNodeDialog">
+        <filter comment="Node settings and node model are not API." id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.valcount.ValueCounterNodeDialog"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.valcount.ValueCounterSettings">
+        <filter comment="Node settings and node model are not API." id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.valcount.ValueCounterSettings"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/meta/looper/chunk/LoopStartChunkNodeFactory.java" type="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeFactory">
         <filter comment="AP-21278 - migration to new web ui nodes (concrete node factory not meant to be public api)" id="337768515">
             <message_arguments>
@@ -29,19 +45,115 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.valcount.ValueCounterNodeDialog">
-        <filter comment="Node settings and node model are not API." id="305324134">
+    <resource path="src/org/knime/base/node/preproc/filter/row3/RowFilter3NodeModel.java" type="org.knime.base.node.preproc.filter.row3.RowFilter3NodeModel">
+        <filter id="640712815">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.valcount.ValueCounterNodeDialog"/>
-                <message_argument value="org.knime.base_5.3.0"/>
+                <message_argument value="ExecutionContext"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="createRowContainer(DataTableSpec, boolean)"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowContainer"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="close()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowContainer"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="createCursor()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowContainer"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="finish()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowCursor"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="canForward()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowCursor"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="close()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowCursor"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="forward()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueWrite&lt;R&gt;"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="setFrom(R)"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowWriteCursor"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="close()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowWriteCursor"/>
+                <message_argument value="RowFilter3NodeModel"/>
+                <message_argument value="forward()"/>
             </message_arguments>
         </filter>
     </resource>
-    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.preproc.valcount.ValueCounterSettings">
-        <filter comment="Node settings and node model are not API." id="305324134">
+    <resource path="src/org/knime/base/node/preproc/filter/row3/RowFilter3NodeModel.java" type="org.knime.base.node.preproc.filter.row3.RowFilter3NodeModel$RowFilterOperator">
+        <filter id="571473929">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.valcount.ValueCounterSettings"/>
-                <message_argument value="org.knime.base_5.3.0"/>
+                <message_argument value="StreamableOperator"/>
+                <message_argument value="RowFilterOperator"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/RowFilter3NodeModel.java" type="org.knime.base.node.preproc.filter.row3.RowFilter3NodeModel$RowNumberFilter">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="InternalTableAPI"/>
+                <message_argument value="RowNumberFilter"/>
+                <message_argument value="slice(ExecutionContext, BufferedDataTable, Selection)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/RowPredicate.java" type="org.knime.base.node.preproc.filter.row3.DataValuePredicate">
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowRead"/>
+                <message_argument value="DataValuePredicate"/>
+                <message_argument value="getRowKey()"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="DataValuePredicate"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+        <filter id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="DataValuePredicate"/>
+                <message_argument value="isMissing(int)"/>
             </message_arguments>
         </filter>
     </resource>

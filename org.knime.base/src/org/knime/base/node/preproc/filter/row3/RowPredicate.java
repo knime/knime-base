@@ -48,76 +48,227 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.DoublePredicate;
+import java.util.function.LongPredicate;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
-import org.knime.core.data.DataRow;
+import org.knime.base.node.preproc.stringreplacer.CaseMatching;
+import org.knime.core.data.BooleanValue;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.IntValue;
+import org.knime.core.data.LongValue;
+import org.knime.core.data.StringValue;
+import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.LongCell;
+import org.knime.core.data.v2.RowRead;
+import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.filehandling.core.util.WildcardToRegexUtil;
 
 /**
- * Predicate for filtering rows based on some value extracted from the row. (Probably the row key or some cell contents)
+ * Predicate for filtering rows by data values.
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-abstract class RowPredicate<T> implements Predicate<DataRow> {
+final class DataValuePredicate implements Predicate<RowRead> {
 
-    private final Function<DataRow, T> m_extractValue;
+    private final Predicate<RowRead> m_predicate;
 
-    private final Predicate<T> m_predicate;
+    private final int m_columnIndex;
 
-    protected RowPredicate(final Function<DataRow, T> extractValue, final Predicate<T> predicate) {
-        m_extractValue = extractValue;
+    private DataValuePredicate(final int columnIndex, final Predicate<RowRead> predicate) {
+        m_columnIndex = columnIndex;
         m_predicate = predicate;
     }
 
-    /**
-     * @param row the row to test
-     */
     @Override
-    public boolean test(final DataRow row) {
-        return m_predicate.test(m_extractValue.apply(row));
+    public boolean test(final RowRead row) {
+        final var isMissing = row.isMissing(m_columnIndex);
+        return !isMissing && m_predicate.test(row);
     }
 
-    protected static <T> Predicate<Optional<T>> wrapOptional(final Predicate<T> predicate) {
+    static <T> Predicate<Optional<T>> wrapOptional(final Predicate<T> predicate) {
         return o -> o.isPresent() && predicate.test(o.get());
     }
 
     @SuppressWarnings("restriction")
-    public static RowPredicate<?> forSettings(final RowFilter3NodeSettings settings, final DataTableSpec spec)
-        throws InvalidSettingsException {
-        // Order matters here: Columns that get a "more special" treatment have to be checked first.
-        // For example, a BooleanCell implements BooleanValue, but also LongValue and DoubleValue, so we need to rule it
-        // out first. RowID and filtering on missing cells are the "most specialised" scenarios, then we check for data
-        // types with decreasing specificy
-        if (SpecialColumns.ROWID.getId().equals(settings.m_column.getSelected())) {
-            return new RowKeyRowPredicate(settings);
-        } else if (settings.m_operator == FilterOperator.IS_MISSING) {
-            return new IsMissingRowPredicate(colIdx(spec, settings));
-        } else {
-            return switch (settings.m_compareOn) {
-                case BOOLEAN_VALUE -> new BooleanValuePredicate(colIdx(spec, settings), settings);
-                case DOUBLE_VALUE -> new DoubleValuePredicate(colIdx(spec, settings), settings);
-                case LONG_VALUE -> new LongValuePredicate(colIdx(spec, settings), settings);
-                case STRING_VALUE -> new StringValuePredicate(colIdx(spec, settings), settings);
-            };
+    public static Predicate<RowRead> forSettings(final ExecutionContext exec, final RowFilter3NodeSettings settings,
+        final DataTableSpec spec) throws InvalidSettingsException {
+        if (RowFilter3NodeSettings.isFilterOnRowKeys(settings)) {
+            final var stringPredicate = buildStringPredicate(settings);
+            return row -> stringPredicate.test(row.getRowKey().getString());
         }
-    }
 
-    public static RowPredicate<?> truePredicate() {
-        return new RowPredicate<>(row -> null, n -> true) {
+        final var column = settings.m_column.m_selected;
+        final var columnIndex = spec.findColumnIndex(column);
+        if (settings.m_operator == FilterOperator.IS_MISSING) {
+            return row -> row.isMissing(columnIndex);
+        }
+
+        return switch (settings.m_compareOn) {
+            case AS_STRING -> createStringValuePredicate(columnIndex, settings);
+            case TYPE_MAPPING, INTEGRAL, DECIMAL, BOOL -> {
+                final var columnSpec = spec.getColumnSpec(columnIndex);
+                yield createDataValuePredicate(exec, columnIndex, columnSpec, settings);
+            }
         };
     }
 
-    @SuppressWarnings("restriction")
-    private static int colIdx(final DataTableSpec spec, final RowFilter3NodeSettings settings)
+    private static Predicate<RowRead> createDataValuePredicate(final ExecutionContext exec, final int columnIndex,
+        final DataColumnSpec spec, final RowFilter3NodeSettings settings) throws InvalidSettingsException {
+        final var dataType = spec.getType();
+        // check specially supported data types
+        if (BooleanCell.TYPE == dataType) {
+            final var matchTrue = switch (settings.m_operator) {
+                case IS_TRUE -> true;
+                case IS_FALSE -> false;
+                default -> throw new InvalidSettingsException(
+                    "Unsupported boolean operator \"%s\"".formatted(settings.m_operator));
+            };
+            return new DataValuePredicate(columnIndex, rowRead -> {
+                final var value = ((BooleanValue)rowRead.getValue(columnIndex)).getBooleanValue();
+                return matchTrue == value;
+            });
+        }
+        if (LongCell.TYPE == dataType) {
+            final var predicate = buildLongPredicate(settings);
+            return new DataValuePredicate(columnIndex, rowRead -> {
+                final var value = (LongValue)rowRead.getValue(columnIndex);
+                return predicate.test(value.getLongValue());
+            });
+        }
+        if (IntCell.TYPE == dataType) {
+            final var predicate = buildLongPredicate(settings);
+            return new DataValuePredicate(columnIndex, rowRead -> {
+                final var value = (IntValue)rowRead.getValue(columnIndex);
+                return predicate.test(value.getIntValue());
+            });
+        }
+        if (DoubleCell.TYPE == dataType) {
+            final var predicate = buildDoublePredicate(settings);
+            return new DataValuePredicate(columnIndex, rowRead -> {
+                final var value = (DoubleValue)rowRead.getValue(columnIndex);
+                return predicate.test(value.getDoubleValue());
+            });
+        }
+
+        // use type-mapping as fallback
+        final var operator = settings.m_operator;
+        if (!(operator == FilterOperator.EQ || operator == FilterOperator.NEQ)) {
+            throw new InvalidSettingsException(
+                "Unexpected operator \"%s\", expected \"=\" or \"!=\"".formatted(operator.m_label));
+        }
+        final DataCell comparisonValue = parseString(exec, dataType, settings.m_anchors.m_string.m_value);
+        final var isNegated = operator == FilterOperator.NEQ;
+        return new DataValuePredicate(columnIndex, row -> {
+            final var equal = comparisonValue.equals(row.getValue(columnIndex).materializeDataCell());
+            return isNegated ? !equal : equal;
+        });
+    }
+
+    private static DataCell parseString(final ExecutionContext exec, final DataType dataType, final String value)
         throws InvalidSettingsException {
-        final var idx = spec.findColumnIndex(settings.m_column.getSelected());
-        CheckUtils.checkSetting(idx >= 0, "Column not found: " + settings.m_column.getSelected());
-        return idx;
+        final var registry = JavaToDataCellConverterRegistry.getInstance();
+        final var converter =
+            registry.getConverterFactories(String.class, dataType).stream().findFirst().orElseThrow().create(exec);
+        try {
+            return converter.convert(value);
+        } catch (final Exception e) {
+            throw new InvalidSettingsException(
+                "Value \"%s\" cannot be converted to column type \"%s\"".formatted(value, dataType.getName()), e);
+        }
+    }
+
+    private static Predicate<RowRead> createStringValuePredicate(final int colIdx,
+        final RowFilter3NodeSettings settings) throws InvalidSettingsException {
+        final var predicate = buildStringPredicate(settings);
+        return new DataValuePredicate(colIdx, row -> {
+            final var value = row.getValue(colIdx);
+            return predicate.test(value instanceof StringValue sv ? sv.getStringValue() : value.toString());
+        });
+    }
+
+    static Predicate<String> buildStringPredicate(final RowFilter3NodeSettings settings)
+        throws InvalidSettingsException {
+        final UnaryOperator<String> normalize = settings.m_caseMatching == CaseMatching.CASESENSITIVE
+            ? UnaryOperator.identity() : (s -> s.toLowerCase(Locale.ROOT));
+
+        final var operator = settings.m_operator;
+
+        if (operator == FilterOperator.EQ || operator == FilterOperator.NEQ) {
+            final var comparisonValue = normalize.apply(settings.m_anchors.m_string.m_value);
+            final var isNegated = operator == FilterOperator.NEQ;
+            return cellValue -> {
+                final var equal = normalize.apply(cellValue).equals(comparisonValue);
+                return isNegated ? !equal : equal;
+            };
+        }
+
+        if (operator == FilterOperator.WILDCARD || operator == FilterOperator.REGEX) {
+            var pattern = settings.m_anchors.m_string.m_pattern;
+            if (settings.m_operator == FilterOperator.WILDCARD) {
+                pattern = WildcardToRegexUtil.wildcardToRegex(pattern);
+            }
+            var flags = Pattern.DOTALL | Pattern.MULTILINE;
+            flags |= settings.m_caseMatching == CaseMatching.CASESENSITIVE ? 0 : Pattern.CASE_INSENSITIVE;
+            var regex = Pattern.compile(pattern, flags);
+            return cellValue -> regex.matcher(cellValue).matches();
+        }
+
+        throw new InvalidSettingsException("Unsupported operator for string condition: " + settings.m_operator);
+    }
+
+    private static LongPredicate buildLongPredicate(final RowFilter3NodeSettings settings)
+        throws InvalidSettingsException {
+        final var val = settings.m_anchors.m_integer.m_value;
+        return switch (settings.m_operator) {
+            case EQ -> l -> Long.compare(l, val) == 0;
+            case NEQ -> l -> Long.compare(l, val) != 0;
+            case LT -> l -> Long.compare(l, val) < 0;
+            case LTE -> l -> Long.compare(l, val) <= 0;
+            case GT -> l -> Long.compare(l, val) > 0;
+            case GTE -> l -> Long.compare(l, val) >= 0;
+            case BETWEEN -> {
+                final var lb = settings.m_anchors.m_integer.m_bounds.m_lowerBound;
+                final var ub = settings.m_anchors.m_integer.m_bounds.m_upperBound;
+                yield l -> Long.compare(l, lb) >= 0 && Long.compare(l, ub) <= 0;
+            }
+            default -> throw new InvalidSettingsException(
+                "Unexpected operator for integer numeric condition: " + settings.m_operator);
+        };
+    }
+
+    private static DoublePredicate buildDoublePredicate(final RowFilter3NodeSettings settings)
+        throws InvalidSettingsException {
+        final var val = settings.m_anchors.m_real.m_value;
+
+        return switch (settings.m_operator) {
+            case EQ -> d -> Double.compare(d, val) == 0;
+            case NEQ -> d -> Double.compare(d, val) != 0;
+            case LT -> d -> Double.compare(d, val) < 0;
+            case LTE -> d -> Double.compare(d, val) <= 0;
+            case GT -> d -> Double.compare(d, val) > 0;
+            case GTE -> d -> Double.compare(d, val) >= 0;
+            case BETWEEN -> {
+                final var lb = settings.m_anchors.m_real.m_bounds.m_lowerBound;
+                final var ub = settings.m_anchors.m_real.m_bounds.m_upperBound;
+                yield d -> Double.compare(d, lb) >= 0 && Double.compare(d, ub) <= 0;
+            }
+            default -> throw new InvalidSettingsException(
+                "Unexpected operator for real numeric condition: " + settings.m_operator);
+        };
     }
 
 }
