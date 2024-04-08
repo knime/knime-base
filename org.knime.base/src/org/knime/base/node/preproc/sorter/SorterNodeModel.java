@@ -60,6 +60,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.sort.InMemorySorter;
 import org.knime.core.data.sort.RowComparator;
 import org.knime.core.data.sort.RowComparator.ColumnComparatorBuilder;
+import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InternalTableAPI;
@@ -68,6 +69,14 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.streamable.InputPortRole;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.PortInput;
+import org.knime.core.node.streamable.PortOutput;
+import org.knime.core.node.streamable.RowInput;
+import org.knime.core.node.streamable.RowOutput;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
@@ -302,4 +311,38 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
         super.saveSettingsTo(settings);
     }
 
+    /* ############################################ Streaming Execution ############################################# */
+
+    @Override
+    public InputPortRole[] getInputPortRoles() {
+        return new InputPortRole[] { InputPortRole.NONDISTRIBUTED_STREAMABLE };
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.4
+     */
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+            final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        final var tableSpec = (DataTableSpec) inSpecs[0];
+        final var comparator = toRowComparator(tableSpec, getSettings().orElseThrow()).toRowReadComparator();
+
+        return new StreamableOperator() {
+            @Override
+            public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
+                    throws Exception {
+                final var rowOutput = (RowOutput)outputs[0];
+                try (final var rowCursor = ((RowInput)inputs[0]).asCursor();
+                        final var sorted = InternalTableAPI.sortedCursor(exec, tableSpec, rowCursor, comparator)) {
+                    for (RowRead out; (out = sorted.forward()) != null;) {
+                        rowOutput.push(out.materializeDataRow());
+                    }
+                } finally {
+                    rowOutput.close();
+                }
+            }
+        };
+    }
 }
