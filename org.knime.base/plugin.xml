@@ -680,6 +680,11 @@
       <node
             after="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"
             category-path="/io/read"
+            deprecated="false"
+            factory-class="org.knime.base.node.io.filehandling.csv.sample.ReadDatasetNodeFactory"/>
+      <node
+            after="org.knime.base.node.io.filehandling.csv.sample.ReadDatasetNodeFactory"
+            category-path="/io/read"
             deprecated="true"
             factory-class="org.knime.base.node.io.linereader.LineReaderNodeFactory">
       </node>
