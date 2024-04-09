@@ -74,17 +74,18 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements
         .name("Joiner") //
         .icon("joiner.png") //
         .shortDescription("Combine matching rows from two tables")//
-        .fullDescription(
-            """
-                    This node combines two tables similar to a join in a database. It combines each row from the top input port
-                    with each row from the bottom input port that has identical values in selected columns.
-                    Rows that remain unmatched can also be output.
-                    """)//
+        .fullDescription("""
+                This node combines two tables similar to a join in a database.
+                It combines each row from the top input port
+                with each row from the bottom input port that has identical values in selected columns.
+                Rows that remain unmatched can also be output.
+                """)//
         .modelSettingsClass(Joiner3NodeSettings.class) //
         .addInputPort("Left table", BufferedDataTable.TYPE, "Left input table") //
         .addInputPort("Right table", BufferedDataTable.TYPE, "Right input table") //
         .addOutputPort("Join result", BufferedDataTable.TYPE,
-            "Either all results or the result of the inner join (if the unmatched rows are output in separate ports)") //
+            "Either all results or the result of the inner join (if the unmatched rows are output "
+                + "in separate ports)") //
         .addOutputPort("Left unmatched rows", BufferedDataTable.TYPE,
             "Unmatched rows from the left input table (top input port). "
                 + "Inactive if \"Output unmatched rows to separate ports\" is deactivated.") //

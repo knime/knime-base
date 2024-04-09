@@ -109,20 +109,19 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final Joiner3NodeSettings settings)
         throws InvalidSettingsException {
-        final var modelSettings = new Joiner3Settings(settings);
 
-        var joinSpecification = modelSettings.joinSpecificationForSpecs(inSpecs);
+        var joinSpecification = new JoinSpecificationCreator(settings).joinSpecificationForSpecs(inSpecs);
 
         // RowIDs can only be kept if they are guaranteed to be equal for each pair of matching rows
-        if (modelSettings.getRowKeyFactoryType() == RowKeyFactory.KEEP_ROWID) {
+        if (settings.m_rowKeyFactory == RowKeyFactory.KEEP_ROWID) {
             Optional<String> problem = KeepRowKeysFactory.applicable(//
-                joinSpecification, modelSettings.isOutputUnmatchedRowsToSeparateOutputPort());
+                joinSpecification, settings.m_outputUnmatchedRowsToSeparatePorts);
             if (problem.isPresent()) {
                 throw new InvalidSettingsException("Cannot reuse input row keys for output. " + problem.get()); // NOSONAR
             }
         }
 
-        if (modelSettings.getColumnNameDisambiguation() == DuplicateHandling.DO_NOT_EXECUTE) {
+        if (settings.m_duplicateHandling == DuplicateHandling.DO_NOT_EXECUTE) {
             Optional<String> duplicateColumn =
                 checkForDuplicateColumn(joinSpecification, (DataTableSpec)inSpecs[0], (DataTableSpec)inSpecs[1]);
             if (duplicateColumn.isPresent()) {
@@ -137,7 +136,7 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
         DataTableSpec matchSpec = joinSpecification.specForMatchTable();
 
         var portObjectSpecs = new PortObjectSpec[3];
-        if (modelSettings.isOutputUnmatchedRowsToSeparateOutputPort()) {
+        if (settings.m_outputUnmatchedRowsToSeparatePorts) {
             // split output
             portObjectSpecs[portIndex(ResultType.MATCHES)] = matchSpec;
             portObjectSpecs[portIndex(ResultType.LEFT_OUTER)] = joinSpecification.specForUnmatched(InputTable.LEFT);
@@ -156,18 +155,17 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
     protected PortObject[] execute(final PortObject[] inPortObjects, final ExecutionContext exec,
         final Joiner3NodeSettings settings) throws Exception {
 
-        final var modelSettings = new Joiner3Settings(settings);
         BufferedDataTable left = (BufferedDataTable)inPortObjects[0];
         BufferedDataTable right = (BufferedDataTable)inPortObjects[1];
 
-        var joinSpecification = joinSpecificationForTables(modelSettings, left, right);
+        var joinSpecification = joinSpecificationForTables(new JoinSpecificationCreator(settings), left, right);
 
         JoinImplementation implementation = JoinAlgorithm.AUTO.getFactory().create(joinSpecification, exec);
-        implementation.setMaxOpenFiles(modelSettings.getMaxOpenFiles());
-        implementation.setEnableHiliting(modelSettings.isHilitingEnabled());
+        implementation.setMaxOpenFiles(settings.m_maxOpenFiles);
+        implementation.setEnableHiliting(settings.m_enableHiliting);
 
         final var outPortObjects = new PortObject[3];
-        if (modelSettings.isOutputUnmatchedRowsToSeparateOutputPort()) {
+        if (settings.m_outputUnmatchedRowsToSeparatePorts) {
             // split output
             // do the join
             JoinResult<OutputSplit> joinedTable = implementation.joinOutputSplit();
@@ -218,7 +216,7 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
      *
      * @param portObjects {@link BufferedDataTable}s in disguise
      */
-    private JoinSpecification joinSpecificationForTables(final Joiner3Settings modelSettings,
+    private static JoinSpecification joinSpecificationForTables(final JoinSpecificationCreator modelSettings,
         final BufferedDataTable left, final BufferedDataTable right) throws InvalidSettingsException {
 
         var joinSpecification = modelSettings.joinSpecificationForSpecs(left.getSpec(), right.getSpec());
@@ -249,7 +247,7 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
 
     @Override
     protected void validateSettings(final Joiner3NodeSettings settings) throws InvalidSettingsException {
-        new Joiner3Settings(settings).validateSettings();
+        new JoinSpecificationCreator(settings).validateSettings();
     }
 
     @Override
@@ -305,6 +303,15 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
      */
     private class Hiliter {
 
+        /**
+         * An adapter for the nodes settings relevant for hiliting
+         */
+        private record HiliterSettings(boolean hilitingEnabled, boolean outputUnmatchedRowsToSeparatePorts) {
+            HiliterSettings(final Joiner3NodeSettings nodeSettings) {
+                this(nodeSettings.m_enableHiliting, nodeSettings.m_outputUnmatchedRowsToSeparatePorts);
+            }
+        }
+
         /** Store the hilite mapping in this file. It contains a node config w */
         private static final String INTERNALS_FILE_NAME = "hilite_mapping.xml.gz";
 
@@ -355,14 +362,14 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
          * @param results provides {@link JoinResult#getHiliteMapping(InputTable, ResultType)} to obtain mappings.
          */
         public <T> void setResults(final JoinResult<T> results) {
-            final var joinerNodeSettings = getJoiner3NodeSettings();
+            final var hiliterSettings = getHiliterSettings();
 
-            if (!joinerNodeSettings.m_enableHiliting) {
+            if (!hiliterSettings.hilitingEnabled()) {
                 return;
             }
 
             // create hiliting functionality for each output port
-            if (joinerNodeSettings.m_outputUnmatchedRowsToSeparatePorts) {
+            if (hiliterSettings.outputUnmatchedRowsToSeparatePorts()) {
                 // create a translator for each (input handler, output handler) pair
                 setTranslatorMapping(results, InputTable.LEFT, ResultType.MATCHES);
                 setTranslatorMapping(results, InputTable.LEFT, ResultType.LEFT_OUTER);
@@ -402,16 +409,16 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
          */
         public void loadInternals(final File nodeInternDir) {
 
-            final var joinerNodeSettings = getJoiner3NodeSettings();
+            final var hiliterSettings = getHiliterSettings();
 
-            if (!joinerNodeSettings.m_enableHiliting) {
+            if (!hiliterSettings.hilitingEnabled()) {
                 return;
             }
 
             try (var in = new FileInputStream(new File(nodeInternDir, INTERNALS_FILE_NAME))) {
                 NodeSettingsRO settings = NodeSettings.loadFromXML(in);
 
-                if (joinerNodeSettings.m_outputUnmatchedRowsToSeparatePorts) {
+                if (hiliterSettings.outputUnmatchedRowsToSeparatePorts()) {
                     setTranslatorMapping(settings, InputTable.LEFT, ResultType.MATCHES);
                     setTranslatorMapping(settings, InputTable.LEFT, ResultType.LEFT_OUTER);
 
@@ -448,7 +455,7 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
          * @param nodeInternDir passed through from {@link Joiner3NodeModel#saveInternals(File, ExecutionMonitor)}
          */
         public void saveInternals(final File nodeInternDir) {
-            if (!getJoiner3NodeSettings().m_enableHiliting) {
+            if (!getHiliterSettings().hilitingEnabled()) {
                 return;
             }
 
@@ -477,9 +484,12 @@ class Joiner3NodeModel extends WebUINodeModel<Joiner3NodeSettings> {
 
         }
 
-        private Joiner3NodeSettings getJoiner3NodeSettings() {
-            final var joinerNodeSettings = getSettings().orElseThrow(IllegalStateException::new);
-            return joinerNodeSettings;
+        private HiliterSettings getHiliterSettings() {
+            final var settingsOptional = getSettings();
+            if (settingsOptional.isPresent()) {
+                return new HiliterSettings(settingsOptional.get());
+            }
+            return new HiliterSettings(false, false);
         }
 
         /**

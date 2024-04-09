@@ -52,6 +52,7 @@ import java.util.stream.IntStream;
 
 import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.DuplicateHandling.IsAppendSuffix;
 import org.knime.base.node.preproc.joiner3.Joiner3NodeSettings.RowKeyFactory.IsConcatenate;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -87,7 +88,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings({"restriction", "java:S103"}) // we accept too long lines
 final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     @Section(title = "Matching Criteria")
@@ -118,12 +119,10 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     }
 
     Joiner3NodeSettings(final DefaultNodeSettingsContext context) {
-        context.getDataTableSpec(0).ifPresent(spec -> {
-            m_leftColumnSelectionConfig = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns();
-        });
-        context.getDataTableSpec(1).ifPresent(spec -> {
-            m_rightColumnSelectionConfig = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns();
-        });
+        context.getDataTableSpec(0).ifPresent(
+            spec -> m_leftColumnSelectionConfig = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
+        context.getDataTableSpec(1).ifPresent(
+            spec -> m_rightColumnSelectionConfig = new ColumnFilter(spec.getColumnNames()).withIncludeUnknownColumns());
     }
 
     enum CompositionMode {
@@ -141,7 +140,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
         @Override
         public String[] choices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(getInputPortIndex()).map(spec -> spec.getColumnNames())
+            return context.getDataTableSpec(getInputPortIndex()).map(DataTableSpec::getColumnNames)
                 .orElse(new String[0]);
         }
 
