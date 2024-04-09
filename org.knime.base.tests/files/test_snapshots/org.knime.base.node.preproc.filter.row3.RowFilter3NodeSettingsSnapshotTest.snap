@@ -1,0 +1,1082 @@
+{
+  "data" : {
+    "model" : {
+      "column" : {
+        "selected" : "BoolCol",
+        "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+      },
+      "compareOn" : "TYPE_MAPPING",
+      "operator" : "EQ",
+      "caseMatching" : "CASESENSITIVE",
+      "anchors" : {
+        "rowNumbers" : {
+          "bounds" : {
+            "lowerBound" : 1,
+            "upperBound" : 1
+          },
+          "rowNumber" : 1,
+          "noOfRows" : 10
+        },
+        "real" : {
+          "bounds" : {
+            "lowerBound" : 0.0,
+            "upperBound" : 0.0
+          },
+          "value" : 0.0
+        },
+        "integer" : {
+          "bounds" : {
+            "lowerBound" : 0,
+            "upperBound" : 0
+          },
+          "value" : 0
+        },
+        "string" : { }
+      },
+      "outputMode" : "INCLUDE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "anchors" : {
+            "type" : "object",
+            "properties" : {
+              "integer" : {
+                "type" : "object",
+                "properties" : {
+                  "bounds" : {
+                    "type" : "object",
+                    "properties" : {
+                      "lowerBound" : {
+                        "type" : "integer",
+                        "format" : "int64",
+                        "title" : "Lower bound (incl.)",
+                        "description" : "TODO",
+                        "default" : 0
+                      },
+                      "upperBound" : {
+                        "type" : "integer",
+                        "format" : "int64",
+                        "title" : "Upper bound (incl.)",
+                        "description" : "TODO",
+                        "default" : 0
+                      }
+                    },
+                    "default" : {
+                      "lowerBound" : 0,
+                      "upperBound" : 0
+                    }
+                  },
+                  "value" : {
+                    "type" : "integer",
+                    "format" : "int64",
+                    "title" : "Integral value",
+                    "description" : "TODO",
+                    "default" : 0
+                  }
+                },
+                "default" : {
+                  "bounds" : {
+                    "lowerBound" : 0,
+                    "upperBound" : 0
+                  },
+                  "value" : 0
+                }
+              },
+              "real" : {
+                "type" : "object",
+                "properties" : {
+                  "bounds" : {
+                    "type" : "object",
+                    "properties" : {
+                      "lowerBound" : {
+                        "type" : "number",
+                        "format" : "double",
+                        "title" : "Lower bound (incl.)",
+                        "description" : "TODO",
+                        "default" : 0.0
+                      },
+                      "upperBound" : {
+                        "type" : "number",
+                        "format" : "double",
+                        "title" : "Upper bound (incl.)",
+                        "description" : "TODO",
+                        "default" : 0.0
+                      }
+                    },
+                    "default" : {
+                      "lowerBound" : 0.0,
+                      "upperBound" : 0.0
+                    }
+                  },
+                  "value" : {
+                    "type" : "number",
+                    "format" : "double",
+                    "title" : "Double value",
+                    "description" : "TODO",
+                    "default" : 0.0
+                  }
+                },
+                "default" : {
+                  "bounds" : {
+                    "lowerBound" : 0.0,
+                    "upperBound" : 0.0
+                  },
+                  "value" : 0.0
+                }
+              },
+              "rowNumbers" : {
+                "type" : "object",
+                "properties" : {
+                  "bounds" : {
+                    "type" : "object",
+                    "properties" : {
+                      "lowerBound" : {
+                        "type" : "integer",
+                        "format" : "int64",
+                        "title" : "From row number (incl.)",
+                        "description" : "TODO",
+                        "default" : 1,
+                        "minimum" : 1
+                      },
+                      "upperBound" : {
+                        "type" : "integer",
+                        "format" : "int64",
+                        "title" : "To row number (incl.)",
+                        "description" : "TODO",
+                        "default" : 1,
+                        "minimum" : 1
+                      }
+                    },
+                    "default" : {
+                      "lowerBound" : 1,
+                      "upperBound" : 1
+                    }
+                  },
+                  "noOfRows" : {
+                    "type" : "integer",
+                    "format" : "int64",
+                    "title" : "Number of rows",
+                    "description" : "TODO",
+                    "default" : 10,
+                    "minimum" : 0
+                  },
+                  "rowNumber" : {
+                    "type" : "integer",
+                    "format" : "int64",
+                    "title" : "Row number",
+                    "description" : "TODO",
+                    "default" : 1,
+                    "minimum" : 1
+                  }
+                },
+                "default" : {
+                  "bounds" : {
+                    "lowerBound" : 1,
+                    "upperBound" : 1
+                  },
+                  "rowNumber" : 1,
+                  "noOfRows" : 10
+                }
+              },
+              "string" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : {
+                    "type" : "string",
+                    "title" : "Pattern",
+                    "description" : "TODO"
+                  },
+                  "value" : {
+                    "type" : "string",
+                    "title" : "String value",
+                    "description" : "TODO"
+                  }
+                },
+                "default" : { }
+              }
+            },
+            "default" : {
+              "rowNumbers" : {
+                "bounds" : {
+                  "lowerBound" : 1,
+                  "upperBound" : 1
+                },
+                "rowNumber" : 1,
+                "noOfRows" : 10
+              },
+              "real" : {
+                "bounds" : {
+                  "lowerBound" : 0.0,
+                  "upperBound" : 0.0
+                },
+                "value" : 0.0
+              },
+              "integer" : {
+                "bounds" : {
+                  "lowerBound" : 0,
+                  "upperBound" : 0
+                },
+                "value" : 0
+              },
+              "string" : { }
+            }
+          },
+          "caseMatching" : {
+            "oneOf" : [ {
+              "const" : "CASESENSITIVE",
+              "title" : "Case sensitive"
+            }, {
+              "const" : "CASEINSENSITIVE",
+              "title" : "Case insensitive"
+            } ],
+            "title" : "Case matching",
+            "description" : "TODO",
+            "default" : "CASESENSITIVE"
+          },
+          "column" : {
+            "type" : "object",
+            "properties" : {
+              "compatibleTypes" : {
+                "configKeys" : [ "compatibleTypes_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "compatibleTypes_Internals" ]
+                }
+              },
+              "selected" : {
+                "type" : "string"
+              }
+            },
+            "title" : "Filter column",
+            "description" : "Choose the column in which to filter for values",
+            "default" : {
+              "selected" : "BoolCol",
+              "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+            }
+          },
+          "compareOn" : {
+            "oneOf" : [ {
+              "const" : "TYPE_MAPPING",
+              "title" : "Type mapping"
+            }, {
+              "const" : "AS_STRING",
+              "title" : "As string"
+            }, {
+              "const" : "INTEGRAL",
+              "title" : "Integral"
+            }, {
+              "const" : "DECIMAL",
+              "title" : "Decimal"
+            }, {
+              "const" : "BOOL",
+              "title" : "Bool"
+            } ],
+            "title" : "Compare as",
+            "description" : "TODO",
+            "default" : "TYPE_MAPPING"
+          },
+          "operator" : {
+            "oneOf" : [ {
+              "const" : "EQ",
+              "title" : "="
+            }, {
+              "const" : "NEQ",
+              "title" : "≠"
+            }, {
+              "const" : "LT",
+              "title" : "<"
+            }, {
+              "const" : "LTE",
+              "title" : "≤"
+            }, {
+              "const" : "GT",
+              "title" : ">"
+            }, {
+              "const" : "GTE",
+              "title" : "≥"
+            }, {
+              "const" : "BETWEEN",
+              "title" : "is between"
+            }, {
+              "const" : "FIRST_N_ROWS",
+              "title" : "first n rows"
+            }, {
+              "const" : "LAST_N_ROWS",
+              "title" : "last n rows"
+            }, {
+              "const" : "REGEX",
+              "title" : "matches regex"
+            }, {
+              "const" : "WILDCARD",
+              "title" : "matches wildcard"
+            }, {
+              "const" : "IS_TRUE",
+              "title" : "is true"
+            }, {
+              "const" : "IS_FALSE",
+              "title" : "is false"
+            }, {
+              "const" : "IS_MISSING",
+              "title" : "is missing"
+            } ],
+            "title" : "Operator",
+            "description" : "TODO",
+            "default" : "EQ"
+          },
+          "outputMode" : {
+            "oneOf" : [ {
+              "const" : "INCLUDE",
+              "title" : "Include matches"
+            }, {
+              "const" : "EXCLUDE",
+              "title" : "Exclude matches"
+            } ],
+            "title" : "Filter behavior",
+            "description" : "TODO",
+            "default" : "INCLUDE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Matching Criterion",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "HorizontalLayout",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/column",
+          "options" : {
+            "format" : "columnSelection",
+            "possibleValues" : [ {
+              "id" : "DoubleCol",
+              "text" : "DoubleCol",
+              "type" : {
+                "id" : "org.knime.core.data.DoubleValue",
+                "text" : "Number (double)"
+              },
+              "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+            }, {
+              "id" : "StringCol",
+              "text" : "StringCol",
+              "type" : {
+                "id" : "org.knime.core.data.StringValue",
+                "text" : "String"
+              },
+              "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
+            }, {
+              "id" : "IntCol",
+              "text" : "IntCol",
+              "type" : {
+                "id" : "org.knime.core.data.IntValue",
+                "text" : "Number (integer)"
+              },
+              "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+            }, {
+              "id" : "BoolCol",
+              "text" : "BoolCol",
+              "type" : {
+                "id" : "org.knime.core.data.BooleanValue",
+                "text" : "Boolean value"
+              },
+              "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
+            } ],
+            "showNoneColumn" : false,
+            "showRowKeys" : true,
+            "showRowNumbers" : true,
+            "showSearch" : true,
+            "showMode" : true
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/compareOn",
+          "options" : {
+            "isAdvanced" : true,
+            "choicesUpdateHandler" : "org.knime.base.node.preproc.filter.row3.FilterOperator$TypeBasedCompareModeChoices",
+            "dependencies" : [ "#/properties/model/properties/column" ],
+            "setFirstValueOnUpdate" : true,
+            "format" : "dropDown",
+            "showNoneColumn" : false,
+            "showRowKeys" : false,
+            "showSearch" : true,
+            "showMode" : true
+          }
+        } ]
+      }, {
+        "type" : "HorizontalLayout",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/operator",
+          "options" : {
+            "choicesUpdateHandler" : "org.knime.base.node.preproc.filter.row3.FilterOperator$TypeBasedOperatorChoices",
+            "dependencies" : [ "#/properties/model/properties/column", "#/properties/model/properties/compareOn" ],
+            "setFirstValueOnUpdate" : true,
+            "format" : "dropDown",
+            "showNoneColumn" : false,
+            "showRowKeys" : false,
+            "showSearch" : true,
+            "showMode" : true
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/caseMatching",
+          "options" : {
+            "format" : "valueSwitch"
+          },
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "AS_STRING"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "IS_TRUE"
+                    }, {
+                      "const" : "IS_FALSE"
+                    }, {
+                      "const" : "IS_MISSING"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        } ]
+      }, {
+        "type" : "HorizontalLayout",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/rowNumbers/properties/bounds/properties/lowerBound",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "selected" : {
+                      "const" : "<row-numbers>"
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "BETWEEN"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "FIRST_N_ROWS"
+                    }, {
+                      "const" : "LAST_N_ROWS"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/rowNumbers/properties/bounds/properties/upperBound",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "selected" : {
+                      "const" : "<row-numbers>"
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "BETWEEN"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "FIRST_N_ROWS"
+                    }, {
+                      "const" : "LAST_N_ROWS"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/rowNumbers/properties/rowNumber",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "selected" : {
+                      "const" : "<row-numbers>"
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "EQ"
+                  }, {
+                    "const" : "NEQ"
+                  }, {
+                    "const" : "LT"
+                  }, {
+                    "const" : "LTE"
+                  }, {
+                    "const" : "GT"
+                  }, {
+                    "const" : "GTE"
+                  }, {
+                    "const" : "FIRST_N_ROWS"
+                  }, {
+                    "const" : "LAST_N_ROWS"
+                  }, {
+                    "const" : "REGEX"
+                  }, {
+                    "const" : "WILDCARD"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "FIRST_N_ROWS"
+                    }, {
+                      "const" : "LAST_N_ROWS"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/rowNumbers/properties/noOfRows",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "selected" : {
+                      "const" : "<row-numbers>"
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "FIRST_N_ROWS"
+                  }, {
+                    "const" : "LAST_N_ROWS"
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/real/properties/bounds/properties/lowerBound",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "DECIMAL"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.DoubleValue"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "BETWEEN"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "AS_STRING"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/real/properties/bounds/properties/upperBound",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "DECIMAL"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.DoubleValue"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "BETWEEN"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "AS_STRING"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/real/properties/value",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "DECIMAL"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.DoubleValue"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "EQ"
+                  }, {
+                    "const" : "NEQ"
+                  }, {
+                    "const" : "LT"
+                  }, {
+                    "const" : "LTE"
+                  }, {
+                    "const" : "GT"
+                  }, {
+                    "const" : "GTE"
+                  }, {
+                    "const" : "FIRST_N_ROWS"
+                  }, {
+                    "const" : "LAST_N_ROWS"
+                  }, {
+                    "const" : "REGEX"
+                  }, {
+                    "const" : "WILDCARD"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "AS_STRING"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/integer/properties/bounds/properties/lowerBound",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "INTEGRAL"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.LongValue"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "BETWEEN"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "not" : {
+                    "properties" : {
+                      "selected" : {
+                        "const" : "<row-numbers>"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "AS_STRING"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/integer/properties/bounds/properties/upperBound",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "INTEGRAL"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.LongValue"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "BETWEEN"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "not" : {
+                    "properties" : {
+                      "selected" : {
+                        "const" : "<row-numbers>"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "AS_STRING"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/integer/properties/value",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "INTEGRAL"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.LongValue"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "EQ"
+                  }, {
+                    "const" : "NEQ"
+                  }, {
+                    "const" : "LT"
+                  }, {
+                    "const" : "LTE"
+                  }, {
+                    "const" : "GT"
+                  }, {
+                    "const" : "GTE"
+                  }, {
+                    "const" : "FIRST_N_ROWS"
+                  }, {
+                    "const" : "LAST_N_ROWS"
+                  }, {
+                    "const" : "REGEX"
+                  }, {
+                    "const" : "WILDCARD"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/column",
+                "schema" : {
+                  "not" : {
+                    "properties" : {
+                      "selected" : {
+                        "const" : "<row-numbers>"
+                      }
+                    }
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "AS_STRING"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/string/properties/value",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "EQ"
+                  }, {
+                    "const" : "NEQ"
+                  }, {
+                    "const" : "LT"
+                  }, {
+                    "const" : "LTE"
+                  }, {
+                    "const" : "GT"
+                  }, {
+                    "const" : "GTE"
+                  }, {
+                    "const" : "FIRST_N_ROWS"
+                  }, {
+                    "const" : "LAST_N_ROWS"
+                  }, {
+                    "const" : "REGEX"
+                  }, {
+                    "const" : "WILDCARD"
+                  } ]
+                }
+              }, {
+                "type" : "OR",
+                "conditions" : [ {
+                  "scope" : "#/properties/model/properties/compareOn",
+                  "schema" : {
+                    "oneOf" : [ {
+                      "const" : "AS_STRING"
+                    } ]
+                  }
+                }, {
+                  "scope" : "#/properties/model/properties/compareOn",
+                  "schema" : {
+                    "oneOf" : [ {
+                      "const" : "TYPE_MAPPING"
+                    } ]
+                  }
+                } ]
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "REGEX"
+                    }, {
+                      "const" : "WILDCARD"
+                    } ]
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/anchors/properties/string/properties/pattern",
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
+              "type" : "AND",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "EQ"
+                  }, {
+                    "const" : "NEQ"
+                  }, {
+                    "const" : "LT"
+                  }, {
+                    "const" : "LTE"
+                  }, {
+                    "const" : "GT"
+                  }, {
+                    "const" : "GTE"
+                  }, {
+                    "const" : "FIRST_N_ROWS"
+                  }, {
+                    "const" : "LAST_N_ROWS"
+                  }, {
+                    "const" : "REGEX"
+                  }, {
+                    "const" : "WILDCARD"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/compareOn",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "AS_STRING"
+                  } ]
+                }
+              }, {
+                "scope" : "#/properties/model/properties/operator",
+                "schema" : {
+                  "oneOf" : [ {
+                    "const" : "REGEX"
+                  }, {
+                    "const" : "WILDCARD"
+                  } ]
+                }
+              } ]
+            }
+          }
+        } ]
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  }
+}
