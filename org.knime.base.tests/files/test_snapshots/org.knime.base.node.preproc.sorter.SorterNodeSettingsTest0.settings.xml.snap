@@ -15,7 +15,7 @@
                 </config>
             </config>
             <entry key="sortingOrder" type="xstring" value="ASCENDING"/>
-            <entry key="stringComparison" type="xstring" value="ALPHANUMERIC"/>
+            <entry key="stringComparison" type="xstring" value="NATURAL"/>
         </config>
     </config>
     <entry key="missingToEnd" type="xboolean" value="false"/>

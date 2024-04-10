@@ -156,10 +156,10 @@ final class SorterNodeSettings implements DefaultNodeSettings {
         SortingOrder m_sortingOrder = SortingOrder.ASCENDING;
 
         enum StringComparison {
-                @Label(value = "Alphanumeric",
+                @Label(value = "Natural",
                     description = "Sorts strings by treating the numberic parts of a string as one character. "
                         + "For example, results in sort order “'Row1', 'Row2', 'Row10'”.")
-                ALPHANUMERIC,
+                NATURAL,
                 @Label(value = "Lexicographic",
                     description = "Sorts strings so that each digit is treated as a separated character. "
                         + "For example, results in sort order “'Row1', 'Row10', 'Row2'”.")
@@ -170,7 +170,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
             advanced = true)
         @Effect(signals = IsStringColumnCondition.class, type = EffectType.SHOW)
         @ValueSwitchWidget
-        StringComparison m_stringComparison = StringComparison.ALPHANUMERIC;
+        StringComparison m_stringComparison = StringComparison.NATURAL;
 
     }
 
@@ -228,7 +228,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
             final var column = getColumnSelection(item);
             final var sortingOrder = item.isAscendingOrder() ? SortingOrder.ASCENDING : SortingOrder.DESCENDING;
             final var stringComparison =
-                item.isAlphaNumComp() ? StringComparison.ALPHANUMERIC : StringComparison.LEXICOGRAPHIC;
+                item.isAlphaNumComp() ? StringComparison.NATURAL : StringComparison.LEXICOGRAPHIC;
             return new SortingCriterionSettings(column, sortingOrder, stringComparison);
 
         }

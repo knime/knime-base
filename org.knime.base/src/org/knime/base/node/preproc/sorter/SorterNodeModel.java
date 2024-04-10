@@ -169,7 +169,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
         final var rc = RowComparator.on(spec);
         Arrays.stream(modelSettings.m_sortingCriteria).forEach(criterion -> {
             final var ascending = criterion.m_sortingOrder == SortingOrder.ASCENDING;
-            final var alphaNum = criterion.m_stringComparison == StringComparison.ALPHANUMERIC;
+            final var alphaNum = criterion.m_stringComparison == StringComparison.NATURAL;
             resolveColumnName(spec, criterion.m_column.getSelected(), SorterNodeModel::isRowKey).ifPresentOrElse(
                 col -> rc.thenComparingColumn(col,
                     c -> configureColumnComparatorBuilder(spec, modelSettings, ascending, alphaNum, col, c)),
