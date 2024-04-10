@@ -408,6 +408,19 @@
             "showRowKeys" : false,
             "showSearch" : true,
             "showMode" : true
+          },
+          "rule" : {
+            "effect" : "HIDE",
+            "condition" : {
+              "scope" : "#/properties/model/properties/column",
+              "schema" : {
+                "properties" : {
+                  "selected" : {
+                    "const" : "<row-numbers>"
+                  }
+                }
+              }
+            }
           }
         } ]
       }, {

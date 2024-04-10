@@ -109,6 +109,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     @Signal(condition = IsBoolComparison.class)
     @ChoicesWidget(choicesUpdateHandler = TypeBasedCompareModeChoices.class)
     @Layout(DialogSections.MatchingCriterion.ColumnAndMode.class)
+    @Effect(signals = {IsRowNumbersColumnCondition.class}, type = EffectType.HIDE)
     CompareMode m_compareOn = CompareMode.TYPE_MAPPING;
 
     @Widget(title = "Operator", description = "TODO")
