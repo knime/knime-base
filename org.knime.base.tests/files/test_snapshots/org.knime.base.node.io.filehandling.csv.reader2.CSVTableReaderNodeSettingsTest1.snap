@@ -460,7 +460,7 @@
                   }
                 },
                 "title" : "Source",
-                "description" : "Select a file system which stores the data you want to read. There are three default file system options\nto choose from:\n<br/>\n<ul>\n    <li><b>Local file system</b>: Allows you to select a file from your local file system.</li>\n    <li><b>Custom/KNIME URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).\n        Browsing is disabled for this option.</li>\n    <li><b>Current Hub space</b>: Allows to select a file relative to the Hub space on which the\n        workflow is run.</li>\n</ul>\n",
+                "description" : "Select a file location which stores the data you want to read. When clicking on the browse button,\nthere are two default file system options to choose from:\n<br/>\n<ul>\n    <li>The current HUB space: Allows to select a file relative to the Hub space on which the\n        workflow is run.</li>\n    <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>\n</ul>\n",
                 "default" : {
                   "path" : {
                     "fsCategory" : "LOCAL",

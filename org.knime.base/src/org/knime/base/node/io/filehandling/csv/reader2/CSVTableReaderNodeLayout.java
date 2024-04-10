@@ -64,15 +64,13 @@ public class CSVTableReaderNodeLayout {
             // TODO will be updated in UIEXT-1764
             String DESCRIPTION =
                 """
-                        Select a file system which stores the data you want to read. There are three default file system options
-                        to choose from:
+                        Select a file location which stores the data you want to read. When clicking on the browse button,
+                        there are two default file system options to choose from:
                         <br/>
                         <ul>
-                            <li><b>Local file system</b>: Allows you to select a file from your local file system.</li>
-                            <li><b>Custom/KNIME URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).
-                                Browsing is disabled for this option.</li>
-                            <li><b>Current Hub space</b>: Allows to select a file relative to the Hub space on which the
+                            <li>The current HUB space: Allows to select a file relative to the Hub space on which the
                                 workflow is run.</li>
+                            <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>
                         </ul>
                         """;
         }
