@@ -10,7 +10,7 @@
       "includeMatchesInOutput" : true,
       "includeLeftUnmatchedInOutput" : false,
       "includeRightUnmatchedInOutput" : false,
-      "rightColumnSelectionConfig" : {
+      "leftColumnSelectionConfig" : {
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -27,7 +27,7 @@
           "typeDisplays" : [ ]
         }
       },
-      "leftColumnSelectionConfig" : {
+      "rightColumnSelectionConfig" : {
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -231,7 +231,7 @@
                 }
               }
             },
-            "title" : "Left table",
+            "title" : "Top input ('left' table)",
             "description" : "TODO",
             "default" : {
               "mode" : "MANUAL",
@@ -427,7 +427,7 @@
                 }
               }
             },
-            "title" : "Right table",
+            "title" : "Bottom input ('right' table)",
             "description" : "TODO",
             "default" : {
               "mode" : "MANUAL",
@@ -550,7 +550,7 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/rightColumnSelectionConfig",
+        "scope" : "#/properties/model/properties/leftColumnSelectionConfig",
         "options" : {
           "format" : "columnFilter",
           "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
@@ -561,7 +561,7 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/leftColumnSelectionConfig",
+        "scope" : "#/properties/model/properties/rightColumnSelectionConfig",
         "options" : {
           "format" : "columnFilter",
           "choicesProvider" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",

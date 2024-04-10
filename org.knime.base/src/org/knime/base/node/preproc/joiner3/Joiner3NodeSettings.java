@@ -329,17 +329,17 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Right table", description = "TODO")
+    @Widget(title = "Top input ('left' table)", description = "TODO")
     @Layout(OutputColumnsSection.class)
     @Persist(settingsModel = SettingsModelColumnFilter2.class)
     @ChoicesWidget(choicesProvider = LeftTableChoices.class)
-    ColumnFilter m_rightColumnSelectionConfig;
+    ColumnFilter m_leftColumnSelectionConfig;
 
-    @Widget(title = "Left table", description = "TODO")
+    @Widget(title = "Bottom input ('right' table)", description = "TODO")
     @Layout(OutputColumnsSection.class)
     @Persist(settingsModel = SettingsModelColumnFilter2.class)
     @ChoicesWidget(choicesProvider = RightTableChoices.class)
-    ColumnFilter m_leftColumnSelectionConfig;
+    ColumnFilter m_rightColumnSelectionConfig;
 
     @Widget(title = "Merge join columns",
         description = """

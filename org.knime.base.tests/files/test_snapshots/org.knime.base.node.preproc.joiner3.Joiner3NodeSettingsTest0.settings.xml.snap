@@ -11,7 +11,7 @@
     <entry key="includeMatchesInOutput" type="xboolean" value="true"/>
     <entry key="includeLeftUnmatchedInOutput" type="xboolean" value="false"/>
     <entry key="includeRightUnmatchedInOutput" type="xboolean" value="false"/>
-    <config key="rightColumnSelectionConfig">
+    <config key="leftColumnSelectionConfig">
         <entry key="filter-type" type="xstring" value="STANDARD"/>
         <config key="included_names">
             <entry key="array-size" type="xint" value="0"/>
@@ -30,7 +30,7 @@
             <config key="typelist"/>
         </config>
     </config>
-    <config key="leftColumnSelectionConfig">
+    <config key="rightColumnSelectionConfig">
         <entry key="filter-type" type="xstring" value="STANDARD"/>
         <config key="included_names">
             <entry key="array-size" type="xint" value="0"/>

@@ -54,6 +54,7 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
@@ -105,12 +106,12 @@ public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements
 
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return null;
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
     @Override
     public boolean hasDialog() {
-        return false;
+        return true;
     }
 
     @Override
