@@ -36,21 +36,22 @@
               "title" : "Any of the following"
             } ],
             "title" : "Match",
+            "description" : "Defines the logic for the matching criteria:\n<ul>\n<li><b>All of the following</b>: If selected, joins two rows only when all matching criteria are satisfied</li>\n<li><b>Any of the following</b>: If selected, joins two rows when at least one of the matching criteria is satisfied</li>\n</ul>",
             "default" : "MATCH_ALL"
           },
           "dataCellComparisonMode" : {
             "oneOf" : [ {
               "const" : "STRICT",
-              "title" : "Value and Type"
+              "title" : "Value and type"
             }, {
               "const" : "STRING",
               "title" : "String representation"
             }, {
               "const" : "NUMERIC",
-              "title" : "making integer types compatible"
+              "title" : "Make integer types compatible"
             } ],
             "title" : "Compare values in join columns by",
-            "description" : "TODO\n<ul>\n<li><b>Value and Type</b>: Two cells need to have the exact same value and type. For instance, a long and an integer cell will never match.</li>\n<li><b>String representation</b>: Convert values in join columns to string before comparing them.</li>\n<li><b>making integer types compatible</b>: Ignore type differences for numerical types. For instance, an integer cell with value 1 will match a long cell with value 1.</li>\n</ul>",
+            "description" : "Defines how to compare the values in the join columns:\n<ul>\n<li><b>Value and type</b>: Two rows match only if their values in the join columns selected have the same value and type, e.g. Number (integer) values will never match Number (long) values because they have two different types.</li>\n<li><b>String representation</b>: Use this option if you want the values to be converted to string before comparing them. In this way you compare only the value in the selected join columns.</li>\n<li><b>Make integer types compatible</b>: Use this option to ignore type differences between Number (integer) and Number (long) types.</li>\n</ul>",
             "default" : "STRICT",
             "configKeys" : [ "dataCellComparisonMode" ]
           },
@@ -62,14 +63,14 @@
               "const" : "DO_NOT_EXECUTE",
               "title" : "Do not execute"
             } ],
-            "title" : "If there are mulitple column names",
-            "description" : "TODO\n<ul>\n<li><b>Append custom suffix</b>: Appends the given suffix.</li>\n<li><b>Do not execute</b>: Prevents the node from being executed if column names clash.</li>\n</ul>",
+            "title" : "If there are duplicate column names",
+            "description" : "Defines what should happen if there are column names included in the output that have the same name:\n<ul>\n<li><b>Append custom suffix</b>: Adds the defined custom suffix to the column name of the right table.</li>\n<li><b>Do not execute</b>: Prevents the node to be executed if the columns have the same name.</li>\n</ul>",
             "default" : "APPEND_SUFFIX"
           },
           "enableHiliting" : {
             "type" : "boolean",
             "title" : "Hiliting enabled",
-            "description" : "Track which output rows have been produced by which input rows.",
+            "description" : "If selected, hiliting rows in the output will hilite the rows in the left and right input tables that contributed to that row. Equally, when hiliting a row in one of the input tables, all rows that the input row contributed to are hilited. Disabling this option reduces the memory footprint of the joiner, the disk footprint of the workflow, and may speed up the execution in cases where main memory is scarce.",
             "default" : false
           },
           "includeLeftUnmatchedInOutput" : {
@@ -81,7 +82,7 @@
           "includeMatchesInOutput" : {
             "type" : "boolean",
             "title" : "Matching rows",
-            "description" : "Include rows that aggree on the selected column pairs.",
+            "description" : "Include rows that match on the selected column pairs.",
             "default" : true
           },
           "includeRightUnmatchedInOutput" : {
@@ -198,7 +199,7 @@
               }
             },
             "title" : "Top input ('left' table)",
-            "description" : "TODO",
+            "description" : "Select columns from top input ('left' table) that should be included or excluded in the output table.",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -220,7 +221,7 @@
           },
           "matchingCriteria" : {
             "title" : "Join columns",
-            "description" : "Select the columns from the top input ('left' table) and the bottom input\n('right' table) that should be used for joining. Each pair of columns defines an equality constraint\nof the form A = B. For two rows to be joined, the row from the left input table\nmust have the same value in column A as the row from the right input table in column B.\nRow keys can be compared to row keys or regular columns, in which case the row key will be interpreted\nas a string value.\n",
+            "description" : "Defines the columns from the top input ('left' table) and the bottom input ('right' table) that should be used for joining.\nFor two rows to be joined, the row from the left input table must have the same value in column A as the row from the right\n input table in column B. RowIDs can be compared to RowIDs or regular columns, in which case the RowID will be interpreted\n as a string value.\n",
             "default" : [ {
               "leftTableColumn" : "<row-keys>",
               "rightTableColumn" : "<row-keys>"
@@ -237,13 +238,13 @@
                 "leftTableColumn" : {
                   "type" : "string",
                   "title" : "Top input ('left' table)",
-                  "description" : "TODO",
+                  "description" : "Select the column from the top input table that should be used to compare with the column selected for the bottom input.",
                   "default" : "<row-keys>"
                 },
                 "rightTableColumn" : {
                   "type" : "string",
                   "title" : "Bottom input ('right' table)",
-                  "description" : "TODO",
+                  "description" : "Select the column from the bottom input table that should be used to compare with the column selected for the top input.",
                   "default" : "<row-keys>"
                 }
               },
@@ -258,14 +259,14 @@
             "type" : "integer",
             "format" : "int32",
             "title" : "Maximum number of temporary files",
-            "description" : " Controls the number of temporary files that can be created during\n     the join operation and possibly subsequent sorting operations. More temporary files may increase\n     performance, but the operating system might impose a limit on the maximum number of open files.\n",
+            "description" : " Defines the number of temporary files that can be created during the join operation and possibly subsequent sorting operations.\n Increase the number of temporary files to improve the performance of the node.\n Be aware that the operating system might impose a limit on the maximum number of open files.\n",
             "default" : 200,
             "minimum" : 3
           },
           "mergeJoinColumns" : {
             "type" : "boolean",
             "title" : "Merge join columns",
-            "description" : "If active, the join columns of the right input table are merged into their join partners of the left\ninput table. The merged column is named like the left join column if one of its join partners in the\nright table has the same name. If the join partners have different names, the merged column is named\nin the form <i>left column=right column</i>.<br/>\nFor instance, when joining a table with columns A, B, and C as left input table with a table\nthat has columns X, A, and Z using the join predicates A=A, A=X, and C=Z, the resulting output table\nwould have columns A, B, C=Z. Note how the column A in the output table contains the value of the column\nA in the left table, which is also the value of the column X in the right table, as required by the join conditions  A=X.<br/>\nThe value of a merged join column for an unmatched row is taken from whichever row has values.\nFor instance, when outputting an unmatched row from the right table in the above example with values x, a, and z,\nthe resulting row in format A, B, C=Z has values x, ?, z. <br/> When merge join columns is off, the row is\ninstead output as ?, ?, ?, x, a, z.\n",
+            "description" : "If selected, the join columns of the right input table are merged into their join partners of the left input table.\nThe merged column is named like the left join column if one of its join partners in the right table has the same name.\nIf the join partners have different names, the merged column is named in the form \"left column=right column\".\n",
             "default" : false
           },
           "outputRowOrder" : {
@@ -277,13 +278,13 @@
               "title" : "Input order"
             } ],
             "title" : "Row order",
-            "description" : "TODO\n<ul>\n<li><b>Arbitrary</b>: The output can vary depending on the currently available amount of main memory. This means that identical input can produce different output orders on consecutive executions.</li>\n<li><b>Input order</b>: Rows are output in three blocks:<ol>                                    <li>matched rows</li>                   <li>unmatched rows from left table</li> <li>unmatched rows from right table</li></ol>                                   Each block is sorted by row offset in the left table, breaking ties using the row offset in the right table.</li>\n</ul>",
+            "description" : "Defines the row order for the output table rows.\n<ul>\n<li><b>Arbitrary</b>: The order of the ouput table rows is defined based on the currently available memory. Select this to improve the performance of the node since the output does not have to be sorted. Be aware that it can produce different output orders on consecutive executions.</li>\n<li><b>Input order</b>: Rows are output in three blocks:<ol>                                    <li>matched rows</li>                   <li>unmatched rows from left table</li> <li>unmatched rows from right table</li></ol>                                   Each block is sorted so that rows are sorted based on their position in the left table. In case of rows with the same position in the left table, the sorting is determined by the row position in the right table.</li>\n</ul>",
             "default" : "ARBITRARY"
           },
           "outputUnmatchedRowsToSeparatePorts" : {
             "type" : "boolean",
-            "title" : "Split join result into multiple tables (top = matching rows, middle = left unmatched rows, bottom = right unmatched rows)",
-            "description" : "Output unmatched rows (if selected under \"Include in output\") at the second and third output port.",
+            "title" : "Split join result into multiple tables",
+            "description" : "Output unmatched rows (if selected under \"Include in output\") at the second and third output port, i.e.<ul><li> top: Matching rows </li><li> middle: Left unmatched rows </li><li> bottom: Right unmatched rows </li></ul>",
             "default" : false
           },
           "rightColumnSelectionConfig" : {
@@ -394,7 +395,7 @@
               }
             },
             "title" : "Bottom input ('right' table)",
-            "description" : "TODO",
+            "description" : "Select columns from bottom input ('right' table) that should be included or excluded in the output table.",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -426,17 +427,19 @@
               "title" : "Retain"
             } ],
             "title" : "RowIDs",
-            "description" : "Row keys of the output rows\n<ul>\n<li><b>Concatenate with separator</b>: For instance, when selecting separator \"_\", a row joining rows with keys Row0 and Row1 is assigned key Row0_Row1.</li>\n<li><b>Create new</b>: Output rows are assigned sequential row keys, e.g., Row0, Row1, etc. </li>\n<li><b>Retain</b>: Only available when join criteria ensure that matching rows have the same row keys.</li>\n</ul>",
+            "description" : "Defines how the RowIDs of the output table are generated:\n<ul>\n<li><b>Concatenate with separator</b>: The RowID of the output table will be made of the RowID of the top input ('left' table) and the RowID of the bottom ('right' table) separated by the defined separator.</li>\n<li><b>Create new</b>: The RowIDs of the output table will be assigned sequential RowIDs, e.g. Row0, Row1, etc.</li>\n<li><b>Retain</b>: If the matching rows have the same RowIDs in both input tables as a matching criteria the output table will keep the input tables RowIDs.</li>\n</ul>",
             "default" : "CONCATENATE"
           },
           "rowKeySeparator" : {
             "type" : "string",
             "title" : "Separator",
+            "description" : "The separator to be added in between RowIDs of the input tables to generate the RowIDs of the output table.",
             "default" : "_"
           },
           "suffix" : {
             "type" : "string",
             "title" : "Custom suffix",
+            "description" : "The suffix to be added to the column name of the right table",
             "default" : " (Right)"
           }
         }

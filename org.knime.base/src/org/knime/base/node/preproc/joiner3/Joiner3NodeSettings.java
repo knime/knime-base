@@ -127,10 +127,10 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     enum CompositionMode {
             @Label(value = "All of the following",
-                description = "Join rows when all join attributes match (logical and).")
+                description = "If selected, joins two rows only when all matching criteria are satisfied")
             MATCH_ALL, //
             @Label(value = "Any of the following",
-                description = "Join rows when at least one join attribute matches (logical or).")
+                description = "If selected, joins two rows when at least one of the matching criteria is satisfied")
             MATCH_ANY,
     }
 
@@ -166,7 +166,7 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     @ValueSwitchWidget
     @Layout(MatchingCriteriaSection.class)
-    @Widget(title = "Match", description = "")
+    @Widget(title = "Match", description = "Defines the logic for the matching criteria:")
     CompositionMode m_compositionMode = CompositionMode.MATCH_ALL;
 
     static class MatchingCriterion implements PersistableSettings, WidgetGroup {
@@ -186,12 +186,16 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         }
 
         @ChoicesWidget(choicesProvider = LeftTableChoices.class, showRowKeysColumn = true)
-        @Widget(title = "Top input ('left' table)", description = "TODO")
+        @Widget(title = "Top input ('left' table)",
+            description = "Select the column from the top input table that should be "
+                + "used to compare with the column selected for the bottom input.")
         @Layout(Horizontal.class)
         String m_leftTableColumn;
 
         @ChoicesWidget(choicesProvider = RightTableChoices.class, showRowKeysColumn = true)
-        @Widget(title = "Bottom input ('right' table)", description = "TODO")
+        @Widget(title = "Bottom input ('right' table)",
+            description = "Select the column from the bottom input table that should be "
+                + "used to compare with the column selected for the top input.")
         @Layout(Horizontal.class)
         String m_rightTableColumn;
 
@@ -262,39 +266,40 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     }
 
-    @Widget(title = "Join columns", description = """
-            Select the columns from the top input ('left' table) and the bottom input
-            ('right' table) that should be used for joining. Each pair of columns defines an equality constraint
-            of the form A = B. For two rows to be joined, the row from the left input table
-            must have the same value in column A as the row from the right input table in column B.
-            Row keys can be compared to row keys or regular columns, in which case the row key will be interpreted
-            as a string value.
-                """)
+    @Widget(title = "Join columns",
+        description = """
+                Defines the columns from the top input ('left' table) and the bottom input ('right' table) that should be used for joining.
+                For two rows to be joined, the row from the left input table must have the same value in column A as the row from the right
+                 input table in column B. RowIDs can be compared to RowIDs or regular columns, in which case the RowID will be interpreted
+                 as a string value.
+                    """)
     @Layout(MatchingCriteriaSection.class)
     @ArrayWidget(addButtonText = "Add matching criterion")
     @Persist(customPersistor = MatchingCriteriaPersistor.class)
     MatchingCriterion[] m_matchingCriteria = new MatchingCriterion[]{new MatchingCriterion()};
 
     enum DataCellComparisonMode {
-            @Label(value = "Value and Type", description = "Two cells need to have the exact same value and type. "
-                + "For instance, a long and an integer cell will never match.")
+            @Label(value = "Value and type",
+                description = "Two rows match only if their values in the join columns selected have the same value and type, "
+                    + "e.g. Number (integer) values will never match Number (long) values because they have two different types.")
             STRICT, //
             @Label(value = "String representation",
-                description = "Convert values in join columns to string before comparing them.")
+                description = "Use this option if you want the values to be converted to string before comparing them. "
+                    + "In this way you compare only the value in the selected join columns.")
             STRING,
 
-            @Label(value = "making integer types compatible",
-                description = "Ignore type differences for numerical types. "
-                    + "For instance, an integer cell with value 1 will match a long cell with value 1.")
+            @Label(value = "Make integer types compatible",
+                description = "Use this option to ignore type differences between Number (integer) and Number (long) types.")
             NUMERIC
     }
 
-    @Widget(title = "Compare values in join columns by", description = "TODO")
+    @Widget(title = "Compare values in join columns by",
+        description = "Defines how to compare the values in the join columns:")
     @Layout(MatchingCriteriaSection.class)
     @Persist(/* Introduced with KNIME 4.4*/ optional = true)
     DataCellComparisonMode m_dataCellComparisonMode = DataCellComparisonMode.STRICT;
 
-    @Widget(title = "Matching rows", description = "Include rows that aggree on the selected column pairs.")
+    @Widget(title = "Matching rows", description = "Include rows that match on the selected column pairs.")
     @Layout(IncludeInOutputSection.class)
     boolean m_includeMatchesInOutput = true;
 
@@ -309,14 +314,16 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     boolean m_includeRightUnmatchedInOutput;
 
     enum RowKeyFactory {
-            @Label(value = "Concatenate with separator", description = "For instance, when selecting separator \"_\", "
-                + "a row joining rows with keys Row0 and Row1 is assigned key Row0_Row1.")
+            @Label(value = "Concatenate with separator",
+                description = "The RowID of the output table will be made of the RowID of the top input ('left' table) "
+                    + "and the RowID of the bottom ('right' table) separated by the defined separator.")
             CONCATENATE, //
             @Label(value = "Create new",
-                description = "Output rows are assigned sequential row keys, e.g., Row0, Row1, etc. ")
+                description = "The RowIDs of the output table will be assigned sequential RowIDs, e.g. Row0, Row1, etc.")
             SEQUENTIAL, //
             @Label(value = "Retain",
-                description = "Only available when join criteria ensure that matching rows have the same row keys.")
+                description = "If the matching rows have the same RowIDs in both input tables as a matching criteria the"
+                    + " output table will keep the input tables RowIDs.")
             KEEP_ROWID;
 
         static class IsConcatenate extends OneOfEnumCondition<RowKeyFactory> {
@@ -329,13 +336,15 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Top input ('left' table)", description = "TODO")
+    @Widget(title = "Top input ('left' table)",
+        description = "Select columns from top input ('left' table) that should be included or excluded in the output table.")
     @Layout(OutputColumnsSection.class)
     @Persist(settingsModel = SettingsModelColumnFilter2.class)
     @ChoicesWidget(choicesProvider = LeftTableChoices.class)
     ColumnFilter m_leftColumnSelectionConfig;
 
-    @Widget(title = "Bottom input ('right' table)", description = "TODO")
+    @Widget(title = "Bottom input ('right' table)",
+        description = "Select columns from bottom input ('right' table) that should be included or excluded in the output table.")
     @Layout(OutputColumnsSection.class)
     @Persist(settingsModel = SettingsModelColumnFilter2.class)
     @ChoicesWidget(choicesProvider = RightTableChoices.class)
@@ -343,27 +352,19 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Merge join columns",
         description = """
-                If active, the join columns of the right input table are merged into their join partners of the left
-                input table. The merged column is named like the left join column if one of its join partners in the
-                right table has the same name. If the join partners have different names, the merged column is named
-                in the form <i>left column=right column</i>.<br/>
-                For instance, when joining a table with columns A, B, and C as left input table with a table
-                that has columns X, A, and Z using the join predicates A=A, A=X, and C=Z, the resulting output table
-                would have columns A, B, C=Z. Note how the column A in the output table contains the value of the column
-                A in the left table, which is also the value of the column X in the right table, as required by the join conditions  A=X.<br/>
-                The value of a merged join column for an unmatched row is taken from whichever row has values.
-                For instance, when outputting an unmatched row from the right table in the above example with values x, a, and z,
-                the resulting row in format A, B, C=Z has values x, ?, z. <br/> When merge join columns is off, the row is
-                instead output as ?, ?, ?, x, a, z.
+                If selected, the join columns of the right input table are merged into their join partners of the left input table.
+                The merged column is named like the left join column if one of its join partners in the right table has the same name.
+                If the join partners have different names, the merged column is named in the form "left column=right column".
                 """)
     @Layout(OutputColumnsSection.class)
     boolean m_mergeJoinColumns;
 
     enum DuplicateHandling {//
-            @Label(value = "Append custom suffix", description = "Appends the given suffix.")
+            @Label(value = "Append custom suffix",
+                description = "Adds the defined custom suffix to the column name of the right table.")
             APPEND_SUFFIX, //
             @Label(value = "Do not execute",
-                description = "Prevents the node from being executed if column names clash.")
+                description = "Prevents the node to be executed if the columns have the same name.")
             DO_NOT_EXECUTE;
 
         static class IsAppendSuffix extends OneOfEnumCondition<DuplicateHandling> {
@@ -376,31 +377,38 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "If there are mulitple column names", description = "TODO")
+    @Widget(title = "If there are duplicate column names",
+        description = "Defines what should happen if there are column names included in the output that have the same name:")
     @Signal(condition = IsAppendSuffix.class)
     @Layout(OutputColumnsSection.class)
     @RadioButtonsWidget
     DuplicateHandling m_duplicateHandling = DuplicateHandling.APPEND_SUFFIX;
 
-    @Widget(title = "Custom suffix", description = "")
+    @Widget(title = "Custom suffix", description = "The suffix to be added to the column name of the right table")
     @Effect(signals = IsAppendSuffix.class, type = EffectType.SHOW)
     @Layout(OutputColumnsSection.class)
     String m_suffix = " (Right)";
 
-    @Widget(
-        title = "Split join result into multiple tables (top = matching rows, middle = left unmatched rows, bottom = right unmatched rows)",
+    @Widget(title = "Split join result into multiple tables",
         description = "Output unmatched rows (if selected under \"Include in"
-            + " output\") at the second and third output port.")
+            + " output\") at the second and third output port, i.e." //
+            + "<ul>" //
+            + "<li> top: Matching rows </li>" //
+            + "<li> middle: Left unmatched rows </li>" //
+            + "<li> bottom: Right unmatched rows </li>" //
+            + "</ul>")
+
     @Layout(OutputRowsSection.class)
     boolean m_outputUnmatchedRowsToSeparatePorts;
 
-    @Widget(title = "RowIDs", description = "Row keys of the output rows")
+    @Widget(title = "RowIDs", description = "Defines how the RowIDs of the output table are generated:")
     @Signal(condition = IsConcatenate.class)
     @RadioButtonsWidget
     @Layout(OutputRowsSection.class)
     RowKeyFactory m_rowKeyFactory = RowKeyFactory.CONCATENATE;
 
-    @Widget(title = "Separator", description = "")
+    @Widget(title = "Separator",
+        description = "The separator to be added in between RowIDs of the input tables to generate the RowIDs of the output table.")
     @Effect(signals = IsConcatenate.class, type = EffectType.SHOW)
     @Layout(OutputRowsSection.class)
     String m_rowKeySeparator = "_";
@@ -408,9 +416,9 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     enum OutputRowOrder {
             /** Output rows may be provided in any order. */
             @Label(value = "Arbitrary",
-                description = "The output can vary depending on the currently "
-                    + "available amount of main memory. This means that identical input can produce different output"
-                    + " orders on consecutive executions.")
+                description = "The order of the ouput table rows is defined based on the currently available memory. "
+                    + "Select this to improve the performance of the node since the output does not have to be sorted. "
+                    + "Be aware that it can produce different output orders on consecutive executions.")
             ARBITRARY, //
             @Label(value = "Input order", description = "Rows are output in three blocks:" //
                 + "<ol>                                    " //
@@ -418,26 +426,32 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
                 + "<li>unmatched rows from left table</li> " //
                 + "<li>unmatched rows from right table</li>" //
                 + "</ol>                                   "
-                + "Each block is sorted by row offset in the left table, breaking ties using the "
-                + "row offset in the right table.")
+                + "Each block is sorted so that rows are sorted based on their position in the left table. "
+                + "In case of rows with the same position in the left table, "
+                + "the sorting is determined by the row position in the right table.")
             LEFT_RIGHT;
     }
 
-    @Widget(title = "Row order", description = "TODO")
+    @Widget(title = "Row order", description = "Defines the row order for the output table rows.")
     @Layout(PerformanceSection.class)
     @ValueSwitchWidget
     OutputRowOrder m_outputRowOrder = OutputRowOrder.ARBITRARY;
 
-    @Widget(title = "Maximum number of temporary files", description = """
-             Controls the number of temporary files that can be created during
-                 the join operation and possibly subsequent sorting operations. More temporary files may increase
-                 performance, but the operating system might impose a limit on the maximum number of open files.
-            """)
+    @Widget(title = "Maximum number of temporary files",
+        description = """
+                 Defines the number of temporary files that can be created during the join operation and possibly subsequent sorting operations.
+                 Increase the number of temporary files to improve the performance of the node.
+                 Be aware that the operating system might impose a limit on the maximum number of open files.
+                """)
     @Layout(PerformanceSection.class)
     @NumberInputWidget(min = 3)
     int m_maxOpenFiles = 200;
 
-    @Widget(title = "Hiliting enabled", description = "Track which output rows have been produced by which input rows.")
+    @Widget(title = "Hiliting enabled",
+        description = "If selected, hiliting rows in the output will hilite the rows in the left and right input tables that contributed to that row. "
+            + "Equally, when hiliting a row in one of the input tables, all rows that the input row contributed to are hilited. "
+            + "Disabling this option reduces the memory footprint of the joiner, the disk footprint of the workflow, "
+            + "and may speed up the execution in cases where main memory is scarce.")
 
     @Layout(PerformanceSection.class)
     boolean m_enableHiliting;
