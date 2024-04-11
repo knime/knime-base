@@ -157,7 +157,7 @@ final class SorterNodeSettings implements DefaultNodeSettings {
 
         enum StringComparison {
                 @Label(value = "Natural",
-                    description = "Sorts strings by treating the numberic parts of a string as one character. "
+                    description = "Sorts strings by treating the numeric parts of a string as one character. "
                         + "For example, results in sort order “'Row1', 'Row2', 'Row10'”.")
                 NATURAL,
                 @Label(value = "Lexicographic",
