@@ -49,336 +49,257 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Supplier;
 
-import org.knime.base.node.preproc.filter.row3.FilterBounds.DecimalBounds;
-import org.knime.base.node.preproc.filter.row3.FilterBounds.IntegralBounds;
-import org.knime.base.node.preproc.filter.row3.FilterBounds.RowNumberBounds;
 import org.knime.base.node.preproc.filter.row3.FilterOperator.Arity;
-import org.knime.base.node.preproc.filter.row3.FilterOperator.CompareMode;
-import org.knime.base.node.preproc.filter.row3.FilterOperator.TypeBasedCompareModeChoices;
-import org.knime.base.node.preproc.filter.row3.FilterOperator.TypeBasedOperatorChoices;
 import org.knime.base.node.preproc.stringreplacer.CaseMatching;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.StringValue;
+import org.knime.core.data.def.LongCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Expression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Not;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Or;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsSpecificColumnCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.AllColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // Web UI not API yet
+@SuppressWarnings("restriction") // webui
 final class RowFilter3NodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Filter column", description = "Choose the column in which to filter for values")
     @ChoicesWidget(showRowKeysColumn = true, showRowNumbersColumn = true, choices = AllColumnChoicesProvider.class)
-    @Layout(DialogSections.MatchingCriterion.ColumnAndMode.class)
+    @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.Column.class)
     // signals for specially supported data types
     @Signal(condition = IsRowNumbersColumnCondition.class)
-    @Signal(condition = IsLongCompatible.class)
-    @Signal(condition = IsDoubleCompatible.class)
-    ColumnSelection m_column = SpecialColumns.ROWID.toColumnSelection(); // choice is probably overridden in constructor
+    @Signal(condition = IsLongColumn.class)
+    @Signal(condition = IsDoubleColumn.class)
+    @Signal(condition = IsStringColumn.class)
+    @ValueReference(SelectedColumnRef.class)
+    ColumnSelection m_column = SpecialColumns.ROWID.toColumnSelection();
 
-    @Widget(title = "Compare as", description = "TODO", advanced = true)
-    @Signal(condition = IsTypeMappingComparison.class)
-    @Signal(condition = IsStringComparison.class)
-    @Signal(condition = IsIntegralComparison.class)
-    @Signal(condition = IsDecimalComparison.class)
-    @Signal(condition = IsBoolComparison.class)
-    @ChoicesWidget(choicesUpdateHandler = TypeBasedCompareModeChoices.class)
-    @Layout(DialogSections.MatchingCriterion.ColumnAndMode.class)
-    @Effect(signals = {IsRowNumbersColumnCondition.class}, type = EffectType.HIDE)
-    CompareMode m_compareOn = CompareMode.TYPE_MAPPING;
+    private static final class SelectedColumnRef implements Reference<ColumnSelection> {
+    }
 
     @Widget(title = "Operator", description = "TODO")
-    @ChoicesWidget(choicesUpdateHandler = TypeBasedOperatorChoices.class) // depends on m_column
-    @Signal(condition = IsNullaryOperator.class)
     @Signal(condition = IsUnaryOperator.class)
     @Signal(condition = IsBinaryOperator.class)
     @Signal(condition = IsPatternOperator.class)
-    @Signal(condition = IsNumberOfRowsOperator.class)
-    @Layout(DialogSections.MatchingCriterion.Operator.class)
+    @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.Operator.class)
+    @ValueReference(TypeBasedOperatorChoices.class)
+    @ChoicesWidget(choicesProvider = TypeBasedOperatorChoices.class)
     FilterOperator m_operator = FilterOperator.EQ;
 
     @Widget(title = "Case matching", description = "TODO")
     @ValueSwitchWidget
-    @Effect(signals = {IsStringComparison.class, IsNullaryOperator.class}, operation = AllButTheLast.class,
+    @Effect(signals = {IsStringColumn.class, IsUnaryOperator.class}, operation = AllButTheLast.class,
         type = EffectType.SHOW)
-    @Layout(DialogSections.MatchingCriterion.Operator.class)
+    @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.Operator.class)
     CaseMatching m_caseMatching = CaseMatching.DEFAULT;
 
     boolean caseSensitive() {
         return m_caseMatching == CaseMatching.CASESENSITIVE;
     }
 
-    static class Anchors implements DefaultNodeSettings {
+    @Widget(title = "Value", description = "TODO")
+    @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.ValueInput.class)
+    @Effect(signals = IsBinaryOperator.class, type = EffectType.SHOW)
+    @ValueProvider(ValueFieldCleaning.class)
+    @ValueReference(ValueFieldCleaning.class)
+    public String m_value = "";
 
-        static class RowNumbersAnchor implements DefaultNodeSettings {
+    @Persist(hidden = true)
+    @ValueProvider(DataTypeCellClassNameProvider.class)
+    //@ValueReference(DataTypeCellClassNameProvider.class)
+    public String m_type = StringCell.TYPE.getCellClass().getName();
 
-            /**
-             * Row Number bounds.
-             */
-            @Effect(signals = {IsRowNumbersColumnCondition.class, IsBinaryOperator.class, IsNumberOfRowsOperator.class},
-                operation = AllButTheLast.class, type = EffectType.SHOW)
-            RowNumberBounds m_bounds = new RowNumberBounds();
 
-            /**
-             * A specific Row Number.
-             */
-            @Widget(title = "Row number", description = "TODO")
-            @Effect(signals = {IsRowNumbersColumnCondition.class, IsUnaryOperator.class, IsNumberOfRowsOperator.class},
-                operation = AllButTheLast.class, type = EffectType.SHOW)
-            @NumberInputWidget(min = 1)
-            long m_rowNumber = 1;
-
-            /**
-             * n rows from start or end depending on operator (last/first n)
-             */
-            // we allow 0 for convenience (i.e. disabled filter)
-            @Widget(title = "Number of rows", description = "TODO")
-            @Effect(signals = {IsRowNumbersColumnCondition.class, IsNumberOfRowsOperator.class}, operation = And.class,
-                type = EffectType.SHOW)
-            @NumberInputWidget(min = 0)
-            long m_noOfRows = 10;
-        }
-
-        RowNumbersAnchor m_rowNumbers = new RowNumbersAnchor();
-
-        static class DecimalAnchor implements DefaultNodeSettings {
-
-            @Effect(
-                signals = {IsDecimalComparison.class, IsDoubleCompatible.class, IsBinaryOperator.class,
-                    IsStringComparison.class},
-                operation = AllButTheLast.class, type = EffectType.SHOW)
-            DecimalBounds m_bounds = new DecimalBounds();
-
-            @Widget(title = "Double value", description = "TODO")
-            @Effect(
-                signals = {IsDecimalComparison.class, IsDoubleCompatible.class, IsUnaryOperator.class,
-                    IsStringComparison.class},
-                operation = AllButTheLast.class, type = EffectType.SHOW)
-            double m_value;
-        }
-
-        DecimalAnchor m_real = new DecimalAnchor();
-
-        static class IntegralAnchor implements DefaultNodeSettings {
-
-            @Effect(
-                signals = {IsIntegralComparison.class, IsLongCompatible.class, IsBinaryOperator.class,
-                    IsRowNumbersColumnCondition.class, IsStringComparison.class},
-                operation = AllButTheLastTwo.class, type = EffectType.SHOW)
-            IntegralBounds m_bounds = new IntegralBounds();
-
-            @Widget(title = "Integral value", description = "TODO")
-            @Effect(
-                signals = {IsIntegralComparison.class, IsLongCompatible.class, IsUnaryOperator.class,
-                    IsRowNumbersColumnCondition.class, IsStringComparison.class},
-                operation = AllButTheLastTwo.class, type = EffectType.SHOW)
-            long m_value;
-        }
-
-        IntegralAnchor m_integer = new IntegralAnchor();
-
-        static class StringAnchor implements DefaultNodeSettings {
-            @Widget(title = "String value", description = "TODO")
-            @Effect(signals = {IsUnaryOperator.class, IsStringComparison.class, IsTypeMappingComparison.class,
-                IsPatternOperator.class}, operation = ShowValueInput.class, type = EffectType.SHOW)
-            String m_value;
-
-            @Widget(title = "Pattern", description = "TODO")
-            @Effect(signals = {IsUnaryOperator.class, IsStringComparison.class, IsPatternOperator.class},
-                operation = And.class, type = EffectType.SHOW)
-            String m_pattern;
-
-            @SuppressWarnings("rawtypes")
-            static final class ShowValueInput extends And {
-
-                @SuppressWarnings("unchecked")
-                public ShowValueInput(final Expression... expressions) {
-                    super(buildExpression(expressions));
-                }
-
-                // IsUnaryOperator
-                //   AND (
-                //     IsStringComparison
-                //       OR IsTypeMapping
-                //   )
-                //   AND !IsPatternOperator
-                @SuppressWarnings("unchecked")
-                private static Expression[] buildExpression(final Expression[] expressions) {
-                    if (expressions.length != 4) {
-                        throw new IllegalArgumentException();
-                    }
-                    final var expr = new Expression[3];
-                    expr[0] = expressions[0]; // IsUnaryOperator
-                    expr[1] = new Or<>(expressions[1], expressions[2]);
-                    expr[2] = new Not(expressions[3]); // !IsPatternOperator
-                    return expr;
-                }
-
-            }
-        }
-
-        StringAnchor m_string = new StringAnchor();
-    }
-
-    @Layout(DialogSections.MatchingCriterion.ValueInput.class)
-    Anchors m_anchors = new Anchors();
-
-    enum OutputMode {
-            @Label("Include matches")
-            INCLUDE, //
-            @Label("Exclude matches")
-            EXCLUDE
-    }
-
-    @Widget(title = "Filter behavior", description = "TODO")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.class)
-    OutputMode m_outputMode = OutputMode.INCLUDE;
-
-    boolean includeMatches() {
-        return m_outputMode == OutputMode.INCLUDE;
-    }
-
-    // ==================
-    // === META STUFF ===
-    // ==================
-
-    // CONSTRUCTORS
-
+    // constructor needed for de-/serialisation
     RowFilter3NodeSettings() {
-        // needed for de-/serialisation
+        this((DataColumnSpec)null);
     }
 
+    // auto-configuration
     RowFilter3NodeSettings(final DefaultNodeSettingsContext ctx) {
-        // set last column as default column
-        final var spec = ctx.getDataTableSpec(0);
-        if (spec.isEmpty() || spec.get().getNumColumns() == 0) {
+        // set last column as default column, like old Row Filter did
+        this(ctx.getDataTableSpec(0).stream().flatMap(DataTableSpec::stream).reduce((f, s) -> s).orElse(null));
+    }
+
+    RowFilter3NodeSettings(final DataColumnSpec colSpec) {
+        if (colSpec == null) {
+            m_column = SpecialColumns.ROWID.toColumnSelection();
             return;
         }
-        final var col = spec.get().getColumnSpec(spec.get().getNumColumns() - 1);
-        m_column = new ColumnSelection(col.getName(), col.getType());
+        m_column = new ColumnSelection(colSpec);
+        m_type = colSpec.getType().getCellClass().getName();
+        m_value = "";
     }
 
-    // SECTIONS
+    // UPDATE HANDLER
 
-    interface DialogSections {
-        @Section(title = "Matching Criterion")
-        interface MatchingCriterion {
-            @HorizontalLayout
-            interface ColumnAndMode {
-            }
+    private static final class DataTypeCellClassNameProvider implements StateProvider<String>, Reference<String> {
+        private Supplier<ColumnSelection> m_selectedColumn;
 
-            @HorizontalLayout
-            @After(DialogSections.MatchingCriterion.ColumnAndMode.class)
-            interface Operator {
-            }
-
-            @HorizontalLayout
-            @After(DialogSections.MatchingCriterion.Operator.class)
-            interface ValueInput {
-            }
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_selectedColumn = initializer.computeFromValueSupplier(SelectedColumnRef.class);
         }
 
-        @Section(title = "Output")
-        @After(DialogSections.MatchingCriterion.class)
-        interface Output {
+        @Override
+        public String computeState(final DefaultNodeSettingsContext context) {
+            final var selected = m_selectedColumn.get().getSelected();
+            return getTypeNameForSelected(context, selected).orElse(UNKNOWN_TYPE);
+        }
+
+        private static final String UNKNOWN_TYPE = "?";
+
+        private static Optional<String> getTypeNameForSelected(final DefaultNodeSettingsContext context,
+            final String selected) {
+            final Supplier<Optional<DataTableSpec>> dtsSupplier = () -> context.getDataTableSpec(0);
+            return RowFilter3NodeModel.getDataTypeNameForColumn(selected, dtsSupplier);
+        }
+    }
+
+    /**
+     * Compute choices for the filter operator based on the selected column and compare mode
+     */
+    static class TypeBasedOperatorChoices implements StringChoicesStateProvider, Reference<FilterOperator> {
+
+        private static final IdAndText[] EMPTY = new IdAndText[0];
+
+        private Supplier<ColumnSelection> m_columnSelection;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog(); // otherwise it will not load when first opening the dialog!
+            m_columnSelection = initializer.computeFromValueSupplier(SelectedColumnRef.class);
+        }
+
+        @Override
+        public IdAndText[] computeState(final DefaultNodeSettingsContext context)
+            throws WidgetHandlerException {
+            final var column = m_columnSelection.get().getSelected();
+            if (column == null) {
+                return EMPTY;
+            }
+            final var specialColumn =
+                Arrays.stream(SpecialColumns.values()).filter(t -> t.getId().equals(column)).findFirst().orElse(null);
+            if (SpecialColumns.NONE == specialColumn) {
+                return EMPTY;
+            }
+            final var dataType = getColumnType(specialColumn,
+                () -> context.getDataTableSpec(0).map(dts -> dts.getColumnSpec(column)).map(DataColumnSpec::getType));
+            if (dataType.isEmpty()) {
+                // we don't know the column, but we know that columns always can contain missing cells
+                return new IdAndText[]{
+                    new IdAndText(FilterOperator.IS_MISSING.name(), FilterOperator.IS_MISSING.label())};
+            }
+            // filter on top-level type
+            return Arrays.stream(FilterOperator.values()) //
+                .filter(op -> op.isEnabledFor(specialColumn, dataType.get())) //
+                .map(op -> new IdAndText(op.name(), op.label())) //
+                .toArray(IdAndText[]::new);
+        }
+
+        private static Optional<DataType> getColumnType(final SpecialColumns optionalSpecialColumn,
+            final Supplier<Optional<DataType>> columnDataTypeSupplier) {
+            if (optionalSpecialColumn == null) {
+                return columnDataTypeSupplier.get();
+            }
+            return Optional.ofNullable(switch (optionalSpecialColumn) {
+                case ROWID -> StringCell.TYPE;
+                case ROW_NUMBERS -> LongCell.TYPE;
+                case NONE -> throw new IllegalArgumentException(
+                    "Unsupported special column type \"%s\"".formatted(optionalSpecialColumn.name()));
+            });
+        }
+    }
+
+    /**
+     * A state provider for the value field. Clears the value field if:
+     * <ul>
+     * <li>The operator is unary, i.e. does not require that field.1
+     * </ul>
+     */
+    private static final class ValueFieldCleaning implements StateProvider<String>, Reference<String> {
+
+        private Supplier<String> m_currentValue;
+
+        private Supplier<FilterOperator> m_operator;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeOnValueChange(SelectedColumnRef.class);
+            m_operator = initializer.computeFromValueSupplier(TypeBasedOperatorChoices.class);
+            m_currentValue = initializer.getValueSupplier(ValueFieldCleaning.class);
+        }
+
+        @Override
+        public String computeState(final DefaultNodeSettingsContext context) {
+            final var operator = m_operator.get();
+            if (operator == null || operator.m_arity == Arity.UNARY) {
+                return "";
+            }
+            return m_currentValue.get();
         }
     }
 
     // SIGNALS
 
-    static class IsLongCompatible extends IsColumnOfTypeCondition {
+    static class IsLongColumn extends IsColumnOfTypeCondition {
         @Override
         public Class<LongValue> getDataValueClass() {
             return LongValue.class;
         }
     }
 
-    static class IsDoubleCompatible extends IsColumnOfTypeCondition {
+    static class IsDoubleColumn extends IsColumnOfTypeCondition {
         @Override
         public Class<DoubleValue> getDataValueClass() {
             return DoubleValue.class;
         }
     }
 
-    static class IsStringCompatible extends IsColumnOfTypeCondition {
+    static class IsStringColumn extends IsColumnOfTypeCondition {
         @Override
         public Class<StringValue> getDataValueClass() {
             return StringValue.class;
         }
     }
 
-    /* === COMPARISON MODE signals */
-
-    static class IsStringComparison extends OneOfEnumCondition<CompareMode> {
-        @Override
-        public CompareMode[] oneOf() {
-            return new CompareMode[]{CompareMode.AS_STRING};
-        }
-    }
-
-    static class IsTypeMappingComparison extends OneOfEnumCondition<CompareMode> {
-        @Override
-        public CompareMode[] oneOf() {
-            return new CompareMode[]{CompareMode.TYPE_MAPPING};
-        }
-    }
-
-    static class IsIntegralComparison extends OneOfEnumCondition<CompareMode> {
-        @Override
-        public CompareMode[] oneOf() {
-            return new CompareMode[]{CompareMode.INTEGRAL};
-        }
-    }
-
-    static class IsDecimalComparison extends OneOfEnumCondition<CompareMode> {
-        @Override
-        public CompareMode[] oneOf() {
-            return new CompareMode[]{CompareMode.DECIMAL};
-        }
-    }
-
-    static class IsBoolComparison extends OneOfEnumCondition<CompareMode> {
-        @Override
-        public CompareMode[] oneOf() {
-            return new CompareMode[]{CompareMode.BOOL};
-        }
-    }
-
     /* === OPERATOR ARITY signals */
-
-    static final class IsNullaryOperator extends OneOfEnumCondition<FilterOperator> {
-        @Override
-        public FilterOperator[] oneOf() {
-            return Arrays.stream(FilterOperator.values()).filter(op -> op.m_arity == Arity.NULLARY)
-                .toArray(FilterOperator[]::new);
-        }
-    }
 
     static final class IsUnaryOperator extends OneOfEnumCondition<FilterOperator> {
         @Override
@@ -400,13 +321,6 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
         @Override
         public FilterOperator[] oneOf() {
             return new FilterOperator[]{FilterOperator.REGEX, FilterOperator.WILDCARD};
-        }
-    }
-
-    static final class IsNumberOfRowsOperator extends OneOfEnumCondition<FilterOperator> {
-        @Override
-        public FilterOperator[] oneOf() {
-            return new FilterOperator[]{FilterOperator.FIRST_N_ROWS, FilterOperator.LAST_N_ROWS};
         }
     }
 
@@ -437,28 +351,57 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final class AllButTheLastTwo extends And {
-        public AllButTheLastTwo(final Expression... expressions) {
-            super(swapLast(expressions));
-        }
-
-        private static Expression[] swapLast(final Expression[] expressions) {
-            if (expressions == null || expressions.length <= 1) {
-                throw new IllegalArgumentException("Operator can only be used on at least two expressions");
-            }
-            var result = new Expression[expressions.length];
-            System.arraycopy(expressions, 0, result, 0, expressions.length - 2);
-            result[expressions.length - 2] = new Not(expressions[expressions.length - 2]);
-            result[expressions.length - 1] = new Not(expressions[expressions.length - 1]);
-            return result;
-
-        }
-    }
-
     // UTILITIES
 
     static boolean isFilterOnRowKeys(final RowFilter3NodeSettings settings) {
         return SpecialColumns.ROWID.getId().equals(settings.m_column.getSelected());
     }
+
+    static boolean isFilterOnRowNumbers(final RowFilter3NodeSettings settings) {
+        return SpecialColumns.ROW_NUMBERS.getId().equals(settings.m_column.getSelected());
+    }
+
+    enum OutputMode {
+            @Label("Include matches")
+            INCLUDE, //
+            @Label("Exclude matches")
+            EXCLUDE
+    }
+
+    @Widget(title = "Filter behavior", description = "TODO")
+    @ValueSwitchWidget
+    @Layout(DialogSections.Output.class)
+    OutputMode m_outputMode = OutputMode.INCLUDE;
+
+    boolean includeMatches() {
+        return m_outputMode == OutputMode.INCLUDE;
+    }
+    // SECTIONS
+
+    interface DialogSections {
+        @Section(title = "Filter criteria")
+        interface Filter {
+            interface Condition {
+                @HorizontalLayout
+                interface Column {
+                }
+
+                @HorizontalLayout
+                @After(Condition.Column.class)
+                interface Operator {
+                }
+
+                @HorizontalLayout
+                @After(Condition.Operator.class)
+                interface ValueInput {
+                }
+            }
+        }
+
+        @Section(title = "Output")
+        @After(DialogSections.Filter.class)
+        interface Output {
+        }
+    }
+
 }

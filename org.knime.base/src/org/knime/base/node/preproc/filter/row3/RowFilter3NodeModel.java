@@ -50,17 +50,22 @@ package org.knime.base.node.preproc.filter.row3;
 
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.Anchors.RowNumbersAnchor;
 import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.OutputMode;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.RowKeyValue;
+import org.knime.core.data.def.LongCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -72,6 +77,7 @@ import org.knime.core.node.streamable.InputPortRole;
 import org.knime.core.node.streamable.OutputPortRole;
 import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.core.node.streamable.PortInput;
+import org.knime.core.node.streamable.PortObjectInput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
@@ -97,38 +103,74 @@ import com.google.common.collect.RangeSet;
 @SuppressWarnings("restriction") // Web UI not API yet
 final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
 
+    private static final int PORT_INDEX = 0;
+
     protected RowFilter3NodeModel(final WebUINodeConfiguration configuration) {
         super(configuration, RowFilter3NodeSettings.class);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final RowFilter3NodeSettings settings)
         throws InvalidSettingsException {
-        settings.m_anchors.m_real.m_bounds.validate();
-        settings.m_anchors.m_integer.m_bounds.validate();
-        settings.m_anchors.m_rowNumbers.m_bounds.validate();
-        if (RowNumberFilter.isFilterOnRowNumbers(settings)) {
-            RowNumberFilter.validateRowNumberOperatorSupported(settings);
+
+        final var spec = inSpecs[PORT_INDEX];
+        final var selectedColumn = settings.m_column.getSelected();
+        final var selectedType = getDataTypeNameForColumn(selectedColumn, () -> Optional.ofNullable(spec)).orElseThrow(
+            () -> new InvalidSettingsException("Cannot get data type for column \"%s\"".formatted(selectedColumn)));
+
+        final var valueClass = settings.m_type;
+        if (!valueClass.equals(selectedType)) {
+            throw new InvalidSettingsException(
+                "Selected column type \"%s\" and value type \"%s\" do not match. Please reconfigure the node."
+                    .formatted(selectedType, valueClass));
         }
+
+        if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
+            RowNumberFilter.validateRowNumberOperatorSupported(settings);
+            RowNumberFilter.parseInputAsRowNumber(settings);
+        } else {
+            RowReadPredicate.validateSettings(settings, spec);
+        }
+
         return inSpecs;
     }
 
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
         final RowFilter3NodeSettings settings) throws Exception {
-        final var in = inData[0];
+        final var in = inData[PORT_INDEX];
         return new BufferedDataTable[]{filterTable(exec, in, settings)};
+    }
+
+    static Optional<String> getDataTypeNameForColumn(final String selected,
+        final Supplier<Optional<DataTableSpec>> dtsSupplier) {
+        return getDataTypeForColumn(selected, dtsSupplier).map(DataType::getCellClass).map(Class::getName);
+    }
+
+    static Optional<DataType> getDataTypeForColumn(final String selected,
+        final Supplier<Optional<DataTableSpec>> dtsSupplier) {
+        if (SpecialColumns.ROWID.getId().equals(selected)) {
+            return Optional.of(StringCell.TYPE);
+        }
+        if (SpecialColumns.ROW_NUMBERS.getId().equals(selected)) {
+            return Optional.of(LongCell.TYPE);
+        }
+        if (SpecialColumns.NONE.getId().equals(selected)) {
+            throw new IllegalStateException("Column selection required");
+        }
+        return dtsSupplier.get().map(dts -> dts.getColumnSpec(selected)).map(DataColumnSpec::getType);
     }
 
     private static BufferedDataTable filterTable(final ExecutionContext exec, final BufferedDataTable in,
         final RowFilter3NodeSettings settings)
         throws CanceledExecutionException, InvalidSettingsException, IOException { // NOSONAR
-        if (RowNumberFilter.isFilterOnRowNumbers(settings)) {
-            return RowNumberFilter.filterTable(exec, in, settings);
+        if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
+            return RowNumberFilter.sliceTable(exec, in, settings);
         }
 
         final var inSpec = in.getSpec();
-        final Predicate<RowRead> predicate = DataValuePredicate.forSettings(exec, settings, inSpec);
+        final Predicate<RowRead> predicate = RowReadPredicate.createFrom(exec, settings, inSpec);
         final var includeMatches = settings.includeMatches();
         final long size = in.size();
         try (final var input = in.cursor();
@@ -160,32 +202,29 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
 
     private static final class RowNumberFilter {
 
-        private static final EnumSet<FilterOperator> SUPPORTED_OPERATORS =
-            EnumSet.of(FilterOperator.EQ, FilterOperator.NEQ, FilterOperator.LT, FilterOperator.LTE, FilterOperator.GT,
-                FilterOperator.GTE, FilterOperator.BETWEEN, FilterOperator.FIRST_N_ROWS, FilterOperator.LAST_N_ROWS);
+        private static final EnumSet<FilterOperator> SUPPORTED_OPERATORS = EnumSet.of( //
+            FilterOperator.EQ, //
+            FilterOperator.NEQ, //
+            FilterOperator.LT, //
+            FilterOperator.LTE, //
+            FilterOperator.GT, //
+            FilterOperator.GTE //
+        );
 
         private RowNumberFilter() {
             // hidden
         }
 
-        private static boolean isFilterOnRowNumbers(final RowFilter3NodeSettings settings) {
-            return SpecialColumns.ROW_NUMBERS.getId().equals(settings.m_column.getSelected());
-        }
-
-        private static boolean isTailFilter(final RowFilter3NodeSettings settings) {
-            return isFilterOnRowNumbers(settings) && settings.m_operator == FilterOperator.LAST_N_ROWS;
-        }
-
-        static BufferedDataTable filterTable(final ExecutionContext exec, final BufferedDataTable in,
+        static BufferedDataTable sliceTable(final ExecutionContext exec, final BufferedDataTable in,
             final RowFilter3NodeSettings settings) throws CanceledExecutionException {
-            final long tableSize = in.size();
-            final var includeRanges = computeIncludedRanges(settings, tableSize);
+            final var includeRanges = computeIncludedRanges(settings);
             if (includeRanges.isEmpty()) {
                 // nothing is selected
                 return exec.createVoidTable(in.getSpec());
             }
 
             // if our contained ranges span the whole table, we don't need to slice it
+            final long tableSize = in.size();
             if (allRowsSelected(includeRanges, tableSize)) {
                 return in;
             }
@@ -194,26 +233,36 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             final var ranges = includeRanges.asRanges();
             if (ranges.size() == 1) {
                 final var range = ranges.iterator().next();
-                return InternalTableAPI.slice(exec, in, applyRowRange(columnSelection, range));
+                return InternalTableAPI.slice(exec, in, applyRowRange(columnSelection, range, tableSize));
             }
-
             return exec.createConcatenateTable(exec,
-                ranges.stream().map(range -> InternalTableAPI.slice(exec, in, applyRowRange(columnSelection, range)))
+                ranges.stream()
+                    .map(range -> InternalTableAPI.slice(exec, in, applyRowRange(columnSelection, range, tableSize)))
                     .toArray(BufferedDataTable[]::new));
         }
 
-        private static RangeSet<Long> computeIncludedRanges(final RowFilter3NodeSettings settings,
-            final long tableSize) {
+        private static RangeSet<Long> computeIncludedRanges(final RowFilter3NodeSettings settings) {
             final var operator = settings.m_operator;
-            final var bounds = settings.m_anchors.m_rowNumbers;
-            return RowNumberFilter.computeRanges(operator, settings.m_outputMode, tableSize, bounds);
+            final var value = Long.parseLong(settings.m_value);
+            return RowNumberFilter.computeRanges(operator, settings.m_outputMode, value);
         }
 
-        private static Selection applyRowRange(final Selection selection, final Range<Long> range) {
+        private static Selection applyRowRange(final Selection selection, final Range<Long> range,
+            final long tableSize) {
             // we need lower inclusive
-            final var lower = range.lowerEndpoint() + (range.lowerBoundType() == BoundType.OPEN ? 1 : 0);
+            final long lower;
+            if (range.hasLowerBound()) {
+                lower = range.lowerEndpoint() + (range.lowerBoundType() == BoundType.OPEN ? 1 : 0);
+            } else {
+                lower = 0;
+            }
             // ... but upper exclusive
-            final var upper = range.upperEndpoint() + (range.upperBoundType() == BoundType.CLOSED ? 1 : 0);
+            final long upper;
+            if (range.hasUpperBound()) {
+                upper = range.upperEndpoint() + (range.upperBoundType() == BoundType.CLOSED ? 1 : 0);
+            } else {
+                upper = tableSize;
+            }
             return selection.retainRows(lower, upper);
         }
 
@@ -228,17 +277,32 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                 "Cannot use operator \"%s\" on row numbers.", op.m_label);
         }
 
+        private static long parseInputAsRowNumber(final RowFilter3NodeSettings settings)
+            throws InvalidSettingsException {
+            final var value = settings.m_value;
+            final var type = settings.m_type;
+            final var rowNumberName = LongCell.TYPE.getCellClass().getName();
+            if (!rowNumberName.equals(type)) {
+                throw new InvalidSettingsException(
+                    "Unexpected row number value input \"%s\" of type \"%s\"".formatted(value, type));
+            }
+            try {
+                return Long.parseLong(value);
+            } catch (NumberFormatException e) {
+                throw new InvalidSettingsException("Cannot interpret value \"%s\" as row number.".formatted(value), e);
+            }
+        }
+
         /**
          * Computes a range set given the current settings and input table.
          *
          * @param operator
          * @param outputMode
-         * @param size
          * @param rowNumbers
          * @return range set derived from settings, or empty range set if the whole input table is covered
          */
         private static RangeSet<Long> computeRanges(final FilterOperator operator, final OutputMode outputMode,
-            final long size, final RowNumbersAnchor rowNumbers) {
+            final long rowNumberBound) {
             // canonicalize operator to inclusive form if it makes sense (i.e. their ranges/filters are the same)
             final var exclude = outputMode == OutputMode.EXCLUDE;
             var canonicalOperator = canonicalize(operator, exclude);
@@ -247,16 +311,8 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             // - RowRangeSelection works with [from,to) intervals.
             // - We always use right-open ranges (`closedOpen` or `open`) to ensure adjacent ranges coalesce
             //   automatically.
-            final var k = rowNumbers.m_noOfRows;
             final RangeSet<Long> rangeSet = switch (canonicalOperator) { // NOSONAR
-                case EQ, NEQ, LT, LTE, GT, GTE -> computeSingleValueRange(canonicalOperator, rowNumbers.m_rowNumber - 1,
-                    size);
-                case BETWEEN -> computeRangeBetween(rowNumbers.m_bounds.rangeClosed(rowNumber -> rowNumber - 1), size,
-                    exclude);
-                case FIRST_N_ROWS -> exclude ? ImmutableRangeSet.of(Range.closedOpen(k, size)) // [N, size)
-                    : ImmutableRangeSet.of(Range.closedOpen(0L, k)); // [0, N)
-                case LAST_N_ROWS -> exclude ? ImmutableRangeSet.of(Range.closedOpen(0L, size - k)) // [0, size - N]
-                    : ImmutableRangeSet.of(Range.closedOpen(size - k, size)); // [size - N, size)
+                case EQ, NEQ, LT, LTE, GT, GTE -> computeSingleValueRange(canonicalOperator, rowNumberBound - 1);
                 default -> throw new IllegalArgumentException(
                     "Unsupported table filter operator: " + canonicalOperator);
             };
@@ -278,35 +334,19 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             };
         }
 
-        private static RangeSet<Long> computeSingleValueRange(final FilterOperator operator, final long v,
-            final long size) {
+        private static RangeSet<Long> computeSingleValueRange(final FilterOperator operator, final long v) {
             return switch (operator) {
                 case EQ -> ImmutableRangeSet.of(Range.closedOpen(v, v + 1)); // [v, v]
-                case NEQ -> ImmutableRangeSet.<Long> builder().add(Range.closedOpen(0L, v)).add(Range.open(v, size))
-                    .build(); // [0, v), (v, size)
-                case LT -> ImmutableRangeSet.of(Range.closedOpen(0L, v)); // [0, v)
-                case LTE -> ImmutableRangeSet.of(Range.closedOpen(0L, v + 1)); // [0, v]
-                case GT -> ImmutableRangeSet.of(Range.open(v, size)); // (v, size)
-                case GTE -> ImmutableRangeSet.of(Range.closedOpen(v, size)); // [v, size)
+
+                case NEQ -> ImmutableRangeSet.of(Range.singleton(v)).complement();
+                //                ImmutableRangeSet.<Long> builder().add(Range.lessThan(v)).add(Range.greaterThan(v))
+                //                    .build(); // [0, v), (v, size)
+                case LT -> ImmutableRangeSet.of(Range.lessThan(v)); // [0, v)
+                case LTE -> ImmutableRangeSet.of(Range.atMost(v)); // [0, v]
+                case GT -> ImmutableRangeSet.of(Range.greaterThan(v)); // (v, size)
+                case GTE -> ImmutableRangeSet.of(Range.atLeast(v)); // [v, size)
                 default -> throw new IllegalArgumentException("Unsupported table filter operator: " + operator);
             };
-        }
-
-        private static RangeSet<Long> computeRangeBetween(final Range<Long> betweenIncl, final long size,
-            final boolean exclude) {
-            final var lowerIncl = betweenIncl.lowerEndpoint();
-            final var upperIncl = betweenIncl.upperEndpoint();
-            if (!exclude) {
-                return ImmutableRangeSet.of(Range.closedOpen(lowerIncl, upperIncl + 1));
-            }
-            final var builder = ImmutableRangeSet.<Long> builder();
-            if (lowerIncl > 0) {
-                builder.add(Range.closedOpen(0L, lowerIncl));
-            }
-            if (upperIncl < size - 1) {
-                builder.add(Range.open(upperIncl, size));
-            }
-            return builder.build();
         }
 
     }
@@ -343,6 +383,22 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
     /* === STREAMING Implementation */
 
     @Override
+    public InputPortRole[] getInputPortRoles() {
+        final var settings = getSettings().orElseThrow(() -> new IllegalStateException("Node is not yet configured."));
+        if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
+            // Note: if we ever add the option to select the last n rows, we need to add the case for
+            //       NONDISTRIBUTED_NONSTREAMABLE.
+            return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
+        }
+        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
+    }
+
+    @Override
+    public OutputPortRole[] getOutputPortRoles() {
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+    }
+
+    @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         return new RowFilterOperator();
@@ -360,13 +416,27 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             throws Exception {
             final var optSettings = getSettings();
             if (optSettings.isEmpty()) {
-                return;
+                throw new IllegalStateException("Node has not been configured yet.");
             }
             final var settings = optSettings.get();
-            final RowInput input = (RowInput)inputs[0];
+            final var in = inputs[0];
             final RowOutput output = (RowOutput)outputs[0];
+            if (in instanceof PortObjectInput nonStreamable) {
+                final var po = nonStreamable.getPortObject();
+                if (po instanceof BufferedDataTable table) {
+                    final var result = execute(new BufferedDataTable[]{table}, exec, settings)[0];
+                    try (final var iter = result.iterator()) {
+                        // TODO
+                    }
+                } else {
+                    throw new IllegalStateException(
+                        "Unexpected port object \"%s\" in non-streamable port object input".formatted(po));
+                }
+            }
+
+            final RowInput input = (RowInput)inputs[0];
             try {
-                if (RowNumberFilter.isFilterOnRowNumbers(settings)) {
+                if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
                     filterRange(exec, input, output, settings);
                 } else {
                     filterOnPredicate(exec, input, output, settings);
@@ -380,7 +450,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         private static void filterOnPredicate(final ExecutionContext exec, final RowInput input, final RowOutput output,
             final RowFilter3NodeSettings settings) throws CanceledExecutionException, InvalidSettingsException {
             final var inSpec = input.getDataTableSpec();
-            final var rowPredicate = DataValuePredicate.forSettings(exec, settings, inSpec);
+            final var rowPredicate = RowReadPredicate.createFrom(exec, settings, inSpec);
             final var includeMatches = settings.includeMatches();
 
             final var rowRead = new DataRowAdapter();
@@ -400,7 +470,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
 
         private static void filterRange(final ExecutionContext exec, final RowInput input, final RowOutput output,
             final RowFilter3NodeSettings settings) throws CanceledExecutionException {
-            final var includeRanges = RowNumberFilter.computeIncludedRanges(settings, Long.MAX_VALUE);
+            final var includeRanges = RowNumberFilter.computeIncludedRanges(settings);
 
             if (includeRanges.isEmpty()) {
                 // nothing selected
@@ -450,25 +520,6 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                 return m_row.getKey();
             }
         }
-
-    }
-
-    @Override
-    public InputPortRole[] getInputPortRoles() {
-        final var settings = getSettings().orElseThrow(() -> new IllegalStateException("Node is not yet configured."));
-        if (RowNumberFilter.isFilterOnRowNumbers(settings)) {
-            if (RowNumberFilter.isTailFilter(settings)) {
-                // in case we need the last n rows, we need the whole table
-                return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_NONSTREAMABLE};
-            }
-            return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
-        }
-        return new InputPortRole[]{InputPortRole.DISTRIBUTED_STREAMABLE};
-    }
-
-    @Override
-    public OutputPortRole[] getOutputPortRoles() {
-        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
     }
 
 }
