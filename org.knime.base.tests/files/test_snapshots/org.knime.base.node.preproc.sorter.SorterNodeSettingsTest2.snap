@@ -96,7 +96,7 @@
                     "title" : "Lexicographic"
                   } ],
                   "title" : "String comparison",
-                  "description" : "Specifies which type of sorting to apply to the strings:\n<ul>\n<li><b>Natural</b>: Sorts strings by treating the numberic parts of a string as one character. For example, results in sort order “'Row1', 'Row2', 'Row10'”.</li>\n<li><b>Lexicographic</b>: Sorts strings so that each digit is treated as a separated character. For example, results in sort order “'Row1', 'Row10', 'Row2'”.</li>\n</ul>",
+                  "description" : "Specifies which type of sorting to apply to the strings:\n<ul>\n<li><b>Natural</b>: Sorts strings by treating the numeric parts of a string as one character. For example, results in sort order “'Row1', 'Row2', 'Row10'”.</li>\n<li><b>Lexicographic</b>: Sorts strings so that each digit is treated as a separated character. For example, results in sort order “'Row1', 'Row10', 'Row2'”.</li>\n</ul>",
                   "default" : "NATURAL"
                 }
               },
