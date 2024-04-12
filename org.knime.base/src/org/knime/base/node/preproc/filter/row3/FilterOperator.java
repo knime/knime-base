@@ -81,6 +81,11 @@ enum FilterOperator {
         @Label("≥") // RowIndex/Number, Long, Double
         GTE("≥", Set.of(new IsOrdNumeric()), Arity.BINARY), //
 
+        @Label("First n rows") // RowIndex/Number
+        FIRST_N_ROWS("First n rows", Set.of(new IsRowNumber()), Arity.BINARY), //
+        @Label("Last n rows") // RowIndex/Number
+        LAST_N_ROWS("Last n rows", Set.of(new IsRowNumber()), Arity.BINARY), //
+
         @Label("matches regex") // RowID, String
         REGEX("matches regex", Set.of(new IsPatternMatchable()), Arity.BINARY), //
         @Label("matches wildcard") // RowID, String

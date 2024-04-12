@@ -145,6 +145,22 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     //@ValueReference(DataTypeCellClassNameProvider.class)
     public String m_type = StringCell.TYPE.getCellClass().getName();
 
+    enum FilterMode {
+            @Label("Include matches")
+            INCLUDE, //
+            @Label("Exclude matches")
+            EXCLUDE
+    }
+
+    @Widget(title = "Filter behavior", description = "TODO", hideTitle = true)
+    @ValueSwitchWidget
+    @Layout(DialogSections.Output.class)
+    FilterMode m_outputMode = FilterMode.INCLUDE;
+
+    boolean includeMatches() {
+        return m_outputMode == FilterMode.INCLUDE;
+    }
+
 
     // constructor needed for de-/serialisation
     RowFilter3NodeSettings() {
@@ -361,25 +377,14 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
         return SpecialColumns.ROW_NUMBERS.getId().equals(settings.m_column.getSelected());
     }
 
-    enum OutputMode {
-            @Label("Include matches")
-            INCLUDE, //
-            @Label("Exclude matches")
-            EXCLUDE
+    static boolean isLastNFilter(final RowFilter3NodeSettings settings) {
+        return settings.m_operator == FilterOperator.LAST_N_ROWS;
     }
 
-    @Widget(title = "Filter behavior", description = "TODO")
-    @ValueSwitchWidget
-    @Layout(DialogSections.Output.class)
-    OutputMode m_outputMode = OutputMode.INCLUDE;
-
-    boolean includeMatches() {
-        return m_outputMode == OutputMode.INCLUDE;
-    }
     // SECTIONS
 
     interface DialogSections {
-        @Section(title = "Filter criteria")
+        @Section(title = "Filter")
         interface Filter {
             interface Condition {
                 @HorizontalLayout
@@ -398,7 +403,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
             }
         }
 
-        @Section(title = "Output")
+        @Section(title = "Filter behavior")
         @After(DialogSections.Filter.class)
         interface Output {
         }

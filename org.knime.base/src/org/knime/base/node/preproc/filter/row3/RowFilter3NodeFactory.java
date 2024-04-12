@@ -48,8 +48,23 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
+import java.io.IOException;
+import java.util.Optional;
+
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Node factory for the Row Filter 2 (Labs) node.
@@ -57,10 +72,17 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // Web UI not API yet
-public final class RowFilter3NodeFactory extends WebUINodeFactory<RowFilter3NodeModel> {
+public final class RowFilter3NodeFactory extends ConfigurableNodeFactory<RowFilter3NodeModel>
+    implements NodeDialogFactory {
+
+    private static final String INPUT = "Input table";
+
+    private static final String MATCHES = "Included rows";
+
+    private static final String NON_MATCHES = "Excluded rows";
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
-        .name("Row Filter 2 (Labs)") // TODO name change?
+        .name("Row Filter 2 (Labs)") //
         .icon("./rowfilter.png") //
         .shortDescription(
             "Allows filtering of data rows by certain criteria, such as RowID, attribute value, and row number range.")
@@ -72,32 +94,58 @@ public final class RowFilter3NodeFactory extends WebUINodeFactory<RowFilter3Node
                 filtered out.
                 """) //
         .modelSettingsClass(RowFilter3NodeSettings.class) //
-        .addInputTable("Input table", "Data table from which to filter rows") //
-        .addOutputTable("Filtered table", "Data table with rows meeting the specified criteria") //
+        .addInputTable(INPUT, "Data table from which to filter rows") //
+        .addOutputTable(MATCHES, "Data table with rows meeting the specified criterion") //
+        .addOutputTable(NON_MATCHES, "Data table with rows not meeting the specified criterion", true) //
         .nodeType(NodeType.Manipulator) //
         .keywords("Row", "Filter", "Rowfilter", "Condition", "Predicate", "where") //
         .sinceVersion(5, 3, 0) //
         .build();
 
-    /**
-     * Create a new factory instance with the provided configuration
-     *
-     * @param configuration
-     */
-    protected RowFilter3NodeFactory(final WebUINodeConfiguration configuration) {
-        super(configuration);
-    }
 
-    /**
-     * Create a new factory instance
-     */
-    public RowFilter3NodeFactory() {
-        this(CONFIG);
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        return WebUINodeFactory.createNodeDescription(CONFIG);
     }
 
     @Override
-    public RowFilter3NodeModel createNodeModel() {
-        return new RowFilter3NodeModel(CONFIG);
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, RowFilter3NodeSettings.class);
+    }
+
+    @Override
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final var b = new PortsConfigurationBuilder();
+        b.addFixedInputPortGroup(INPUT, BufferedDataTable.TYPE);
+        b.addFixedOutputPortGroup(MATCHES, BufferedDataTable.TYPE);
+        b.addOptionalOutputPortGroup(NON_MATCHES, BufferedDataTable.TYPE);
+        return Optional.of(b);
+    }
+
+    @Override
+    protected RowFilter3NodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        final var portsConfig = creationConfig.getPortConfig().orElseThrow();
+        return new RowFilter3NodeModel(portsConfig.getInputPorts(), portsConfig.getOutputPorts());
+    }
+
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return null;
+    }
+
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    @Override
+    public NodeView<RowFilter3NodeModel> createNodeView(final int viewIndex, final RowFilter3NodeModel nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
     }
 
 }
