@@ -339,6 +339,13 @@ final class DuplicateRowFilterSettings {
             // Added in 5.0
             m_updateDomains.validateSettings(settings);
         }
+        final var keepDuplicates = !settings.getBoolean(REMOVE_DUPLICATE_ROWS_KEY);
+        final var addRowStatusColumn = settings.getBoolean(ADD_ROW_DUPLICATE_FLAG_KEY);
+        final var addChosenRowIDColumn = settings.getBoolean(ADD_ROW_ID_FLAG_KEY);
+        if (keepDuplicates && !addRowStatusColumn && !addChosenRowIDColumn) {
+            throw new InvalidSettingsException(
+                "'Keep duplicate rows' requires that at least one of the two 'Add column...' options is checked.");
+        }
     }
 
 }

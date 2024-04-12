@@ -333,8 +333,10 @@ final class DuplicateRowFilterNodeModel extends NodeModel {
             return new DefaultRow(curRow.getKey(), label, referenceKey);
         } else if (m_settings.addUniqueLabel()) {
             return new DefaultRow(curRow.getKey(), label);
-        } else {
+        } else if (m_settings.addRowLabel()) {
             return new DefaultRow(curRow.getKey(), referenceKey);
+        } else {
+            return new DefaultRow(curRow.getKey(), new DataCell[0]); // NOSONAR: false positive, else ambiguous call
         }
     }
 
