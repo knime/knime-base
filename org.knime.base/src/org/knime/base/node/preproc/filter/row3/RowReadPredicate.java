@@ -59,6 +59,7 @@ import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.knime.base.node.preproc.filter.row3.FilterOperator.Arity;
 import org.knime.base.node.preproc.stringreplacer.CaseMatching;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
@@ -121,11 +122,18 @@ final class RowReadPredicate implements Predicate<RowRead> {
 
         final var columnName = settings.m_column.getSelected();
         final var columnSpec =
-            CheckUtils.checkNotNull(spec.getColumnSpec(columnName), "Unknown column \"%s\"", columnName);
+            CheckUtils.checkNotNull(spec.getColumnSpec(columnName), "Unknown column \"%s\".", columnName);
         final var columnType = columnSpec.getType();
         final var columnIndex = spec.findColumnIndex(columnName);
 
-        new FormatValidator().fromDataType(settings, columnIndex, columnType, InvalidSettingsException::new);
+        if (operator.m_arity == Arity.BINARY) {
+            CheckUtils.checkSetting(StringUtils.isNotEmpty(settings.m_value), "The comparison value is missing.");
+            new FormatValidator().fromDataType(settings, columnIndex, columnType, InvalidSettingsException::new);
+        } else {
+            // check that our cleaning hook correctly cleaned any formerly input value
+            CheckUtils.checkSetting(StringUtils.isEmpty(settings.m_value), "Unexpected comparison value \"%s\".",
+                settings.m_value);
+        }
     }
 
     static Predicate<RowRead> createFrom(final ExecutionContext exec, final RowFilter3NodeSettings settings,

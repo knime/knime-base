@@ -127,7 +127,10 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
 
         if (RowFilter3NodeSettings.isFilterOnRowNumbers(settings)) {
             RowNumberFilter.validateRowNumberOperatorSupported(settings);
-            RowNumberFilter.parseInputAsRowNumber(settings);
+            // check if we have number of rows instead of row number
+            final var isNumberOfRows =
+                FilterOperator.FIRST_N_ROWS == settings.m_operator || FilterOperator.LAST_N_ROWS == settings.m_operator;
+            RowNumberFilter.parseInputAsRowNumber(settings, isNumberOfRows);
         } else {
             RowReadPredicate.validateSettings(settings, spec);
         }
@@ -259,10 +262,22 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         }
 
         private static RangeSet<Long> computeIncludedRanges(final RowFilter3NodeSettings settings,
-            final long tableSize) {
+            final long optionalTableSize) {
             final var operator = settings.m_operator;
             final var value = Long.parseLong(settings.m_value);
-            return RowNumberFilter.computeRanges(operator, settings.m_outputMode, value, tableSize);
+            final var ranges = RowNumberFilter.computeRanges(operator, settings.m_outputMode, value, optionalTableSize);
+            if (optionalTableSize == RowNumberFilter.UNKNOWN_SIZE) {
+                return ranges;
+            }
+            // clamp ranges to actual table size if possible
+            final var builder = new ImmutableRangeSet.Builder<Long>();
+            final var tableRange = Range.closedOpen(0L, optionalTableSize);
+            ranges.asRanges().stream() //
+                // supply empty range if unconnected, otherwise clamp dimensions
+                .map(range -> range.isConnected(tableRange) ? range.intersection(tableRange) : null)
+                .filter(r -> r != null)
+                .forEach(builder::add);
+            return builder.build();
         }
 
         private static Selection applyRowRange(final Selection selection, final Range<Long> range,
@@ -277,7 +292,9 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             // ... but upper exclusive
             final long upper;
             if (range.hasUpperBound()) {
-                upper = range.upperEndpoint() + (range.upperBoundType() == BoundType.CLOSED ? 1 : 0);
+                final var upperEndpoint = range.upperEndpoint() + (range.upperBoundType() == BoundType.CLOSED ? 1 : 0);
+                // clamp value with table size since otherwise, the row backend does not like it
+                upper = Math.min(upperEndpoint, tableSize);
             } else {
                 upper = tableSize;
             }
@@ -295,7 +312,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                 "Cannot use operator \"%s\" on row numbers.", op.m_label);
         }
 
-        private static long parseInputAsRowNumber(final RowFilter3NodeSettings settings)
+        private static long parseInputAsRowNumber(final RowFilter3NodeSettings settings, final boolean isNumberOfRows)
             throws InvalidSettingsException {
             final var value = settings.m_value;
             final var type = settings.m_type;
@@ -305,7 +322,13 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                     "Unexpected row number value input \"%s\" of type \"%s\"".formatted(value, type));
             }
             try {
-                return Long.parseLong(value);
+                final var rowNumber = Long.parseLong(value);
+                if (!isNumberOfRows) {
+                    CheckUtils.checkSetting(rowNumber > 0, "Row number must be larger than zero: %d", rowNumber);
+                } else {
+                    CheckUtils.checkSetting(rowNumber >= 0, "Number of rows must not be negative: %d", rowNumber);
+                }
+                return rowNumber;
             } catch (NumberFormatException e) {
                 throw new InvalidSettingsException("Cannot interpret value \"%s\" as row number.".formatted(value), e);
             }
