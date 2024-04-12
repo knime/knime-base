@@ -52,7 +52,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.knime.base.node.preproc.filter.row3.FilterOperator.Arity;
 import org.knime.base.node.preproc.stringreplacer.CaseMatching;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -99,7 +98,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 @SuppressWarnings("restriction") // webui
 final class RowFilter3NodeSettings implements DefaultNodeSettings {
 
-    @Widget(title = "Filter column", description = "Choose the column in which to filter for values")
+    @Widget(title = "Filter column", description = "The column on which to apply the filter")
     @ChoicesWidget(showRowKeysColumn = true, showRowNumbersColumn = true, choices = AllColumnChoicesProvider.class)
     @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.Column.class)
     // signals for specially supported data types
@@ -113,7 +112,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     static final class SelectedColumnRef implements Reference<ColumnSelection> {
     }
 
-    @Widget(title = "Operator", description = "TODO")
+    @Widget(title = "Operator", description = "The operator defining the filter criterion.")
     @Signal(condition = IsUnaryOperator.class)
     @Signal(condition = IsBinaryOperator.class)
     @Signal(condition = IsPatternOperator.class)
@@ -122,7 +121,8 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     @ChoicesWidget(choicesProvider = TypeBasedOperatorChoices.class)
     FilterOperator m_operator = FilterOperator.EQ;
 
-    @Widget(title = "Case matching", description = "TODO")
+    @Widget(title = "Case matching",
+        description = "Whether RowIDs and strings should be matched case-sensitive or case-insensitive.")
     @ValueSwitchWidget
     @Effect(signals = {IsStringColumn.class, IsUnaryOperator.class}, operation = AllButTheLast.class,
         type = EffectType.SHOW)
@@ -133,7 +133,9 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
         return m_caseMatching == CaseMatching.CASESENSITIVE;
     }
 
-    @Widget(title = "Value", description = "TODO")
+    @Widget(title = "Value",
+        description = "The value for the filter criterion in a format suitable for the selected filter column "
+            + "data type.")
     @Layout(RowFilter3NodeSettings.DialogSections.Filter.Condition.ValueInput.class)
     @Effect(signals = IsBinaryOperator.class, type = EffectType.SHOW)
     @ValueProvider(ValueFieldCleaning.class)
@@ -152,7 +154,11 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
             EXCLUDE
     }
 
-    @Widget(title = "Filter behavior", description = "TODO", hideTitle = true)
+    @Widget(title = "Filter behavior",
+        description = "Determines whether a row that matches the filter criterion is included or excluded. "
+            + "Included rows are output in the first output table. If a second output table is configured, "
+            + "non-matching rows are output there.",
+        hideTitle = true)
     @ValueSwitchWidget
     @Layout(DialogSections.Output.class)
     FilterMode m_outputMode = FilterMode.INCLUDE;
@@ -160,7 +166,6 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     boolean includeMatches() {
         return m_outputMode == FilterMode.INCLUDE;
     }
-
 
     // constructor needed for de-/serialisation
     RowFilter3NodeSettings() {
@@ -224,8 +229,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public IdAndText[] computeState(final DefaultNodeSettingsContext context)
-            throws WidgetHandlerException {
+        public IdAndText[] computeState(final DefaultNodeSettingsContext context) throws WidgetHandlerException {
             final var column = m_columnSelection.get().getSelected();
             if (column == null) {
                 return EMPTY;
@@ -264,10 +268,8 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     }
 
     /**
-     * A state provider for the value field. Clears the value field if:
-     * <ul>
-     * <li>The operator is unary, i.e. does not require that field.1
-     * </ul>
+     * A state provider for the value field. Clears the value field if the operator is unary, i.e. does not require that
+     * field.
      */
     private static final class ValueFieldCleaning implements StateProvider<String>, Reference<String> {
 
@@ -285,7 +287,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
         @Override
         public String computeState(final DefaultNodeSettingsContext context) {
             final var operator = m_operator.get();
-            if (operator == null || operator.m_arity == Arity.UNARY) {
+            if (operator == null || !operator.m_isBinary) {
                 return "";
             }
             return m_currentValue.get();
@@ -320,16 +322,14 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     static final class IsUnaryOperator extends OneOfEnumCondition<FilterOperator> {
         @Override
         public FilterOperator[] oneOf() {
-            return Arrays.stream(FilterOperator.values()).filter(op -> op.m_arity == Arity.UNARY)
-                .toArray(FilterOperator[]::new);
+            return Arrays.stream(FilterOperator.values()).filter(op -> !op.m_isBinary).toArray(FilterOperator[]::new);
         }
     }
 
     static final class IsBinaryOperator extends OneOfEnumCondition<FilterOperator> {
         @Override
         public FilterOperator[] oneOf() {
-            return Arrays.stream(FilterOperator.values()).filter(op -> op.m_arity == Arity.BINARY)
-                .toArray(FilterOperator[]::new);
+            return Arrays.stream(FilterOperator.values()).filter(op -> op.m_isBinary).toArray(FilterOperator[]::new);
         }
     }
 
@@ -352,18 +352,16 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static final class AllButTheLast extends And {
         public AllButTheLast(final Expression... expressions) {
-            super(swapLast(expressions));
+            super(negateLast(expressions));
         }
 
-        private static Expression[] swapLast(final Expression[] expressions) {
+        private static Expression[] negateLast(final Expression[] expressions) {
             if (expressions == null || expressions.length == 0) {
                 throw new IllegalArgumentException("Operator can only be used on at least one expression");
             }
-            var result = new Expression[expressions.length];
-            System.arraycopy(expressions, 0, result, 0, expressions.length - 1);
+            final var result = Arrays.copyOf(expressions, expressions.length, Expression[].class);
             result[expressions.length - 1] = new Not(expressions[expressions.length - 1]);
             return result;
-
         }
     }
 

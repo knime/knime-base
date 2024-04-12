@@ -48,18 +48,15 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.Locale;
 import java.util.Optional;
 import java.util.function.DoublePredicate;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.knime.base.node.preproc.filter.row3.FilterOperator.Arity;
 import org.knime.base.node.preproc.stringreplacer.CaseMatching;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataCell;
@@ -126,7 +123,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
         final var columnType = columnSpec.getType();
         final var columnIndex = spec.findColumnIndex(columnName);
 
-        if (operator.m_arity == Arity.BINARY) {
+        if (operator.m_isBinary) {
             CheckUtils.checkSetting(StringUtils.isNotEmpty(settings.m_value), "The comparison value is missing.");
             new FormatValidator().fromDataType(settings, columnIndex, columnType, InvalidSettingsException::new);
         } else {
@@ -277,16 +274,9 @@ final class RowReadPredicate implements Predicate<RowRead> {
         @Override
         public Predicate<RowRead> handleString(final int columnIndex, final FilterOperator operator,
             final CaseMatching caseMatching, final String value) throws InvalidSettingsException {
-            return createStringValuePredicate(columnIndex, operator, caseMatching, value);
-        }
-
-        private static Predicate<RowRead> createStringValuePredicate(final int colIdx, final FilterOperator operator,
-            final CaseMatching caseMatching, final String value) {
             final var predicate = new StringPredicate(operator, caseMatching, value);
-            return new RowReadPredicate(colIdx, row -> {
-                final var cellValue = row.getValue(colIdx);
-                return predicate.test(cellValue instanceof StringValue sv ? sv.getStringValue() : cellValue.toString());
-            });
+            return new RowReadPredicate(columnIndex,
+                rowRead -> predicate.test(((StringValue)rowRead.getValue(columnIndex)).getStringValue()));
         }
 
         @Override
@@ -367,13 +357,11 @@ final class RowReadPredicate implements Predicate<RowRead> {
         StringPredicate(final FilterOperator operator, final CaseMatching caseMatching, final String value) {
             CheckUtils.checkArgument(isApplicableFor(operator), "Unsupported operator \"%s\"", operator.label());
 
-            final UnaryOperator<String> normalize = caseMatching == CaseMatching.CASESENSITIVE
-                ? UnaryOperator.identity() : (s -> s.toLowerCase(Locale.ROOT));
             if (operator == FilterOperator.EQ || operator == FilterOperator.NEQ) {
-                final var comparisonValue = normalize.apply(value);
+                final var caseSensitive = caseMatching == CaseMatching.CASESENSITIVE;
                 final var isNegated = operator == FilterOperator.NEQ;
                 m_predicate = cellValue -> {
-                    final var equal = normalize.apply(cellValue).equals(comparisonValue);
+                    final var equal = caseSensitive ? cellValue.equals(value) : cellValue.equalsIgnoreCase(value);
                     return isNegated ? !equal : equal;
                 };
                 return;

@@ -86,22 +86,23 @@ public final class RowFilter3NodeFactory extends ConfigurableNodeFactory<RowFilt
         .icon("./rowfilter.png") //
         .shortDescription(
             "Allows filtering of data rows by certain criteria, such as RowID, attribute value, and row number range.")
-        .fullDescription("""
-                The node allows for row filtering according to certain criteria.
-                It can include or exclude rows by either matching on the row number, the RowID or any cell in the row.
-                Note: The node doesn't change the domain of the data table, i. e. the upper and lower bounds or the
-                possible values in the table spec are not changed, even if one of the bounds or one value is fully
-                filtered out.
-                """) //
+        .fullDescription(
+            """
+            The node allows for row filtering according to certain criteria.
+            It can include or exclude rows by either matching on the row number, the RowID or any cell in the row.
+
+            Note: The node doesn't change the domain of the data table, i. e. the upper and lower bounds or the
+            possible values in the table spec are not changed, even if one of the bounds or one value is fully
+            filtered out.
+            """) //
         .modelSettingsClass(RowFilter3NodeSettings.class) //
         .addInputTable(INPUT, "Data table from which to filter rows") //
         .addOutputTable(MATCHES, "Data table with rows meeting the specified criterion") //
         .addOutputTable(NON_MATCHES, "Data table with rows not meeting the specified criterion", true) //
         .nodeType(NodeType.Manipulator) //
-        .keywords("Row", "Filter", "Rowfilter", "Condition", "Predicate", "where") //
+        .keywords("Condition", "Predicate", "where", "Row Splitter") //
         .sinceVersion(5, 3, 0) //
         .build();
-
 
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {

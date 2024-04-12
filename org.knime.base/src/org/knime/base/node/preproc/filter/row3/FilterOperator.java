@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.Set;
+import java.util.function.BiPredicate;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
@@ -69,88 +69,69 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
 enum FilterOperator {
 
         @Label("=") // RowID, RowIndex/Number, Long, Double, String
-        EQ("=", Set.of(new IsEq()), Arity.BINARY), //
+        EQ("=", new IsEq(), true), //
         @Label("≠") // RowID, RowIndex/Number, Long, Double, String
-        NEQ("≠", Set.of(new IsEq()), Arity.BINARY), //
+        NEQ("≠", new IsEq(), true), //
         @Label("<") // RowIndex/Number, Long, Double
-        LT("<", Set.of(new IsOrdNumeric()), Arity.BINARY), //
+        LT("<", new IsOrdNumeric(), true), //
         @Label("≤") // RowIndex/Number, Long, Double
-        LTE("≤", Set.of(new IsOrdNumeric()), Arity.BINARY), //
+        LTE("≤", new IsOrdNumeric(), true), //
         @Label(">") // RowIndex/Number, Long, Double
-        GT(">", Set.of(new IsOrdNumeric()), Arity.BINARY), //
+        GT(">", new IsOrdNumeric(), true), //
         @Label("≥") // RowIndex/Number, Long, Double
-        GTE("≥", Set.of(new IsOrdNumeric()), Arity.BINARY), //
+        GTE("≥", new IsOrdNumeric(), true), //
 
         @Label("First n rows") // RowIndex/Number
-        FIRST_N_ROWS("First n rows", Set.of(new IsRowNumber()), Arity.BINARY), //
+        FIRST_N_ROWS("First n rows", new IsRowNumber(), true), //
         @Label("Last n rows") // RowIndex/Number
-        LAST_N_ROWS("Last n rows", Set.of(new IsRowNumber()), Arity.BINARY), //
+        LAST_N_ROWS("Last n rows", new IsRowNumber(), true), //
 
-        @Label("matches regex") // RowID, String
-        REGEX("matches regex", Set.of(new IsPatternMatchable()), Arity.BINARY), //
-        @Label("matches wildcard") // RowID, String
-        WILDCARD("matches wildcard", Set.of(new IsPatternMatchable()), Arity.BINARY), //
+        @Label("matches regex")
+        REGEX("matches regex", new IsPatternMatchable(), true), // RowID, String
+        @Label("matches wildcard")
+        WILDCARD("matches wildcard", new IsPatternMatchable(), true), // RowID, String
 
         @Label("is true") // Boolean
-        IS_TRUE("is true", Set.of(new IsTruthy()), Arity.UNARY), //
+        IS_TRUE("is true", new IsTruthy(), false), //
         @Label("is false") // Boolean
-        IS_FALSE("is false", Set.of(new IsTruthy()), Arity.UNARY), //
+        IS_FALSE("is false", new IsTruthy(), false), //
 
         @Label("is missing") // Every ordinary column
-        IS_MISSING("is missing", Set.of(new IsMissing()), Arity.UNARY);
+        IS_MISSING("is missing", new IsMissing(), false);
 
     final String m_label;
 
-    final Set<Capability> m_filters;
+    final BiPredicate<SpecialColumns, DataType> m_capability;
 
-    final Arity m_arity;
+    boolean m_isBinary;
 
-    FilterOperator(final String label, final Set<Capability> filters, final Arity arity) {
+    FilterOperator(final String label, final BiPredicate<SpecialColumns, DataType> capability, final boolean isBinary) {
         m_label = label;
-        m_filters = filters;
-        m_arity = arity;
+        m_capability = capability;
+        m_isBinary = isBinary;
     }
 
     boolean isEnabledFor(final SpecialColumns specialColumn, final DataType dataType) {
-        return m_filters.stream().anyMatch(f -> f.satisfiedBy(specialColumn, dataType));
+        return m_capability.test(specialColumn, dataType);
     }
 
     String label() {
         return m_label;
     }
 
-    /**
-     * Arity of the operator to determine whether to show zero or one input fields.
-     */
-    enum Arity {
-            UNARY, BINARY
-    }
-
-    sealed interface Capability permits IsOrdNumeric, IsEq, IsMissing, IsTruthy, IsPatternMatchable, IsRowNumber {
-        /**
-         * Check if the capability is satisfied by the given special column and column data type.
-         *
-         * @param specialColumn {@code null} in case of a normal column, otherwise {@link SpecialColumns#ROWID} or
-         *            {@link SpecialColumns#ROW_NUMBERS}.
-         * @param dataType non-{@code null} data type
-         * @return whether the capability is satisfied
-         */
-        boolean satisfiedBy(SpecialColumns specialColumn, DataType dataType);
-    }
-
     // order for numeric types
-    static final class IsOrdNumeric implements Capability {
+    static final class IsOrdNumeric implements BiPredicate<SpecialColumns, DataType> {
         @Override
-        public boolean satisfiedBy(final SpecialColumns specialColumn, final DataType dataType) {
+        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             // booleans don't get numeric treatment
             return (dataType.isCompatible(LongValue.class) || dataType.isCompatible(DoubleValue.class))
-                    && dataType != BooleanCell.TYPE;
+                && dataType != BooleanCell.TYPE;
         }
     }
 
-    static final class IsEq implements Capability {
+    static final class IsEq implements BiPredicate<SpecialColumns, DataType> {
         @Override
-        public boolean satisfiedBy(final SpecialColumns specialColumn, final DataType dataType) {
+        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             // string-based filtering can always use equality
             return dataType.isCompatible(StringValue.class)
                 // booleans are handled with "is true" and "is false" operators
@@ -158,31 +139,31 @@ enum FilterOperator {
         }
     }
 
-    static final class IsTruthy implements Capability {
+    static final class IsTruthy implements BiPredicate<SpecialColumns, DataType> {
         @Override
-        public boolean satisfiedBy(final SpecialColumns specialColumn, final DataType dataType) {
+        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             return specialColumn == null && dataType == BooleanCell.TYPE;
         }
     }
 
-    static final class IsMissing implements Capability {
+    static final class IsMissing implements BiPredicate<SpecialColumns, DataType> {
         @Override
-        public boolean satisfiedBy(final SpecialColumns specialColumn, final DataType dataType) {
+        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             // All non-special columns can be checked for missing values
             return specialColumn == null;
         }
     }
 
-    static final class IsPatternMatchable implements Capability {
+    static final class IsPatternMatchable implements BiPredicate<SpecialColumns, DataType> {
         @Override
-        public boolean satisfiedBy(final SpecialColumns specialColumn, final DataType dataType) {
+        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             return dataType.isCompatible(StringValue.class);
         }
     }
 
-    static final class IsRowNumber implements Capability {
+    static final class IsRowNumber implements BiPredicate<SpecialColumns, DataType> {
         @Override
-        public boolean satisfiedBy(final SpecialColumns specialColumn, final DataType dataType) {
+        public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
             return specialColumn == SpecialColumns.ROW_NUMBERS;
         }
     }

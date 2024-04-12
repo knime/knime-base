@@ -290,13 +290,10 @@
     } ],
     "globalUpdates" : [ {
       "trigger" : {
-        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef",
-        "scope" : "#/properties/model/properties/column"
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices",
+        "scope" : "#/properties/model/properties/operator"
       },
       "dependencies" : [ {
-        "scope" : "#/properties/model/properties/column",
-        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef"
-      }, {
         "scope" : "#/properties/model/properties/operator",
         "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices"
       }, {
@@ -305,10 +302,13 @@
       } ]
     }, {
       "trigger" : {
-        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices",
-        "scope" : "#/properties/model/properties/operator"
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef",
+        "scope" : "#/properties/model/properties/column"
       },
       "dependencies" : [ {
+        "scope" : "#/properties/model/properties/column",
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef"
+      }, {
         "scope" : "#/properties/model/properties/operator",
         "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices"
       }, {
