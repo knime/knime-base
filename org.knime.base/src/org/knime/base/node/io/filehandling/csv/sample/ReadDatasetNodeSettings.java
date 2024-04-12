@@ -60,16 +60,19 @@ final class ReadDatasetNodeSettings implements DefaultNodeSettings {
 
     enum Dataset {
             @Label(value = "Worldbank population data", description = """
-                    The 2022 Population Ranking table provided by the World Bank at
+                    The 2022 Population Ranking table as released by the World Bank at
                     <a href="https://datacatalog.worldbank.org/search/dataset/0038126/Population-ranking">
-                    https://datacatalog.worldbank.org/search/dataset/0038126/Population-ranking</a>.
+                    https://datacatalog.worldbank.org/search/dataset/0038126/Population-ranking</a> under the
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
+                    license</a>.
                     """)
             WORLDBANK_POPULATION("POP.table"), //
             @Label(value = "Worldbank countries and regions", description = """
-                    The WDICountry table contained in the 1960-2022 World Development Indicators dataset provided by the
-                    World Bank at
+                    Data taken from the 1960-2022 World Development Indicators dataset as released by the World Bank at
                     <a href="https://datacatalog.worldbank.org/search/dataset/0037712/World-Development-Indicators">
-                    https://datacatalog.worldbank.org/search/dataset/0037712/World-Development-Indicators</a>.
+                    https://datacatalog.worldbank.org/search/dataset/0037712/World-Development-Indicators</a> under the
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
+                    license</a>. The data provided by the node is a copy of the table WDICountry.csv of this dataset.
                     """)
             WORLDBANK_COUNTRIES("WDICountry.table");
 

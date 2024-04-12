@@ -58,13 +58,13 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
 public final class ReadDatasetNodeFactory extends WebUINodeFactory<ReadDatasetNodeModel> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-            .name("Read Dataset")//
+            .name("Example Data Reader")//
             .icon("read-dataset.png")//
-            .shortDescription("Reads sample datasets.")//
-            .fullDescription("Use this node to read data from one of several pre-defined sample datasets.")//
+            .shortDescription("Reads example datasets.")//
+            .fullDescription("Use this node to read data from one of several pre-defined example datasets.")//
             .modelSettingsClass(ReadDatasetNodeSettings.class)//
             .addOutputTable("Output Table", "Data table based on the dataset being read.")//
-            .keywords("Example", "Sample", "Data", "File", "Input")//
+            .keywords("Read", "Sample", "Dataset", "File", "Input")//
             .sinceVersion(5, 3, 0)
             .build();
 
