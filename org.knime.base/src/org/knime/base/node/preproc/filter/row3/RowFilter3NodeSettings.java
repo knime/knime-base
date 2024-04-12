@@ -110,7 +110,7 @@ final class RowFilter3NodeSettings implements DefaultNodeSettings {
     @ValueReference(SelectedColumnRef.class)
     ColumnSelection m_column = SpecialColumns.ROWID.toColumnSelection();
 
-    private static final class SelectedColumnRef implements Reference<ColumnSelection> {
+    static final class SelectedColumnRef implements Reference<ColumnSelection> {
     }
 
     @Widget(title = "Operator", description = "TODO")

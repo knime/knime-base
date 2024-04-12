@@ -49,18 +49,16 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.FilterOperator.ColumnSelectionAndCompareModeDependency;
-import org.knime.base.node.preproc.filter.row3.FilterOperator.CompareMode;
-import org.knime.base.node.preproc.filter.row3.FilterOperator.TypeBasedOperatorChoices;
 import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.IsBinaryOperator;
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.IsNullaryOperator;
-import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.IsNumberOfRowsOperator;
 import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.IsPatternOperator;
 import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.IsUnaryOperator;
+import org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings.TypeBasedOperatorChoices;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -73,6 +71,9 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
  * Tests for FilterOperator choices.
@@ -94,13 +95,13 @@ final class FilterOperatorTest {
 
     @Test
     void testConditions() {
-        assertThat(new IsNullaryOperator().oneOf()).as("The list of nullary operators is what is expected")
+        assertThat(new IsUnaryOperator().oneOf()).as("The list of nullary operators is what is expected")
             .containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.IS_TRUE, //
                 FilterOperator.IS_FALSE //
             );
-        assertThat(new IsUnaryOperator().oneOf()).as("The list of unary operators is what is expected")
+        assertThat(new IsBinaryOperator().oneOf()).as("The list of unary operators is what is expected")
             .containsExactlyInAnyOrder( //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
@@ -113,25 +114,16 @@ final class FilterOperatorTest {
                 FilterOperator.REGEX, //
                 FilterOperator.WILDCARD //
             );
-        assertThat(new IsBinaryOperator().oneOf()).as("The list of binary operators is what is expected")
-            .containsExactlyInAnyOrder( //
-                FilterOperator.BETWEEN //
-            );
         assertThat(new IsPatternOperator().oneOf()).as("The list of binary operators is what is expected")
             .containsExactlyInAnyOrder( //
                 FilterOperator.REGEX, //
                 FilterOperator.WILDCARD //
             );
-        assertThat(new IsNumberOfRowsOperator().oneOf()).as("The list of binary operators is what is expected")
-            .containsExactlyInAnyOrder( //
-                FilterOperator.LAST_N_ROWS, //
-                FilterOperator.FIRST_N_ROWS //
-            );
     }
 
     @Test
     void testOperatorChoices() {
-        assertThat(operatorChoicesFor("String1", StringCell.TYPE, CompareMode.AS_STRING))
+        assertThat(operatorChoicesFor("String1", StringCell.TYPE))
             .as("The list of operators for a string column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.EQ, //
@@ -139,7 +131,7 @@ final class FilterOperatorTest {
                 FilterOperator.REGEX, //
                 FilterOperator.WILDCARD //
             );
-        assertThat(operatorChoicesFor("Int1", IntCell.TYPE, CompareMode.INTEGRAL))
+        assertThat(operatorChoicesFor("Int1", IntCell.TYPE))
             .as("The list of operators for an integer column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.EQ, //
@@ -147,22 +139,21 @@ final class FilterOperatorTest {
                 FilterOperator.GT, //
                 FilterOperator.GTE, //
                 FilterOperator.LT, //
-                FilterOperator.LTE, //
-                FilterOperator.BETWEEN //
+                FilterOperator.LTE //
             );
-        assertThat(operatorChoicesFor("Long1", LongCell.TYPE, CompareMode.INTEGRAL))
+        assertThat(operatorChoicesFor("Long1", LongCell.TYPE))
             .as("The list of operators for int cells is the same as for long cells")
-            .isEqualTo(operatorChoicesFor("Int1", IntCell.TYPE, CompareMode.INTEGRAL));
-        assertThat(operatorChoicesFor("Double1", DoubleCell.TYPE, CompareMode.DECIMAL))
+            .isEqualTo(operatorChoicesFor("Int1", IntCell.TYPE));
+        assertThat(operatorChoicesFor("Double1", DoubleCell.TYPE))
             .as("The list of operators for int cells is the same as for double cells")
-            .isEqualTo(operatorChoicesFor("Int1", IntCell.TYPE, CompareMode.INTEGRAL));
-        assertThat(operatorChoicesFor("Bool1", BooleanCell.TYPE, CompareMode.BOOL))
+            .isEqualTo(operatorChoicesFor("Int1", IntCell.TYPE));
+        assertThat(operatorChoicesFor("Bool1", BooleanCell.TYPE))
             .as("The list of operators for a boolean column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING, //
                 FilterOperator.IS_TRUE, //
                 FilterOperator.IS_FALSE //
             );
-        assertThat(operatorChoicesFor("Unknown Column", DataType.getType(DataType.getMissingCell().getClass()), null))
+        assertThat(operatorChoicesFor("Unknown Column", DataType.getType(DataType.getMissingCell().getClass())))
             .as("The list of operators for an unknown column type is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.IS_MISSING //
             );
@@ -170,7 +161,7 @@ final class FilterOperatorTest {
 
     @Test
     void testOperatorChoicesForSpecialColumns() {
-        assertThat(operatorChoicesFor(SpecialColumns.ROW_NUMBERS, null))
+        assertThat(operatorChoicesFor(SpecialColumns.ROW_NUMBERS))
             .as("The list of operators for the row numbers is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
@@ -178,11 +169,10 @@ final class FilterOperatorTest {
                 FilterOperator.GTE, //
                 FilterOperator.LT, //
                 FilterOperator.LTE, //
-                FilterOperator.BETWEEN, //
                 FilterOperator.LAST_N_ROWS, //
                 FilterOperator.FIRST_N_ROWS //
             );
-        assertThat(operatorChoicesFor(SpecialColumns.ROWID, CompareMode.AS_STRING))
+        assertThat(operatorChoicesFor(SpecialColumns.ROWID))
             .as("The list of operators for the row id column is what is expected").containsExactlyInAnyOrder( //
                 FilterOperator.EQ, //
                 FilterOperator.NEQ, //
@@ -191,20 +181,64 @@ final class FilterOperatorTest {
             );
     }
 
-    static FilterOperator[] operatorChoicesFor(final String col, final DataType type, final CompareMode mode) {
-        return operatorChoicesFor(new ColumnSelection(col, type), mode);
+    static FilterOperator[] operatorChoicesFor(final String col, final DataType type) {
+        return operatorChoicesFor(new ColumnSelection(col, type));
     }
 
-    static FilterOperator[] operatorChoicesFor(final SpecialColumns col, final CompareMode mode) {
-        return operatorChoicesFor(col.toColumnSelection(), mode);
+    static FilterOperator[] operatorChoicesFor(final SpecialColumns col) {
+        return operatorChoicesFor(col.toColumnSelection());
     }
 
-    static FilterOperator[] operatorChoicesFor(final ColumnSelection columnSelection, final CompareMode mode) {
-        var settings = new ColumnSelectionAndCompareModeDependency();
-        settings.m_column = columnSelection;
-        settings.m_compareOn = mode;
+    static FilterOperator[] operatorChoicesFor(final ColumnSelection columnSelection) {
         final var ctx = DefaultNodeSettings.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
-        return Arrays.stream(new TypeBasedOperatorChoices().update(settings, ctx))
-            .map(idAndText -> FilterOperator.valueOf(idAndText.id())).toArray(FilterOperator[]::new);
+        final var choices = new TypeBasedOperatorChoices();
+        choices.init(new StateProvider.StateProviderInitializer() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+                if (ref.equals(RowFilter3NodeSettings.SelectedColumnRef.class)) {
+                    return () -> (T)columnSelection;
+                }
+                throw new IllegalStateException("Unexpected dependency \"%s\"".formatted(ref.getName()));
+
+            }
+
+            @Override
+            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+                fail("Not expected to be called during test.");
+                return null;
+            }
+
+            @Override
+            public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
+                fail("Not expected to be called during test.");
+            }
+
+            @Override
+            public <T> Supplier<T>
+                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
+                fail("Not expected to be called during test.");
+                return null;
+            }
+
+            @Override
+            public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
+                fail("Not expected to be called during test.");
+            }
+
+            @Override
+            public void computeBeforeOpenDialog() {
+                // expected to be called
+            }
+
+            @Override
+            public void computeAfterOpenDialog() {
+                fail("Not expected to be called during test.");
+            }
+
+        });
+        return Arrays.stream(choices.computeState(ctx)).map(idAndText -> FilterOperator.valueOf(idAndText.id()))
+            .toArray(FilterOperator[]::new);
     }
 }

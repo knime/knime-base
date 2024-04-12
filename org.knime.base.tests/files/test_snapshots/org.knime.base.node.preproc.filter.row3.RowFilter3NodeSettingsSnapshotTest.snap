@@ -5,34 +5,10 @@
         "selected" : "BoolCol",
         "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
       },
-      "compareOn" : "TYPE_MAPPING",
       "operator" : "EQ",
       "caseMatching" : "CASESENSITIVE",
-      "anchors" : {
-        "rowNumbers" : {
-          "bounds" : {
-            "lowerBound" : 1,
-            "upperBound" : 1
-          },
-          "rowNumber" : 1,
-          "noOfRows" : 10
-        },
-        "real" : {
-          "bounds" : {
-            "lowerBound" : 0.0,
-            "upperBound" : 0.0
-          },
-          "value" : 0.0
-        },
-        "integer" : {
-          "bounds" : {
-            "lowerBound" : 0,
-            "upperBound" : 0
-          },
-          "value" : 0
-        },
-        "string" : { }
-      },
+      "value" : "",
+      "type" : "org.knime.core.data.def.BooleanCell",
       "outputMode" : "INCLUDE"
     }
   },
@@ -42,190 +18,6 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "anchors" : {
-            "type" : "object",
-            "properties" : {
-              "integer" : {
-                "type" : "object",
-                "properties" : {
-                  "bounds" : {
-                    "type" : "object",
-                    "properties" : {
-                      "lowerBound" : {
-                        "type" : "integer",
-                        "format" : "int64",
-                        "title" : "Lower bound (incl.)",
-                        "description" : "TODO",
-                        "default" : 0
-                      },
-                      "upperBound" : {
-                        "type" : "integer",
-                        "format" : "int64",
-                        "title" : "Upper bound (incl.)",
-                        "description" : "TODO",
-                        "default" : 0
-                      }
-                    },
-                    "default" : {
-                      "lowerBound" : 0,
-                      "upperBound" : 0
-                    }
-                  },
-                  "value" : {
-                    "type" : "integer",
-                    "format" : "int64",
-                    "title" : "Integral value",
-                    "description" : "TODO",
-                    "default" : 0
-                  }
-                },
-                "default" : {
-                  "bounds" : {
-                    "lowerBound" : 0,
-                    "upperBound" : 0
-                  },
-                  "value" : 0
-                }
-              },
-              "real" : {
-                "type" : "object",
-                "properties" : {
-                  "bounds" : {
-                    "type" : "object",
-                    "properties" : {
-                      "lowerBound" : {
-                        "type" : "number",
-                        "format" : "double",
-                        "title" : "Lower bound (incl.)",
-                        "description" : "TODO",
-                        "default" : 0.0
-                      },
-                      "upperBound" : {
-                        "type" : "number",
-                        "format" : "double",
-                        "title" : "Upper bound (incl.)",
-                        "description" : "TODO",
-                        "default" : 0.0
-                      }
-                    },
-                    "default" : {
-                      "lowerBound" : 0.0,
-                      "upperBound" : 0.0
-                    }
-                  },
-                  "value" : {
-                    "type" : "number",
-                    "format" : "double",
-                    "title" : "Double value",
-                    "description" : "TODO",
-                    "default" : 0.0
-                  }
-                },
-                "default" : {
-                  "bounds" : {
-                    "lowerBound" : 0.0,
-                    "upperBound" : 0.0
-                  },
-                  "value" : 0.0
-                }
-              },
-              "rowNumbers" : {
-                "type" : "object",
-                "properties" : {
-                  "bounds" : {
-                    "type" : "object",
-                    "properties" : {
-                      "lowerBound" : {
-                        "type" : "integer",
-                        "format" : "int64",
-                        "title" : "From row number (incl.)",
-                        "description" : "TODO",
-                        "default" : 1,
-                        "minimum" : 1
-                      },
-                      "upperBound" : {
-                        "type" : "integer",
-                        "format" : "int64",
-                        "title" : "To row number (incl.)",
-                        "description" : "TODO",
-                        "default" : 1,
-                        "minimum" : 1
-                      }
-                    },
-                    "default" : {
-                      "lowerBound" : 1,
-                      "upperBound" : 1
-                    }
-                  },
-                  "noOfRows" : {
-                    "type" : "integer",
-                    "format" : "int64",
-                    "title" : "Number of rows",
-                    "description" : "TODO",
-                    "default" : 10,
-                    "minimum" : 0
-                  },
-                  "rowNumber" : {
-                    "type" : "integer",
-                    "format" : "int64",
-                    "title" : "Row number",
-                    "description" : "TODO",
-                    "default" : 1,
-                    "minimum" : 1
-                  }
-                },
-                "default" : {
-                  "bounds" : {
-                    "lowerBound" : 1,
-                    "upperBound" : 1
-                  },
-                  "rowNumber" : 1,
-                  "noOfRows" : 10
-                }
-              },
-              "string" : {
-                "type" : "object",
-                "properties" : {
-                  "pattern" : {
-                    "type" : "string",
-                    "title" : "Pattern",
-                    "description" : "TODO"
-                  },
-                  "value" : {
-                    "type" : "string",
-                    "title" : "String value",
-                    "description" : "TODO"
-                  }
-                },
-                "default" : { }
-              }
-            },
-            "default" : {
-              "rowNumbers" : {
-                "bounds" : {
-                  "lowerBound" : 1,
-                  "upperBound" : 1
-                },
-                "rowNumber" : 1,
-                "noOfRows" : 10
-              },
-              "real" : {
-                "bounds" : {
-                  "lowerBound" : 0.0,
-                  "upperBound" : 0.0
-                },
-                "value" : 0.0
-              },
-              "integer" : {
-                "bounds" : {
-                  "lowerBound" : 0,
-                  "upperBound" : 0
-                },
-                "value" : 0
-              },
-              "string" : { }
-            }
-          },
           "caseMatching" : {
             "oneOf" : [ {
               "const" : "CASESENSITIVE",
@@ -260,27 +52,6 @@
               "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
             }
           },
-          "compareOn" : {
-            "oneOf" : [ {
-              "const" : "TYPE_MAPPING",
-              "title" : "Type mapping"
-            }, {
-              "const" : "AS_STRING",
-              "title" : "As string"
-            }, {
-              "const" : "INTEGRAL",
-              "title" : "Integral"
-            }, {
-              "const" : "DECIMAL",
-              "title" : "Decimal"
-            }, {
-              "const" : "BOOL",
-              "title" : "Bool"
-            } ],
-            "title" : "Compare as",
-            "description" : "TODO",
-            "default" : "TYPE_MAPPING"
-          },
           "operator" : {
             "oneOf" : [ {
               "const" : "EQ",
@@ -301,14 +72,11 @@
               "const" : "GTE",
               "title" : "≥"
             }, {
-              "const" : "BETWEEN",
-              "title" : "is between"
-            }, {
               "const" : "FIRST_N_ROWS",
-              "title" : "first n rows"
+              "title" : "First n rows"
             }, {
               "const" : "LAST_N_ROWS",
-              "title" : "last n rows"
+              "title" : "Last n rows"
             }, {
               "const" : "REGEX",
               "title" : "matches regex"
@@ -340,6 +108,17 @@
             "title" : "Filter behavior",
             "description" : "TODO",
             "default" : "INCLUDE"
+          },
+          "type" : {
+            "type" : "string",
+            "default" : "org.knime.core.data.def.BooleanCell",
+            "configKeys" : [ "type_Internals" ]
+          },
+          "value" : {
+            "type" : "string",
+            "title" : "Value",
+            "description" : "TODO",
+            "default" : ""
           }
         }
       }
@@ -347,7 +126,7 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "label" : "Matching Criterion",
+      "label" : "Filter",
       "type" : "Section",
       "elements" : [ {
         "type" : "HorizontalLayout",
@@ -395,33 +174,6 @@
             "showSearch" : true,
             "showMode" : true
           }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/compareOn",
-          "options" : {
-            "isAdvanced" : true,
-            "choicesUpdateHandler" : "org.knime.base.node.preproc.filter.row3.FilterOperator$TypeBasedCompareModeChoices",
-            "dependencies" : [ "#/properties/model/properties/column" ],
-            "setFirstValueOnUpdate" : true,
-            "format" : "dropDown",
-            "showNoneColumn" : false,
-            "showRowKeys" : false,
-            "showSearch" : true,
-            "showMode" : true
-          },
-          "rule" : {
-            "effect" : "HIDE",
-            "condition" : {
-              "scope" : "#/properties/model/properties/column",
-              "schema" : {
-                "properties" : {
-                  "selected" : {
-                    "const" : "<row-numbers>"
-                  }
-                }
-              }
-            }
-          }
         } ]
       }, {
         "type" : "HorizontalLayout",
@@ -429,9 +181,7 @@
           "type" : "Control",
           "scope" : "#/properties/model/properties/operator",
           "options" : {
-            "choicesUpdateHandler" : "org.knime.base.node.preproc.filter.row3.FilterOperator$TypeBasedOperatorChoices",
-            "dependencies" : [ "#/properties/model/properties/column", "#/properties/model/properties/compareOn" ],
-            "setFirstValueOnUpdate" : true,
+            "choicesProvider" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices",
             "format" : "dropDown",
             "showNoneColumn" : false,
             "showRowKeys" : false,
@@ -449,11 +199,15 @@
             "condition" : {
               "type" : "AND",
               "conditions" : [ {
-                "scope" : "#/properties/model/properties/compareOn",
+                "scope" : "#/properties/model/properties/column",
                 "schema" : {
-                  "oneOf" : [ {
-                    "const" : "AS_STRING"
-                  } ]
+                  "properties" : {
+                    "compatibleTypes" : {
+                      "contains" : {
+                        "const" : "org.knime.core.data.StringValue"
+                      }
+                    }
+                  }
                 }
               }, {
                 "scope" : "#/properties/model/properties/operator",
@@ -476,619 +230,90 @@
         "type" : "HorizontalLayout",
         "elements" : [ {
           "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/rowNumbers/properties/bounds/properties/lowerBound",
+          "scope" : "#/properties/model/properties/value",
           "rule" : {
             "effect" : "SHOW",
             "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "selected" : {
-                      "const" : "<row-numbers>"
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "BETWEEN"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "FIRST_N_ROWS"
-                    }, {
-                      "const" : "LAST_N_ROWS"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/rowNumbers/properties/bounds/properties/upperBound",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "selected" : {
-                      "const" : "<row-numbers>"
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "BETWEEN"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "FIRST_N_ROWS"
-                    }, {
-                      "const" : "LAST_N_ROWS"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/rowNumbers/properties/rowNumber",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "selected" : {
-                      "const" : "<row-numbers>"
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "EQ"
-                  }, {
-                    "const" : "NEQ"
-                  }, {
-                    "const" : "LT"
-                  }, {
-                    "const" : "LTE"
-                  }, {
-                    "const" : "GT"
-                  }, {
-                    "const" : "GTE"
-                  }, {
-                    "const" : "FIRST_N_ROWS"
-                  }, {
-                    "const" : "LAST_N_ROWS"
-                  }, {
-                    "const" : "REGEX"
-                  }, {
-                    "const" : "WILDCARD"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "FIRST_N_ROWS"
-                    }, {
-                      "const" : "LAST_N_ROWS"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/rowNumbers/properties/noOfRows",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "selected" : {
-                      "const" : "<row-numbers>"
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "FIRST_N_ROWS"
-                  }, {
-                    "const" : "LAST_N_ROWS"
-                  } ]
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/real/properties/bounds/properties/lowerBound",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "DECIMAL"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.DoubleValue"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "BETWEEN"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "AS_STRING"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/real/properties/bounds/properties/upperBound",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "DECIMAL"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.DoubleValue"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "BETWEEN"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "AS_STRING"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/real/properties/value",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "DECIMAL"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.DoubleValue"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "EQ"
-                  }, {
-                    "const" : "NEQ"
-                  }, {
-                    "const" : "LT"
-                  }, {
-                    "const" : "LTE"
-                  }, {
-                    "const" : "GT"
-                  }, {
-                    "const" : "GTE"
-                  }, {
-                    "const" : "FIRST_N_ROWS"
-                  }, {
-                    "const" : "LAST_N_ROWS"
-                  }, {
-                    "const" : "REGEX"
-                  }, {
-                    "const" : "WILDCARD"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "AS_STRING"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/integer/properties/bounds/properties/lowerBound",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "INTEGRAL"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.LongValue"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "BETWEEN"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "not" : {
-                    "properties" : {
-                      "selected" : {
-                        "const" : "<row-numbers>"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "AS_STRING"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/integer/properties/bounds/properties/upperBound",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "INTEGRAL"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.LongValue"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "BETWEEN"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "not" : {
-                    "properties" : {
-                      "selected" : {
-                        "const" : "<row-numbers>"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "AS_STRING"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/integer/properties/value",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "INTEGRAL"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "properties" : {
-                    "compatibleTypes" : {
-                      "contains" : {
-                        "const" : "org.knime.core.data.LongValue"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "EQ"
-                  }, {
-                    "const" : "NEQ"
-                  }, {
-                    "const" : "LT"
-                  }, {
-                    "const" : "LTE"
-                  }, {
-                    "const" : "GT"
-                  }, {
-                    "const" : "GTE"
-                  }, {
-                    "const" : "FIRST_N_ROWS"
-                  }, {
-                    "const" : "LAST_N_ROWS"
-                  }, {
-                    "const" : "REGEX"
-                  }, {
-                    "const" : "WILDCARD"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/column",
-                "schema" : {
-                  "not" : {
-                    "properties" : {
-                      "selected" : {
-                        "const" : "<row-numbers>"
-                      }
-                    }
-                  }
-                }
-              }, {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "AS_STRING"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/string/properties/value",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "EQ"
-                  }, {
-                    "const" : "NEQ"
-                  }, {
-                    "const" : "LT"
-                  }, {
-                    "const" : "LTE"
-                  }, {
-                    "const" : "GT"
-                  }, {
-                    "const" : "GTE"
-                  }, {
-                    "const" : "FIRST_N_ROWS"
-                  }, {
-                    "const" : "LAST_N_ROWS"
-                  }, {
-                    "const" : "REGEX"
-                  }, {
-                    "const" : "WILDCARD"
-                  } ]
-                }
-              }, {
-                "type" : "OR",
-                "conditions" : [ {
-                  "scope" : "#/properties/model/properties/compareOn",
-                  "schema" : {
-                    "oneOf" : [ {
-                      "const" : "AS_STRING"
-                    } ]
-                  }
+              "scope" : "#/properties/model/properties/operator",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "EQ"
                 }, {
-                  "scope" : "#/properties/model/properties/compareOn",
-                  "schema" : {
-                    "oneOf" : [ {
-                      "const" : "TYPE_MAPPING"
-                    } ]
-                  }
+                  "const" : "NEQ"
+                }, {
+                  "const" : "LT"
+                }, {
+                  "const" : "LTE"
+                }, {
+                  "const" : "GT"
+                }, {
+                  "const" : "GTE"
+                }, {
+                  "const" : "FIRST_N_ROWS"
+                }, {
+                  "const" : "LAST_N_ROWS"
+                }, {
+                  "const" : "REGEX"
+                }, {
+                  "const" : "WILDCARD"
                 } ]
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "not" : {
-                    "oneOf" : [ {
-                      "const" : "REGEX"
-                    }, {
-                      "const" : "WILDCARD"
-                    } ]
-                  }
-                }
-              } ]
-            }
-          }
-        }, {
-          "type" : "Control",
-          "scope" : "#/properties/model/properties/anchors/properties/string/properties/pattern",
-          "rule" : {
-            "effect" : "SHOW",
-            "condition" : {
-              "type" : "AND",
-              "conditions" : [ {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "EQ"
-                  }, {
-                    "const" : "NEQ"
-                  }, {
-                    "const" : "LT"
-                  }, {
-                    "const" : "LTE"
-                  }, {
-                    "const" : "GT"
-                  }, {
-                    "const" : "GTE"
-                  }, {
-                    "const" : "FIRST_N_ROWS"
-                  }, {
-                    "const" : "LAST_N_ROWS"
-                  }, {
-                    "const" : "REGEX"
-                  }, {
-                    "const" : "WILDCARD"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/compareOn",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "AS_STRING"
-                  } ]
-                }
-              }, {
-                "scope" : "#/properties/model/properties/operator",
-                "schema" : {
-                  "oneOf" : [ {
-                    "const" : "REGEX"
-                  }, {
-                    "const" : "WILDCARD"
-                  } ]
-                }
-              } ]
+              }
             }
           }
         } ]
       } ]
     }, {
-      "label" : "Output",
+      "label" : "Filter behavior",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
         "scope" : "#/properties/model/properties/outputMode",
         "options" : {
           "format" : "valueSwitch"
-        }
+        },
+        "label" : ""
+      } ]
+    } ],
+    "initialUpdates" : [ {
+      "path" : null,
+      "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices",
+      "value" : [ {
+        "id" : "IS_TRUE",
+        "text" : "is true"
+      }, {
+        "id" : "IS_FALSE",
+        "text" : "is false"
+      }, {
+        "id" : "IS_MISSING",
+        "text" : "is missing"
+      } ]
+    } ],
+    "globalUpdates" : [ {
+      "trigger" : {
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef",
+        "scope" : "#/properties/model/properties/column"
+      },
+      "dependencies" : [ {
+        "scope" : "#/properties/model/properties/column",
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef"
+      }, {
+        "scope" : "#/properties/model/properties/operator",
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices"
+      }, {
+        "scope" : "#/properties/model/properties/value",
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$ValueFieldCleaning"
+      } ]
+    }, {
+      "trigger" : {
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices",
+        "scope" : "#/properties/model/properties/operator"
+      },
+      "dependencies" : [ {
+        "scope" : "#/properties/model/properties/operator",
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices"
+      }, {
+        "scope" : "#/properties/model/properties/value",
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$ValueFieldCleaning"
       } ]
     } ]
   }
