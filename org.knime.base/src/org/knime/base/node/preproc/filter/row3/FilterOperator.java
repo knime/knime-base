@@ -55,6 +55,7 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 
@@ -157,7 +158,7 @@ enum FilterOperator {
     static final class IsPatternMatchable implements BiPredicate<SpecialColumns, DataType> {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            return dataType.isCompatible(StringValue.class);
+            return StringCell.TYPE.equals(dataType);
         }
     }
 
