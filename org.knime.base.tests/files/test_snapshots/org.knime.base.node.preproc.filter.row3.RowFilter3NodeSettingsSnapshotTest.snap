@@ -27,7 +27,7 @@
               "title" : "Case insensitive"
             } ],
             "title" : "Case matching",
-            "description" : "TODO",
+            "description" : "Whether RowIDs and strings should be matched case-sensitive or case-insensitive.",
             "default" : "CASESENSITIVE"
           },
           "column" : {
@@ -46,7 +46,7 @@
               }
             },
             "title" : "Filter column",
-            "description" : "Choose the column in which to filter for values",
+            "description" : "The column on which to apply the filter",
             "default" : {
               "selected" : "BoolCol",
               "compatibleTypes" : [ "org.knime.core.data.BooleanValue", "org.knime.core.data.DataValue", "org.knime.core.data.IntValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue", "org.knime.core.data.NominalValue" ]
@@ -94,7 +94,7 @@
               "title" : "is missing"
             } ],
             "title" : "Operator",
-            "description" : "TODO",
+            "description" : "The operator defining the filter criterion.",
             "default" : "EQ"
           },
           "outputMode" : {
@@ -106,7 +106,7 @@
               "title" : "Exclude matches"
             } ],
             "title" : "Filter behavior",
-            "description" : "TODO",
+            "description" : "Determines whether a row that matches the filter criterion is included or excluded. Included rows are output in the first output table. If a second output table is configured, non-matching rows are output there.",
             "default" : "INCLUDE"
           },
           "type" : {
@@ -117,7 +117,7 @@
           "value" : {
             "type" : "string",
             "title" : "Value",
-            "description" : "TODO",
+            "description" : "The value for the filter criterion in a format suitable for the selected filter column data type.",
             "default" : ""
           }
         }
@@ -290,10 +290,13 @@
     } ],
     "globalUpdates" : [ {
       "trigger" : {
-        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices",
-        "scope" : "#/properties/model/properties/operator"
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef",
+        "scope" : "#/properties/model/properties/column"
       },
       "dependencies" : [ {
+        "scope" : "#/properties/model/properties/column",
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef"
+      }, {
         "scope" : "#/properties/model/properties/operator",
         "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices"
       }, {
@@ -302,13 +305,10 @@
       } ]
     }, {
       "trigger" : {
-        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef",
-        "scope" : "#/properties/model/properties/column"
+        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices",
+        "scope" : "#/properties/model/properties/operator"
       },
       "dependencies" : [ {
-        "scope" : "#/properties/model/properties/column",
-        "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$SelectedColumnRef"
-      }, {
         "scope" : "#/properties/model/properties/operator",
         "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices"
       }, {

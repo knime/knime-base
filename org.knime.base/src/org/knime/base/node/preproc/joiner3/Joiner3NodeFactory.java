@@ -69,6 +69,7 @@ import org.xml.sax.SAXException;
  * @since 4.2
  *
  */
+@SuppressWarnings("restriction")
 public class Joiner3NodeFactory extends NodeFactory<Joiner3NodeModel> implements NodeDialogFactory {
 
     static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
