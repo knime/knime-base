@@ -68,7 +68,7 @@ public class CSVTableReaderNodeLayout {
                         there are two default file system options to choose from:
                         <br/>
                         <ul>
-                            <li>The current HUB space: Allows to select a file relative to the Hub space on which the
+                            <li><b>The current Hub space</b>: Allows to select a file relative to the Hub space on which the
                                 workflow is run.</li>
                             <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>
                         </ul>
