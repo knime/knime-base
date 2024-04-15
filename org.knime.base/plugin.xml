@@ -2250,7 +2250,7 @@
             factory-class="org.knime.base.node.preproc.filter.row2.RowFilterNodeFactory">
       </node>
       <node
-            category-path="labs/"
+            category-path="/manipulation/row/row-filter"
             deprecated="false"
             factory-class="org.knime.base.node.preproc.filter.row3.RowFilter3NodeFactory">
       </node>

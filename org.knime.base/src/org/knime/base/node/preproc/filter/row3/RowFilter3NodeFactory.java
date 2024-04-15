@@ -82,7 +82,7 @@ public final class RowFilter3NodeFactory extends ConfigurableNodeFactory<RowFilt
     private static final String NON_MATCHES = "Excluded rows";
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
-        .name("Row Filter 2 (Labs)") //
+        .name("Row Filter") //
         .icon("./rowfilter.png") //
         .shortDescription(
             "Allows filtering of data rows by certain criteria, such as RowID, attribute value, and row number range.")
