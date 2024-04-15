@@ -59,14 +59,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 final class ReadDatasetNodeSettings implements DefaultNodeSettings {
 
     enum Dataset {
-            @Label(value = "Worldbank population data", description = """
-                    The 2022 Population Ranking table as released by the World Bank at
-                    <a href="https://datacatalog.worldbank.org/search/dataset/0038126/Population-ranking">
-                    https://datacatalog.worldbank.org/search/dataset/0038126/Population-ranking</a> under the
-                    <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
-                    license</a>.
-                    """)
-            WORLDBANK_POPULATION("POP.table"), //
             @Label(value = "Worldbank countries and regions", description = """
                     Data taken from the 1960-2022 World Development Indicators dataset as released by the World Bank at
                     <a href="https://datacatalog.worldbank.org/search/dataset/0037712/World-Development-Indicators">
@@ -74,7 +66,15 @@ final class ReadDatasetNodeSettings implements DefaultNodeSettings {
                     <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
                     license</a>. The data provided by the node is a copy of the table WDICountry.csv of this dataset.
                     """)
-            WORLDBANK_COUNTRIES("WDICountry.table");
+            WORLDBANK_COUNTRIES("WDICountry.table"), //
+            @Label(value = "Worldbank population data", description = """
+                    The 2022 Population Ranking table as released by the World Bank at
+                    <a href="https://datacatalog.worldbank.org/search/dataset/0038126/Population-ranking">
+                    https://datacatalog.worldbank.org/search/dataset/0038126/Population-ranking</a> under the
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
+                    license</a>. Note that this dataset is raw and needs to undergo cleaning before use.
+                    """)
+            WORLDBANK_POPULATION("POP.table");
 
         private final String m_path;
 
@@ -88,5 +88,5 @@ final class ReadDatasetNodeSettings implements DefaultNodeSettings {
     }
 
     @Widget(title = "Dataset", description = "Select one of several pre-defined datasets.")
-    Dataset m_dataset = Dataset.WORLDBANK_POPULATION;
+    Dataset m_dataset = Dataset.WORLDBANK_COUNTRIES;
 }
