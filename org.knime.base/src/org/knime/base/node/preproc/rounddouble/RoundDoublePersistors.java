@@ -54,6 +54,7 @@ import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.NumberMod
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.OutputColumn;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.OutputMode;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Advanced;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -105,13 +106,13 @@ final class RoundDoublePersistors {
             try {
                 final var roundingMode = RoundingMode.valueOf(roundingModeString);
                 return switch (roundingMode) {
-                    case CEILING -> RoundingMethod.TO_LARGER;
-                    case DOWN -> RoundingMethod.TOWARDS_ZERO;
-                    case FLOOR -> RoundingMethod.TO_SMALLER;
-                    case HALF_DOWN -> RoundingMethod.HALF_TOWARDS_ZERO;
-                    case HALF_EVEN -> RoundingMethod.HALF_TO_EVEN_DIGIT;
-                    case HALF_UP -> RoundingMethod.HALF_AWAY_FROM_ZERO;
-                    case UP -> RoundingMethod.AWAY_FROM_ZERO;
+                    case CEILING -> new RoundingMethod(Advanced.TO_LARGER);
+                    case DOWN -> new RoundingMethod(Advanced.TOWARDS_ZERO);
+                    case FLOOR -> new RoundingMethod(Advanced.TO_SMALLER);
+                    case HALF_DOWN -> new RoundingMethod(Advanced.HALF_TOWARDS_ZERO);
+                    case HALF_EVEN -> new RoundingMethod(Advanced.HALF_TO_EVEN_DIGIT);
+                    case HALF_UP -> new RoundingMethod();
+                    case UP -> new RoundingMethod(Advanced.AWAY_FROM_ZERO);
                     case UNNECESSARY -> throw new InvalidSettingsException("Will not round unnecessarily");
                 };
             } catch (IllegalArgumentException e) { // Because `RoundingMode.valueOf(...)` might throw it

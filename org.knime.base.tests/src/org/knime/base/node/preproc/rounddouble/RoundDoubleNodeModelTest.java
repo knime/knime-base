@@ -57,6 +57,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.NumberMode;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.OutputColumn;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod;
+import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Advanced;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -154,7 +155,7 @@ final class RoundDoubleNodeModelTest {
         m_settings.m_columnsToFormat =
             new ColumnFilter(new String[]{DOUBLE_COLUMN_NAME, INTEGER_COLUMN_NAME, BOOLEAN_COLUMN_NAME});
         m_settings.m_numberMode = NumberMode.INTEGER;
-        m_settings.m_roundingMethod = RoundingMethod.TO_LARGER;
+        m_settings.m_roundingMethod = new RoundingMethod(Advanced.TO_LARGER);
         m_settings.m_outputColumn = OutputColumn.REPLACE;
 
         final var out = execute(m_inputTable, m_model, m_settings, ctx);

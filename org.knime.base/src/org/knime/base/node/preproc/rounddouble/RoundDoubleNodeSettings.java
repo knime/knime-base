@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.rounddouble;
 import java.math.RoundingMode;
 import java.util.stream.Stream;
 
+import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.RoundingMethod.Standard;
 import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.NumberModePersistor;
 import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.OutputColumnPersistor;
 import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.OutputModePersistor;
@@ -58,6 +59,8 @@ import org.knime.base.node.preproc.rounddouble.RoundDoublePersistors.RoundingMet
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
@@ -110,50 +113,82 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
         }
     }
 
-    enum RoundingMethod { // This will be mapped to 'java.math.RoundingMode'.
-            @Label(value = ".5 to even digit", description = """
-                    Rounds towards the 'nearest neighbor' unless both neighbors are equidistant,
-                    in which case, round towards the even neighbor.
-                    """)
-            HALF_TO_EVEN_DIGIT,
+    static final class RoundingMethod implements WidgetGroup, PersistableSettings {
 
-            @Label(value = ".5 away from zero", description = """
-                    Rounds towards 'nearest neighbor' unless both neighbors are equidistant,
-                    in which case round up.
-                    """)
-            HALF_AWAY_FROM_ZERO,
+        enum Standard {
+                @Label(value = ".5 away from zero (Standard)", description = """
+                        This is the standard rounding method. It rounds towards the 'nearest neighbor'. If both
+                        neighbors are equidistant, it rounds up.
+                        """)
+                HALF_AWAY_FROM_ZERO,
 
-            @Label(value = ".5 towards zero", description = """
-                    Rounds towards 'nearest neighbor' unless both neighbors are equidistant,
-                    in which case round down.
-                    """)
-            HALF_TOWARDS_ZERO,
+                @Label(value = "Others", description = """
+                        Provides a number of advanced rounding methods to choose from.
+                        """)
+                OTHER;
+        }
 
-            @Label(value = "Away from zero", description = """
-                    Rounds away from zero.
-                    Always increments the digit prior to a non-zero discarded fraction.
-                    """)
-            AWAY_FROM_ZERO,
+        enum Advanced {
+                @Label(value = "Away from zero (Round Up)", description = """
+                        Rounds away from zero. Increments the last remaining digit by one, if there were more digits.
+                        """)
+                AWAY_FROM_ZERO,
 
-            @Label(value = "Towards zero", description = """
-                    Rounds towards zero.
-                    Never increments the digit prior to a discarded fraction (i.e., truncates).
-                    """)
-            TOWARDS_ZERO,
+                @Label(value = "Towards zero (Round Down)", description = """
+                        Rounds towards zero. Drops excess digits.
+                        """)
+                TOWARDS_ZERO,
 
-            @Label(value = "To larger", description = """
-                    Rounds towards positive infinity.
-                    If the result is positive, behaves as for 'away from zero';
-                    if negative, behaves as for 'towards zero'.
-                    """)
-            TO_LARGER,
+                @Label(value = "To larger (Round Ceiling)", description = """
+                        Rounds towards positive infinity. If the result is positive, behaves as for
+                        'Away from zero (Round Up)'; if negative, behaves as for 'Towards zero (Round Down)'.
+                        """)
+                TO_LARGER,
 
-            @Label(value = "To smaller", description = """
-                    Rounds towards negative infinity.
-                    If the result is positive, behave as for 'towards zero';
-                    if negative, behave as for 'away from zero'.
-                    """)
-            TO_SMALLER
+                @Label(value = "To smaller (Round Floor)", description = """
+                        Rounds towards negative infinity. If the result is positive, behaves as for
+                        'Towards zero (Round Down)'; if negative, behaves as for 'Away from zero (Round Up)'.
+                        """)
+                TO_SMALLER,
+
+                @Label(value = ".5 towards zero", description = """
+                        Rounds towards the 'nearest neighbor'. If both neighbors are equidistant, it rounds down.
+                        """)
+                HALF_TOWARDS_ZERO,
+
+                @Label(value = ".5 to nearest even digit", description = """
+                        Rounds towards the 'nearest neighbor'. If both neighbors are equidistant, it rounds towards the
+                        'even neighbor’.
+                        """)
+                HALF_TO_EVEN_DIGIT
+        }
+
+        static final class IsOtherRoundingMethod extends OneOfEnumCondition<Standard> {
+            @Override
+            public Standard[] oneOf() {
+                return new Standard[]{Standard.OTHER};
+            }
+        }
+
+        RoundingMethod() {
+        }
+
+        RoundingMethod(final Advanced advanced) {
+            m_standard = Standard.OTHER;
+            m_advanced = advanced;
+        }
+
+        @Widget(title = "Rounding method", description = """
+                Select if you want to use the standard rounding method or one of the other available rounding methods.
+                """)
+        @ValueSwitchWidget
+        @Signal(condition = IsOtherRoundingMethod.class)
+        Standard m_standard = Standard.HALF_AWAY_FROM_ZERO;
+
+        @Widget(title = "Other rounding methods", description = "Select the advanced rounding method to apply.")
+        @RadioButtonsWidget
+        @Effect(signals = IsOtherRoundingMethod.class, type = EffectType.SHOW)
+        Advanced m_advanced = Advanced.AWAY_FROM_ZERO;
     }
 
     enum OutputColumn {
@@ -221,10 +256,8 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = RoundDoubleLegacyConfigKeys.PRECISION_NUMBER)
     int m_precision = 3;
 
-    @Widget(title = "Rounding method", description = "Select the rounding method to apply.")
-    @RadioButtonsWidget
     @Persist(configKey = RoundDoubleLegacyConfigKeys.ROUNDING_MODE, customPersistor = RoundingMethodPersistor.class)
-    RoundingMethod m_roundingMethod = RoundingMethod.HALF_AWAY_FROM_ZERO;
+    RoundingMethod m_roundingMethod = new RoundingMethod();
 
     @Widget(title = "Output columns", description = "Configure output column behavior.")
     @ValueSwitchWidget
@@ -259,9 +292,11 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     }
 
     static RoundingMode getRoundingModeFromMethod(final RoundingMethod roundingMethod) {
-        return switch (roundingMethod) {
+        if (roundingMethod.m_standard == Standard.HALF_AWAY_FROM_ZERO) {
+            return RoundingMode.HALF_UP;
+        }
+        return switch (roundingMethod.m_advanced) {
             case AWAY_FROM_ZERO -> RoundingMode.UP;
-            case HALF_AWAY_FROM_ZERO -> RoundingMode.HALF_UP;
             case HALF_TO_EVEN_DIGIT -> RoundingMode.HALF_EVEN;
             case HALF_TOWARDS_ZERO -> RoundingMode.HALF_DOWN;
             case TO_LARGER -> RoundingMode.CEILING;

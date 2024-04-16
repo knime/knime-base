@@ -20,7 +20,10 @@
       },
       "numberMode" : "DECIMALS",
       "precision" : 3,
-      "roundingMethod" : "HALF_AWAY_FROM_ZERO",
+      "roundingMethod" : {
+        "standard" : "HALF_AWAY_FROM_ZERO",
+        "advanced" : "AWAY_FROM_ZERO"
+      },
       "outputColumn" : "APPEND",
       "suffix" : " (Rounded)",
       "outputMode" : "AUTO"
@@ -222,31 +225,49 @@
             "configKeys" : [ "PrecisionNumer" ]
           },
           "roundingMethod" : {
-            "oneOf" : [ {
-              "const" : "HALF_TO_EVEN_DIGIT",
-              "title" : ".5 to even digit"
-            }, {
-              "const" : "HALF_AWAY_FROM_ZERO",
-              "title" : ".5 away from zero"
-            }, {
-              "const" : "HALF_TOWARDS_ZERO",
-              "title" : ".5 towards zero"
-            }, {
-              "const" : "AWAY_FROM_ZERO",
-              "title" : "Away from zero"
-            }, {
-              "const" : "TOWARDS_ZERO",
-              "title" : "Towards zero"
-            }, {
-              "const" : "TO_LARGER",
-              "title" : "To larger"
-            }, {
-              "const" : "TO_SMALLER",
-              "title" : "To smaller"
-            } ],
-            "title" : "Rounding method",
-            "description" : "Select the rounding method to apply.\n<ul>\n<li><b>.5 to even digit</b>: Rounds towards the 'nearest neighbor' unless both neighbors are equidistant,\nin which case, round towards the even neighbor.\n</li>\n<li><b>.5 away from zero</b>: Rounds towards 'nearest neighbor' unless both neighbors are equidistant,\nin which case round up.\n</li>\n<li><b>.5 towards zero</b>: Rounds towards 'nearest neighbor' unless both neighbors are equidistant,\nin which case round down.\n</li>\n<li><b>Away from zero</b>: Rounds away from zero.\nAlways increments the digit prior to a non-zero discarded fraction.\n</li>\n<li><b>Towards zero</b>: Rounds towards zero.\nNever increments the digit prior to a discarded fraction (i.e., truncates).\n</li>\n<li><b>To larger</b>: Rounds towards positive infinity.\nIf the result is positive, behaves as for 'away from zero';\nif negative, behaves as for 'towards zero'.\n</li>\n<li><b>To smaller</b>: Rounds towards negative infinity.\nIf the result is positive, behave as for 'towards zero';\nif negative, behave as for 'away from zero'.\n</li>\n</ul>",
-            "default" : "HALF_AWAY_FROM_ZERO",
+            "type" : "object",
+            "properties" : {
+              "advanced" : {
+                "oneOf" : [ {
+                  "const" : "AWAY_FROM_ZERO",
+                  "title" : "Away from zero (Round Up)"
+                }, {
+                  "const" : "TOWARDS_ZERO",
+                  "title" : "Towards zero (Round Down)"
+                }, {
+                  "const" : "TO_LARGER",
+                  "title" : "To larger (Round Ceiling)"
+                }, {
+                  "const" : "TO_SMALLER",
+                  "title" : "To smaller (Round Floor)"
+                }, {
+                  "const" : "HALF_TOWARDS_ZERO",
+                  "title" : ".5 towards zero"
+                }, {
+                  "const" : "HALF_TO_EVEN_DIGIT",
+                  "title" : ".5 to nearest even digit"
+                } ],
+                "title" : "Other rounding methods",
+                "description" : "Select the advanced rounding method to apply.\n<ul>\n<li><b>Away from zero (Round Up)</b>: Rounds away from zero. Increments the last remaining digit by one, if there were more digits.\n</li>\n<li><b>Towards zero (Round Down)</b>: Rounds towards zero. Drops excess digits.\n</li>\n<li><b>To larger (Round Ceiling)</b>: Rounds towards positive infinity. If the result is positive, behaves as for\n'Away from zero (Round Up)'; if negative, behaves as for 'Towards zero (Round Down)'.\n</li>\n<li><b>To smaller (Round Floor)</b>: Rounds towards negative infinity. If the result is positive, behaves as for\n'Towards zero (Round Down)'; if negative, behaves as for 'Away from zero (Round Up)'.\n</li>\n<li><b>.5 towards zero</b>: Rounds towards the 'nearest neighbor'. If both neighbors are equidistant, it rounds down.\n</li>\n<li><b>.5 to nearest even digit</b>: Rounds towards the 'nearest neighbor'. If both neighbors are equidistant, it rounds towards the\n'even neighbor’.\n</li>\n</ul>",
+                "default" : "AWAY_FROM_ZERO"
+              },
+              "standard" : {
+                "oneOf" : [ {
+                  "const" : "HALF_AWAY_FROM_ZERO",
+                  "title" : ".5 away from zero (Standard)"
+                }, {
+                  "const" : "OTHER",
+                  "title" : "Others"
+                } ],
+                "title" : "Rounding method",
+                "description" : "Select if you want to use the standard rounding method or one of the other available rounding methods.\n\n<ul>\n<li><b>.5 away from zero (Standard)</b>: This is the standard rounding method. It rounds towards the 'nearest neighbor'. If both\nneighbors are equidistant, it rounds up.\n</li>\n<li><b>Others</b>: Provides a number of advanced rounding methods to choose from.\n</li>\n</ul>",
+                "default" : "HALF_AWAY_FROM_ZERO"
+              }
+            },
+            "default" : {
+              "standard" : "HALF_AWAY_FROM_ZERO",
+              "advanced" : "AWAY_FROM_ZERO"
+            },
             "configKeys" : [ "RoundingMode" ]
           },
           "suffix" : {
@@ -302,10 +323,27 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/roundingMethod",
+      "scope" : "#/properties/model/properties/roundingMethod/properties/standard",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/roundingMethod/properties/advanced",
       "options" : {
         "format" : "radio",
         "radioLayout" : "vertical"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/roundingMethod/properties/standard",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "OTHER"
+            } ]
+          }
+        }
       }
     }, {
       "type" : "Control",
