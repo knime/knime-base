@@ -45,6 +45,41 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/nominal/NominalValueRowFilterNodeModel.java" type="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeModel">
+        <filter comment="UIEXT-1563: Migrated NominalValueRowFilter to WebUI" id="338722907">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeModel"/>
+                <message_argument value="NominalValueRowFilterNodeModel()"/>
+            </message_arguments>
+        </filter>
+        <filter comment="UIEXT-1563: Migrated NominalValueRowFilter to WebUI" id="338722907">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeModel"/>
+                <message_argument value="NominalValueRowFilterNodeModel(boolean)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/nominal/NominalValueRowSplitterNodeDialog.java" type="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeDialog">
+        <filter comment="UIEXT-1563: Migrate Nominal value row filter node" id="1110441988">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeDialog"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/nominal/NominalValueRowSplitterNodeFactory.java" type="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeFactory">
+        <filter comment="UIEXT-1563: Migrated NominalValueRowFilter to WebUI" id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeFactory"/>
+                <message_argument value="createNodeModel()"/>
+            </message_arguments>
+        </filter>
+        <filter comment="UIEXT-1563: Migrated NominalValueRowFilter to WebUI" id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeFactory"/>
+                <message_argument value="createNodeView(int, NominalValueRowFilterNodeModel)"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/preproc/joiner3/Joiner3NodeFactory.java" type="org.knime.base.node.preproc.joiner3.Joiner3NodeFactory">
         <filter comment="Node implementations are not API" id="305365105">
             <message_arguments>

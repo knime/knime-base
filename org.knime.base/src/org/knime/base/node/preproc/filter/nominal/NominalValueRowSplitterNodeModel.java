@@ -44,9 +44,11 @@
  */
 package org.knime.base.node.preproc.filter.nominal;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.data.DataCell;
@@ -56,8 +58,13 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.container.DataContainer;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.InputPortRole;
 import org.knime.core.node.streamable.OutputPortRole;
@@ -67,8 +74,8 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
+import org.knime.core.node.util.filter.nominal.NominalValueFilterConfiguration;
 
 /**
  * This is the model implementation of PossibleValueRowFilter. For a nominal column one or more possible values can be
@@ -77,38 +84,43 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  *
  *
  * @author KNIME GmbH
+ * @since 5.3
  */
-public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRowFilterSettings> {
+public class NominalValueRowSplitterNodeModel extends NodeModel {
+
+    private String m_selectedColumn;
 
     private int m_selectedColIdx;
 
     private final Set<String> m_selectedAttr = new HashSet<String>();
 
+    private final NominalValueFilterConfiguration m_config =
+        new NominalValueFilterConfiguration(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME);
+
     /**
-     * One inport (data to be filtered) one out port (included).
-     *
-     * @since 5.3
+     * One in port (data to be filtered) and two out ports (included and excluded).
      */
-    protected NominalValueRowFilterNodeModel(final WebUINodeConfiguration config) {
-        super(config, NominalValueRowFilterSettings.class);
+    protected NominalValueRowSplitterNodeModel() {
+        super(1, 2);
     }
 
     /**
      * {@inheritDoc}
-     *
-     * @since 5.3
      */
     @SuppressWarnings("null")
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
-        final NominalValueRowFilterSettings settings) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
         // include data container
         DataContainer positive = exec.createDataContainer(inData[0].getDataTableSpec());
+        DataContainer negative = exec.createDataContainer(inData[0].getDataTableSpec());
         long currentRow = 0;
         for (DataRow row : inData[0]) {
             // if row matches to included...
             if (matches(row)) {
                 positive.addRowToTable(row);
+            } else {
+                negative.addRowToTable(row);
             }
             exec.setProgress(currentRow / (double)inData[0].size(), "filtering row # " + currentRow);
             currentRow++;
@@ -117,10 +129,15 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
         positive.close();
         BufferedDataTable positiveTable = exec.createBufferedDataTable(positive.getTable(), exec);
         if (positiveTable.size() <= 0) {
-            String warning = "No rows matched!";
+            String warning = "No rows matched! Input mirrored at out-port 1 (excluded)";
             setWarningMessage(warning);
         }
-        return new BufferedDataTable[]{positiveTable};
+        negative.close();
+        BufferedDataTable negativeTable = exec.createBufferedDataTable(negative.getTable(), exec);
+        if (negativeTable.size() <= 0) {
+            setWarningMessage("All rows matched! Input mirrored at out-port 0 (included)");
+        }
+        return new BufferedDataTable[]{positiveTable, negativeTable};
     }
 
     /*
@@ -130,8 +147,7 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
     private boolean matches(final DataRow row) {
         DataCell dc = row.getCell(m_selectedColIdx);
         if (dc.isMissing()) {
-            return getSettings().orElseThrow(IllegalStateException::new//
-            ).m_missingValueHandling == NominalValueRowFilterSettings.MissingValueHandling.INCLUDE;
+            return m_config.isIncludeMissing();
         } else {
             return m_selectedAttr.contains(dc.toString());
         }
@@ -151,6 +167,7 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
                 throws Exception {
                 RowInput in = (RowInput)inputs[0];
                 RowOutput match = (RowOutput)outputs[0];
+                RowOutput miss = (RowOutput)outputs[1];
                 try {
                     long rowIdx = -1;
                     DataRow row;
@@ -161,10 +178,13 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
 
                         if (matches(row)) {
                             match.push(row);
+                        } else {
+                            miss.push(row);
                         }
                     }
                 } finally {
                     match.close();
+                    miss.close();
                 }
             }
         };
@@ -183,7 +203,7 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
      */
     @Override
     public OutputPortRole[] getOutputPortRoles() {
-        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED, OutputPortRole.DISTRIBUTED};
     }
 
     /**
@@ -195,12 +215,9 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
 
     /**
      * {@inheritDoc}
-     *
-     * @since 5.3
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs, final NominalValueRowFilterSettings settings)
-        throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         // check if possible values are available
         int nrValidCols = 0;
         for (DataColumnSpec colSpec : inSpecs[0]) {
@@ -217,23 +234,26 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
                 + "using the Edit Nominal Domain node.");
         }
         m_selectedAttr.clear();
-        final var selectedColumn = settings.m_selectedColumn;
-        if (selectedColumn != null && selectedColumn.length() > 0) {
-            m_selectedColIdx = inSpecs[0].findColumnIndex(selectedColumn);
+        if (m_selectedColumn != null && m_selectedColumn.length() > 0) {
+            m_selectedColIdx = inSpecs[0].findColumnIndex(m_selectedColumn);
             // selected attribute not found in possible values
             if (m_selectedColIdx < 0) {
                 throw new InvalidSettingsException(
-                    "The selected column \"" + selectedColumn + "\" is not present in the input table.");
+                    "The selected column \"" + m_selectedColumn + "\" is not present in the input table.");
             }
-            final var domainValues =
-                Optional.ofNullable(inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain().getValues()) //
-                    .map(values -> values.stream().map(DataCell::toString).toArray(String[]::new)) //
-                    .orElse(new String[0]);
-            m_selectedAttr.addAll(Arrays.asList(settings.m_nominalValueSelection.getNonMissingSelected(domainValues)));
+            m_selectedAttr.addAll(Arrays.asList(
+                m_config.applyTo(inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain().getValues()).getIncludes()));
+            // all values excluded?
+            if (m_selectedColumn != null && m_selectedAttr.isEmpty() && !m_config.isIncludeMissing()) {
+                setWarningMessage("All values are excluded! Input will be mirrored at out-port 1 (excluded)");
+            }
             // all values included?
             boolean validAttrVal = false;
             if (inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain().hasValues()) {
-
+                if (inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain().getValues().size() == m_selectedAttr.size()
+                    && m_config.isIncludeMissing()) {
+                    setWarningMessage("All values are included! Input will be " + "mirrored at out-port 0 (included)");
+                }
                 // if attribute value isn't found in domain also throw exception
                 for (DataCell dc : inSpecs[0].getColumnSpec(m_selectedColIdx).getDomain().getValues()) {
                     if (m_selectedAttr.contains(dc.toString())) {
@@ -242,16 +262,70 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
                     }
                 }
             }
-            if (!validAttrVal && m_selectedAttr.size() > 0) {
+            if (!validAttrVal && !m_selectedAttr.isEmpty()) {
                 throw new InvalidSettingsException("Selected attribute value \"" + m_selectedAttr
-                    + "\" was not found in column \"" + selectedColumn + "\".");
+                    + "\" was not found in column \"" + m_selectedColumn + "\".");
             }
 
             // return original spec,
             // only the rows are affected
         }
-        return new DataTableSpec[]{inSpecs[0]};
+        return new DataTableSpec[]{inSpecs[0], inSpecs[0]};
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void saveSettingsTo(final NodeSettingsWO settings) {
+        settings.addString(NominalValueRowSplitterNodeDialog.CFG_SELECTED_COL, m_selectedColumn);
+        m_config.saveConfiguration(settings);
+    }
+
+    private void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
+        m_selectedColumn = settings.getString(NominalValueRowSplitterNodeDialog.CFG_SELECTED_COL);
+        m_selectedAttr.clear();
+        if (settings.containsKey(NominalValueRowSplitterNodeDialog.CFG_CONFIGROOTNAME)) {
+            m_config.loadConfigurationInModel(settings);
+            m_selectedAttr.addAll(Arrays.asList(m_config.getIncludeList()));
+        } else {
+            String[] selected = settings.getStringArray(NominalValueRowSplitterNodeDialog.CFG_SELECTED_ATTR);
+            Collections.addAll(m_selectedAttr, selected);
+            m_config.loadDefaults(m_selectedAttr.toArray(new String[m_selectedAttr.size()]), null,
+                EnforceOption.EnforceInclusion);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+        validate(settings);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        validate(settings);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void loadInternals(final File internDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void saveInternals(final File internDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
     }
 
 }

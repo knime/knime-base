@@ -84,7 +84,7 @@ import org.knime.core.node.util.filter.nominal.NominalValueFilterPanel;
  *
  * @author KNIME GmbH
  */
-public class NominalValueRowFilterNodeDialog extends NodeDialogPane implements
+public class NominalValueRowSplitterNodeDialog extends NodeDialogPane implements
         ItemListener {
 
     private String m_selectedColumn;
@@ -113,7 +113,7 @@ public class NominalValueRowFilterNodeDialog extends NodeDialogPane implements
      * @param splitter whether this dialog is for the splitter or the filter
      * @since 3.4
      */
-    protected NominalValueRowFilterNodeDialog(final boolean splitter) {
+    protected NominalValueRowSplitterNodeDialog(final boolean splitter) {
         m_colAttributes = new LinkedHashMap<String, Set<DataCell>>();
         m_columns = new DefaultComboBoxModel<>();
 
@@ -146,7 +146,7 @@ public class NominalValueRowFilterNodeDialog extends NodeDialogPane implements
     /**
      * New pane for configuring the PossibleValueRowFilter node.
      */
-    protected NominalValueRowFilterNodeDialog() {
+    protected NominalValueRowSplitterNodeDialog() {
         this(false);
     }
 

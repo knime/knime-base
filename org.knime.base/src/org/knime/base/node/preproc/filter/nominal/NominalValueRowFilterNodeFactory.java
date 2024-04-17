@@ -44,59 +44,53 @@
  */
 package org.knime.base.node.preproc.filter.nominal;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 
 /**
- * <code>NodeFactory</code> for the "PossibleValueRowFilter" Node.
+ * <code>NodeFactory</code> for the "Nominal Row Filter" Node.
  *
- *
- * @author KNIME GmbH
+ * @author Jakob Sanowski, KNIME GmbH, Konstanz
+ * @since 5.3
  */
-public class NominalValueRowFilterNodeFactory extends NodeFactory {
+public class NominalValueRowFilterNodeFactory extends WebUINodeFactory<NominalValueRowFilterNodeModel> {
 
     /**
-     * {@inheritDoc}
+     * @since 5.3
      */
-    @Override
-    public NodeModel createNodeModel() {
-        return new NominalValueRowFilterNodeModel();
+    @SuppressWarnings("restriction")
+    private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
+        .name("Nominal Value Row Filter")//
+        .icon("./nominal_value_filter.png")//
+        .shortDescription("Filters rows on nominal attribute value")//
+        .fullDescription("<p>Filters the rows based on the selected value of a nominal attribute. "
+            + "A nominal column can be selected and one or more nominal value of this "
+            + "attribute. Rows which have this nominal value in the selected column are "
+            + "included in the output data, all other rows are excluded.</p>"
+            + "<p>In order for a nominal column to appear in the node dialog, its domain (the set of values that "
+            + "appear in the column) must be calculated. For columns with few values (less than 60) this is done "
+            + "automatically. To ensure the domain is properly set, use the Domain Calculator node or the Edit "
+            + "Nominal Domain node.</p>")
+        .modelSettingsClass(NominalValueRowFilterSettings.class)//
+        .addInputTable("Data to filter", "Data that should be filtered")//
+        .addOutputTable("Included", "Matching rows")//
+        .keywords("Filter Table")//
+        .sinceVersion(5, 0, 0).build();
+
+    /**
+     */
+    public NominalValueRowFilterNodeFactory() {
+        super(CONFIG);
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @since 5.3
      */
     @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView createNodeView(final int viewIndex,
-            final NodeModel nodeModel) {
-        throw new IllegalArgumentException("No view available!");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new NominalValueRowFilterNodeDialog(false);
+    public NominalValueRowFilterNodeModel createNodeModel() {
+        return new NominalValueRowFilterNodeModel(CONFIG);
     }
 
 }
-

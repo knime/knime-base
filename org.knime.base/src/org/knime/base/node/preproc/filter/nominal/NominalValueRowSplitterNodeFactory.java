@@ -55,14 +55,16 @@ import org.knime.core.node.NodeView;
  * @author Ferry Abt, KNIME AG, Zurich, Switzerland
  * @since 3.4
  */
-public class NominalValueRowSplitterNodeFactory extends NodeFactory<NominalValueRowFilterNodeModel> {
+public class NominalValueRowSplitterNodeFactory extends NodeFactory<NominalValueRowSplitterNodeModel> {
 
     /**
      * {@inheritDoc}
+     *
+     * @since 5.3
      */
     @Override
-    public NominalValueRowFilterNodeModel createNodeModel() {
-        return new NominalValueRowFilterNodeModel(true);
+    public NominalValueRowSplitterNodeModel createNodeModel() {
+        return new NominalValueRowSplitterNodeModel();
     }
 
     /**
@@ -75,10 +77,12 @@ public class NominalValueRowSplitterNodeFactory extends NodeFactory<NominalValue
 
     /**
      * {@inheritDoc}
+     *
+     * @since 5.3
      */
     @Override
-    public NodeView<NominalValueRowFilterNodeModel> createNodeView(final int viewIndex,
-            final NominalValueRowFilterNodeModel nodeModel) {
+    public NodeView<NominalValueRowSplitterNodeModel> createNodeView(final int viewIndex,
+        final NominalValueRowSplitterNodeModel nodeModel) {
         throw new IllegalArgumentException("No view available!");
     }
 
@@ -95,8 +99,7 @@ public class NominalValueRowSplitterNodeFactory extends NodeFactory<NominalValue
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new NominalValueRowFilterNodeDialog(true);
+        return new NominalValueRowSplitterNodeDialog(true);
     }
 
 }
-
