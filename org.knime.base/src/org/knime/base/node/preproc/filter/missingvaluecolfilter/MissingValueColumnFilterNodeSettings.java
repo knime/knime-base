@@ -67,7 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * Settings for {@link MissingValueColumnFilterNodeModel}.
+ * Settings for Missing Value Column Filter node
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -90,25 +90,25 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
     }
 
     enum RemovalCriterion {
-        @Label(value = "With at least one missing value",
-            description = "Remove the column if it contains at least one missing value.")
-        SOME,
-        @Label(value = "With only missing values",
-            description = "Remove the column if it contains only missing values.")
-        ONLY,
-        @Label(value = "By percentage of missing values",
-            description = "Remove the column if it contains at least the configured percentage of missing values.")
-        PERCENTAGE,
-        @Label(value = "By number of missing values",
-            description = "Remove the column if it contains at least the configured number of missing values.")
-        NUMBER
+            @Label(value = "With at least one missing value",
+                description = "Remove the column if it contains at least one missing value.")
+            SOME, //
+            @Label(value = "With only missing values",
+                description = "Remove the column if it contains only missing values.")
+            ONLY, //
+            @Label(value = "By percentage of missing values",
+                description = "Remove the column if it contains at least the configured percentage of missing values.")
+            PERCENTAGE, //
+            @Label(value = "By number of missing values",
+                description = "Remove the column if it contains at least the configured number of missing values.")
+            NUMBER
     }
 
     private interface ByPercentage {
         class Condition extends OneOfEnumCondition<RemovalCriterion> {
             @Override
             public RemovalCriterion[] oneOf() {
-                return new RemovalCriterion[] { RemovalCriterion.PERCENTAGE };
+                return new RemovalCriterion[]{RemovalCriterion.PERCENTAGE};
             }
         }
     }
@@ -117,7 +117,7 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
         class Condition extends OneOfEnumCondition<RemovalCriterion> {
             @Override
             public RemovalCriterion[] oneOf() {
-                return new RemovalCriterion[] { RemovalCriterion.NUMBER };
+                return new RemovalCriterion[]{RemovalCriterion.NUMBER};
             }
         }
     }
@@ -152,7 +152,6 @@ final class MissingValueColumnFilterNodeSettings implements DefaultNodeSettings 
     @Effect(type = EffectType.SHOW, signals = ByNumber.class)
     @Persist(optional = true)
     long m_number = 1;
-
 
     MissingValueColumnFilterNodeSettings() {
         this((DataTableSpec)null);

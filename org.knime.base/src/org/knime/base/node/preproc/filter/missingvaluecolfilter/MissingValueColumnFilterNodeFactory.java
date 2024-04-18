@@ -54,8 +54,7 @@ import org.knime.core.webui.node.impl.WebUINodeFactory;
  * @since 2.6
  */
 @SuppressWarnings("restriction")
-public class MissingValueColumnFilterNodeFactory
-        extends WebUINodeFactory<MissingValueColumnFilterNodeModel> {
+public final class MissingValueColumnFilterNodeFactory extends WebUINodeFactory<MissingValueColumnFilterNodeModel> {
 
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder() //
         .name("Missing Value Column Filter") //
@@ -64,9 +63,9 @@ public class MissingValueColumnFilterNodeFactory
                 The node removes selected columns from the input if they meet the specified threshold of missing values.
                 """) //
         .fullDescription("""
-                The node tests each selected column for missing values and removes it if it meets the specified
-                threshold of absolute or relative number of missing values.
-                Each column that is not selected for the test is passed on to the output unconditionally.
+                The node tests each selected column for missing values and removes the column if it meets the specified
+                condition about the number of missing values. Each column that is not selected for the test is passed on
+                to the output unconditionally.
                     """) //
         .modelSettingsClass(MissingValueColumnFilterNodeSettings.class) //
         .nodeType(NodeType.Manipulator) //
@@ -89,5 +88,4 @@ public class MissingValueColumnFilterNodeFactory
     public MissingValueColumnFilterNodeModel createNodeModel() {
         return new MissingValueColumnFilterNodeModel(CONFIG);
     }
-
 }

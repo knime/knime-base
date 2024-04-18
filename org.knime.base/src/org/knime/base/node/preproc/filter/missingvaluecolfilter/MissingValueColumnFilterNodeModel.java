@@ -65,7 +65,7 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // webui
-public final class MissingValueColumnFilterNodeModel extends WebUINodeModel<MissingValueColumnFilterNodeSettings> {
+final class MissingValueColumnFilterNodeModel extends WebUINodeModel<MissingValueColumnFilterNodeSettings> {
 
     MissingValueColumnFilterNodeModel(final WebUINodeConfiguration config) {
         super(config, MissingValueColumnFilterNodeSettings.class);
