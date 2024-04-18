@@ -11,7 +11,7 @@
         "manualFilter" : {
           "manuallySelected" : [ ],
           "manuallyDeselected" : [ ],
-          "includeUnknownColumns" : false
+          "includeUnknownColumns" : true
         },
         "typeFilter" : {
           "selectedTypes" : [ ],
@@ -136,7 +136,7 @@
                 }
               }
             },
-            "title" : "Columns",
+            "title" : "Number columns",
             "description" : "Select the numerical columns to normalize.",
             "default" : {
               "mode" : "MANUAL",
@@ -148,7 +148,7 @@
               "manualFilter" : {
                 "manuallySelected" : [ ],
                 "manuallyDeselected" : [ ],
-                "includeUnknownColumns" : false
+                "includeUnknownColumns" : true
               },
               "typeFilter" : {
                 "selectedTypes" : [ ],
@@ -160,7 +160,7 @@
           "max" : {
             "type" : "number",
             "format" : "double",
-            "title" : "New Maximum",
+            "title" : "Maximum",
             "description" : "Specifies the new maximum for the normalized columns. Only active for min-max normalization.",
             "default" : 1.0,
             "configKeys" : [ "new-max" ]
@@ -168,7 +168,7 @@
           "min" : {
             "type" : "number",
             "format" : "double",
-            "title" : "New Minimum",
+            "title" : "Minimum",
             "description" : "Specifies the new minimum for the normalized columns. Only active for min-max normalization.",
             "default" : 0.0,
             "configKeys" : [ "new-min" ]
@@ -176,16 +176,16 @@
           "mode" : {
             "oneOf" : [ {
               "const" : "MINMAX",
-              "title" : "Min-Max"
+              "title" : "Min-max"
             }, {
               "const" : "Z_SCORE",
-              "title" : "Z-Score"
+              "title" : "Z-score"
             }, {
               "const" : "DECIMALSCALING",
-              "title" : "Decimal Scaling"
+              "title" : "Decimal scaling"
             } ],
-            "title" : "Normalization Mode",
-            "description" : "The mode of normalization to use.\n<ul>\n<li><b>Min-Max</b>: Linear transformation of all values such that the minimum and maximum in each column are as given.</li>\n<li><b>Z-Score</b>: Linear transformation such that the values in each column are Gaussian-(0,1)-distributed, i.e. mean is 0.0 and standard deviation is 1.0.</li>\n<li><b>Decimal Scaling</b>: The maximum value in a column (both positive and negative) is divided j-times by 10 until its absolute value is smaller or equal to 1. All values in the column are then divided by 10 to the power of j.</li>\n</ul>",
+            "title" : "Normalization method",
+            "description" : "The normalization method to use.\n<ul>\n<li><b>Min-max</b>: Linear transformation of all values such that the minimum and maximum in each column correspond\nto the values set below.\n</li>\n<li><b>Z-score</b>: Linear transformation such that the values in each column are Gaussian-(0,1)-distributed, i.e.\nmean is 0.0 and standard deviation is 1.0.\n</li>\n<li><b>Decimal scaling</b>: The maximum value in a column (both positive and negative) is divided j-times by 10 until its\nabsolute value is smaller or equal to 1. All values in the column are then divided by 10 to the\npower of j.\n</li>\n</ul>",
             "default" : "MINMAX",
             "configKeys" : [ "mode" ]
           }
@@ -195,75 +195,67 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "label" : "Columns",
-      "type" : "Section",
-      "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/dataColumnFilterConfig",
-        "options" : {
-          "format" : "columnFilter",
-          "possibleValues" : [ {
-            "id" : "test1",
-            "text" : "test1",
-            "type" : {
-              "id" : "org.knime.core.data.IntValue",
-              "text" : "Number (integer)"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-          }, {
-            "id" : "test2",
-            "text" : "test2",
-            "type" : {
-              "id" : "org.knime.core.data.DoubleValue",
-              "text" : "Number (double)"
-            },
-            "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
-          } ],
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
-        },
-        "label" : ""
-      } ]
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/dataColumnFilterConfig",
+      "options" : {
+        "format" : "columnFilter",
+        "possibleValues" : [ {
+          "id" : "test1",
+          "text" : "test1",
+          "type" : {
+            "id" : "org.knime.core.data.IntValue",
+            "text" : "Number (integer)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.IntValue", "org.knime.core.data.DataValue", "org.knime.core.data.LongValue", "org.knime.core.data.DoubleValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        }, {
+          "id" : "test2",
+          "text" : "test2",
+          "type" : {
+            "id" : "org.knime.core.data.DoubleValue",
+            "text" : "Number (double)"
+          },
+          "compatibleTypes" : [ "org.knime.core.data.DoubleValue", "org.knime.core.data.DataValue", "org.knime.core.data.ComplexNumberValue", "org.knime.core.data.FuzzyNumberValue", "org.knime.core.data.FuzzyIntervalValue", "org.knime.core.data.BoundedValue" ]
+        } ],
+        "showNoneColumn" : false,
+        "showRowKeys" : false,
+        "showSearch" : true,
+        "showMode" : true
+      },
+      "label" : ""
     }, {
-      "label" : "Settings",
-      "type" : "Section",
-      "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/mode",
-        "options" : {
-          "format" : "valueSwitch"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/min",
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "scope" : "#/properties/model/properties/mode",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "MINMAX"
-              } ]
-            }
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/min",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/mode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "MINMAX"
+            } ]
           }
         }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/max",
-        "rule" : {
-          "effect" : "SHOW",
-          "condition" : {
-            "scope" : "#/properties/model/properties/mode",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "MINMAX"
-              } ]
-            }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/max",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/mode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "MINMAX"
+            } ]
           }
         }
-      } ]
+      }
     } ]
   }
 }

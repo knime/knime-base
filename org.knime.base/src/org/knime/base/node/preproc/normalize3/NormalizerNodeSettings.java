@@ -49,8 +49,6 @@
 package org.knime.base.node.preproc.normalize3;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
@@ -65,86 +63,76 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.DoubleColumnChoicesProvider;
 
 /**
- *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
 final class NormalizerNodeSettings implements DefaultNodeSettings {
 
     @Persist(configKey = "data-column-filter", customPersistor = LegacyColumnFilterPersistor.class)
-    @Widget(title = "Columns", description = "Select the numerical columns to normalize.", hideTitle = true)
+    @Widget(title = "Number columns", description = "Select the numerical columns to normalize.", hideTitle = true)
     @ChoicesWidget(choices = DoubleColumnChoicesProvider.class)
-    @Layout(ColumnsSection.class)
-    ColumnFilter m_dataColumnFilterConfig = new ColumnFilter();
+    ColumnFilter m_dataColumnFilterConfig = new ColumnFilter().withIncludeUnknownColumns();
 
     @Persist(configKey = "mode")
     @ValueSwitchWidget
-    @Widget(title = "Normalization Mode", description = "The mode of normalization to use.")
+    @Widget(title = "Normalization method", description = "The normalization method to use.")
     @Signal(condition = MinMaxCondition.class)
-    @Layout(SettingsSection.class)
     NormalizerMode m_mode = NormalizerMode.MINMAX;
 
     @Persist(configKey = "new-min")
     @Effect(signals = {MinMaxCondition.class}, type = EffectType.SHOW)
-    @Widget(title = "New Minimum",
+    @Widget(title = "Minimum",
         description = "Specifies the new minimum for the normalized columns. Only active for min-max normalization.")
-    @Layout(SettingsSection.class)
     double m_min = 0;//NOSONAR make it explicit
 
     @Persist(configKey = "new-max")
     @Effect(signals = {MinMaxCondition.class}, type = EffectType.SHOW)
-    @Widget(title = "New Maximum",
+    @Widget(title = "Maximum",
         description = "Specifies the new maximum for the normalized columns. Only active for min-max normalization.")
-    @Layout(SettingsSection.class)
     double m_max = 1;
 
-    @Section(title = "Columns")
-    private interface ColumnsSection {
-    }
-
-    @Section(title = "Settings")
-    private interface SettingsSection {
-    }
-
     static final class MinMaxCondition extends OneOfEnumCondition<NormalizerMode> {
-
         @Override
         public NormalizerMode[] oneOf() {
             return new NormalizerMode[]{NormalizerMode.MINMAX};
         }
-
     }
 
     /**
      * Normalization Mode.
      *
-     * Equivalent to {@link org.knime.base.node.preproc.normalize3.NormalizerConfig.NormalizerMode} but with different
-     * order of the constants.
-     *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    public enum NormalizerMode {
+    enum NormalizerMode {
             /**
              * Min-Max normalization.
              */
-            @Label(value = "Min-Max", description = "Linear transformation of all values such that the minimum "
-                + "and maximum in each column are as given.")
+            @Label(value = "Min-max",
+                description = """
+                        Linear transformation of all values such that the minimum and maximum in each column correspond
+                        to the values set below.
+                        """)
             MINMAX,
 
             /**
              * Z-Score.
              */
-            @Label(value = "Z-Score", description = "Linear transformation such that the values in each column are "
-                + "Gaussian-(0,1)-distributed, i.e. mean is 0.0 and standard deviation is 1.0.")
+            @Label(value = "Z-score",
+                description = """
+                        Linear transformation such that the values in each column are Gaussian-(0,1)-distributed, i.e.
+                        mean is 0.0 and standard deviation is 1.0.
+                        """)
             Z_SCORE,
             /**
              * Decimal Scaling.
              */
-            @Label(value = "Decimal Scaling",
-                description = "The maximum value in a column (both positive and negative) is "
-                    + "divided j-times by 10 until its absolute value is smaller or equal to 1. "
-                    + "All values in the column are then divided by 10 to the power of j.")
+            @Label(value = "Decimal scaling",
+                description = """
+                        The maximum value in a column (both positive and negative) is divided j-times by 10 until its
+                        absolute value is smaller or equal to 1. All values in the column are then divided by 10 to the
+                        power of j.
+                        """)
             DECIMALSCALING;
     }
-
 }

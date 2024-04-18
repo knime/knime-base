@@ -63,23 +63,20 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 
 /**
- *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class NormalizerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
+class NormalizerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest {
 
-
-    @SuppressWarnings("javadoc")
     protected NormalizerNodeSettingsTest() {
         super(Map.of(SettingsType.MODEL, NormalizerNodeSettings.class),
-            new DataTableSpec(new String[] {"test1", "test2"}, new DataType[] {IntCell.TYPE, DoubleCell.TYPE}));
+            new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{IntCell.TYPE, DoubleCell.TYPE}));
     }
 
     @Test
     void testMinMaxChoicesProvider() throws Exception {
         var provider = new NormalizerNodeSettings.MinMaxCondition();
-        assertArrayEquals(new NormalizerMode[] {NormalizerMode.MINMAX}, provider.oneOf());
+        assertArrayEquals(new NormalizerMode[]{NormalizerMode.MINMAX}, provider.oneOf());
     }
 
     @Test
@@ -89,5 +86,4 @@ public class NormalizerNodeSettingsTest extends DefaultNodeSettingsSnapshotTest 
         assertEquals(1, settings.m_max);
         assertEquals(NormalizerMode.MINMAX, settings.m_mode);
     }
-
 }
