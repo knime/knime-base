@@ -97,8 +97,7 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
     static final class SelectedColumnDependency implements Reference<String> {
     }
 
-    @Widget(title = "Filter column",
-        description = "Select the (nominal) column which contains the nominal values to filter.")
+    @Widget(title = "Filter column", description = "Select the column containing the nominal values to be filtered.")
     @ValueReference(SelectedColumnDependency.class)
     @ChoicesWidget(choices = NominalColumnChoicesProider.class)
     @Persist(configKey = NominalValueRowSplitterNodeDialog.CFG_SELECTED_COL)
@@ -207,9 +206,9 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
 
     }
 
-    @Widget(title = "Nominal value selection",
-        description = "Select the nominal values to be in the output data, by moving them "
-            + "from left (excluded) to right (included)")
+    @Widget(title = "Values",
+        description = "Select the nominal values to be in the primary output table, by moving them from left "
+            + "(excluded) to right (included).")
     @ValueReference(NominalValueSelectionDependency.class)
     @ChoicesWidget(choicesProvider = SelectedColumnDomainChoicesStateProviderOnInitAndDepChange.class)
     @ValueProvider(SelectedDomainValuesStateProvider.class)
@@ -220,7 +219,7 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
     enum MissingValueHandling {
             @Label(value = "Exclude", description = "Missing values are excluded from the primary output table.")
             EXCLUDE, //
-            @Label(value = "Include", description = "Missing values are included the primary output table.")
+            @Label(value = "Include", description = "Missing values are included in the primary output table.")
             INCLUDE, //
     }
 
@@ -272,7 +271,7 @@ public class NominalValueRowFilterSettings implements DefaultNodeSettings {
         }
     }
 
-    @Widget(title = "Missing value handling", description = "If there are missing values:")
+    @Widget(title = "Missing value handling", description = "Defines how missing values are handled.")
     @ValueSwitchWidget
     @Persist(customPersistor = MissingValueHandlingPersistor.class)
     MissingValueHandling m_missingValueHandling = MissingValueHandling.EXCLUDE;
