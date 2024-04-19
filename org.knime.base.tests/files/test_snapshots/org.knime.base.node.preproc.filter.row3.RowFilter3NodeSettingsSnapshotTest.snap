@@ -61,40 +61,40 @@
               "title" : "≠"
             }, {
               "const" : "LT",
-              "title" : "<"
+              "title" : "&lt;"
             }, {
               "const" : "LTE",
               "title" : "≤"
             }, {
               "const" : "GT",
-              "title" : ">"
+              "title" : "&gt;"
             }, {
               "const" : "GTE",
               "title" : "≥"
             }, {
               "const" : "FIRST_N_ROWS",
-              "title" : "First n rows"
+              "title" : "First <i>n</i> rows"
             }, {
               "const" : "LAST_N_ROWS",
-              "title" : "Last n rows"
+              "title" : "Last <i>n</i> rows"
             }, {
               "const" : "REGEX",
-              "title" : "matches regex"
+              "title" : "Matches regex"
             }, {
               "const" : "WILDCARD",
-              "title" : "matches wildcard"
+              "title" : "Matches wildcard"
             }, {
               "const" : "IS_TRUE",
-              "title" : "is true"
+              "title" : "Is true"
             }, {
               "const" : "IS_FALSE",
-              "title" : "is false"
+              "title" : "Is false"
             }, {
               "const" : "IS_MISSING",
-              "title" : "is missing"
+              "title" : "Is missing"
             } ],
             "title" : "Operator",
-            "description" : "The operator defining the filter criterion.",
+            "description" : "The operator defining the filter criterion.\n<ul>\n<li><b>=</b>: Value in column must be <b>equal</b> to specified value</li>\n<li><b>≠</b>: Value in column must be <b>not equal</b> to specified value</li>\n<li><b>&lt;</b>: Value in column must be <b>strictly smaller</b> than specified value</li>\n<li><b>≤</b>: Value in column must be <b>smaller than or equal</b> to specified value</li>\n<li><b>&gt;</b>: Value in column must be <b>strictly larger</b> than specified value</li>\n<li><b>≥</b>: Value in column must be <b>larger than or equal</b> than specified value</li>\n<li><b>First <i>n</i> rows</b>: Matches the specified number of rows at the start of the input</li>\n<li><b>Last <i>n</i> rows</b>: Matches the specified number of rows at the end of the input</li>\n<li><b>Matches regex</b>: Value in column must match the specified regular expression</li>\n<li><b>Matches wildcard</b>: Value in column must match the specified pattern, which may contain wildcards <tt>*</tt> and <tt>?</tt></li>\n<li><b>Is true</b>: Boolean value in column must be <tt>true</tt></li>\n<li><b>Is false</b>: Boolean value in column must be <tt>false</tt></li>\n<li><b>Is missing</b>: Value in column must be <i>missing</i></li>\n</ul>",
             "default" : "EQ"
           },
           "outputMode" : {
@@ -279,13 +279,13 @@
       "id" : "org.knime.base.node.preproc.filter.row3.RowFilter3NodeSettings$TypeBasedOperatorChoices",
       "value" : [ {
         "id" : "IS_TRUE",
-        "text" : "is true"
+        "text" : "Is true"
       }, {
         "id" : "IS_FALSE",
-        "text" : "is false"
+        "text" : "Is false"
       }, {
         "id" : "IS_MISSING",
-        "text" : "is missing"
+        "text" : "Is missing"
       } ]
     } ],
     "globalUpdates" : [ {

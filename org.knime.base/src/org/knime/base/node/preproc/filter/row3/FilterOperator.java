@@ -51,8 +51,6 @@ package org.knime.base.node.preproc.filter.row3;
 import java.util.function.BiPredicate;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.LongValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
@@ -69,36 +67,40 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
 @SuppressWarnings("restriction") // new ui
 enum FilterOperator {
 
-        @Label("=") // RowID, RowIndex/Number, Long, Double, String
-        EQ("=", new IsEq(), true), //
-        @Label("≠") // RowID, RowIndex/Number, Long, Double, String
-        NEQ("≠", new IsEq(), true), //
-        @Label("<") // RowIndex/Number, Long, Double
-        LT("<", new IsOrdNumeric(), true), //
-        @Label("≤") // RowIndex/Number, Long, Double
-        LTE("≤", new IsOrdNumeric(), true), //
-        @Label(">") // RowIndex/Number, Long, Double
-        GT(">", new IsOrdNumeric(), true), //
-        @Label("≥") // RowIndex/Number, Long, Double
-        GTE("≥", new IsOrdNumeric(), true), //
+        @Label(value = "=", description = "Value in column must be <b>equal</b> to specified value")
+        EQ("=", new IsEq(), true),
+        @Label(value = "≠", description = "Value in column must be <b>not equal</b> to specified value")
+        NEQ("≠", new IsEq(), true),
+        @Label(value = "&lt;", description = "Value in column must be <b>strictly smaller</b> than specified value")
+        LT("<", new IsOrd(), true),
+        @Label(value = "≤", description = "Value in column must be <b>smaller than or equal</b> to specified value")
+        LTE("≤", new IsOrd(), true),
+        @Label(value = "&gt;", description = "Value in column must be <b>strictly larger</b> than specified value")
+        GT(">", new IsOrd(), true),
+        @Label(value = "≥",
+            description = "Value in column must be <b>larger than or equal</b> than specified value")
+        GTE("≥", new IsOrd(), true),
 
-        @Label("First n rows") // RowIndex/Number
+        @Label(value = "First <i>n</i> rows",
+            description = "Matches the specified number of rows at the start of the input")
         FIRST_N_ROWS("First n rows", new IsRowNumber(), true), //
-        @Label("Last n rows") // RowIndex/Number
+        @Label(value = "Last <i>n</i> rows",
+            description = "Matches the specified number of rows at the end of the input")
         LAST_N_ROWS("Last n rows", new IsRowNumber(), true), //
 
-        @Label("matches regex")
-        REGEX("matches regex", new IsPatternMatchable(), true), // RowID, String
-        @Label("matches wildcard")
-        WILDCARD("matches wildcard", new IsPatternMatchable(), true), // RowID, String
+        @Label(value = "Matches regex", description = "Value in column must match the specified regular expression")
+        REGEX("Matches regex", new IsPatternMatchable(), true),
+        @Label(value = "Matches wildcard", description = "Value in column must match the specified pattern, "
+                + "which may contain wildcards <tt>*</tt> and <tt>?</tt>")
+        WILDCARD("Matches wildcard", new IsPatternMatchable(), true),
 
-        @Label("is true") // Boolean
-        IS_TRUE("is true", new IsTruthy(), false), //
-        @Label("is false") // Boolean
-        IS_FALSE("is false", new IsTruthy(), false), //
+        @Label(value = "Is true", description = "Boolean value in column must be <tt>true</tt>")
+        IS_TRUE("Is true", new IsTruthy(), false),
+        @Label(value = "Is false", description = "Boolean value in column must be <tt>false</tt>")
+        IS_FALSE("Is false", new IsTruthy(), false),
 
-        @Label("is missing") // Every ordinary column
-        IS_MISSING("is missing", new IsMissing(), false);
+        @Label(value = "Is missing", description = "Value in column must be <i>missing</i>")
+        IS_MISSING("Is missing", new IsMissing(), false);
 
     final String m_label;
 
@@ -120,13 +122,11 @@ enum FilterOperator {
         return m_label;
     }
 
-    // order for numeric types
-    static final class IsOrdNumeric implements BiPredicate<SpecialColumns, DataType> {
+    // order for any datatype except for `boolean` and `String`
+    static final class IsOrd implements BiPredicate<SpecialColumns, DataType> {
         @Override
         public boolean test(final SpecialColumns specialColumn, final DataType dataType) {
-            // booleans don't get numeric treatment
-            return (dataType.isCompatible(LongValue.class) || dataType.isCompatible(DoubleValue.class))
-                && dataType != BooleanCell.TYPE;
+            return !(BooleanCell.TYPE.equals(dataType) || StringCell.TYPE.equals(dataType));
         }
     }
 

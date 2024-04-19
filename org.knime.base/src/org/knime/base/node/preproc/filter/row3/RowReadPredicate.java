@@ -99,8 +99,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
 
     @Override
     public boolean test(final RowRead row) {
-        final var isMissing = row.isMissing(m_columnIndex);
-        return !isMissing && m_predicate.test(row);
+        return !row.isMissing(m_columnIndex) && m_predicate.test(row);
     }
 
     static <T> Predicate<Optional<T>> wrapOptional(final Predicate<T> predicate) {
@@ -276,7 +275,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
             final CaseMatching caseMatching, final String value) throws InvalidSettingsException {
             final var predicate = new StringPredicate(operator, caseMatching, value);
             return new RowReadPredicate(columnIndex,
-                rowRead -> predicate.test(((StringValue)rowRead.getValue(columnIndex)).getStringValue()));
+                rowRead -> predicate.test(rowRead.<StringValue>getValue(columnIndex).getStringValue()));
         }
 
         @Override
@@ -290,7 +289,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
                     "Unsupported boolean operator \"%s\"".formatted(operator));
             };
             return new RowReadPredicate(columnIndex,
-                rowRead -> matchTrue == ((BooleanValue)rowRead.getValue(columnIndex)).getBooleanValue());
+                rowRead -> matchTrue == rowRead.<BooleanValue>getValue(columnIndex).getBooleanValue());
         }
 
         @Override
@@ -299,7 +298,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
             final var longValue = Long.parseLong(value);
             final var predicate = new LongValuePredicate(operator, longValue);
             return new RowReadPredicate(columnIndex,
-                rowRead -> predicate.test(((LongValue)rowRead.getValue(columnIndex))));
+                rowRead -> predicate.test(rowRead.<LongValue>getValue(columnIndex)));
         }
 
         @Override
@@ -308,7 +307,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
             final var intValue = Integer.parseInt(value);
             final var predicate = new IntValuePredicate(operator, intValue);
             return new RowReadPredicate(columnIndex,
-                rowRead -> predicate.test(((IntValue)rowRead.getValue(columnIndex))));
+                rowRead -> predicate.test(rowRead.<IntValue>getValue(columnIndex)));
         }
 
         @Override
@@ -317,7 +316,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
             final var doubleValue = Double.parseDouble(value);
             final var predicate = new DoubleValuePredicate(operator, doubleValue);
             return new RowReadPredicate(columnIndex,
-                rowRead -> predicate.test(((DoubleValue)rowRead.getValue(columnIndex))));
+                rowRead -> predicate.test(rowRead.<DoubleValue>getValue(columnIndex)));
         }
 
         @Override
@@ -363,7 +362,7 @@ final class RowReadPredicate implements Predicate<RowRead> {
                 final var isNegated = operator == FilterOperator.NEQ;
                 m_predicate = cellValue -> {
                     final var equal = caseSensitive ? cellValue.equals(value) : cellValue.equalsIgnoreCase(value);
-                    return isNegated ? !equal : equal;
+                    return isNegated ^ equal; // XOR, exactly one must be true
                 };
                 return;
             } else if (operator == FilterOperator.WILDCARD || operator == FilterOperator.REGEX) {
