@@ -49,6 +49,9 @@
 package org.knime.base.node.preproc.rounddouble;
 
 import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.NumberMode;
 import org.knime.base.node.preproc.rounddouble.RoundDoubleNodeSettings.OutputColumn;
@@ -73,139 +76,86 @@ final class RoundDoublePersistors {
     }
 
     static final class OutputColumnPersistor extends NodeSettingsPersistorWithConfigKey<OutputColumn> {
-
         @Override
         public OutputColumn load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var isAppendColumns = settings.getBoolean(RoundDoubleLegacyConfigKeys.APPEND_COLUMNS);
+            final var isAppendColumns = settings.getBoolean(getConfigKey());
             return isAppendColumns ? OutputColumn.APPEND : OutputColumn.REPLACE;
         }
 
         @Override
         public void save(final OutputColumn outputColumn, final NodeSettingsWO settings) {
-            settings.addBoolean(RoundDoubleLegacyConfigKeys.APPEND_COLUMNS, outputColumn == OutputColumn.APPEND);
+            settings.addBoolean(getConfigKey(), outputColumn == OutputColumn.APPEND);
         }
-
     }
 
     static final class RoundingMethodPersistor extends NodeSettingsPersistorWithConfigKey<RoundingMethod> {
-
         @Override
         public RoundingMethod load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var roundingModeString = settings.getString(RoundDoubleLegacyConfigKeys.ROUNDING_MODE);
+            final var roundingModeString = settings.getString(getConfigKey());
             return getRoundingMethodFromRoundingModeString(roundingModeString);
         }
 
         @Override
         public void save(final RoundingMethod roundingMethod, final NodeSettingsWO settings) {
             final var roundingMode = RoundDoubleNodeSettings.getRoundingModeFromMethod(roundingMethod);
-            settings.addString(RoundDoubleLegacyConfigKeys.ROUNDING_MODE, roundingMode.toString());
+            settings.addString(getConfigKey(), roundingMode.toString());
         }
 
         private static RoundingMethod getRoundingMethodFromRoundingModeString(final String roundingModeString)
             throws InvalidSettingsException {
-            try {
-                final var roundingMode = RoundingMode.valueOf(roundingModeString);
-                return switch (roundingMode) {
-                    case CEILING -> new RoundingMethod(Advanced.TO_LARGER);
-                    case DOWN -> new RoundingMethod(Advanced.TOWARDS_ZERO);
-                    case FLOOR -> new RoundingMethod(Advanced.TO_SMALLER);
-                    case HALF_DOWN -> new RoundingMethod(Advanced.HALF_TOWARDS_ZERO);
-                    case HALF_EVEN -> new RoundingMethod(Advanced.HALF_TO_EVEN_DIGIT);
-                    case HALF_UP -> new RoundingMethod();
-                    case UP -> new RoundingMethod(Advanced.AWAY_FROM_ZERO);
-                    case UNNECESSARY -> throw new InvalidSettingsException("Will not round unnecessarily");
-                };
-            } catch (IllegalArgumentException e) { // Because `RoundingMode.valueOf(...)` might throw it
-                throw new InvalidSettingsException("Could not load 'RoundingMethod'", e);
-            }
+            final var roundingMode = valueByT(RoundingMode.class, Enum::name, roundingModeString);
+            return switch (roundingMode) {
+                case CEILING -> new RoundingMethod(Advanced.TO_LARGER);
+                case DOWN -> new RoundingMethod(Advanced.TOWARDS_ZERO);
+                case FLOOR -> new RoundingMethod(Advanced.TO_SMALLER);
+                case HALF_DOWN -> new RoundingMethod(Advanced.HALF_TOWARDS_ZERO);
+                case HALF_EVEN -> new RoundingMethod(Advanced.HALF_TO_EVEN_DIGIT);
+                case HALF_UP -> new RoundingMethod();
+                case UP -> new RoundingMethod(Advanced.AWAY_FROM_ZERO);
+                case UNNECESSARY -> throw new InvalidSettingsException("Will not round unnecessarily");
+            };
         }
-
     }
 
     static final class OutputModePersistor extends NodeSettingsPersistorWithConfigKey<OutputMode> {
-
         @Override
         public OutputMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
             // For backwards compatibility with AP versions prior to 2.8
-            if (!settings.containsKey(RoundDoubleLegacyConfigKeys.OUTPUT_TYPE)) {
-                final var isOutputAsString =
-                    settings.getBoolean(RoundDoubleLegacyConfigKeys.OUTPUT_AS_STRING_DEPRECATED, false);
+            if (!settings.containsKey(getConfigKey())) {
+                final var isOutputAsString = settings.getBoolean("OutputAsString", false);
                 return isOutputAsString ? OutputMode.STANDARD_STRING : OutputMode.DOUBLE;
             }
-
-            final var outputTypeString = settings.getString(RoundDoubleLegacyConfigKeys.OUTPUT_TYPE);
-            return getOutputModeFromString(outputTypeString);
+            return valueByT(OutputMode.class, OutputMode::getPersistKey, settings.getString(getConfigKey()));
         }
 
         @Override
         public void save(final OutputMode outputMode, final NodeSettingsWO settings) {
-            final var outputTypeString = getOutputTypeStringFromEnum(outputMode);
-            settings.addString(RoundDoubleLegacyConfigKeys.OUTPUT_TYPE, outputTypeString);
-
+            settings.addString(getConfigKey(), outputMode.getPersistKey());
         }
-
-        private static OutputMode getOutputModeFromString(final String outputTypeString)
-            throws InvalidSettingsException {
-            if (outputTypeString.equals(OutputMode.AUTO.toString())) {
-                return OutputMode.AUTO; // Since this value is new
-            }
-
-            final var outputType = RoundDoubleLegacyConfigKeys.RoundOutputType.valueByTextLabel(outputTypeString);
-            return switch (outputType) {
-                case Double -> OutputMode.DOUBLE;
-                case StringStandard -> OutputMode.STANDARD_STRING;
-                case StringPlain -> OutputMode.PLAIN_STRING;
-                case StringEngineering -> OutputMode.ENGINEERING_STRING;
-            };
-        }
-
-        private static String getOutputTypeStringFromEnum(final OutputMode outputMode) {
-            return switch (outputMode) {
-                case AUTO -> OutputMode.AUTO.toString();
-                case DOUBLE -> RoundDoubleLegacyConfigKeys.RoundOutputType.Double.getLabel();
-                case STANDARD_STRING -> RoundDoubleLegacyConfigKeys.RoundOutputType.StringStandard.getLabel();
-                case PLAIN_STRING -> RoundDoubleLegacyConfigKeys.RoundOutputType.StringPlain.getLabel();
-                case ENGINEERING_STRING -> RoundDoubleLegacyConfigKeys.RoundOutputType.StringEngineering.getLabel();
-            };
-        }
-
     }
 
     static final class NumberModePersistor extends NodeSettingsPersistorWithConfigKey<NumberMode> {
-
         @Override
         public NumberMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var numberModeString = settings.getString(RoundDoubleLegacyConfigKeys.NUMBER_MODE);
-            return getNumberModeFromString(numberModeString);
+            return valueByT(NumberMode.class, NumberMode::getPersistKey, settings.getString(getConfigKey()));
         }
 
         @Override
         public void save(final NumberMode numberMode, final NodeSettingsWO settings) {
-            final var numberModeString = getNumberModeStringFromEnum(numberMode);
-            settings.addString(RoundDoubleLegacyConfigKeys.NUMBER_MODE, numberModeString);
+            settings.addString(getConfigKey(), numberMode.getPersistKey());
         }
-
-        private static NumberMode getNumberModeFromString(final String numberModeString)
-            throws InvalidSettingsException {
-            if (numberModeString.equals(NumberMode.INTEGER.toString())) {
-                return NumberMode.INTEGER; // Since this value is new
-            }
-
-            final var numberMode = RoundDoubleLegacyConfigKeys.NumberMode.valueByDescription(numberModeString);
-            return switch (numberMode) {
-                case DECIMAL_PLACES -> NumberMode.DECIMALS;
-                case SIGNIFICANT_FIGURES -> NumberMode.SIGNIFICANT_DIGITS;
-            };
-        }
-
-        private static String getNumberModeStringFromEnum(final NumberMode numberMode) {
-            return switch (numberMode) {
-                case DECIMALS -> RoundDoubleLegacyConfigKeys.NumberMode.DECIMAL_PLACES.description();
-                case SIGNIFICANT_DIGITS -> RoundDoubleLegacyConfigKeys.NumberMode.SIGNIFICANT_FIGURES.description();
-                case INTEGER -> NumberMode.INTEGER.name();
-            };
-        }
-
     }
 
+    private static <T, E extends Enum<E>> E valueByT(final Class<E> enumType, final Function<E, T> func, final T t)
+        throws InvalidSettingsException {
+        for (E e : enumType.getEnumConstants()) {
+            if (func.apply(e).equals(t)) {
+                return e;
+            }
+        }
+        final var values = Arrays.stream(enumType.getEnumConstants()).map(func).map(Object::toString)
+            .collect(Collectors.joining(", "));
+        throw new InvalidSettingsException(
+            String.format("Invalid value '%s'. Possible values: %s", t.toString(), values));
+    }
 }

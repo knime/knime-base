@@ -91,10 +91,10 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             @Label(value = "Decimals", description = """
                     Rounds numeric values up to the specified number of decimal places.
                     """)
-            DECIMALS,
+            DECIMALS("Decimal places"),
 
             @Label(value = "Significant digits", description = "Only keeps the specified number of significant digits.")
-            SIGNIFICANT_DIGITS,
+            SIGNIFICANT_DIGITS("Significant figures"),
 
             @Label(value = "Integer", description = """
                     Converts numeric values to integer. Note that automatically converting <em>Number (double)</em> or
@@ -103,13 +103,24 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
                     """)
             INTEGER;
 
-        static class IsInteger extends OneOfEnumCondition<NumberMode> {
+        private String m_persistKey;
 
+        NumberMode() {
+        }
+
+        NumberMode(final String persistKey) {
+            m_persistKey = persistKey;
+        }
+
+        String getPersistKey() {
+            return m_persistKey != null ? m_persistKey : name();
+        }
+
+        static class IsInteger extends OneOfEnumCondition<NumberMode> {
             @Override
             public NumberMode[] oneOf() {
                 return new NumberMode[]{INTEGER};
             }
-
         }
     }
 
@@ -199,12 +210,10 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             APPEND;
 
         static class IsReplace extends OneOfEnumCondition<OutputColumn> {
-
             @Override
             public OutputColumn[] oneOf() {
                 return new OutputColumn[]{REPLACE};
             }
-
         }
     }
 
@@ -217,22 +226,35 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             @Label(value = "Double", description = """
                     Sets all output column types to real numbers.
                     """)
-            DOUBLE,
+            DOUBLE("Double"),
 
             @Label(value = "Standard string", description = """
                     Returns the string representation of a number using scientific notation if an exponent is needed.
                     """)
-            STANDARD_STRING,
+            STANDARD_STRING("Standard String"),
 
             @Label(value = "Plain string", description = """
                     Returns a string representation of a number without an exponent field.
                     """)
-            PLAIN_STRING,
+            PLAIN_STRING("Plain String (no exponent)"),
 
             @Label(value = "Engineering string", description = """
                     Returns a string representation of a number, using engineering notation if an exponent is needed.
                     """)
-            ENGINEERING_STRING
+            ENGINEERING_STRING("Engineering String");
+
+        private String m_persistKey;
+
+        OutputMode() {
+        }
+
+        OutputMode(final String persistKey) {
+            m_persistKey = persistKey;
+        }
+
+        String getPersistKey() {
+            return m_persistKey != null ? m_persistKey : name();
+        }
     }
 
     // Settings
@@ -244,7 +266,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     @Widget(title = "Rounding mode", description = "Select the rounding mode to apply.")
     @ValueSwitchWidget
     @Signal(condition = NumberMode.IsInteger.class)
-    @Persist(configKey = RoundDoubleLegacyConfigKeys.NUMBER_MODE, customPersistor = NumberModePersistor.class)
+    @Persist(configKey = "NumberMode", customPersistor = NumberModePersistor.class)
     NumberMode m_numberMode = NumberMode.DECIMALS;
 
     @Widget(title = "Rounding to digits", description = """
@@ -253,33 +275,33 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
             """)
     @NumberInputWidget(min = 0, max = 350)
     @Effect(signals = NumberMode.IsInteger.class, type = EffectType.HIDE)
-    @Persist(configKey = RoundDoubleLegacyConfigKeys.PRECISION_NUMBER)
+    @Persist(configKey = "PrecisionNumer")
     int m_precision = 3;
 
-    @Persist(configKey = RoundDoubleLegacyConfigKeys.ROUNDING_MODE, customPersistor = RoundingMethodPersistor.class)
+    // TODO Currently does not work with flow variables until UIEXT-1745 is resolved
+    @Persist(configKey = "RoundingMode", customPersistor = RoundingMethodPersistor.class)
     RoundingMethod m_roundingMethod = new RoundingMethod();
 
     @Widget(title = "Output columns", description = "Configure output column behavior.")
     @ValueSwitchWidget
     @Signal(condition = OutputColumn.IsReplace.class)
-    @Persist(configKey = RoundDoubleLegacyConfigKeys.APPEND_COLUMNS, customPersistor = OutputColumnPersistor.class)
+    @Persist(configKey = "AppendColumns", customPersistor = OutputColumnPersistor.class)
     OutputColumn m_outputColumn = OutputColumn.APPEND;
 
     @Widget(title = "Output column suffix", description = "Set the suffix to append to the new column names.")
     @TextInputWidget
     @Effect(signals = OutputColumn.IsReplace.class, type = EffectType.HIDE)
-    @Persist(configKey = RoundDoubleLegacyConfigKeys.COLUMN_SUFFIX)
+    @Persist(configKey = "ColumnSuffix")
     String m_suffix = " (Rounded)";
 
     @Widget(title = "Output mode (legacy)", advanced = true, description = """
             Determines the formatting of the output columns.
             """)
-    @Persist(configKey = RoundDoubleLegacyConfigKeys.OUTPUT_TYPE, customPersistor = OutputModePersistor.class)
+    @Persist(configKey = "OutputType", customPersistor = OutputModePersistor.class)
     OutputMode m_outputMode = OutputMode.AUTO;
 
     // Utilities
     static final class NumberColumns implements ColumnChoicesProvider {
-
         @Override
         public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
             return context.getDataTableSpec(0)//
@@ -288,7 +310,6 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
                 .filter(RoundDoubleNodeModel::isTargetColumn)//
                 .toArray(DataColumnSpec[]::new);
         }
-
     }
 
     static RoundingMode getRoundingModeFromMethod(final RoundingMethod roundingMethod) {
@@ -313,5 +334,4 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     RoundDoubleNodeSettings() {
         // Required by framework for serialization / de-serialization
     }
-
 }
