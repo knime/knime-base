@@ -346,7 +346,8 @@ final class RowReadPredicate implements Predicate<RowRead> {
 
     /* === Value Predicates */
 
-    sealed interface FilterPredicate<T> extends Predicate<T> permits StringPredicate, ComparableFilterPredicate<T> {
+    @SuppressWarnings("rawtypes") // `permits` clause doesn't like type parameters
+    sealed interface FilterPredicate<T> extends Predicate<T> permits StringPredicate, ComparableFilterPredicate {
         boolean isApplicableFor(FilterOperator operator);
     }
 
