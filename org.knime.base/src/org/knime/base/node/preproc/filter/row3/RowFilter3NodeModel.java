@@ -49,7 +49,6 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -90,11 +89,6 @@ import org.knime.core.util.Pair;
 import org.knime.core.util.valueformat.NumberFormatter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.impl.WebUINodeModel;
-
-import com.google.common.collect.BoundType;
-import com.google.common.collect.ImmutableRangeSet;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
 
 /**
  * Implementation of the Row Filter 2 (Labs) node.
@@ -214,9 +208,26 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         }
     }
 
-    private static final class RowNumberFilter {
+    private static final long UNKNOWN_SIZE = -1;
 
-        private static final long UNKNOWN_SIZE = -1;
+    record RowRange(long fromIncl, long toExcl) {
+        RowRange {
+            CheckUtils.checkArgument(fromIncl >= 0, "Lower bound must be non-negative, found %d", fromIncl);
+            if (toExcl >= 0) {
+                CheckUtils.checkArgument(fromIncl < toExcl,
+                    "Lower bound must be smaller than upper bound, found %d (lower) >= %d (upper)", fromIncl, toExcl);
+            } else {
+                CheckUtils.checkArgument(toExcl == UNKNOWN_SIZE,
+                    "Expected non-negative upper bound or %d, found %d", UNKNOWN_SIZE, toExcl);
+            }
+        }
+
+        boolean hasUpperBound() {
+            return toExcl != UNKNOWN_SIZE;
+        }
+    }
+
+    static final class RowNumberFilter {
 
         private static final EnumSet<FilterOperator> SUPPORTED_OPERATORS = EnumSet.of( //
             FilterOperator.EQ, //
@@ -228,7 +239,6 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             FilterOperator.FIRST_N_ROWS, //
             FilterOperator.LAST_N_ROWS //
         );
-
         private RowNumberFilter() {
             // hidden
         }
@@ -266,14 +276,14 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             final var includedExcludedPartition = computeRowPartition(settings, in.size());
 
             final var includedRanges = includedExcludedPartition.getFirst();
-            if (includedRanges.isEmpty()) {
+            if (includedRanges.length == 0) {
                 // no rows are included
                 final var empty = exec.createVoidTable(in.getSpec());
                 return isSplitter ? new BufferedDataTable[] { empty, in } : new BufferedDataTable[] { empty };
             }
 
             final var excludedRanges = includedExcludedPartition.getSecond();
-            if (excludedRanges.isEmpty()) {
+            if (excludedRanges.length == 0) {
                 // all rows are included
                 final var empty = exec.createVoidTable(in.getSpec());
                 return isSplitter ? new BufferedDataTable[] { in, empty } : new BufferedDataTable[] { in };
@@ -289,7 +299,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             return new BufferedDataTable[] { included, excluded };
         }
 
-        private static Pair<RangeSet<Long>, RangeSet<Long>> computeRowPartition(final RowFilter3NodeSettings settings,
+        private static Pair<RowRange[], RowRange[]> computeRowPartition(final RowFilter3NodeSettings settings,
                 final long optionalTableSize) throws InvalidSettingsException {
             final var operator = settings.m_operator;
             final var value = parseInputAsRowNumber(settings.m_value, settings.m_type,
@@ -302,21 +312,17 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
         }
 
         private static BufferedDataTable slicedFromRanges(final ExecutionContext exec, final BufferedDataTable in,
-                final RangeSet<Long> includeRanges) throws CanceledExecutionException {
+                final RowRange[] includeRanges) throws CanceledExecutionException {
 
-            // `RangeSet#asRanges()` only guarantees ordering of its `#iterator()`, not its `#stream()` (we're cautious)
-            final List<Range<Long>> ranges = new ArrayList<>();
-            includeRanges.asRanges().iterator().forEachRemaining(ranges::add);
-
-            if (ranges.size() < 2) {
-                return ranges.isEmpty() ? exec.createVoidTable(in.getDataTableSpec())
-                    : InternalTableAPI.slice(exec, in, toSelection(ranges.get(0)));
+            if (includeRanges.length < 2) {
+                return includeRanges.length == 0 ? exec.createVoidTable(in.getDataTableSpec())
+                    : InternalTableAPI.slice(exec, in, toSelection(includeRanges[0]));
             }
 
-            final var subTables = new BufferedDataTable[ranges.size()];
-            for (var i = 0; i < subTables.length; i++) {
-                final var sliceExec = exec.createSubExecutionContext(0.5 / subTables.length);
-                subTables[i] = InternalTableAPI.slice(sliceExec, in, toSelection(ranges.get(i)));
+            final var subTables = new BufferedDataTable[includeRanges.length];
+            for (var i = 0; i < includeRanges.length; i++) {
+                final var sliceExec = exec.createSubExecutionContext(0.5 / includeRanges.length);
+                subTables[i] = InternalTableAPI.slice(sliceExec, in, toSelection(includeRanges[i]));
                 sliceExec.setProgress(1.0, (String)null);
             }
 
@@ -328,16 +334,13 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
             }
         }
 
-        private static Selection toSelection(final Range<Long> range) {
-            CheckUtils.checkState(range.hasLowerBound() && range.lowerBoundType() == BoundType.CLOSED
-                    && range.hasUpperBound() && range.upperBoundType() == BoundType.OPEN,
-                "Expected a row index range with closed lower and open upper bound, found %s", range);
-            return Selection.all().retainRows(range.lowerEndpoint(), range.upperEndpoint());
+        private static Selection toSelection(final RowRange range) {
+            return Selection.all().retainRows(range.fromIncl, range.toExcl);
         }
 
         /**
          * Computes the sets of rows which are matched/not matched by the given operator and value as a pair of
-         * {@link RangeSet RangeSet&lt;Long>}.
+         * sorted arrays of non-overlapping {@link RowRange}.
          * <ul>
          *   <li>The lower bounds of all ranges in the sets are always inclusive.</li>
          *   <li>The upper bound is absent iff it is the end of the input and the table size is unknown.
@@ -349,7 +352,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
          * @param optionalTableSize table size if known, {@link #UNKNOWN_SIZE} otherwise
          * @return pair where the first/second element represents the matched/non-matched row indices, respectively
          */
-        private static Pair<RangeSet<Long>, RangeSet<Long>> computePartition(final FilterOperator operator,
+        static Pair<RowRange[], RowRange[]> computePartition(final FilterOperator operator,
                 final long value, final long optionalTableSize) {
             final FilterOperator indexOperator;
             final long offsetNonNeg;
@@ -357,7 +360,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                 indexOperator = FilterOperator.LT;
                 offsetNonNeg = value;
             } else if (operator == FilterOperator.LAST_N_ROWS) {
-                CheckUtils.check(optionalTableSize != RowNumberFilter.UNKNOWN_SIZE, IllegalStateException::new,
+                CheckUtils.check(optionalTableSize != UNKNOWN_SIZE, IllegalStateException::new,
                         () -> "Expected table size for filter operator \"%s\"".formatted(operator.label()));
                 indexOperator = FilterOperator.GTE;
                 // if the table has fewer than `n` rows, return the whole table
@@ -382,38 +385,51 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                     rowIndexRanges(complementIndexOperator, offsetNonNeg, optionalTableSize));
         }
 
-        private static RangeSet<Long> rowIndexRanges(final FilterOperator operator, final long indexNonNeg,
+        private static RowRange[] rowIndexRanges(final FilterOperator operator, final long indexNonNeg,
                 final long optSize) {
-            final var builder = ImmutableRangeSet.<Long>builder();
-            return switch (operator) {
-                case EQ  -> addSafe(builder, clampedRange(indexNonNeg, indexNonNeg + 1, optSize)).build();
-                case NEQ ->  addSafe(addSafe(builder, clampedRange(0L, indexNonNeg, optSize)),
-                    clampedRange(indexNonNeg + 1, optSize, optSize)).build();
-                case LT  -> addSafe(builder, clampedRange(0L, indexNonNeg, optSize)).build();
-                case LTE -> addSafe(builder, clampedRange(0L, indexNonNeg + 1, optSize)).build();
-                case GT  -> addSafe(builder, clampedRange(indexNonNeg + 1, optSize, optSize)).build();
-                case GTE -> addSafe(builder, clampedRange(indexNonNeg, optSize, optSize)).build();
+            final var rangesOut = new ArrayList<RowRange>();
+            switch (operator) {
+                case EQ  -> addRangeIfNonEmpty(rangesOut, indexNonNeg, indexNonNeg + 1, optSize);
+                case NEQ -> {
+                    addRangeIfNonEmpty(rangesOut, 0, indexNonNeg, optSize);
+                    addRangeIfNonEmpty(rangesOut, indexNonNeg + 1, optSize, optSize);
+                }
+                case LT  -> addRangeIfNonEmpty(rangesOut, 0, indexNonNeg, optSize);
+                case LTE -> addRangeIfNonEmpty(rangesOut, 0, indexNonNeg + 1, optSize);
+                case GT  -> addRangeIfNonEmpty(rangesOut, indexNonNeg + 1, optSize, optSize);
+                case GTE -> addRangeIfNonEmpty(rangesOut, indexNonNeg, optSize, optSize);
                 default  -> throw new IllegalArgumentException("Unsupported table filter operator: " + operator);
-            };
-        }
-
-        private static ImmutableRangeSet.Builder<Long> addSafe(final ImmutableRangeSet.Builder<Long> builder,
-                final Range<Long> range) {
-            if (!range.isEmpty()) {
-                builder.add(range);
             }
-            return builder;
+            return rangesOut.toArray(RowRange[]::new);
         }
 
-        private static Range<Long> clampedRange(final long lowerIncl, final long upperExcl, final long optSize) {
+        /**
+         * Adds a range of row indexes to the output list {@code out} if it is not empty. If the table size is known,
+         * the range is limited to that size.
+         *
+         * @param out output list to append to
+         * @param lowerIncl first row index in the range
+         * @param upperExcl first row index after the range, or {@code -1} if the range doesn't have an upper limit
+         * @param optSize size of the input table if known, {@link RowFilter3NodeModel#UNKNOWN_SIZE} otherwise
+         */
+        private static void addRangeIfNonEmpty(final List<RowRange> out, final long lowerIncl, final long upperExcl,
+                final long optSize) {
+            if (lowerIncl < 0) {
+                // possible if `operator == GT` and `indexNonNeg == Long.MAX_VALUE`, empty selection
+                return;
+            }
+
             final var sizeUpperBound = optSize < 0 ? Long.MAX_VALUE : optSize;
-            final var lowerInclClamped = Math.max(0L, Math.min(lowerIncl, sizeUpperBound));
-            if (upperExcl < 0) { // may be from overflow or unknown size
-                return Range.atLeast(lowerInclClamped);
+            final var lowerInclClamped = Math.min(lowerIncl, sizeUpperBound);
+            if (upperExcl < 0) {
+                // may be from overflow (if `lowerIncl == Long.MAX_VALUE`) or unknown size
+                out.add(new RowRange(lowerInclClamped, UNKNOWN_SIZE));
             }
 
-            final var upperExclClamped = Math.max(lowerInclClamped, Math.min(upperExcl, sizeUpperBound));
-            return Range.closedOpen(lowerInclClamped, upperExclClamped);
+            final var upperExclClamped = Math.min(upperExcl, sizeUpperBound);
+            if (lowerInclClamped < upperExclClamped) {
+                out.add(new RowRange(lowerInclClamped, upperExclClamped));
+            }
         }
     }
 
@@ -542,7 +558,7 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
                 final PortOutput[] outputs, final RowFilter3NodeSettings settings)
                 throws CanceledExecutionException, InterruptedException, InvalidSettingsException {
             final var isSplitter = outputs.length > 1;
-            final var rowPartition = RowNumberFilter.computeRowPartition(settings, RowNumberFilter.UNKNOWN_SIZE);
+            final var rowPartition = RowNumberFilter.computeRowPartition(settings, UNKNOWN_SIZE);
             final var includeRanges = rowPartition.getFirst();
 
             // the only stats to report are read and included rows, we don't know the size of the input
@@ -553,58 +569,73 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
 
             final var included = (RowOutput)outputs[MATCHING_OUTPUT];
             final var excluded = isSplitter ? (RowOutput)outputs[NON_MATCHING_OUTPUT] : null;
+
+            /*
+             * The following loop acts as a state machine, alternating between "include" and "exclude" states:
+             *
+             *                       ┌─────────┐ input ends or range ends and not a splitter
+             *                       │ INCLUDE ├─────────────────────────────────────────┐
+             *                    ┌──┤  ROWS   ◄──┐                                      │
+             *             include│  └─────────┘  │include                            ┌──▼──┐
+             *               range│               │range                              │ END │
+             *                ends│  ┌─────────┐  │starts                             └──▲──┘
+             *                    └──► EXCLUDE ├──┘                                      │
+             *              ─────────►  ROWS   ├─────────────────────────────────────────┘
+             *               start   └─────────┘              input ends
+             */
             DataRow row;
-            // the last include range determines at which point we only include or only exclude (can close early)
-            final var lastIncludeRangeOpt =
-                includeRanges.asRanges().stream().max(Comparator.comparing(RowFilterOperator::upperBoundExcl));
+            for (var nextRange = 0;; nextRange++) {
 
-            if (lastIncludeRangeOpt.isPresent()) {
-                // at least one include range
-                final var lastIncludeRange = lastIncludeRangeOpt.get();
-                final var includedEnd = upperBoundExcl(lastIncludeRange);
-                final var excludedEnd =
-                    lastIncludeRange.hasUpperBound() ? Long.MAX_VALUE : lowerBoundIncl(lastIncludeRange);
-                for (long rowIndex = 0; rowIndex < includedEnd && (row = input.poll()) != null; rowIndex++) {
-                    exec.checkCanceled();
-                    matchedRead[1]++;
-
-                    if (excluded != null && rowIndex == excludedEnd) {
-                        // only included rows remain
-                        excluded.close();
+                // === EXCLUDE ROWS state ===
+                final long lastExclRow;
+                if (nextRange < includeRanges.length) {
+                    // there's another include range ahead, everything before is excluded
+                    lastExclRow = includeRanges[nextRange].fromIncl() - 1;
+                } else {
+                    // only excluded rows remain
+                    if (excluded == null) {
+                        // not a splitter, nothing left to do
+                        return;
                     }
-                    if (includeRanges.contains(rowIndex)) {
-                        included.push(row);
-                        matchedRead[0]++;
-                    } else if (excluded != null) {
+                    included.close();
+                    lastExclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
+                }
+                while (matchedRead[1] <= lastExclRow) {
+                    exec.checkCanceled();
+                    if ((row = input.poll()) == null) {
+                        return;
+                    }
+                    if (excluded != null) {
                         excluded.push(row);
                     }
-                    exec.setMessage(progress);
-                }
-            }
-            // only excluded rows remain
-            if (excluded != null) {
-                included.close();
-                while ((row = input.poll()) != null) {
-                    exec.checkCanceled();
                     matchedRead[1]++;
-                    excluded.push(row);
+                    exec.setMessage(progress);
+                }
+
+                // === INCLUDE ROWS state ===
+                final var currentRange = includeRanges[nextRange];
+                final long lastInclRow;
+                if (currentRange.hasUpperBound()) {
+                    // current include range ends somewhere
+                    lastInclRow = currentRange.toExcl() - 1;
+                } else {
+                    // only included rows remain
+                    if (excluded != null) {
+                        excluded.close();
+                    }
+                    lastInclRow = Long.MAX_VALUE; // effectively makes `while` condition below `true`
+                }
+                while (matchedRead[1] <= lastInclRow) {
+                    exec.checkCanceled();
+                    if ((row = input.poll()) == null) {
+                        return;
+                    }
+                    included.push(row);
+                    matchedRead[1]++;
+                    matchedRead[0]++;
                     exec.setMessage(progress);
                 }
             }
-        }
-
-        private static Long upperBoundExcl(final Range<Long> range) {
-            if (!range.hasUpperBound()) {
-                return Long.MAX_VALUE;
-            }
-            return range.upperEndpoint() + (range.upperBoundType() == BoundType.CLOSED ? 1 : 0);
-        }
-
-        private static Long lowerBoundIncl(final Range<Long> range) {
-            if (!range.hasLowerBound()) {
-                return 0L;
-            }
-            return range.lowerEndpoint() + (range.lowerBoundType() == BoundType.OPEN ? 1 : 0);
         }
 
         private static final class DataRowAdapter implements RowRead {
