@@ -496,23 +496,26 @@
       "label" : "Include in Output",
       "type" : "Section",
       "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/includeMatchesInOutput",
-        "options" : {
-          "format" : "checkbox"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/includeLeftUnmatchedInOutput",
-        "options" : {
-          "format" : "checkbox"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/includeRightUnmatchedInOutput",
-        "options" : {
-          "format" : "checkbox"
-        }
+        "type" : "VennDiagram",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/includeMatchesInOutput",
+          "options" : {
+            "format" : "checkbox"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/includeLeftUnmatchedInOutput",
+          "options" : {
+            "format" : "checkbox"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/includeRightUnmatchedInOutput",
+          "options" : {
+            "format" : "checkbox"
+          }
+        } ]
       } ]
     }, {
       "label" : "Output Columns",

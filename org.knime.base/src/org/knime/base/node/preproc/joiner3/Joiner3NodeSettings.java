@@ -59,6 +59,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.CheckboxesWithVennDiagram;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -98,6 +99,22 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     @Section(title = "Include in Output")
     @After(MatchingCriteriaSection.class)
     interface IncludeInOutputSection {
+
+        @CheckboxesWithVennDiagram
+        interface WithVennDiagram {
+
+
+            interface Matched {
+            }
+
+            @After(Matched.class)
+            interface LeftUnmatched {
+            }
+
+            @After(LeftUnmatched.class)
+            interface RightUnmatched {
+            }
+        }
     }
 
     @Section(title = "Output Columns")
@@ -300,17 +317,17 @@ final class Joiner3NodeSettings implements DefaultNodeSettings {
     DataCellComparisonMode m_dataCellComparisonMode = DataCellComparisonMode.STRICT;
 
     @Widget(title = "Matching rows", description = "Include rows that match on the selected column pairs.")
-    @Layout(IncludeInOutputSection.class)
+    @Layout(IncludeInOutputSection.WithVennDiagram.Matched.class)
     boolean m_includeMatchesInOutput = true;
 
     @Widget(title = "Left unmatched rows",
         description = "Include rows from the left input table for which no matching row in the right input table is found.")
-    @Layout(IncludeInOutputSection.class)
+    @Layout(IncludeInOutputSection.WithVennDiagram.LeftUnmatched.class)
     boolean m_includeLeftUnmatchedInOutput;
 
     @Widget(title = "Right unmatched rows",
         description = "Include rows from the right input table for which no matching row in the left input table is found.")
-    @Layout(IncludeInOutputSection.class)
+    @Layout(IncludeInOutputSection.WithVennDiagram.RightUnmatched.class)
     boolean m_includeRightUnmatchedInOutput;
 
     enum RowKeyFactory {
