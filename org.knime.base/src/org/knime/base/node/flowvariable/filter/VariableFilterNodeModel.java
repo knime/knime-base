@@ -98,12 +98,14 @@ final class VariableFilterNodeModel extends NodeModel {
     }
 
     private void pushHidingVariables() {
-        Set<String> availableFlowVariableNames =
+        final Set<String> availableFlowVariableNames =
             getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()).values().stream() //
                 .filter(fv -> fv.getScope() == Scope.Flow) //
                 .map(FlowVariable::getName) //
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-        availableFlowVariableNames.removeAll(Arrays.asList(m_settings.m_selectedVariables));
+        final String[] namesAsArray = availableFlowVariableNames.toArray(String[]::new);
+
+        availableFlowVariableNames.removeAll(Arrays.asList(m_settings.m_filter.getSelected(namesAsArray)));
         availableFlowVariableNames.stream() //
             .map(FlowVariable::newHidingVariable) //
             .forEach(fv -> Node.invokePushFlowVariable(this, fv));

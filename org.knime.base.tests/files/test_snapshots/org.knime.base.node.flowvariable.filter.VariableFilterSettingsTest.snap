@@ -1,7 +1,19 @@
 {
   "data" : {
     "model" : {
-      "selectedVariables" : [ ]
+      "filter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        }
+      }
     }
   },
   "schema" : {
@@ -10,13 +22,93 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "selectedVariables" : {
+          "filter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "configKeys" : [ "selected_Internals" ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string",
+                  "configKeys" : [ "selected_Internals" ]
+                }
+              }
+            },
             "title" : "Flow Variable Filter",
             "description" : "The names of the flow variables that pass this filter node. See the general node description for details regarding which variables can be filtered.",
-            "default" : [ ],
-            "type" : "array",
-            "items" : {
-              "type" : "string"
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              }
             }
           }
         }
@@ -26,9 +118,9 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/selectedVariables",
+      "scope" : "#/properties/model/properties/filter",
       "options" : {
-        "format" : "twinList",
+        "format" : "nameFilter",
         "possibleValues" : [ ],
         "showNoneColumn" : false,
         "showRowKeys" : false,

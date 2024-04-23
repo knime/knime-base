@@ -47,11 +47,11 @@
  */
 package org.knime.base.node.flowvariable.filter;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Scope;
 import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -69,7 +69,7 @@ final class VariableFilterSettings implements DefaultNodeSettings {
         description = "The names of the flow variables that pass this filter node. See the general node description "
             + "for details regarding which variables can be filtered.")
     @ChoicesWidget(choices = FlowVariableNamesChoicesProvider.class)
-    String[] m_selectedVariables = ArrayUtils.EMPTY_STRING_ARRAY;
+    NameFilter m_filter = new NameFilter();
 
     /** Provider for the available flow variables, excluding constants. */
     private static final class FlowVariableNamesChoicesProvider implements ChoicesProvider {

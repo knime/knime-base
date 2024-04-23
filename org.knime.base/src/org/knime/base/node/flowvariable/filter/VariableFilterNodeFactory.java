@@ -57,7 +57,6 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
@@ -123,7 +122,7 @@ public final class VariableFilterNodeFactory extends
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final var b = new PortsConfigurationBuilder();
-        b.addOptionalPortGroupWithDefault(PORT_GROUP, FlowVariablePortObject.TYPE, t -> true);
+        b.addExtendablePortGroup(PORT_GROUP, t -> true);
         return Optional.of(b);
     }
 
