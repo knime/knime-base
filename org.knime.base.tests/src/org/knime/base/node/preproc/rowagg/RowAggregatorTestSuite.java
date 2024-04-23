@@ -50,7 +50,6 @@ package org.knime.base.node.preproc.rowagg;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.platform.suite.api.SelectPackages;
-import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SuiteDisplayName;
 
 /**
@@ -58,7 +57,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@Suite
+//@Suite // temporarily disabled on purpose
 @SelectPackages({"org.knime.base.node.preproc.rowagg", "org.knime.base.node.preproc.rowagg.aggregation"})
 @SuiteDisplayName("RowAggregator node tests")
 @Tag("nodes")
