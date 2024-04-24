@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -478,7 +479,9 @@ final class RowFilter3NodeModel extends WebUINodeModel<RowFilter3NodeSettings> {
 
     @Override
     public OutputPortRole[] getOutputPortRoles() {
-        return new OutputPortRole[]{OutputPortRole.DISTRIBUTED};
+        final var out = new OutputPortRole[getNrOutPorts()];
+        Arrays.fill(out, OutputPortRole.DISTRIBUTED);
+        return out;
     }
 
     private RowFilter3NodeSettings assertSettings() {
