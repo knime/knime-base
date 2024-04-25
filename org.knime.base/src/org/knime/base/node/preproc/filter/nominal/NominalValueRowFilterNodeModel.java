@@ -78,6 +78,7 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  *
  * @author KNIME GmbH
  */
+@SuppressWarnings("restriction") // webui
 public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueRowFilterSettings> {
 
     private int m_selectedColIdx;
@@ -86,6 +87,7 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
 
     /**
      * One inport (data to be filtered) one out port (included).
+     * @param config configuration used in webui node model
      *
      * @since 5.3
      */
@@ -98,7 +100,6 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
      *
      * @since 5.3
      */
-    @SuppressWarnings("null")
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec,
         final NominalValueRowFilterSettings settings) throws Exception {
@@ -145,7 +146,6 @@ public class NominalValueRowFilterNodeModel extends WebUINodeModel<NominalValueR
         final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         return new StreamableOperator() {
 
-            @SuppressWarnings("null")
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
                 throws Exception {
