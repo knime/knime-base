@@ -104,14 +104,14 @@ final class JoinSpecificationCreator {
         // left (top port) input table
         DataTableSpec left = (DataTableSpec)portSpecs[0];
         String[] leftIncludes =
-            m_joinerNodeSettings.m_leftColumnSelectionConfig.getSelected(left.getColumnNames(), left);
+            m_joinerNodeSettings.m_leftColumnSelectionConfig.getNonMissingSelected(left.getColumnNames(), left);
         var leftSettings =
             new JoinTableSettings(isIncludeLeftUnmatched(), getLeftJoinColumns(), leftIncludes, InputTable.LEFT, left);
 
         // right (bottom port) input table
         DataTableSpec right = (DataTableSpec)portSpecs[1];
         String[] rightIncludes =
-            m_joinerNodeSettings.m_rightColumnSelectionConfig.getSelected(right.getColumnNames(), right);
+            m_joinerNodeSettings.m_rightColumnSelectionConfig.getNonMissingSelected(right.getColumnNames(), right);
         var rightSettings = new JoinTableSettings(isIncludeRightUnmatched(), getRightJoinColumns(), rightIncludes,
             InputTable.RIGHT, right);
 
