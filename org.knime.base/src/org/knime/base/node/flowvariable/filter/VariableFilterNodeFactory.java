@@ -78,23 +78,25 @@ public final class VariableFilterNodeFactory extends
 
     private static final String FULL_DESCRIPTION = """
             <p>
-                Filters flow variables so that they will not be available in downstream nodes. Flow variables
-                in KNIME Analytics Platform are passed along all connections, independent of the connection type
-                (data, data base connection, predictive model, etc). Once defined, variables will be available in all
-                downstream nodes except in two cases:
+              Filters flow variables to prevent their availability in downstream nodes.
+              In KNIME Analytics Platform, flow variables are propagated along all connections,
+              regardless of the connection type (data, database connection, predictive model,
+              etc.). Once defined, these variables remain available to all downstream nodes
+              unless one of two conditions is met:
             </p>
             <ul>
-                <li>A variable is defined in a "scope context" such as within a loop or within component.</li>
-                <li>A variable is removed using this node.</li>
+                <li>The variable is defined within a scoped context, such as inside a loop
+                    or a component.</li>
+                <li>The variable is explicitly removed, for example, using this node.</li>
             </ul>
             <p>
-                Note that only variables can be filtered that are created within the same 'context'. For instance,
-                if this node is used with a loop, it can only apply a filtering of variables created within the loop.
-                Variables that were passed into the loop (available upstream the loop) cannot be filtered out.
+              Note that when a variable is removed within a loop (or another scoped
+              context), it may be restored after the corresponding end node if it was
+              originally defined outside of that context.
             </p>
             <p>
-                The input ports are just passed through to the output ports. You can set an arbitrary number of
-                port pairs by using the &#8220;&#8230;&#8221; menu.
+              The input ports are merely passed through to the output ports. You can
+              configure an arbitrary number of port pairs by adding them to the node.
             </p>
             """;
 
