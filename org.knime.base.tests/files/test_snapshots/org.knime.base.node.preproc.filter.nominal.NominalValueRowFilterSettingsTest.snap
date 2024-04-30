@@ -186,19 +186,19 @@
         "triggerInitially" : true
       },
       "dependencies" : [ {
-        "scope" : "#/properties/model/properties/selectedColumn",
+        "scopes" : [ "#/properties/model/properties/selectedColumn" ],
         "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency"
       } ]
     }, {
       "trigger" : {
         "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency",
-        "scope" : "#/properties/model/properties/selectedColumn"
+        "scopes" : [ "#/properties/model/properties/selectedColumn" ]
       },
       "dependencies" : [ {
-        "scope" : "#/properties/model/properties/nominalValueSelection",
+        "scopes" : [ "#/properties/model/properties/nominalValueSelection" ],
         "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$NominalValueSelectionDependency"
       }, {
-        "scope" : "#/properties/model/properties/selectedColumn",
+        "scopes" : [ "#/properties/model/properties/selectedColumn" ],
         "id" : "org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterSettings$SelectedColumnDependency"
       } ]
     } ]

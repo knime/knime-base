@@ -653,7 +653,7 @@
       } ]
     } ],
     "initialUpdates" : [ {
-      "path" : null,
+      "scopes" : null,
       "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$LeftTableChoices",
       "value" : [ {
         "id" : "test1",
@@ -663,7 +663,7 @@
         "text" : "test2"
       } ]
     }, {
-      "path" : null,
+      "scopes" : null,
       "id" : "org.knime.base.node.preproc.joiner3.Joiner3NodeSettings$RightTableChoices",
       "value" : [ {
         "id" : "test1",
