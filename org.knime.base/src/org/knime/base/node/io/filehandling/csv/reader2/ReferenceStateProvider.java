@@ -44,39 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 15, 2024 (marcbux): created
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.util.Optional;
+import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
- * Allows access to the {@link FSPath FSPaths} referred to by a {@link FileChooser} provided in the constructor. The
- * paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
- *
- * @author Paul Bärnreuther
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-final class FileChooserPathAccessor extends AbstractFileChooserPathAccessor {
+abstract class ReferenceStateProvider<V> implements Reference<V>, StateProvider<V> {
 
-    /**
-     * Creates a new FileChooserAccessor for the provided location.</br>
-     * The settings are not validated in this constructor but instead if
-     * {@link ReadPathAccessor#getPaths(java.util.function.Consumer)} is called.
-     *
-     * @param fileChooser provided by the user
-     */
-    public FileChooserPathAccessor(final FileChooser fileChooser) { //NOSONAR
-        super(new FileChooserPathAccessorSettings(fileChooser.getFSLocation(),
-            new FilterSettings(FilterMode.FILE, false,
-                // FilterOptionsSettings not used at the moment with filter mode FILE.
-                null, false)),
-            Optional.empty());
+    private Supplier<V> m_v;
+
+    @Override
+    public void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+        @SuppressWarnings("unchecked")
+        final var type = (Class<? extends Reference<V>>)this.getClass();
+        m_v = initializer.computeFromValueSupplier(type);
+    }
+
+    @Override
+    public V computeState(final DefaultNodeSettingsContext context) {
+        return m_v.get();
     }
 }

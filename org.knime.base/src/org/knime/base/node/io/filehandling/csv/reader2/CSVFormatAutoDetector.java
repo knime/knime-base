@@ -80,6 +80,7 @@ import com.univocity.parsers.csv.CsvParser;
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 abstract class CSVFormatAutoDetector {
 
     protected CsvFormat detectFormat() throws IOException, InvalidSettingsException {

@@ -44,39 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 26, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   May 21, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import java.util.Optional;
-
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filechooser.FileChooser;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsSerializer;
 
 /**
- * Allows access to the {@link FSPath FSPaths} referred to by a {@link FileChooser} provided in the constructor. The
- * paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
- *
- * @author Paul Bärnreuther
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-final class FileChooserPathAccessor extends AbstractFileChooserPathAccessor {
+public enum ClassTypeSerializer implements NodeSettingsSerializer<Class<?>> {
+        /**
+         * The {@link NodeSettingsSerializer} singleton for type {@link Class}.
+         */
+        SERIALIZER;
 
-    /**
-     * Creates a new FileChooserAccessor for the provided location.</br>
-     * The settings are not validated in this constructor but instead if
-     * {@link ReadPathAccessor#getPaths(java.util.function.Consumer)} is called.
-     *
-     * @param fileChooser provided by the user
-     */
-    public FileChooserPathAccessor(final FileChooser fileChooser) { //NOSONAR
-        super(new FileChooserPathAccessorSettings(fileChooser.getFSLocation(),
-            new FilterSettings(FilterMode.FILE, false,
-                // FilterOptionsSettings not used at the moment with filter mode FILE.
-                null, false)),
-            Optional.empty());
+    @Override
+    public void save(final Class<?> object, final NodeSettingsWO settings) {
+        settings.addString("class", object.getName());
+    }
+
+    @Override
+    public Class<?> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        try {
+            return Class.forName(settings.getString("class"));
+        } catch (ClassNotFoundException e) {
+            throw new InvalidSettingsException("Loading the type failed.", e);
+        }
     }
 }

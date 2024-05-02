@@ -88,6 +88,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.FileFormat.SkipFirstLines;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.AppendFilePathColumn;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.MultipleFileHandling.FilePathColumnName;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Transformation;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.DecimalSeparator;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.QuotedStrings;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ReplaceEmptyQuotedStringsByMissingValues;
@@ -103,7 +104,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPreserverPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
@@ -125,6 +125,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
@@ -147,8 +148,10 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
     @Persist(configKey = "encoding")
     Encoding m_encoding = new Encoding();
 
-    @Persist(configKey = "table_spec_config", hidden = true, customPersistor = NodeSettingsPreserverPersistor.class)
-    Void m_tableSpecConfig;
+    @Persist(configKey = "table_spec_config", hidden = true,
+        customPersistor = CSVTransformationSettingsPersistor.class)
+    @Layout(Transformation.class)
+    CSVTransformationSettings m_tableSpecConfig = new CSVTransformationSettings();
 
     static class Settings implements WidgetGroup, PersistableSettings {
 
@@ -162,12 +165,20 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "file_selection", hidden = true)
         FileSelectionInternal m_fileSelectionInternal = new FileSelectionInternal();
 
+        static class FirstRowContainsColumnNamesRef extends ReferenceStateProvider<Boolean> {
+        }
+
         @Widget(title = "First row contains column names", description = FirstRowContainsColumnNames.DESCRIPTION)
+        @ValueReference(FirstRowContainsColumnNamesRef.class)
         @Layout(FirstRowContainsColumnNames.class)
         @Persist(configKey = "has_column_header")
         boolean m_firstRowContainsColumnNames = true;
 
+        static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> {
+        }
+
         @Widget(title = "First column contains RowIDs", description = FirstColumnContainsRowIds.DESCRIPTION)
+        @ValueReference(FirstColumnContainsRowIdsRef.class)
         @Layout(FirstColumnContainsRowIds.class)
         @Persist(configKey = "has_row_id")
         boolean m_firstColumnContainsRowIds;
@@ -194,18 +205,30 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        static class IfRowHasLessColumnsOptionRef implements Reference<IfRowHasLessColumnsOption> {
+        }
+
         @Widget(title = "If row has less columns", description = IfRowHasLessColumns.DESCRIPTION)
+        @ValueReference(IfRowHasLessColumnsOptionRef.class)
         @ValueSwitchWidget
         @Layout(IfRowHasLessColumns.class)
         @Persist(configKey = "support_short_data_rows", customPersistor = IfRowHasLessColumnsOptionPersistor.class)
         IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.INSERT_MISSING;
         // TODO defaults are currently not applied when the node is created anew; will be addressed in UIEXT-1740
 
+        static class SkipEmptyDataRowsRef implements Reference<Boolean> {
+        }
+
+        @ValueReference(SkipEmptyDataRowsRef.class)
         @Persist(configKey = "skip_empty_data_rows")
         boolean m_skipEmptyDataRows;
 
+        static class PrependFileIndexToRowIdRef implements Reference<Boolean> {
+        }
+
         // @Widget(title = "Prepend file index to RowID", description = PrependFileIndexToRowId.DESCRIPTION)
         // @Layout(PrependFileIndexToRowId.class)
+        @ValueReference(PrependFileIndexToRowIdRef.class)
         @Persist(configKey = "prepend_file_idx_to_row_id")
         boolean m_prependFileIndexToRowId;
         // TODO this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
@@ -226,43 +249,52 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         }
 
+        static class ColumnDelimiterRef extends ReferenceStateProvider<String> {
+        }
+
         @Widget(title = "Column delimiter", description = ColumnDelimiter.DESCRIPTION)
         @TextInputWidget(minLength = 1)
         @Layout(ColumnDelimiter.class)
         @Persist(configKey = "column_delimiter", customPersistor = StringEscapePersistor.class)
+        @ValueReference(ColumnDelimiterRef.class)
         @ValueProvider(ColumnDelimiterProvider.class)
         String m_columnDelimiter = ",";
+        // TODO This m_columnDelimiter provides does not provide its updated value to the CSVConfigId.m_columnDelimiter
+        // when it is updated via the ColumnDelimiterProvider
 
         static final class QuoteCharacterProvider extends ProviderFromCSVFormat<String> {
-
             @Override
             public String computeState(final DefaultNodeSettingsContext context) {
                 return Character.toString(getCsvFormat().getQuote());
             }
+        }
 
+        static class QuoteCharacterRef extends ReferenceStateProvider<String> {
         }
 
         @Widget(title = "Quote character", description = QuoteCharacter.DESCRIPTION)
         @TextInputWidget(maxLength = 1)
         @Layout(QuoteCharacter.class)
         @Persist(configKey = "quote_char")
+        @ValueReference(QuoteCharacterRef.class)
         @ValueProvider(QuoteCharacterProvider.class)
         String m_quoteCharacter = "\"";
-        // TODO  we get occasional hard crashes when trying to persist invalid settings like this, addressed in NXT-2480
 
         static final class QuoteEscapeCharacterProvider extends ProviderFromCSVFormat<String> {
-
             @Override
             public String computeState(final DefaultNodeSettingsContext context) {
                 return Character.toString(getCsvFormat().getQuoteEscape());
             }
+        }
 
+        static class QuoteEscapeCharacterRef extends ReferenceStateProvider<String> {
         }
 
         @Widget(title = "Quote escape character", description = QuoteEscapeCharacter.DESCRIPTION)
         @TextInputWidget(maxLength = 1)
         @Layout(QuoteEscapeCharacter.class)
         @Persist(configKey = "quote_escape_char")
+        @ValueReference(QuoteEscapeCharacterRef.class)
         @ValueProvider(QuoteEscapeCharacterProvider.class)
         String m_quoteEscapeCharacter = "\"";
 
@@ -273,7 +305,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 CUSTOM; //
 
             static final class IsCustomRowDelimiter extends OneOfEnumCondition<RowDelimiterOption> {
-
                 @Override
                 public RowDelimiterOption[] oneOf() {
                     return new RowDelimiterOption[]{RowDelimiterOption.CUSTOM};
@@ -281,7 +312,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
 
             static final class RowDelimiterPersistor extends NodeSettingsPersistorWithConfigKey<RowDelimiterOption> {
-
                 @Override
                 public RowDelimiterOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
                     return settings.getBoolean(getConfigKey()) ? LINE_BREAK : CUSTOM;
@@ -306,16 +336,19 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         }
 
+        static class RowDelimiterOptionRef extends ReferenceStateProvider<RowDelimiterOption> {
+        }
+
         @Widget(title = "Row delimiter", description = RowDelimiter.DESCRIPTION)
         @ValueSwitchWidget
         @Layout(RowDelimiter.class)
         @Signal(condition = IsCustomRowDelimiter.class)
         @Persist(configKey = "use_line_break_row_delimiter", customPersistor = RowDelimiterPersistor.class)
+        @ValueReference(RowDelimiterOptionRef.class)
         @ValueProvider(RowDelimiterOptionProvider.class)
         RowDelimiterOption m_rowDelimiterOption = RowDelimiterOption.LINE_BREAK;
 
         static final class CustomRowDelimiterProvider extends ProviderFromCSVFormat<String> {
-
             @Override
             public String computeState(final DefaultNodeSettingsContext context) {
                 return EscapeUtils.escape(getCsvFormat().getLineSeparatorString());
@@ -323,11 +356,15 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
 
         }
 
+        static class CustomRowDelimiterRef extends ReferenceStateProvider<String> {
+        }
+
         @Widget(title = "Custom row delimiter", description = CustomRowDelimiter.DESCRIPTION)
         @TextInputWidget(minLength = 1, pattern = ".|[\\t\\r\\n]|\\r\\n")
         @Layout(CustomRowDelimiter.class)
         @Effect(signals = IsCustomRowDelimiter.class, type = EffectType.SHOW)
         @Persist(configKey = "row_delimiter", customPersistor = StringEscapePersistor.class)
+        @ValueReference(CustomRowDelimiterRef.class)
         @ValueProvider(CustomRowDelimiterProvider.class)
         String m_customRowDelimiter = "\n";
 
@@ -346,7 +383,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         Void m_autoDetectButton;
 
         static class FileSelectionInternal implements WidgetGroup, PersistableSettings {
-
             @Persist(configKey = "SettingsModelID")
             String m_settingsModelID = "SMID_ReaderFileChooser";
 
@@ -379,14 +415,22 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "path_column_name", hidden = true)
         String m_filePathColumnName = "File Path";
 
+        static class LimitScannedRowsRef extends ReferenceStateProvider<Boolean> {
+        }
+
         @Widget(title = "Limit scanned rows", description = LimitScannedRows.DESCRIPTION)
+        @ValueReference(LimitScannedRowsRef.class)
         @Layout(LimitScannedRows.class)
         @Signal(id = LimitScannedRows.class, condition = TrueCondition.class)
         @Persist(configKey = "limit_data_rows_scanned")
         boolean m_limitScannedRows = true;
         // TODO merge into a single widget with UIEXT-1742
 
+        static class MaxDataRowsScannedRef extends ReferenceStateProvider<Long> {
+        }
+
         @Widget(title = "", description = "", hideTitle = true)
+        @ValueReference(MaxDataRowsScannedRef.class)
         @NumberInputWidget(min = 0)
         @Layout(LimitScannedRows.class)
         @Effect(signals = LimitScannedRows.class, type = EffectType.SHOW)
@@ -398,7 +442,11 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "limit_memory_per_column")
         boolean m_limitMemoryPerColumn = true;
 
+        static class MaximumNumberOfColumnsRef implements Reference<Integer> {
+        }
+
         @Widget(title = "Maximum number of columns", description = MaximumNumberOfColumns.DESCRIPTION)
+        @ValueReference(MaximumNumberOfColumnsRef.class)
         @NumberInputWidget(min = 0)
         @Layout(MaximumNumberOfColumns.class)
         @Persist(configKey = "maximum_number_of_columns")
@@ -412,14 +460,22 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 KEEP_QUOTES; //
         }
 
+        static class QuotedStringsOptionRef extends ReferenceStateProvider<QuotedStringsOption> {
+        }
+
         @Widget(title = "Quoted strings", description = QuotedStrings.DESCRIPTION, advanced = true)
+        @ValueReference(QuotedStringsOptionRef.class)
         @RadioButtonsWidget
         @Layout(QuotedStrings.class)
         @Persist(configKey = "quote_option")
         QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
 
+        static class ReplaceEmptyQuotedStringsByMissingValuesRef extends ReferenceStateProvider<Boolean> {
+        }
+
         @Widget(title = "Replace empty quoted string by missing values",
             description = ReplaceEmptyQuotedStringsByMissingValues.DESCRIPTION)
+        @ValueReference(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
         @Layout(ReplaceEmptyQuotedStringsByMissingValues.class)
         @Persist(configKey = "replace_empty_quotes_with_missing")
         boolean m_replaceEmptyQuotedStringsByMissingValues = true;
@@ -430,18 +486,34 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
         @Persist(configKey = "no_row_delimiters_in_quotes")
         boolean m_quotedStringsContainNoRowDelimiters;
 
+        static class MinChunkSizeInBytesRef implements Reference<Long> {
+        }
+
+        @ValueReference(MinChunkSizeInBytesRef.class)
         @Persist(configKey = "min_chunk_size_in_bytes")
         long m_minChunkSizeInBytes = 67108864;
 
+        static class MaxNumChunksPerFileRef implements Reference<Integer> {
+        }
+
+        @ValueReference(MaxNumChunksPerFileRef.class)
         @Persist(configKey = "max_num_chunks_per_file")
         int m_maxNumChunksPerFile = 8;
 
+        static class ThousandsSeparatorRef extends ReferenceStateProvider<String> {
+        }
+
         @Widget(title = "Thousands separator", description = ThousandsSeparator.DESCRIPTION)
+        @ValueReference(ThousandsSeparatorRef.class)
         @Layout(ThousandsSeparator.class)
         @Persist(configKey = "thousands_separator")
         String m_thousandsSeparator = "";
 
+        static class DecimalSeparatorRef extends ReferenceStateProvider<String> {
+        }
+
         @Widget(title = "Decimal separator", description = DecimalSeparator.DESCRIPTION)
+        @ValueReference(DecimalSeparatorRef.class)
         @TextInputWidget(minLength = 1)
         @Layout(DecimalSeparator.class)
         @Persist(configKey = "decimal_separator")
@@ -473,7 +545,6 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                     }
                 }
                 return IfSchemaChangesOption.USE_NEW_SCHEMA;
-
             }
 
             @Override
@@ -551,20 +622,32 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
             }
         }
 
+        static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
+        }
+
         @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
+        @ValueReference(SkipFirstDataRowsRef.class)
         @NumberInputWidget(min = 0)
         @Layout(SkipFirstDataRows.class)
         @Persist(customPersistor = SkipFirstDataRowsPersistor.class)
         long m_skipFirstDataRows;
 
+        static class LimitNumberOfRowsRef implements Reference<Boolean> {
+        }
+
         @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
+        @ValueReference(LimitNumberOfRowsRef.class)
         @Layout(LimitNumberOfRows.class)
         @Signal(id = LimitNumberOfRows.class, condition = TrueCondition.class)
         @Persist(configKey = "limit_data_rows")
         boolean m_limitNumberOfRows;
         // TODO merge into a single widget with UIEXT-1742
 
+        static class MaximumNumberOfRowsRef implements Reference<Long> {
+        }
+
         @Widget(title = "Maximum number of rows", description = MaximumNumberOfRows.DESCRIPTION)
+        @ValueReference(MaximumNumberOfRowsRef.class)
         @NumberInputWidget(min = 0)
         @Layout(MaximumNumberOfRows.class)
         @Effect(signals = LimitNumberOfRows.class, type = EffectType.SHOW)
@@ -633,13 +716,21 @@ public final class CSVTableReaderNodeSettings implements DefaultNodeSettings {
                 }
             }
 
+            static class FileEncodingRef extends ReferenceStateProvider<FileEncodingOption> {
+            }
+
             @Widget(title = "File encoding", description = FileEncoding.DESCRIPTION, advanced = true)
+            @ValueReference(FileEncodingRef.class)
             @ChoicesWidget(choices = EncodingChoicesProvider.class)
             @Layout(FileEncoding.class)
             @Signal(condition = IsOtherEncoding.class)
             FileEncodingOption m_fileEncoding;
 
+            static class CustomEncodingRef extends ReferenceStateProvider<String> {
+            }
+
             @Widget(title = "Custom encoding", description = CustomEncoding.DESCRIPTION, advanced = true)
+            @ValueReference(CustomEncodingRef.class)
             @Layout(CustomEncoding.class)
             @Effect(signals = IsOtherEncoding.class, type = EffectType.SHOW)
             String m_customEncoding;

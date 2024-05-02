@@ -62,17 +62,16 @@ public class CSVTableReaderNodeLayout {
     interface File {
         interface Source {
             // TODO will be updated in UIEXT-1764
-            String DESCRIPTION =
-                """
-                        Select a file location which stores the data you want to read. When clicking on the browse button,
-                        there are two default file system options to choose from:
-                        <br/>
-                        <ul>
-                            <li><b>The current Hub space</b>: Allows to select a file relative to the Hub space on which the
-                                workflow is run.</li>
-                            <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>
-                        </ul>
-                        """;
+            String DESCRIPTION = """
+                    Select a file location which stores the data you want to read. When clicking on the browse button,
+                    there are two default file system options to choose from:
+                    <br/>
+                    <ul>
+                        <li><b>The current Hub space</b>: Allows to select a file relative to the Hub space on which the
+                            workflow is run.</li>
+                        <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>
+                    </ul>
+                    """;
         }
 
         @After(Source.class)
@@ -376,5 +375,10 @@ public class CSVTableReaderNodeLayout {
         interface FilePathColumnName {
             String DESCRIPTION = "The name of the column containing the file path.";
         }
+    }
+
+    @Section(title = "Table Transformation")
+    @After(MultipleFileHandling.class)
+    interface Transformation {
     }
 }

@@ -88,89 +88,55 @@
     <config key="encoding">
         <entry key="charset" type="xstring" value="UTF-8"/>
     </config>
-    <entry key="version" type="xstring" value="V4_4"/>
-    <config key="individual_specs">
-        <config key="../test3.csv">
-            <entry key="num_columns" type="xint" value="1"/>
-            <config key="0">
-                <entry key="name" type="xstring" value="column1"/>
-                <entry key="has_type" type="xboolean" value="true"/>
-                <config key="type">
-                    <entry key="class" type="xstring" value="java.lang.String"/>
+    <config key="table_spec_config_Internals">
+        <entry key="version" type="xstring" value="V4_4"/>
+        <config key="individual_specs"/>
+        <config key="table_transformation">
+            <config key="columns">
+                <entry key="num_columns" type="xint" value="0"/>
+                <config key="intersection_indices">
+                    <entry key="array-size" type="xint" value="0"/>
                 </config>
             </config>
-        </config>
-    </config>
-    <config key="table_transformation">
-        <config key="columns">
-            <config key="0">
-                <config key="external_spec">
-                    <entry key="name" type="xstring" value="column1"/>
-                    <entry key="has_type" type="xboolean" value="true"/>
-                    <config key="type">
-                        <entry key="class" type="xstring" value="java.lang.String"/>
-                    </config>
-                </config>
-                <entry key="name" type="xstring" value="new name"/>
+            <entry key="skip_empty_columns" type="xboolean" value="false"/>
+            <entry key="enforce_types" type="xboolean" value="true"/>
+            <entry key="column_filter_mode" type="xstring" value="UNION"/>
+            <config key="unknown_columns_transformation">
+                <entry key="position" type="xint" value="1"/>
                 <entry key="keep" type="xboolean" value="true"/>
-                <entry key="position" type="xint" value="0"/>
-                <config key="production_path">
-                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
-                    <entry key="_converter_src" type="xstring" value="java.lang.String"/>
-                    <entry key="_converter_dst" type="xstring" value="String"/>
-                    <entry key="_converter_name" type="xstring" value="String"/>
-                    <config key="_converter_config"/>
-                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
-                    <entry key="_producer_src" type="xstring" value="java.lang.String"/>
-                    <entry key="_producer_dst" type="xstring" value="java.lang.String"/>
-                    <entry key="_producer_name" type="xstring" value="java.lang.String"/>
-                    <config key="_producer_config"/>
+                <entry key="force_type" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <entry key="source_group_id" type="xstring" value=""/>
+        <config key="config_id">
+            <config key="multi_table_read">
+                <config key="settings">
+                    <entry key="has_column_header" type="xboolean" value="true"/>
+                    <entry key="has_row_id" type="xboolean" value="false"/>
+                    <entry key="comment_char" type="xstring" value="#"/>
+                    <entry key="column_delimiter" type="xstring" value=","/>
+                    <entry key="quote_char" type="xstring" value="&quot;"/>
+                    <entry key="quote_escape_char" type="xstring" value="&quot;"/>
+                    <entry key="row_delimiter" type="xstring" value="%%00010"/>
+                    <entry key="use_line_break_row_delimiter" type="xboolean" value="true"/>
                 </config>
-            </config>
-            <entry key="num_columns" type="xint" value="1"/>
-            <config key="intersection_indices">
-                <entry key="array-size" type="xint" value="1"/>
-                <entry key="0" type="xint" value="0"/>
-            </config>
-        </config>
-        <entry key="skip_empty_columns" type="xboolean" value="false"/>
-        <entry key="enforce_types" type="xboolean" value="true"/>
-        <entry key="column_filter_mode" type="xstring" value="UNION"/>
-        <config key="unknown_columns_transformation">
-            <entry key="position" type="xint" value="1"/>
-            <entry key="keep" type="xboolean" value="true"/>
-            <entry key="force_type" type="xboolean" value="false"/>
-        </config>
-    </config>
-    <entry key="source_group_id" type="xstring" value="../test3.csv"/>
-    <config key="config_id">
-        <config key="multi_table_read">
-            <config key="settings">
-                <entry key="has_column_header" type="xboolean" value="true"/>
-                <entry key="has_row_id" type="xboolean" value="false"/>
-                <entry key="comment_char" type="xstring" value="#"/>
-                <entry key="column_delimiter" type="xstring" value=","/>
-                <entry key="quote_char" type="xstring" value="&quot;"/>
-                <entry key="quote_escape_char" type="xstring" value="&quot;"/>
-                <entry key="row_delimiter" type="xstring" value="%%00010"/>
-                <entry key="use_line_break_row_delimiter" type="xboolean" value="true"/>
-            </config>
-            <config key="advanced_settings">
-                <entry key="quote_option" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
-                <entry key="replace_empty_quotes_with_missing" type="xboolean" value="true"/>
-                <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>
-                <entry key="max_data_rows_scanned" type="xlong" value="10000"/>
-                <entry key="thousands_separator" type="xstring" value="%%00000"/>
-                <entry key="decimal_separator" type="xstring" value="."/>
-            </config>
-            <config key="encoding">
-                <entry key="charset" type="xstring" value="UTF-8"/>
-            </config>
-            <config key="limit_rows">
-                <entry key="skip_lines" type="xboolean" value="false"/>
-                <entry key="number_of_lines_to_skip" type="xlong" value="1"/>
-                <entry key="skip_data_rows" type="xboolean" value="false"/>
-                <entry key="number_of_rows_to_skip" type="xlong" value="1"/>
+                <config key="advanced_settings">
+                    <entry key="quote_option" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
+                    <entry key="replace_empty_quotes_with_missing" type="xboolean" value="true"/>
+                    <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>
+                    <entry key="max_data_rows_scanned" type="xlong" value="10000"/>
+                    <entry key="thousands_separator" type="xstring" value="%%00000"/>
+                    <entry key="decimal_separator" type="xstring" value="."/>
+                </config>
+                <config key="encoding">
+                    <entry key="charset" type="xstring" isnull="true" value=""/>
+                </config>
+                <config key="limit_rows">
+                    <entry key="skip_lines" type="xboolean" value="false"/>
+                    <entry key="number_of_lines_to_skip" type="xlong" value="0"/>
+                    <entry key="skip_data_rows" type="xboolean" value="false"/>
+                    <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
+                </config>
             </config>
         </config>
     </config>

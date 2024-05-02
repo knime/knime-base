@@ -116,5 +116,4 @@ public class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory // NOS
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
-
 }

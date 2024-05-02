@@ -65,14 +65,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import com.univocity.parsers.csv.CsvFormat;
 
 /**
- *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 public final class CSVFormatProvider extends CSVFormatAutoDetector implements StateProvider<CsvFormat> {
 
     // References on which the CSVFormat auto detection depends
 
-    static final class SkipFirstLinesRef implements Reference<Long> {
+    static final class SkipFirstLinesRef extends ReferenceStateProvider<Long> {
     }
 
     static final class CharsetRef implements Reference<CSVTableReaderNodeSettings.Encoding.Charset> {
@@ -81,7 +81,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     static final class BufferSizeRef implements Reference<Integer> {
     }
 
-    static final class CommentStartRef implements Reference<String> {
+    static final class CommentStartRef extends ReferenceStateProvider<String> {
     }
 
     static final class FileChooserRef implements Reference<FileChooser> {

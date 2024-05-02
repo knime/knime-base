@@ -70,7 +70,6 @@ import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDFactory;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsSerializer;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
@@ -182,25 +181,6 @@ enum CSVMultiTableReadConfigSerializer
     private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
 
     private final TableSpecConfigSerializer<Class<?>> m_tableSpecConfigSerializer;
-
-    private enum ClassTypeSerializer implements NodeSettingsSerializer<Class<?>> {
-            SERIALIZER;
-
-        @Override
-        public void save(final Class<?> object, final NodeSettingsWO settings) {
-            settings.addString("class", object.getName());
-        }
-
-        @Override
-        public Class<?> load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            try {
-                return Class.forName(settings.getString("class"));
-            } catch (ClassNotFoundException e) {
-                throw new InvalidSettingsException("Loading the type failed.", e);
-            }
-        }
-
-    }
 
     CSVMultiTableReadConfigSerializer() {
         ProducerRegistry<Class<?>, ?> producerRegistry = StringReadAdapterFactory.INSTANCE.getProducerRegistry();
