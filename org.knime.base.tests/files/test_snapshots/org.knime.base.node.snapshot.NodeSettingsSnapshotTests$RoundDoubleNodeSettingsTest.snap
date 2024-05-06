@@ -254,13 +254,13 @@
               "standard" : {
                 "oneOf" : [ {
                   "const" : "HALF_AWAY_FROM_ZERO",
-                  "title" : ".5 away from zero (Standard)"
+                  "title" : "Standard (.5 away from zero)"
                 }, {
                   "const" : "OTHER",
                   "title" : "Others"
                 } ],
                 "title" : "Rounding method",
-                "description" : "Select if you want to use the standard rounding method or one of the other available rounding methods.\n\n<ul>\n<li><b>.5 away from zero (Standard)</b>: This is the standard rounding method. It rounds towards the 'nearest neighbor'. If both\nneighbors are equidistant, it rounds up.\n</li>\n<li><b>Others</b>: Provides a number of advanced rounding methods to choose from.\n</li>\n</ul>",
+                "description" : "Select if you want to use the standard rounding method or one of the other available rounding methods.\n\n<ul>\n<li><b>Standard (.5 away from zero)</b>: This is the standard rounding method. It rounds towards the 'nearest neighbor'. If both\nneighbors are equidistant, it rounds up.\n</li>\n<li><b>Others</b>: Provides a number of advanced rounding methods to choose from.\n</li>\n</ul>",
                 "default" : "HALF_AWAY_FROM_ZERO"
               }
             },

@@ -127,7 +127,7 @@ public final class RoundDoubleNodeSettings implements DefaultNodeSettings {
     static final class RoundingMethod implements WidgetGroup, PersistableSettings {
 
         enum Standard {
-                @Label(value = ".5 away from zero (Standard)", description = """
+                @Label(value = "Standard (.5 away from zero)", description = """
                         This is the standard rounding method. It rounds towards the 'nearest neighbor'. If both
                         neighbors are equidistant, it rounds up.
                         """)
