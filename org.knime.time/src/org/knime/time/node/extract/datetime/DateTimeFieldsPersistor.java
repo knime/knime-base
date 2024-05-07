@@ -58,7 +58,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs.DeprecatedConfigsBuilder;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTimeField;
 import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.ExtractField;
 
@@ -120,12 +122,11 @@ public class DateTimeFieldsPersistor extends NodeSettingsPersistorWithConfigKey<
 
     private NodeSettingsPersistor<ExtractField[]> m_persistor;
 
-    @SuppressWarnings("unchecked")
     @Override
     public void setConfigKey(final String configKey) {
         super.setConfigKey(configKey);
-        m_persistor = (NodeSettingsPersistor<ExtractField[]>)FieldNodeSettingsPersistorFactory
-                .createDefaultPersistor(ExtractField[].class, getConfigKey());
+        m_persistor =
+            DefaultFieldNodeSettingsPersistorFactory.createDefaultPersistor(ExtractField[].class, getConfigKey());
     }
 
     /**
@@ -170,6 +171,17 @@ public class DateTimeFieldsPersistor extends NodeSettingsPersistorWithConfigKey<
             }
         }
         return fieldList.toArray(ExtractField[]::new);
+    }
+
+    @Override
+    public DeprecatedConfigs[] getDeprecatedConfigs() {
+        DeprecatedConfigsBuilder configBuilder =
+            new DeprecatedConfigs.DeprecatedConfigsBuilder().forNewConfigPath(getConfigKey());
+        for (String settingKey : topLevelKeys) {
+            configBuilder.forDeprecatedConfigPath(settingKey);
+        }
+        configBuilder.forDeprecatedConfigPath(SUBSECOND_UNITS);
+        return new DeprecatedConfigs[]{configBuilder.build()};
     }
 
     /**

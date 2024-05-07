@@ -144,7 +144,8 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         @Layout(ExtractFieldLayout.class)
         public DateTimeField m_field;
 
-        @Widget(title= "Column name", description = "The name of the column populated with the values of the selected field.")
+        @Widget(title= "Column name",
+                description = "The name of the column populated with the values of the selected field.")
         @Layout(ExtractFieldLayout.class)
         public String m_columnName;
     }
@@ -155,7 +156,7 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
         @Label(value = "Year", description = "The year number will be extracted and appended as an integer column.")
         YEAR,
 
-        @Label(value = "Year (week-based)",
+        @Label(value = "Year (Week-based)",
             description = "The year based on the week will be "
                 + "extracted and appended as an integer column. Depending on the selected locale, week 1 of a "
                 + " year may already start in the previous year, or week 52 of a year may last until the next "
@@ -163,13 +164,19 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
                 + " <i>Year (week-based)</i> would be 2011 while the extracted <i>Year</i> would be 2010).")
         YEAR_WEEK_BASED,
 
-        @Label(value = "Quarter", description = "If checked, the quarter of year will be extracted as a number in range [1-4] and appended as an integer column.")
+        @Label(value = "Quarter",
+            description = "If checked, the quarter of year will be extracted as a number in range  [1-4] and appended "
+                + "as an integer column.")
         QUARTER,
 
-        @Label(value = "Month (number)", description = "If checked, the month of year will be extracted as a number in range [1-12] and appended as an integer column.")
+        @Label(value = "Month (Number)",
+            description = "If checked, the month of year will be extracted as a number in range [1-12] and appended "
+                + "as an integer column.")
         MONTH_NUMBER,
 
-        @Label(value = "Month (name)", description = "If checked, the month of year will be extracted as a localized name and appended as a string column.")
+        @Label(value = "Month (Name)",
+            description = "If checked, the month of year will be extracted as a localized name and appended "
+                + "as a string column.")
         MONTH_NAME,
 
         @Label(value = "Week",
@@ -178,18 +185,22 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
                 + "chosen locale.")
         WEEK,
 
-        @Label(value = "Day of year", description = "If checked, the day of year will be extracted as a number in range [1-366] and appended as an integer column.")
+        @Label(value = "Day of Year",
+            description = "If checked, the day of year will be extracted as a number in range [1-366] and appended "
+                + "as an integer column.")
         DAY_OF_YEAR,
 
-        @Label(value = "Day of month", description = "If checked, the day of month will be extracted as a number in range [1-31] and appended as an integer column.")
+        @Label(value = "Day of Month",
+            description = "If checked, the day of month will be extracted as a number in range [1-31] and appended "
+                + "as an integer column.")
         DAY_OF_MONTH,
 
-        @Label(value = "Day of week (number)",
+        @Label(value = "Day of Week (Number)",
             description = "If checked, the day of week will be extracted as a number in range [1-7] and appended as "
                 + "an integer column. The numbering is based on the chosen locale.")
         DAY_OF_WEEK_NUMBER,
 
-        @Label(value = "Day of week (name)", description = "If checked, the day of week will be extracted as a "
+        @Label(value = "Day of Week (Name)", description = "If checked, the day of week will be extracted as a "
             + "localized name and appended as a string column.")
         DAY_OF_WEEK_NAME,
 
@@ -217,11 +228,11 @@ public class ExtractDateTimeFieldsSettings implements DefaultNodeSettings {
             + "as number in range [0-999,999,999] and appended as an integer column.")
         NANOSECOND,
 
-        @Label(value = "Time zone name", description = "If checked, the unique time zone name will be extracted as a "
+        @Label(value = "Time Zone Name", description = "If checked, the unique time zone name will be extracted as a "
             + "non-localized name and appended as a string column.")
         TIME_ZONE_NAME,
 
-        @Label(value = "Time zone offset", description = "If checked, the time zone offset will be extracted as a "
+        @Label(value = "Time Zone Offset", description = "If checked, the time zone offset will be extracted as a "
             + "localized, formatted number and appended as a string column.")
         TIME_ZONE_OFFSET
     }

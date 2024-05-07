@@ -54,8 +54,8 @@ import java.time.temporal.WeekFields;
 import java.util.Arrays;
 import java.util.Locale;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
@@ -86,7 +86,8 @@ import org.knime.time.node.extract.datetime.ExtractDateTimeFieldsSettings.DateTi
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class ExtractDateTimeFieldsNodeModel2 extends WebUISimpleStreamableFunctionNodeModel<ExtractDateTimeFieldsSettings> {
+public class ExtractDateTimeFieldsNodeModel2
+    extends WebUISimpleStreamableFunctionNodeModel<ExtractDateTimeFieldsSettings> {
 
     /**
      * @param configuration
@@ -146,17 +147,19 @@ public class ExtractDateTimeFieldsNodeModel2 extends WebUISimpleStreamableFuncti
         String suggestedColName = newColumnName;
         if (StringUtils.isEmpty(suggestedColName)) {
             try {
-                suggestedColName = DateTimeField.class.getField(field.name()).getAnnotation(Label.class).value();
-                //TODO: find or create a general util for column names?
-                suggestedColName = WordUtils.capitalizeFully(suggestedColName);
+                Label label = DateTimeField.class.getField(field.name()).getAnnotation(Label.class);
+                if (label == null) {
+                    throw new NoSuchFieldException("DateTimeField must provide 'Label' annotation");
+                }
+                suggestedColName = label.value();
             } catch (NoSuchFieldException | SecurityException ex) {
-                // TODO: throw an implementation error
+                throw new NotImplementedException(ex);
             }
         }
 
         // Date fields
         if (field == DateTimeField.YEAR) {
-            extractYear(suggestedColName, selectedColIdx, isLocalDate, isLocalTime, isZonedDateTime, nameGenerator,
+            extractYear(suggestedColName, selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime, nameGenerator,
                 rearranger);
         } else if (field == DateTimeField.YEAR_WEEK_BASED) {
             extractYearWeekBased(suggestedColName, selectedColIdx, isLocalDate, isLocalDateTime, isZonedDateTime,
@@ -738,7 +741,9 @@ public class ExtractDateTimeFieldsNodeModel2 extends WebUISimpleStreamableFuncti
 
                 @Override
                 protected DataCell getCell(final ZonedDateTimeValue value) {
-                    return StringCellFactory.create(value.getZonedDateTime().getZone().getDisplayName(TextStyle.FULL_STANDALONE, locale));
+                    return StringCellFactory.create(value.getZonedDateTime().getZone().getId());
+                    // TODO: introduce new actually localized field?
+                    //return StringCellFactory.create(value.getZonedDateTime().getZone().getDisplayName(TextStyle.FULL_STANDALONE, locale));
                 }
             });
         }
