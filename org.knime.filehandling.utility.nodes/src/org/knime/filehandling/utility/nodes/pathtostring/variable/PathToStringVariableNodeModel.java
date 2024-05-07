@@ -55,6 +55,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -97,9 +98,14 @@ final class PathToStringVariableNodeModel extends NodeModel {
 
     static final String CFG_VARIABLE_FILTER = "variable_filter";
 
+    private static final String CFG_ON_FV_CONFLICT_MAKE_UNIQUE = "on_fv_conflict_make_unique";
+
     private static final String CFG_CREATED_VARIABLE_NAME = "suffix";
 
     private static final String CFG_CREATE_KNIME_URL = "create_knime_url";
+
+    /* Since 5.3 (AP-19943) */
+    private SettingsModelBoolean m_onFVConflictMakeUnique = createSettingsModelOnFVConflictMakeUnique();
 
     private final SettingsModelString m_variableSuffix = createSettingsModelVariableSuffix();
 
@@ -122,6 +128,10 @@ final class PathToStringVariableNodeModel extends NodeModel {
         return new SettingsModelBoolean(CFG_CREATE_KNIME_URL, true);
     }
 
+    static SettingsModelBoolean createSettingsModelOnFVConflictMakeUnique() {
+        return new SettingsModelBoolean(CFG_ON_FV_CONFLICT_MAKE_UNIQUE, false);
+    }
+
     PathToStringVariableNodeModel() {
         super(new PortType[]{FlowVariablePortObject.TYPE}, new PortType[]{FlowVariablePortObject.TYPE});
         m_filter = new FlowVariableFilterConfiguration(CFG_VARIABLE_FILTER);
@@ -135,8 +145,10 @@ final class PathToStringVariableNodeModel extends NodeModel {
         if (filteredVariables.isEmpty()) {
             setWarningMessage("No path variables selected.");
         }
-        final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(
-            getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()).keySet());
+        final Optional<UniqueNameGenerator> nameGen = m_onFVConflictMakeUnique.getBooleanValue()
+                ? Optional.of(new UniqueNameGenerator(
+                    getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()).keySet()))
+                : Optional.empty();
         try (final MultiFSPathProviderFactory multiFSPathProviderCellFactory = new MultiFSPathProviderFactory()) {
             for (final Entry<String, FlowVariable> e : filteredVariables.entrySet()) {
                 final FSLocation fsLocation = e.getValue().getValue(FSLocationVariableType.INSTANCE);
@@ -147,7 +159,9 @@ final class PathToStringVariableNodeModel extends NodeModel {
                 } else {
                     result = fsLocation.getPath();
                 }
-                pushFlowVariableString(nameGenerator.newName(e.getKey() + m_variableSuffix.getStringValue()), result);
+                final var nameCandidate = e.getKey() + m_variableSuffix.getStringValue();
+                final var name = nameGen.map(g -> g.newName(nameCandidate)).orElse(nameCandidate);
+                pushFlowVariableString(name, result);
             }
         }
         return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
@@ -176,6 +190,7 @@ final class PathToStringVariableNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_filter.saveConfiguration(settings);
+        m_onFVConflictMakeUnique.saveSettingsTo(settings);
         m_variableSuffix.saveSettingsTo(settings);
         m_createKNIMEUrl.saveSettingsTo(settings);
     }
@@ -186,6 +201,8 @@ final class PathToStringVariableNodeModel extends NodeModel {
         conf.loadConfigurationInModel(settings);
         m_variableSuffix.validateSettings(settings);
         m_createKNIMEUrl.validateSettings(settings);
+
+        // Nothing to validate for CFG_ON_FV_CONFLICT_MAKE_UNIQUE, since added in 5.3 and could be missing
     }
 
     @Override
@@ -195,6 +212,14 @@ final class PathToStringVariableNodeModel extends NodeModel {
         m_filter = conf;
         m_variableSuffix.loadSettingsFrom(settings);
         m_createKNIMEUrl.loadSettingsFrom(settings);
+
+        // Since 5.3 (AP-19943)
+        if (settings.containsKey(CFG_ON_FV_CONFLICT_MAKE_UNIQUE)) {
+            m_onFVConflictMakeUnique.loadSettingsFrom(settings);
+        } else {
+            // old node loaded, load the old default value to stay backwards-compatible
+            m_onFVConflictMakeUnique = new SettingsModelBoolean(CFG_ON_FV_CONFLICT_MAKE_UNIQUE, true);
+        }
     }
 
     @Override

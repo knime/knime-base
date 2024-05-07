@@ -57,6 +57,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,6 +107,8 @@ final class StringToPathVariableNodeModel extends NodeModel {
 
     static final String CFG_VARIABLE_FILTER = "variable_filter";
 
+    private static final String CFG_ON_FV_CONFLICT_MAKE_UNIQUE = "on_fv_conflict_make_unique";
+
     private static final String CFG_SUFFIX = "suffix";
 
     private static final String CFG_FILE_SYSTEM = "file_system";
@@ -115,6 +118,9 @@ final class StringToPathVariableNodeModel extends NodeModel {
     private final SettingsModelFileSystem m_fileSystemModel;
 
     private final NodeModelStatusConsumer m_statusConsumer;
+
+    /* Since 5.3 (AP-19943) */
+    private SettingsModelBoolean m_onFVConflictMakeUnique = createSettingsModelOnFVConflictMakeUnique();
 
     private final SettingsModelString m_variableSuffix = createSettingsModelVariableSuffix();
 
@@ -140,6 +146,10 @@ final class StringToPathVariableNodeModel extends NodeModel {
 
     static SettingsModelBoolean createSettingsModelAbortOnMissingFile() {
         return new SettingsModelBoolean(CFG_ABORT_ON_MISSING_FILE, false);
+    }
+
+    static SettingsModelBoolean createSettingsModelOnFVConflictMakeUnique() {
+        return new SettingsModelBoolean(CFG_ON_FV_CONFLICT_MAKE_UNIQUE, false);
     }
 
     StringToPathVariableNodeModel(final PortsConfiguration portsConfig) {
@@ -178,8 +188,10 @@ final class StringToPathVariableNodeModel extends NodeModel {
                     FSPathProviderFactory.newFactory(m_fileSystemModel.getConnection(), locationSpec)) {
             // convert
             final Map<String, FlowVariable> filteredVariables = getFilteredVariables();
-            final UniqueNameGenerator nameGenerator = new UniqueNameGenerator(
-                getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()).keySet());
+            final Optional<UniqueNameGenerator> nameGen = m_onFVConflictMakeUnique.getBooleanValue()
+                ? Optional.of(new UniqueNameGenerator(
+                    getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()).keySet()))
+                : Optional.empty();
             for (final Entry<String, FlowVariable> e : filteredVariables.entrySet()) {
                 final String stringValue = e.getValue().getValue(StringType.INSTANCE);
                 CheckUtils.checkArgument(stringValue != null && !stringValue.trim().isEmpty(),
@@ -188,8 +200,9 @@ final class StringToPathVariableNodeModel extends NodeModel {
                 if (m_abortOnMissingFileModel.getBooleanValue()) {
                     checkIfFileExists(fsLocation, fsPathProviderFactory);
                 }
-                pushFlowVariable(nameGenerator.newName(e.getKey() + m_variableSuffix.getStringValue()),
-                    FSLocationVariableType.INSTANCE, fsLocation);
+                final var nameCandidate = e.getKey() + m_variableSuffix.getStringValue();
+                final var name = nameGen.map(g -> g.newName(nameCandidate)).orElse(nameCandidate);
+                pushFlowVariable(name, FSLocationVariableType.INSTANCE, fsLocation);
             }
         }
         // do nothing since configure already pushed the new variables
@@ -221,6 +234,7 @@ final class StringToPathVariableNodeModel extends NodeModel {
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_filter.saveConfiguration(settings);
+        m_onFVConflictMakeUnique.saveSettingsTo(settings);
         m_variableSuffix.saveSettingsTo(settings);
         m_fileSystemModel.saveSettingsTo(settings);
         m_abortOnMissingFileModel.saveSettingsTo(settings);
@@ -231,9 +245,17 @@ final class StringToPathVariableNodeModel extends NodeModel {
         final FlowVariableFilterConfiguration conf = new FlowVariableFilterConfiguration(CFG_VARIABLE_FILTER);
         conf.loadConfigurationInModel(settings);
         m_filter = conf;
-        m_fileSystemModel.loadSettingsFrom(settings);
         m_variableSuffix.loadSettingsFrom(settings);
+        m_fileSystemModel.loadSettingsFrom(settings);
         m_abortOnMissingFileModel.loadSettingsFrom(settings);
+
+        // Since 5.3 (AP-19943)
+        if (settings.containsKey(CFG_ON_FV_CONFLICT_MAKE_UNIQUE)) {
+            m_onFVConflictMakeUnique.loadSettingsFrom(settings);
+        } else {
+            // old node loaded, load the old default value to stay backwards-compatible
+            m_onFVConflictMakeUnique = new SettingsModelBoolean(CFG_ON_FV_CONFLICT_MAKE_UNIQUE, true);
+        }
     }
 
     @Override
@@ -243,6 +265,8 @@ final class StringToPathVariableNodeModel extends NodeModel {
         m_variableSuffix.validateSettings(settings);
         m_fileSystemModel.validateSettings(settings);
         m_abortOnMissingFileModel.validateSettings(settings);
+
+        // Nothing to validate for CFG_ON_FV_CONFLICT_MAKE_UNIQUE, since added in 5.3 and could be missing
     }
 
     @Override

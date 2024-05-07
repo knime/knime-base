@@ -79,6 +79,8 @@ final class PathToStringVariableNodeDialog extends NodeDialogPane {
 
     private final DialogComponentString m_variableSuffixComponent;
 
+    private final DialogComponentBoolean m_onFVConflictAppendSuffixComponent;
+
     private final DialogComponentBoolean m_createKNIMEUrl;
 
     PathToStringVariableNodeDialog() {
@@ -90,6 +92,11 @@ final class PathToStringVariableNodeDialog extends NodeDialogPane {
 
         m_createKNIMEUrl = new DialogComponentBoolean(PathToStringVariableNodeModel.createSettingsModelCreateKNIMEUrl(),
             "Create KNIME URL for 'Relative to' and 'Mountpoint' file systems");
+
+        m_onFVConflictAppendSuffixComponent =
+            new DialogComponentBoolean(PathToStringVariableNodeModel.createSettingsModelOnFVConflictMakeUnique(),
+                "If the output name conflicts with an existing flow variable name, append another suffix"
+                    + " (like \"... (#1)\")");
 
         addTab("Settings", createPanel());
     }
@@ -125,6 +132,9 @@ final class PathToStringVariableNodeDialog extends NodeDialogPane {
         p.add(m_variableSuffixComponent.getComponentPanel(), gbc.build());
 
         gbc.resetX().incY().setWidth(2).setWeightX(1);
+        p.add(m_onFVConflictAppendSuffixComponent.getComponentPanel(), gbc.build());
+
+        gbc.resetX().incY().setWidth(2).setWeightX(1);
         p.add(m_createKNIMEUrl.getComponentPanel(), gbc.build());
 
         return p;
@@ -137,6 +147,7 @@ final class PathToStringVariableNodeDialog extends NodeDialogPane {
         m_filter.saveConfiguration(config);
         config.saveConfiguration(settings);
         m_variableSuffixComponent.saveSettingsTo(settings);
+        m_onFVConflictAppendSuffixComponent.saveSettingsTo(settings);
         m_createKNIMEUrl.saveSettingsTo(settings);
     }
 
@@ -148,6 +159,7 @@ final class PathToStringVariableNodeDialog extends NodeDialogPane {
         config.loadConfigurationInDialog(settings, getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
         m_filter.loadConfiguration(config, getAvailableFlowVariables(FSLocationVariableType.INSTANCE));
         m_variableSuffixComponent.loadSettingsFrom(settings, specs);
+        m_onFVConflictAppendSuffixComponent.loadSettingsFrom(settings, specs);
         m_createKNIMEUrl.loadSettingsFrom(settings, specs);
     }
 

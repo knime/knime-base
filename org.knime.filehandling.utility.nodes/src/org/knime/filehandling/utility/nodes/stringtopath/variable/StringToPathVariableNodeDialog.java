@@ -92,6 +92,8 @@ final class StringToPathVariableNodeDialog extends NodeDialogPane {
 
     private final DialogComponentFileSystem m_fileSystemComponent;
 
+    private final DialogComponentBoolean m_onFVConflictAppendSuffixComponent;
+
     private final DialogComponentBoolean m_abortOnMissingFileComponent;
 
     /**
@@ -120,8 +122,13 @@ final class StringToPathVariableNodeDialog extends NodeDialogPane {
                 "Suffix added to the new variables:", true, 15);
 
         m_abortOnMissingFileComponent =
-            new DialogComponentBoolean(StringToPathVariableNodeModel.createSettingsModelAbortOnMissingFile(),
-                "Fail if file/folder does not exist");
+                new DialogComponentBoolean(StringToPathVariableNodeModel.createSettingsModelAbortOnMissingFile(),
+                    "Fail if file/folder does not exist");
+
+        m_onFVConflictAppendSuffixComponent =
+            new DialogComponentBoolean(StringToPathVariableNodeModel.createSettingsModelOnFVConflictMakeUnique(),
+                "If the output name conflicts with an existing flow variable name, append another suffix"
+                    + " (like \"... (#1)\")");
 
         addTab("Settings", getOptionsPanel());
     }
@@ -186,6 +193,7 @@ final class StringToPathVariableNodeDialog extends NodeDialogPane {
             new GBCBuilder().resetX().resetY().setWeightX(1).setWeightY(0).fillNone().anchorFirstLineStart();
         gbc.insets(0, 5, 0, 0);
         p.add(m_variableSuffixComponent.getComponentPanel(), gbc.build());
+        p.add(m_onFVConflictAppendSuffixComponent.getComponentPanel(), gbc.incY().build());
         p.add(m_abortOnMissingFileComponent.getComponentPanel(), gbc.incY().build());
         return p;
     }
@@ -198,6 +206,7 @@ final class StringToPathVariableNodeDialog extends NodeDialogPane {
         config.saveConfiguration(settings);
         m_fileSystemComponent.saveSettingsTo(settings);
         m_variableSuffixComponent.saveSettingsTo(settings);
+        m_onFVConflictAppendSuffixComponent.saveSettingsTo(settings);
         m_abortOnMissingFileComponent.saveSettingsTo(settings);
     }
 
@@ -210,6 +219,7 @@ final class StringToPathVariableNodeDialog extends NodeDialogPane {
         m_filter.loadConfiguration(config, getAvailableFlowVariables(StringType.INSTANCE));
         m_fileSystemComponent.loadSettingsFrom(settings, specs);
         m_abortOnMissingFileComponent.loadSettingsFrom(settings, specs);
+        m_onFVConflictAppendSuffixComponent.loadSettingsFrom(settings, specs);
         m_variableSuffixComponent.loadSettingsFrom(settings, specs);
     }
 }
