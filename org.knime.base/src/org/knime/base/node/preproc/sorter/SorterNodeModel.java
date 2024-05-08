@@ -325,8 +325,9 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
      */
     @Override
     public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
-            final PortObjectSpec[] inSpecs, final SorterNodeSettings settings) throws InvalidSettingsException {
+            final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         final var tableSpec = (DataTableSpec) inSpecs[0];
+        final var settings = getSettings().orElseThrow();
         final var comparator = toRowComparator(tableSpec, settings).toRowReadComparator();
 
         return new StreamableOperator() {
@@ -342,7 +343,7 @@ public class SorterNodeModel extends WebUINodeModel<SorterNodeSettings> {
                 } finally {
                     rowOutput.close();
                 }
-            };
+            }
         };
     }
 }
