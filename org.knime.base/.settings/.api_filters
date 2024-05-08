@@ -32,6 +32,22 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src-deprecated/org/knime/base/node/preproc/normalize3/Normalizer3NodeDialog.java" type="org.knime.base.node.preproc.normalize3.Normalizer3NodeDialog">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.normalize3.Normalizer3NodeDialog"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src-deprecated/org/knime/base/node/preproc/normalize3/NormalizerConfig.java" type="org.knime.base.node.preproc.normalize3.NormalizerConfig">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.normalize3.NormalizerConfig"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/meta/looper/chunk/LoopStartChunkNodeFactory.java" type="org.knime.base.node.meta.looper.chunk.LoopStartChunkNodeFactory">
         <filter comment="AP-21278 - migration to new web ui nodes (concrete node factory not meant to be public api)" id="337768515">
             <message_arguments>
@@ -53,38 +69,59 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/preproc/filter/nominal/NominalValueRowFilterNodeModel.java" type="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeModel">
-        <filter comment="UIEXT-1563: Migrated NominalValueRowFilter to WebUI" id="338722907">
+    <resource path="src/org/knime/base/node/preproc/filter/nominal/NominalValueRowFilterNodeFactory.java" type="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeFactory">
+        <filter id="305365105">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeModel"/>
-                <message_argument value="NominalValueRowFilterNodeModel()"/>
-            </message_arguments>
-        </filter>
-        <filter comment="UIEXT-1563: Migrated NominalValueRowFilter to WebUI" id="338722907">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeModel"/>
-                <message_argument value="NominalValueRowFilterNodeModel(boolean)"/>
+                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeFactory"/>
+                <message_argument value="org.knime.base_5.3.0"/>
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/preproc/filter/nominal/NominalValueRowSplitterNodeDialog.java" type="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeDialog">
-        <filter comment="UIEXT-1563: Migrate Nominal value row filter node" id="1110441988">
+    <resource path="src/org/knime/base/node/preproc/filter/nominal/NominalValueRowFilterNodeModel.java" type="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeModel">
+        <filter id="305365105">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeDialog"/>
+                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowFilterNodeModel"/>
+                <message_argument value="org.knime.base_5.3.0"/>
             </message_arguments>
         </filter>
     </resource>
     <resource path="src/org/knime/base/node/preproc/filter/nominal/NominalValueRowSplitterNodeFactory.java" type="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeFactory">
-        <filter comment="UIEXT-1563: Migrated NominalValueRowFilter to WebUI" id="338792546">
+        <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeFactory"/>
-                <message_argument value="createNodeModel()"/>
+                <message_argument value="org.knime.base_5.3.0"/>
             </message_arguments>
         </filter>
-        <filter comment="UIEXT-1563: Migrated NominalValueRowFilter to WebUI" id="338792546">
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/joiner3/Joiner3NodeFactory.java" type="org.knime.base.node.preproc.joiner3.Joiner3NodeFactory">
+        <filter id="305365105">
             <message_arguments>
-                <message_argument value="org.knime.base.node.preproc.filter.nominal.NominalValueRowSplitterNodeFactory"/>
-                <message_argument value="createNodeView(int, NominalValueRowFilterNodeModel)"/>
+                <message_argument value="org.knime.base.node.preproc.joiner3.Joiner3NodeFactory"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/joiner3/JoinerNodeFunc.java" type="org.knime.base.node.preproc.joiner3.JoinerNodeFunc">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.joiner3.JoinerNodeFunc"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/normalize3/Normalizer3NodeFactory.java" type="org.knime.base.node.preproc.normalize3.Normalizer3NodeFactory">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.normalize3.Normalizer3NodeFactory"/>
+                <message_argument value="org.knime.base_5.3.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/normalize3/Normalizer3NodeModel.java" type="org.knime.base.node.preproc.normalize3.Normalizer3NodeModel">
+        <filter id="305365105">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.preproc.normalize3.Normalizer3NodeModel"/>
+                <message_argument value="org.knime.base_5.3.0"/>
             </message_arguments>
         </filter>
     </resource>
